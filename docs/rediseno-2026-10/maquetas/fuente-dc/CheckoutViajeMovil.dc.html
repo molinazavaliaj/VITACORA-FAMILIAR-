@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Checkout Viaje en móvil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+a{color:#ededed}a:hover{color:#ffffff}
+input::placeholder{color:#6f6c66}
+.m-btn{transition:transform 160ms cubic-bezier(.2,.7,.2,1),box-shadow 200ms cubic-bezier(.2,.7,.2,1),filter 200ms}
+.m-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.28);filter:brightness(1.05)}
+.m-btn:active{transform:scale(.97);box-shadow:none;transition-duration:80ms}
+.m-ghost{transition:border-color 200ms,background-color 200ms,transform 160ms}
+.m-ghost:active{transform:scale(.97)}
+.m-card{transition:border-color 200ms cubic-bezier(.2,.7,.2,1),background-color 200ms cubic-bezier(.2,.7,.2,1),color 200ms,transform 200ms cubic-bezier(.2,.7,.2,1)}
+.m-card:active{transform:scale(.985)}
+.m-dot{transition:border-width 200ms cubic-bezier(.2,.7,.2,1),border-color 200ms}
+@keyframes stepIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.m-step{animation:stepIn 320ms cubic-bezier(.2,.7,.2,1) both}
+@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:1ms!important;transition-duration:1ms!important}}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #9dbdff;outline-offset:2px}
+
+/* versión móvil (390 px) */
+header nav > *:not(:last-child){display:none!important}
+header > div, header{padding-left:20px!important;padding-right:20px!important}
+h1{font-size:40px!important;line-height:1.08!important}
+h2{font-size:32px!important;line-height:1.12!important}
+h3{font-size:22px!important}
+section > div{padding-left:20px!important;padding-right:20px!important}
+section > div[style*="padding: 1"]{padding-top:64px!important;padding-bottom:64px!important}
+[style*="grid-template-columns: repeat("]{grid-template-columns:minmax(0,1fr)!important}
+[style*="padding: 52px"],[style*="padding: 48px"]{padding:26px!important}
+[style*="gap: 64px"],[style*="gap: 56px"],[style*="gap: 48px"]{gap:36px!important}
+[style*="width: 320px"]{width:100%!important;max-width:320px}
+[style*="font-size: 64px"],[style*="font-size: 72px"],[style*="font-size: 80px"],[style*="font-size: 96px"]{font-size:48px!important}
+[style*="grid-column: span 2"]{grid-column:auto!important}
+[style*="repeat(4, minmax(0, 1fr)); gap: 10px"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+[aria-label="Pasos de la compra"] span[style*="white-space: nowrap"][style*="#8f8c85"]{display:none!important}
+[aria-label="Pasos de la compra"] > div{flex:0 0 auto!important}
+[aria-label="Pasos de la compra"]{gap:6px!important;flex-wrap:nowrap!important}
+section[data-hero]{height:auto!important;padding-bottom:430px!important}
+section[data-hero] video{top:auto!important;bottom:0!important;height:430px!important}
+section[data-hero] > div[style*="linear-gradient"]{background:linear-gradient(180deg,#0a0a0a 0%,#0a0a0a 55%,rgba(10,10,10,0.75) 66%,rgba(10,10,10,0) 76%,rgba(10,10,10,0) 90%,#0a0a0a 100%)!important}
+</style>
+</helmet>
+<div style="background: #0a0a0a; color: #ededed; min-height: 100vh;">
+<header style="border-bottom: 1px solid #1f1e1b;"><div style="max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <a href="#" aria-label="Vitácora, inicio" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #ededed;">
+        <svg viewBox="-78 31 356 228" style="height: 28px; width: auto;" aria-hidden="true">
+          <ellipse cx="86.14" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="113.86" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="73.23" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="126.77" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="60.65" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="139.35" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="48.29" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="151.71" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="36.08" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="163.92" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="23.99" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="176.01" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="12" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="188" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+        </svg>
+        <span style="font-family: Archivo, sans-serif; font-size: 13px; letter-spacing: 0.22em; font-weight: 500;">VITÁCORA</span>
+      </a>
+  <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; font-family: Archivo, sans-serif; font-size: 14px; color: #b4b1a9;">
+    <span style="display: flex; align-items: center; gap: 8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg> Pago seguro y cifrado</span>
+    <a href="#" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #ededed;"><span style="color: #25a560; display: flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2-.2-.2-.4-.3z"></path></svg></span>¿Dudas? Escríbenos</a>
+  </div>
+</div></header>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: 36px 24px 90px; box-sizing: border-box;">
+<sc-if value="{{notDone}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; gap: 14px; margin-bottom: 36px; flex-wrap: wrap;" aria-label="Pasos de la compra"><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="{{sb1}}">1</span><span style="{{sl1}}">Su libro</span></div><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="{{sb2}}">2</span><span style="{{sl2}}">Pago</span></div><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="{{sb3}}">3</span><span style="{{sl3}}">El viaje</span></div></div>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px;">
+
+<sc-if value="{{is1}}" hint-placeholder-val="{{false}}"><div class="m-step" style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.18em; color: #b4b1a9;">PASO 1 DE 3</span><h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 38px; line-height: 1.1; color: #ffffff;">¿Cómo queréis vuestro libro?</h1><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">Todas las opciones incluyen el viaje entero, sin límite de días, y el libro en PDF con vuestra voz.</p></div>
+  <div style="display: flex; flex-direction: column; gap: 12px;"><button type="button" class="m-card" onClick="{{pick_digital}}" style="{{st_digital}}"><span class="m-dot" style="{{dot_digital}}"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Libro digital</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">PDF para leer en cualquier pantalla, con vuestros audios a un toque.</span></span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; white-space: nowrap;">49 €</span></button><button type="button" class="m-card" onClick="{{pick_impreso}}" style="{{st_impreso}}"><span class="m-dot" style="{{dot_impreso}}"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="align-self: flex-start; font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: 0.12em; color: #14140f; background: #9dbdff; border-radius: 999px; padding: 4px 10px;">PARA REGALAR</span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Libro impreso en tapa dura + digital</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">El mismo libro, impreso y encuadernado, y también en PDF con su voz. Llega a casa unos 9 días después de cerrar el libro, al volver.</span></span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; white-space: nowrap;">{{precioOpcionImpreso}}</span></button></div>
+  <div class="m-card" style="{{st_marco}}">
+    <img src="/_blob/f5dba5447077332abad59a8bd3e24bab" alt="Marco negro con la foto de Sara y Dani en Lisboa junto a su libro de viaje" style="width: 170px; flex: none; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 14px; display: block;">
+    <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: 0.16em; color: #9dbdff;">AÑADE UN DETALLE</span>
+      <span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 26px; line-height: 1.15; color: #ffffff;">Vuestra foto del viaje, enmarcada.</span>
+      <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5; color: #c9c6be;">Marco negro de 13 × 18 cm con la foto que elijáis. Lleva un chip escondido: acercáis el móvil y se abre el libro del viaje, con vuestra voz.</span>
+      <button type="button" class="m-card" onClick="{{toggleMarco}}" style="{{marcoBtn}}"><span style="{{marcoBox}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>{{marcoTxt}}</button>
+    </div>
+  </div>
+  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;"><button type="button" onClick="{{next}}" class="m-btn" style="height: 56px; padding: 0 34px; border-radius: 999px; border: none; background: #7aa7ff; color: #14140f; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;">Continuar al pago</button></div>
+</div></sc-if>
+
+<sc-if value="{{is2}}" hint-placeholder-val="{{false}}"><div class="m-step" style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.18em; color: #b4b1a9;">PASO 2 DE 3</span><h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 38px; line-height: 1.1; color: #ffffff;">Tus datos y el pago</h1><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">Te mandamos el recibo a tu email (y la tarjeta, si es un regalo). Los datos del viaje los rellenas después: un minuto.</p></div>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+    <button type="button" style="height: 52px; border-radius: 12px; border: none; background: #14140f; color: #ffffff; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Apple Pay</button>
+    <button type="button" style="height: 52px; border-radius: 12px; border: 1px solid #3a3833; background: #ffffff; color: #1f1f1f; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Google Pay</button>
+    <button type="button" style="height: 52px; border-radius: 12px; border: none; background: #ffc439; color: #1b2a4e; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">PayPal</button>
+    <button type="button" style="height: 52px; border-radius: 12px; border: none; background: #05c3dd; color: #072b33; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Bizum</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 14px; font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;"><span style="flex: 1; height: 1px; background: #2a2925;"></span>o paga con tarjeta<span style="flex: 1; height: 1px; background: #2a2925;"></span></div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-email" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Tu email</label><input id="co-email" type="email" placeholder="nombre@email.com" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-tu" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Tu nombre</label><input id="co-tu" type="text" placeholder="Nombre y apellidos" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px; grid-column: span 2;"><label for="co-card" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Número de tarjeta</label><input id="co-card" type="text" inputmode="numeric" placeholder="1234 1234 1234 1234" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-exp" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Caducidad</label><input id="co-exp" type="text" placeholder="MM / AA" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-cvc" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">CVC</label><input id="co-cvc" type="text" placeholder="123" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <sc-if value="{{esImpreso}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; grid-column: span 2;"><label for="co-dir" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Dirección de envío del libro impreso</label><input id="co-dir" type="text" placeholder="Calle, número, piso, código postal y ciudad" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">Llega unos 9 días después de cerrar el libro. El PDF lo tienes antes.</span></div></sc-if>
+  </div>
+  <button type="button" class="m-btn" onClick="{{pay}}" style="height: 60px; border-radius: 999px; border: none; background: #7aa7ff; color: #14140f; font-family: Archivo, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg> Pagar {{totalTxt}}</button>
+  <span style="font-family: Archivo, sans-serif; font-size: 12px; line-height: 1.6; color: #8f8c85;">Al pagar aceptas las condiciones de uso y la política de privacidad. {{garTxt}} completo.</span>
+  <button type="button" onClick="{{back}}" class="m-ghost" style="height: 56px; padding: 0 22px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 15px; cursor: pointer; align-self: flex-start;">Atrás</button>
+</div></sc-if>
+
+<sc-if value="{{is3}}" hint-placeholder-val="{{false}}"><div class="m-step" style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 16px; background: #14201a; border: 1px solid #24563c; font-family: Archivo, sans-serif; font-size: 15px; color: #d7f0e1;"><span style="width: 26px; height: 26px; flex: none; border-radius: 999px; background: #3fbf7f; color: #0b1a12; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span><span>Pago recibido · {{totalTxt}}. Te hemos mandado el recibo.</span></div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.18em; color: #b4b1a9;">PASO 3 DE 3 · EL VIAJE</span><h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 38px; line-height: 1.1; color: #ffffff;">¿Quién se va de viaje?</h1><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">{{intro3}}</p></div>
+  <div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Viajáis…</span><div style="display: flex; flex-wrap: wrap; gap: 10px;"><button type="button" class="m-card" onClick="{{pick_padre}}" style="{{st_padre}}">En pareja</button><button type="button" class="m-card" onClick="{{pick_madre}}" style="{{st_madre}}">Solo</button><button type="button" class="m-card" onClick="{{pick_abuelo}}" style="{{st_abuelo}}">Con amigos</button><button type="button" class="m-card" onClick="{{pick_abuela}}" style="{{st_abuela}}">En familia</button><button type="button" class="m-card" onClick="{{pick_otra}}" style="{{st_otra}}">Luna de miel</button></div></div>
+  <sc-if value="{{esOtra}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">¿Cómo nos referimos a esa persona en los textos?</span><div style="display: flex; flex-wrap: wrap; gap: 10px;"><button type="button" class="m-card" onClick="{{pick_g_el}}" style="{{st_g_el}}">Él</button><button type="button" class="m-card" onClick="{{pick_g_ella}}" style="{{st_g_ella}}">Ella</button></div></div></sc-if>
+  <div style="display: flex; flex-direction: column; gap: 8px; max-width: 420px;"><label for="co-nombre" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">{{nomLbl}}</label><input id="co-nombre" type="text" value="{{nombre}}" onChange="{{onNombre}}" placeholder="Lisboa y Oporto" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"><sc-if value="{{errNombre}}" hint-placeholder-val="{{false}}"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #f0a37a;">Ponle un nombre al viaje para seguir.</span></sc-if></div>
+  <sc-if value="{{noYo}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">¿Es un regalo?</span>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;"><button type="button" class="m-card" onClick="{{pick_regalo}}" style="{{st_regalo}}"><span class="m-dot" style="{{dot_regalo}}"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Sí, es un regalo</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">Para una luna de miel o el viaje de alguien. Te damos una tarjeta para regalar.</span></span></button><button type="button" class="m-card" onClick="{{pick_ya}}" style="{{st_ya}}"><span class="m-dot" style="{{dot_ya}}"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Es para nuestro viaje</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">Empieza el primer día del viaje.</span></span></button></div></div></sc-if>
+  <div style="height: 1px; background: #23221e;"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;"><h2 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 28px; line-height: 1.15; color: #ffffff;">{{cuandoH}}</h2><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">{{cuandoP}}</p></div>
+  <sc-if value="{{yes}}" hint-placeholder-val="{{true}}">
+  <div style="display: flex; flex-direction: column; gap: 18px;">
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 520px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-salida" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Salida</label><input id="co-salida" type="text" value="2 jun 2027" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+    <div style="display: flex; flex-direction: column; gap: 8px;"><label for="co-vuelta" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Vuelta</label><input id="co-vuelta" type="text" value="9 jun 2027" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Destinos</span><div style="display: flex; flex-wrap: wrap; gap: 10px;"><span style="height: 46px; padding: 0 18px; border-radius: 999px; display: flex; align-items: center; gap: 8px; font-family: Archivo, sans-serif; font-size: 15px; background: #7aa7ff; color: #14140f; border: 1px solid #7aa7ff;">Lisboa <span aria-hidden="true">×</span></span><span style="height: 46px; padding: 0 18px; border-radius: 999px; display: flex; align-items: center; gap: 8px; font-family: Archivo, sans-serif; font-size: 15px; background: #7aa7ff; color: #14140f; border: 1px solid #7aa7ff;">Oporto <span aria-hidden="true">×</span></span><button type="button" style="height: 46px; padding: 0 18px; border-radius: 999px; font-family: Archivo, sans-serif; font-size: 15px; background: transparent; color: #ededed; border: 1px solid #3a3833; cursor: pointer;">+ Añadir</button></div></div>
+  <div style="display: flex; gap: 12px; align-items: flex-start; max-width: 560px; padding: 14px 16px; border-radius: 14px; background: #12120f; border: 1px solid #2a2925; font-family: Archivo, sans-serif; font-size: 14px; line-height: 1.5; color: #c9c6be;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 1px; color: #9dbdff;"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span>Os escribimos a las 22:00, hora de donde estéis. La vuelta nos dice cuándo cerrar el libro: si cambia, la movéis desde el panel.</span></div>
+</div>
+  <sc-if value="{{needsDate}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; max-width: 260px;"><label for="co-fecha" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">{{fechaLbl}}</label><input id="co-fecha" type="text" placeholder="dd / mm / aaaa" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div></sc-if>
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 24px;">
+    <div style="width: 220px; flex: none; aspect-ratio: 3 / 2; border-radius: 10px; background: #f3ece0; color: #2a2620; box-shadow: 0 18px 40px rgba(0,0,0,0.45); transform: rotate(-3deg); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; padding: 16px; box-sizing: border-box; text-align: center;"><span style="font-family: Archivo, sans-serif; font-size: 9px; letter-spacing: 0.2em; color: #8a7350;">UN REGALO PARA EL VIAJE</span><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 22px; line-height: 1.1;">Este viaje<br>va a ser un libro.</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; font-style: italic; color: #5c5446;">Cada noche, contadlo con un audio.</span></div>
+    <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px;"><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Si es un regalo: tarjeta para imprimir</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5; color: #b4b1a9;">Te la mandamos al email nada más comprar. La imprimes, la metes en un sobre y se la das ese día.</span></div>
+  </div>
+  </sc-if>
+  <sc-if value="{{esYo}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-wrap: wrap; gap: 10px;"><button type="button" class="m-card" onClick="{{pick_hoy}}" style="{{st_hoy}}">Hoy mismo</button><button type="button" class="m-card" onClick="{{pick_manana}}" style="{{st_manana}}">Mañana</button><button type="button" class="m-card" onClick="{{pick_fechayo}}" style="{{st_fechayo}}">Elegir fecha</button></div><sc-if value="{{needsDate}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; max-width: 260px;"><label for="co-fecha" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">{{fechaLbl}}</label><input id="co-fecha" type="text" placeholder="dd / mm / aaaa" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"></div></sc-if></sc-if>
+  <sc-if value="{{noYo}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 8px; max-width: 420px;"><label for="co-tel" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">{{telLbl}} <span style="color: #8f8c85;">{{telSub}}</span></label><input id="co-tel" type="tel" placeholder="+34 600 000 000" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">{{telHelp}}</span></div></sc-if>
+  <sc-if value="{{esYo}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; max-width: 420px;"><label for="co-tel-yo" style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Tu WhatsApp</label><input id="co-tel-yo" type="tel" placeholder="+34 600 000 000" style="height: 52px; padding: 0 16px; border-radius: 14px; border: 1px solid #3a3833; background: #0a0a0a; color: #ffffff; font-family: Archivo, sans-serif; font-size: 16px; outline: none; box-sizing: border-box; width: 100%;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">Te escribimos desde «Vitácora», cuenta de empresa. Sin apps nuevas.</span></div></sc-if>
+  <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;"><button type="button" onClick="{{next}}" class="m-btn" style="height: 56px; padding: 0 34px; border-radius: 999px; border: none; background: #7aa7ff; color: #14140f; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;">Terminar</button><button type="button" onClick="{{later}}" style="border: none; background: transparent; padding: 0; color: #b4b1a9; font-family: Archivo, sans-serif; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer;">Lo completo más tarde</button></div>
+  <span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">Si lo dejas para luego, te lo recordamos por email y lo terminas desde tu panel.</span>
+</div></sc-if>
+
+<sc-if value="{{is4}}" hint-placeholder-val="{{false}}"><div class="m-step" style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 14px; max-width: 640px;"><span style="width: 56px; height: 56px; border-radius: 999px; background: #7aa7ff; color: #14140f; display: flex; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.18em; color: #b4b1a9;">PEDIDO CONFIRMADO</span><h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 46px; line-height: 1.08; color: #ffffff;">{{doneH}}</h1><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">{{doneP}}</p></div>
+  <div style="display: flex; flex-direction: column; border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 8px 26px;">
+    <div style="display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid #23221e;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #9dbdff; width: 92px; flex: none;">Hoy</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.5; color: #e4e1da;">{{t1}}</span></div>
+    <div style="display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid #23221e;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #9dbdff; width: 92px; flex: none;">{{l2}}</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.5; color: #e4e1da;">{{t2}}</span></div>
+    <div style="display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid #23221e;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #9dbdff; width: 92px; flex: none;">Cada noche</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.5; color: #e4e1da;">{{t3}}</span></div>
+    <div style="display: flex; gap: 18px; padding: 18px 0;"><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #9dbdff; width: 92px; flex: none;">Al terminar</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.5; color: #e4e1da;">{{t4}}</span></div>
+  </div>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;"><sc-if value="{{esRegalo}}" hint-placeholder-val="{{true}}"><a href="#" style="padding: 17px 30px; border-radius: 999px; background: #7aa7ff; color: #14140f; text-decoration: none; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600;">Descargar la tarjeta de regalo</a></sc-if><a href="#" style="padding: 16px 26px; border-radius: 999px; border: 1px solid #3a3833; color: #ededed; text-decoration: none; font-family: Archivo, sans-serif; font-size: 15px;">Ir a mi panel</a></div>
+  <button type="button" onClick="{{reset}}" style="align-self: flex-start; height: 40px; border: none; background: transparent; color: #8f8c85; font-family: Archivo, sans-serif; font-size: 13px; text-decoration: underline; cursor: pointer;">Volver a probar la demo</button>
+</div></sc-if>
+</main>
+
+<aside aria-label="Resumen del pedido" style="flex: 1 1 340px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 16px;">
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; gap: 16px; align-items: center;"><img src="/_blob/f7ecb05403006b782e28a0de9bb2007d" alt="Libro de viaje Lisboa · Oporto sobre una mesa" style="width: 72px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; flex: none; box-shadow: 0 10px 24px rgba(0,0,0,0.5);"><div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #9dbdff;">VITÁCORA DE VIAJE</span><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 22px; color: #ffffff;">El libro de {{nombre}}</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">{{paraTxt}}</span></div></div>
+    <div style="display: flex; flex-direction: column; gap: 10px; font-family: Archivo, sans-serif; font-size: 15px; color: #c9c6be; border-top: 1px solid #23221e; padding-top: 16px;">
+      <div style="display: flex; justify-content: space-between; gap: 12px;"><span>Viaje completo + libro digital</span><span style="color: #ffffff;">49 €</span></div>
+      <sc-if value="{{esImpreso}}" hint-placeholder-val="{{false}}"><div style="display: flex; justify-content: space-between; gap: 12px;"><span>Libro impreso, tapa dura</span><span style="color: #ffffff;">{{precioImpresoTxt}}</span></div></sc-if>
+      <sc-if value="{{marco}}" hint-placeholder-val="{{false}}"><div style="display: flex; justify-content: space-between; gap: 12px;"><span>Su foto enmarcada</span><span style="color: #ffffff;">20 €</span></div></sc-if>
+      <sc-if value="{{cupon}}" hint-placeholder-val="{{false}}"><div style="display: flex; justify-content: space-between; gap: 12px; color: #9dbdff;"><span>Código VITACORA10 · −10 %</span><span>{{descTxt}}</span></div></sc-if>
+      <div style="display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #23221e; padding-top: 14px; font-family: Archivo, sans-serif; font-size: 18px; font-weight: 600; color: #ffffff;"><span>Total</span><span>{{totalTxt}}</span></div>
+      <span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">IVA incluido. Un solo pago, sin suscripciones.</span>
+    </div>
+    <sc-if value="{{noCupon}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{applyCupon}}" style="align-self: flex-start; border: none; background: transparent; padding: 0; color: #b4b1a9; font-family: Archivo, sans-serif; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer;">¿Tienes un código? Aplicar VITACORA10</button></sc-if>
+  </div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #c9c6be;">
+    <div style="display: flex; gap: 10px;"><span style="color: #9dbdff; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>Os escribimos durante todo el viaje</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #9dbdff; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>Tus fotos guardadas con su historia</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #9dbdff; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>El libro en PDF con vuestra voz</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #9dbdff; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>{{garTxt}}</div>
+  </div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2010},"precioImpreso":{"editor":"int","default":50,"min":0,"max":200,"unit":"€","section":"Precios"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 1, para: 'padre', nombre: 'Lisboa y Oporto', regalo: true, cuando: 'navidad', formato: 'impreso', marco: false, cupon: false, errNombre: false, gen: 'el' };
+  }
+  renderVals() {
+    var st = this.state, self = this;
+    var ACC = '#7aa7ff';
+    var pi = Number(this.props.precioImpreso ?? 50);
+    function eur(n) { return n.toFixed(2).replace('.', ',').replace(',00', '') + ' €'; }
+    var known = 49 + (st.marco ? 20 : 0) + (st.formato === 'impreso' ? pi : 0);
+    var unknownImp = st.formato === 'impreso' && !pi;
+    var desc = st.cupon ? known * 0.10 : 0;
+    var totalTxt = eur(known - desc) + (unknownImp ? ' + [precio]' : '');
+    function cardSt(on) { return 'display: flex; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; padding: 20px 22px; border-radius: 18px; cursor: pointer; text-align: left; background: ' + (on ? '#141d30' : '#12120f') + '; border: 1px solid ' + (on ? ACC : '#2a2925') + ';'; }
+    function dotSt(on) { return 'width: 20px; height: 20px; flex: none; border-radius: 999px; box-sizing: border-box; border: ' + (on ? '6px solid ' + ACC : '1.5px solid #5a5850') + ';'; }
+    function chipSt(on) { return 'height: 46px; padding: 0 20px; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 15px; background: ' + (on ? ACC : 'transparent') + '; color: ' + (on ? '#14140f' : '#ededed') + '; border: 1px solid ' + (on ? ACC : '#3a3833') + ';'; }
+    var v = { yes: true };
+    function top() { try { window.scrollTo(0, 0); } catch (e) {} }
+    var DEMO = {};
+    var demoNames = Object.keys(DEMO).map(function (k) { return DEMO[k]; });
+    ['padre','madre','abuelo','abuela','otra','yo'].forEach(function (k) { v['st_' + k] = chipSt(st.para === k); v['pick_' + k] = function () { var o = { para: k }; if (DEMO[k] && (!st.nombre || demoNames.indexOf(st.nombre) > -1)) o.nombre = DEMO[k]; if (k === 'yo') o.cuando = 'hoy'; else if (st.para === 'yo') o.cuando = 'navidad'; self.setState(o); }; });
+    ['el','ella'].forEach(function (g) { v['st_g_' + g] = chipSt((st.gen || 'el') === g); v['pick_g_' + g] = function () { self.setState({ gen: g }); }; });
+    ['navidad','padres','cumple','fecha','hoy','manana','fechayo'].forEach(function (k) { v['st_' + k] = chipSt(st.cuando === k); v['pick_' + k] = function () { self.setState({ cuando: k }); }; });
+    v.st_regalo = cardSt(st.regalo); v.dot_regalo = dotSt(st.regalo); v.pick_regalo = function () { self.setState({ regalo: true }); };
+    v.st_ya = cardSt(!st.regalo); v.dot_ya = dotSt(!st.regalo); v.pick_ya = function () { self.setState({ regalo: false }); };
+    v.st_digital = cardSt(st.formato === 'digital'); v.dot_digital = dotSt(st.formato === 'digital'); v.pick_digital = function () { self.setState({ formato: 'digital' }); };
+    v.st_impreso = cardSt(st.formato === 'impreso'); v.dot_impreso = dotSt(st.formato === 'impreso'); v.pick_impreso = function () { self.setState({ formato: 'impreso' }); };
+    v.st_marco = 'display: flex; flex-wrap: wrap; gap: 22px; align-items: center; padding: 22px; border-radius: 22px; background: ' + (st.marco ? '#141d30' : '#12120f') + '; border: 1px ' + (st.marco ? 'solid ' + ACC : 'dashed #4a4840') + ';';
+    v.marcoBtn = 'align-self: flex-start; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px 0 12px; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; background: ' + (st.marco ? ACC : 'transparent') + '; color: ' + (st.marco ? '#14140f' : '#ededed') + '; border: 1px solid ' + (st.marco ? ACC : '#5a5850') + ';';
+    v.marcoBox = 'width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: ' + (st.marco ? '#14140f' : 'transparent') + '; border: 1.5px solid ' + (st.marco ? '#14140f' : '#5a5850') + ';';
+    v.marcoTxt = st.marco ? 'Añadido · +20 €' : 'Añadir el marco · +20 €';
+    v.toggleMarco = function () { self.setState({ marco: !st.marco }); };
+    for (var i = 1; i <= 3; i++) {
+      var done = st.step > i, cur = st.step === i;
+      v['sb' + i] = 'width: 30px; height: 30px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 13px; font-weight: 600; background: ' + (done || cur ? ACC : 'transparent') + '; color: ' + (done || cur ? '#14140f' : '#8f8c85') + '; border: 1px solid ' + (done || cur ? ACC : '#3a3833') + ';';
+      v['sl' + i] = 'font-family: Archivo, sans-serif; font-size: 14px; white-space: nowrap; color: ' + (cur ? '#ffffff' : '#8f8c85') + ';';
+    }
+    var paraMap = { padre: 'Viaje en pareja', madre: 'Viaje en solitario', abuelo: 'Viaje con amigos', abuela: 'Viaje en familia', otra: 'Luna de miel', yo: 'Para ti' };
+    var cuandoMap = { navidad: 'el primer día del viaje', padres: 'el primer día del viaje', cumple: 'el primer día del viaje', fecha: 'el primer día del viaje', hoy: 'hoy mismo', manana: 'mañana', fechayo: 'el día que elegiste' };
+    var yo = st.para === 'yo';
+    var fem = false;
+    var pron = yo ? 'ti' : (fem ? 'ella' : 'él');
+    if (fem) cuandoMap.padres = 'el Día de la Madre';
+    var nom = st.nombre || pron;
+    var regalo = st.regalo && !yo;
+    var cuandoTxt = yo ? cuandoMap[st.cuando] || 'hoy mismo' : ('el 2 de junio, el día que salís');
+    var garTxt = 'Si el viaje se cancela, te devolvemos el dinero';
+    var TX = {
+      intro3: yo ? 'Tu propio libro: sin sorpresa ni tarjeta. Las preguntas te llegan a ti.' : 'Ponle nombre al viaje: será el título de vuestro libro.',
+      nomLbl: yo ? '¿Cómo te llamas?' : '¿Cómo se llama el viaje?',
+      cuandoH: '¿Cuándo es el viaje?',
+      cuandoP: 'El primer día os llega la primera pregunta por WhatsApp. Al volver, cerramos el libro.',
+      doneH: yo ? 'Ya está. Tu libro empieza ' + cuandoTxt + '.' : 'Ya está. El libro de ' + nom + ' empieza ' + cuandoTxt + '.',
+      doneP: regalo ? 'Te hemos mandado el recibo y la tarjeta de regalo a tu email.' : 'Te hemos mandado el recibo a tu email.',
+      t1: regalo ? 'Imprime la tarjeta y guárdala hasta el día de salida.' : 'Solo queda hacer la maleta.',
+      t2: 'Os llega la primera pregunta por WhatsApp y contestáis con un audio.',
+      t3: yo ? 'Te llega el anticipo: las primeras páginas de tu libro, para que veas cómo queda.' : 'Mandáis la foto del día y contáis qué pasó. Se guarda en su día, para el libro.',
+      t4: yo ? 'Tu libro completo, con tu voz. Y si elegiste el impreso, en casa unos 9 días después.' : 'Al volver, vuestro libro completo, con vuestra voz. Y si elegiste el impreso, en casa unos 9 días después.',
+      padresLbl: fem ? 'Día de la Madre · mayo' : 'Día del Padre · 19 mar',
+      needsDate: st.cuando === 'cumple' || st.cuando === 'fecha' || st.cuando === 'fechayo',
+      fechaLbl: st.cuando === 'cumple' ? 'Su cumpleaños' : 'Fecha de inicio',
+      l2: 'El día de salida',
+      telLbl: st.regalo ? 'El WhatsApp de quien viaja' : 'Vuestro WhatsApp',
+      telSub: st.regalo ? '(opcional ahora)' : '(podéis ser dos)',
+      telHelp: st.regalo ? 'Si prefieres no decírselo todavía, te lo pedimos antes de la salida.' : 'Si viajáis dos, podéis contestar los dos. Sin datos, contestáis con el wifi del hotel.',
+      garTxt: garTxt
+    };
+    Object.assign(v, TX, { esYo: yo, noYo: !yo, esOtra: false });
+    Object.assign(v, {
+      is1: st.step === 1, is2: st.step === 2, is3: st.step === 3, is4: st.step === 4, notDone: st.step < 4,
+      nombre: nom, errNombre: st.errNombre, esRegalo: regalo, esImpreso: st.formato === 'impreso', marco: st.marco,
+      cupon: st.cupon, noCupon: !st.cupon, descTxt: '−' + eur(desc), totalTxt: totalTxt,
+      precioImpresoTxt: pi ? '+' + eur(pi) : '+[precio] €', precioOpcionImpreso: pi ? eur(49 + pi) : '[precio] €', paraTxt: paraMap[st.para],
+      cuandoTxt: cuandoTxt,
+      onNombre: function (e) { self.setState({ nombre: e.target.value, errNombre: false }); },
+      next: function () { if (st.step === 3 && !st.nombre.trim()) { self.setState({ errNombre: true }); return; } self.setState({ step: st.step + 1 }); top(); },
+      back: function () { self.setState({ step: Math.max(1, st.step - 1) }); top(); },
+      pay: function () { self.setState({ step: 3 }); top(); },
+      later: function () { self.setState({ step: 4 }); top(); },
+      applyCupon: function () { self.setState({ cupon: true }); },
+      reset: function () { self.setState({ step: 1, marco: false, cupon: false, para: 'padre', nombre: 'Lisboa y Oporto', cuando: 'navidad', regalo: true, gen: 'el' }); }
+    });
+    return v;
+  }
+}
+</script>
+</body>
+</html>
