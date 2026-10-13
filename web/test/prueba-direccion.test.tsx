@@ -24,6 +24,7 @@ describe("prototipo de dirección visual", () => {
       t.direccion.dolor.frase,
       t.direccion.dolor.carta,
       t.direccion.paraQuien,
+      t.direccion.libroOtraVez,
       t.direccion.como.titulo,
       t.direccion.como.bajada,
       ...t.como.pasos.flatMap((p) => [p.titulo, p.texto]),
