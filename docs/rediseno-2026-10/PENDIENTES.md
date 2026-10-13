@@ -73,3 +73,40 @@ Se le entrega como referencia con los HTML de `Whatsapp`, `Casos`, `MasFlujos`, 
 | B19 cancelar con devolución | `pedidos.estado = 'reembolsado'` (POR COMPROBAR si existe) + llamada a Stripe/MP. |
 | Cambiar la fecha de inicio desde el panel | **No necesita migración**: `regalos.fecha_entrega` ya la escribe la web; falta un endpoint `PATCH` (solo hasta la víspera y solo si `usado_at` es null). Avisar igualmente al socio porque el entrevistador la lee cada 15 min. |
 | Dirección de envío desde el panel | No necesita migración (`entregas`, `/api/entrega` existen). |
+
+## Apuntado en fase 1
+
+### Mails de la web (tarea `mails`)
+
+- **Mails en catalán para quien compra (D2).** Los textos ya están en `web/src/lib/mail-textos.ts`
+  (es / ca / ar) y `armarMailAcceso` / `armarMailRegalo` / `enviarMail*` aceptan `idioma`, pero hoy
+  nadie se lo pasa: el idioma sale de `familias.region` (ES → es, AR o sin región → ar), y la base no
+  guarda en qué idioma compró cada uno. Dos caminos (decide Naza; el primero, con el socio):
+  1. **Guardarlo en la base**: columna `familias.idioma` (`es` / `ca` / `ar`) → migración a acordar
+     con el socio.
+  2. **Sin migración, en `pedidos.extras`** (jsonb, ya existe): el checkout (`/api/compra`, que hoy
+     arma `extras` con `productosParaPedido`) agrega `idioma_web: "ca"` cuando la compra viene de
+     `/ca/...`, y `confirmarPago` (`web/src/lib/confirmar-pago.ts`, que ya lee `extras` en el paso 0)
+     se lo pasa a `enviarMailAcceso` / `enviarMailRegalo` como `idioma`. No toca ninguna tabla, pero
+     `extras` está descrito en `supabase/CONTRATO.md`: hay que anotarlo ahí y avisar al socio. Es lo
+     más simple: el mail sale en la vuelta del pago o en el webhook, los dos pasan por `confirmarPago`.
+     **No lo implementé**: el checkout lo está tocando otro agente.
+  - La metadata del pago **no sirve sola**: Stripe guarda `metadata` (hoy solo `pedido_id`,
+    `lib/pagos.ts`) y Mercado Pago `external_reference`, pero `confirmarPago` no recibe el objeto del
+    pago (lo llaman el webhook de Stripe, el de MP y `/api/pago/vuelta` solo con `pedidoId`); habría
+    que pasar el idioma por tres llamadores distintos, y MP no tiene catalán (Argentina). `extras` es
+    un solo lugar.
+- **El mail no tiene los datos de la maqueta**: nº de pedido, nombre de quien compra («Ya está,
+  Laura»), fecha de inicio del regalo y el ticket con importes (`Email`). `confirmarPago` solo le pasa
+  el correo, cómo le dicen, el código del regalo y la región. Para mostrarlos habría que leer
+  `pedidos` (id/importe, `extras` → `productosDelPedido`) y `regalos.fecha_entrega` en `confirmarPago`
+  y pasarlos al mail. Sin migración. La fecha solo sirve si hay entrega programada (si no, empieza
+  cuando escanea la tarjeta). Lo dejo para cuando se cierre el checkout.
+- **«Para mí» en el mail de acceso**: el asunto «Listo. Hoy le escribimos a tu {como}.» no distingue
+  `vinculoComprador = "yo mismo"`. Ya pasaba antes del rediseño; falta texto en primera persona.
+- **El logo del mail** es `web/public/mail/vitacora-logo.png` (88×56, las elipses de la marca sobre
+  negro). Se pide a `URL_BASE`: hasta que el rediseño esté publicado en producción, el mail lleva el
+  hueco del logo (alt vacío, no se rompe nada).
+- **Gmail móvil real**: las capturas son de Chrome. Antes del switch, mandar uno de prueba con Resend
+  a una casilla propia y mirarlo en Gmail (Android/iOS, claro y oscuro) y en Outlook (fase 3,
+  «Terminado cuando»).
