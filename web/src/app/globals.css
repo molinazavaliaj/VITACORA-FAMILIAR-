@@ -930,14 +930,18 @@ body {
   @media (prefers-reduced-motion: no-preference) {
     /* La sección de abajo se hunde un poco mientras la de arriba la tapa: la
        hoja que sube (dir-sobre-N) es el reloj. */
-    .dir-pagina { timeline-scope: --dir-sobre-1, --dir-sobre-2, --dir-sobre-3; }
+    .dir-pagina { timeline-scope: --dir-sobre-1, --dir-sobre-2, --dir-sobre-3, --dir-sobre-4, --dir-sobre-5; }
     .dir-sobre-1 { view-timeline-name: --dir-sobre-1; }
     .dir-sobre-2 { view-timeline-name: --dir-sobre-2; }
     .dir-sobre-3 { view-timeline-name: --dir-sobre-3; }
+    .dir-sobre-4 { view-timeline-name: --dir-sobre-4; }
+    .dir-sobre-5 { view-timeline-name: --dir-sobre-5; }
     .dir-hunde { transform-origin: 50% 30%; animation: dir-hundirse linear both; animation-range: entry 0% entry 100%; }
     .dir-hunde--1 { animation-timeline: --dir-sobre-1; }
     .dir-hunde--2 { animation-timeline: --dir-sobre-2; }
     .dir-hunde--3 { animation-timeline: --dir-sobre-3; }
+    .dir-hunde--4 { animation-timeline: --dir-sobre-4; }
+    .dir-hunde--5 { animation-timeline: --dir-sobre-5; }
 
     /* Las fotos se alejan un poco y, mientras entran, pasan del blanco y negro
        a un sepia cálido, como una foto vieja que se revela. Solo transform y
@@ -967,5 +971,352 @@ body {
       animation-timeline: --dir-logo;
       animation-range: cover 45% cover 58%;
     }
+  }
+}
+
+/* ── 3.ª vuelta (14/10): texturas, deckle, carta y el libro en 3D ─────────── */
+
+/* Texturas. El negro como tela de encuadernar: una trama de hilos casi
+   invisible (dos degradados repetidos, 0 bytes). El crema como papel: fibras
+   cortas de un SVG de 260 px en mosaico (~0,6 kB). Las dos se pintan una vez
+   y se mueven con el scroll como cualquier fondo. */
+.dir-tinta {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px);
+}
+.dir-papel {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+}
+
+/* Deckle: el borde de arriba de una hoja crema que tapa a otra, irregular
+   como papel de algodón cortado a mano. La hoja empieza 14 px más abajo y en
+   esa franja va una tira de papel recortada con una máscara (SVG de 420 px en
+   mosaico): se ve la sección de atrás entre los dientes. */
+.dir-deckle {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E"), linear-gradient(var(--dir-papel), var(--dir-papel));
+  background-size: 260px 260px, 100% calc(100% - 13px);
+  background-position: 0 0, 0 13px;
+  background-repeat: repeat, no-repeat;
+}
+.dir-deckle::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 14px;
+  background: var(--dir-papel);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px;
+  pointer-events: none;
+}
+
+.dir-t15 { font-size: clamp(2.5rem, 1.3rem + 5.2vw, 6.4rem); line-height: 1.04; }
+
+.dir-enlace-papel {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  color: var(--dir-sobre-papel);
+  text-decoration: underline;
+  text-decoration-color: var(--dir-hilo-papel);
+  text-underline-offset: 5px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.dir-enlace-papel:hover { text-decoration-color: var(--dir-sobre-papel); }
+
+/* La carta de los fundadores: una hoja de algodón con los bordes de arriba y
+   de abajo cortados a mano, apenas torcida, apoyada sobre la tela negra. La
+   sombra va en un filtro del contenedor porque la máscara se la comería. */
+.dir-carta {
+  --dir-carta-suave: #6a655c;
+  position: relative;
+  transform: rotate(-0.6deg);
+  filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.55));
+}
+.dir-carta-hoja {
+  padding: clamp(36px, 7vw, 72px) clamp(26px, 6vw, 72px);
+  background-color: #f2ede1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+  color: #1f1d19;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath transform='matrix%281 0 0 -1 0 14%29' d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 100% / 420px 14px,
+    linear-gradient(#000 0 0) 0 14px / 100% calc(100% - 28px) no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath transform='matrix%281 0 0 -1 0 14%29' d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 100% / 420px 14px,
+    linear-gradient(#000 0 0) 0 14px / 100% calc(100% - 28px) no-repeat;
+}
+.dir-carta-texto {
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  font-size: clamp(1.15rem, 1rem + 0.55vw, 1.42rem);
+  font-weight: 400;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+.dir-firma {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  padding-bottom: 0.1em;
+}
+.dir-firma-trazo { width: min(240px, 70%); height: auto; color: #1f1d19; opacity: 0.75; margin-top: -2px; }
+
+/* ── El libro en 3D (libro-3d.tsx) ─────────────────────────────────────────
+   Medidas: --l3-w es el ancho de la tapa; alto = ancho / 0,68 (el del libro
+   real); lomo = 16 % del ancho. --l3-s es cuánto crece el libro abierto para
+   que el pliego (dos páginas) entre en la pantalla. Cada cara es un
+   contenedor: sus letras van en cqw y se ven nítidas a cualquier tamaño. */
+.l3-pegado {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(40px, 7svh, 72px);
+  padding: 120px 16px 72px;
+  overflow: hidden;
+}
+.l3-escena {
+  --l3-w: min(62vw, calc(50svh * 0.68));
+  --l3-s: 0.74;
+  --l3-h: calc(var(--l3-w) / 0.68);
+  --l3-d: calc(var(--l3-w) * 0.16);
+  --l3-in: calc(var(--l3-w) * 0.018);
+  position: relative;
+  width: var(--l3-w);
+  height: var(--l3-h);
+  flex: none;
+  perspective: calc(var(--l3-w) * 7);
+  perspective-origin: 50% 35%;
+}
+@media (min-width: 768px) {
+  .l3-escena { --l3-w: min(380px, calc(58svh * 0.68)); --l3-s: 0.95; }
+}
+@media (min-width: 1200px) {
+  .l3-escena { --l3-s: 1; }
+}
+.l3-leyenda { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+
+/* Mientras está lejos, el libro no se arma (Coreografia saca el atributo). */
+[data-lejos] { content-visibility: hidden; contain-intrinsic-size: auto 270svh; }
+
+/* El piso: una sombra suave debajo del libro. */
+.l3-sombra {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: calc(var(--l3-w) * 1.3);
+  height: calc(var(--l3-w) * 0.22);
+  margin-left: calc(var(--l3-w) * -0.65);
+  margin-top: calc(var(--l3-w) * -0.07);
+  background: radial-gradient(closest-side, rgba(52, 40, 24, 0.34), rgba(52, 40, 24, 0));
+}
+
+/* La pose quieta (sin soporte o con «menos movimiento»): 3/4, tapa y lomo. */
+/* El libro se arma al DOBLE de tamaño y se muestra a la mitad (scale .5 en
+   cada pose): Chrome rasteriza las capas 3D animadas a escala 1 de su propio
+   espacio, así que sin esto las letras se verían borrosas en pantallas 2x o
+   al agrandar el pliego. --l3-W/D/IN son las medidas de ese libro doble. */
+.l3-libro {
+  --l3-W: calc(var(--l3-w) * 2);
+  --l3-H: calc(var(--l3-h) * 2);
+  --l3-D: calc(var(--l3-d) * 2);
+  --l3-IN: calc(var(--l3-in) * 2);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--l3-W);
+  height: var(--l3-H);
+  margin: calc(var(--l3-H) / -2) 0 0 calc(var(--l3-W) / -2);
+  transform-style: preserve-3d;
+  transform: scale(0.5) rotateX(10deg) rotateY(32deg);
+}
+.l3-cara {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  container-type: inline-size;
+}
+.l3-tapa {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / 2));
+}
+.l3-frente { border-radius: 0 3px 3px 0; box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.18); }
+.l3-dentro { transform: rotateY(180deg); border-radius: 3px 0 0 3px; }
+.l3-contra { transform: translateZ(calc(var(--l3-D) / -2)) rotateY(180deg); border-radius: 3px 0 0 3px; }
+.l3-lomo {
+  inset: 0 auto 0 0;
+  width: var(--l3-D);
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / -2)) rotateY(-90deg);
+  container-type: size;
+  border-radius: 2px;
+}
+.l3-hoja-derecha {
+  inset: var(--l3-IN) var(--l3-IN) var(--l3-IN) 0;
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.012));
+}
+.l3-canto { position: absolute; background-color: #eee8da; backface-visibility: hidden; }
+.l3-canto--lado {
+  left: calc(var(--l3-W) - var(--l3-IN));
+  top: var(--l3-IN);
+  bottom: var(--l3-IN);
+  width: calc(var(--l3-D) * 0.94);
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) * 0.47)) rotateY(90deg);
+  background-image:
+    linear-gradient(90deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(90deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
+.l3-canto--arriba,
+.l3-canto--abajo {
+  left: 0;
+  width: calc(var(--l3-W) - var(--l3-IN));
+  height: calc(var(--l3-D) * 0.94);
+  transform-origin: center top;
+  background-image:
+    linear-gradient(0deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(0deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
+.l3-canto--arriba { top: var(--l3-IN); transform: translateZ(calc(var(--l3-D) * -0.47)) rotateX(90deg); }
+.l3-canto--abajo { top: calc(100% - var(--l3-IN)); transform: translateZ(calc(var(--l3-D) * 0.47)) rotateX(-90deg); filter: brightness(0.82); }
+
+/* El brillo de la tapa: una franja de luz que cruza con el giro. */
+.l3-brillo {
+  position: absolute;
+  inset: 0 -60%;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.3) 50%, transparent 62%);
+  transform: translateX(-30%);
+  pointer-events: none;
+}
+
+/* Caras impresas. Tapa y contratapa: cartón blanco con apenas grano. */
+.l3-papel-tapa {
+  background-color: #f3f2ee;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.035));
+  color: #1b1a17;
+}
+.l3-etiqueta {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.5cqw;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #77736a;
+}
+.l3-nombre { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 11.4cqw; line-height: 1.02; letter-spacing: -0.01em; }
+.l3-siempre { font-family: var(--fuente-cuerpo), Georgia, serif; font-style: italic; font-size: 4.3cqw; }
+.l3-marca {
+  display: flex;
+  align-items: center;
+  gap: 1.8cqw;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.6cqw;
+  letter-spacing: 0.2em;
+  color: #77736a;
+}
+.l3-marca-toroide { width: 8cqw; height: auto; color: #5a5750; }
+.l3-contra .l3-papel-tapa { background-image: linear-gradient(200deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.06)); }
+.l3-contra-toroide { width: 30cqw; height: auto; }
+.l3-iniciales { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 7cqw; letter-spacing: 0.08em; }
+.l3-contra-texto { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 3.4cqw; line-height: 1.45; color: #26231e; }
+.l3-qr { display: block; width: 18cqw; aspect-ratio: 1; border: 0.45cqw solid #161513; padding: 0.4cqw; background: #fff; }
+.l3-escucha {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.4cqw;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #8a7246;
+}
+.l3-lema { font-family: var(--fuente-cuerpo), Georgia, serif; font-style: italic; font-size: 3.6cqw; }
+.l3-web { font-family: var(--fuente-micro), sans-serif; font-size: 2.3cqw; letter-spacing: 0.26em; text-transform: uppercase; color: #77736a; }
+.l3-lomo-cara { background: linear-gradient(90deg, #0b0b0b, #1e1e1d 45%, #0f0f0e); color: #f1efe9; }
+.l3-lomo-texto {
+  writing-mode: vertical-rl;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 28cqw;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.l3-lomo-toroide { width: 64cqw; height: auto; }
+
+/* Las páginas del capítulo 1: papel crema, la sombra del lomo en el centro. */
+.l3-pagina { background-color: #f7f2e6; color: #26231e; font-family: var(--fuente-cuerpo), Georgia, serif; }
+.l3-pagina--izq { background-image: linear-gradient(90deg, transparent 78%, rgba(90, 70, 40, 0.16)); }
+.l3-pagina--der { background-image: linear-gradient(270deg, transparent 80%, rgba(90, 70, 40, 0.14)); }
+.l3-cap-numero { font-family: var(--fuente-titulo), Georgia, serif; font-style: italic; font-size: 4.4cqw; color: #8a7246; text-align: center; }
+.l3-cap-titulo { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 600; font-size: 8.4cqw; line-height: 1.1; text-align: center; margin-top: 1.4cqw; }
+.l3-cap-cita { font-style: italic; font-size: 3.3cqw; line-height: 1.4; text-align: center; color: #5e584d; margin-top: 3cqw; }
+.l3-cap-texto { font-size: 2.95cqw; line-height: 1.52; text-align: justify; hyphens: auto; }
+.l3-cap-texto p:first-child::first-letter {
+  float: left;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-size: 3.3em;
+  line-height: 0.82;
+  padding: 0.05em 0.08em 0 0;
+}
+.l3-pie-foto { font-style: italic; font-size: 2.8cqw; line-height: 1.45; text-align: center; color: #5e584d; }
+.l3-folio { align-self: center; font-size: 2.4cqw; color: #8a8375; }
+.l3-pagina--der img { filter: grayscale(1) sepia(0.25) contrast(1.05); }
+
+/* El pliego plano, solo cuando el libro no gira. */
+.l3-plano {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 96px;
+  filter: drop-shadow(0 18px 24px rgba(52, 40, 24, 0.16));
+}
+.l3-plano-hoja { container-type: inline-size; aspect-ratio: 0.68; }
+
+@keyframes l3-girar {
+  0% { transform: translateX(0) scale(0.5) rotateX(10deg) rotateY(32deg); }
+  20% { transform: translateX(0) scale(0.5) rotateX(8deg) rotateY(-26deg); }
+  40% { transform: translateX(0) scale(0.5) rotateX(6deg) rotateY(-160deg); }
+  52% { transform: translateX(0) scale(0.5) rotateX(5deg) rotateY(-200deg); }
+  72% { transform: translateX(0) scale(0.5) rotateX(0deg) rotateY(-360deg); }
+  90%, 100% {
+    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(0.5 * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+  }
+}
+@keyframes l3-abrir {
+  from { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg); }
+  to { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg); }
+}
+@keyframes l3-brillar {
+  from { transform: translateX(-30%); }
+  to { transform: translateX(30%); }
+}
+@keyframes l3-piso {
+  0%, 72% { transform: scaleX(1); opacity: 1; }
+  90%, 100% { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* La hoja del libro queda fija 1,7 pantallas: el giro arranca apenas se
+       fija, así que siempre se ve que avanza. */
+    .l3-seccion { height: 270svh; view-timeline-name: --l3; }
+    .l3-pegado { position: sticky; top: 0; height: 100svh; padding: 72px 16px 40px; }
+    .l3-plano { display: none; }
+    .l3-libro { animation: l3-girar linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
+    .l3-tapa { animation: l3-abrir linear both; animation-timeline: --l3; animation-range: contain 62% contain 86%; }
+    .l3-brillo { animation: l3-brillar linear both; animation-timeline: --l3; animation-range: contain 0% contain 62%; }
+    .l3-sombra { animation: l3-piso linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
   }
 }

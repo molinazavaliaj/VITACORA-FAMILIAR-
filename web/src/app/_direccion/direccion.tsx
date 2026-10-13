@@ -10,6 +10,8 @@ import { CabeceraDireccion } from "./cabecera";
 import { PieDireccion } from "./pie";
 import { Coreografia } from "./coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "./dibujos";
+import { Libro3D, PaginaCapitulo, PaginaFoto } from "./libro-3d";
+import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 
 // Prototipo de dirección visual para la portada (13/10, pedido de Naza: «está
 // bien pero verde»). La web como un libro: tinta y papel que se alternan como
@@ -28,6 +30,10 @@ import { DibujoAudio, DibujoLibreta, DibujoLibro } from "./dibujos";
 // completa sola al llegar, sin retener el scroll; «Cómo funciona» con un
 // dibujo en línea fina por paso; las fotos que pasan del blanco y negro al
 // sepia mientras entran. Lo que corre en el navegador está en coreografia.tsx.
+//
+// 3.ª vuelta: nuevo orden (inicio, la frase, EL LIBRO EN 3D, el dolor con la
+// carta de los fundadores, cómo funciona, para quién, cierre), texturas de
+// tela (negro) y papel de algodón con el borde cortado a mano (crema).
 //
 // Las fotos son personas generadas (PENDIENTES B10): ilustran, nunca se
 // presentan como familias reales.
@@ -61,24 +67,6 @@ function Palabras({ texto, desde = 0, total, clase = "" }: { texto: string; desd
           {j < palabras.length - 1 ? " " : null}
         </span>
       ))}
-    </>
-  );
-}
-
-/** El título de «Para quién es» con los tres nombres en cursiva (mismo texto). */
-function ConNombres({ texto }: { texto: string }) {
-  const partes = texto.split(/(padre|abuelo|abuela)/);
-  return (
-    <>
-      {partes.map((p, i) =>
-        i % 2 === 1 ? (
-          <em key={i} className="dir-nombre">
-            {p}
-          </em>
-        ) : (
-          p
-        ),
-      )}
     </>
   );
 }
@@ -141,7 +129,10 @@ export function Direccion() {
 
   const [frase1, frase2] = t.fotos.titulo;
   const nFrase = frase1.split(" ").length + frase2.split(" ").length;
-  const nTexto = t.fotos.texto.split(" ").length;
+  const nDolor = t.direccion.dolor.frase.split(" ").length;
+  const coma = t.direccion.dolor.firma.indexOf(", ");
+  const firma = coma > 0 ? [t.direccion.dolor.firma.slice(0, coma), t.direccion.dolor.firma.slice(coma + 2)] : [t.direccion.dolor.firma, ""];
+  const ej = TEXTOS_EJEMPLO[IDIOMA];
 
   return (
     <div lang={langDeIdioma(IDIOMA)} className="dir-pagina flex flex-1 flex-col">
@@ -205,32 +196,87 @@ export function Direccion() {
               </span>
             </h2>
           </div>
+        </div>
+      </section>
 
-          <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-14 px-4 pb-28 sm:px-8 md:grid-cols-12 md:items-end md:gap-8 md:pb-40 lg:px-12">
+      {/* ═══ 3 · EL LIBRO: la hoja de papel sube y, fija un rato, el libro de
+          Osvaldo gira con el scroll y se abre en el capítulo 1 ═══ */}
+      <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-2 dir-diferido relative z-[3]">
+        <div className="dir-hunde dir-hunde--3">
+          {/* data-lejos: el libro no se arma hasta que se acerca (ver coreografia.tsx). */}
+          <noscript>
+            <style>{"[data-lejos]{content-visibility:visible}"}</style>
+          </noscript>
+          <div className="l3-seccion" data-lejos>
+            <div className="l3-pegado">
+              <Libro3D idioma={IDIOMA} b={t.direccion.libro} c={ej.libro} />
+              <div className="l3-leyenda">
+                <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{ej.inventada}</span>
+                <Link prefetch={false} href={ruta(IDIOMA, "/ejemplo")} className="dir-enlace-papel">
+                  {t.banda[0]} <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+          {/* Sin giro (sin soporte o con «menos movimiento»): el pliego abierto, plano. */}
+          <div className="l3-plano" aria-hidden>
+            <div className="l3-plano-hoja">
+              <PaginaCapitulo c={ej.libro} />
+            </div>
+            <div className="l3-plano-hoja">
+              <PaginaFoto c={ej.libro} sizes="(min-width: 768px) 320px, 45vw" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ 4 · EL DOLOR Y LA CARTA: negro de tela; la carta es una hoja de
+          algodón con los bordes cortados a mano ═══ */}
+      <section data-capa className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[4]">
+        <div className="dir-hunde dir-hunde--4 mx-auto max-w-[1360px] px-4 pb-28 pt-28 sm:px-8 md:pb-40 md:pt-40 lg:px-12">
+          <h2 data-revela className="dir-titular dir-t15 max-w-[17ch]" style={conVar({ "--paso": "0.11s" })}>
+            <span className="sr-only">{t.direccion.dolor.frase}</span>
+            <span aria-hidden>
+              <Palabras texto={t.direccion.dolor.frase} total={nDolor} />
+            </span>
+          </h2>
+
+          <div className="mt-20 grid grid-cols-1 items-start gap-12 md:mt-28 md:grid-cols-12 md:gap-8">
             <Foto
               src={FOTOS.guitarra}
               alt=""
               forma="arco"
               recorte
-              sizes="(min-width: 768px) 34vw, 78vw"
-              className="w-[72%] md:col-span-4 md:col-start-2 md:w-full"
+              sizes="(min-width: 768px) 24vw, 46vw"
+              className="w-[46%] justify-self-end md:order-2 md:col-span-3 md:col-start-10 md:mt-24 md:w-full"
             />
-            <p
-              data-revela
-              className="text-[23px] font-light leading-[1.45] sm:text-[28px] md:col-span-6 md:col-start-7 md:pb-6 lg:text-[33px]"
-              style={conVar({ "--paso": "0.045s" })}
-            >
-              <span className="sr-only">{t.fotos.texto}</span>
-              <span aria-hidden>
-                <Palabras texto={t.fotos.texto} total={nTexto} />
-              </span>
-            </p>
+            <article className="dir-carta aparece md:order-1 md:col-span-7 md:col-start-2">
+              <div className="dir-carta-hoja">
+              <p className="dir-carta-texto">{t.direccion.dolor.carta}</p>
+              <footer data-revela className="mt-10 flex flex-col gap-1">
+                <span className="dir-firma">{firma[0]}</span>
+                <svg viewBox="0 0 220 18" className="dir-firma-trazo" aria-hidden>
+                  <path
+                    className="dir-linea"
+                    style={conVar({ "--k": 2 })}
+                    d="M3 12 C40 4 70 15 104 9 S170 3 216 8"
+                    pathLength={1}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                {firma[1] ? <span className="dir-micro mt-2 text-[var(--dir-carta-suave)]">{firma[1]}</span> : null}
+              </footer>
+              </div>
+            </article>
           </div>
         </div>
       </section>
 
-      {/* ═══ 3 · CÓMO FUNCIONA: la hoja de papel sube y tapa al negro ═══ */}
-      <section className="dir-papel dir-hoja dir-sobre-2 dir-diferido relative z-[3]">
+      {/* ═══ 5 · CÓMO FUNCIONA: la hoja de papel sube y tapa al negro ═══ */}
+      <section className="dir-papel dir-hoja dir-deckle dir-sobre-4 dir-diferido relative z-[5]">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 pb-24 pt-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:pb-36 md:pt-36 lg:px-12">
           <div className="md:col-span-5">
             <div className="md:sticky md:top-24">
@@ -269,14 +315,12 @@ export function Direccion() {
         </div>
       </section>
 
-      {/* ═══ 4 · PARA QUIÉN ES: retratos de tamaños y formas distintas. Capa:
-          queda fija cuando termina y el cierre negro la tapa ═══ */}
-      <section data-capa className="dir-papel dir-diferido relative z-[4]">
-        <div className="dir-hunde dir-hunde--3 mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
+      {/* ═══ 6 · PARA LAS VIDAS QUE MERECEN SU PROPIO LIBRO: retratos de
+          tamaños y formas distintas. Capa: el cierre negro la tapa ═══ */}
+      <section data-capa className="dir-papel dir-diferido relative z-[6]">
+        <div className="dir-hunde dir-hunde--5 mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
           <div className="border-t border-[var(--dir-hilo-papel)] pt-20 md:pt-32">
-            <h2 className="dir-titular dir-t2 aparece max-w-[15ch] md:max-w-[17ch]">
-              <ConNombres texto={t.paraQuien.titulo} />
-            </h2>
+            <h2 className="dir-titular dir-t2 aparece max-w-[15ch] md:max-w-[17ch]">{t.direccion.paraQuien}</h2>
             <p className="aparece mt-7 max-w-[44ch] text-[19px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)] sm:text-[21px]">
               <Bajada segmentos={t.paraQuien.bajada} />
             </p>
@@ -317,8 +361,8 @@ export function Direccion() {
         </div>
       </section>
 
-      {/* ═══ 5 · CIERRE: el colofón en negro sube y tapa al papel; abajo, el pie ═══ */}
-      <section className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[5]">
+      {/* ═══ 7 · CIERRE: el colofón en negro sube y tapa al papel; abajo, el pie ═══ */}
+      <section className="dir-tinta dir-hoja dir-sobre-5 dir-diferido relative z-[7]">
         <div className="flex flex-col items-center px-4 pb-28 pt-28 text-center sm:px-8 md:pb-40 md:pt-40">
           <LogoTrazo id="trazo-cierre" modo="scroll" halo="var(--dir-tinta)" className="w-[120px] sm:w-[150px]" />
           <p className="aparece dir-pie mt-14 text-[var(--dir-sobre-tinta-suave)]">{t.hereda.cierre}</p>
