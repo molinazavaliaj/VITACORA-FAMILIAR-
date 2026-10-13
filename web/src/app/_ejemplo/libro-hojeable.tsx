@@ -177,9 +177,11 @@ function Puntos({
           aria-current={k === actual ? "true" : undefined}
           className="flex h-6 items-center justify-center px-[3px]"
         >
+          {/* La marca de la actual es más larga; cambia de golpe (animar el
+              ancho movería el diseño) y solo el color hace transición. */}
           <span
-            className={`block h-2 w-[22px] origin-center rounded-full transition-[transform,background-color] duration-[var(--d-base)] ease-[var(--ease-io)] ${
-              k === actual ? "bg-[var(--acento-oscuro)]" : "scale-x-[0.36] bg-[var(--borde-oscuro-fuerte)]"
+            className={`block h-2 rounded-full transition-colors duration-[var(--d-base)] ${
+              k === actual ? "w-[22px] bg-[var(--acento-oscuro)]" : "w-2 bg-[var(--borde-oscuro-fuerte)]"
             }`}
           />
         </button>
@@ -196,6 +198,16 @@ const PAPEL_IZQ =
   "bg-[linear-gradient(90deg,#f1eadc_0%,#f3ece0_88%,#e6dccb_100%)] rounded-l-[4px] shadow-[-1px_0_0_#e9e0cf,-2px_1px_0_#cfc2aa,-3px_1px_0_#e9e0cf,-4px_2px_0_#cfc2aa,-5px_2px_0_#e9e0cf,-6px_3px_0_#cfc2aa]";
 const PAPEL_DER =
   "bg-[linear-gradient(90deg,#e3d8c5_0%,#efe7d8_10%,#f3ece0_100%)] rounded-r-[4px] shadow-[1px_0_0_#e9e0cf,2px_1px_0_#cfc2aa,3px_1px_0_#e9e0cf,4px_2px_0_#cfc2aa,5px_2px_0_#e9e0cf,6px_3px_0_#cfc2aa]";
+
+// El papel es el contenedor (cqw); el contenido va en una capa adentro, así
+// los márgenes en cqw se miden contra la página y no contra la pantalla.
+function Papel({ lado, className, children }: { lado: "izq" | "der"; className: string; children: ReactNode }) {
+  return (
+    <div className={`relative aspect-[420/580] w-full text-[#2a2620] [container-type:inline-size] ${lado === "izq" ? PAPEL_IZQ : PAPEL_DER}`}>
+      <div className={`absolute inset-0 flex flex-col overflow-hidden px-[11.4cqw] pb-[9.5cqw] pt-[12.9cqw] ${className}`}>{children}</div>
+    </div>
+  );
+}
 
 function Pagina({
   n,
@@ -234,7 +246,6 @@ function Pagina({
     );
   }
 
-  const papel = `${marco} flex flex-col text-[#2a2620] px-[11.4cqw] pb-[9.5cqw] pt-[12.9cqw] ${lado === "izq" ? PAPEL_IZQ : PAPEL_DER}`;
   const folio = (numero: number) => (
     <span
       className={`absolute bottom-[5.2cqw] text-[2.6cqw] text-[#8a7d68] [font-family:var(--fuente-micro)] ${lado === "izq" ? "left-[11.4cqw]" : "right-[11.4cqw]"}`}
@@ -246,7 +257,7 @@ function Pagina({
 
   if (n === 1)
     return (
-      <div className={`${papel} items-center justify-center gap-[3.3cqw] text-center`}>
+      <Papel lado={lado} className="items-center justify-center gap-[3.3cqw] text-center">
         <p className="text-[5.2cqw] italic leading-[1.4] [font-family:var(--fuente-titulo)]">
           {libro.dedicatoria[0]}
           <br />
@@ -256,12 +267,12 @@ function Pagina({
         </p>
         <span className={etiqueta}>{libro.firma}</span>
         {folio(4)}
-      </div>
+      </Papel>
     );
 
   if (n === 2)
     return (
-      <div className={`${papel} gap-[1.4cqw]`}>
+      <Papel lado={lado} className="gap-[1.4cqw]">
         <span className={`${etiqueta} mb-[4.3cqw]`}>{libro.indice}</span>
         <ol className="flex flex-col">
           {libro.capitulos.map((cap, i) => (
@@ -275,12 +286,12 @@ function Pagina({
         </ol>
         <span className="mt-auto text-[3.1cqw] italic text-[#6f6250]">{libro.frases}</span>
         {folio(5)}
-      </div>
+      </Papel>
     );
 
   if (n === 3)
     return (
-      <div className={`${papel} justify-between`}>
+      <Papel lado={lado} className="justify-between">
         <span className={etiqueta}>{libro.capitulo}</span>
         <div className="flex flex-col gap-[5.2cqw]">
           <span className="text-[12.9cqw] font-medium leading-none [font-family:var(--fuente-titulo)]">{libro.tituloCapitulo}</span>
@@ -289,12 +300,12 @@ function Pagina({
         </div>
         <span />
         {folio(6)}
-      </div>
+      </Papel>
     );
 
   if (n === 4)
     return (
-      <div className={`${papel} gap-[3.3cqw]`}>
+      <Papel lado={lado} className="gap-[3.3cqw]">
         {libro.parrafos.map((p, i) => (
           <p key={i} className="text-justify text-[3.55cqw] leading-[1.62] text-[#2e2922] [hyphens:auto]">
             {i === 0 ? (
@@ -310,12 +321,12 @@ function Pagina({
           </p>
         ))}
         {folio(7)}
-      </div>
+      </Papel>
     );
 
   if (n === 5)
     return (
-      <div className={`${papel} items-center gap-[3.8cqw] pt-[10.5cqw]`}>
+      <Papel lado={lado} className="items-center gap-[3.8cqw] pt-[10.5cqw]!">
         <div className="w-[71%] -rotate-[1.5deg] bg-[#fbf8f1] p-[2.9cqw] pb-[8cqw] shadow-[0_6px_14px_rgba(60,40,20,.18)]">
           <Image
             src={fotos.juventud}
@@ -328,13 +339,13 @@ function Pagina({
         </div>
         <span className="text-center text-[3.1cqw] italic leading-[1.45] text-[#5c5446]">{libro.pieFoto}</span>
         {folio(8)}
-      </div>
+      </Papel>
     );
 
   // n === 6: su voz. La onda está quieta: es la ilustración de un audio que en
   // el libro de verdad suena; este ejemplo no tiene voz grabada que poner.
   return (
-    <div className={`${papel} gap-[3.8cqw]`}>
+    <Papel lado={lado} className="gap-[3.8cqw]">
       <span className={etiqueta}>{libro.voz}</span>
       <span className="text-[7.1cqw] font-medium leading-[1.15] [font-family:var(--fuente-titulo)]">{libro.vozTitulo}</span>
       <p className="text-[3.55cqw] leading-[1.62] text-[#2e2922]">{libro.vozTexto}</p>
@@ -353,6 +364,6 @@ function Pagina({
       </div>
       <span className="text-[4.5cqw] italic leading-[1.45] text-[#4a4236] [font-family:var(--fuente-titulo)]">{libro.vozCita}</span>
       {folio(9)}
-    </div>
+    </Papel>
   );
 }
