@@ -292,6 +292,14 @@ body {
   border: 6px solid var(--boton);
 }
 
+/* 3b · Pastilla elegible (la variante chica de la opción): elegida, se pinta
+   del color del botón. Va después de .m-card:has(:checked) para ganarle. */
+.m-chip:has(:checked) {
+  border-color: var(--boton);
+  background-color: var(--boton);
+  color: var(--sobre-boton);
+}
+
 /* 4 · Solapas: la pastilla de color se desliza. Solo transform: se mide la
    solapa una vez y se anima translateX() scaleX(), nunca width. */
 .m-pill {
@@ -361,6 +369,16 @@ body {
 @keyframes flash {
   0% { color: var(--acento-oscuro); transform: translateY(-6px); opacity: 0; }
   100% { color: var(--texto-oscuro-fuerte); transform: none; opacity: 1; }
+}
+
+/* 7b · «Pagar» procesando (MOTION.md §3, checkout): un punto que late con
+   opacidad mientras llega la pasarela. */
+.m-latido {
+  animation: latido 900ms ease-in-out infinite;
+}
+@keyframes latido {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 /* 8 · Hoja o popup: el velo se oscurece y la tarjeta aparece desde un poco

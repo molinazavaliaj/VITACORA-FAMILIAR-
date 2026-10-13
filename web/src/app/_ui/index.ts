@@ -11,3 +11,4 @@ export { Hoja } from "./hoja";
 export { Pasos, ContenidoPaso } from "./pasos";
 export { Opcion } from "./opcion";
 export { ReproductorOnda } from "./reproductor-onda";
+export { Pastilla } from "./pastilla";
