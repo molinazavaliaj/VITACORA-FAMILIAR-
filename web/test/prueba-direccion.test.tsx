@@ -21,7 +21,9 @@ describe("prototipo de dirección visual", () => {
       t.hero.comprar,
       t.hero.verComo,
       `${t.fotos.titulo[0]} ${t.fotos.titulo[1]}`,
-      t.fotos.texto,
+      t.direccion.dolor.frase,
+      t.direccion.dolor.carta,
+      t.direccion.paraQuien,
       t.direccion.como.titulo,
       t.direccion.como.bajada,
       ...t.como.pasos.flatMap((p) => [p.titulo, p.texto]),
@@ -31,8 +33,6 @@ describe("prototipo de dirección visual", () => {
       t.hereda.cierre,
     ];
     for (const texto of textos) expect(html).toContain(escapar(texto));
-    // El título de «Para quién es» lleva los nombres en cursiva: mismo texto.
-    expect(html.replace(/<\/?em[^>]*>/g, "")).toContain(escapar(t.paraQuien.titulo));
   });
 
   it("usa la bajada del hero que aprobó Naza el 14/10", () => {
@@ -45,6 +45,12 @@ describe("prototipo de dirección visual", () => {
     expect(html).toContain('href="/entrar"');
     expect(html).toContain('href="/legal/terminos"');
     expect(html).toContain('href="/legal/privacidad"');
+  });
+
+  it("tiene el libro de ejemplo con su QR real y dice que la historia es inventada", () => {
+    expect(html).toContain(escapar(t.direccion.libro.contra));
+    expect(html).toContain("Historia inventada");
+    expect(html).toMatch(/<path d="M\d+ \d+h1v1h-1z/);
   });
 
   it("muestra el precio del catálogo, no una cifra a mano", () => {

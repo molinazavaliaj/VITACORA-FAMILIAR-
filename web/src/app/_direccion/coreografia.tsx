@@ -29,6 +29,39 @@ export function Coreografia() {
     });
     capas.forEach((c) => medir.observe(c));
 
+    // 3. Lo pesado que está lejos. Un bloque con [data-lejos] (el libro 3D)
+    //    no se arma (content-visibility: hidden) hasta que está a media
+    //    pantalla de distancia: así sus letras en cursiva y sus fotos no
+    //    compiten con la portada al cargar. Sin JS, un <noscript> lo deja visible.
+    const lejos = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (!e.isIntersecting) continue;
+          delete (e.target as HTMLElement).dataset.lejos;
+          lejos.unobserve(e.target);
+        }
+      },
+      { rootMargin: "50% 0px" },
+    );
+    const pesados = Array.from(document.querySelectorAll<HTMLElement>("[data-lejos]"));
+    pesados.forEach((b) => lejos.observe(b));
+    // Armarlo cuesta (con la CPU x4, ~0,6 s de un tirón): mejor hacerlo
+    // cuando el navegador está libre después de cargar que justo mientras la
+    // persona baja. Si baja antes, lo arma el observador.
+    const armar = () => pesados.forEach((b) => delete b.dataset.lejos);
+    let cancelarArmar: (() => void) | undefined;
+    const alCargar = () => {
+      if ("requestIdleCallback" in window) {
+        const id = window.requestIdleCallback(armar, { timeout: 4000 });
+        cancelarArmar = () => window.cancelIdleCallback(id);
+      } else {
+        const id = setTimeout(armar, 1500);
+        cancelarArmar = () => clearTimeout(id);
+      }
+    };
+    if (document.readyState === "complete") alCargar();
+    else window.addEventListener("load", alCargar, { once: true });
+
     let mirar: IntersectionObserver | undefined;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!quieto) {
@@ -55,6 +88,9 @@ export function Coreografia() {
 
     return () => {
       medir.disconnect();
+      lejos.disconnect();
+      window.removeEventListener("load", alCargar);
+      cancelarArmar?.();
       mirar?.disconnect();
     };
   }, []);
