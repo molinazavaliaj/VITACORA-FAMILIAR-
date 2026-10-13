@@ -169,10 +169,10 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     libroDelViaje: "El libro del viaje",
 
     faltaNombre: "Dinos tu nombre.",
-    faltaWhatsapp: "Falta tu WhatsApp: ahí os escribe el biógrafo.",
+    faltaWhatsapp: "Falta tu WhatsApp. Ahí os escribe el biógrafo.",
     faltaFechas: "Necesitamos la fecha de salida y la de vuelta.",
     vueltaAntes: "La vuelta no puede ser antes de la salida.",
-    correoMal: "Necesitamos un correo válido: con ese entras a tu panel.",
+    correoMal: "Necesitamos un correo válido. Con ese entras a tu panel.",
   },
   ar: {
     tituloPagina: "Vitácora de viaje",
@@ -246,10 +246,10 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     libroDelViaje: "El libro de tu viaje",
 
     faltaNombre: "Decinos tu nombre.",
-    faltaWhatsapp: "Falta tu WhatsApp: ahí te escribe el biógrafo.",
+    faltaWhatsapp: "Falta tu WhatsApp. Ahí te escribe el biógrafo.",
     faltaFechas: "Necesitamos la fecha de salida y la de vuelta.",
     vueltaAntes: "La vuelta no puede ser antes de la salida.",
-    correoMal: "Necesitamos un correo válido: con ese entrás a tu panel.",
+    correoMal: "Necesitamos un correo válido. Con ese entrás a tu panel.",
   },
   ca: {
     tituloPagina: "Vitácora de viatge",
@@ -323,9 +323,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     libroDelViaje: "El llibre del viatge",
 
     faltaNombre: "Digues-nos el teu nom.",
-    faltaWhatsapp: "Falta el teu WhatsApp: allà us escriu el biògraf.",
+    faltaWhatsapp: "Falta el teu WhatsApp. Allà us escriu el biògraf.",
     faltaFechas: "Necessitem la data de sortida i la de tornada.",
     vueltaAntes: "La tornada no pot ser abans de la sortida.",
-    correoMal: "Necessitem un correu vàlid: amb aquest entres al teu panell.",
+    correoMal: "Necessitem un correu vàlid. Amb aquest entres al teu panell.",
   },
 };

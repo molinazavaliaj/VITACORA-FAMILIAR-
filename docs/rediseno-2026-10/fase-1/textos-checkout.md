@@ -17,6 +17,10 @@ Leyenda del origen: **M** maqueta tal cual · **M~** maqueta adaptada · **A~** 
   correo lo pide para entregar el libro.»; «Te mandamos la tarjeta por correo…»; «Dirección de envío
   guardada.» / «…Ponla desde tu panel». Mismo cambio de puntuación aplicado al catalán.
 
+- **14/10, tanda 7** (todos OK, sin dos puntos): opción digital, marco, «No es regalo, que empiece
+  ya», «¿Dudas? Escríbenos», «Otra persona», tarjeta, errores, pago rechazado, pie del total (AR sin
+  IVA hasta confirmar), errores del viaje. Igual en catalán.
+
 ## /comprar
 
 | Dónde | es (tú) | ar (vos) | Origen |
