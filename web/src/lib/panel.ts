@@ -162,6 +162,24 @@ export async function historiaAccesible(
   user: Usuario,
   narradorId: string,
 ): Promise<{ historia: Historia | null; error: string | null }> {
+  // Primero, el panel ya cargado (RENDIMIENTO.md §3.3): en una página del
+  // tablero el layout lo pide en el mismo request y queda en la memoria de
+  // historiasDelUsuario, así que la respuesta sale sin ir a la base. El panel
+  // tiene la misma regla que abajo (las de su familia como dueña, las invitadas
+  // con su rol): si la historia está, el rol es el mismo. Si no está o la carga
+  // falló, se consulta como antes.
+  //
+  // Solo dentro de un render de servidor, donde hay memoria por request (dos
+  // pedidos a memoriaDe devuelven el mismo objeto). En un route handler no hay
+  // memoria y cargar el panel entero sería más caro que estas tres consultas.
+  if (memoriaDe(user) === memoriaDe(user)) {
+    const { panel, error: errorPanel } = await historiasDelUsuario(admin, user);
+    if (!errorPanel) {
+      const delPanel = panel.historias.find((h) => h.narrador.id === narradorId);
+      if (delPanel) return { historia: delPanel, error: null };
+    }
+  }
+
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
     .select(CAMPOS_NARRADOR)
