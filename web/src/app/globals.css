@@ -1081,7 +1081,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: clamp(40px, 7svh, 72px);
-  padding: 120px 16px 72px;
+  padding: 96px 16px 64px;
   overflow: hidden;
 }
 .l3-escena {
@@ -1107,7 +1107,7 @@ body {
 .l3-leyenda { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
 
 /* Mientras está lejos, el libro no se arma (Coreografia saca el atributo). */
-[data-lejos] { content-visibility: hidden; contain-intrinsic-size: auto 270svh; }
+[data-lejos] { content-visibility: hidden; contain-intrinsic-size: auto 100svh; }
 
 /* El piso: una sombra suave debajo del libro. */
 .l3-sombra {
@@ -1129,10 +1129,12 @@ body {
    pintarlo (medido con la CPU x4: peor fotograma ~230 ms con 2x, ~150–180
    con 1,5x). --l3-W/D/IN son las medidas de ese libro agrandado. */
 .l3-libro {
-  --l3-W: calc(var(--l3-w) * 1.5);
-  --l3-H: calc(var(--l3-h) * 1.5);
-  --l3-D: calc(var(--l3-d) * 1.5);
-  --l3-IN: calc(var(--l3-in) * 1.5);
+  --l3-k: 1.5;
+  --l3-ki: 0.6667;
+  --l3-W: calc(var(--l3-w) * var(--l3-k));
+  --l3-H: calc(var(--l3-h) * var(--l3-k));
+  --l3-D: calc(var(--l3-d) * var(--l3-k));
+  --l3-IN: calc(var(--l3-in) * var(--l3-k));
   position: absolute;
   left: 50%;
   top: 50%;
@@ -1140,7 +1142,7 @@ body {
   height: var(--l3-H);
   margin: calc(var(--l3-H) / -2) 0 0 calc(var(--l3-W) / -2);
   transform-style: preserve-3d;
-  transform: scale(0.6667) rotateX(10deg) rotateY(32deg);
+  transform: scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg);
 }
 .l3-cara {
   position: absolute;
@@ -1216,7 +1218,16 @@ body {
     repeating-linear-gradient(0deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
 }
 .l3-canto--arriba { top: var(--l3-IN); transform: translateZ(calc(var(--l3-D) * -0.47)) rotateX(90deg); }
-.l3-canto--abajo { top: calc(100% - var(--l3-IN)); transform: translateZ(calc(var(--l3-D) * 0.47)) rotateX(-90deg); filter: brightness(0.82); }
+.l3-canto--abajo {
+  top: calc(100% - var(--l3-IN));
+  transform: translateZ(calc(var(--l3-D) * 0.47)) rotateX(-90deg);
+  /* Más oscuro que el de arriba (le da menos luz), sin filter: dentro del 3D
+     un filtro obliga a pintar aparte. */
+  background-image:
+    linear-gradient(rgba(60, 45, 25, 0.22), rgba(60, 45, 25, 0.22)),
+    linear-gradient(0deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(0deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
 
 /* El brillo de la tapa: una franja de luz que cruza con el giro. */
 .l3-brillo {
@@ -1309,14 +1320,42 @@ body {
 }
 .l3-plano-hoja { container-type: inline-size; aspect-ratio: 0.68; }
 
+/* ── El giro, por tiempo (v3c, 14/10) ─────────────────────────────────────
+   Antes iba atado al scroll con la sección fija; en el teléfono de Naza el
+   libro se desplazaba mientras giraba y no se llegaba a ver. Ahora la sección
+   mide lo que mide y el libro gira QUIETO en su lugar: Coreografia pone
+   data-libro="anda" cuando el libro está entero y centrado en pantalla, la
+   secuencia dura ~4 s (--l3-t) y al terminar queda en "abierto". «Ver otra
+   vez» o tocar el libro la repiten. Solo se anima transform (y la sombra del
+   piso, que está fuera del 3D, en escala y opacidad); will-change solo
+   mientras anda. Con «menos movimiento» o sin JS no hay data-libro: el libro
+   queda en 3/4 y el pliego plano se ve debajo. */
+.l3-seccion { --l3-t: 4s; }
+.l3-escena { cursor: pointer; }
+.l3-otra-vez {
+  display: none;
+  min-height: 44px;
+  align-items: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13.5px;
+  color: var(--dir-sobre-papel-suave);
+  text-decoration: underline;
+  text-decoration-color: var(--dir-hilo-papel);
+  text-underline-offset: 4px;
+}
+.l3-otra-vez:hover { color: var(--dir-sobre-papel); }
+.l3-seccion[data-libro] .l3-otra-vez { display: inline-flex; }
+.l3-seccion[data-libro] .l3-plano { display: none; }
+/* Cuando gira, la sección ocupa una pantalla (el pliego abierto entra entero). */
+.l3-seccion[data-libro] .l3-pegado { min-height: 100svh; }
+
 @keyframes l3-girar {
-  0% { transform: translateX(0) scale(0.6667) rotateX(10deg) rotateY(32deg); }
-  20% { transform: translateX(0) scale(0.6667) rotateX(8deg) rotateY(-26deg); }
-  40% { transform: translateX(0) scale(0.6667) rotateX(6deg) rotateY(-160deg); }
-  52% { transform: translateX(0) scale(0.6667) rotateX(5deg) rotateY(-200deg); }
-  72% { transform: translateX(0) scale(0.6667) rotateX(0deg) rotateY(-360deg); }
-  90%, 100% {
-    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(0.6667 * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+  0% { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg); }
+  36% { transform: translateX(0) scale(var(--l3-ki)) rotateX(6deg) rotateY(-165deg); }
+  46% { transform: translateX(0) scale(var(--l3-ki)) rotateX(5deg) rotateY(-195deg); }
+  66% { transform: translateX(0) scale(var(--l3-ki)) rotateX(0deg) rotateY(-360deg); }
+  82%, 100% {
+    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
   }
 }
 @keyframes l3-abrir {
@@ -1332,21 +1371,36 @@ body {
   to { transform: translateX(30%); }
 }
 @keyframes l3-piso {
-  0%, 72% { transform: scaleX(1); opacity: 1; }
-  90%, 100% { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
+  0%, 66% { transform: scaleX(1); opacity: 1; }
+  82%, 100% { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    /* La hoja del libro queda fija 1,7 pantallas: el giro arranca apenas se
-       fija, así que siempre se ve que avanza. */
-    .l3-seccion { height: 270svh; view-timeline-name: --l3; }
-    .l3-pegado { position: sticky; top: 0; height: 100svh; padding: 72px 16px 40px; }
-    .l3-plano { display: none; }
-    .l3-libro { animation: l3-girar linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
-    .l3-tapa { animation: l3-abrir linear both; animation-timeline: --l3; animation-range: contain 60% contain 74%; }
-    .l3-hoja { animation: l3-pasar linear both; animation-timeline: --l3; animation-range: contain 76% contain 90%; }
-    .l3-brillo { animation: l3-brillar linear both; animation-timeline: --l3; animation-range: contain 0% contain 60%; }
-    .l3-sombra { animation: l3-piso linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
-  }
+/* Andando: la secuencia, una vez. La tapa se abre del 62 % al 78 % y la hoja
+   pasa del 80 % al 94 %. */
+.l3-seccion[data-libro="anda"] .l3-libro {
+  will-change: transform;
+  animation: l3-girar var(--l3-t) var(--ease-io) both;
 }
+.l3-seccion[data-libro="anda"] .l3-tapa {
+  will-change: transform;
+  animation: l3-abrir calc(var(--l3-t) * 0.16) var(--ease-io) calc(var(--l3-t) * 0.62) both;
+}
+.l3-seccion[data-libro="anda"] .l3-hoja {
+  will-change: transform;
+  animation: l3-pasar calc(var(--l3-t) * 0.14) var(--ease-io) calc(var(--l3-t) * 0.8) both;
+}
+.l3-seccion[data-libro="anda"] .l3-brillo { animation: l3-brillar calc(var(--l3-t) * 0.6) var(--ease-io) both; }
+.l3-seccion[data-libro="anda"] .l3-sombra { animation: l3-piso var(--l3-t) var(--ease-io) both; }
+
+/* Abierto: el estado final, quieto (sin animación ni will-change). */
+.l3-seccion[data-libro="abierto"] .l3-libro {
+  transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+}
+.l3-seccion[data-libro="abierto"] .l3-tapa {
+  transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg) translateZ(calc(var(--l3-W) * 0.03));
+}
+.l3-seccion[data-libro="abierto"] .l3-hoja {
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(-180deg);
+}
+.l3-seccion[data-libro="abierto"] .l3-brillo { transform: translateX(30%); }
+.l3-seccion[data-libro="abierto"] .l3-sombra { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }

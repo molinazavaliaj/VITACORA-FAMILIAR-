@@ -171,6 +171,8 @@ export type TextosPortada = {
     como: { titulo: string; bajada: string };
     dolor: { frase: string; carta: string; firma: string };
     paraQuien: string;
+    /** El botón chico para repetir el giro del libro. PENDIENTE DEL OK DE NAZA. */
+    libroOtraVez: string;
     libro: {
       etiqueta: string;
       nombre: [string, string];
@@ -208,6 +210,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         firma: "Naza y Joaquín, fundadores de Vitácora",
       },
       paraQuien: "Para las vidas que merecen su propio libro.",
+      libroOtraVez: "Ver otra vez",
       libro: {
         etiqueta: "El libro de su vida",
         nombre: ["Osvaldo", "Toroide"],
@@ -537,6 +540,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         firma: "Naza y Joaquín, fundadores de Vitácora",
       },
       paraQuien: "Para las vidas que merecen su propio libro.",
+      libroOtraVez: "Ver otra vez",
       libro: {
         etiqueta: "El libro de su vida",
         nombre: ["Osvaldo", "Toroide"],
@@ -866,6 +870,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         firma: "Naza i Joaquín, fundadors de Vitácora",
       },
       paraQuien: "Per a les vides que mereixen el seu propi llibre.",
+      libroOtraVez: "Tornar-ho a veure",
       libro: {
         etiqueta: "El libro de su vida",
         nombre: ["Osvaldo", "Toroide"],
