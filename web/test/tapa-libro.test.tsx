@@ -35,3 +35,14 @@ describe("TapaLibro", () => {
     expect(idiomaDelLibro(null)).toBe("es");
   });
 });
+
+describe("tamanoNombreTapa", () => {
+  it("una palabra nunca se corta: el nombre largo achica la letra, igual que en la fábrica", async () => {
+    const { tamanoNombreTapa } = await import("../src/lib/tapa");
+    expect(tamanoNombreTapa("Osvaldo Toroide")).toBe(8.6);
+    expect(tamanoNombreTapa("IMMACULADA COLELL")).toBe(8.6);
+    expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(8.6);
+    const html = renderToStaticMarkup(<TapaLibro titulo="IMMACULADA COLELL" fotoSrc={null} />);
+    expect(html).not.toContain("break-words");
+  });
+});

@@ -9,5 +9,17 @@ export const TEXTOS_TAPA: Record<IdiomaLibro, { eyebrow: string; siempre: string
   ca: { eyebrow: "EL LLIBRE DE LA SEVA VIDA", siempre: "per sempre" },
 };
 
+/**
+ * El tamaño del nombre en la tapa, en cqw (13/10): la misma cuenta que
+ * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que la palabra más larga
+ * no entre en 465px). Una palabra nunca se corta.
+ */
+export function tamanoNombreTapa(texto: string): number {
+  const ancho = (palabra: string) => [...palabra].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
+  const mayor = Math.max(0, ...texto.split(/\s+/).map(ancho));
+  const px = mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
+  return Math.round((px / 559) * 1000) / 10;
+}
+
 /** Como `idiomaDelLibro` de la fábrica: entrevista en catalán → libro en catalán; si no, castellano. */
 export const idiomaDelLibro = (idiomaEntrevista: string | null | undefined): IdiomaLibro => (idiomaEntrevista === "ca" ? "ca" : "es");

@@ -1,5 +1,5 @@
 import { objectPosition, type Foco } from "@/lib/encuadre";
-import { TEXTOS_TAPA, type IdiomaLibro } from "@/lib/tapa";
+import { TEXTOS_TAPA, tamanoNombreTapa, type IdiomaLibro } from "@/lib/tapa";
 import { Toroide } from "./marca";
 
 // La tapa del libro, como sale impresa (Naza, 13/10): la foto arriba a sangre,
@@ -44,7 +44,8 @@ export function TapaLibro({
         <p className="uppercase text-[#57534e] [font-family:var(--fuente-micro)]" style={{ fontSize: "1.7cqw", letterSpacing: "0.3em" }}>
           {textos.eyebrow}
         </p>
-        <p className="max-w-[66%] break-words [font-family:var(--fuente-titulo)] [text-wrap:balance]" style={{ marginTop: "2.5cqw", fontSize: "8.6cqw", lineHeight: 1.06 }}>
+        {/* Una palabra nunca se corta: si no entra, la letra se achica (como en la fábrica). */}
+        <p className="max-w-[66%] [font-family:var(--fuente-titulo)] [text-wrap:balance]" style={{ marginTop: "2.5cqw", fontSize: `${tamanoNombreTapa(titulo)}cqw`, lineHeight: 1.06 }}>
           {titulo}
         </p>
         <div className="mt-auto flex items-center justify-between">

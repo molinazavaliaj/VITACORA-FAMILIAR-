@@ -359,7 +359,7 @@ function construirEstilos(acento: string): string {
   .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
   .portada-nombre-narrador {
     margin-top: 14px; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 48px;
-    line-height: 1.08; letter-spacing: -0.005em; overflow-wrap: break-word; text-wrap: balance; max-width: 66%;
+    line-height: 1.08; letter-spacing: -0.005em; overflow-wrap: normal; text-wrap: balance; max-width: 66%;
   }
   .tapa-base { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
   .tapa-siempre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 15px; }
@@ -531,6 +531,18 @@ const TEXTOS_TAPA: Record<'es' | 'ca', { eyebrow: string; siempre: string }> = {
   ca: { eyebrow: 'EL LLIBRE DE LA SEVA VIDA', siempre: 'per sempre' },
 };
 
+/**
+ * El tamaño del nombre en la tapa (13/10): 48px, salvo que su palabra más larga no
+ * entre en el ancho del bloque (465px). Una palabra nunca se corta: el nombre
+ * en mayúsculas («IMMACULADA») salía partido. Ancho aproximado de la Playfair:
+ * 0,74em una mayúscula, 0,52em el resto. Misma cuenta en web/src/lib/tapa.ts.
+ */
+export function tamanoNombreTapa(texto: string): number {
+  const ancho = (palabra: string) => [...palabra].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
+  const mayor = Math.max(0, ...texto.split(/\s+/).map(ancho));
+  return mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
+}
+
 /** Los anillos del toroide (marca/toroide-negro.svg, como web/src/app/marca.tsx). */
 function svgToroide(clase: string): string {
   const anillos: [number, number, number][] = [
@@ -563,7 +575,7 @@ function construirPortada(opts: {
     <div class="tapa-foto">${foto}</div>
     <div class="tapa-pie">
       <div class="tapa-eyebrow">${textos.eyebrow}</div>
-      <div class="portada-nombre-narrador">${escaparHtml(nombre)}</div>
+      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < 48 ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${escaparHtml(nombre)}</div>
       <div class="tapa-base">
         <span class="tapa-siempre">${textos.siempre}</span>
         <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V·F</span>
