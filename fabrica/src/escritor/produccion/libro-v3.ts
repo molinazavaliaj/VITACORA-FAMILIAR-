@@ -27,7 +27,7 @@ import { AlmacenSupabase } from '../almacen/supabase.js';
 import type { Almacen } from '../almacen/tipos.js';
 import { Carpeta, leerJSON, parseJSONTolerante } from '../carpeta.js';
 import { Ejecutor, ErrorJSON, OPCIONES_CLIENTE, TopeDeGasto } from '../ejecutor.js';
-import { salida } from '../lectura.js';
+import { salida, trato } from '../lectura.js';
 import { materialACarpeta, type CorreccionFamilia } from '../material/a-carpeta.js';
 import { leerEntrevistaV3, type AudioV3 } from '../material/de-base.js';
 import type { FichaParaXml } from '../material/ficha-xml.js';
@@ -440,7 +440,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     // La plantilla y el PDF (el lector online carga libro.html; la familia descarga libro.pdf).
     const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion').eq('id', narradorId).maybeSingle();
     if (error || !n) throw new Error(`No se pudo leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
-    const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma });
+    const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma, trato: trato(x.c) });
     await subir(db, RUTA_LIBRO_HTML(narradorId), html, 'text/html; charset=utf-8');
     await subir(db, RUTA_LIBRO_PDF(narradorId), await htmlAPdf(html), 'application/pdf');
 

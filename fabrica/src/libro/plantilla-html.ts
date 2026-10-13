@@ -664,8 +664,66 @@ function construirPaginaSimple(seccion: SeccionLibro): string {
   </section>`;
 }
 
-function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: string; fraseHeroe: string | null }): string {
+/**
+ * La lengua del libro para sus textos fijos (13/10): el castellano de acá va de
+ * vos, el de España de tú, y el libro en catalán va entero en catalán.
+ */
+export type LenguaLibro = 'es-AR' | 'es-ES' | 'ca';
+
+/** Los textos fijos del cuerpo del libro (Sus frases, Su voz, colofón), por lengua. Aprobados por Naza el 13/10. */
+const TEXTOS_LIBRO: Record<LenguaLibro, {
+  susFrasesEyebrow: string; susFrasesHero: string;
+  suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
+  libroEntero: string; libroEnteroBajada: string;
+  colofon1: string; colofon2: string; cierre: string;
+}> = {
+  'es-AR': {
+    susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
+    susFrasesHero: 'Si se lleva una sola de todo el libro, es esta',
+    suVoz: 'Su voz',
+    suVozBajada: 'Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.',
+    escuchala: 'Escuchala',
+    altFrase: 'Código para escuchar esta frase',
+    altLibro: 'Código para abrir el libro y sus frases',
+    libroEntero: 'El libro entero, en su voz',
+    libroEnteroBajada: 'Este código abre la página con el libro online y todas sus frases, para escucharlas y compartirlas.',
+    colofon1: 'Este libro fue contado por',
+    colofon2: 'con su propia voz, y guardado para siempre por',
+    cierre: '«Acá adentro están todos vivos.»',
+  },
+  'es-ES': {
+    susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
+    susFrasesHero: 'Si se lleva una sola de todo el libro, es esta',
+    suVoz: 'Su voz',
+    suVozBajada: 'Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas.',
+    escuchala: 'Escúchala',
+    altFrase: 'Código para escuchar esta frase',
+    altLibro: 'Código para abrir el libro y sus frases',
+    libroEntero: 'El libro entero, en su voz',
+    libroEnteroBajada: 'Este código abre la página con el libro online y todas sus frases, para escucharlas y compartirlas.',
+    colofon1: 'Este libro fue contado por',
+    colofon2: 'con su propia voz, y guardado para siempre por',
+    cierre: '«Aquí dentro están todos vivos.»',
+  },
+  ca: {
+    susFrasesEyebrow: 'TAL COM LES DIU · PERQUÈ NO ES PERDIN',
+    susFrasesHero: 'Si només se n’endú una de tot el llibre, és aquesta',
+    suVoz: 'La seva veu',
+    suVozBajada: 'Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs.',
+    escuchala: 'Escolta-la',
+    altFrase: 'Codi per escoltar aquesta frase',
+    altLibro: 'Codi per obrir el llibre i les seves frases',
+    libroEntero: 'El llibre sencer, amb la seva veu',
+    libroEnteroBajada: 'Aquest codi obre la pàgina amb el llibre en línia i totes les seves frases, per escoltar-les i compartir-les.',
+    colofon1: 'Aquest llibre el va explicar',
+    colofon2: 'amb la seva pròpia veu, i el va guardar per sempre',
+    cierre: '«Aquí dins hi són tots vius.»',
+  },
+};
+
+function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: string; fraseHeroe: string | null; lengua: LenguaLibro }): string {
   const { seccion, nombreNarrador, fraseHeroe } = opts;
+  const t = TEXTOS_LIBRO[opts.lengua];
   // El resto de la sección, sin repetir la primera cita que ya se usó como
   // héroe — solo cuando viene de un `<blockquote>` (match exacto y seguro).
   // Cuando `fraseHeroe` sale del formato lista (fallback del primer `<li>`,
@@ -679,7 +737,7 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
     : seccion.html;
   const heroHtml = fraseHeroe
     ? `<div class="sus-frases-hero">«${fraseHeroe}»</div>
-       <div class="sus-frases-hero-tag">Si se lleva una sola de todo el libro, es esta</div>`
+       <div class="sus-frases-hero-tag">${t.susFrasesHero}</div>`
     : '';
   const titulo = seccion.titulo ?? 'Sus frases';
   // La página de arte lleva SOLO el título y la frase héroe (entra siempre);
@@ -687,7 +745,7 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
   // frase se pierda por un overflow:hidden — antes se cortaban en silencio.
   return `<div class="lienzo quiebre">
     ${svgCirculoCortado({ top: -30, left: 300, size: 240, color: '#f2eee5' })}
-    <div class="sus-frases-eyebrow">TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN</div>
+    <div class="sus-frases-eyebrow">${t.susFrasesEyebrow}</div>
     <div style="position:absolute; top:48px; left:44px; right:100px;">
       <div class="sus-frases-titulo">${escaparHtml(titulo)}</div>
     </div>
@@ -744,7 +802,8 @@ function imagenQr(dataUri: string, clase: string, lado: number, alt: string): st
  * El link de cada QR lo arma quien conoce al narrador y el secreto
  * (`urlVozDeNarrador` de `token-voz.ts`): acá adentro no se firma nada.
  */
-export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: string }): Promise<string> {
+export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: string; lengua?: LenguaLibro }): Promise<string> {
+  const t = TEXTOS_LIBRO[args.lengua ?? 'es-AR'];
   const capitulos = args.frases.capitulos
     .map((capitulo) => ({
       capitulo,
@@ -754,11 +813,11 @@ export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: 
   if (!capitulos.some((x) => x.frases.some(tieneAudio))) return '';
 
   const bloques: string[] = [
-    '<h2 class="su-voz-titulo">Su voz</h2>',
+    `<h2 class="su-voz-titulo">${t.suVoz}</h2>`,
     // La misma regla de acento de la página simple: el rótulo del paginador lo
     // reconoce como encabezado y lo baja de página junto con el título.
     '<div class="titulo-simple-regla"></div>',
-    '<div class="su-voz-bajada">Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.</div>',
+    `<div class="su-voz-bajada">${t.suVozBajada}</div>`,
   ];
 
   for (const { capitulo, frases } of capitulos) {
@@ -767,7 +826,7 @@ export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: 
     for (const frase of frases) {
       // El QR va al lado de la frase, y solo si la frase suena.
       const qr = tieneAudio(frase)
-        ? `<div class="su-voz-qr">${imagenQr(await qrDataUri(urlFraseDeVoz(args.urlCliente, frase.id)), 'su-voz-qr-img', 96, 'Código para escuchar esta frase')}<div class="su-voz-qr-rotulo">Escuchala</div></div>`
+        ? `<div class="su-voz-qr">${imagenQr(await qrDataUri(urlFraseDeVoz(args.urlCliente, frase.id)), 'su-voz-qr-img', 96, t.altFrase)}<div class="su-voz-qr-rotulo">${t.escuchala}</div></div>`
         : '';
       bloques.push(`<div class="su-voz-frase"><div class="su-voz-frase-texto">«${escaparHtml(frase.texto)}»</div>${qr}</div>`);
     }
@@ -778,21 +837,22 @@ export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: 
   // escanea desde el libro cerrado) y lleva el link escrito al lado, para quien lo
   // mire sin el teléfono a mano.
   bloques.push(`<div class="su-voz-contratapa">
-    <div>${imagenQr(await qrDataUri(args.urlCliente), 'su-voz-contratapa-qr-img', 132, 'Código para abrir el libro y sus frases')}</div>
+    <div>${imagenQr(await qrDataUri(args.urlCliente), 'su-voz-contratapa-qr-img', 132, t.altLibro)}</div>
     <div class="su-voz-contratapa-texto">
-      <div class="su-voz-contratapa-titulo">El libro entero, en su voz</div>
-      <div class="su-voz-contratapa-bajada">Este código abre la página: el libro online y todas sus frases, para escuchar y compartir.</div>
+      <div class="su-voz-contratapa-titulo">${t.libroEntero}</div>
+      <div class="su-voz-contratapa-bajada">${t.libroEnteroBajada}</div>
       <div class="su-voz-contratapa-url">${escaparHtml(args.urlCliente)}</div>
     </div>
   </div>`);
 
-  return `<section class="fuente-texto antes" data-etiqueta="Su voz" data-rail="Su voz">
+  return `<section class="fuente-texto antes" data-etiqueta="${t.suVoz}" data-rail="${t.suVoz}">
   ${bloques.join('\n  ')}
 </section>`;
 }
 
-function construirColofon(opts: { nombreNarrador: string; mono: string }): string {
+function construirColofon(opts: { nombreNarrador: string; mono: string; lengua: LenguaLibro }): string {
   const { nombreNarrador, mono } = opts;
+  const t = TEXTOS_LIBRO[opts.lengua];
   const anio = new Date().getFullYear();
   return `<div class="lienzo quiebre antes">
     ${svgGrano(11)}
@@ -803,9 +863,9 @@ function construirColofon(opts: { nombreNarrador: string; mono: string }): strin
     <div class="colofon-centro">
       ${svgMedallion({ size: 150, texto: mono, colorAro: '#1c1917', colorTexto: '#1c1917', puntosCardinales: true, colorPuntos: 'var(--acento)' })}
       <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-        <div class="colofon-linea1">Este libro fue contado por</div>
+        <div class="colofon-linea1">${t.colofon1}</div>
         <div class="colofon-nombre">${escaparHtml(nombreNarrador)}</div>
-        <div class="colofon-linea2">con su propia voz, y guardado para siempre por</div>
+        <div class="colofon-linea2">${t.colofon2}</div>
       </div>
       <div style="display:flex; flex-direction:column; align-items:center; gap:11px;">
         <div class="colofon-marca">VITÁCORA FAMILIAR</div>
@@ -813,7 +873,7 @@ function construirColofon(opts: { nombreNarrador: string; mono: string }): strin
         <div class="colofon-anio">${anioRomano(anio)}</div>
       </div>
     </div>
-    <div class="colofon-cierre">«Acá adentro están todos vivos.»</div>
+    <div class="colofon-cierre">${t.cierre}</div>
   </div>`;
 }
 
@@ -1113,11 +1173,14 @@ export async function construirHtmlLibro(datos: {
   urlCliente?: string;
   /** El idioma del libro (escritor v5.4: catalán). Va en `<html lang>`. Sin esto, castellano. */
   idioma?: 'es' | 'ca';
+  /** El trato del castellano (13/10): `tu` para España. Sin esto, vos. En catalán no cuenta. */
+  trato?: 'vos' | 'tu';
 }): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
   const nombreNarrador = datos.nombreNarrador ?? extraerNombreNarrador(titulo);
   const mono = iniciales(nombreNarrador);
+  const lengua: LenguaLibro = datos.idioma === 'ca' ? 'ca' : datos.trato === 'tu' ? 'es-ES' : 'es-AR';
   const secciones = parsearSeccionesLibro(libroMarkdown);
   const fraseHeroe = extraerFraseHeroe(secciones);
 
@@ -1128,7 +1191,7 @@ export async function construirHtmlLibro(datos: {
     .map((seccion) => {
       const tituloTrim = (seccion.titulo ?? '').trim();
       if (esSusFrases(tituloTrim)) {
-        return construirSusFrases({ seccion, nombreNarrador, fraseHeroe });
+        return construirSusFrases({ seccion, nombreNarrador, fraseHeroe, lengua });
       }
       if (seccion.titulo !== null && indiceSet.has(seccion.titulo)) {
         numeroCapitulo += 1;
@@ -1146,9 +1209,9 @@ export async function construirHtmlLibro(datos: {
   // página suelta pegada al final.
   const seccionVozHtml =
     datos.frases && datos.urlCliente
-      ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente })
+      ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente, lengua })
       : '';
-  const colofonHtml = construirColofon({ nombreNarrador, mono });
+  const colofonHtml = construirColofon({ nombreNarrador, mono, lengua });
   const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
 
   return `<!DOCTYPE html>
