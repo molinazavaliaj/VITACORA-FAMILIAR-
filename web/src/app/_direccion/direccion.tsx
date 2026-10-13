@@ -6,6 +6,10 @@ import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { LogoTrazo } from "./logo-trazo";
+import { CabeceraDireccion } from "./cabecera";
+import { PieDireccion } from "./pie";
+import { Coreografia } from "./coreografia";
+import { DibujoAudio, DibujoLibreta, DibujoLibro } from "./dibujos";
 
 // Prototipo de dirección visual para la portada (13/10, pedido de Naza: «está
 // bien pero verde»). La web como un libro: tinta y papel que se alternan como
@@ -18,6 +22,13 @@ import { LogoTrazo } from "./logo-trazo";
 // trazo del logo. Sin animation-timeline o con «menos movimiento», todo se ve
 // quieto y completo.
 //
+// 2.ª vuelta (13–14/10, lo que pidió Naza al verlo en el teléfono): cabecera y
+// pie mínimos; la bajada del hero con la marca (aprobada el 14/10); las
+// secciones como capas que se tapan al bajar; la frase de las fotos que se
+// completa sola al llegar, sin retener el scroll; «Cómo funciona» con un
+// dibujo en línea fina por paso; las fotos que pasan del blanco y negro al
+// sepia mientras entran. Lo que corre en el navegador está en coreografia.tsx.
+//
 // Las fotos son personas generadas (PENDIENTES B10): ilustran, nunca se
 // presentan como familias reales.
 
@@ -29,6 +40,7 @@ const FOTOS = {
 } as const;
 
 const IDIOMA: IdiomaWeb = "es";
+const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 const conVar = (vars: Record<string, number | string>) => vars as CSSProperties;
 
@@ -133,46 +145,54 @@ export function Direccion() {
 
   return (
     <div lang={langDeIdioma(IDIOMA)} className="dir-pagina flex flex-1 flex-col">
-      {/* ═══ 1 · PORTADA: el logo se dibuja sobre negro ═══ */}
-      <section className="dir-tinta relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-14 pt-16 text-center sm:px-8">
-        <LogoTrazo id="trazo-portada" halo="var(--dir-tinta)" className="w-[184px] sm:w-[260px] lg:w-[min(320px,36svh)]" />
+      <Coreografia />
 
-        <h1 className="dir-titular dir-t1 dir-asienta mt-10 max-w-[13ch] sm:mt-12 sm:max-w-none">
-          {t.hero.titulo[0]} <br className="hidden sm:block" />
-          {t.hero.titulo[1]}
-        </h1>
-        <p
-          className="dir-entra mt-6 max-w-[34ch] text-[18px] font-light leading-[1.55] text-[var(--dir-sobre-tinta-suave)] sm:mt-7 sm:max-w-[44ch] sm:text-[21px]"
-          style={conVar({ "--e": "0.7s" })}
-        >
-          {t.hero.bajada}
-        </p>
-        <div
-          className="dir-entra mt-9 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4"
-          style={conVar({ "--e": "0.9s" })}
-        >
-          <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno">
-            {t.hero.comprar}
-          </Link>
-          <Link prefetch={false} href={ruta(IDIOMA, "/ejemplo")} className="dir-boton dir-boton--hilo">
-            {t.hero.verComo}
-          </Link>
+      {/* ═══ 1 · PORTADA: el logo se dibuja sobre negro. Queda fija detrás
+          y la sección siguiente la tapa (capa). ═══ */}
+      <section data-capa className="dir-tinta relative z-[1]">
+        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-12 pt-24 text-center sm:px-8 sm:pt-28">
+          <CabeceraDireccion idioma={IDIOMA} />
+          <LogoTrazo id="trazo-portada" halo="var(--dir-tinta)" className="w-[160px] sm:w-[240px] lg:w-[min(280px,28svh)]" />
+
+          <h1 className="dir-titular dir-t1 dir-asienta mt-9 max-w-[13ch] sm:mt-11 sm:max-w-none">
+            {t.hero.titulo[0]} <br className="hidden sm:block" />
+            {t.hero.titulo[1]}
+          </h1>
+          <p className="dir-entra dir-bajada-hero mt-6 sm:mt-8" style={conVar({ "--e": "0.7s" })}>
+            {t.direccion.bajada}
+          </p>
+          <div
+            className="dir-entra mt-9 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4"
+            style={conVar({ "--e": "0.9s" })}
+          >
+            <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno">
+              {t.hero.comprar}
+            </Link>
+            <Link prefetch={false} href={ruta(IDIOMA, "/ejemplo")} className="dir-boton dir-boton--hilo">
+              {t.hero.verComo}
+            </Link>
+          </div>
+          <p className="dir-entra dir-dato mt-6 text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "1.05s" })}>
+            {lista && promo ? (
+              <>
+                <s className="mr-2 opacity-70">{lista}</s>
+                <span className="mr-2">−{promo} %</span>
+              </>
+            ) : null}
+            {t.hero.desde(precio)}
+          </p>
         </div>
-        <p className="dir-entra dir-dato mt-6 text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "1.05s" })}>
-          {lista && promo ? (
-            <>
-              <s className="mr-2 opacity-70">{lista}</s>
-              <span className="mr-2">−{promo} %</span>
-            </>
-          ) : null}
-          {t.hero.desde(precio)}
-        </p>
       </section>
 
-      {/* ═══ 2 · LAS FOTOS QUEDAN: se ilumina palabra por palabra al bajar ═══ */}
-      <section className="dir-tinta">
-        <div className="dir-frase">
-          <div className="dir-frase-pegado mx-auto flex w-full max-w-[1360px] items-center px-4 sm:px-8 lg:px-12">
+      {/* ═══ 2 · LAS FOTOS QUEDAN: sube tapando la portada; la frase se
+          completa sola al llegar, palabra por palabra ═══ */}
+      <section data-capa className="dir-tinta dir-hoja dir-sobre-1 relative z-[2]">
+        <div className="dir-hunde dir-hunde--2">
+          <div
+            data-revela
+            className="mx-auto flex min-h-[100dvh] w-full max-w-[1360px] items-center px-4 py-24 sm:px-8 lg:px-12"
+            style={conVar({ "--paso": "0.17s" })}
+          >
             <h2 className="dir-titular dir-txl">
               <span className="sr-only">
                 {frase1} {frase2}
@@ -185,62 +205,74 @@ export function Direccion() {
               </span>
             </h2>
           </div>
-        </div>
 
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-14 px-4 pb-28 pt-10 sm:px-8 md:grid-cols-12 md:items-end md:gap-8 md:pb-44 lg:px-12">
-          <Foto
-            src={FOTOS.guitarra}
-            alt=""
-            forma="arco"
-            recorte
-            sizes="(min-width: 768px) 34vw, 78vw"
-            className="w-[78%] md:col-span-4 md:col-start-2 md:w-full"
-          />
-          <p className="dir-lee text-[23px] font-light leading-[1.45] sm:text-[28px] md:col-span-6 md:col-start-7 md:pb-6 lg:text-[33px]">
-            <span className="sr-only">{t.fotos.texto}</span>
-            <span aria-hidden>
-              <Palabras texto={t.fotos.texto} total={nTexto} />
-            </span>
-          </p>
+          <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-14 px-4 pb-28 sm:px-8 md:grid-cols-12 md:items-end md:gap-8 md:pb-40 lg:px-12">
+            <Foto
+              src={FOTOS.guitarra}
+              alt=""
+              forma="arco"
+              recorte
+              sizes="(min-width: 768px) 34vw, 78vw"
+              className="w-[72%] md:col-span-4 md:col-start-2 md:w-full"
+            />
+            <p
+              data-revela
+              className="text-[23px] font-light leading-[1.45] sm:text-[28px] md:col-span-6 md:col-start-7 md:pb-6 lg:text-[33px]"
+              style={conVar({ "--paso": "0.045s" })}
+            >
+              <span className="sr-only">{t.fotos.texto}</span>
+              <span aria-hidden>
+                <Palabras texto={t.fotos.texto} total={nTexto} />
+              </span>
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ═══ 3 · CÓMO FUNCIONA: papel, título fijo y tres momentos ═══ */}
-      <section className="dir-papel dir-diferido">
+      {/* ═══ 3 · CÓMO FUNCIONA: la hoja de papel sube y tapa al negro ═══ */}
+      <section className="dir-papel dir-hoja dir-sobre-2 dir-diferido relative z-[3]">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 pb-24 pt-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:pb-36 md:pt-36 lg:px-12">
           <div className="md:col-span-5">
             <div className="md:sticky md:top-24">
-              <h2 className="dir-titular dir-t2 aparece max-w-[12ch]">{t.como.titulo}</h2>
-              <p className="aparece mt-7 max-w-[30ch] text-[19px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)] sm:text-[21px]">
-                {t.como.bajada}
+              <h2 className="dir-titular dir-t2 aparece">{t.direccion.como.titulo}</h2>
+              <p className="aparece mt-7 max-w-[32ch] text-[20px] font-light leading-[1.5] text-[var(--dir-sobre-papel-suave)] sm:text-[23px]">
+                {t.direccion.como.bajada}
               </p>
             </div>
           </div>
-          <ol className="mt-16 md:col-span-6 md:col-start-7 md:mt-0">
-            {t.como.pasos.map((paso, i) => (
-              <li
-                key={paso.titulo}
-                className="dir-momento grid grid-cols-[3.6rem_1fr] gap-x-5 border-t border-[var(--dir-hilo-papel)] py-12 sm:grid-cols-[6.5rem_1fr] sm:gap-x-8 md:min-h-[58vh] md:py-16 lg:grid-cols-[8.5rem_1fr]"
-              >
-                <span aria-hidden className="dir-numero aparece">
-                  {i + 1}
-                </span>
-                <div className="aparece flex flex-col gap-4 pt-1 sm:pt-3">
-                  <span className="sr-only">{t.como.paso(i + 1)}</span>
-                  <h3 className="dir-titular text-[28px] leading-[1.1] sm:text-[36px] lg:text-[42px]">{paso.titulo}</h3>
-                  <p className="max-w-[40ch] text-[18px] font-light leading-[1.6] text-[var(--dir-sobre-papel-suave)] sm:text-[19px] lg:text-[21px]">
-                    {paso.texto}
-                  </p>
-                </div>
-              </li>
-            ))}
+          <ol className="mt-14 md:col-span-6 md:col-start-7 md:mt-0">
+            {t.como.pasos.map((paso, i) => {
+              const Dibujo = DIBUJOS[i];
+              return (
+                <li
+                  key={paso.titulo}
+                  data-revela
+                  className="dir-momento flex flex-col gap-7 border-t border-[var(--dir-hilo-papel)] py-12 md:min-h-[60vh] md:justify-center md:py-16"
+                >
+                  <div className="flex items-end justify-between gap-6">
+                    <span aria-hidden className="dir-numero">
+                      {i + 1}
+                    </span>
+                    <Dibujo />
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <span className="sr-only">{t.como.paso(i + 1)}</span>
+                    <h3 className="dir-titular text-[30px] leading-[1.1] sm:text-[38px] lg:text-[44px]">{paso.titulo}</h3>
+                    <p className="max-w-[40ch] text-[18px] font-light leading-[1.6] text-[var(--dir-sobre-papel-suave)] sm:text-[19px] lg:text-[21px]">
+                      {paso.texto}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
         </div>
       </section>
 
-      {/* ═══ 4 · PARA QUIÉN ES: retratos de tamaños y formas distintas ═══ */}
-      <section className="dir-papel dir-diferido">
-        <div className="mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
+      {/* ═══ 4 · PARA QUIÉN ES: retratos de tamaños y formas distintas. Capa:
+          queda fija cuando termina y el cierre negro la tapa ═══ */}
+      <section data-capa className="dir-papel dir-diferido relative z-[4]">
+        <div className="dir-hunde dir-hunde--3 mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
           <div className="border-t border-[var(--dir-hilo-papel)] pt-20 md:pt-32">
             <h2 className="dir-titular dir-t2 aparece max-w-[15ch] md:max-w-[17ch]">
               <ConNombres texto={t.paraQuien.titulo} />
@@ -285,18 +317,21 @@ export function Direccion() {
         </div>
       </section>
 
-      {/* ═══ 5 · CIERRE: el colofón, en negro ═══ */}
-      <section className="dir-tinta dir-diferido flex flex-col items-center px-4 pb-28 pt-28 text-center sm:px-8 md:pb-40 md:pt-40">
-        <LogoTrazo id="trazo-cierre" modo="scroll" halo="var(--dir-tinta)" className="w-[120px] sm:w-[150px]" />
-        <p className="aparece dir-pie mt-14 text-[var(--dir-sobre-tinta-suave)]">{t.hereda.cierre}</p>
-        <h2 className="dir-titular dir-t2 aparece mt-6 max-w-[13ch] sm:max-w-none">
-          {t.cierre.titulo[0]} <br className="hidden sm:block" />
-          {t.cierre.titulo[1]}
-        </h2>
-        <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno aparece mt-11 w-full max-w-[358px] sm:w-auto">
-          {t.comprar}
-        </Link>
-        <p className="dir-dato aparece mt-6 text-[var(--dir-sobre-tinta-suave)]">{t.cierre.pie(precio)}</p>
+      {/* ═══ 5 · CIERRE: el colofón en negro sube y tapa al papel; abajo, el pie ═══ */}
+      <section className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[5]">
+        <div className="flex flex-col items-center px-4 pb-28 pt-28 text-center sm:px-8 md:pb-40 md:pt-40">
+          <LogoTrazo id="trazo-cierre" modo="scroll" halo="var(--dir-tinta)" className="w-[120px] sm:w-[150px]" />
+          <p className="aparece dir-pie mt-14 text-[var(--dir-sobre-tinta-suave)]">{t.hereda.cierre}</p>
+          <h2 className="dir-titular dir-t2 aparece mt-6 max-w-[13ch] sm:max-w-none">
+            {t.cierre.titulo[0]} <br className="hidden sm:block" />
+            {t.cierre.titulo[1]}
+          </h2>
+          <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno aparece mt-11 w-full max-w-[358px] sm:w-auto">
+            {t.comprar}
+          </Link>
+          <p className="dir-dato aparece mt-6 text-[var(--dir-sobre-tinta-suave)]">{t.cierre.pie(precio)}</p>
+        </div>
+        <PieDireccion idioma={IDIOMA} />
       </section>
     </div>
   );
