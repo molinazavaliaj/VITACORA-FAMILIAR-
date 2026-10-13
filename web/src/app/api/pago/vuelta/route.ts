@@ -6,6 +6,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
 import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
 import { verificarToken } from "@/lib/token-firmado";
+import { esIdiomaWeb } from "@/lib/idioma-web";
 
 // Adonde vuelve el proveedor después de cobrar (3t.20, 21/09). Tres cosas, en
 // orden, y ninguna confía en los query params más allá de los ids:
@@ -17,8 +18,10 @@ import { verificarToken } from "@/lib/token-firmado";
 //      confirma igual.
 //   3. La sesión de la compradora se abre sin mail ni código: un magic link
 //      generado en el servidor y verificado acá mismo (el token no sale del
-//      servidor). Con eso cae en /tablero/<narrador>, o, si es un regalo, en
-//      /regalo/<codigo>/tarjeta (gift card, 08/10).
+//      servidor). Con eso, una compra nueva cae en «Pedido confirmado»
+//      (/comprar/gracias con el narrador, rediseño 2026-10: de ahí «Ir a mi
+//      panel» y, si es un regalo, «Descargar la tarjeta»); un pedido de extras
+//      desde el panel vuelve a /tablero/<narrador>.
 // La puerta es el token firmado de la URL (1 hora, atado al pedido): solo lo
 // tiene el navegador que pagó. Si algo falla, se cae a /comprar/gracias, la
 // pantalla de siempre — nunca un error crudo a quien acaba de pagar.
@@ -29,8 +32,15 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const pedidoId = params.get("pedido");
   const esViaje = params.get("viaje") === "1";
+  // El idioma de la web desde donde se compró (lib/pagos.ts lo agrega): «Pedido confirmado» habla igual.
+  const idioma = params.get("idioma");
   const urlBase = process.env.URL_BASE ?? request.nextUrl.origin;
-  const gracias = NextResponse.redirect(`${urlBase}/comprar/gracias${esViaje ? "?viaje=1" : ""}`);
+  const consulta = (extra: Record<string, string> = {}) => {
+    const q = new URLSearchParams({ ...(esViaje ? { viaje: "1" } : {}), ...(esIdiomaWeb(idioma) ? { idioma } : {}), ...extra });
+    const texto = q.toString();
+    return texto ? `?${texto}` : "";
+  };
+  const gracias = NextResponse.redirect(`${urlBase}/comprar/gracias${consulta()}`);
 
   if (!pedidoId || !verificarToken("vuelta", params.get("t"), pedidoId)) return gracias;
 
@@ -94,15 +104,14 @@ export async function GET(request: NextRequest) {
     return gracias;
   }
 
-  // Gift card (08/10): quien regala va directo a la tarjeta. Si el webhook
-  // confirmó antes (yaEstaba), el código se lee de regalos — solo si ESTE
-  // pedido es el regalo: un pedido de extras posterior va al tablero.
-  let codigoRegalo = resultado.codigoRegalo;
-  if (!codigoRegalo && resultado.yaEstaba && pedido.extras?.regalo === true) {
-    const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
-    codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
+  // Una compra nueva (trae la base: el libro o el viaje) va a «Pedido confirmado»
+  // con su narrador; la página lee el resto con la sesión recién abierta. El
+  // regalo también: de ahí sale «Descargar la tarjeta» (/tablero/<id>/regalo,
+  // que lleva a la tarjeta sin poner el código en ninguna URL).
+  if (pedido.extras?.pdf === true || pedido.extras?.regalo === true || resultado.codigoRegalo) {
+    return NextResponse.redirect(`${urlBase}/comprar/gracias${consulta({ n: pedido.narrador_id })}`);
   }
-  if (codigoRegalo) return NextResponse.redirect(`${urlBase}/regalo/${encodeURIComponent(codigoRegalo)}/tarjeta`);
 
+  // Un pedido de extras (copias, marcos) desde el panel: de vuelta a su historia.
   return NextResponse.redirect(`${urlBase}/tablero/${pedido.narrador_id}`);
 }

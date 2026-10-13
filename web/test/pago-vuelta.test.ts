@@ -3,8 +3,9 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 // GET /api/pago/vuelta (3t.20): adonde vuelve el proveedor después de cobrar.
 // Verifica el pago con el proveedor (nunca con los query params), confirma el
 // pedido con la misma confirmarPago del webhook, abre la sesión de la
-// compradora sin mail ni código, y la deja en el panel del libro. Si algo
-// falla, cae en /comprar/gracias (la pantalla de siempre).
+// compradora sin mail ni código, y la deja en «Pedido confirmado» (una compra
+// nueva, rediseño 2026-10) o en el panel del libro (un pedido de extras). Si
+// algo falla, cae en /comprar/gracias sin narrador (la pantalla de respaldo).
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@/lib/supabase/sesion", () => ({ crearClienteSesion: vi.fn() }));
 vi.mock("@/lib/confirmar-pago", () => ({ confirmarPago: vi.fn() }));
@@ -121,19 +122,38 @@ describe("GET /api/pago/vuelta", () => {
     expect(destino(await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), session_id: "cs_1", viaje: "1" })))).toBe("/comprar/gracias?viaje=1");
   });
 
-  it("(g) regalo: confirma pasando enviarMailRegalo, abre sesión y va a la tarjeta del código", async () => {
+  // Rediseño 2026-10: el regalo ya no salta directo a la tarjeta; va a «Pedido
+  // confirmado», que tiene «Descargar la tarjeta» (/tablero/<id>/regalo). El código
+  // no viaja en ninguna URL.
+  it("(g) regalo: confirma pasando enviarMailRegalo, abre sesión y va a «Pedido confirmado» con su narrador", async () => {
     (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: false, email: "martina@test.com", codigoRegalo: "VF-7K3M2Q" });
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
     expect(confirmarPago).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ enviarMailRegalo }));
     expect(verifyOtp).toHaveBeenCalledWith({ type: "magiclink", token_hash: "hash-1" });
-    expect(destino(r)).toBe("/regalo/VF-7K3M2Q/tarjeta");
+    expect(destino(r)).toBe("/comprar/gracias?n=n1");
+    expect(destino(r)).not.toContain("VF-7K3M2Q");
   });
 
-  it("(h) regalo y el webhook ganó (yaEstaba): lee el código de regalos y va a la tarjeta", async () => {
+  it("(h) regalo y el webhook ganó (yaEstaba): también va a «Pedido confirmado», sin leer el código", async () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1", extras: { pdf: true, regalo: true } }, "VF-AAAAAA"));
     (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
-    expect(destino(r)).toBe("/regalo/VF-AAAAAA/tarjeta");
+    expect(destino(r)).toBe("/comprar/gracias?n=n1");
+    expect(tablasLeidas).not.toContain("regalos");
+  });
+
+  it("(j) una compra nueva (con la base) va a «Pedido confirmado» y conserva el idioma de la web", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "stripe", estado: "pendiente", familia_id: "f1", narrador_id: "n1", extras: { pdf: true, impreso: "color", copias: 1, marcos: 0 } }));
+    stripeMock.retrieve.mockResolvedValue({ id: "cs_1", payment_status: "paid", metadata: { pedido_id: PEDIDO } });
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), session_id: "cs_1", idioma: "ca" }));
+    expect(destino(r)).toBe("/comprar/gracias?idioma=ca&n=n1");
+  });
+
+  it("(k) el idioma también llega a la pantalla de respaldo; uno que no existe no pasa", async () => {
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", "otro"), idioma: "ar" }));
+    expect(destino(r)).toBe("/comprar/gracias?idioma=ar");
+    const raro = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", "otro"), idioma: "fr" }));
+    expect(destino(raro)).toBe("/comprar/gracias");
   });
 
   it("(i) pedido de extras (sin regalo) de un narrador regalado, yaEstaba: va al tablero y no lee regalos", async () => {
