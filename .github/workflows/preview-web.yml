@@ -1,0 +1,61 @@
+# Versión de prueba del rediseño (fase 0, docs/rediseno-2026-10/PASO-DE-MANOS.md §3.2).
+#
+# Igual que deploy-web.yml pero sin --prod: cada push a la rama rediseno-web
+# publica un deployment de Preview en Vercel (con las variables del entorno
+# Preview: pagos de prueba) y le pone el alias fijo de abajo. La web de verdad
+# no cambia. Usa los mismos secretos VERCEL_* que el deploy de producción.
+
+name: Preview web (rediseño)
+
+on:
+  push:
+    branches: [rediseno-web]
+    paths:
+      - "web/**"
+      - ".github/workflows/preview-web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: preview-web
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      ALIAS: vitacora-rediseno.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Configuración de preview
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy (preview) y alias fijo
+        run: |
+          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Preview: $URL"
+          vercel alias set "$URL" "$ALIAS" --token=${{ secrets.VERCEL_TOKEN }}
+          echo "### Preview: https://$ALIAS" >> "$GITHUB_STEP_SUMMARY"
