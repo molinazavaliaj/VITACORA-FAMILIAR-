@@ -1086,7 +1086,8 @@ body {
 }
 .l3-escena {
   --l3-w: min(62vw, calc(50svh * 0.68));
-  --l3-s: 0.74;
+  /* Abierto, el pliego mide 2 tapas: 2 × 62vw × 0,66 ≈ 82vw, con margen. */
+  --l3-s: 0.66;
   --l3-h: calc(var(--l3-w) / 0.68);
   --l3-d: calc(var(--l3-w) * 0.16);
   --l3-in: calc(var(--l3-w) * 0.018);
@@ -1121,15 +1122,17 @@ body {
 }
 
 /* La pose quieta (sin soporte o con «menos movimiento»): 3/4, tapa y lomo. */
-/* El libro se arma al DOBLE de tamaño y se muestra a la mitad (scale .5 en
+/* El libro se arma 1,5 veces más grande y se muestra a 2/3 (scale .6667 en
    cada pose): Chrome rasteriza las capas 3D animadas a escala 1 de su propio
    espacio, así que sin esto las letras se verían borrosas en pantallas 2x o
-   al agrandar el pliego. --l3-W/D/IN son las medidas de ese libro doble. */
+   al agrandar el pliego. Con 2x se veía igual de nítido pero costaba más
+   pintarlo (medido con la CPU x4: peor fotograma ~230 ms con 2x, ~150–180
+   con 1,5x). --l3-W/D/IN son las medidas de ese libro agrandado. */
 .l3-libro {
-  --l3-W: calc(var(--l3-w) * 2);
-  --l3-H: calc(var(--l3-h) * 2);
-  --l3-D: calc(var(--l3-d) * 2);
-  --l3-IN: calc(var(--l3-in) * 2);
+  --l3-W: calc(var(--l3-w) * 1.5);
+  --l3-H: calc(var(--l3-h) * 1.5);
+  --l3-D: calc(var(--l3-d) * 1.5);
+  --l3-IN: calc(var(--l3-in) * 1.5);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -1137,7 +1140,7 @@ body {
   height: var(--l3-H);
   margin: calc(var(--l3-H) / -2) 0 0 calc(var(--l3-W) / -2);
   transform-style: preserve-3d;
-  transform: scale(0.5) rotateX(10deg) rotateY(32deg);
+  transform: scale(0.6667) rotateX(10deg) rotateY(32deg);
 }
 .l3-cara {
   position: absolute;
@@ -1166,8 +1169,30 @@ body {
 }
 .l3-hoja-derecha {
   inset: var(--l3-IN) var(--l3-IN) var(--l3-IN) 0;
-  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.012));
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.016));
 }
+/* La primera hoja, sobre el bloque, con bisagra en el lomo. Va un pelín por
+   encima de la página de la foto; al pasar queda delante de la tapa abierta
+   (que al final se corre hacia atrás, ver l3-abrir). */
+.l3-hoja {
+  position: absolute;
+  inset: var(--l3-IN) var(--l3-IN) var(--l3-IN) 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008));
+}
+.l3-hoja-dorso { transform: rotateY(180deg); }
+/* La guarda: negra lisa como el lomo, con la trama de tela apenas visible. */
+.l3-guarda {
+  height: 100%;
+  background-color: #141413;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(270deg, rgba(0, 0, 0, 0.35), transparent 22%);
+}
+.l3-portadilla-nombre { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 6.4cqw; color: #26231e; }
+.l3-portadilla-toroide { width: 12cqw; height: auto; color: #5a5750; }
 .l3-canto { position: absolute; background-color: #eee8da; backface-visibility: hidden; }
 .l3-canto--lado {
   left: calc(var(--l3-W) - var(--l3-IN));
@@ -1285,18 +1310,22 @@ body {
 .l3-plano-hoja { container-type: inline-size; aspect-ratio: 0.68; }
 
 @keyframes l3-girar {
-  0% { transform: translateX(0) scale(0.5) rotateX(10deg) rotateY(32deg); }
-  20% { transform: translateX(0) scale(0.5) rotateX(8deg) rotateY(-26deg); }
-  40% { transform: translateX(0) scale(0.5) rotateX(6deg) rotateY(-160deg); }
-  52% { transform: translateX(0) scale(0.5) rotateX(5deg) rotateY(-200deg); }
-  72% { transform: translateX(0) scale(0.5) rotateX(0deg) rotateY(-360deg); }
+  0% { transform: translateX(0) scale(0.6667) rotateX(10deg) rotateY(32deg); }
+  20% { transform: translateX(0) scale(0.6667) rotateX(8deg) rotateY(-26deg); }
+  40% { transform: translateX(0) scale(0.6667) rotateX(6deg) rotateY(-160deg); }
+  52% { transform: translateX(0) scale(0.6667) rotateX(5deg) rotateY(-200deg); }
+  72% { transform: translateX(0) scale(0.6667) rotateX(0deg) rotateY(-360deg); }
   90%, 100% {
-    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(0.5 * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(0.6667 * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
   }
 }
 @keyframes l3-abrir {
-  from { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg); }
-  to { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg); }
+  from { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg) translateZ(0); }
+  to { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg) translateZ(calc(var(--l3-W) * 0.03)); }
+}
+@keyframes l3-pasar {
+  from { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(0deg); }
+  to { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(-180deg); }
 }
 @keyframes l3-brillar {
   from { transform: translateX(-30%); }
@@ -1315,8 +1344,9 @@ body {
     .l3-pegado { position: sticky; top: 0; height: 100svh; padding: 72px 16px 40px; }
     .l3-plano { display: none; }
     .l3-libro { animation: l3-girar linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
-    .l3-tapa { animation: l3-abrir linear both; animation-timeline: --l3; animation-range: contain 62% contain 86%; }
-    .l3-brillo { animation: l3-brillar linear both; animation-timeline: --l3; animation-range: contain 0% contain 62%; }
+    .l3-tapa { animation: l3-abrir linear both; animation-timeline: --l3; animation-range: contain 60% contain 74%; }
+    .l3-hoja { animation: l3-pasar linear both; animation-timeline: --l3; animation-range: contain 76% contain 90%; }
+    .l3-brillo { animation: l3-brillar linear both; animation-timeline: --l3; animation-range: contain 0% contain 60%; }
     .l3-sombra { animation: l3-piso linear both; animation-timeline: --l3; animation-range: contain 0% contain 86%; }
   }
 }
