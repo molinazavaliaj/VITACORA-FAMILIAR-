@@ -5,14 +5,14 @@ import { armarMuestra } from "../src/lib/muestra";
 // renombró un capítulo en Encargar libro, el link público tiene que decir lo
 // mismo que el panel y que el libro impreso — no el nombre del guion.
 
-function admin(narrador: Record<string, unknown> | null, preguntas: { orden: number; capitulo: string }[] = []) {
+function admin(narrador: Record<string, unknown> | null, preguntas: { orden: number; capitulo: string }[] = [], entrevista: Record<string, unknown> | null = null) {
   return {
     from: (tabla: string) => {
       const b: Record<string, unknown> = {};
       const enc = () => b;
       b.select = enc; b.eq = enc; b.is = enc; b.order = enc;
       b.limit = () => Promise.resolve({ data: [] });
-      b.maybeSingle = async () => ({ data: tabla === "narradores" ? narrador : null, error: null });
+      b.maybeSingle = async () => ({ data: tabla === "narradores" ? narrador : tabla === "entrevistas_v3" ? entrevista : null, error: null });
       b.then = (res: (v: unknown) => void) => res({ data: tabla === "preguntas" ? preguntas : [], error: null });
       return b;
     },
@@ -44,6 +44,15 @@ describe("armarMuestra", () => {
     const m = await armarMuestra(admin({ id: "n1", nombre: "Osvaldo", edicion, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
     // renombrados los dos que tienen título; el tercero, con su nombre del guion
     expect(m?.capitulos).toEqual(["Mis cuatro hijos", "Pelliza, 1948", "El oficio"]);
+  });
+
+  it("la tapa (13/10): sin título elegido, el nombre solo; el idioma sale de la entrevista", async () => {
+    const cerrado = { id: "n1", nombre: "Imma Colell", edicion: {}, libro_aprobado_at: "2026-09-20T00:00:00Z" };
+    const ca = await armarMuestra(admin(cerrado, GUION, { idioma: "ca" }), "n1");
+    expect(ca?.titulo).toBe("Imma Colell");
+    expect(ca?.idioma).toBe("ca");
+    const viejo = await armarMuestra(admin(cerrado, GUION), "n1");
+    expect(viejo?.idioma).toBe("es");
   });
 
   it("un título vacío o en blanco no pisa el nombre del guion", async () => {

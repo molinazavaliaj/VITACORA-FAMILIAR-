@@ -41,10 +41,12 @@ export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contrata
   marcoFotoId: string | null;
 };
 
-export function propuestaPorDefecto(nombre: string, nombreCompleto: string, capitulos: string[]): EdicionCompleta {
+export function propuestaPorDefecto(nombre: string, capitulos: string[]): EdicionCompleta {
   return {
-    titulo: `${nombre} — La historia de una vida`,
-    subtitulo: nombreCompleto,
+    // La tapa es foto, «el libro de su vida» y el nombre (Naza, 13/10): el título
+    // propuesto es el nombre solo y el subtítulo ya no va en la tapa.
+    titulo: nombre,
+    subtitulo: "",
     portadaFotoId: null,
     contratapaFotoId: null,
     marcoFotoId: null,

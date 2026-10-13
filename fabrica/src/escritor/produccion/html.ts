@@ -1,7 +1,7 @@
 // El HTML del libro del escritor nuevo con la plantilla de producción. Lo comparten la entrega (libro.html y
 // libro.pdf) y la imprenta (libro-imprenta.pdf, con «Su voz» y sus códigos): el mismo libro, la misma tapa.
 //
-// De la edición de la dueña (narradores.edicion) valen el título y el subtítulo de tapa y la foto de tapa.
+// De la edición de la dueña (narradores.edicion) valen el título y la foto de tapa (el subtítulo ya no sale, 13/10).
 // El orden y los títulos de los capítulos NO: la web los guarda con los nombres del guion viejo, y en la V3
 // el plan y los títulos los arma el escritor. Tampoco van fotos por capítulo (se buscan por esos mismos
 // nombres viejos): solo la de tapa.

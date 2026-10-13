@@ -10,7 +10,7 @@ import { urlFraseDeVoz } from './token-voz.js';
 // 559×794px @ 96dpi — casualmente el tamaño EXACTO de una A5 a esa
 // resolución, así que casi todo acá se puede pensar en píxeles y mapea 1:1 a
 // milímetros). Este archivo traduce esos mockups a la plantilla real que
-// consume el libro completo (portada, frontispicio, capítulos, sus frases,
+// consume el libro completo (tapa con la foto, capítulos, sus frases,
 // colofón, contratapa) para Playwright → PDF A5.
 //
 // La fábrica renderiza UN solo HTML, pero la paginación del texto corrido la
@@ -348,32 +348,26 @@ function construirEstilos(acento: string): string {
   .franja.izquierda .vertical { transform: rotate(180deg); }
   .franja .chip { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 17px; color: var(--papel); }
 
-  /* Portada */
-  .portada-marca { position: absolute; top: 40px; left: 44px; display: flex; flex-direction: column; gap: 3px; }
-  .portada-marca .nombre { font-family: Archivo, Arial, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.34em; }
-  .portada-marca .tagline { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.22em; color: var(--gris1); }
+  /* Tapa (Naza, 13/10): la foto arriba a sangre, abajo un bloque de papel con
+     «EL LIBRO DE SU VIDA», el nombre grande y al pie «para siempre» y la marca.
+     Un lomo de tinta a la izquierda. Sin subtítulo ni frase. */
+  .tapa-lomo { position: absolute; top: 0; bottom: 0; left: 0; width: 14px; background: var(--tinta); }
+  .tapa-foto { position: absolute; top: 0; left: 14px; right: 0; height: 63%; overflow: hidden; background: var(--tinta); }
+  .tapa-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tapa-foto .tapa-toroide { position: absolute; left: 50%; top: 50%; width: 170px; transform: translate(-50%, -50%); color: var(--papel); opacity: 0.55; }
+  .tapa-pie { position: absolute; left: 14px; right: 0; bottom: 0; top: 63%; padding: 30px 40px 30px 40px; display: flex; flex-direction: column; }
+  .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
   .portada-nombre-narrador {
-    position: absolute; top: 178px; left: 44px; right: 72px;
-    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 60px;
-    line-height: 1.05; letter-spacing: -0.01em; overflow-wrap: break-word;
+    margin-top: 14px; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 48px;
+    line-height: 1.08; letter-spacing: -0.005em; overflow-wrap: break-word; text-wrap: balance; max-width: 66%;
   }
-  .portada-pie { position: absolute; left: 44px; bottom: 52px; display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
-  .portada-pie .regla { width: 200px; height: 1px; background: var(--tinta); margin-bottom: 12px; }
-  .portada-pie .cita { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 15px; color: var(--gris4); }
-  .portada-pie .tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.24em; color: var(--gris1); }
-
-  /* Frontispicio */
-  .frontispicio-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.05) brightness(0.96); }
-  .frontispicio-velo { position: absolute; inset: 0; background: linear-gradient(to top, rgba(20,17,15,0.86) 0%, rgba(20,17,15,0) 46%); }
-  .frontispicio-eyebrow { position: absolute; top: 24px; right: 24px; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.3em; color: rgba(250,247,241,0.5); text-align: right; }
-  .frontispicio-pie { position: absolute; left: 44px; bottom: 52px; display: flex; flex-direction: column; gap: 10px; }
-  .frontispicio-pie .regla { width: 36px; height: 1px; background: var(--papel); opacity: 0.6; }
-  .frontispicio-pie .nombre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 40px; line-height: 1.05; }
-  .frontispicio-pie .tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: rgba(250,247,241,0.7); }
+  .tapa-base { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .tapa-siempre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 15px; }
+  .tapa-marca { display: flex; align-items: center; gap: 8px; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.22em; color: var(--gris3); }
+  .tapa-marca svg { width: 32px; height: auto; color: var(--gris3); }
 
   /* Páginas de foto (apertura y cierre de capítulo). Sin filtro de grises:
-     existe la edición a color. El frontispicio conserva su filtro porque es
-     identidad. */
+     existe la edición a color. */
   .lienzo.foto { background: var(--papel); }
   .foto-cabecera { position: absolute; top: 40px; left: 44px; right: 44px; display: flex; justify-content: space-between; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gris1); }
   .foto-marco { position: absolute; top: 76px; left: 44px; right: 44px; bottom: 110px; display: flex; align-items: center; justify-content: center; }
@@ -531,64 +525,56 @@ function construirEstilos(acento: string): string {
 
 // --- Bloques de página -------------------------------------------------------
 
-function construirPortada(opts: {
-  titulo: string;
-  nombreNarrador: string;
-  tapa: { titulo: string | null; subtitulo: string | null };
-  anioNacimiento?: number | null;
-  mono: string;
-  fraseHeroe: string | null;
-}): string {
-  const { nombreNarrador, tapa, anioNacimiento, mono, fraseHeroe } = opts;
-  const anioTexto = anioNacimiento ? String(anioNacimiento) : '';
-  const citaHtml = fraseHeroe ? `<div class="cita">«${fraseHeroe}»</div>` : '';
-  // Lo que eligió la dueña manda: el título de tapa reemplaza al nombre del
-  // narrador en el lugar protagonista, y el subtítulo reemplaza la frase fija
-  // "LA HISTORIA DE UNA VIDA · DESDE ...". Sin tapa, el comportamiento de
-  // siempre.
-  const textoGrande = tapa.titulo ?? nombreNarrador;
-  const textoTag = tapa.subtitulo
-    ? escaparHtml(tapa.subtitulo)
-    : `LA HISTORIA DE UNA VIDA${anioTexto ? ` · DESDE ${escaparHtml(anioTexto)}` : ''}`;
-  return `<div class="lienzo quiebre">
-    ${svgGrano(7)}
-    ${svgCirculoCortado({ top: -150, left: -150, size: 340 })}
-    <div class="portada-marca">
-      <div class="nombre">VITÁCORA FAMILIAR</div>
-      <div class="tagline">UNA VIDA · CONTADA CON SU VOZ</div>
-    </div>
-    <div class="portada-nombre-narrador">${escaparHtml(textoGrande)}</div>
-    <div class="portada-pie">
-      <div class="regla"></div>
-      ${citaHtml}
-      <div class="tag">${textoTag}</div>
-    </div>
-    <div class="franja">
-      <div class="chip">${anioTexto ? escaparHtml(anioTexto) : ''}</div>
-      <div class="vertical">LA HISTORIA DE UNA VIDA —</div>
-      ${svgMedallion({ size: 34, texto: mono, colorAro: '#faf7f1', colorTexto: '#faf7f1' })}
-    </div>
-  </div>`;
+/** Lo fijo de la tapa, por idioma del libro (Naza, 13/10). */
+const TEXTOS_TAPA: Record<'es' | 'ca', { eyebrow: string; siempre: string }> = {
+  es: { eyebrow: 'EL LIBRO DE SU VIDA', siempre: 'para siempre' },
+  ca: { eyebrow: 'EL LLIBRE DE LA SEVA VIDA', siempre: 'per sempre' },
+};
+
+/** Los anillos del toroide (marca/toroide-negro.svg, como web/src/app/marca.tsx). */
+function svgToroide(clase: string): string {
+  const anillos: [number, number, number][] = [
+    [86.14, 13.86, 17.63], [73.23, 26.77, 34.07], [60.65, 39.35, 50.08], [48.29, 51.71, 65.82],
+    [36.08, 63.92, 81.36], [23.99, 76.01, 96.74], [12.0, 88.0, 112.0],
+  ];
+  const elipses = anillos
+    .map(([cx, rx, ry]) => `<ellipse cx="${cx}" cy="145" rx="${rx}" ry="${ry}" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="${200 - cx}" cy="145" rx="${rx}" ry="${ry}" fill="none" stroke="currentColor" stroke-width="2"/>`)
+    .join('');
+  return `<svg class="${clase}" viewBox="-78 31 356 228" xmlns="http://www.w3.org/2000/svg">${elipses}</svg>`;
 }
 
-function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreNarrador: string; anioNacimiento?: number | null }): string {
-  const { fotoUrl, fotoFoco, nombreNarrador, anioNacimiento } = opts;
-  return `<div class="lienzo oscuro quiebre">
-    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}"${atributoFoco(fotoFoco)} alt="" />
-    <div class="frontispicio-velo"></div>
-    <div class="frontispicio-eyebrow">RETRATO DEL NARRADOR</div>
-    <div class="frontispicio-pie">
-      <div class="regla"></div>
-      <div class="nombre">${escaparHtml(nombreNarrador)}</div>
-      ${anioNacimiento ? `<div class="tag">${escaparHtml(String(anioNacimiento))} —</div>` : ''}
+function construirPortada(opts: {
+  nombreNarrador: string;
+  tapa: { titulo: string | null; subtitulo: string | null };
+  fotoUrl?: string | null;
+  fotoFoco?: Foco;
+  idioma: 'es' | 'ca';
+}): string {
+  const { nombreNarrador, tapa, fotoUrl, fotoFoco, idioma } = opts;
+  const textos = TEXTOS_TAPA[idioma];
+  // El título que eligió la dueña manda; sin título, el nombre. El subtítulo ya
+  // no va en la tapa (Naza, 13/10): la tapa es foto, «el libro de su vida» y el nombre.
+  const nombre = tapa.titulo ?? nombreNarrador;
+  const foto = fotoUrl
+    ? `<img src="${escaparHtml(fotoUrl)}"${atributoFoco(fotoFoco)} alt="" />`
+    : svgToroide('tapa-toroide');
+  return `<div class="lienzo quiebre">
+    <div class="tapa-lomo"></div>
+    <div class="tapa-foto">${foto}</div>
+    <div class="tapa-pie">
+      <div class="tapa-eyebrow">${textos.eyebrow}</div>
+      <div class="portada-nombre-narrador">${escaparHtml(nombre)}</div>
+      <div class="tapa-base">
+        <span class="tapa-siempre">${textos.siempre}</span>
+        <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V·F</span>
+      </div>
     </div>
   </div>`;
 }
 
 /** Una página de foto entera (apertura o cierre de capítulo), con cabecera
- *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises — a
- *  diferencia del frontispicio (identidad, siempre en blanco y negro), acá
- *  existe la edición a color.
+ *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises: existe la
+ *  edición a color.
  *
  *  `recortar` es "esta es la principal: se recorta al marco" (las de cierre van
  *  enteras). El recorte además necesita el foco: sin foco usable —fila vieja o
@@ -891,8 +877,25 @@ function construirColofon(opts: { nombreNarrador: string; mono: string; lengua: 
   </div>`;
 }
 
-function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: string; anioNacimiento?: number | null; mono: string }): string {
-  const { fraseHeroe, nombreNarrador, anioNacimiento, mono } = opts;
+/** Lo fijo de la contratapa, por idioma del libro (Naza, 13/10: el libro en catalán, entero en catalán). */
+const TEXTOS_CONTRATAPA: Record<'es' | 'ca', { coleccion: string; desc: string; historia: string; desde: string }> = {
+  es: {
+    coleccion: 'VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS',
+    desc: 'Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz.',
+    historia: 'LA HISTORIA DE UNA VIDA',
+    desde: 'DESDE',
+  },
+  ca: {
+    coleccion: 'VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES',
+    desc: 'La seva història, explicada amb la seva pròpia veu. Un llibre que es llegeix amb els ulls i s’escolta amb la seva veu.',
+    historia: 'LA HISTÒRIA D’UNA VIDA',
+    desde: 'DES DE',
+  },
+};
+
+function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: string; anioNacimiento?: number | null; mono: string; idioma: 'es' | 'ca' }): string {
+  const { fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma } = opts;
+  const t = TEXTOS_CONTRATAPA[idioma];
   const heroHtml = fraseHeroe
     ? `<div class="contratapa-hero">
         <div class="contratapa-comilla">&ldquo;</div>
@@ -904,14 +907,14 @@ function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: 
     ${svgGrano(4)}
     <div class="franja izquierda">
       ${svgMedallion({ size: 34, texto: 'V·F', colorAro: '#faf7f1', colorTexto: '#faf7f1' })}
-      <div class="vertical">VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS</div>
+      <div class="vertical">${t.coleccion}</div>
       <div class="chip">${anioNacimiento ? escaparHtml(String(anioNacimiento)) : ''}</div>
     </div>
     ${svgCirculoCortado({ bottom: -130, right: -130, size: 300 })}
     ${heroHtml}
     <div class="contratapa-pie">
-      <div class="desc">Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz.</div>
-      <div class="tag">LA HISTORIA DE UNA VIDA${anioNacimiento ? ` · DESDE ${escaparHtml(String(anioNacimiento))}` : ''}</div>
+      <div class="desc">${t.desc}</div>
+      <div class="tag">${t.historia}${anioNacimiento ? ` · ${t.desde} ${escaparHtml(String(anioNacimiento))}` : ''}</div>
     </div>
   </div>`;
 }
@@ -1144,8 +1147,8 @@ export async function construirHtmlLibro(datos: {
   titulo: string;
   /** Manda sobre el que se saca del título — default: `extraerNombreNarrador(titulo)`. */
   nombreNarrador?: string;
-  /** Lo que eligió la dueña para la tapa. Sin esto, la tapa es la de
-   *  siempre: nombre del narrador + "LA HISTORIA DE UNA VIDA". */
+  /** Lo que eligió la dueña para la tapa. Sin título, el nombre del narrador.
+   *  El subtítulo ya no sale en la tapa (Naza, 13/10). */
   tapa?: { titulo: string | null; subtitulo: string | null };
   anioNacimiento?: number | null;
   fotoUrl?: string | null;
@@ -1199,10 +1202,8 @@ export async function construirHtmlLibro(datos: {
     })
     .join('\n');
 
-  const portadaHtml = construirPortada({ titulo, nombreNarrador, tapa, anioNacimiento, mono, fraseHeroe });
-  const frontispicioHtml = fotoUrl
-    ? construirFrontispicio({ fotoUrl, fotoFoco, nombreNarrador, anioNacimiento })
-    : '';
+  // La foto va en la tapa (Naza, 13/10): el frontispicio ya no se arma, para no repetirla.
+  const portadaHtml = construirPortada({ nombreNarrador, tapa, fotoUrl, fotoFoco, idioma: datos.idioma ?? 'es' });
   // «Su voz» va después de todo el cuerpo y antes de las páginas de cierre
   // (colofón y contratapa), como pidió el plan: es una sección del libro, no una
   // página suelta pegada al final.
@@ -1211,7 +1212,7 @@ export async function construirHtmlLibro(datos: {
       ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente, lengua })
       : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono, lengua });
-  const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });
+  const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
 
   return `<!DOCTYPE html>
 <html lang="${datos.idioma ?? 'es'}">
@@ -1223,7 +1224,6 @@ export async function construirHtmlLibro(datos: {
 </head>
 <body data-narrador="${escaparHtml(nombreNarrador)}">
 ${portadaHtml}
-${frontispicioHtml}
 ${contenidoHtml}
 ${seccionVozHtml}
 ${colofonHtml}
