@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { FormularioNombres } from "./acciones";
@@ -36,11 +36,7 @@ type Nombres = {
 export default async function TableroNombres({ params }: PageProps<"/tablero/[narradorId]/nombres">) {
   const { narradorId } = await params;
 
-  const supabase = await crearClienteSesion();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
 
   if (!user) {
     redirect("/entrar");

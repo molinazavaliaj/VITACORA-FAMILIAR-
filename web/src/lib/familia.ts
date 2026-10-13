@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // La familia de un usuario logueado.
@@ -13,10 +14,28 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type FamiliaResumen = { id: string; region: "ES" | "AR" };
 
-export async function familiaDelUsuario(
+type ResultadoFamilia = { familia: FamiliaResumen | null; error: string | null };
+
+// Una memoria por request y por usuario (RENDIMIENTO.md §3.2). `cache` de React
+// compara los argumentos por identidad: la clave son el id y el mail (texto), no
+// el cliente admin ni el objeto user, que cada página crea de nuevo. Dentro del
+// mismo render la primera llamada guarda su promesa y las demás la reusan; fuera
+// de un render (route handlers, tests) `cache` no memoriza y cada llamada consulta.
+const memoriaFamilia = cache((_userId: string, _email: string | null): { familia?: Promise<ResultadoFamilia> } => ({}));
+
+export function familiaDelUsuario(
   admin: SupabaseClient,
   user: { id: string; email?: string | null },
-): Promise<{ familia: FamiliaResumen | null; error: string | null }> {
+): Promise<ResultadoFamilia> {
+  const memoria = memoriaFamilia(user.id, user.email ?? null);
+  memoria.familia ??= buscarFamilia(admin, user);
+  return memoria.familia;
+}
+
+async function buscarFamilia(
+  admin: SupabaseClient,
+  user: { id: string; email?: string | null },
+): Promise<ResultadoFamilia> {
   const { data: propia, error: errorPropia } = await admin
     .from("familias")
     .select("id, region")

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario } from "@/lib/panel";
 import { Navegacion } from "./nav";
@@ -38,10 +38,7 @@ const sourceSerif = Source_Serif_4({
 });
 
 export default async function LayoutPanel({ children }: LayoutProps<"/tablero">) {
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
 
   if (!user) redirect("/entrar");
 

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -33,3 +34,19 @@ export async function crearClienteSesion() {
     },
   );
 }
+
+/**
+ * El usuario de la sesión, leído UNA vez por request. `getUser()` siempre va
+ * al servidor de auth (no valida local): el layout del panel y la página lo
+ * pedían cada uno por su lado y eran dos viajes iguales en serie
+ * (docs/rediseno-2026-10/RENDIMIENTO.md §3.2). Con `cache` de React, dentro de
+ * un mismo render de servidor la segunda llamada reusa la primera. Fuera de un
+ * render (route handlers, tests) no memoriza: se comporta como antes.
+ */
+export const usuarioDeLaSesion = cache(async () => {
+  const supabase = await crearClienteSesion();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});

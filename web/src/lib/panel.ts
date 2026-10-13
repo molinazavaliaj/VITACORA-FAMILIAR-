@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { familiaDelUsuario, type FamiliaResumen } from "./familia";
 
@@ -56,7 +57,29 @@ function rolDe(fila: Invitacion): Exclude<Rol, "duena"> {
   return fila.rol === "visitante" ? "visitante" : "invitado";
 }
 
-async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<Map<string, Exclude<Rol, "duena">>> {
+type RolesInvitado = Map<string, Exclude<Rol, "duena">>;
+type ResultadoPanel = { panel: Panel; error: string | null };
+
+// Una memoria por request y por usuario, igual que familiaDelUsuario
+// (lib/familia.ts): la clave es id + mail (texto), porque `cache` compara por
+// identidad y el cliente admin y el user cambian de objeto en cada página. El
+// layout del panel y la página comparten así una sola carga de historias.
+// Fuera de un render de servidor no memoriza nada.
+const memoriaPanel = cache(
+  (_userId: string, _email: string | null): { invitados?: Promise<RolesInvitado>; historias?: Promise<ResultadoPanel> } => ({}),
+);
+
+function memoriaDe(user: Usuario) {
+  return memoriaPanel(user.id, user.email ?? null);
+}
+
+function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<RolesInvitado> {
+  const memoria = memoriaDe(user);
+  memoria.invitados ??= buscarInvitados(admin, user);
+  return memoria.invitados;
+}
+
+async function buscarInvitados(admin: SupabaseClient, user: Usuario): Promise<RolesInvitado> {
   const roles = new Map<string, Exclude<Rol, "duena">>();
 
   const { data: propias, error: errorPropias } = await admin
@@ -91,10 +114,13 @@ async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promis
 }
 
 /** Todas las historias que ve el usuario: primero las suyas, después las compartidas. */
-export async function historiasDelUsuario(
-  admin: SupabaseClient,
-  user: Usuario,
-): Promise<{ panel: Panel; error: string | null }> {
+export function historiasDelUsuario(admin: SupabaseClient, user: Usuario): Promise<ResultadoPanel> {
+  const memoria = memoriaDe(user);
+  memoria.historias ??= cargarHistorias(admin, user);
+  return memoria.historias;
+}
+
+async function cargarHistorias(admin: SupabaseClient, user: Usuario): Promise<ResultadoPanel> {
   const vacio: Panel = { familia: null, historias: [] };
 
   const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
