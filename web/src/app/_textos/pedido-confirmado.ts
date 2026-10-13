@@ -54,7 +54,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     propio: (impreso) => [
-      { cuando: "Hoy", que: "Guarda el contacto «Vitácora» en tu móvil: te escribimos desde ahí." },
+      { cuando: "Hoy", que: "Guarda el contacto «Vitácora» en tu móvil. Te escribimos desde ahí." },
       { cuando: "Mientras cuentas", que: "Desde tu primera respuesta, en tu panel aparecen tus audios." },
       { cuando: "Al terminar", que: `Cuando terminas de contar, el biógrafo escribe tu libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
@@ -95,7 +95,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     propio: (impreso) => [
-      { cuando: "Hoy", que: "Guardá el contacto «Vitácora» en tu celular: te escribimos desde ahí." },
+      { cuando: "Hoy", que: "Guardá el contacto «Vitácora» en tu celular. Te escribimos desde ahí." },
       { cuando: "Mientras contás", que: "Desde tu primera respuesta, en tu panel aparecen tus audios." },
       { cuando: "Al terminar", que: `Cuando terminás de contar, el biógrafo escribe tu libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
@@ -137,7 +137,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
       { cuando: "En acabar", que: `Quan acaba d'explicar, el biògraf escriu el seu llibre.${impreso ? " T'avisem quan surti d'impremta i t'enviem el seguiment." : ""}` },
     ],
     propio: (impreso) => [
-      { cuando: "Avui", que: "Desa el contacte «Vitácora» al teu mòbil: t'escrivim des d'allà." },
+      { cuando: "Avui", que: "Desa el contacte «Vitácora» al teu mòbil. T'escrivim des d'allà." },
       { cuando: "Mentre expliques", que: "Des de la teva primera resposta, al teu panell apareixen els teus àudios." },
       { cuando: "En acabar", que: `Quan acabes d'explicar, el biògraf escriu el teu llibre.${impreso ? " T'avisem quan surti d'impremta i t'enviem el seguiment." : ""}` },
     ],

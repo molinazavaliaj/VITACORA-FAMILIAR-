@@ -1,3 +1,5 @@
+**Aprobado por Naza 14/10 (tanda 3):** etiqueta, vistas previas, «QUÉ PASA AHORA», «Mientras cuenta» / «Al terminar», link del regalo, «¿Dudas? Contesta a este email.» y la línea del pie; y en «Pedido confirmado» los textos de no regalo, «Para mí» (sin dos puntos) y regalo.
+
 # Textos a aprobar — mails de la web (fase 1, tarea `mails`)
 
 Mails: el de **acceso tras el pago** (`enviarMailAcceso`) y el de la **tarjeta del regalo**
