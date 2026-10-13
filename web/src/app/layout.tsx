@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
+// Las tipografías de marca (Playfair Display, Archivo, Source Serif 4, las mismas
+// de siempre) se sirven desde web/src/app/fuentes: subsets propios con solo los
+// caracteres de castellano, catalán y la interfaz (ASCII, Latin-1, comillas,
+// guiones, €, flechas), con el eje de peso recortado a lo que se usa y los
+// otros ejes fijos donde los dejaba Google (Archivo ancho 100, Source Serif
+// opsz 14). Pesan ~25% menos. Licencias OFL junto a los archivos. La de
+// Playfair tiene nombre reservado: el subset va renombrado («Vitacora Titulo»).
+// La letra de reserva está en globals.css, con los valores de siempre.
+//
 // Las tipografías de marca se cargan acá una sola vez (rediseño 2026-10,
 // RENDIMIENTO.md §3.8). Antes las declaraba cada página para no cambiar de
 // golpe el registro y el login: eso no pasa, porque acá solo se definen las
@@ -23,28 +32,35 @@ import "./globals.css";
 // TODAS las páginas, también en /entrar y /legal, que no los usan (la medición
 // del 13/10 dio /entrar de 232 a 448 kB). Sin preload, cada página baja solo
 // las letras que de verdad pinta, apenas el CSS las pide.
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
+const playfair = localFont({
+  src: [
+    { path: "./fuentes/playfair-display.woff2", weight: "500 600", style: "normal" },
+    { path: "./fuentes/playfair-display-cursiva.woff2", weight: "500 600", style: "italic" },
+  ],
   variable: "--fuente-titulo",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
+  fallback: ["Fallback Titulo"],
 });
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const archivo = localFont({
+  src: [{ path: "./fuentes/archivo.woff2", weight: "400 600", style: "normal" }],
   variable: "--fuente-micro",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
+  fallback: ["Fallback Micro"],
 });
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
+const sourceSerif = localFont({
+  src: [
+    { path: "./fuentes/source-serif-4.woff2", weight: "300 400", style: "normal" },
+    { path: "./fuentes/source-serif-4-cursiva.woff2", weight: "300 400", style: "italic" },
+  ],
   variable: "--fuente-cuerpo",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
+  fallback: ["Fallback Cuerpo"],
 });
 
 export const metadata: Metadata = {

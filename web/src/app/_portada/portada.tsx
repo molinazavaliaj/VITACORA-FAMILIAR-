@@ -82,7 +82,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             fill
             preload
             fetchPriority="high"
-            sizes="(max-width: 639px) 240vw, 100vw"
+            sizes="100vw"
             className="object-cover object-[42%_70%] sm:object-[center_60%]"
           />
           <VideoPortada {...VIDEO} className="absolute inset-0 h-full w-full object-cover sm:object-[center_60%]" />
