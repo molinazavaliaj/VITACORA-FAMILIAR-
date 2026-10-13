@@ -624,3 +624,280 @@ body {
   line-gap-override: 0%;
   size-adjust: 117.91%;
 }
+
+/* ── Prototipo de dirección visual (/prueba-direccion, 13/10) ───────────────
+   La web como un libro: tinta y papel que se alternan como capítulos, letra
+   enorme, fotos en blanco y negro recortadas como retrato antiguo, grano de
+   papel. Sin violeta. Todo con prefijo dir- para no tocar nada de lo de arriba.
+   Movimiento: transform y opacity (y el trazo del logo). Falla hacia visible:
+   sin animation-timeline o con «menos movimiento», todo quieto y completo. */
+.dir-pagina {
+  --dir-tinta: #070706;
+  --dir-papel: #f4f0e7;
+  --dir-sobre-tinta: #eeeae1;
+  --dir-sobre-tinta-suave: #a39f96;
+  --dir-sobre-papel: #151412;
+  --dir-sobre-papel-suave: #5a564e;
+  --dir-hilo-tinta: rgba(238, 234, 225, 0.16);
+  --dir-hilo-papel: rgba(21, 20, 18, 0.2);
+  --dir-curva: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  isolation: isolate;
+  background: var(--dir-tinta);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+
+/* El grano de papel: una capa fija, quieta y que no se toca (no repinta al
+   bajar). Ruido de luminancia con contraste estirado (granos, no niebla), de
+   180 px, en un SVG en línea, al 5 %. Aclara el negro y oscurece el papel unos
+   6 niveles: por eso la tinta y el papel de abajo están corridos para que lo
+   que se VE sea #0d0d0c y #eeeae1. */
+.dir-pagina::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.05;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncG type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncB type='linear' slope='3.5' intercept='-1.25'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* Los capítulos de abajo no se pintan hasta que se acercan: menos trabajo al
+   cargar y la cursiva de Playfair (solo la usan ellos) se pide después. */
+.dir-diferido {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1400px;
+}
+
+.dir-tinta {
+  background: var(--dir-tinta);
+  color: var(--dir-sobre-tinta);
+  color-scheme: dark;
+}
+.dir-papel {
+  background: var(--dir-papel);
+  color: var(--dir-sobre-papel);
+  color-scheme: light;
+}
+
+/* Escala tipográfica: Playfair 500, interlineado apretado, tracking negativo. */
+.dir-titular {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.dir-t1 { font-size: clamp(2.6rem, 1.2rem + 6vw, 7.25rem); line-height: 1.02; }
+.dir-t2 { font-size: clamp(2.45rem, 1.5rem + 4vw, 5.25rem); line-height: 1.04; }
+.dir-txl { font-size: clamp(3.4rem, 0.8rem + 10.6vw, 11rem); line-height: 0.98; letter-spacing: -0.04em; }
+.dir-nombre { font-style: italic; letter-spacing: -0.01em; }
+.dir-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(4.4rem, 2.4rem + 8vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+}
+.dir-pie {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.3rem, 1.05rem + 0.8vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.dir-micro {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.dir-dato {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Botones: píldora, sin color. Lleno = papel sobre tinta; hilo = solo borde. */
+.dir-boton {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 30px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition:
+    transform var(--d-rapido) var(--dir-curva),
+    background-color var(--d-rapido) var(--dir-curva),
+    border-color var(--d-rapido) var(--dir-curva);
+}
+.dir-boton:active { transform: scale(0.98); }
+.dir-boton:focus-visible { outline: 2px solid var(--dir-sobre-tinta); outline-offset: 3px; }
+.dir-boton--lleno { background: var(--dir-papel); color: var(--dir-tinta); font-weight: 600; }
+.dir-boton--lleno:hover { background: #ffffff; }
+.dir-boton--hilo { border: 1px solid rgba(238, 234, 225, 0.36); color: var(--dir-sobre-tinta); }
+.dir-boton--hilo:hover { border-color: var(--dir-sobre-tinta); background: rgba(238, 234, 225, 0.06); }
+
+/* Retratos: óvalo, arco o círculo, como el marco de una foto de la abuela.
+   Blanco y negro con un punto de sepia. El marco de afuera es un hilo fino
+   que repite la forma, como los anillos del logo. */
+.dir-marco { position: relative; }
+.dir-marco::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border: 1px solid var(--dir-hilo-papel);
+  pointer-events: none;
+}
+.dir-tinta .dir-marco::before { border-color: var(--dir-hilo-tinta); }
+.dir-foto { position: relative; overflow: hidden; background: #d9d4c9; }
+.dir-tinta .dir-foto { background: #1b1a17; }
+.dir-foto img { filter: grayscale(1) sepia(0.2) contrast(1.06) brightness(0.97); }
+.dir-foto--ovalo, .dir-marco--ovalo::before { border-radius: 50%; }
+.dir-foto--ovalo { aspect-ratio: 4 / 5; }
+.dir-foto--arco, .dir-marco--arco::before { border-radius: 999px 999px 0 0; }
+.dir-foto--arco { aspect-ratio: 3 / 4.2; }
+.dir-foto--circulo, .dir-marco--circulo::before { border-radius: 50%; }
+.dir-foto--circulo { aspect-ratio: 1; }
+
+/* El logo: los trazos son del color del texto, el repaso más tenue. */
+.dir-logo { display: block; height: auto; overflow: visible; }
+.dir-anillo { stroke-width: 1.25; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.dir-repaso { stroke-width: 0.7; opacity: 0.45; }
+.dir-letra { fill: currentColor; stroke: currentColor; stroke-width: 0.9; stroke-dasharray: 340; stroke-dashoffset: 0; }
+
+@keyframes dir-trazar {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes dir-letra-trazo {
+  from { stroke-dashoffset: 340; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes dir-letra-relleno {
+  from { fill-opacity: 0; }
+  to { fill-opacity: 1; }
+}
+@keyframes dir-tiza {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dir-subir {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dir-asentar {
+  from { transform: translateY(10px); }
+  to { transform: none; }
+}
+@keyframes dir-iluminar {
+  from { opacity: 0.13; transform: translateY(0.05em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dir-irse {
+  from { opacity: 1; }
+  to { opacity: 0.32; }
+}
+@keyframes dir-acercar {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Al entrar: cada anillo de adentro hacia afuera (0,12 s entre uno y otro),
+     el repaso 0,2 s detrás; después las letras se repasan y se rellenan, y al
+     final el eje. Unos 2,4 s en total. El texto no espera: el titular está
+     desde el principio y el resto entra a partir de los 0,7 s. */
+  .dir-logo--carga .dir-anillo {
+    animation: dir-trazar 1.1s cubic-bezier(0.55, 0.05, 0.25, 1) both;
+    animation-delay: calc(0.15s + var(--k) * 0.12s);
+  }
+  .dir-logo--carga .dir-repaso { animation-delay: calc(0.35s + var(--k) * 0.12s); }
+  .dir-logo--carga .dir-letra {
+    animation:
+      dir-letra-trazo 1s cubic-bezier(0.55, 0.05, 0.25, 1) 1.15s both,
+      dir-letra-relleno 0.7s ease-out 1.7s both;
+  }
+  .dir-logo--carga .dir-letra--f { animation-delay: 1.3s, 1.85s; }
+  .dir-logo--carga .dir-eje { animation: dir-tiza 0.8s ease-out 1.8s both; }
+
+  .dir-entra { animation: dir-subir 0.9s var(--dir-curva) both; animation-delay: var(--e, 0s); }
+  /* El titular se ve desde el primer pintado (es el LCP: un texto que arranca
+     en opacidad 0 no cuenta y el LCP pasa a ser la V del logo, a los 1,2 s);
+     solo se asienta unos px. */
+  .dir-asienta { animation: dir-asentar 1.1s var(--dir-curva) both; }
+}
+
+/* Sin el reloj del desplazamiento, la frase ocupa una pantalla y se ve entera. */
+.dir-frase-pegado { min-height: 100svh; padding-block: 12svh; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* «Las fotos quedan»: la frase queda fija mientras se baja 1,6 pantallas
+       y las palabras se encienden de a una. «Los recuerdos se van.» se apaga
+       un poco al final: se van. */
+    .dir-frase { height: 260svh; view-timeline-name: --dir-frase; }
+    .dir-frase-pegado { position: sticky; top: 0; height: 100svh; }
+    .dir-frase .dir-palabra {
+      display: inline-block;
+      animation: dir-iluminar linear both;
+      animation-timeline: --dir-frase;
+      animation-range:
+        contain calc(var(--i) / var(--n) * 68%)
+        contain calc(var(--i) / var(--n) * 68% + 12%);
+    }
+    .dir-frase .dir-palabra--se-va {
+      animation: dir-iluminar linear both, dir-irse linear forwards;
+      animation-timeline: --dir-frase, --dir-frase;
+      animation-range:
+        contain calc(var(--i) / var(--n) * 68%) contain calc(var(--i) / var(--n) * 68% + 12%),
+        contain 88% contain 100%;
+    }
+
+    /* El párrafo de abajo se lee igual, palabra por palabra, mientras sube. */
+    .dir-lee { view-timeline-name: --dir-lee; }
+    .dir-lee .dir-palabra {
+      display: inline-block;
+      animation: dir-iluminar linear both;
+      animation-timeline: --dir-lee;
+      animation-range:
+        cover calc(8% + var(--i) / var(--n) * 36%)
+        cover calc(14% + var(--i) / var(--n) * 36%);
+    }
+
+    /* Las fotos se alejan un poco al entrar (escala, nada más). */
+    .dir-revela {
+      animation: dir-acercar linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+
+    /* El logo del cierre se dibuja atado al desplazamiento (el reloj es el
+       svg entero: los elementos de adentro no tienen caja propia). */
+    .dir-logo--scroll { view-timeline-name: --dir-logo; }
+    .dir-logo--scroll .dir-anillo {
+      animation: dir-trazar linear both;
+      animation-timeline: --dir-logo;
+      animation-range: entry calc(20% + var(--k) * 8%) cover calc(38% + var(--k) * 4%);
+    }
+    .dir-logo--scroll .dir-letra {
+      animation: dir-letra-trazo linear both, dir-letra-relleno linear both;
+      animation-timeline: --dir-logo, --dir-logo;
+      animation-range: cover 30% cover 48%, cover 42% cover 55%;
+    }
+    .dir-logo--scroll .dir-eje {
+      animation: dir-tiza linear both;
+      animation-timeline: --dir-logo;
+      animation-range: cover 45% cover 58%;
+    }
+  }
+}
