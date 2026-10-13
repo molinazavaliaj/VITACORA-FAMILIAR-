@@ -5,6 +5,14 @@ ni de la lista «se pueden usar tal cual» (TEXTOS-Y-REGLAS §5). Los textos viv
 `web/src/app/_textos/portada.ts`, `ejemplo.ts` y `publico.ts`. El catalán de esos tres archivos
 está marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá frase por frase.
 
+## Aprobado por Naza
+
+- **14/10, tanda 1** (todos OK): bajada del hero de la maqueta en lugar de la aprobada; sale la
+  segunda conversación; «Mientras responde…» en la banda; tarjeta de Viaje en lugar de Kids;
+  «Mi papá no se lleva bien con el celular.»; «Así le llega una pregunta por WhatsApp.»; «Lleva
+  también el PDF con «Su voz».»; cita del limonero con «el olor de los limones»; bajada de
+  /ejemplo; explicación de «Su voz» en /ejemplo.
+
 ## 0. Textos aprobados que el diseño nuevo ya NO usa
 
 | Texto aprobado | Por qué sale | Test |
