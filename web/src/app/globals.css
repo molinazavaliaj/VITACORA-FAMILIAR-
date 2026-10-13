@@ -59,6 +59,66 @@
   color-scheme: dark;
 }
 
+/* ── Rediseño 2026-10: tema oscuro de marketing ────────────────────────────
+   Sacado de las maquetas (docs/rediseno-2026-10/maquetas, tablero «Guía» y
+   «Motion»; conflicto C18 de PASO-DE-MANOS.md). No reemplaza a los tokens de
+   arriba: se suma. Ninguna pantalla de hoy los usa; los usan los componentes
+   de web/src/app/_ui/ y las pantallas que se vayan pasando al rediseño.
+
+   El sufijo «-oscuro» quiere decir «del tema oscuro», no «un color oscuro»:
+   --texto-oscuro es el texto claro que va sobre el fondo oscuro.
+
+   No van en @theme a propósito: el resto del archivo tampoco lo usa, y en las
+   clases se escriben como hoy, bg-[var(--tarjeta)]. */
+:root {
+  /* Familiar (el defecto) */
+  --fondo-oscuro:         #0a0a0a;
+  --tarjeta:              #12120f;
+  --tarjeta-alta:         #23221e;  /* una superficie arriba de la tarjeta */
+  --texto-oscuro:         #ededed;  /* cuerpo */
+  --texto-oscuro-fuerte:  #ffffff;  /* titulares y nombres de opciones */
+  --texto-oscuro-suave:   #c9c6be;  /* bajadas, párrafos largos */
+  --texto-oscuro-menor:   #8f8c85;  /* metadatos, «Paso 1 de 3» */
+  --linea-oscura:         #1f1e1b;  /* separadores */
+  --borde-oscuro:         #2a2925;  /* borde de tarjetas */
+  --borde-oscuro-fuerte:  #3a3833;  /* borde de botones fantasma y campos */
+  --punto-vacio:          #5a5850;  /* el punto de una opción sin elegir */
+  --acento-oscuro:        #b9a8f5;  /* etiquetas, enlaces, foco, opción elegida */
+  --boton:                #a08ce8;  /* el botón primario */
+  --sobre-boton:          #14140f;  /* el texto encima del botón */
+  --elegido-fondo:        #1a1726;  /* fondo de la opción elegida y hover del fantasma */
+  --sombra-boton:         rgba(160, 140, 232, 0.28);
+  --velo:                 rgba(0, 0, 0, 0.6);  /* el fondo detrás de una hoja */
+
+  /* Movimiento (MOTION.md §1) */
+  --d-instante: 120ms;  /* tocar, pasar el ratón */
+  --d-rapido:   200ms;  /* elegir una opción, hover de tarjeta */
+  --d-base:     320ms;  /* pasos, solapas, acordeón, hojas */
+  --d-lento:    480ms;  /* aparecer al bajar, popups */
+  --d-libro:    700ms;  /* pasar una página: el ÚNICO movimiento lento */
+  /* Ojo: Tailwind también tiene un --ease-out; este lo pisa a propósito, así
+     la clase ease-out de Tailwind usa la curva de la marca. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);   /* salida suave: lo que entra o aparece */
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);   /* ida y vuelta: lo que se desplaza */
+}
+
+/* Viaje: mismo fondo y tarjeta, otro acento. Se pone junto a .tema-oscuro. */
+.tema-viaje {
+  --texto-oscuro:  #ffffff;
+  --acento-oscuro: #9dbdff;
+  --boton:         #7aa7ff;
+  --elegido-fondo: #141d30;
+  --sombra-boton:  rgba(122, 167, 255, 0.28);
+}
+
+/* El contenedor de una pantalla del rediseño. Hoy no lo usa ninguna. */
+.tema-oscuro {
+  background: var(--fondo-oscuro);
+  color: var(--texto-oscuro);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  color-scheme: dark;
+}
+
 /* El cuerpo del sitio queda como estaba a propósito: las tipografías de marca
    se aplican SOLO en la landing (web/src/app/page.tsx), que es la única
    pantalla pasada al sistema visual. Cambiarlas acá tocaría todas las páginas
@@ -85,16 +145,20 @@ body {
    Todo falla hacia visible: si el navegador no soporta algo, o la persona
    pidió menos movimiento, se ve el estado final, quieto y completo. */
 
+/* Valores de la maqueta (rediseño 2026-10, MOTION.md patrón 6): sube 16 px y
+   termina al 30 % de la entrada. Una sola vez por bloque: al volver hacia
+   arriba ya está en su estado final. Afuera del @supports no hay animación,
+   así que sin animation-timeline el bloque se ve quieto y completo. */
 @supports (animation-timeline: view()) {
   .aparece {
-    animation: aparecer both;
+    animation: revealUp linear both;
     animation-timeline: view();
-    animation-range: entry 5% entry 45%;
+    animation-range: entry 0% entry 30%;
   }
-  @keyframes aparecer {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: none; }
-  }
+}
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* La conversación del hero: cada paso entra después del anterior, una sola
@@ -127,5 +191,286 @@ body {
   .maqueta-paso,
   .maqueta-barra {
     animation: none;
+  }
+}
+
+/* ── Rediseño 2026-10: patrones de movimiento (MOTION.md §2) ───────────────
+   Solo animan transform y opacity (y colores o borde en transiciones cortas).
+   Las usan los componentes de web/src/app/_ui/; ninguna pantalla de hoy.
+   Todo falla hacia visible: el estado por defecto es el final y las
+   animaciones de entrada van con fill-mode both. */
+
+/* 1 · Botón primario (pastilla): sube 2 px con sombra; al pulsar se hunde. */
+.m-btn {
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow var(--d-rapido) var(--ease-out),
+    filter var(--d-rapido),
+    background-color var(--d-rapido);
+}
+@media (hover: hover) {
+  .m-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px var(--sombra-boton);
+    filter: brightness(1.05);
+  }
+}
+.m-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+  transition-duration: 80ms;
+}
+
+/* 1b · Botón fantasma: solo cambia borde y fondo; al pulsar se encoge. */
+.m-ghost {
+  transition:
+    border-color var(--d-rapido),
+    background-color var(--d-rapido),
+    color var(--d-rapido),
+    transform 160ms;
+}
+@media (hover: hover) {
+  .m-ghost:hover {
+    border-color: var(--acento-oscuro);
+    background-color: var(--elegido-fondo);
+  }
+}
+.m-ghost:active {
+  transform: scale(0.97);
+}
+
+/* 2 · Paso nuevo: entra desde la derecha (checkout) o desde abajo (panel y
+   hojas, sumando .m-step-abajo). */
+.m-step {
+  animation: stepIn var(--d-base) var(--ease-out) both;
+}
+.m-step-abajo {
+  animation-name: stepInAbajo;
+}
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stepInAbajo {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 2b · Barra de progreso: se llena con scaleX (el valor va en el style). */
+.m-progreso {
+  transform-origin: left center;
+  transition: transform var(--d-base) var(--ease-io);
+}
+
+/* 3 · Opción elegible: borde y fondo cambian, el punto se rellena; al tocar
+   se encoge. Se elige con un input nativo adentro (:has(:checked)), sin JS. */
+.m-card {
+  transition:
+    border-color var(--d-rapido) var(--ease-out),
+    background-color var(--d-rapido) var(--ease-out),
+    color var(--d-rapido),
+    transform var(--d-rapido) var(--ease-out);
+}
+.m-card:active {
+  transform: scale(0.985);
+}
+.m-card:has(:checked) {
+  border-color: var(--acento-oscuro);
+  background-color: var(--elegido-fondo);
+}
+.m-card:has(:focus-visible) {
+  outline: 2px solid var(--acento-oscuro);
+  outline-offset: 2px;
+}
+.m-dot {
+  border: 1.5px solid var(--punto-vacio);
+  transition:
+    border-width var(--d-rapido) var(--ease-out),
+    border-color var(--d-rapido);
+}
+.m-card:has(:checked) .m-dot {
+  border: 6px solid var(--boton);
+}
+
+/* 4 · Solapas: la pastilla de color se desliza. Solo transform: se mide la
+   solapa una vez y se anima translateX() scaleX(), nunca width. */
+.m-pill {
+  transform-origin: left center;
+  transition: transform var(--d-base) var(--ease-io);
+}
+
+/* 5 · Acordeón con <details> nativo. La respuesta crece de 0fr a 1fr (sin
+   conocer el alto) y el «+» gira a «×». Al abrir, @starting-style le da un
+   punto de partida; al cerrar, ::details-content se queda visible lo que
+   dura la transición. Donde no hay soporte, abre y cierra al instante. */
+.m-acc-item > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.m-acc-item > summary::-webkit-details-marker {
+  display: none;
+}
+.m-acc-item::details-content {
+  transition: content-visibility var(--d-base) allow-discrete;
+}
+.m-acc {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--d-base) var(--ease-io),
+    opacity 240ms;
+}
+.m-acc > * {
+  overflow: hidden;
+  min-height: 0;
+}
+.m-acc-item[open] > .m-acc {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+@starting-style {
+  .m-acc-item[open] > .m-acc {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+.m-plus {
+  transition: transform var(--d-base) var(--ease-io);
+}
+.m-acc-item[open] .m-plus {
+  transform: rotate(45deg);
+}
+
+/* 6 · Aparecer por tiempo, para lo que ya está en pantalla al cargar (el de
+   scroll es .aparece, arriba). Escalonado de 70 ms dentro de un grupo. */
+.m-up {
+  animation: revealUp var(--d-lento) var(--ease-out) both;
+}
+.m-up:nth-child(2) { animation-delay: 70ms; }
+.m-up:nth-child(3) { animation-delay: 140ms; }
+.m-up:nth-child(4) { animation-delay: 210ms; }
+.m-up:nth-child(5) { animation-delay: 280ms; }
+
+/* 7 · Cambia el total: el precio nuevo baja y se tiñe un instante. Para que
+   se repita en cada cambio, key={total} en React. */
+.m-price {
+  display: inline-block;
+  animation: flash 360ms var(--ease-out) both;
+}
+@keyframes flash {
+  0% { color: var(--acento-oscuro); transform: translateY(-6px); opacity: 0; }
+  100% { color: var(--texto-oscuro-fuerte); transform: none; opacity: 1; }
+}
+
+/* 8 · Hoja o popup: el velo se oscurece y la tarjeta aparece desde un poco
+   más chica. .m-pop es para algo centrado con translate(-50%,-50%); .m-hoja
+   es la hoja del componente: desde abajo en el móvil, centrada en escritorio.
+   Cerrar es lo mismo al revés en 200 ms ([data-cerrando]). */
+.m-overlay {
+  background: var(--velo);
+  animation: fadeIn 240ms both;
+}
+.m-overlay[data-cerrando="true"] {
+  animation: fadeOut var(--d-rapido) both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.m-pop {
+  animation: popIn var(--d-lento) var(--ease-out) both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.m-hoja {
+  border-radius: 24px 24px 0 0;
+  animation: hojaIn var(--d-lento) var(--ease-out) both;
+}
+.m-hoja[data-cerrando="true"] {
+  animation: hojaOut var(--d-rapido) var(--ease-io) both;
+}
+@keyframes hojaIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hojaOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(24px); }
+}
+@keyframes hojaInCentro {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hojaOutCentro {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+@media (min-width: 700px) {
+  .m-hoja {
+    border-radius: 24px;
+    animation-name: hojaInCentro;
+  }
+  .m-hoja[data-cerrando="true"] {
+    animation-name: hojaOutCentro;
+  }
+}
+
+/* 9 · Su voz sonando: las barras se mueven como una onda mientras suena y se
+   calman al pausar. Es decorativa, no la forma de onda real. */
+.m-bar {
+  transform-origin: center;
+  transition: transform var(--d-rapido);
+  opacity: 0.8;
+}
+[data-playing="true"] .m-bar {
+  animation: bar 900ms ease-in-out infinite;
+}
+[data-playing="true"] .m-bar:nth-child(3n) { animation-delay: -300ms; }
+[data-playing="true"] .m-bar:nth-child(3n + 1) { animation-delay: -600ms; }
+@keyframes bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+/* 11 · Hero: titular, bajada y botón entran escalonados, una vez, al cargar. */
+.m-hero-1,
+.m-hero-2,
+.m-hero-3 {
+  animation: heroIn var(--d-libro) var(--ease-out) both;
+}
+.m-hero-2 { animation-delay: 120ms; }
+.m-hero-3 { animation-delay: 240ms; }
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Foco visible del tema nuevo (MOTION.md §4). Va adentro de .tema-oscuro y en
+   la capa base para no pisar los focos que ya tienen las pantallas de hoy ni
+   las clases focus-visible: de Tailwind. */
+@layer base {
+  .tema-oscuro :focus-visible {
+    outline: 2px solid var(--acento-oscuro);
+    outline-offset: 2px;
+  }
+}
+
+/* Movimiento reducido para todo el sitio, exactamente como en las maquetas
+   (MOTION.md §4): 1 ms y no «none», así fill-mode both deja el estado final y
+   nada queda invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }
