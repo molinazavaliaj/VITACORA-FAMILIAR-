@@ -282,3 +282,19 @@ Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras
 | lib/mail.ts, invitación para las dudas, cuerpo | {quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó. · Entrá con este mismo correo | …Si sabes la respuesta, puedes escribirla… · Entra con este mismo correo |
 | lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
 | api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |
+
+## Textos fijos del libro: catalán y tú para España (13/10)
+
+Colofón, «Sus frases» y «Su voz» del PDF (fabrica/src/libro/plantilla-html.ts, TEXTOS_LIBRO). Aprobados por Naza el 13/10. La explicación del código del libro entero pierde los dos puntos en las tres lenguas.
+
+| | Argentina | España | Catalán |
+|---|---|---|---|
+| Sus frases, arriba | TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN | igual | TAL COM LES DIU · PERQUÈ NO ES PERDIN |
+| Bajo la frase destacada | Si se lleva una sola de todo el libro, es esta | igual | Si només se n’endú una de tot el llibre, és aquesta |
+| Su voz, título | Su voz | igual | La seva veu |
+| Su voz, bajada | Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás. | Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas. | Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs. |
+| Debajo de cada código | Escuchala | Escúchala | Escolta-la |
+| Código del libro entero | El libro entero, en su voz | igual | El llibre sencer, amb la seva veu |
+| … su bajada | Este código abre la página con el libro online y todas sus frases, para escucharlas y compartirlas. | igual | Aquest codi obre la pàgina amb el llibre en línia i totes les seves frases, per escoltar-les i compartir-les. |
+| Colofón | Este libro fue contado por · [nombre] · con su propia voz, y guardado para siempre por | igual | Aquest llibre el va explicar · [nom] · amb la seva pròpia veu, i el va guardar per sempre |
+| Cierre | «Acá adentro están todos vivos.» | «Aquí dentro están todos vivos.» | «Aquí dins hi són tots vius.» |
