@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { intenta } from "@/lib/trato";
+import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos completar la acción. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos completar la acción. ${intenta(t)} de nuevo.`;
 const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
 
@@ -43,18 +45,20 @@ export async function PATCH(
 
   const { data: familia, error: errorFamilia } = await admin
     .from("familias")
-    .select("id")
+    .select("id, region")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
   if (errorFamilia) {
     console.error("narrador PATCH: fallo la busqueda de familia", errorFamilia);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO() }, { status: 500 });
   }
 
   if (!familia) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
+  // Vos o tú: la familia es la dueña de la historia (se verifica abajo).
+  const trato = tratoDeRegion((familia as { region?: string }).region === "ES" ? "ES" : "AR");
 
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
@@ -64,7 +68,7 @@ export async function PATCH(
 
   if (errorNarrador) {
     console.error("narrador PATCH: fallo la busqueda de narrador", errorNarrador);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   const datosNarrador = narrador as { id: string; familia_id: string; estado: string } | null;
@@ -81,7 +85,7 @@ export async function PATCH(
 
     if (errorUpdate) {
       console.error("narrador PATCH: fallo apagar_alerta", errorUpdate);
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });
@@ -102,7 +106,7 @@ export async function PATCH(
 
   if (errorRespuestas) {
     console.error("narrador PATCH: fallo contar respuestas", errorRespuestas);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   const ordenesDistintos = new Set(
@@ -125,7 +129,7 @@ export async function PATCH(
 
   if (errorUpdate) {
     console.error("narrador PATCH: fallo cierre_anticipado", errorUpdate);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

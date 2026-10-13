@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { parecidosAnteriores, resaltar } from "@/lib/citas";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 export type EntidadPrefill = {
   texto: string;
@@ -35,7 +36,8 @@ export function construirCorreccionesCambiadas(
     .filter((correccion) => correccion.corregido !== "" && correccion.corregido !== correccion.original);
 }
 
-export function FormularioNombres({ entidades, narradorId }: { entidades: EntidadPrefill[]; narradorId: string }) {
+export function FormularioNombres({ entidades, narradorId, trato = "vos" }: { entidades: EntidadPrefill[]; narradorId: string; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   // Se indexa por posición, no por `texto`: dos entidades detectadas con el
   // mismo nombre (dos "Juan" distintos — el padre y el vecino) son filas
@@ -68,7 +70,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
 
       if (!respuesta.ok) {
         const datos = await respuesta.json().catch(() => null);
-        setError(datos?.error ?? "No pudimos guardar las correcciones. Intenta de nuevo.");
+        setError(datos?.error ?? (tu ? "No pudimos guardar las correcciones. Intenta de nuevo." : "No pudimos guardar las correcciones. Intentá de nuevo."));
         setGuardando(false);
         return;
       }
@@ -77,7 +79,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
       setGuardando(false);
       router.refresh();
     } catch {
-      setError("No pudimos guardar las correcciones. Intenta de nuevo.");
+      setError(tu ? "No pudimos guardar las correcciones. Intenta de nuevo." : "No pudimos guardar las correcciones. Intentá de nuevo.");
       setGuardando(false);
     }
   }
@@ -86,7 +88,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
     <div className="flex flex-col gap-6">
       {sinEntidades ? (
         <p className="text-sm text-[var(--texto-menor)]">
-          Todavía no detectamos nombres para revisar. Podés confirmar igual para seguir adelante.
+          Todavía no detectamos nombres para revisar. {tu ? "Puedes" : "Podés"} confirmar igual para seguir adelante.
           Si más adelante aparece alguno, se corrige después.
         </p>
       ) : (

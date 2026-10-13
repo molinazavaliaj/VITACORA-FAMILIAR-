@@ -18,11 +18,12 @@ export function LinkRegalarLanding({ trato = "vos" }: { trato?: TratoComprador }
 }
 
 /** En el paso 1 de /comprar, cuando la historia es de otra persona: la sorpresa no pide su WhatsApp. */
-export function SugerenciaRegalo() {
+export function SugerenciaRegalo({ trato = "vos" }: { trato?: TratoComprador }) {
+  const tu = trato === "tu";
   return (
     <p className="mt-4 text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-      ¿Querés que sea una sorpresa?{" "}
-      <Link href="/regalar" className="text-[#14140F] underline underline-offset-4">Regalalo con una tarjeta</Link>
+      {tu ? "¿Quieres que sea una sorpresa?" : "¿Querés que sea una sorpresa?"}{" "}
+      <Link href="/regalar" className="text-[#14140F] underline underline-offset-4">{tu ? "Regálalo con una tarjeta" : "Regalalo con una tarjeta"}</Link>
       . No hace falta su WhatsApp.
     </p>
   );

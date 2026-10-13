@@ -9,12 +9,14 @@ import {
   esEditable, puedeAgregar, puedeSaltar, renumerar, reordenar, siguienteOrden,
   validarRitmo, validarTexto, type PreguntaGuion, esPreguntaDeObjeto } from "@/lib/guion";
 import { entrevistaV3, llegoAlFinalV3, MAXIMO_PREGUNTAS_FAMILIA_V3, ORDEN_FAMILIA_V3 } from "@/lib/v3";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // El guion de una historia (docs/panel-usuario.md §6). Una sola ruta, varias
 // acciones, todas sobre el narrador que dice `?narrador=`. Las reglas viven en
 // lib/guion.ts; acá solo se aplica quién puede y se escribe en la base.
 
-const GENERICO = "No pudimos guardar el cambio. Intenta de nuevo.";
+const GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar el cambio. ${intenta(t)} de nuevo.`;
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
 type Accion =
@@ -89,9 +91,11 @@ async function aplicarOrdenes(admin: SupabaseClient, cambios: { id: string; orde
 
 export async function PATCH(request: NextRequest) {
   const admin = crearClienteServidor();
-  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO });
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO() });
   if (!acceso.ok) return respuesta(acceso.status, { error: acceso.error });
   const { narrador, rol, user } = acceso;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
   let body: Accion;
   try {
@@ -114,7 +118,7 @@ export async function PATCH(request: NextRequest) {
     const h = validarHorario(body);
     if (!h.ok) return respuesta(400, { error: h.mensaje });
     const { error } = await admin.from("narradores").update({ hora_preferida: h.hora, zona_horaria: h.zona }).eq("id", narrador.id);
-    if (error) { console.error("guion: fallo horario", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo horario", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true });
   }
 
@@ -128,7 +132,7 @@ export async function PATCH(request: NextRequest) {
     const contexto = ((fila as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
     contexto.trato = body.trato;
     const { error } = await admin.from("narradores").update({ contexto }).eq("id", narrador.id);
-    if (error) { console.error("guion: fallo trato", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo trato", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true });
   }
 
@@ -161,7 +165,7 @@ export async function PATCH(request: NextRequest) {
       contexto.evitar = texto;
     }
     const { error } = await admin.from("narradores").update({ contexto }).eq("id", narrador.id);
-    if (error) { console.error("guion: fallo contexto", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo contexto", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true });
   }
 
@@ -172,16 +176,16 @@ export async function PATCH(request: NextRequest) {
     v3 = await entrevistaV3(admin, narrador.id);
   } catch (e) {
     console.error("guion: fallo la lectura V3", e);
-    return respuesta(500, { error: GENERICO });
+    return respuesta(500, { error: GENERICO(trato) });
   }
   if (v3) {
     if (body.accion !== "agregar") return respuesta(400, { error: "En esta entrevista no hay guion para editar. Se suman preguntas." });
     if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return respuesta(403, { error: "No autorizado." });
     if (llegoAlFinalV3(v3.estado)) return respuesta(400, { error: "La entrevista ya está en las últimas preguntas. Las nuevas no llegan a tiempo." });
-    const texto = validarTexto(body.texto);
+    const texto = validarTexto(body.texto, trato);
     if (!texto.ok) return respuesta(400, { error: texto.mensaje });
     const { data: propias, error: errorPropias } = await admin.from("preguntas").select("orden, tipo").eq("narrador_id", narrador.id);
-    if (errorPropias) { console.error("guion: fallo la lectura V3", errorPropias); return respuesta(500, { error: GENERICO }); }
+    if (errorPropias) { console.error("guion: fallo la lectura V3", errorPropias); return respuesta(500, { error: GENERICO(trato) }); }
     const filas = (propias as { orden: number; tipo: string }[] | null) ?? [];
     if (filas.filter((p) => p.tipo === "familia").length >= MAXIMO_PREGUNTAS_FAMILIA_V3) {
       return respuesta(400, { error: `Ya hay ${MAXIMO_PREGUNTAS_FAMILIA_V3} preguntas de la familia, que es el máximo.` });
@@ -191,12 +195,12 @@ export async function PATCH(request: NextRequest) {
     const { data, error } = await admin.from("preguntas")
       .insert({ narrador_id: narrador.id, orden, texto: texto.texto, capitulo, tipo: "familia", agregada_por: user.id })
       .select("id, orden").single();
-    if (error) { console.error("guion: fallo agregar V3", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo agregar V3", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true, pregunta: data });
   }
 
   const todas = await guionPropio(admin, narrador.id);
-  if (!todas) return respuesta(500, { error: GENERICO });
+  if (!todas) return respuesta(500, { error: GENERICO(trato) });
   // Los pedidos de objeto (3t.30, banda 101-108) quedan FUERA de todo lo que
   // razona sobre el recorrido. Si entraran: `siguienteOrden` daría 109 para la
   // próxima pregunta de la familia, y sacar una pregunta los arrastraría a la
@@ -206,12 +210,12 @@ export async function PATCH(request: NextRequest) {
 
   if (body.accion === "agregar") {
     if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return respuesta(403, { error: "No autorizado." });
-    const texto = validarTexto(body.texto);
+    const texto = validarTexto(body.texto, trato);
     if (!texto.ok) return respuesta(400, { error: texto.mensaje });
-    const cupo = puedeAgregar(guion);
+    const cupo = puedeAgregar(guion, trato);
     if (!cupo.ok) return respuesta(400, { error: cupo.mensaje });
     const capitulo = typeof body.capitulo === "string" && body.capitulo.trim() ? body.capitulo.trim() : null;
-    if (!capitulo) return respuesta(400, { error: "Elegí en qué capítulo va." });
+    if (!capitulo) return respuesta(400, { error: trato === "tu" ? "Elige en qué capítulo va." : "Elegí en qué capítulo va." });
     const fila: Record<string, unknown> = {
       narrador_id: narrador.id, orden: siguienteOrden(guion), texto: texto.texto, capitulo,
       // 'sugerida' = la propuso el biógrafo y la familia la eligió (§6.2); si no, la escribió la familia.
@@ -219,7 +223,7 @@ export async function PATCH(request: NextRequest) {
     };
     if (body.fotoId) fila.foto_id = body.fotoId;
     const { data, error } = await admin.from("preguntas").insert(fila).select("id, orden").single();
-    if (error) { console.error("guion: fallo agregar", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo agregar", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true, pregunta: data });
   }
 
@@ -238,10 +242,10 @@ export async function PATCH(request: NextRequest) {
     const p = await buscar(body.id);
     if (!p) return respuesta(404, { error: "No encontramos esa pregunta." });
     if (!esEditable(p, diaActual)) return respuesta(400, { error: "Esa pregunta ya se mandó o la escribe el biógrafo: no se cambia." });
-    const texto = validarTexto(body.texto);
+    const texto = validarTexto(body.texto, trato);
     if (!texto.ok) return respuesta(400, { error: texto.mensaje });
     const { error } = await admin.from("preguntas").update({ texto: texto.texto }).eq("id", p.id);
-    if (error) { console.error("guion: fallo editar", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo editar", error); return respuesta(500, { error: GENERICO(trato) }); }
     return respuesta(200, { ok: true });
   }
 
@@ -252,9 +256,9 @@ export async function PATCH(request: NextRequest) {
     const piso = puedeSaltar(guion);
     if (!piso.ok) return respuesta(400, { error: piso.mensaje });
     const { error } = await admin.from("preguntas").delete().eq("id", p.id);
-    if (error) { console.error("guion: fallo saltar", error); return respuesta(500, { error: GENERICO }); }
+    if (error) { console.error("guion: fallo saltar", error); return respuesta(500, { error: GENERICO(trato) }); }
     const cambios = renumerar(guion.filter((q) => q.id !== p.id), diaActual);
-    if (!(await aplicarOrdenes(admin, cambios))) return respuesta(500, { error: GENERICO });
+    if (!(await aplicarOrdenes(admin, cambios))) return respuesta(500, { error: GENERICO(trato) });
     return respuesta(200, { ok: true });
   }
 
@@ -271,7 +275,7 @@ export async function PATCH(request: NextRequest) {
     }
     const r = reordenar(guion, diaActual, ids);
     if (!r.ok) return respuesta(400, { error: r.mensaje });
-    if (!(await aplicarOrdenes(admin, r.cambios))) return respuesta(500, { error: GENERICO });
+    if (!(await aplicarOrdenes(admin, r.cambios))) return respuesta(500, { error: GENERICO(trato) });
     return respuesta(200, { ok: true });
   }
 

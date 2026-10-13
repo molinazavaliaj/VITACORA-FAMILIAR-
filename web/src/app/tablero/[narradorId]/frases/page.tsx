@@ -7,6 +7,7 @@ import { firmarTokenVoz } from "@/lib/token-libro";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
 import { ConRiel } from "../../riel";
 import { SelectorDeFrases } from "./acciones";
+import { tratoDeLaFamilia } from "@/lib/trato";
 
 // «Su voz» en el panel (spec 2026-09-20-su-voz-design, "El panel de la
 // familia"): las mejores frases del narrador, en su voz real, elegidas por el
@@ -36,10 +37,12 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
   const propia = esPropia(n);
   const puedeEditar = PUEDE.cerrarLibro(historia.rol);
 
-  const [frases, { data: cierre }] = await Promise.all([
+  const [frases, { data: cierre }, trato] = await Promise.all([
     leerFrases(admin, n.id),
     admin.from("narradores").select("libro_aprobado_at").eq("id", n.id).maybeSingle(),
+    tratoDeLaFamilia(admin, n.familia_id),
   ]);
+  const tu = trato === "tu";
   const libroCerrado = Boolean((cierre as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at);
 
   const cabecera = (
@@ -58,8 +61,8 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
         <Tarjeta className="mt-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
             {libroCerrado
-              ? "El biógrafo está eligiendo las frases: aparecen acá apenas termine de armar el libro."
-              : "Cuando el libro esté cerrado, el biógrafo elige sus mejores frases y se escuchan acá, en su voz."}
+              ? `El biógrafo está eligiendo las frases: aparecen ${tu ? "aquí" : "acá"} apenas termine de armar el libro.`
+              : `Cuando el libro esté cerrado, el biógrafo elige sus mejores frases y se escuchan ${tu ? "aquí" : "acá"}, en su voz.`}
           </p>
         </Tarjeta>
         <div className="mt-8"><ProximoPaso href={`/tablero/${n.id}/leer`}>Ir a Leer y escuchar</ProximoPaso></div>
@@ -79,8 +82,10 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
       {cabecera}
       <p className="mt-2 max-w-prose text-[15px] leading-relaxed text-[var(--texto-suave)]">
         {propia
-          ? "El biógrafo eligió, leyendo tu libro, las frases que más suenan a vos: se imprimen en el libro con un código para escucharlas, tal como las dijiste. Podés cambiarlas por otras de la lista, sacar una o reordenarlas."
-          : `El biógrafo eligió, leyendo el libro, las frases que más suenan a ${n.como_le_dicen}: se imprimen en el libro con un código para escucharlas, tal como las dijo. ${puedeEditar ? "Podés cambiarlas por otras de la lista, sacar una o reordenarlas." : ""}`}
+          ? tu
+            ? "El biógrafo eligió, leyendo tu libro, las frases que más suenan a ti: se imprimen en el libro con un código para escucharlas, tal como las dijiste. Puedes cambiarlas por otras de la lista, sacar una o reordenarlas."
+            : "El biógrafo eligió, leyendo tu libro, las frases que más suenan a vos: se imprimen en el libro con un código para escucharlas, tal como las dijiste. Podés cambiarlas por otras de la lista, sacar una o reordenarlas."
+          : `El biógrafo eligió, leyendo el libro, las frases que más suenan a ${n.como_le_dicen}: se imprimen en el libro con un código para escucharlas, tal como las dijo. ${puedeEditar ? `${tu ? "Puedes" : "Podés"} cambiarlas por otras de la lista, sacar una o reordenarlas.` : ""}`}
       </p>
       {cortando ? (
         <p className="mt-3 text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
@@ -95,6 +100,7 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
           confirmadoAt={frases.confirmado_at}
           puedeEditar={puedeEditar}
           linkPublico={linkPublico}
+          trato={trato}
         />
       </div>
     </ConRiel>

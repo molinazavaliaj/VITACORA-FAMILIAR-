@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DIRECCION_CAMPOS, estadoEnHumano, type Direccion, type EstadoEntrega } from "@/lib/entregas";
+import { DIRECCION_CAMPOS, DIRECCION_CAMPOS_ES, estadoEnHumano, type Direccion, type EstadoEntrega } from "@/lib/entregas";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La sección Envío de Encargar libro (3t.26): adónde va lo físico y cómo va.
 // Aparece solo si el pedido lleva libro impreso o marcos. La dirección es
@@ -31,7 +32,8 @@ const boton = "inline-flex h-11 items-center justify-center rounded-full px-6 te
 /** Los estados en los que la dirección todavía se puede escribir. */
 const EDITABLES: EstadoEntrega[] = ["sin_direccion", "lista", "con_problema"];
 
-export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; entrega: EntregaVista; queViaja: string }) {
+export function Envio({ narradorId, entrega, queViaja, trato = "vos" }: { narradorId: string; entrega: EntregaVista; queViaja: string; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const editable = EDITABLES.includes(entrega.estado);
   const [nombre, setNombre] = useState(entrega.destinatarioNombre ?? "");
@@ -68,7 +70,7 @@ export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; e
       <div>
         <p className={etiqueta}>Envío</p>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-          {queViaja} viaja hasta la puerta. Decinos adónde lo mandamos; el envío ya está incluido.
+          {queViaja} viaja hasta la puerta. {tu ? "Dinos" : "Decinos"} adónde lo mandamos; el envío ya está incluido.
         </p>
       </div>
 
@@ -83,7 +85,7 @@ export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; e
             ) : entrega.seguimiento}
           </p>
         ) : null}
-        {entrega.problema ? <p className="mt-2 text-[15px] text-[var(--alerta)]">{entrega.problema} — escribinos y lo resolvemos.</p> : null}
+        {entrega.problema ? <p className="mt-2 text-[15px] text-[var(--alerta)]">{entrega.problema} — {tu ? "escríbenos" : "escribinos"} y lo resolvemos.</p> : null}
         {entrega.estado === "enviado" ? (
           <button type="button" className={`${boton} mt-4 border border-[var(--linea-fuerte)]`} disabled={ocupado} onClick={() => llamar({ accion: "ya_llego" }, "¡Gracias! Nos alegra que haya llegado.")}>
             Ya me llegó
@@ -101,9 +103,9 @@ export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; e
           </label>
           <label className="flex flex-col gap-1">
             <span className={etiqueta}>Teléfono</span>
-            <input className={campo} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="11 5555 1234" inputMode="tel" autoComplete="tel" />
+            <input className={campo} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={tu ? "612 345 678" : "11 5555 1234"} inputMode="tel" autoComplete="tel" />
           </label>
-          {DIRECCION_CAMPOS.map((c) => (
+          {(tu ? DIRECCION_CAMPOS_ES : DIRECCION_CAMPOS).map((c) => (
             <label key={c.id} className={`flex flex-col gap-1 ${c.id === "linea1" ? "sm:col-span-2" : ""}`}>
               <span className={etiqueta}>{c.nombre}{c.obligatorio ? "" : " (si hace falta)"}</span>
               <input className={campo} value={direccion[c.id] ?? ""} onChange={(e) => setDireccion((d) => ({ ...d, [c.id]: e.target.value }))} placeholder={c.ejemplo} />
@@ -111,7 +113,7 @@ export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; e
           ))}
           <label className="flex flex-col gap-1 sm:col-span-2">
             <span className={etiqueta}>Algo que ayude a entregarlo (opcional)</span>
-            <input className={campo} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="El timbre no anda, llamar al llegar." />
+            <input className={campo} value={nota} onChange={(e) => setNota(e.target.value)} placeholder={tu ? "El timbre no funciona, llamar al llegar." : "El timbre no anda, llamar al llegar."} />
           </label>
         </div>
         {editable ? (
@@ -122,7 +124,7 @@ export function Envio({ narradorId, entrega, queViaja }: { narradorId: string; e
             {aviso ? <span className="text-sm text-[var(--texto-menor)]">{aviso}</span> : null}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[var(--texto-menor)]">Ya entró en producción con esta dirección. Si hay que cambiarla, escribinos.</p>
+          <p className="mt-3 text-sm text-[var(--texto-menor)]">Ya entró en producción con esta dirección. Si hay que cambiarla, {tu ? "escríbenos" : "escribinos"}.</p>
         )}
       </fieldset>
       {error ? <p className="text-sm text-[var(--alerta)]" role="alert">{error}</p> : null}

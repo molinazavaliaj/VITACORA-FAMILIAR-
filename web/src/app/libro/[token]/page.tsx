@@ -6,6 +6,9 @@ import { verificarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
 import { VistaMuestra } from "../../muestra";
 import { Toroide } from "../../marca";
+import { headers } from "next/headers";
+import { regionDelRequest } from "@/lib/region";
+import { tratoDeRegion } from "@/lib/regalo-textos";
 
 // El link público del libro cerrado (docs/panel-usuario.md §8). Lo abre un
 // primo sin cuenta: ve la muestra y tiene dos puertas — guardarlo en su cuenta,
@@ -25,6 +28,8 @@ export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[
   const muestra = await armarMuestra(admin, datos.narradorId);
   if (!muestra) notFound();
 
+  // Lo abre alguien sin cuenta: el trato sale del país de quien lo abre.
+  const tu = tratoDeRegion(regionDelRequest(await headers())) === "tu";
   const volver = encodeURIComponent(`/libro/${token}/guardar`);
   const volverComprar = encodeURIComponent(`/libro/${token}/guardar?comprar=1`);
   const boton = "inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-medium transition-colors [font-family:var(--fuente-micro)]";
@@ -57,9 +62,11 @@ export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[
         </div>
 
         <div className="mt-14 rounded-xl border border-[var(--texto)] p-6 md:p-8">
-          <p className="text-xl leading-snug [font-family:var(--fuente-titulo)] [text-wrap:balance]">¿Querés el libro de {muestra.nombre} en tu casa?</p>
+          <p className="text-xl leading-snug [font-family:var(--fuente-titulo)] [text-wrap:balance]">{tu ? "¿Quieres" : "¿Querés"} el libro de {muestra.nombre} en tu casa?</p>
           <p className="mt-3 max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">
-            Podés pedir tu copia impresa, tapa dura, con un código en la contratapa que hace sonar su voz. Te llega a donde estés. O guardalo en tu cuenta para volver a esta muestra cuando quieras.
+            {tu
+              ? "Puedes pedir tu copia impresa, tapa dura, con un código en la contratapa que hace sonar su voz. Te llega a donde estés. O guárdalo en tu cuenta para volver a esta muestra cuando quieras."
+              : "Podés pedir tu copia impresa, tapa dura, con un código en la contratapa que hace sonar su voz. Te llega a donde estés. O guardalo en tu cuenta para volver a esta muestra cuando quieras."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={`/entrar?volver=${volverComprar}`} className={`${boton} bg-[var(--acento)] text-white hover:opacity-90`}>
@@ -69,7 +76,7 @@ export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[
               Guardarlo en mi cuenta
             </Link>
           </div>
-          <p className="mt-4 text-sm text-[var(--texto-menor)]">Entrás con tu correo y un código de 6 números. Sin contraseñas.</p>
+          <p className="mt-4 text-sm text-[var(--texto-menor)]">{tu ? "Entras" : "Entrás"} con tu correo y un código de 6 números. Sin contraseñas.</p>
         </div>
 
         <p className="mt-16 text-sm italic text-[var(--texto-menor)]">En cada familia hay un libro sin escribir.</p>

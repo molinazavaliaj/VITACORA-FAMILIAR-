@@ -5,7 +5,7 @@ import { armarCompra, type Catalogo as CatalogoRegion, type Carrito } from "@/li
 import { BaseFija, Ticket, Upsells, formatearPrecio as formatear, listaDe } from "./productos-ui";
 import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
 import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
-import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, nombreDePila } from "@/lib/como-le-dicen";
+import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, MENSAJE_PALABRA_DE_FAMILIA_TU, nombreDePila } from "@/lib/como-le-dicen";
 import type { IdiomaRegalo } from "@/lib/regalo-textos";
 import { GENEROS, type Genero } from "@/lib/regalo-reglas";
 import { medirImagen } from "@/lib/medir-imagen";
@@ -52,6 +52,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   const [paso, setPaso] = useState<Paso>(1);
   const [paraQuien, setParaQuien] = useState<ParaQuien | null>(null);
   const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
+  // Desde España, de tú (Naza, 13/10).
+  const tu = region === "ES";
 
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculo, setVinculo] = useState("");
@@ -103,12 +105,12 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   }
 
   function validarNarrador(): string | null {
-    if (paraQuien === "otro" && !nombreComprador.trim()) return "Decinos tu nombre. Es lo que va a leer cuando le escribamos.";
-    if (paraQuien === "otro" && !vinculo.trim()) return "Contanos qué sos de esa persona (hija, nieto...).";
-    if (!nombre.trim()) return paraQuien === "yo" ? "Decinos tu nombre." : "Falta el nombre del narrador.";
-    if (!comoLeDicen.trim()) return "¿Cómo le escribimos? Poné su nombre o su apodo.";
-    if (paraQuien === "otro" && esPalabraDeFamilia(comoLeDicen)) return MENSAJE_PALABRA_DE_FAMILIA;
-    if (!genero) return paraQuien === "yo" ? "¿Sos hombre o mujer? Lo necesita el biógrafo para hablarte bien." : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien.";
+    if (paraQuien === "otro" && !nombreComprador.trim()) return `${tu ? "Dinos" : "Decinos"} tu nombre. Es lo que va a leer cuando le escribamos.`;
+    if (paraQuien === "otro" && !vinculo.trim()) return tu ? "Cuéntanos qué eres de esa persona (hija, nieto...)." : "Contanos qué sos de esa persona (hija, nieto...).";
+    if (!nombre.trim()) return paraQuien === "yo" ? (tu ? "Dinos tu nombre." : "Decinos tu nombre.") : "Falta el nombre del narrador.";
+    if (!comoLeDicen.trim()) return `¿Cómo le escribimos? ${tu ? "Pon" : "Poné"} su nombre o su apodo.`;
+    if (paraQuien === "otro" && esPalabraDeFamilia(comoLeDicen)) return tu ? MENSAJE_PALABRA_DE_FAMILIA_TU : MENSAJE_PALABRA_DE_FAMILIA;
+    if (!genero) return paraQuien === "yo" ? `¿${tu ? "Eres" : "Sos"} hombre o mujer? Lo necesita el biógrafo para hablarte bien.` : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien.";
     if (anioNacimiento.trim() && (Number(anioNacimiento) < 1900 || Number(anioNacimiento) > 2015)) return "El año de nacimiento no parece bien (entre 1900 y 2015).";
     if (!telefono.trim()) return "Falta el WhatsApp.";
     return null;
@@ -119,7 +121,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
     setError(null);
     const nuevas: FotoElegida[] = [];
     for (const archivo of Array.from(lista)) {
-      const errorDeTipo = errorDeTipoDeFoto(archivo.type);
+      const errorDeTipo = errorDeTipoDeFoto(archivo.type, tu ? "tu" : "vos");
       if (errorDeTipo) { setError(errorDeTipo); continue; }
       if (archivo.size > TAMANO_MAXIMO_BYTES) { setError(`${archivo.name} pesa más de 25 MB.`); continue; }
       nuevas.push({ clave: `${archivo.name}-${archivo.size}-${archivo.lastModified}`, archivo, url: URL.createObjectURL(archivo), subida: false });
@@ -176,7 +178,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
         });
         const datos = (await respuesta.json()) as { urlPago?: string; narradorId?: string; tokenFotos?: string; error?: string };
         if (!respuesta.ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) {
-          setError(datos.error ?? "No pudimos iniciar el pago. Intentá de nuevo.");
+          setError(datos.error ?? (tu ? "No pudimos iniciar el pago. Intenta de nuevo." : "No pudimos iniciar el pago. Intentá de nuevo."));
           setEnviando(false);
           return;
         }
@@ -195,7 +197,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
           setFotos((x) => x.map((f) => (f.clave === foto.clave ? { ...f, subida: true } : f)));
         } catch (e) {
           setProgreso(null);
-          setError(`${e instanceof Error ? e.message : `No pudimos subir ${foto.archivo.name}.`} Sacala o intentá de nuevo.`);
+          setError(`${e instanceof Error ? e.message : `No pudimos subir ${foto.archivo.name}.`} ${tu ? "Sácala o intenta de nuevo." : "Sacala o intentá de nuevo."}`);
           setEnviando(false);
           return;
         }
@@ -204,7 +206,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
       window.location.assign(urlPago);
     } catch {
       setProgreso(null);
-      setError("No pudimos iniciar el pago. Revisá tu conexión e intentá de nuevo.");
+      setError(tu ? "No pudimos iniciar el pago. Revisa tu conexión e intenta de nuevo." : "No pudimos iniciar el pago. Revisá tu conexión e intentá de nuevo.");
       setEnviando(false);
     }
   }
@@ -233,7 +235,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             <div className="mt-8 flex flex-col gap-4">
               {(
                 [
-                  { v: "otro", t: "De un ser querido", d: "Mi papá, mi abuela, mi tío. Yo lo anoto y la historia la cuenta quien la vivió." },
+                  { v: "otro", t: "De un ser querido", d: `${tu ? "Mi padre" : "Mi papá"}, mi abuela, mi tío. Yo lo anoto y la historia la cuenta quien la vivió.` },
                   { v: "yo", t: "La mía", d: "Quiero dejar contado de dónde vengo. Las preguntas me llegan a mí." },
                 ] as { v: ParaQuien; t: string; d: string }[]
               ).map((o) => (
@@ -252,10 +254,10 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               ))}
             </div>
             {/* Para otra persona se pide su WhatsApp: si es sorpresa, la tarjeta del regalo (Naza, 11/10). */}
-            {paraQuien === "otro" && <SugerenciaRegalo />}
+            {paraQuien === "otro" && <SugerenciaRegalo trato={tu ? "tu" : "vos"} />}
             <Botones
               siguiente={() => {
-                if (!paraQuien) return setError("Elegí una de las dos.");
+                if (!paraQuien) return setError(tu ? "Elige una de las dos." : "Elegí una de las dos.");
                 avanzar(2);
               }}
               error={error}
@@ -267,7 +269,9 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
         {paso === 2 && (
           <section className="mt-12">
             <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-              {paraQuien === "yo" ? "Contanos quién sos." : "Contanos quién va a contar su historia."}
+              {tu
+                ? (paraQuien === "yo" ? "Cuéntanos quién eres." : "Cuéntanos quién va a contar su historia.")
+                : (paraQuien === "yo" ? "Contanos quién sos." : "Contanos quién va a contar su historia.")}
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               Lo justo para presentarnos bien. El resto lo va a contar en la entrevista.
@@ -303,13 +307,13 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   <label className={etiqueta} htmlFor="comoLeDicen">{paraQuien === "yo" ? "Cómo te dicen" : "¿Cómo le escribimos?"}</label>
                   <input id="comoLeDicen" className={`${campo} mt-2`} value={comoLeDicen} onChange={(e) => setComoLeDicen(e.target.value)} placeholder="Roberto, Beto, Don Roberto" />
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-                    {paraQuien === "yo" ? "Así lo vamos a saludar." : 'Así lo va a saludar el biógrafo por WhatsApp. Si tiene un apodo, ponelo. Nada de "papá" ni "abuela".'}
+                    {paraQuien === "yo" ? "Así lo vamos a saludar." : `Así lo va a saludar el biógrafo por WhatsApp. Si tiene un apodo, ${tu ? "ponlo" : "ponelo"}. Nada de "papá" ni "abuela".`}
                   </p>
                 </div>
               </div>
 
               <fieldset>
-                <legend className={etiqueta}>{paraQuien === "yo" ? "¿Sos hombre o mujer? Lo necesita el biógrafo para hablarte bien." : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien."}</legend>
+                <legend className={etiqueta}>{paraQuien === "yo" ? `¿${tu ? "Eres" : "Sos"} hombre o mujer? Lo necesita el biógrafo para hablarte bien.` : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien."}</legend>
                 <div className="mt-2 flex flex-wrap gap-2" role="group">
                   {GENEROS.map((g) => (
                     <button key={g} type="button" aria-pressed={genero === g} onClick={() => setGenero(g)} className={chip(genero === g)}>
@@ -354,7 +358,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   </select>
                 </div>
                 <div>
-                  <label className={etiqueta} htmlFor="hijos">{paraQuien === "yo" ? "¿Tenés hijos?" : "¿Tiene hijos?"}</label>
+                  <label className={etiqueta} htmlFor="hijos">{paraQuien === "yo" ? (tu ? "¿Tienes hijos?" : "¿Tenés hijos?") : "¿Tiene hijos?"}</label>
                   <select id="hijos" className={`${campo} mt-2`} value={hijos} onChange={(e) => setHijos(e.target.value as "" | "si" | "no")}>
                     <option value="">Prefiero no decir</option>
                     <option value="si">Sí</option>
@@ -369,8 +373,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               {/* 3t.22: dónde vive y el trato. ⚠️ Textos a revisar por Naza. */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
-                  <label className={etiqueta} htmlFor="dondeVive">{paraQuien === "yo" ? "¿Dónde vivís?" : "¿Dónde vive?"}</label>
-                  <input id="dondeVive" className={`${campo} mt-2`} value={dondeVive} onChange={(e) => setDondeVive(e.target.value.slice(0, 120))} placeholder="Rosario, Argentina" autoComplete="off" />
+                  <label className={etiqueta} htmlFor="dondeVive">{paraQuien === "yo" ? (tu ? "¿Dónde vives?" : "¿Dónde vivís?") : "¿Dónde vive?"}</label>
+                  <input id="dondeVive" className={`${campo} mt-2`} value={dondeVive} onChange={(e) => setDondeVive(e.target.value.slice(0, 120))} placeholder={tu ? "Valencia, España" : "Rosario, Argentina"} autoComplete="off" />
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Ciudad y país. Ayuda a entender su forma de hablar.</p>
                 </div>
                 <div>
@@ -403,7 +407,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               Tu correo.
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Ahí te avisamos {paraQuien === "yo" ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo entrás a tu panel.
+              Ahí te avisamos {paraQuien === "yo" ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo {tu ? "entras" : "entrás"} a tu panel.
             </p>
             <div className="mt-8">
               <label className={etiqueta} htmlFor="email">Tu correo</label>
@@ -432,7 +436,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               {carritoElegido.impresos > 0
-                ? "Este es el regalo completo: el libro impreso, el PDF y «Su voz». Abajo podés sumarle los marcos."
+                ? `Este es el regalo completo: el libro impreso, el PDF y «Su voz». Abajo ${tu ? "puedes" : "podés"} sumarle los marcos.`
                 : "El libro en PDF con «Su voz» va siempre. Es donde ocurre la magia."}
             </p>
 
@@ -448,7 +452,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             </div>
 
             <div className="mt-4">
-              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato="vos" />
+              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato={tu ? "tu" : "vos"} />
             </div>
 
             <Botones atras={() => avanzar(3)} siguiente={() => avanzar(5)} etiquetaSiguiente="Continuar" error={error} />
@@ -462,13 +466,15 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               Sus fotos.
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Si tenés fotos suyas, subilas acá. También podés hacerlo después, desde tu panel.
+              {tu
+                ? "Si tienes fotos suyas, súbelas aquí. También puedes hacerlo después, desde tu panel."
+                : "Si tenés fotos suyas, subilas acá. También podés hacerlo después, desde tu panel."}
             </p>
 
             <div className="mt-10">
               <p className={etiqueta}>El álbum del libro</p>
               <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-                Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde tu panel, elegís cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.
+                Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde tu panel, {tu ? "eliges" : "elegís"} cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.
               </p>
               <input ref={entradaFotos} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => elegirFotos(e.target.files)} />
               {fotos.length > 0 && (
@@ -511,10 +517,10 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptás los{" "}
+              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar {tu ? "aceptas" : "aceptás"} los{" "}
               <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>
               {region === "ES"
-                ? " y nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento. Si te arrepentís con la entrevista en marcha, se descuenta la parte ya hecha."
+                ? " y nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento. Si te arrepientes con la entrevista en marcha, se descuenta la parte ya hecha."
                 : "."}
             </p>
           </form>
@@ -528,7 +534,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Pago único, sin suscripción</li>
             <li>✓ La entrevista por WhatsApp, a su ritmo</li>
-            <li>✓ Lo leés y lo escuchás en la web, cuando quieras</li>
+            <li>✓ {tu ? "Lo lees y lo escuchas" : "Lo leés y lo escuchás"} en la web, cuando quieras</li>
           </ul>
         </div>
       </aside>

@@ -3,16 +3,18 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { aplicarSeleccion, guardarFrases, leerFrases, validarSeleccion } from "@/lib/frases";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // «Su voz» en el panel (spec 2026-09-20-su-voz-design, "El panel de la
 // familia"): GET devuelve frases.json tal cual; POST guarda la selección de la
 // familia. Solo la dueña cambia (como los nombres); los invitados leen.
 
-const MENSAJE_ERROR_GENERICO = "No pudimos guardar las frases. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar las frases. ${intenta(t)} de nuevo.`;
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
-  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: MENSAJE_ERROR_GENERICO });
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: MENSAJE_ERROR_GENERICO() });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   if (!PUEDE.verHistoriaCompleta(acceso.rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
 
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO, soloDuena: true,
+    mensajeError: MENSAJE_ERROR_GENERICO(), soloDuena: true,
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
 
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
   const { error } = await guardarFrases(admin, resultado.frases);
   if (error) {
     console.error("frases POST: fallo al guardar", error);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, acceso.narrador.familia_id)) }, { status: 500 });
   }
   return NextResponse.json({ ok: true, cambios: resultado.cambios, confirmado_at: resultado.frases.confirmado_at }, { status: 200 });
 }

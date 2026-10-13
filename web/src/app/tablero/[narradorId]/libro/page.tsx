@@ -17,6 +17,7 @@ import { Extras } from "./extras";
 import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasV3ParaCerrar, type RespuestaV3 } from "@/lib/v3";
+import { tratoDeLaFamilia } from "@/lib/trato";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
 // estado; el libro en miniatura para hojear cómo va quedando; Tapa ·
@@ -61,10 +62,13 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
   const v3 = await entrevistaV3(admin, n.id);
 
-  const [{ data: filaN }, { data: pedidos }] = await Promise.all([
+  const [{ data: filaN }, { data: pedidos }, trato] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
     admin.from("pedidos").select("id, familia_id, estado, extras, created_at").eq("narrador_id", n.id).order("created_at", { ascending: true }),
+    // Los textos van con el trato de la familia dueña de la historia; la moneda, con la de quien mira.
+    tratoDeLaFamilia(admin, n.familia_id),
   ]);
+  const tu = trato === "tu";
   const edicionGuardada = ((filaN as { edicion?: Edicion | null } | null)?.edicion) ?? {};
   const libroAprobadoAt = (filaN as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at ?? null;
   // La moneda es la de quien mira (2.12): el primo en Argentina ve pesos aunque el libro se haya comprado en España.
@@ -129,12 +133,12 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
         <Tarjeta className="mt-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
             {libroAprobadoAt
-              ? "El libro está cerrado y en producción. Podés pedir tu copia impresa con envío a tu casa."
-              : "Cuando la historia termine y el libro esté cerrado, tu copia se imprime con la versión final. Podés encargarla desde ahora."}
+              ? `El libro está cerrado y en producción. ${tu ? "Puedes" : "Podés"} pedir tu copia impresa con envío a tu casa.`
+              : `Cuando la historia termine y el libro esté cerrado, tu copia se imprime con la versión final. ${tu ? "Puedes" : "Podés"} encargarla desde ahora.`}
           </p>
         </Tarjeta>
         <div className="mt-10">
-          <Extras narradorId={n.id} region={region} catalogo={cat} previos={{ impresos: 0, marcos: 0 }} titulo="Tu copia y tus marcos" />
+          <Extras narradorId={n.id} region={region} catalogo={cat} previos={{ impresos: 0, marcos: 0 }} titulo="Tu copia y tus marcos" trato={trato} />
         </div>
       </ConRiel>
     );
@@ -214,11 +218,11 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-[var(--texto-suave)]">
         {v3
           ? propia
-            ? "Cuando termines de contar, te avisamos por mail para que elijas la tapa y lo encargues. Recién ahí escribimos el libro."
-            : "Cuando termine de contar, te avisamos por mail para que elijas la tapa y lo encargues. Recién ahí escribimos el libro."
+            ? `Cuando termines de contar, te avisamos por mail para que elijas la tapa y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} escribimos el libro.`
+            : `Cuando termine de contar, te avisamos por mail para que elijas la tapa y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} escribimos el libro.`
           : propia
-          ? "Así va quedando, con lo que contaste hasta hoy. Cuando termines, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."
-          : "Así va quedando, con lo que contó hasta hoy. Cuando termine, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."}
+          ? `Así va quedando, con lo que contaste hasta hoy. Cuando termines, te avisamos por mail para que le des los últimos retoques y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} se produce.`
+          : `Así va quedando, con lo que contó hasta hoy. Cuando termine, te avisamos por mail para que le des los últimos retoques y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} se produce.`}
       </p>
     );
   } else if (libroAprobadoAt) {
@@ -233,8 +237,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
         ) : null}
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
           {v3
-            ? `Ya lo estamos escribiendo, con sus mejores frases en su voz${yaTieneImpreso ? ", y después va a la imprenta" : ""}. Tarda un par de días y te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.`
-            : <>Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.</>}
+            ? `Ya lo estamos escribiendo, con sus mejores frases en su voz${yaTieneImpreso ? ", y después va a la imprenta" : ""}. Tarda un par de días y te avisamos por mail cuando esté. Se lee y se escucha ${tu ? "aquí" : "acá"} mismo, en la web.`
+            : <>Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha {tu ? "aquí" : "acá"} mismo, en la web.</>}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar su voz</ProximoPaso>
@@ -250,8 +254,12 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
         <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
           <strong className="font-medium text-[var(--texto)]">{propia ? "Terminaste de contar tu historia." : `${n.nombre} terminó de contar su historia.`}</strong>{" "}
           {v3
-            ? "Elegí la tapa, fijate si hay algo que no quieras en el libro y encargalo. Recién ahí lo escribimos."
-            : "Hojeá cómo quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y encargá el libro. Recién ahí se produce."}
+            ? tu
+              ? "Elige la tapa, fíjate si hay algo que no quieras en el libro y encárgalo. Solo entonces lo escribimos."
+              : "Elegí la tapa, fijate si hay algo que no quieras en el libro y encargalo. Recién ahí lo escribimos."
+            : tu
+              ? "Hojea cómo quedó, elige las fotos, dale los últimos retoques — o deja nuestra propuesta tal cual — y encarga el libro. Solo entonces se produce."
+              : "Hojeá cómo quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y encargá el libro. Recién ahí se produce."}
         </p>
         <div className="mt-4">
           <a href="#cerrar" className="text-[15px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]">Ir a los últimos retoques ↓</a>
@@ -271,7 +279,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       {/* ── El libro en miniatura ──────────────────────────────────────── */}
       {v3 ? null : (
         <section className="mt-12" aria-label="El libro en miniatura">
-          <LibroMiniatura datos={datosLibro} />
+          <LibroMiniatura datos={datosLibro} trato={trato} />
         </section>
       )}
 
@@ -290,6 +298,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             marcosFotoIds={edicion.marcosFotoIds}
             marcosComprados={productosPagados.reduce((acc, p) => acc + p.marcos, 0)}
             editable={!libroAprobadoAt}
+            trato={trato}
           />
         </div>
       </section>
@@ -308,9 +317,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
             nombresRevisados={nombresRevisados}
             v3={respuestasV3}
-            upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />}
-            envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} /> : undefined}
+            upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} trato={trato} />}
+            envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} trato={trato} /> : undefined}
             faltaDireccion={faltaDireccion}
+            trato={trato}
           />
         </section>
       ) : null}
@@ -330,7 +340,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
                     <span className="text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{estado.slice(3)}</span>
                   </li>
                 );
-                if (q.pdf) filas.push(fila("pdf", "El libro en PDF, para leer acá"));
+                if (q.pdf) filas.push(fila("pdf", tu ? "El libro en PDF, para leer aquí" : "El libro en PDF, para leer acá"));
                 if (q.audiolibro) filas.push(fila("audio", `El audiolibro, ${NOMBRE_VOZ[q.audiolibro]}`));
                 if (q.impreso) filas.push(fila("impreso", `${q.copias > 1 ? `${q.copias} copias impresas` : "El libro impreso"}${q.impreso === "color" ? " a color" : " en blanco y negro"}`));
                 if (q.marcos) filas.push(fila("marcos", `${q.marcos} marco${q.marcos > 1 ? "s" : ""} con su voz`));
@@ -346,7 +356,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       {/* Sumar algo: mientras se edita va adentro del paso Encargar; el resto del tiempo, acá abajo. */}
       {!(terminado && !libroAprobadoAt) ? (
         <section className="mt-14 border-t border-[var(--linea)] pt-10">
-          <Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />
+          <Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} trato={trato} />
         </section>
       ) : null}
     </ConRiel>

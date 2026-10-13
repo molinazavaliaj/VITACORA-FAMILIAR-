@@ -12,8 +12,11 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "@/lib/dudas";
 import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
+import { regionDelRequest } from "@/lib/region";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos guardar tus respuestas. Intentá de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar tus respuestas. ${intenta(t)} de nuevo.`;
 
 export async function POST(request: NextRequest) {
   const narradorId = request.nextUrl.searchParams.get("narrador");
@@ -33,12 +36,16 @@ export async function POST(request: NextRequest) {
   const { historia, error: errorHistoria } = await historiaAccesible(admin, user, narradorId);
   if (errorHistoria) {
     console.error("dudas POST: fallo el acceso", errorHistoria);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO() }, { status: 500 });
   }
   if (!historia || !PUEDE.contestarDudas(historia.rol)) {
-    return NextResponse.json({ error: "No tenés acceso a esta historia." }, { status: 404 });
+    // Sin acceso no se lee la familia de la historia: el trato sale del país del pedido.
+    const tu = tratoDeRegion(regionDelRequest(request.headers)) === "tu";
+    return NextResponse.json({ error: tu ? "No tienes acceso a esta historia." : "No tenés acceso a esta historia." }, { status: 404 });
   }
   const id = historia.narrador.id;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, historia.narrador.familia_id);
 
   let body: { correcciones?: unknown };
   try {
@@ -52,10 +59,10 @@ export async function POST(request: NextRequest) {
   const { nombres, error: errorListado } = await archivosDelEscritor(admin, id);
   if (errorListado) {
     console.error("dudas POST: fallo el listado de escritor/", errorListado);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
   if (nombres.has("libro.md")) {
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 409 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 409 });
   }
 
   // Las dudas mandan: una respuesta que no apunta a ninguna no se sabe dónde
@@ -63,7 +70,7 @@ export async function POST(request: NextRequest) {
   const archivoDudas = await leerDelEscritor(admin, id, "dudas-familia.json");
   if (archivoDudas.error) {
     console.error("dudas POST: fallo la descarga de dudas-familia.json", archivoDudas.error);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
   if (archivoDudas.texto === null) {
     return NextResponse.json({ error: "Esta historia no tiene dudas para contestar." }, { status: 404 });
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
   const dudas = leerDudas(archivoDudas.texto);
   if (!dudas) {
     console.error("dudas POST: dudas-familia.json invalido");
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   const resultado = validarCorreccionesFamilia(body.correcciones, dudas);
@@ -84,14 +91,14 @@ export async function POST(request: NextRequest) {
   const archivoCorrecciones = await leerDelEscritor(admin, id, "correcciones.json");
   if (archivoCorrecciones.error) {
     console.error("dudas POST: fallo la descarga de correcciones.json", archivoCorrecciones.error);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
   let guardadas: unknown[] = [];
   if (archivoCorrecciones.texto !== null) {
     const leidas = leerCorreccionesGuardadas(archivoCorrecciones.texto);
     if (!leidas) {
       console.error("dudas POST: correcciones.json invalido, no se pisa");
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
     guardadas = leidas;
   }
@@ -109,7 +116,7 @@ export async function POST(request: NextRequest) {
 
   if (errorSubida) {
     console.error("dudas POST: fallo la subida de correcciones.json", errorSubida);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ReproductorRespuesta } from "./reproductor";
-import { textosComprador } from "@/lib/regalo-textos";
+import { textosComprador, type TratoComprador } from "@/lib/regalo-textos";
 
 // Piezas compartidas del panel. Todas usan los roles de color de globals.css
 // (--texto, --linea, --acento…), nunca colores crudos, así una pieza sirve en
@@ -33,8 +33,17 @@ export const ESTADO_EN_HUMANO_PROPIO: Record<string, string> = {
   cerrado_anticipado: "Cerramos la entrevista antes de tiempo",
 };
 
-export function estadoEnHumano(estado: string, propia: boolean): string {
-  return (propia ? ESTADO_EN_HUMANO_PROPIO : ESTADO_EN_HUMANO)[estado] ?? estado;
+/** Lo que cambia de tú (España) en los estados. */
+const ESTADO_EN_HUMANO_TU: Record<string, string> = {
+  pausado: "Pidió una pausa — una llamada tuya ayuda",
+};
+const ESTADO_EN_HUMANO_PROPIO_TU: Record<string, string> = {
+  pausado: "Pediste una pausa — retomas cuando quieras",
+};
+
+export function estadoEnHumano(estado: string, propia: boolean, trato: TratoComprador = "vos"): string {
+  const tu = trato === "tu" ? (propia ? ESTADO_EN_HUMANO_PROPIO_TU : ESTADO_EN_HUMANO_TU)[estado] : undefined;
+  return tu ?? (propia ? ESTADO_EN_HUMANO_PROPIO : ESTADO_EN_HUMANO)[estado] ?? estado;
 }
 
 /** "La historia de Roberto", o "Tu historia" cuando es propia. */
@@ -143,7 +152,12 @@ export function Respuesta({ respuesta }: { respuesta: RespuestaVista }) {
   );
 }
 
-export function EstadoError({ mensaje = "No pudimos cargar esta pantalla. Actualizá en un momento." }) {
+const ERROR_CARGA: Record<TratoComprador, string> = {
+  vos: "No pudimos cargar esta pantalla. Actualizá en un momento.",
+  tu: "No pudimos cargar esta pantalla. Actualiza en un momento.",
+};
+
+export function EstadoError({ trato = "vos", mensaje = ERROR_CARGA[trato] }: { trato?: TratoComprador; mensaje?: string }) {
   return (
     <Contenedor>
       <p className="text-sm text-[var(--texto-menor)]">{mensaje}</p>

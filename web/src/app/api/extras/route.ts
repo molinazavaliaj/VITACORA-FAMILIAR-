@@ -6,6 +6,8 @@ import { narradorDeLaSesion } from "@/lib/panel";
 import { familiaDelUsuario } from "@/lib/familia";
 import { calcularCompra, productosDelPedido, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Comprar más sobre un libro que ya existe (catálogo base + upsells, 21/09):
 // impresos y marcos, con las MISMAS reglas y la misma función que el checkout
@@ -16,13 +18,15 @@ import { crearCheckout } from "@/lib/pagos";
 // primo no se mezcla con el de Martina, y sus "previos" son los suyos. El
 // webhook lo confirma igual que la base, sin tocar al narrador.
 
-const GENERICO = "No pudimos iniciar el pago. Intenta de nuevo en un momento.";
+const GENERICO = (t: TratoComprador = "vos") => `No pudimos iniciar el pago. ${intenta(t)} de nuevo en un momento.`;
 
 export async function POST(request: NextRequest) {
   const admin = crearClienteServidor();
-  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO });
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO() });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const { narrador, user } = acceso;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
   let body: { impresos?: unknown; marcos?: unknown };
   try {
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
   if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
   const compra = calcularCompra(region, carrito);
   if (compra.lineas.length === 0 || compra.total <= 0) {
-    return NextResponse.json({ error: "Elegí al menos una cosa." }, { status: 400 });
+    return NextResponse.json({ error: trato === "tu" ? "Elige al menos una cosa." : "Elegí al menos una cosa." }, { status: 400 });
   }
 
   // La familia del comprador: la suya. Un invitado que nunca compró nada
@@ -67,7 +71,7 @@ export async function POST(request: NextRequest) {
   const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
   if (errorFamilia) {
     console.error("extras: fallo la familia", errorFamilia);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
   let familiaId = familia?.id ?? null;
   if (!familiaId) {
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error || !creada) {
       console.error("extras: fallo crear la familia del comprador", error);
-      return NextResponse.json({ error: GENERICO }, { status: 500 });
+      return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
     }
     familiaId = (creada as { id: string }).id;
   }
@@ -99,7 +103,7 @@ export async function POST(request: NextRequest) {
     .single();
   if (errorPedido || !pedido) {
     console.error("extras: fallo crear el pedido", errorPedido);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
 
   try {
@@ -107,6 +111,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ urlPago }, { status: 200 });
   } catch (err) {
     console.error("extras: fallo crear el checkout", err);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
 }

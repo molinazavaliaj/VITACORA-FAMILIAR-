@@ -27,6 +27,16 @@ export const DIRECCION_CAMPOS = [
   { id: "pais", nombre: "País", obligatorio: true, ejemplo: "Argentina" },
 ] as const satisfies readonly { id: keyof Direccion; nombre: string; obligatorio: boolean; ejemplo: string }[];
 
+/** Los mismos campos para quien compra desde España: etiquetas y ejemplos de allá. */
+export const DIRECCION_CAMPOS_ES = [
+  { id: "linea1", nombre: "Calle y número", obligatorio: true, ejemplo: "Calle Mayor 12" },
+  { id: "linea2", nombre: "Piso y puerta", obligatorio: false, ejemplo: "3º B" },
+  { id: "ciudad", nombre: "Ciudad", obligatorio: true, ejemplo: "Valladolid" },
+  { id: "provincia", nombre: "Provincia o comunidad", obligatorio: false, ejemplo: "Valladolid" },
+  { id: "cp", nombre: "Código postal", obligatorio: true, ejemplo: "47001" },
+  { id: "pais", nombre: "País", obligatorio: true, ejemplo: "España" },
+] as const satisfies readonly { id: keyof Direccion; nombre: string; obligatorio: boolean; ejemplo: string }[];
+
 const LARGO_MAXIMO = 200;
 
 /**

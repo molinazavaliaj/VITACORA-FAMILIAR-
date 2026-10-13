@@ -2,19 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos guardar los nombres. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar los nombres. ${intenta(t)} de nuevo.`;
 const MAXIMO_CORRECCIONES = 200;
 
 type Correccion = { original: string; corregido: string };
 
 async function obtenerNarradorDeLaSesion(params: URLSearchParams): Promise<
-  | { ok: true; narrador: { id: string }; admin: ReturnType<typeof crearClienteServidor> }
+  | { ok: true; narrador: { id: string; familia_id: string }; admin: ReturnType<typeof crearClienteServidor> }
   | { ok: false; status: number; error: string }
 > {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, params, {
-    mensajeError: MENSAJE_ERROR_GENERICO, soloDuena: true,
+    mensajeError: MENSAJE_ERROR_GENERICO(), soloDuena: true,
   });
   if (!acceso.ok) return { ok: false, status: acceso.status, error: acceso.error };
   const narrador = acceso.narrador;
@@ -104,7 +106,7 @@ export async function POST(request: NextRequest) {
 
   if (errorSubida) {
     console.error("nombres POST: fallo la subida de nombres.json", errorSubida);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(sesion.admin, sesion.narrador.familia_id)) }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { intenta } from "@/lib/trato";
+import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos generar el audio. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos generar el audio. ${intenta(t)} de nuevo.`;
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 export async function GET(
@@ -26,18 +28,20 @@ export async function GET(
 
   const { data: familia, error: errorFamilia } = await admin
     .from("familias")
-    .select("id")
+    .select("id, region")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
   if (errorFamilia) {
     console.error("audio: fallo la busqueda de familia", errorFamilia);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO() }, { status: 500 });
   }
 
   if (!familia) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
+  // Vos o tú: la familia es la dueña de la historia (se verifica abajo).
+  const trato = tratoDeRegion((familia as { region?: string }).region === "ES" ? "ES" : "AR");
 
   const { data: respuesta, error: errorRespuesta } = await admin
     .from("respuestas")
@@ -47,7 +51,7 @@ export async function GET(
 
   if (errorRespuesta) {
     console.error("audio: fallo la busqueda de respuesta", errorRespuesta);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   if (!respuesta) {
@@ -68,7 +72,7 @@ export async function GET(
 
   if (errorNarrador) {
     console.error("audio: fallo la busqueda de narrador", errorNarrador);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   const datosNarrador = narrador as { id: string; familia_id: string } | null;
@@ -87,7 +91,7 @@ export async function GET(
 
   if (errorFirmado || !firmado?.signedUrl) {
     console.error("audio: fallo al firmar la url", errorFirmado);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   return NextResponse.redirect(firmado.signedUrl, 302);
