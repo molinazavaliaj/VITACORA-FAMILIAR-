@@ -267,3 +267,5 @@ Lo que ve quien compra desde España ya no se mezcla. El panel, los errores de l
 | lib/mail.ts, mail de acceso | Cuando empiece a contar su historia te avisamos por acá… | Cuando empiece a contar su historia te avisamos por aquí… |
 
 Al revés (punto C): los mensajes que estaban en tú y también los veía Argentina ahora le hablan de vos. Son los genéricos «…Intenta de nuevo.» de las rutas de la API y del panel (cerrar edición, nombres, frases, guion, fotos, cierre anticipado, alerta), «¿Necesitas cerrar la bitácora…?», «Revisa que estén bien escritos», «Actualiza la página» de nombres, «vuelve a esta página» de Leer, «Vuelve a abrir» del anticipo y «entra con tu correo» de la compra. Para Argentina quedan Intentá, ¿Necesitás, Revisá, Actualizá, volvé, Volvé y entrá.
+
+Aprobado aparte el mismo día (13/10): el ejemplo de «¿Dónde vivís?» en /comprar, «Rosario, Argentina» → «Valencia, España» para España. Los tres errores que salen antes de saber de qué historia es (fotos y acceso a dudas) toman el trato por el país desde donde se entra, no por la familia; Naza lo aprobó así.

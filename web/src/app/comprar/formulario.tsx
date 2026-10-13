@@ -374,7 +374,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
                   <label className={etiqueta} htmlFor="dondeVive">{paraQuien === "yo" ? (tu ? "¿Dónde vives?" : "¿Dónde vivís?") : "¿Dónde vive?"}</label>
-                  <input id="dondeVive" className={`${campo} mt-2`} value={dondeVive} onChange={(e) => setDondeVive(e.target.value.slice(0, 120))} placeholder="Rosario, Argentina" autoComplete="off" />
+                  <input id="dondeVive" className={`${campo} mt-2`} value={dondeVive} onChange={(e) => setDondeVive(e.target.value.slice(0, 120))} placeholder={tu ? "Valencia, España" : "Rosario, Argentina"} autoComplete="off" />
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Ciudad y país. Ayuda a entender su forma de hablar.</p>
                 </div>
                 <div>
