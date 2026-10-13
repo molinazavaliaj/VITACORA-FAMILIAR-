@@ -154,6 +154,12 @@ export type TextosPortada = {
   cierre: { titulo: [string, string]; pie: (precio: string) => string };
   sticky: { desde: string; conImpreso: string; sinImpreso: string };
   comprar: string;
+  /**
+   * Prototipo de dirección visual (/prueba-direccion, 2.ª vuelta). La bajada
+   * del hero (bajada) la APROBÓ Naza el 14/10 (es y ar; ca pendiente de
+   * revisión nativa). «Cómo funciona» y su bajada: PENDIENTES DE SU OK.
+   */
+  direccion: { bajada: string; como: { titulo: string; bajada: string } };
 };
 
 const CAPITULOS_ES = ["La infancia", "Las raíces", "La juventud", "Salir al mundo", "El oficio", "Los hijos", "Las pruebas", "La sabiduría"];
@@ -165,6 +171,13 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
         "Tu padre lo cuenta con audios de WhatsApp. Nosotros lo convertimos en el libro de su vida, con sus mejores frases en su propia voz.",
+    },
+    direccion: {
+      bajada: "En Vitácora Familiar escribimos biografías. La vida de tu padre, contada por él, en un libro que se queda para siempre en tu familia.",
+      como: {
+        titulo: "Cómo funciona",
+        bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
+      },
     },
     hero: {
       titulo: ["En cada familia hay", "un libro sin escribir."],
@@ -470,6 +483,13 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       descripcion:
         "Tu papá lo cuenta con audios de WhatsApp. Nosotros lo convertimos en el libro de su vida, con sus mejores frases en su propia voz.",
     },
+    direccion: {
+      bajada: "En Vitácora Familiar escribimos biografías. La vida de tu papá, contada por él, en un libro que se queda para siempre en tu familia.",
+      como: {
+        titulo: "Cómo funciona",
+        bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
+      },
+    },
     hero: {
       titulo: ["En cada familia hay", "un libro sin escribir."],
       bajada: "Tu papá lo cuenta con audios de WhatsApp. Nosotros lo convertimos en el libro de su vida.",
@@ -772,6 +792,14 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Vitácora Familiar — En cada família hi ha un llibre per escriure",
       descripcion:
         "El teu pare ho explica amb àudios de WhatsApp. Nosaltres ho convertim en el llibre de la seva vida, amb les seves millors frases amb la seva pròpia veu.",
+    },
+    // ca: PENDIENTE REVISIÓN NATIVA
+    direccion: {
+      bajada: "A Vitácora Familiar escrivim biografies. La vida del teu pare, explicada per ell, en un llibre que es queda per sempre a la teva família.",
+      como: {
+        titulo: "Com funciona",
+        bajada: "L'entrevistem per WhatsApp, al seu ritme, i amb el que explica escrivim el seu llibre. Si sap enviar un àudio, ja sap fer-ho.",
+      },
     },
     hero: {
       titulo: ["En cada família hi ha", "un llibre per escriure."],
