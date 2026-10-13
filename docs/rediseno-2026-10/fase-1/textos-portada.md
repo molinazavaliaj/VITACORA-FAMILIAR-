@@ -23,6 +23,10 @@ está marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá frase por f
   esperar a ciegas. Lo has ido…», «Siempre va la entrevista entera…», «Funciona igual. Las
   preguntas…»). Igual en catalán.
 
+- **14/10, tanda 6** (todos OK): «Ver todas las preguntas →»; panel de muestra; opción del impreso;
+  caja de dudas; FAQ «¿Y si no quiere hacerlo?»; selector ES · CA y aviso en catalán; pie; cabecera,
+  botón y nota de /ejemplo.
+
 ## 0. Textos aprobados que el diseño nuevo ya NO usa
 
 | Texto aprobado | Por qué sale | Test |
