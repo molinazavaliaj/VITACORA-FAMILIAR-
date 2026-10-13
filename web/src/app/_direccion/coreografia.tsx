@@ -62,6 +62,49 @@ export function Coreografia() {
     if (document.readyState === "complete") alCargar();
     else window.addEventListener("load", alCargar, { once: true });
 
+    // 4. El libro 3D gira por tiempo, quieto en su lugar (no atado al scroll):
+    //    arranca cuando está entero y centrado en pantalla, una sola vez; al
+    //    terminar queda abierto. «Ver otra vez» o tocar el libro lo repiten.
+    //    Con «menos movimiento» no se toca: queda en 3/4 con el pliego plano.
+    const quietoLibro = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const limpiarLibro: Array<() => void> = [];
+    if (!quietoLibro) {
+      document.querySelectorAll<HTMLElement>("[data-libro-3d]").forEach((seccion) => {
+        const escena = seccion.querySelector<HTMLElement>(".l3-escena");
+        const libro = seccion.querySelector<HTMLElement>(".l3-libro");
+        if (!escena || !libro) return;
+        seccion.dataset.libro = "quieto";
+        const correr = () => {
+          seccion.dataset.libro = "quieto";
+          void seccion.offsetWidth; // reinicia la animación
+          seccion.dataset.libro = "anda";
+        };
+        const alTerminar = (e: AnimationEvent) => {
+          if (e.target === libro && e.animationName === "l3-girar") seccion.dataset.libro = "abierto";
+        };
+        const ver = new IntersectionObserver(
+          (entradas) => {
+            if (!entradas.some((e) => e.isIntersecting)) return;
+            ver.disconnect();
+            correr();
+          },
+          // Entero y en la franja central de la pantalla, no apenas entra.
+          { threshold: 0.95, rootMargin: "-10% 0px -10% 0px" },
+        );
+        ver.observe(escena);
+        const boton = seccion.querySelector<HTMLElement>("[data-libro-otra-vez]");
+        libro.addEventListener("animationend", alTerminar);
+        escena.addEventListener("click", correr);
+        boton?.addEventListener("click", correr);
+        limpiarLibro.push(() => {
+          ver.disconnect();
+          libro.removeEventListener("animationend", alTerminar);
+          escena.removeEventListener("click", correr);
+          boton?.removeEventListener("click", correr);
+        });
+      });
+    }
+
     let mirar: IntersectionObserver | undefined;
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!quieto) {
@@ -91,6 +134,7 @@ export function Coreografia() {
       lejos.disconnect();
       window.removeEventListener("load", alCargar);
       cancelarArmar?.();
+      limpiarLibro.forEach((f) => f());
       mirar?.disconnect();
     };
   }, []);

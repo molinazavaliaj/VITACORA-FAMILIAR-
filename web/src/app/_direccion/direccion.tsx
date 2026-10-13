@@ -199,15 +199,17 @@ export function Direccion() {
         </div>
       </section>
 
-      {/* ═══ 3 · EL LIBRO: la hoja de papel sube y, fija un rato, el libro de
-          Osvaldo gira con el scroll y se abre en el capítulo 1 ═══ */}
-      <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-2 dir-diferido relative z-[3]">
-        <div className="dir-hunde dir-hunde--3">
+      {/* ═══ 3 · EL LIBRO: la hoja de papel sube; cuando el libro está entero
+          y centrado en pantalla, gira y se abre en el capítulo 1, quieto en
+          su lugar (animación por tiempo, ~4 s). Sin sticky: si la persona
+          sigue bajando, el libro se va con la página ═══ */}
+      <section className="dir-papel dir-hoja dir-deckle dir-sobre-2 dir-diferido relative z-[3]">
+        <div>
           {/* data-lejos: el libro no se arma hasta que se acerca (ver coreografia.tsx). */}
           <noscript>
             <style>{"[data-lejos]{content-visibility:visible}"}</style>
           </noscript>
-          <div className="l3-seccion" data-lejos>
+          <div className="l3-seccion" data-lejos data-libro-3d>
             <div className="l3-pegado">
               <Libro3D idioma={IDIOMA} b={t.direccion.libro} c={ej.libro} />
               <div className="l3-leyenda">
@@ -215,16 +217,20 @@ export function Direccion() {
                 <Link prefetch={false} href={ruta(IDIOMA, "/ejemplo")} className="dir-enlace-papel">
                   {t.banda[0]} <span aria-hidden>→</span>
                 </Link>
+                <button type="button" data-libro-otra-vez className="l3-otra-vez">
+                  {t.direccion.libroOtraVez}
+                </button>
               </div>
             </div>
-          </div>
-          {/* Sin giro (sin soporte o con «menos movimiento»): el pliego abierto, plano. */}
-          <div className="l3-plano" aria-hidden>
-            <div className="l3-plano-hoja">
-              <PaginaCapitulo c={ej.libro} />
-            </div>
-            <div className="l3-plano-hoja">
-              <PaginaFoto c={ej.libro} sizes="(min-width: 768px) 320px, 45vw" />
+            {/* Sin giro (sin JS o con «menos movimiento»): el pliego abierto,
+                plano. Va adentro de data-lejos para no cargar nada al principio. */}
+            <div className="l3-plano" aria-hidden>
+              <div className="l3-plano-hoja">
+                <PaginaCapitulo c={ej.libro} />
+              </div>
+              <div className="l3-plano-hoja">
+                <PaginaFoto c={ej.libro} sizes="(min-width: 768px) 320px, 45vw" />
+              </div>
             </div>
           </div>
         </div>
