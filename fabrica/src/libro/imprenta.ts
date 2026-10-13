@@ -26,7 +26,7 @@ import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
 import { urlVozDeNarrador } from './token-voz.js';
 import type { Estructura } from './estructura.js';
-import { htmlLibroV3, idiomaDelLibro, type NarradorParaLibro } from '../escritor/produccion/html.js';
+import { htmlLibroV3, idiomaDelLibro, tratoDelLibro, type NarradorParaLibro } from '../escritor/produccion/html.js';
 import { RUTA_LIBRO_MD_V3 } from '../escritor/produccion/libro-v3.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
@@ -128,6 +128,7 @@ async function armarImprentaV3(db: Db, narradorId: string, libroMd: string, fras
     narrador: n as NarradorParaLibro,
     libroMd,
     idioma: idiomaDelLibro((e as { idioma?: string } | null)?.idioma),
+    trato: tratoDelLibro((e as { idioma?: string } | null)?.idioma),
     frases,
     urlCliente: urlVozDeNarrador(narradorId),
   });
