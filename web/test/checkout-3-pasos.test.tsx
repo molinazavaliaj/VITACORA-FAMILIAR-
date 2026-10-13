@@ -386,9 +386,10 @@ describe("pago fallido: lo elegido sigue guardado (Casos 2)", () => {
 });
 
 describe("/comprar/viaje con el mismo cascarón", () => {
-  it("tema azul, tres pasos, y en es de vosotros sin «cada noche» (B24)", () => {
+  it("el mismo libro (papel y tinta, sin el azul), tres pasos, y en es de vosotros sin «cada noche» (B24)", () => {
     const es = render(PaginaViajeEs);
-    expect(es).toContain("tema-viaje");
+    expect(es).toContain('data-producto="viaje"');
+    expect(es).not.toContain("tema-viaje");
     expect(es).toContain(escapar(CHECKOUT_VIAJE.es.libroTitulo));
     for (const idioma of ["es", "ca", "ar"] as const) {
       for (const paso of [1, 2, 3] as const) {
@@ -444,6 +445,6 @@ describe("«Pedido confirmado»", () => {
   it("viaje: el texto del biógrafo de viaje", async () => {
     const html = await pagina({ viaje: "1", idioma: "es" });
     expect(html).toContain("Vuestro biógrafo de viaje");
-    expect(html).toContain("tema-viaje");
+    expect(html).toContain('data-producto="viaje"');
   });
 });

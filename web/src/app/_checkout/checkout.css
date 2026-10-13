@@ -1,0 +1,213 @@
+/* ── Las compras en la dirección «la web es un libro» (14/10) ──────────────
+   /comprar, /comprar/viaje, /regalar y «Pedido confirmado»: la cabecera en
+   tinta (tela de encuadernar) y el formulario en una hoja de papel crema que
+   la tapa con el borde cortado a mano (dir-deckle). Las clases dir- y sus
+   variables viven en globals.css (bloque del prototipo); acá va solo lo de
+   las compras, con prefijo chk-, en un archivo aparte para no tocar el final
+   de globals.css.
+
+   Los formularios y las piezas de _ui pintan con los tokens del tema oscuro
+   (--texto-oscuro-fuerte, --tarjeta, --boton…). En vez de reescribir cada
+   clase, .chk les da valores de papel y tinta: el «oscuro» del nombre queda
+   como historia, el color es el de la hoja. Sin violeta y sin el azul de
+   Viaje: las dos compras son el mismo libro.
+
+   Ojo: este archivo no va en una capa, así que le gana a las utilidades de
+   Tailwind (que sí van en @layer). Por eso todo va bajo .chk y sin reglas
+   sueltas sobre etiquetas. */
+
+.chk {
+  --fondo-oscuro: #fbf9f4;            /* el fondo de los campos: un papel más claro */
+  --tarjeta: transparent;             /* las opciones son hilo, no cajas */
+  --tarjeta-alta: rgba(21, 20, 18, 0.12);
+  --texto-oscuro: #1f1d19;
+  --texto-oscuro-fuerte: #151412;
+  --texto-oscuro-suave: #45413a;
+  --texto-oscuro-menor: #5f5a51;      /* 6,1:1 sobre el papel */
+  --linea-oscura: rgba(21, 20, 18, 0.12);
+  --borde-oscuro: rgba(21, 20, 18, 0.17);
+  --borde-oscuro-fuerte: rgba(21, 20, 18, 0.36);
+  --punto-vacio: #736e64;             /* el punto vacío y las pistas de los campos: 4,7:1 */
+  --acento-oscuro: #151412;           /* foco, elegido, enlaces: tinta */
+  --boton: #0d0d0c;                   /* lleno = tinta sobre papel */
+  --sobre-boton: #f4f0e7;
+  --elegido-fondo: rgba(255, 253, 248, 0.7);
+  --sombra-boton: rgba(30, 24, 14, 0.22);
+  --error: #9a3412;
+  color: var(--texto-oscuro);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+
+/* El foco del tema (antes lo daba .tema-oscuro): tinta, separado 2 px. */
+.chk :focus-visible { outline: 2px solid var(--acento-oscuro); outline-offset: 2px; }
+.chk-cabecera :focus-visible { outline-color: var(--dir-sobre-tinta); }
+
+/* La cabecera: tinta con trama de tela. Abajo deja 14 px más para que la
+   hoja la tape con sus dientes. */
+.chk-cabecera { padding-bottom: 14px; }
+.chk-cabecera-dato {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13.5px;
+  color: var(--dir-sobre-tinta-suave);
+}
+.chk-hoja {
+  position: relative;
+  margin-top: -14px;
+  flex: 1 1 auto;
+  color: var(--texto-oscuro);
+}
+
+/* ── Los pasos: números grandes en Playfair cursiva, el nombre en Archivo,
+   y un hilo que se llena (scaleX, MOTION.md 2b). ── */
+.chk-pasos ol { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 12px; }
+.chk-paso { display: flex; min-width: 0; align-items: baseline; gap: 12px; }
+.chk-paso-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: rgba(21, 20, 18, 0.28);
+  transition: color var(--d-base) var(--ease-out);
+}
+.chk-paso[data-estado="hecho"] .chk-paso-numero { color: rgba(21, 20, 18, 0.55); }
+.chk-paso[data-estado="actual"] .chk-paso-numero { color: var(--texto-oscuro-fuerte); }
+.chk-paso-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  color: var(--texto-oscuro-menor);
+}
+.chk-paso[data-estado="actual"] .chk-paso-nombre { color: var(--texto-oscuro-fuerte); font-weight: 500; }
+.chk-pasos-hilo { position: relative; margin-top: 14px; height: 1px; background: var(--borde-oscuro); }
+.chk-pasos-hilo > div { position: absolute; inset: -0.5px 0; background: var(--texto-oscuro-fuerte); }
+
+/* ── El título de cada paso ── */
+.chk-antetitulo {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--texto-oscuro-menor);
+}
+.chk-h1 {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.3rem, 1.6rem + 2.6vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--texto-oscuro-fuerte);
+  text-wrap: balance;
+}
+.chk-h2 {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.6rem, 1.35rem + 0.9vw, 2.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--texto-oscuro-fuerte);
+}
+.chk-bajada { font-size: 18px; line-height: 1.55; color: var(--texto-oscuro-suave); max-width: 58ch; text-wrap: pretty; }
+
+/* ── Opciones elegibles (Opcion de _ui): hilo fino y esquinas de hoja, sin
+   caja pesada. Elegida: el hilo pasa a tinta y engorda hacia adentro (sin
+   mover nada). Las pastillas (.m-chip) siguen siendo píldoras. ── */
+.chk label.m-card:not(.m-chip) { border-radius: 6px; }
+.chk .m-card:has(:checked) {
+  border-color: var(--texto-oscuro-fuerte);
+  box-shadow: inset 0 0 0 0.5px var(--texto-oscuro-fuerte);
+}
+.chk .m-chip:has(:checked) { box-shadow: none; }
+.chk .m-card:has(:checked) .m-dot { border-width: 5.5px; border-color: var(--texto-oscuro-fuerte); }
+@media (hover: hover) {
+  .chk label.m-card:not(.m-chip):not(:has(:checked)):hover { border-color: var(--borde-oscuro-fuerte); }
+}
+
+/* ── El marco: la foto en arco, en sepia, con su hilo alrededor ── */
+.chk-marco { width: 100%; max-width: 168px; margin: 12px; flex: none; }
+@media (min-width: 640px) { .chk-marco { width: 148px; } }
+
+/* ── La ficha: el resumen de la derecha como la ficha de un libro. Arriba la
+   tela negra con la tapa; abajo el papel con el ticket y sus puntos guía. ── */
+.chk-ficha {
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid rgba(21, 20, 18, 0.14);
+  background-color: #fbf9f3;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 22px 44px -26px rgba(52, 40, 24, 0.38);
+}
+.chk-ficha-cabeza {
+  /* Adentro de la tela, los tokens vuelven a ser de tinta. */
+  --texto-oscuro-fuerte: #f4f0e7;
+  --texto-oscuro-menor: #b3aea4;
+  --acento-oscuro: #c9c3b6;
+  padding: 22px 22px 20px;
+}
+.chk-ficha-titulo {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 25px;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--texto-oscuro-fuerte);
+  padding-bottom: 0.08em;
+}
+.chk-ficha-cuerpo { padding: 18px 22px 20px; font-family: var(--fuente-micro), sans-serif; }
+.chk-renglon { display: flex; align-items: baseline; gap: 8px; font-size: 14.5px; color: var(--texto-oscuro-suave); }
+.chk-guia { flex: 1 1 auto; min-width: 12px; border-bottom: 1px dotted rgba(21, 20, 18, 0.32); transform: translateY(-4px); }
+.chk-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--texto-oscuro-fuerte);
+  color: var(--texto-oscuro-fuerte);
+}
+.chk-total-cifra {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.chk-incluye { font-size: 15px; line-height: 1.45; color: var(--texto-oscuro-suave); }
+.chk-incluye li { display: flex; gap: 10px; }
+
+/* ── La tarjeta del regalo: una cartulina de algodón sobre la hoja ── */
+.chk-tarjeta {
+  background-color: #fffdf8;
+  color: #2a2620;
+  box-shadow: 0 1px 1px rgba(52, 40, 24, 0.08), 0 18px 34px -14px rgba(52, 40, 24, 0.35);
+}
+
+/* ── «Pedido confirmado»: la línea de lo que pasa ahora ── */
+.chk-momento-cuando {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--texto-oscuro-fuerte);
+}
+.chk-sello {
+  display: flex;
+  height: 64px;
+  width: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--texto-oscuro-fuerte);
+  box-shadow: 0 0 0 5px #f4f0e7, 0 0 0 6px rgba(21, 20, 18, 0.25);
+  color: var(--texto-oscuro-fuerte);
+}
+
+/* El aviso del pago que no se cobró, en papel. */
+.chk-aviso { border: 1px solid rgba(154, 52, 18, 0.35); background: rgba(154, 52, 18, 0.06); border-radius: 6px; }

@@ -90,26 +90,26 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
 
   return (
     <CascaronCheckout idioma={idioma} inicio={esViaje ? "/viaje" : "/"} viaje={esViaje}>
-      <main className="mx-auto flex w-full max-w-[720px] flex-col gap-7 px-4 pb-24 pt-12 sm:px-6">
-        <div className="flex flex-col gap-3.5">
-          <span aria-hidden className="m-up flex h-14 w-14 items-center justify-center rounded-full bg-[var(--boton)] text-[var(--sobre-boton)]">
-            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <main className="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-4 pb-28 pt-14 sm:px-8 sm:pt-20">
+        <div className="flex flex-col gap-4">
+          <span aria-hidden className="chk-sello m-up mb-3">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12.5l4.2 4.2L19 7" />
             </svg>
           </span>
-          <span className="text-[12px] uppercase tracking-[0.18em] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.antetitulo}</span>
-          <h1 className="text-[36px] font-medium leading-[1.08] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)] [text-wrap:balance] sm:text-[46px]">{titulo}</h1>
-          <p className="text-[17px] leading-[1.55] text-[var(--texto-oscuro-suave)]">
+          <span className="chk-antetitulo">{T.antetitulo}</span>
+          <h1 className="chk-h1">{titulo}</h1>
+          <p className="chk-bajada">
             {esViaje ? T.viaje(numero) : confirmado?.regalo ? T.correoRegalo : T.correo}
           </p>
         </div>
 
         {momentos.length > 0 ? (
-          <ol className="flex flex-col rounded-[22px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] px-6 py-2">
+          <ol className="flex flex-col border-t border-[var(--texto-oscuro-fuerte)]">
             {momentos.map((m) => (
-              <li key={m.cuando} className="m-up flex gap-4 border-b border-[var(--tarjeta-alta)] py-4 last:border-b-0">
-                <span className="w-[92px] shrink-0 text-[13px] text-[var(--acento-oscuro)] [font-family:var(--fuente-micro)]">{m.cuando}</span>
-                <span className="text-[16px] leading-normal text-[var(--texto-oscuro)]">{m.que}</span>
+              <li key={m.cuando} className="m-up grid gap-1 border-b border-[var(--borde-oscuro)] py-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-6">
+                <span className="chk-momento-cuando">{m.cuando}</span>
+                <span className="text-[17px] leading-[1.55] text-[var(--texto-oscuro)]">{m.que}</span>
               </li>
             ))}
           </ol>

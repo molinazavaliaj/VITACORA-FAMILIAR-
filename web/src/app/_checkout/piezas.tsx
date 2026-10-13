@@ -7,32 +7,29 @@ import { formatearPrecio } from "../comprar/productos-ui";
 import type { TextosFallo, TextosResumen } from "../_textos/checkout";
 
 // Las piezas que comparten las tres compras del rediseño (/comprar,
-// /comprar/viaje y /regalar), sobre el tema oscuro. Ninguna trae texto propio:
-// todo llega de los diccionarios de _textos.
+// /comprar/viaje y /regalar), en la hoja de papel del cascarón (los tokens los
+// pone .chk, en checkout.css). Ninguna trae texto propio: todo llega de los
+// diccionarios de _textos.
 
 export const CAMPO =
-  "h-[52px] w-full rounded-[14px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors placeholder:text-[var(--punto-vacio)] focus:border-[var(--acento-oscuro)] aria-invalid:border-[#f0a37a] [font-family:var(--fuente-micro)]";
+  "h-[52px] w-full rounded-[6px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors placeholder:text-[var(--punto-vacio)] focus:border-[var(--acento-oscuro)] aria-invalid:border-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]";
 export const AREA =
-  "w-full rounded-[14px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 py-3 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors placeholder:text-[var(--punto-vacio)] focus:border-[var(--acento-oscuro)] aria-invalid:border-[#f0a37a] [font-family:var(--fuente-cuerpo)]";
-export const ETIQUETA = "block text-[13px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
+  "w-full rounded-[6px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 py-3 text-[17px] leading-relaxed text-[var(--texto-oscuro-fuerte)] outline-none transition-colors placeholder:text-[var(--punto-vacio)] focus:border-[var(--acento-oscuro)] aria-invalid:border-[var(--error,#f0a37a)] [font-family:var(--fuente-cuerpo)]";
+export const ETIQUETA = "block text-[13.5px] font-medium text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
 export const AYUDA = "mt-2 text-[13px] leading-snug text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]";
-export const ERROR = "text-[14px] text-[#f0a37a] [font-family:var(--fuente-micro)]";
+export const ERROR = "text-[14px] font-medium text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]";
 export const ID_ERROR = "error-paso";
 
 /** El título de cada paso: «Paso 1 de 3», el h1 (recibe el foco al cambiar de paso) y la bajada. */
 export const TituloPaso = forwardRef<HTMLHeadingElement, { antetitulo: string; titulo: ReactNode; bajada?: ReactNode }>(
   function TituloPaso({ antetitulo, titulo, bajada }, ref) {
     return (
-      <div className="flex flex-col gap-3">
-        <span className="text-[12px] uppercase tracking-[0.18em] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{antetitulo}</span>
-        <h1
-          ref={ref}
-          tabIndex={-1}
-          className="text-[32px] font-medium leading-[1.1] text-[var(--texto-oscuro-fuerte)] outline-none [font-family:var(--fuente-titulo)] [text-wrap:balance] sm:text-[38px]"
-        >
+      <div className="flex flex-col gap-4">
+        <span className="chk-antetitulo">{antetitulo}</span>
+        <h1 ref={ref} tabIndex={-1} className="chk-h1 outline-none">
           {titulo}
         </h1>
-        {bajada ? <p className="text-[17px] leading-[1.55] text-[var(--texto-oscuro-suave)]">{bajada}</p> : null}
+        {bajada ? <p className="chk-bajada">{bajada}</p> : null}
       </div>
     );
   },
@@ -51,9 +48,9 @@ export function ErrorPaso({ texto }: { texto: string | null }) {
 /** Casos 2: la pasarela volvió sin cobrar. Entra desde abajo (MOTION.md patrón 2). */
 export function AvisoFallo({ textos: T, guardado }: { textos: TextosFallo; guardado: boolean }) {
   return (
-    <div role="alert" className="m-step m-step-abajo flex flex-col gap-2 rounded-[16px] border border-[#5a3a24] bg-[#1f1510] px-5 py-4">
-      <p className="flex items-start gap-3 text-[15px] font-medium text-[#f6d9c6] [font-family:var(--fuente-micro)]">
-        <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#f0a37a] text-[14px] font-semibold text-[#1f1510]">
+    <div role="alert" className="chk-aviso m-step m-step-abajo flex flex-col gap-2 px-5 py-4">
+      <p className="flex items-start gap-3 text-[15px] font-medium text-[var(--error,#f6d9c6)] [font-family:var(--fuente-micro)]">
+        <span aria-hidden className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--error,#f0a37a)] text-[14px] font-semibold text-[#fbf9f4]">
           !
         </span>
         <span>{T.titulo}</span>
@@ -87,7 +84,7 @@ export function Contador({
   const boton =
     "m-ghost flex h-11 w-11 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] text-lg text-[var(--texto-oscuro-fuerte)] disabled:opacity-40 [touch-action:manipulation]";
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-[6px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] px-5 py-4">
       <div className="min-w-0">
         <p className="text-[15px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{titulo}</p>
         <p className="mt-1 text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{detalle}</p>
@@ -138,9 +135,10 @@ export function BotonPagar({ enviando, texto, procesando }: { enviando: boolean;
 }
 
 /**
- * El resumen de la derecha: arriba lo que se compra (la tapa, el título, para
- * quién), el ticket en vivo con la misma cuenta que cobra el servidor, y el
- * total, que se anima en cada cambio (MOTION.md patrón 7, `key={total}`).
+ * El resumen de la derecha, como la ficha de un libro: arriba la tela negra con
+ * lo que se compra (la tapa, el título, para quién); abajo, en papel, el ticket
+ * en vivo con la misma cuenta que cobra el servidor (renglones con puntos guía)
+ * y el total, que se anima en cada cambio (MOTION.md patrón 7, `key={total}`).
  */
 export function Resumen({
   compra,
@@ -161,38 +159,39 @@ export function Resumen({
   const f = (n: number) => formatearPrecio(n, compra.moneda, region);
   const total = f(compra.total);
   return (
-    <aside aria-label={T.etiqueta} className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-8">
-      <div className="flex flex-col gap-4 rounded-[22px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-6">
-        {cabeza}
-        <div className="flex flex-col gap-2.5 border-t border-[var(--tarjeta-alta)] pt-4 text-[15px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">
+    <aside aria-label={T.etiqueta} className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8">
+      <div className="chk-ficha">
+        <div className="dir-tinta chk-ficha-cabeza">{cabeza}</div>
+        <div className="chk-ficha-cuerpo flex flex-col gap-2.5">
           {compra.lineas.map((l) => (
-            <div key={l.id} className="flex justify-between gap-3">
+            <div key={l.id} className="chk-renglon">
               <span>
                 {T.lineas[l.id]}
                 {l.cantidad > 1 ? ` × ${l.cantidad}` : ""}
               </span>
+              <span aria-hidden className="chk-guia" />
               <span className="tabular-nums text-[var(--texto-oscuro-fuerte)]">
                 {l.id === "pdf" || l.id === "viaje" ? "" : "+"}
                 {f(l.cantidad * l.precioUnitario)}
               </span>
             </div>
           ))}
-          <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-[var(--tarjeta-alta)] pt-3.5 text-[18px] font-semibold text-[var(--texto-oscuro-fuerte)]">
-            <span>{T.total}</span>
+          <div className="chk-total">
+            <span className="text-[15px] font-medium">{T.total}</span>
             <span className="flex items-baseline gap-2">
               {tachado ? <s className="text-[13px] font-normal text-[var(--texto-oscuro-menor)]">{tachado}</s> : null}
-              <span key={compra.total} className="m-price tabular-nums" aria-live="polite">
+              <span key={compra.total} className="m-price chk-total-cifra" aria-live="polite">
                 {total}
               </span>
             </span>
           </div>
-          <span className="text-[12px] text-[var(--texto-oscuro-menor)]">{T.pagoUnico}</span>
+          <span className="text-[12.5px] text-[var(--texto-oscuro-menor)]">{T.pagoUnico}</span>
         </div>
       </div>
-      <ul className="flex flex-col gap-3 rounded-[22px] border border-[var(--borde-oscuro)] px-6 py-5 text-[15px] leading-snug text-[var(--texto-oscuro-suave)]">
+      <ul className="chk-incluye flex flex-col gap-3 px-1">
         {incluye.map((i) => (
-          <li key={i} className="flex gap-2.5">
-            <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" className="mt-0.5 shrink-0 text-[var(--acento-oscuro)]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <li key={i}>
+            <svg aria-hidden viewBox="0 0 24 24" width="17" height="17" className="mt-[3px] shrink-0 text-[var(--texto-oscuro-fuerte)]" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12.5l4.2 4.2L19 7" />
             </svg>
             {i}

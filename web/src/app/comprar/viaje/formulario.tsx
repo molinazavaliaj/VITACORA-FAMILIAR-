@@ -6,19 +6,20 @@ import { COMPANIAS, PROPOSITOS, ANGULOS, ETAPAS_MAXIMO } from "@/lib/viaje";
 import { armarCompra, type Catalogo } from "@/lib/productos";
 import { regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { ZONAS } from "@/lib/horario";
-import { ContenidoPaso, Etiqueta, Opcion, Pasos, Pastilla } from "../../_ui";
+import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../../_ui";
 import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
 import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
 import { AREA, AYUDA, AvisoFallo, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
 import { CamposDireccion } from "../../_checkout/direccion";
+import { PasosLibro } from "../../_checkout/pasos-libro";
 import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
 import { formatearPrecio, listaDe } from "../productos-ui";
 import { cuerpoViaje, diasDe, estadoViajeInicial, fallaViaje, type EstadoViaje, type PasoViaje } from "./compra-viaje";
 
 // La compra de la Vitácora de viaje (docs/vitacora-de-viaje.md, 18/09) con el
-// cascarón del rediseño (maquetas CheckoutViaje y CheckoutViajeMovil, tema
-// azul .tema-viaje), en tres pasos: 1 vuestro libro (digital o impreso, marco,
+// cascarón del rediseño (maquetas CheckoutViaje y CheckoutViajeMovil; desde
+// el 14/10 en el papel y la tinta del libro, sin el azul), en tres pasos: 1 vuestro libro (digital o impreso, marco,
 // copias), 2 el viaje (quién viaja, fechas, etapas, con quién, para qué, qué
 // preguntar, a qué hora, qué no) y 3 tus datos y el pago. Hace lo mismo que la
 // compra de antes: un solo POST a /api/compra con `productos.viaje` y
@@ -155,19 +156,24 @@ export function CheckoutViaje({
   const tachado = promo && precio !== null ? listaDe(compra.total, cat.moneda, region, promo).texto : null;
 
   const cabezaResumen = (
-    <div className="flex flex-col gap-1">
-      <Etiqueta>{V.marca}</Etiqueta>
-      <span className="text-[22px] font-medium leading-tight text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{V.libroDelViaje}</span>
-      {dias ? <span className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.dias(dias)}</span> : null}
+    <div className="flex items-center gap-4">
+      <div className="dir-foto dir-foto--ovalo w-[64px] shrink-0">
+        <Image src="/rediseno/viaje-mirador-lisboa.jpg" alt="" fill sizes="64px" className="object-cover" />
+      </div>
+      <div className="flex min-w-0 flex-col gap-1">
+        <Etiqueta>{V.marca}</Etiqueta>
+        <span className="chk-ficha-titulo">{V.libroDelViaje}</span>
+        {dias ? <span className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.dias(dias)}</span> : null}
+      </div>
     </div>
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-4 pb-24 pt-9 sm:px-6">
-      <div className="mb-9">
-        <Pasos pasos={V.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
+    <div className="mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
+      <div className="mb-10 sm:mb-14">
+        <PasosLibro pasos={V.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
       </div>
-      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
         <div className="min-w-0">
           {/* ── 1 · Vuestro libro ── */}
           {paso === 1 && (
@@ -194,12 +200,15 @@ export function CheckoutViaje({
               ) : null}
 
               {cat.marco && precio !== null ? (
-                <div className={`m-card flex flex-wrap items-center gap-5 rounded-[22px] border p-5 ${impreso && e.marcos > 0 ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-dashed border-[var(--punto-vacio)] bg-[var(--tarjeta)]"}`}>
-                  <Image src="/checkout/marco-viaje.jpg" alt={V.marcoFotoAlt} width={480} height={600} sizes="(min-width: 640px) 170px, 60vw"
-                    className="aspect-[4/5] w-full max-w-[220px] rounded-[14px] object-cover sm:w-[170px]" />
+                <div className={`m-card mt-3 flex flex-wrap items-center gap-x-8 gap-y-5 rounded-[6px] border px-5 py-6 sm:px-7 ${impreso && e.marcos > 0 ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-[var(--borde-oscuro)] bg-[var(--tarjeta)]"}`}>
+                  <div className="dir-marco dir-marco--arco chk-marco">
+                    <div className="dir-foto dir-foto--arco">
+                      <Image src="/checkout/marco-viaje.jpg" alt={V.marcoFotoAlt} fill sizes="(min-width: 640px) 148px, 168px" className="object-cover object-[50%_42%]" />
+                    </div>
+                  </div>
                   <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-2.5">
                     <Etiqueta>{V.marcoEtiqueta}</Etiqueta>
-                    <span className="text-[26px] font-medium leading-tight text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{V.marcoTitulo}</span>
+                    <span className="chk-h2">{V.marcoTitulo}</span>
                     <span className="text-[15px] leading-relaxed text-[var(--texto-oscuro-suave)]">{V.marcoDetalle}</span>
                     {impreso ? (
                       <label className="m-card m-chip mt-1 inline-flex min-h-11 cursor-pointer items-center gap-2.5 self-start rounded-full border border-[var(--punto-vacio)] py-2 pl-3 pr-5 text-[15px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">
@@ -271,7 +280,7 @@ export function CheckoutViaje({
                 <p className="text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.etapasAyuda}</p>
                 <ul className="flex flex-col gap-3">
                   {e.etapas.map((x, i) => (
-                    <li key={i} className="grid gap-2 rounded-[18px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-3 sm:grid-cols-[1fr_150px_150px_auto] sm:items-center">
+                    <li key={i} className="grid gap-2 rounded-[6px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-3 sm:grid-cols-[1fr_150px_150px_auto] sm:items-center">
                       <input aria-label={V.etapa(i + 1)} className={CAMPO} value={x.nombre} onChange={(ev) => editarEtapa(i, { nombre: ev.target.value })} placeholder={i === 0 ? V.etapaPrimera : V.etapaOtra} />
                       <input aria-label={V.desde} type="date" className={CAMPO} value={x.desde ?? ""} min={e.salida || undefined} max={e.vuelta || undefined} onChange={(ev) => editarEtapa(i, { desde: ev.target.value || undefined })} />
                       <input aria-label={V.hasta} type="date" className={CAMPO} value={x.hasta ?? ""} min={x.desde || e.salida || undefined} max={e.vuelta || undefined} onChange={(ev) => editarEtapa(i, { hasta: ev.target.value || undefined })} />
@@ -283,7 +292,7 @@ export function CheckoutViaje({
                   ))}
                 </ul>
                 <button type="button" disabled={e.etapas.length >= ETAPAS_MAXIMO} onClick={() => cambiar({ etapas: [...e.etapas, { nombre: "" }] })}
-                  className="min-h-11 self-start text-[15px] text-[var(--acento-oscuro)] underline underline-offset-4 disabled:opacity-60 [font-family:var(--fuente-micro)]">
+                  className="m-ghost inline-flex min-h-12 items-center self-start rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)]">
                   {V.agregarEtapa}
                 </button>
               </div>
@@ -362,7 +371,7 @@ export function CheckoutViaje({
                   <input id="email" type="email" {...marca("email")} className={`${CAMPO} mt-2`} value={e.email} onChange={(ev) => cambiar({ email: ev.target.value })} placeholder={V.emailPista} autoComplete="email" inputMode="email" spellCheck={false} />
                 </div>
                 {impreso ? <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} /> : null}
-                <p className="rounded-[18px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-5 text-[15px] leading-relaxed text-[var(--texto-oscuro-suave)]">
+                <p className="border-l-2 border-[var(--texto-oscuro-fuerte)] py-1 pl-5 text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">
                   <strong className="font-medium text-[var(--texto-oscuro-fuerte)]">{V.despues}</strong> {V.despuesTexto}
                 </p>
                 <ErrorPaso texto={falla?.texto ?? null} />

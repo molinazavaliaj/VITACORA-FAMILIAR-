@@ -201,7 +201,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
           )}
           {grabando && (
             <span className="flex items-center gap-2 text-[14px] tabular-nums text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
-              <span className="h-2 w-2 rounded-full bg-[#f0a37a]" aria-hidden />
+              <span className="h-2 w-2 rounded-full bg-[var(--error,#f0a37a)]" aria-hidden />
               {reloj(segundos)} / {reloj(TOPE_SEGUNDOS)}
             </span>
           )}
@@ -212,7 +212,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
           <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]" />
         </label>
       )}
-      {error && <p className="mt-2 text-[14px] text-[#f0a37a] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
+      {error && <p className="mt-2 text-[14px] text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
     </div>
   );
 }
