@@ -5,7 +5,7 @@ import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
-import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteV3 } from './mail/hitos.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteMail, type VarianteV3 } from './mail/hitos.js';
 import {
   CANDADO_RECORDATORIO_FRASES,
   DIAS_RECORDATORIO_FRASES,
@@ -490,8 +490,9 @@ async function mandarHito(
     throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
   }
 
-  // "El libro está listo" va con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
-  const trato = variante ?? (hito === 'libro_listo' && (familia as { region?: string }).region === 'AR' ? 'vos' : undefined);
+  // Una familia de Argentina del flujo viejo recibe los de vos (13/10: los de cierre le llegaban en tú). El
+  // "libro está listo" ya iba con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
+  const trato: VarianteMail | undefined = variante ?? ((familia as { region?: string }).region === 'AR' ? 'vos_viejo' : undefined);
   const enviado = await enviarMailHito({
     hito,
     para: (familia as { email: string }).email,

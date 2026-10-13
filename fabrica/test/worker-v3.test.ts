@@ -176,6 +176,28 @@ describe('worker: el mail "terminó de contar" de un narrador V3', () => {
   });
 });
 
+describe('worker: los mails de cierre del flujo viejo con vos para Argentina (13/10)', () => {
+  it('familia de Argentina del flujo viejo con vos_viejo; de España, el de siempre; la V3 no cambia', async () => {
+    m.idiomasV3.mockResolvedValue(new Map([['v3', 'es-AR']]));
+    const ahora = new Date().toISOString();
+    const t = {
+      narradores: [
+        { id: 'ar', estado: 'completado', como_le_dicen: 'papá', familia_id: 'fa', ultima_respuesta_at: ahora, libro_aprobado_at: null },
+        { id: 'es', estado: 'completado', como_le_dicen: 'mamá', familia_id: 'fe', ultima_respuesta_at: ahora, libro_aprobado_at: null },
+        { id: 'v3', estado: 'completado', como_le_dicen: 'Babu', familia_id: 'fa', ultima_respuesta_at: ahora, libro_aprobado_at: null },
+      ],
+      pedidos: [],
+      familias: [{ id: 'fa', email: 'a@ejemplo.com', region: 'AR' }, { id: 'fe', email: 'e@ejemplo.com', region: 'ES' }],
+    };
+    const { db } = base(t as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    const terminado = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; comoLeDicen: string; variante?: string }])[0]).filter((o) => o.hito === 'terminado');
+    expect(terminado.map((o) => [o.comoLeDicen, o.variante])).toEqual([['papá', 'vos_viejo'], ['mamá', undefined], ['Babu', 'vos']]);
+    m.idiomasV3.mockResolvedValue(new Map());
+  });
+});
+
 describe('worker: "el libro está listo" con vos para Argentina (V3 o no)', () => {
   it('familia de Argentina con vos; de España, el de siempre', async () => {
     m.idiomasV3.mockResolvedValue(new Map());
@@ -195,7 +217,7 @@ describe('worker: "el libro está listo" con vos para Argentina (V3 o no)', () =
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
     const listos = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; para: string; variante?: string }])[0]).filter((o) => o.hito === 'libro_listo');
-    expect(listos.map((o) => [o.para, o.variante])).toEqual([['a@ejemplo.com', 'vos'], ['e@ejemplo.com', undefined]]);
+    expect(listos.map((o) => [o.para, o.variante])).toEqual([['a@ejemplo.com', 'vos_viejo'], ['e@ejemplo.com', undefined]]);
   });
 });
 

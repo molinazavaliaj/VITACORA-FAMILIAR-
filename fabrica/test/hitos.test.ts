@@ -133,3 +133,25 @@ describe('mails de la entrega con vos para Argentina (Naza, 09/10)', () => {
     expect(asuntoHito('entregado', 'abuela', 'vos')).toBe(asuntoHito('entregado', 'abuela'));
   });
 });
+
+describe('mails de cierre del flujo viejo con vos para Argentina (Naza, 13/10)', () => {
+  const sinVariante = (h: Hito) => cuerpoHito(h, { comoLeDicen: 'papá', enlace: 'https://x' });
+  const conVos = (h: Hito) => cuerpoHito(h, { comoLeDicen: 'papá', enlace: 'https://x', variante: 'vos_viejo' });
+  it('son los de siempre con el verbo conjugado, nada más', () => {
+    expect(conVos('terminado')).toBe(sinVariante('terminado').replace('Ahora te toca a ti: entra, revisa los nombres y lugares que anotamos, elige el orden de los capítulos y la foto de la tapa, y cierra el libro.', 'Ahora te toca a vos: entrá, revisá los nombres y lugares que anotamos, elegí el orden de los capítulos y la foto de la tapa, y cerrá el libro.'));
+    expect(conVos('recordatorio_3')).toBe(sinVariante('recordatorio_3'));
+    expect(conVos('recordatorio_7')).toBe(sinVariante('recordatorio_7').replace('Si no tienes nada que cambiar, entra y ciérralo tal como te lo proponemos', 'Si no tenés nada que cambiar, entrá y cerralo tal como te lo proponemos'));
+    expect(conVos('recordatorio_14')).toBe(sinVariante('recordatorio_14').replace('no lo cierras', 'no lo cerrás'));
+    expect(conVos('cierre_automatico')).toBe(sinVariante('cierre_automatico'));
+    expect(asuntoHito('cierre_automatico', 'papá', 'vos_viejo')).toBe('Cerramos el libro de tu papá por vos');
+    expect(asuntoHito('terminado', 'papá', 'vos_viejo')).toBe(asuntoHito('terminado', 'papá'));
+  });
+  it('los que no son de cierre toman los de vos que ya iban a Argentina', () => {
+    for (const h of ['libro_listo', 'falta_direccion', 'entregado', 'enviado'] as Hito[]) {
+      expect(conVos(h), h).toBe(cuerpoHito(h, { comoLeDicen: 'papá', enlace: 'https://x', variante: 'vos' }));
+    }
+  });
+  it('no queda ningún verbo en tú en los de vos', () => {
+    for (const h of HITOS) expect(conVos(h), h).not.toMatch(/(toca a ti|entra|revisa|elige|cierra|tienes|ciérralo|cierras|por ti|Entra|Acerca|cuéntalo|déjanos)/);
+  });
+});
