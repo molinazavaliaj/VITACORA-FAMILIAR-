@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { CampoVF } from "../../marca";
 import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
@@ -13,10 +12,6 @@ import { tratoDeRegion } from "@/lib/regalo-textos";
 // base, solo qué va a pasar y cómo entrar. El mail de acceso puede llegar
 // unos segundos después — por eso no se promete "ya te llegó".
 
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], variable: "--fuente-cuerpo", display: "swap" });
-
 export const metadata: Metadata = { title: "Ya está en marcha", robots: { index: false } };
 
 export default async function Gracias({ searchParams }: PageProps<"/comprar/gracias">) {
@@ -27,7 +22,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
   // El número del biógrafo, para que el viajero le escriba primero mientras no hay plantilla aprobada.
   const numero = process.env.NEXT_PUBLIC_WA_NUMERO ?? null;
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col items-center justify-center bg-[#14140F] px-6 py-24 text-center text-white`}>
+    <div className="flex flex-1 flex-col items-center justify-center bg-[#14140F] px-6 py-24 text-center text-white">
       <div className="w-full max-w-lg">
         <CampoVF halo="#14140F" className="mx-auto h-24 w-auto" />
         <p className="mt-10 text-[11px] uppercase text-[#AEAEA6] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Listo</p>

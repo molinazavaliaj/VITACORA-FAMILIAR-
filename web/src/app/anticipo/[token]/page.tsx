@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenAnticipo } from "@/lib/token-anticipo";
 import { CampoVF, Toroide } from "../../marca";
@@ -18,29 +17,7 @@ import { tratoDeLaFamilia } from "@/lib/trato";
 // antes de dejarla escuchar a su padre sería arruinar el momento. El token
 // firmado es la autorización.
 //
-// Tipografías cargadas acá, como en la landing: son las dos únicas pantallas
-// pasadas al sistema visual de docs/design.md.
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--fuente-titulo",
-  display: "swap",
-});
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--fuente-micro",
-  display: "swap",
-});
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
-  variable: "--fuente-cuerpo",
-  display: "swap",
-});
+// Las tipografías vienen del layout raíz (web/src/app/layout.tsx).
 
 // El enlace es privado: llega por correo y muestra material de una familia.
 // Que ningún buscador lo indexe.
@@ -127,7 +104,7 @@ export default async function PaginaAnticipo({
 
   return (
     <div
-      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}
+      className="flex flex-1 flex-col bg-white text-[#14140F]"
     >
       {/* ─── Su voz: lo primero, porque es lo que convence ─────────────── */}
       <div className="bg-[#14140F] text-white">

@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
@@ -18,10 +17,12 @@ import { BotonImprimir } from "./imprimir";
 // que las marcas de corte coinciden de los dos lados. En pantalla no se gira.
 // Lo que se imprime es solo negro sobre blanco; el gris claro es nada más para
 // las marcas de corte y de doblez.
-
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500"], style: ["normal", "italic"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["500", "600"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], style: ["normal", "italic"], variable: "--fuente-cuerpo", display: "swap" });
+//
+// Las letras vienen del layout raíz, que carga Playfair en 500 y 600: los textos
+// en Playfair de la tarjeta van en 400 (como siempre) con font-variation-settings,
+// que sobre la fuente variable da el mismo trazo que un 400 cargado aparte. Y
+// los botones dicen font-weight: 500 porque antes no había Archivo 400 y salían
+// en 500.
 
 const ESTILOS = `
 @page { size: A4 landscape; margin: 0; }
@@ -29,7 +30,7 @@ const ESTILOS = `
 body:has(.tarjeta-pantalla) { background: #E7E7E3; }
 .tarjeta-pantalla { min-height: 100vh; flex: 1 0 auto; background: #E7E7E3; color: #14140F; font-family: var(--fuente-cuerpo), Georgia, serif; padding: 24px 16px 48px; }
 .tarjeta-acciones { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 0 auto 24px; }
-.tarjeta-boton { font-family: var(--fuente-micro), Arial, sans-serif; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; background: #FFFFFF; color: #14140F; border: 1px solid #14140F; border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+.tarjeta-boton { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; background: #FFFFFF; color: #14140F; border: 1px solid #14140F; border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
 .tarjeta-boton:hover { background: #14140F; color: #FFFFFF; }
 .tarjeta-boton:focus-visible { outline: 2px solid #14140F; outline-offset: 3px; }
 .tarjeta-hojas { overflow-x: auto; }
@@ -40,18 +41,18 @@ body:has(.tarjeta-pantalla) { background: #E7E7E3; }
 .tapa { display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding: 26mm 10.5mm 11mm; }
 .tapa-marca { display: flex; flex-direction: column; align-items: center; gap: 7mm; }
 .tapa-marca svg { width: 40mm; height: auto; }
-.tapa-nombre { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 400; font-size: 7.8mm; letter-spacing: .06em; line-height: 1.18; }
+.tapa-nombre { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 400; font-variation-settings: "wght" 400; font-size: 7.8mm; letter-spacing: .06em; line-height: 1.18; }
 .tapa-slogan { font-style: italic; font-weight: 300; font-size: 5.2mm; line-height: 1.4; text-wrap: balance; }
 .contratapa { display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12mm; }
 .contratapa svg { width: 11mm; height: auto; }
 .izq { display: flex; flex-direction: column; gap: 5mm; padding: 13mm 10.5mm 12mm; }
-.saludo { font-family: var(--fuente-titulo), Georgia, serif; font-size: 7.6mm; }
-.mensaje { font-family: var(--fuente-titulo), Georgia, serif; font-style: italic; line-height: 1.5; margin: 0; flex: 1; white-space: pre-line; overflow-wrap: anywhere; }
-.firma { font-family: var(--fuente-titulo), Georgia, serif; font-style: italic; font-size: 6.4mm; align-self: flex-end; }
+.saludo { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-size: 7.6mm; }
+.mensaje { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-style: italic; line-height: 1.5; margin: 0; flex: 1; white-space: pre-line; overflow-wrap: anywhere; }
+.firma { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-style: italic; font-size: 6.4mm; align-self: flex-end; }
 .der { display: flex; flex-direction: column; gap: 3.4mm; padding: 9mm 10.5mm 8mm; }
 .explica { margin: 0; font-size: 3.9mm; line-height: 1.42; }
 .explica span { display: block; }
-.explica .es-un-regalo { font-family: var(--fuente-titulo), Georgia, serif; font-size: 6mm; line-height: 1.2; margin-bottom: 1.8mm; }
+.explica .es-un-regalo { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-size: 6mm; line-height: 1.2; margin-bottom: 1.8mm; }
 .instruccion { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 500; font-size: 3.2mm; letter-spacing: .14em; text-transform: uppercase; text-align: center; margin: 0; line-height: 1.4; }
 .qr { display: block; width: 40mm; height: 40mm; margin: 0 auto; image-rendering: pixelated; }
 .respaldo { margin: 0; font-size: 3.3mm; line-height: 1.45; text-align: center; }
@@ -118,7 +119,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   const langTarjeta = regalo.idioma === "ca" ? "ca" : "es";
 
   return (
-    <div lang="es" className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} tarjeta-pantalla`}>
+    <div lang="es" className="tarjeta-pantalla">
       <style dangerouslySetInnerHTML={{ __html: ESTILOS }} />
       <div className="tarjeta-acciones no-imprimir">
         <BotonImprimir className="tarjeta-boton" texto={botones.botonImprimir} />
