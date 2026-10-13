@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Linkear /regalar (Naza, 11/10): un link chico en la landing y una línea en el
@@ -9,10 +8,9 @@ vi.mock("next/font/google", () => {
   const fuente = () => ({ variable: "fuente", className: "fuente", style: {} });
   return { Playfair_Display: fuente, Archivo: fuente, Source_Serif_4: fuente };
 });
-vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-vercel-ip-country": "AR" }) }));
 
 import { LinkRegalarLanding, SugerenciaRegalo } from "../src/app/link-regalar";
-import Home from "../src/app/page";
+import PortadaAr from "../src/app/ar/page";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 
@@ -23,11 +21,18 @@ describe("el link a /regalar", () => {
     expect(html).toContain(escapar("Regalalo con una tarjeta →"));
   });
 
-  it("la landing lo muestra", async () => {
+  // La portada es por idioma desde el rediseño (13/10): la de Argentina lleva
+  // a /regalar en su versión, /ar/regalar.
+  it("la landing lo muestra", () => {
     process.env.PRECIO_ARS ??= "65000";
-    const html = renderToStaticMarkup(await (Home as unknown as () => Promise<ReactElement>)());
-    expect(html).toContain('href="/regalar"');
+    const html = renderToStaticMarkup(PortadaAr());
+    expect(html).toContain('href="/ar/regalar"');
     expect(html).toContain(escapar("Regalalo con una tarjeta →"));
+  });
+
+  it("con idioma, va a /regalar en ese idioma", () => {
+    expect(renderToStaticMarkup(<LinkRegalarLanding idioma="es" />)).toMatch(/href="\/regalar"[^>]*>Regálalo con una tarjeta →/);
+    expect(renderToStaticMarkup(<LinkRegalarLanding idioma="ca" />)).toContain('href="/ca/regalar"');
   });
 
   it("en /comprar, la línea para quien regala, con el link en «Regalalo con una tarjeta»", () => {
