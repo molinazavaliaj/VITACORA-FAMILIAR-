@@ -17,13 +17,13 @@ describe("prototipo de dirección visual", () => {
     const textos = [
       t.hero.titulo[0],
       t.hero.titulo[1],
-      t.hero.bajada,
+      t.direccion.bajada,
       t.hero.comprar,
       t.hero.verComo,
       `${t.fotos.titulo[0]} ${t.fotos.titulo[1]}`,
       t.fotos.texto,
-      t.como.titulo,
-      t.como.bajada,
+      t.direccion.como.titulo,
+      t.direccion.como.bajada,
       ...t.como.pasos.flatMap((p) => [p.titulo, p.texto]),
       t.paraQuien.padre.texto,
       t.paraQuien.abuelo.texto,
@@ -33,6 +33,18 @@ describe("prototipo de dirección visual", () => {
     for (const texto of textos) expect(html).toContain(escapar(texto));
     // El título de «Para quién es» lleva los nombres en cursiva: mismo texto.
     expect(html.replace(/<\/?em[^>]*>/g, "")).toContain(escapar(t.paraQuien.titulo));
+  });
+
+  it("usa la bajada del hero que aprobó Naza el 14/10", () => {
+    expect(html).toContain(
+      escapar("En Vitácora Familiar escribimos biografías. La vida de tu padre, contada por él, en un libro que se queda para siempre en tu familia."),
+    );
+  });
+
+  it("tiene cabecera (Entrar, Comprar) y pie con los legales", () => {
+    expect(html).toContain('href="/entrar"');
+    expect(html).toContain('href="/legal/terminos"');
+    expect(html).toContain('href="/legal/privacidad"');
   });
 
   it("muestra el precio del catálogo, no una cifra a mano", () => {
