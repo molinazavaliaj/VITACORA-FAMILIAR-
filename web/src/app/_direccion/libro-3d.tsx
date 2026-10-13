@@ -14,7 +14,8 @@ import type { IdiomaWeb } from "@/lib/idioma-web";
 //
 // El giro lo mueve el scroll (globals.css, bloque «l3-»): entra en 3/4 con
 // tapa y lomo, se da vuelta a mostrar la contratapa con el QR, vuelve de
-// frente y se abre en el capítulo 1. Sin animation-timeline o con «menos
+// frente, se abre (guarda negra y portadilla) y pasa la primera hoja hasta
+// el capítulo 1. Sin animation-timeline o con «menos
 // movimiento», queda quieto en 3/4 y el pliego abierto va debajo, plano.
 //
 // Diseño copiado del libro real (vf_book_atlas): tapa con la foto en la
@@ -96,6 +97,19 @@ function Lomo({ b }: { b: Libro }) {
   );
 }
 
+/** La portadilla: lo primero que se ve al abrir la tapa. */
+function Portadilla({ b }: { b: Libro }) {
+  return (
+    <div className="l3-pagina flex h-full flex-col items-center justify-center gap-[3%] px-[12%] text-center">
+      <span className="l3-etiqueta">{b.etiqueta}</span>
+      <span className="l3-portadilla-nombre">
+        {b.nombre[0]} {b.nombre[1]}
+      </span>
+      <Toroide className="l3-portadilla-toroide mt-[6%]" />
+    </div>
+  );
+}
+
 /** La página izquierda del pliego: el capítulo 1, con su cita y dos párrafos. */
 export function PaginaCapitulo({ c }: { c: Capitulo }) {
   return (
@@ -136,8 +150,8 @@ export function Libro3D({
   c: Capitulo;
 }) {
   const lema = TEXTOS_PUBLICO[idioma].lema;
-  // El libro se arma al doble de tamaño (ver globals.css): la tapa mide ~760 px.
-  const sizes = "(min-width: 768px) 760px, 124vw";
+  // El libro se arma 1,5 veces más grande (ver globals.css): la tapa mide ~570 px.
+  const sizes = "(min-width: 768px) 570px, 93vw";
   return (
     <div className="l3-escena" aria-hidden>
       <div className="l3-sombra" />
@@ -147,12 +161,24 @@ export function Libro3D({
             <Tapa b={b} sizes={sizes} />
             <span className="l3-brillo" />
           </div>
+          {/* El dorso de la tapa: la guarda, lisa, negra como el lomo. */}
           <div className="l3-cara l3-dentro">
+            <div className="l3-guarda" />
+          </div>
+        </div>
+        {/* La primera hoja: al abrir la tapa se ve la portadilla; después la
+            hoja pasa y su dorso es la página del capítulo 1, a la izquierda
+            de la foto. */}
+        <div className="l3-hoja">
+          <div className="l3-cara l3-hoja-frente">
+            <Portadilla b={b} />
+          </div>
+          <div className="l3-cara l3-hoja-dorso">
             <PaginaCapitulo c={c} />
           </div>
         </div>
         <div className="l3-cara l3-hoja-derecha">
-          <PaginaFoto c={c} sizes="(min-width: 768px) 620px, 100vw" />
+          <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" />
         </div>
         <div className="l3-cara l3-contra">
           <Contratapa b={b} lema={lema} />
