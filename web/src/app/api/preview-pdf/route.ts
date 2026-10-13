@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos generar la previsualización. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos generar la previsualización. ${intenta(t)} de nuevo.`;
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 const NOMBRE_ARCHIVO = "preview.pdf";
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO,
+    mensajeError: MENSAJE_ERROR_GENERICO(),
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const narrador = acceso.narrador;
@@ -21,7 +23,7 @@ export async function GET(request: NextRequest) {
 
   if (errorArchivos) {
     console.error("preview-pdf: fallo listar el paquete", errorArchivos);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   const existe = (archivos ?? []).some((archivo) => archivo.name === NOMBRE_ARCHIVO);
@@ -39,7 +41,7 @@ export async function GET(request: NextRequest) {
 
   if (errorFirmado || !firmado?.signedUrl) {
     console.error("preview-pdf: fallo al firmar la url", errorFirmado);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   return NextResponse.redirect(firmado.signedUrl, 302);

@@ -3,6 +3,9 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible } from "@/lib/panel";
 import { validarFoco, validarPosicion, type Foco, type Posicion } from "@/lib/encuadre";
+import { tratoDeLaFamilia } from "@/lib/trato";
+import { tratoDeRegion } from "@/lib/regalo-textos";
+import { regionDelRequest } from "@/lib/region";
 
 // Ver una foto: URL firmada, corta, solo para quien puede ver esa historia.
 // Mismo criterio que /api/audio/[respuestaId].
@@ -46,7 +49,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if (!historia) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   // La dueña borra cualquiera; un invitado, solo las que subió él.
   if (historia.rol !== "duena" && f.subida_por !== user.id) {
-    return NextResponse.json({ error: "Solo podés borrar las fotos que subiste vos." }, { status: 403 });
+    const tu = (await tratoDeLaFamilia(admin, historia.narrador.familia_id)) === "tu";
+    return NextResponse.json({ error: tu ? "Solo puedes borrar las fotos que subiste tú." : "Solo podés borrar las fotos que subiste vos." }, { status: 403 });
   }
 
   // Si una pregunta la usaba, esa pregunta se queda sin foto pero sigue existiendo.
@@ -78,12 +82,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   } catch {
     return NextResponse.json({ error: "No llegó nada para guardar." }, { status: 400 });
   }
+  // Todavía no se sabe de qué historia es la foto: el trato sale del país del pedido.
+  const tu = () => tratoDeRegion(regionDelRequest(request.headers)) === "tu";
   const mueve = "capitulo" in body;
   const encuadra = "foco" in body || "posicion" in body;
-  if (!mueve && !encuadra) return NextResponse.json({ error: "Decinos a qué capítulo va, o cómo se encuadra." }, { status: 400 });
+  if (!mueve && !encuadra) return NextResponse.json({ error: tu() ? "Dinos a qué capítulo va, o cómo se encuadra." : "Decinos a qué capítulo va, o cómo se encuadra." }, { status: 400 });
 
   const capitulo = !mueve ? undefined : body.capitulo === null ? null : typeof body.capitulo === "string" && body.capitulo.trim() ? body.capitulo.trim() : undefined;
-  if (mueve && capitulo === undefined) return NextResponse.json({ error: "Decinos a qué capítulo va, o null para el álbum." }, { status: 400 });
+  if (mueve && capitulo === undefined) return NextResponse.json({ error: tu() ? "Dinos a qué capítulo va, o null para el álbum." : "Decinos a qué capítulo va, o null para el álbum." }, { status: 400 });
   const principal = capitulo != null && body.principal === true;
 
   const encuadre: { foco?: Foco; posicion?: Posicion } = {};

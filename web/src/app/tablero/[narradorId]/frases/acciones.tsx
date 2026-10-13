@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ReproductorRespuesta } from "../../reproductor";
 import { FRASES_POR_CAPITULO, duracionCorta, tieneAudio, type CapituloConFrases, type FraseCandidata } from "@/lib/frases";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // El selector de «Su voz»: por capítulo, las candidatas; las elegidas primero.
 // Cada una se escucha (si el worker ya la cortó), se saca o se pone, y las
@@ -35,14 +36,16 @@ export function cambiosParaGuardar(capitulos: CapituloConFrases[], seleccion: Se
 }
 
 export function SelectorDeFrases({
-  narradorId, capitulos, confirmadoAt, puedeEditar, linkPublico,
+  narradorId, capitulos, confirmadoAt, puedeEditar, linkPublico, trato = "vos",
 }: {
   narradorId: string;
   capitulos: CapituloConFrases[];
   confirmadoAt: string | null;
   puedeEditar: boolean;
   linkPublico: string | null;
+  trato?: TratoComprador;
 }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [seleccion, setSeleccion] = useState<Seleccion>(() => seleccionInicial(capitulos));
   const [guardando, setGuardando] = useState(false);
@@ -65,7 +68,7 @@ export function SelectorDeFrases({
       const actuales = s[numero] ?? [];
       if (actuales.includes(id)) return { ...s, [numero]: actuales.filter((x) => x !== id) };
       if (actuales.length >= FRASES_POR_CAPITULO) {
-        setError(`En un capítulo van como mucho ${FRASES_POR_CAPITULO} frases: sacá una para poner esta.`);
+        setError(`En un capítulo van como mucho ${FRASES_POR_CAPITULO} frases: ${tu ? "saca" : "sacá"} una para poner esta.`);
         return s;
       }
       setError(null);
@@ -95,13 +98,13 @@ export function SelectorDeFrases({
       });
       const datos = (await r.json()) as { error?: string; cambios?: number };
       if (!r.ok) {
-        setError(datos.error ?? "No pudimos guardar. Intenta de nuevo.");
+        setError(datos.error ?? (tu ? "No pudimos guardar. Intenta de nuevo." : "No pudimos guardar. Intentá de nuevo."));
         return;
       }
-      setAviso(confirmar ? "Confirmada. El libro se manda a imprimir con esta selección." : "Guardado. Podés seguir cambiando cuando quieras.");
+      setAviso(confirmar ? "Confirmada. El libro se manda a imprimir con esta selección." : tu ? "Guardado. Puedes seguir cambiando cuando quieras." : "Guardado. Podés seguir cambiando cuando quieras.");
       router.refresh();
     } catch {
-      setError("No pudimos guardar. Intenta de nuevo.");
+      setError(tu ? "No pudimos guardar. Intenta de nuevo." : "No pudimos guardar. Intentá de nuevo.");
     } finally {
       setGuardando(false);
     }
@@ -114,7 +117,7 @@ export function SelectorDeFrases({
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
     } catch {
-      setError("No pudimos copiar el link. Seleccionalo y copialo a mano.");
+      setError(tu ? "No pudimos copiar el link. Selecciónalo y cópialo a mano." : "No pudimos copiar el link. Seleccionalo y copialo a mano.");
     }
   }
 
@@ -222,7 +225,7 @@ export function SelectorDeFrases({
             <p className="text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
               {confirmadoAt
                 ? `Confirmada el ${new Date(confirmadoAt).toLocaleDateString("es-AR")}. Ya puede entrar a imprenta en cualquier momento.`
-                : "El libro impreso sale recién cuando confirmes esta selección."}
+                : tu ? "El libro impreso sale solo cuando confirmes esta selección." : "El libro impreso sale recién cuando confirmes esta selección."}
             </p>
           </div>
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 async function patchNarrador(narradorId: string, accion: "apagar_alerta" | "cierre_anticipado") {
   return fetch(`/api/narrador/${narradorId}`, {
@@ -14,10 +15,13 @@ async function patchNarrador(narradorId: string, accion: "apagar_alerta" | "cier
 export function BannerAlertaSilencio({
   narradorId,
   comoLeDicen,
+  trato = "vos",
 }: {
   narradorId: string;
   comoLeDicen: string;
+  trato?: TratoComprador;
 }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [enviando, setEnviando] = useState(false);
   const [oculto, setOculto] = useState(false);
@@ -31,14 +35,14 @@ export function BannerAlertaSilencio({
     try {
       const respuesta = await patchNarrador(narradorId, "apagar_alerta");
       if (!respuesta.ok) {
-        setError("No pudimos apagar la alerta. Intenta de nuevo.");
+        setError(tu ? "No pudimos apagar la alerta. Intenta de nuevo." : "No pudimos apagar la alerta. Intentá de nuevo.");
         setEnviando(false);
         return;
       }
       setOculto(true);
       router.refresh();
     } catch {
-      setError("No pudimos apagar la alerta. Intenta de nuevo.");
+      setError(tu ? "No pudimos apagar la alerta. Intenta de nuevo." : "No pudimos apagar la alerta. Intentá de nuevo.");
       setEnviando(false);
     }
   }
@@ -46,7 +50,7 @@ export function BannerAlertaSilencio({
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-[var(--alerta)] bg-[var(--alerta-fondo)] p-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm leading-relaxed text-[var(--alerta)]">
-        {comoLeDicen} lleva 3 días sin responder — un llamadito tuyo ayuda más que
+        {comoLeDicen} lleva 3 días sin responder — {tu ? "una llamada tuya ayuda más que " : "un llamadito tuyo ayuda más que "}
         cualquier recordatorio nuestro
       </p>
       <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
@@ -64,7 +68,8 @@ export function BannerAlertaSilencio({
   );
 }
 
-export function CierreAnticipado({ narradorId }: { narradorId: string }) {
+export function CierreAnticipado({ narradorId, trato = "vos" }: { narradorId: string; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -86,14 +91,14 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
       const respuesta = await patchNarrador(narradorId, "cierre_anticipado");
       if (!respuesta.ok) {
         const datos = await respuesta.json().catch(() => null);
-        setError(datos?.error ?? "No pudimos cerrar la bitácora. Intenta de nuevo.");
+        setError(datos?.error ?? (tu ? "No pudimos cerrar la bitácora. Intenta de nuevo." : "No pudimos cerrar la bitácora. Intentá de nuevo."));
         setEnviando(false);
         return;
       }
       setHecho(true);
       router.refresh();
     } catch {
-      setError("No pudimos cerrar la bitácora. Intenta de nuevo.");
+      setError(tu ? "No pudimos cerrar la bitácora. Intenta de nuevo." : "No pudimos cerrar la bitácora. Intentá de nuevo.");
       setEnviando(false);
     }
   }
@@ -105,7 +110,7 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
         onClick={() => setAbierto(true)}
         className="mt-8 text-sm text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)] [font-family:var(--fuente-micro)]"
       >
-        ¿Necesitas cerrar la bitácora antes de tiempo?
+        {tu ? "¿Necesitas cerrar la bitácora antes de tiempo?" : "¿Necesitás cerrar la bitácora antes de tiempo?"}
       </button>
     );
   }
@@ -113,7 +118,7 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
   return (
     <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[var(--linea)] bg-[var(--relieve)] p-5">
       <p className="text-sm leading-relaxed text-[var(--texto-suave)]">
-        Si necesitas cerrar la bitácora ahora, vamos a armar el libro con los capítulos que
+        {tu ? "Si necesitas" : "Si necesitás"} cerrar la bitácora ahora, vamos a armar el libro con los capítulos que
         ya tiene. Esta acción no se puede deshacer.
       </p>
       <div className="flex flex-wrap gap-3">

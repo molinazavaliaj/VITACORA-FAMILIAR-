@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
-import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
+import { calidadDeFoto, AVISO_CALIDAD, AVISO_CALIDAD_TU, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 import { verificarTokenFotos } from "@/lib/token-fotos";
 
 // Subir una foto (docs/panel-usuario.md §6.3 y §15.2). Con capítulo va a esa
@@ -13,7 +15,7 @@ import { verificarTokenFotos } from "@/lib/token-fotos";
 // navegador mide ancho/alto antes de subir y los manda; acá se guardan y se
 // le devuelve a la familia qué alcanza a imprimir con eso.
 
-const GENERICO = "No pudimos subir la foto. Intenta de nuevo.";
+const GENERICO = (t: TratoComprador = "vos") => `No pudimos subir la foto. ${intenta(t)} de nuevo.`;
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
 // HEIC/HEIF no entran: el navegador que imprime el libro no los decodifica (ver errorDeTipoDeFoto).
@@ -28,25 +30,27 @@ export async function POST(request: NextRequest) {
   // Dos puertas: la sesión del panel, o el token del paso 5 de la compra
   // (17/09) — quien compra todavía no tiene cuenta, pero /api/compra ya le
   // creó el narrador y le firmó un permiso de una hora para ESE narrador.
-  let narrador: { id: string };
+  let narrador: { id: string; familia_id?: string };
   let subidaPor: string | null;
   const token = params.get("token");
   if (token) {
     const narradorId = params.get("narrador") ?? "";
     if (!narradorId || !verificarTokenFotos(token, narradorId)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
-    const { data: fila, error } = await admin.from("narradores").select("id, estado").eq("id", narradorId).maybeSingle();
-    if (error) { console.error("fotos: fallo buscar el narrador del token", error); return NextResponse.json({ error: GENERICO }, { status: 500 }); }
+    const { data: fila, error } = await admin.from("narradores").select("id, estado, familia_id").eq("id", narradorId).maybeSingle();
+    if (error) { console.error("fotos: fallo buscar el narrador del token", error); return NextResponse.json({ error: GENERICO() }, { status: 500 }); }
     // Solo mientras la compra no se pagó: después, las fotos entran por el panel.
     if (!fila || (fila as { estado: string }).estado !== "pendiente_pago") return NextResponse.json({ error: "No autorizado." }, { status: 403 });
-    narrador = { id: narradorId };
+    narrador = { id: narradorId, familia_id: (fila as { familia_id?: string }).familia_id };
     subidaPor = null;
   } else {
-    const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, params, { mensajeError: GENERICO });
+    const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, params, { mensajeError: GENERICO() });
     if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
     if (!PUEDE.agregarPreguntasYFotos(acceso.rol as Rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
     narrador = acceso.narrador;
     subidaPor = acceso.user.id;
   }
+  // Vos o tú: el de la familia dueña de la historia (en la compra, la que se acaba de crear).
+  const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
   // Las fotos se pueden seguir subiendo hasta cerrar el libro (aprobación), no solo hasta que termine la entrevista.
   const { data: fila } = await admin.from("narradores").select("libro_aprobado_at").eq("id", narrador.id).maybeSingle();
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   if (!(archivo instanceof File)) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
   // Sin capítulo = al álbum del libro (13/09). HEIC no entra (Naza, 14/09): la fábrica no lo abre.
-  const errorDeTipo = errorDeTipoDeFoto(archivo.type);
+  const errorDeTipo = errorDeTipoDeFoto(archivo.type, trato);
   if (errorDeTipo) return NextResponse.json({ error: errorDeTipo }, { status: 400 });
   if (archivo.size > TAMANO_MAXIMO_BYTES) {
     return NextResponse.json({ error: "La foto pesa más de 25 MB." }, { status: 400 });
@@ -85,7 +89,7 @@ export async function POST(request: NextRequest) {
     .upload(path, bytes, { contentType: archivo.type, upsert: false });
   if (errorSubida) {
     console.error("fotos: fallo la subida", errorSubida);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
 
   // Si esta es la principal del capítulo, la anterior deja de serlo.
@@ -100,9 +104,9 @@ export async function POST(request: NextRequest) {
   if (errorFila) {
     console.error("fotos: fallo la fila", errorFila);
     await admin.storage.from("audios").remove([path]);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
 
   const calidad = ancho && alto ? calidadDeFoto(ancho, alto) : null;
-  return NextResponse.json({ ok: true, id, calidad, aviso: calidad ? AVISO_CALIDAD[calidad] : null }, { status: 200 });
+  return NextResponse.json({ ok: true, id, calidad, aviso: calidad ? (trato === "tu" ? AVISO_CALIDAD_TU : AVISO_CALIDAD)[calidad] : null }, { status: 200 });
 }

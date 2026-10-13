@@ -4,17 +4,19 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
 import { responderLibroOnline } from "@/lib/libro-online";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // El lector (spec §15.1): el mismo libro que el PDF, en HTML, para leerlo en
 // /tablero/[id]/leer. Nada se descarga. Los invitados leen igual que la dueña
 // (spec §2 y §5); el visitante (guardó el link público) ve solo la muestra.
 
-const MENSAJE_ERROR_GENERICO = "No pudimos abrir el libro. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos abrir el libro. ${intenta(t)} de nuevo.`;
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO,
+    mensajeError: MENSAJE_ERROR_GENERICO(),
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   if (!PUEDE.verHistoriaCompleta(acceso.rol)) {
@@ -26,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   if (errorPedidos) {
     console.error("libro/html: fallo la busqueda de pedido", errorPedidos);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   // Solo el estado del pedido decide. La fábrica sube libro.html antes que el
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
   const respuesta = await responderLibroOnline(admin, narrador.id);
   if (!respuesta) {
     console.error("libro/html: no se pudo bajar libro.html de", narrador.id);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
   return respuesta;
 }

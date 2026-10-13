@@ -6,6 +6,8 @@ import { crearCheckout } from "@/lib/pagos";
 import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
 import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } from "@/lib/regalo";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
+import { intenta } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -16,7 +18,7 @@ import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 // abandona en Stripe, quedan una familia sin usuario, un narrador en
 // pendiente_pago y un pedido pendiente — inofensivos y fáciles de limpiar.
 
-const MENSAJE_ERROR_GENERICO = "No pudimos iniciar el pago. Intenta de nuevo en un momento.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos iniciar el pago. ${intenta(t)} de nuevo en un momento.`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
@@ -95,6 +97,8 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
   }
+  // Vos o tú: el de la región que eligió en el formulario.
+  const trato: TratoComprador = body.region === "ES" ? "tu" : "vos";
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   if (!EMAIL_RE.test(email)) {
@@ -106,7 +110,7 @@ export async function POST(request: NextRequest) {
   if (esRegalo) {
     const v = validarRegalo(body.regalo, new Date(), {
       whatsapp: entregaWhatsAppPrendida(),
-      trato: body.region === "ES" ? "tu" : "vos",
+      trato,
     });
     if (!v.ok) return NextResponse.json({ error: v.mensaje }, { status: 400 });
     datosRegalo = v.regalo;
@@ -137,7 +141,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
   if (errorBusqueda) {
     console.error("compra: fallo la busqueda de familia", errorBusqueda);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   let familiaId = (existente as { id: string } | null)?.id ?? null;
@@ -149,7 +153,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (errorFamilia || !creada) {
       console.error("compra: fallo crear la familia", errorFamilia);
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
     familiaId = (creada as { id: string }).id;
   }
@@ -186,7 +190,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (errorCandidato) {
       console.error("compra: fallo la busqueda del regalo a retomar", errorCandidato);
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
     const n = candidato as
       | { id: string; familia_id: string; nombre: string | null; estado: string; contexto: { regalo?: unknown } | null }
@@ -235,8 +239,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: esTelefonoRepetido
-          ? "Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, entra con tu correo."
-          : MENSAJE_ERROR_GENERICO,
+          ? `Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, ${trato === "tu" ? "entra" : "entrá"} con tu correo.`
+          : MENSAJE_ERROR_GENERICO(trato),
       },
       { status: esTelefonoRepetido ? 409 : 500 },
     );
@@ -258,7 +262,7 @@ export async function POST(request: NextRequest) {
     .single();
   if (errorPedido || !pedido) {
     console.error("compra: fallo crear el pedido", errorPedido);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
   // El código del regalo no sale en la respuesta (09/10): la tarjeta se busca en
@@ -273,7 +277,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (errorPrevio) {
       console.error("compra: fallo la busqueda del regalo a retomar", errorPrevio);
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
     if (previo) {
       const { id: regaloId } = previo as { id: string };
@@ -296,7 +300,7 @@ export async function POST(request: NextRequest) {
       }
       if (errorRetomar) {
         console.error("compra: fallo retomar el regalo", errorRetomar);
-        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
       }
       regaloListo = true;
     }
@@ -318,12 +322,12 @@ export async function POST(request: NextRequest) {
       if (!error) regaloListo = true;
       else if ((error as { code?: string }).code !== "23505") {
         console.error("compra: fallo crear el regalo", error);
-        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
       }
     }
     if (!regaloListo) {
       console.error("compra: cinco códigos de regalo repetidos seguidos");
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
     }
   }
 
@@ -337,6 +341,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (err) {
     console.error("compra: fallo crear el checkout", err);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 }

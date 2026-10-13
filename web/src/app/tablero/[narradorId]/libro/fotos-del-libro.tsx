@@ -6,6 +6,7 @@ import { calidadDeFoto, type CalidadFoto } from "@/lib/guion";
 import { SubirFoto } from "../preguntas/acciones";
 import { Encuadrar } from "./encuadrar";
 import { objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Las fotos del libro (docs/panel-usuario.md §15.2): arriba el ÁLBUM — las
 // que se subieron sin decidir todavía dónde van — y abajo los lugares donde
@@ -28,13 +29,17 @@ const AVISO: Record<CalidadFoto, string | null> = {
   chica: "alcanza a tamaño chico; acá, a página entera, se vería pixelada",
   baja: "es chica: impresa se va a ver pixelada",
 };
+const AVISO_TU: Record<CalidadFoto, string | null> = {
+  ...AVISO,
+  chica: "alcanza a tamaño chico; aquí, a página entera, se vería pixelada",
+};
 
-function alcanza(f: FotoElegible, exige: CalidadFoto): string | null {
+function alcanza(f: FotoElegible, exige: CalidadFoto, trato: TratoComprador = "vos"): string | null {
   if (!f.ancho_px || !f.alto_px) return null;
   const calidad = calidadDeFoto(f.ancho_px, f.alto_px);
   if (calidad === "marco") return null;
   if (exige === "libro" && calidad === "libro") return null;
-  return AVISO[calidad];
+  return (trato === "tu" ? AVISO_TU : AVISO)[calidad];
 }
 
 function Miniatura({ f, className = "", style }: { f: FotoElegible; className?: string; style?: CSSProperties }) {
@@ -50,6 +55,7 @@ export function FotosDelLibro({
   marcosFotoIds,
   marcosComprados,
   editable,
+  trato = "vos",
 }: {
   narradorId: string;
   fotos: FotoElegible[];
@@ -59,7 +65,10 @@ export function FotosDelLibro({
   marcosFotoIds: (string | null)[];
   marcosComprados: number;
   editable: boolean;
+  /** Vos o tú: el de la familia dueña de la historia. */
+  trato?: TratoComprador;
 }) {
+  const tu = trato === "tu";
   const router = useRouter();
   type Destino = { tipo: "capitulo"; capitulo: string } | { tipo: "ranura"; ranura: Ranura } | { tipo: "marco"; indice: number };
   const [abierto, setAbierto] = useState<Destino | null>(null);
@@ -130,7 +139,7 @@ export function FotosDelLibro({
   function Lugar({ destino, nombre, detalle, foto, exige }: { destino: Destino; nombre: string; detalle?: string; foto: FotoElegible | null; exige: CalidadFoto }) {
     const k = clave(destino);
     const activo = abierto !== null && clave(abierto) === k;
-    const aviso = foto ? alcanza(foto, exige) : null;
+    const aviso = foto ? alcanza(foto, exige, trato) : null;
     return (
       <div className={lugar(activo)}>
         <button
@@ -148,14 +157,14 @@ export function FotosDelLibro({
             <Miniatura f={foto} className="w-full rounded-md" style={{ aspectRatio: proporcionDe(destino) }} />
           ) : (
             <span className="flex w-full items-center justify-center rounded-md border border-dashed border-[var(--linea-fuerte)] text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]" style={{ aspectRatio: proporcionDe(destino) }}>
-              {editable ? "tocá para elegir" : "sin foto"}
+              {editable ? (tu ? "toca para elegir" : "tocá para elegir") : "sin foto"}
             </span>
           )}
           {aviso || detalle ? <span className={`text-[11px] leading-snug ${aviso ? "text-[var(--alerta)]" : "text-[var(--texto-menor)]"}`}>{aviso ?? detalle}</span> : null}
         </button>
         {/* 3b.6: el punto que queda centrado (la cara) y, en el capítulo, arriba o debajo del título. */}
         {foto && editable ? (
-          <Encuadrar foto={foto} proporcion={proporcionDe(destino)} conPosicion={destino.tipo === "capitulo"} nombreLugar={nombreDe(destino)} />
+          <Encuadrar foto={foto} proporcion={proporcionDe(destino)} conPosicion={destino.tipo === "capitulo"} nombreLugar={nombreDe(destino)} trato={trato} />
         ) : null}
       </div>
     );
@@ -171,7 +180,11 @@ export function FotosDelLibro({
           <p className="text-[12px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{album.length} {album.length === 1 ? "foto" : "fotos"}</p>
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-[var(--texto-suave)]">
-          Las que subiste sin decidir dónde van. {editable ? "Tocá un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elegila de la lista." : "Se decidió al encargar el libro."}
+          Las que subiste sin decidir dónde van. {editable
+            ? tu
+              ? "Toca un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elígela de la lista."
+              : "Tocá un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elegila de la lista."
+            : "Se decidió al encargar el libro."}
         </p>
         {album.length > 0 ? (
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
@@ -191,7 +204,7 @@ export function FotosDelLibro({
         {/* Se suben también desde acá (Joaquín, 17/09): es donde se ve cómo queda el libro. */}
         {editable ? (
           <div className="mt-4">
-            <SubirFoto narradorId={narradorId} capitulos={capitulos.map(([guion]) => guion)} variante="barra">
+            <SubirFoto narradorId={narradorId} capitulos={capitulos.map(([guion]) => guion)} variante="barra" trato={trato}>
               + Agregar fotos
             </SubirFoto>
           </div>
@@ -220,7 +233,7 @@ export function FotosDelLibro({
               key={i}
               destino={{ tipo: "marco", indice: i }}
               nombre={marcos === 1 ? "Marco" : `Marco ${i + 1}`}
-              detalle={marcosComprados === 0 ? "Si sumás marcos, cada uno lleva su foto." : "Cada primo recibe el suyo, con esta foto y su voz."}
+              detalle={marcosComprados === 0 ? tu ? "Si sumas marcos, cada uno lleva su foto." : "Si sumás marcos, cada uno lleva su foto." : "Cada primo recibe el suyo, con esta foto y su voz."}
               foto={id ? porId.get(id) ?? null : null}
               exige="marco"
             />
@@ -231,9 +244,9 @@ export function FotosDelLibro({
       {/* ── El selector, al tocar un lugar: una ventana encima de todo ── */}
       {abierto ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(20,20,15,0.55)] p-0 sm:items-center sm:p-6" onClick={() => setAbierto(null)} role="presentation">
-        <div role="dialog" aria-modal aria-label={`Elegí la foto para ${nombreDe(abierto)}`} onClick={(e) => e.stopPropagation()} className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-[var(--texto)] bg-[var(--fondo)] p-5 text-[var(--texto)] shadow-2xl sm:rounded-2xl">
+        <div role="dialog" aria-modal aria-label={`${tu ? "Elige" : "Elegí"} la foto para ${nombreDe(abierto)}`} onClick={(e) => e.stopPropagation()} className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-[var(--texto)] bg-[var(--fondo)] p-5 text-[var(--texto)] shadow-2xl sm:rounded-2xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Elegí la foto para {nombreDe(abierto)}</p>
+            <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">{tu ? "Elige" : "Elegí"} la foto para {nombreDe(abierto)}</p>
             <div className="flex gap-4">
               {abierto.tipo !== "capitulo" ? (
                 <button type="button" className="text-[13px] text-[var(--texto-menor)] underline underline-offset-4 [font-family:var(--fuente-micro)]" disabled={ocupado} onClick={() => poner(abierto, null)}>Sin foto</button>
@@ -242,11 +255,11 @@ export function FotosDelLibro({
             </div>
           </div>
           {fotos.length === 0 ? (
-            <p className="mt-4 text-[14px] text-[var(--texto-suave)]">Todavía no hay fotos. Subilas con “+ Agregar fotos”, acá o desde la historia.</p>
+            <p className="mt-4 text-[14px] text-[var(--texto-suave)]">{tu ? "Todavía no hay fotos. Súbelas con “+ Agregar fotos”, aquí o desde la historia." : "Todavía no hay fotos. Subilas con “+ Agregar fotos”, acá o desde la historia."}</p>
           ) : (
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {[...album, ...fotos.filter((f) => f.capitulo !== null)].map((f) => {
-                const aviso = alcanza(f, exigeDe(abierto));
+                const aviso = alcanza(f, exigeDe(abierto), trato);
                 return (
                   <button
                     key={f.id}

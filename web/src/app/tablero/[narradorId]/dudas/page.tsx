@@ -13,6 +13,8 @@ import {
 } from "@/lib/dudas";
 import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
 import type { Region } from "@/lib/registro";
+import { tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 import { FormularioDudas, type DudaPrefill } from "./acciones";
 import { VolverAlTablero } from "../../pasos";
 
@@ -23,7 +25,10 @@ import { VolverAlTablero } from "../../pasos";
 //
 // No hay mail automático todavía (decisión del 12/10): los socios pasan el link.
 
-const MENSAJE_ERROR_CARGA = "No pudimos cargar las dudas. Actualizá la página en un momento.";
+const MENSAJE_ERROR_CARGA: Record<TratoComprador, string> = {
+  vos: "No pudimos cargar las dudas. Actualizá la página en un momento.",
+  tu: "No pudimos cargar las dudas. Actualiza la página en un momento.",
+};
 
 /**
  * La zona en la que se muestran las fechas (la página corre en Vercel, en UTC):
@@ -66,12 +71,14 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     notFound();
   }
   const narrador = historia.narrador;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
   // "No existe" es un estado (todavía no hay dudas); no poder leerlo es un error.
   const archivoDudas = await leerDelEscritor(admin, narrador.id, "dudas-familia.json");
   if (archivoDudas.error) {
     console.error("tablero/dudas: fallo la descarga de dudas-familia.json", archivoDudas.error);
-    return <EstadoError />;
+    return <EstadoError trato={trato} />;
   }
   if (archivoDudas.texto === null) {
     return <EstadoSinDudas narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} />;
@@ -81,7 +88,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
   const dudas = leerDudas(archivoDudas.texto);
   if (!dudas) {
     console.error("tablero/dudas: dudas-familia.json invalido");
-    return <EstadoError />;
+    return <EstadoError trato={trato} />;
   }
 
   const [archivoCorrecciones, archivoAvisadas, escritor, zona] = await Promise.all([
@@ -95,7 +102,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
       "tablero/dudas: fallo la lectura del escritor",
       archivoCorrecciones.error ?? archivoAvisadas.error ?? escritor.error,
     );
-    return <EstadoError />;
+    return <EstadoError trato={trato} />;
   }
 
   let guardadas: unknown[] = [];
@@ -138,13 +145,14 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
           tal como lo contó.
         </p>
 
-        <AvisoDelPlazo estado={plazo.estado} venceAt={plazo.venceAt} zona={zona} />
+        <AvisoDelPlazo estado={plazo.estado} venceAt={plazo.venceAt} zona={zona} trato={trato} />
 
         <div className="mt-8">
           <FormularioDudas
             dudas={conGuardadas}
             narradorId={narrador.id}
             soloLectura={plazo.estado === "libro_escrito"}
+            trato={trato}
           />
         </div>
       </div>
@@ -156,15 +164,18 @@ function AvisoDelPlazo({
   estado,
   venceAt,
   zona,
+  trato,
 }: {
   estado: "abierto" | "vencido" | "libro_escrito";
   venceAt: Date | null;
   zona: string;
+  trato: TratoComprador;
 }) {
+  const tu = trato === "tu";
   if (estado === "libro_escrito") {
     return (
       <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-        El libro ya está escrito, así que esto queda como estaba. Si algo salió mal, escribinos a{" "}
+        El libro ya está escrito, así que esto queda como estaba. Si algo salió mal, {tu ? "escríbenos" : "escribinos"} a{" "}
         <a href="mailto:hola@vitacorafamiliar.com" className="underline">
           hola@vitacorafamiliar.com
         </a>{" "}
@@ -175,7 +186,7 @@ function AvisoDelPlazo({
   if (estado === "vencido") {
     return (
       <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-        El plazo ya pasó, pero el libro todavía no se escribió. Si contestás ahora, todavía puede
+        El plazo ya pasó, pero el libro todavía no se escribió. Si {tu ? "contestas" : "contestás"} ahora, todavía puede
         entrar.
       </p>
     );
@@ -184,15 +195,15 @@ function AvisoDelPlazo({
   const cuando = fechaDelPlazo(venceAt, zona);
   return (
     <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-      Contestá antes del {cuando}. Lo que llegue después puede quedar afuera del libro.
+      {tu ? "Contesta" : "Contestá"} antes del {cuando}. Lo que llegue después puede quedar afuera del libro.
     </p>
   );
 }
 
-function EstadoError() {
+function EstadoError({ trato = "vos" }: { trato?: TratoComprador }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
-      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA}</p>
+      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA[trato]}</p>
     </div>
   );
 }

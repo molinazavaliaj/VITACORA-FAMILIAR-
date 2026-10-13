@@ -1,6 +1,8 @@
 // El guion de un narrador: las reglas puras (docs/panel-usuario.md §6).
 // Sin red ni base, para probarlas solas. Quien las aplica es /api/guion.
 
+import type { TratoComprador } from "./regalo-textos";
+
 export const PISO = 15;       // con menos no hay libro
 export const TOPE = 40;       // contando las 4 adaptativas
 export const ADAPTATIVAS = 4; // siempre existen, las escribe el cerebro al final
@@ -33,6 +35,11 @@ export const NOMBRE_RITMO: Record<Ritmo, { titulo: string; detalle: string }> = 
   diario: { titulo: "Una por día", detalle: "A su hora, todos los días. Es el ritmo que más gente termina." },
   dos_por_dia: { titulo: "Dos por día", detalle: "Una a la mañana y otra a la tarde. Para quien tiene ganas de contar." },
   seguido: { titulo: "Apenas responde", detalle: "En cuanto termina una, le llega la siguiente. Puede terminar en pocos días." },
+};
+/** Lo mismo para España (tú). */
+export const NOMBRE_RITMO_TU: Record<Ritmo, { titulo: string; detalle: string }> = {
+  ...NOMBRE_RITMO,
+  dos_por_dia: { titulo: "Dos por día", detalle: "Una por la mañana y otra por la tarde. Para quien tiene ganas de contar." },
 };
 /** `contexto.evitar`: los temas que el biógrafo no toca. Mismo tope en la compra y en el panel. */
 export const EVITAR_MAXIMO = 1000;
@@ -97,11 +104,21 @@ export function esEditable(p: PreguntaGuion, diaActual: number): boolean {
   return p.orden > diaActual && p.tipo !== "adaptativa";
 }
 
-export function validarTexto(texto: unknown): { ok: true; texto: string } | { ok: false; mensaje: string } {
+export function validarTexto(texto: unknown, trato: TratoComprador = "vos"): { ok: true; texto: string } | { ok: false; mensaje: string } {
+  const tu = trato === "tu";
   if (typeof texto !== "string") return { ok: false, mensaje: "La pregunta tiene que ser un texto." };
   const limpio = texto.trim().replace(/\s+/g, " ");
-  if (limpio.length < TEXTO_MINIMO) return { ok: false, mensaje: "La pregunta es muy corta. Contale un poco más qué querés que cuente." };
-  if (limpio.length > TEXTO_MAXIMO) return { ok: false, mensaje: `Es un poco larga (máximo ${TEXTO_MAXIMO} letras). Pensá que la va a leer en el celular: cuanto más simple, mejor la contesta.` };
+  if (limpio.length < TEXTO_MINIMO) {
+    return { ok: false, mensaje: tu ? "La pregunta es muy corta. Cuéntale un poco más qué quieres que cuente." : "La pregunta es muy corta. Contale un poco más qué querés que cuente." };
+  }
+  if (limpio.length > TEXTO_MAXIMO) {
+    return {
+      ok: false,
+      mensaje: tu
+        ? `Es un poco larga (máximo ${TEXTO_MAXIMO} letras). Piensa que la va a leer en el móvil: cuanto más simple, mejor la contesta.`
+        : `Es un poco larga (máximo ${TEXTO_MAXIMO} letras). Pensá que la va a leer en el celular: cuanto más simple, mejor la contesta.`,
+    };
+  }
   return { ok: true, texto: limpio };
 }
 
@@ -118,9 +135,9 @@ export function lugarLibre(guion: PreguntaGuion[]): number {
   return Math.max(0, MAXIMO_FAMILIA - delaFamilia(guion).length);
 }
 
-export function puedeAgregar(guion: PreguntaGuion[]): { ok: true } | { ok: false; mensaje: string } {
+export function puedeAgregar(guion: PreguntaGuion[], trato: TratoComprador = "vos"): { ok: true } | { ok: false; mensaje: string } {
   if (lugarLibre(guion) === 0) {
-    return { ok: false, mensaje: `Ya hay ${MAXIMO_FAMILIA} preguntas; con las 4 finales del biógrafo son ${TOPE}. Para sumar una, sacá otra.` };
+    return { ok: false, mensaje: `Ya hay ${MAXIMO_FAMILIA} preguntas; con las 4 finales del biógrafo son ${TOPE}. Para sumar una, ${trato === "tu" ? "saca" : "sacá"} otra.` };
   }
   return { ok: true };
 }
@@ -197,13 +214,15 @@ const TIPOS_HEIC = ["image/heic", "image/heif"];
 
 export const MENSAJE_HEIC =
   "Esa foto está en formato HEIC. Exportá la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y volvé a subirla.";
+export const MENSAJE_HEIC_TU =
+  "Esa foto está en formato HEIC. Exporta la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y vuelve a subirla.";
 
 export const MENSAJE_TIPO_INVALIDO = "Tiene que ser una imagen (JPG, PNG o WebP).";
 
 /** Por qué no se acepta este tipo de archivo como foto; null si se acepta. */
-export function errorDeTipoDeFoto(tipo: string): string | null {
+export function errorDeTipoDeFoto(tipo: string, trato: TratoComprador = "vos"): string | null {
   if (TIPOS_DE_IMAGEN.includes(tipo)) return null;
-  if (TIPOS_HEIC.includes(tipo)) return MENSAJE_HEIC;
+  if (TIPOS_HEIC.includes(tipo)) return trato === "tu" ? MENSAJE_HEIC_TU : MENSAJE_HEIC;
   return MENSAJE_TIPO_INVALIDO;
 }
 
@@ -226,6 +245,11 @@ export const AVISO_CALIDAD: Record<CalidadFoto, string> = {
   libro: "Sirve para el libro, incluso a página entera o en la tapa. Para un marco de 20×25 haría falta más resolución.",
   chica: "Sirve para el libro a tamaño chico, entre el texto. A página entera, en la tapa o en un marco se vería pixelada.",
   baja: "Se va a ver pixelada impresa. Si es una foto de papel, sacale otra foto apoyada en una mesa, con luz de día, sin flash.",
+};
+/** Lo mismo para España (tú). */
+export const AVISO_CALIDAD_TU: Record<CalidadFoto, string> = {
+  ...AVISO_CALIDAD,
+  baja: "Se va a ver pixelada impresa. Si es una foto de papel, sácale otra foto apoyada en una mesa, con luz de día, sin flash.",
 };
 
 /**

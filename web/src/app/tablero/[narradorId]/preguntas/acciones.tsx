@@ -2,28 +2,30 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, RITMOS, calidadDeFoto, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
 // cliente llama a /api/guion o /api/fotos, y al volver refresca la página
 // para que el servidor vuelva a leer la verdad.
 
-async function patchGuion(narradorId: string, cuerpo: Record<string, unknown>) {
+async function patchGuion(narradorId: string, cuerpo: Record<string, unknown>, trato: TratoComprador = "vos") {
   const r = await fetch(`/api/guion?narrador=${encodeURIComponent(narradorId)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cuerpo),
   });
   const json = (await r.json().catch(() => ({}))) as { error?: string; ok?: boolean; pregunta?: { id: string } };
-  if (!r.ok) throw new Error(json.error ?? "No pudimos guardar el cambio. Intenta de nuevo.");
+  if (!r.ok) throw new Error(json.error ?? (trato === "tu" ? "No pudimos guardar el cambio. Intenta de nuevo." : "No pudimos guardar el cambio. Intentá de nuevo."));
   return json;
 }
 
 async function subirFoto(
   narradorId: string,
   datos: { archivo: File; capitulo: string; epigrafe?: string; principal?: boolean; medida: { ancho: number; alto: number } | null },
+  trato: TratoComprador = "vos",
 ) {
   const form = new FormData();
   form.set("archivo", datos.archivo);
@@ -36,7 +38,7 @@ async function subirFoto(
   }
   const r = await fetch(`/api/fotos?narrador=${encodeURIComponent(narradorId)}`, { method: "POST", body: form });
   const json = (await r.json().catch(() => ({}))) as { error?: string; id?: string; calidad?: CalidadFoto | null; aviso?: string | null };
-  if (!r.ok || !json.id) throw new Error(json.error ?? "No pudimos subir la foto. Intenta de nuevo.");
+  if (!r.ok || !json.id) throw new Error(json.error ?? (trato === "tu" ? "No pudimos subir la foto. Intenta de nuevo." : "No pudimos subir la foto. Intentá de nuevo."));
   return json as { id: string; calidad: CalidadFoto | null; aviso: string | null };
 }
 
@@ -85,7 +87,7 @@ function SelectorCapitulo({ capitulos, valor, onChange, conGeneral = false }: { 
   );
 }
 
-function VistaPreviaFoto({ archivo, calidad }: { archivo: File | null; calidad: CalidadFoto | null | "sin-medir" }) {
+function VistaPreviaFoto({ archivo, calidad, trato = "vos" }: { archivo: File | null; calidad: CalidadFoto | null | "sin-medir"; trato?: TratoComprador }) {
   const [url, setUrl] = useState<string | null>(null);
   const anterior = useRef<File | null>(null);
   if (archivo !== anterior.current) {
@@ -94,7 +96,7 @@ function VistaPreviaFoto({ archivo, calidad }: { archivo: File | null; calidad: 
     setUrl(archivo ? URL.createObjectURL(archivo) : null);
   }
   if (!archivo) return null;
-  const aviso = calidad === "sin-medir" ? "No pudimos medir esta foto en el navegador; la revisamos nosotros." : calidad ? AVISO_CALIDAD[calidad] : null;
+  const aviso = calidad === "sin-medir" ? "No pudimos medir esta foto en el navegador; la revisamos nosotros." : calidad ? (trato === "tu" ? AVISO_CALIDAD_TU : AVISO_CALIDAD)[calidad] : null;
   const tono = calidad === "baja" ? "text-[var(--alerta)]" : calidad === "marco" ? "text-[var(--texto)]" : "text-[var(--texto-menor)]";
   return (
     <div className="flex items-start gap-4">
@@ -135,8 +137,8 @@ function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archiv
 // ── editar / sacar / reordenar (solo dueña) ────────────────────────────
 
 export function EditorGuion({
-  narradorId, futuras, puedeEditar, puedeSaltar, capitulo,
-}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string }) {
+  narradorId, futuras, puedeEditar, puedeSaltar, capitulo, trato = "vos",
+}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string; trato?: TratoComprador }) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
@@ -153,7 +155,7 @@ export function EditorGuion({
     setOcupado(true);
     setError(null);
     try {
-      await patchGuion(narradorId, cuerpo);
+      await patchGuion(narradorId, cuerpo, trato);
       setEditando(null);
       setConfirmando(null);
       router.refresh();
@@ -261,7 +263,7 @@ export function EditorGuion({
                 <button
                   type="button"
                   aria-label="Arrastrar para mover"
-                  title="Arrastrá para mover"
+                  title={trato === "tu" ? "Arrastra para mover" : "Arrastrá para mover"}
                   className={`${botonRedondo} cursor-grab [touch-action:none] active:cursor-grabbing`}
                   disabled={ocupado || editables.length < 2}
                   onPointerDown={(e) => empezarArrastre(e, p.id)}
@@ -288,8 +290,9 @@ export function EditorGuion({
 // ── agregar una pregunta (dueña e invitados) ───────────────────────────
 
 export function AgregarPregunta({
-  narradorId, capitulos, lugarLibre, textoInicial = "", capituloInicial, propia = false,
-}: { narradorId: string; capitulos: string[]; lugarLibre: number; textoInicial?: string; capituloInicial?: string; propia?: boolean }) {
+  narradorId, capitulos, lugarLibre, textoInicial = "", capituloInicial, propia = false, trato = "vos",
+}: { narradorId: string; capitulos: string[]; lugarLibre: number; textoInicial?: string; capituloInicial?: string; propia?: boolean; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [abierto, setAbierto] = useState(Boolean(textoInicial));
   const [modo, setModo] = useState<"escribir" | "foto">("escribir");
@@ -316,11 +319,11 @@ export function AgregarPregunta({
     try {
       let fotoId: string | undefined;
       if (modo === "foto") {
-        if (!archivo) throw new Error("Elegí la foto que le querés mostrar.");
-        const subida = await subirFoto(narradorId, { archivo, capitulo, medida });
+        if (!archivo) throw new Error(tu ? "Elige la foto que le quieres mostrar." : "Elegí la foto que le querés mostrar.");
+        const subida = await subirFoto(narradorId, { archivo, capitulo, medida }, trato);
         fotoId = subida.id;
       }
-      await patchGuion(narradorId, { accion: "agregar", texto, capitulo, fotoId });
+      await patchGuion(narradorId, { accion: "agregar", texto, capitulo, fotoId }, trato);
       setListo(modo === "foto" ? "Listo: la foto y su pregunta van al final del guion." : "Listo: la pregunta va al final del guion.");
       setTexto("");
       setArchivo(null);
@@ -347,7 +350,7 @@ export function AgregarPregunta({
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">Agregar una pregunta</span>
             <span className="text-sm text-[var(--texto-menor)]">
-              {sinLugar ? "El guion está completo. Para sumar una, sacá otra." : `Con o sin foto, al capítulo que elijas. Lugar libre: ${lugarLibre} de ${MAXIMO_FAMILIA}.`}
+              {sinLugar ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.") : `Con o sin foto, al capítulo que elijas. Lugar libre: ${lugarLibre} de ${MAXIMO_FAMILIA}.`}
             </span>
           </span>
           <span aria-hidden className="text-[var(--acento)]">→</span>
@@ -379,7 +382,7 @@ export function AgregarPregunta({
               {propia ? "El biógrafo te manda la foto por WhatsApp con la pregunta. Lo que cuentes entra al libro junto con la foto." : "El biógrafo le manda la foto por WhatsApp con tu pregunta. Lo que cuente entra al libro junto con la foto."}
             </p>
             <CampoFoto onElegir={(a, m) => { setArchivo(a); setMedida(m); }} />
-            <VistaPreviaFoto archivo={archivo} calidad={calidad} />
+            <VistaPreviaFoto archivo={archivo} calidad={calidad} trato={trato} />
           </>
         ) : null}
 
@@ -412,7 +415,8 @@ export function AgregarPregunta({
 
 type Sugerida = { texto: string; capitulo: string };
 
-export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { narradorId: string; lugarLibre: number; propia?: boolean }) {
+export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato = "vos" }: { narradorId: string; lugarLibre: number; propia?: boolean; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [sugeridas, setSugeridas] = useState<Sugerida[] | null>(null);
   const [pidiendo, setPidiendo] = useState(false);
@@ -442,7 +446,7 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { n
     setAgregando(i);
     setError(null);
     try {
-      await patchGuion(narradorId, { accion: "agregar", texto: s.texto, capitulo: s.capitulo, tipo: "sugerida" });
+      await patchGuion(narradorId, { accion: "agregar", texto: s.texto, capitulo: s.capitulo, tipo: "sugerida" }, trato);
       setAgregadas((prev) => new Set(prev).add(i));
       router.refresh();
     } catch (e) {
@@ -471,13 +475,13 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { n
           )}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">{sugeridas ? "Pedirle otras cinco" : "Sugerime preguntas"}</span>
+          <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">{sugeridas ? "Pedirle otras cinco" : tu ? "Sugiéreme preguntas" : "Sugerime preguntas"}</span>
           <span className="text-sm text-[var(--texto-menor)]">
             {sinLugar
-              ? "El guion está completo. Para sumar una, sacá otra."
+              ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.")
               : pidiendo
                 ? `El biógrafo está releyendo todo lo que ${propia ? "contaste" : "contó"}. Tarda medio minuto.`
-                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : "él contó"} hasta hoy. Vos elegís cuáles entran.`}
+                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : "él contó"} hasta hoy. ${tu ? "Tú eliges" : "Vos elegís"} cuáles entran.`}
           </span>
         </span>
       </button>
@@ -514,7 +518,8 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { n
 type FotoElegida = { clave: string; archivo: File; medida: { ancho: number; alto: number } | null };
 const FOTOS_POR_VEZ = 20;
 
-export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra" }) {
+export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto", trato = "vos" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra"; trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   // Desde la barra (sin capítulo inicial) la foto es del libro por defecto; se puede mandar a un capítulo.
@@ -536,7 +541,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
   }
 
   async function guardar() {
-    if (elegidas.length === 0) { setError("Elegí al menos una foto."); return; }
+    if (elegidas.length === 0) { setError(tu ? "Elige al menos una foto." : "Elegí al menos una foto."); return; }
     setError(null);
     const pendientes = [...elegidas];
     let subidas = 0;
@@ -547,7 +552,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
         const r = await subirFoto(narradorId, {
           archivo: foto.archivo, capitulo, medida: foto.medida,
           epigrafe: unaSola ? epigrafe : undefined, principal: unaSola ? principal : false,
-        });
+        }, trato);
         subidas++;
         ultimoAviso = r.aviso;
         setElegidas((x) => x.filter((f) => f.clave !== foto.clave)); // las que ya entraron no se repiten si falla otra
@@ -584,7 +589,9 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
     <div className="rounded-xl border border-[var(--texto)] p-6">
       <div className="flex flex-col gap-4">
         <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-          Si es una foto de papel: apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís. Podés elegir varias de una.
+          {tu
+            ? "Si es una foto de papel: apóyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subes. Puedes elegir varias de una."
+            : "Si es una foto de papel: apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís. Podés elegir varias de una."}
         </p>
         <CampoFoto multiple onElegir={agregar} etiqueta={elegidas.length > 0 ? "Agregar más" : undefined} />
         {elegidas.length > 0 ? (
@@ -592,7 +599,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
             {elegidas.map((f) => (
               <li key={f.clave} className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <VistaPreviaFoto archivo={f.archivo} calidad={f.medida ? calidadDeFoto(f.medida.ancho, f.medida.alto) : "sin-medir"} />
+                  <VistaPreviaFoto archivo={f.archivo} calidad={f.medida ? calidadDeFoto(f.medida.ancho, f.medida.alto) : "sin-medir"} trato={trato} />
                 </div>
                 <button type="button" aria-label={`Sacar ${f.archivo.name}`} disabled={ocupado !== null} onClick={() => setElegidas((x) => x.filter((g) => g.clave !== f.clave))} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--linea-fuerte)] text-[var(--texto-menor)] hover:text-[var(--texto)] disabled:opacity-50">×</button>
               </li>
@@ -603,13 +610,13 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde {elegidas.length > 1 ? "van" : "va"}</span>
           <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
           {capitulo === SIN_CAPITULO ? (
-            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? "las ponés" : "la ponés"} donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
+            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? (tu ? "las pones" : "las ponés") : tu ? "la pones" : "la ponés"} donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
           ) : null}
         </label>
         {unaSola ? (
           <label className="flex flex-col gap-2">
             <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Epígrafe (opcional)</span>
-            <input value={epigrafe} onChange={(e) => setEpigrafe(e.target.value)} className={campo} placeholder="Mar del Plata, verano del 68" maxLength={300} />
+            <input value={epigrafe} onChange={(e) => setEpigrafe(e.target.value)} className={campo} placeholder={tu ? "Benidorm, verano del 68" : "Mar del Plata, verano del 68"} maxLength={300} />
           </label>
         ) : elegidas.length > 1 ? (
           <p className="text-sm text-[var(--texto-menor)]">El epígrafe de cada una se pone después, desde la galería.</p>
@@ -639,7 +646,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
 // `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
 // se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false }: {
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false, tratoPanel = "vos" }: {
   narradorId: string;
   /** Entrevista V3 (10/10): sin ritmo (si contesta, le llega la siguiente siempre) ni «Temas que no se
    *  preguntan» (el bot V3 no lo lee todavía). Queda la hora. */
@@ -655,7 +662,10 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
   /** "te llega" en vez de "le llega": autobiografía o viaje. */
   propia?: boolean;
   trato?: { valor: "usted" | "vos" | null; editable: boolean };
+  /** El trato de los textos del panel (vos/tú), no el del biógrafo. */
+  tratoPanel?: TratoComprador;
 }) {
+  const tu = tratoPanel === "tu";
   const router = useRouter();
   const [textoEvitar, setTextoEvitar] = useState(evitar);
   const [tratoElegido, setTratoElegido] = useState<"usted" | "vos" | null>(trato?.valor ?? null);
@@ -677,7 +687,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
     setError(null);
     setGuardado(null);
     try {
-      await patchGuion(narradorId, cuerpo);
+      await patchGuion(narradorId, cuerpo, tratoPanel);
       setGuardado(clave);
       router.refresh();
     } catch (e) {
@@ -697,8 +707,8 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
             <label key={r} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${ritmo === r ? "border-[var(--texto)]" : "border-[var(--linea)] hover:border-[var(--linea-fuerte)]"}`}>
               <input type="radio" name="ritmo" value={r} checked={ritmo === r} disabled={ocupado !== null} onChange={() => correr("ritmo", { accion: "ritmo", ritmo: r })} className="mt-1" />
               <span>
-                <span className="block text-[16px] [font-family:var(--fuente-titulo)]">{NOMBRE_RITMO[r].titulo}</span>
-                <span className="block text-sm text-[var(--texto-menor)]">{NOMBRE_RITMO[r].detalle}</span>
+                <span className="block text-[16px] [font-family:var(--fuente-titulo)]">{(tu ? NOMBRE_RITMO_TU : NOMBRE_RITMO)[r].titulo}</span>
+                <span className="block text-sm text-[var(--texto-menor)]">{(tu ? NOMBRE_RITMO_TU : NOMBRE_RITMO)[r].detalle}</span>
               </span>
             </label>
           ))}
@@ -732,7 +742,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
         <fieldset>
           <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "A qué hora te llega la pregunta" : "A qué hora le llega la pregunta"}</legend>
           <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-            Hoy: <strong className="font-medium text-[var(--texto)]">{horario.hora}</strong>, hora de {nombreDeZona(horario.zona)}. {propia ? "Si querés que te llegue antes o después" : "Si conviene que le llegue antes o después"}, cambiala acá: vale desde la próxima.
+            Hoy: <strong className="font-medium text-[var(--texto)]">{horario.hora}</strong>, hora de {nombreDeZona(horario.zona)}. {propia ? (tu ? "Si quieres que te llegue antes o después" : "Si querés que te llegue antes o después") : "Si conviene que le llegue antes o después"}, {tu ? "cámbiala aquí" : "cambiala acá"}: vale desde la próxima.
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
@@ -774,7 +784,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
             <span>
               <span className="block text-[16px] [font-family:var(--fuente-titulo)]">{propia ? "Pedirme fotos de mis cosas" : "Pedirle fotos de sus cosas"}</span>
               <span className="block text-sm text-[var(--texto-menor)]">
-                Si {propia ? "no te" : "no le"} resulta fácil sacar una foto y mandarla, {propia ? "apagalo" : "apagalo"}: nunca {propia ? "te" : "le"} vamos a pedir ninguna y la entrevista sigue igual.
+                Si {propia ? "no te" : "no le"} resulta fácil sacar una foto y mandarla, {tu ? "apágalo" : "apagalo"}: nunca {propia ? "te" : "le"} vamos a pedir ninguna y la entrevista sigue igual.
               </span>
             </span>
           </label>
@@ -823,7 +833,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
 
 export const CAPITULO_FAMILIA_V3 = "Preguntas de la familia";
 
-export function SumarPreguntaV3({ narradorId, propia = false }: { narradorId: string; propia?: boolean }) {
+export function SumarPreguntaV3({ narradorId, propia = false, trato = "vos" }: { narradorId: string; propia?: boolean; trato?: TratoComprador }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -835,7 +845,7 @@ export function SumarPreguntaV3({ narradorId, propia = false }: { narradorId: st
     setOcupado(true);
     setError(null);
     try {
-      await patchGuion(narradorId, { accion: "agregar", texto, capitulo: CAPITULO_FAMILIA_V3 });
+      await patchGuion(narradorId, { accion: "agregar", texto, capitulo: CAPITULO_FAMILIA_V3 }, trato);
       setTexto("");
       setAbierto(false);
       setListo(true);
@@ -861,7 +871,7 @@ export function SumarPreguntaV3({ narradorId, propia = false }: { narradorId: st
     <div className="flex flex-col gap-3 rounded-xl border border-[var(--linea)] p-5">
       <label className="flex flex-col gap-2">
         <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Tu pregunta</span>
-        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} maxLength={500} placeholder="Por ejemplo, ¿cómo fue el viaje a Mendoza con los chicos?" />
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} maxLength={500} placeholder={trato === "tu" ? "Por ejemplo, ¿cómo fue el viaje a Galicia con los niños?" : "Por ejemplo, ¿cómo fue el viaje a Mendoza con los chicos?"} />
       </label>
       <p className="text-sm text-[var(--texto-menor)]">{propia ? "Te la hacemos" : "Se la hacemos"} antes de terminar la entrevista, con tus palabras.</p>
       <div className="flex items-center gap-3">

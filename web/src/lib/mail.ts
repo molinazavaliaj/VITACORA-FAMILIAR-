@@ -89,7 +89,7 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
           cuando quiera.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          Cuando empiece a contar su historia te avisamos por acá, y vas a poder
+          Cuando empiece a contar su historia te avisamos por ${deTu(opciones.region) ? "aquí" : "acá"}, y vas a poder
           escuchar su voz desde tu panel.
         </td></tr>
         <tr><td style="padding-bottom:12px;">

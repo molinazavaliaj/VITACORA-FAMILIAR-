@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { CampoVF } from "../../marca";
+import { headers } from "next/headers";
+import { regionDelRequest } from "@/lib/region";
+import { tratoDeRegion } from "@/lib/regalo-textos";
 
 // La pantalla de respaldo después de pagar. Desde el 21/09 (3t.20) el
 // proveedor vuelve a /api/pago/vuelta, que confirma el pago y abre la sesión
@@ -19,6 +22,8 @@ export const metadata: Metadata = { title: "Ya está en marcha", robots: { index
 export default async function Gracias({ searchParams }: PageProps<"/comprar/gracias">) {
   const { viaje } = await searchParams;
   const esViaje = viaje === "1";
+  // Sin sesión: el trato sale del país de quien compró.
+  const tu = tratoDeRegion(regionDelRequest(await headers())) === "tu";
   // El número del biógrafo, para que el viajero le escriba primero mientras no hay plantilla aprobada.
   const numero = process.env.NEXT_PUBLIC_WA_NUMERO ?? null;
   return (
@@ -41,7 +46,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
         )}
         <p className="mt-4 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
           Te mandamos un correo con todo esto y con cómo entrar a tu panel, donde
-          vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.
+          vas a ir escuchando lo que cuenta. Si no lo ves, {tu ? "mira" : "mirá"} en promociones o en spam.
         </p>
         <Link
           href="/entrar"

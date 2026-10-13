@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // El botón de compartir una frase (spec "Su voz": cada frase con su ancla para
 // mandar UNA por WhatsApp). Es el mecanismo que hace que esto se contagie: un
@@ -10,7 +11,7 @@ import { useState } from "react";
 
 const boton = "inline-flex h-9 items-center justify-center rounded-full border border-[var(--linea-fuerte)] px-4 text-[13px] font-medium transition-colors [font-family:var(--fuente-micro)] hover:bg-[var(--bruma)]";
 
-export function CompartirFrase({ texto, nombre, ancla }: { texto: string; nombre: string; ancla: string }) {
+export function CompartirFrase({ texto, nombre, ancla, trato = "vos" }: { texto: string; nombre: string; ancla: string; trato?: TratoComprador }) {
   const [copiado, setCopiado] = useState(false);
 
   function url() {
@@ -40,7 +41,7 @@ export function CompartirFrase({ texto, nombre, ancla }: { texto: string; nombre
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
     } catch {
-      window.prompt("Copiá este link:", url());
+      window.prompt(trato === "tu" ? "Copia este link:" : "Copiá este link:", url());
     }
   }
 

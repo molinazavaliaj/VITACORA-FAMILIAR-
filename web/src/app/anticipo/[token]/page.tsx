@@ -4,6 +4,10 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenAnticipo } from "@/lib/token-anticipo";
 import { CampoVF, Toroide } from "../../marca";
+import { headers } from "next/headers";
+import { regionDelRequest } from "@/lib/region";
+import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
+import { tratoDeLaFamilia } from "@/lib/trato";
 
 // Las primeras páginas del libro, con su voz. Llega acá desde el correo que
 // manda la fábrica cuando su narrador contestó la tercera pregunta.
@@ -68,8 +72,10 @@ export default async function PaginaAnticipo({
 }) {
   const { token } = await params;
 
+  // Sin historia todavía, el trato sale del país de quien abre el enlace.
+  const tratoDelPedido = tratoDeRegion(regionDelRequest(await headers()));
   const datosToken = verificarTokenAnticipo(token);
-  if (!datosToken) return <EstadoInvalido />;
+  if (!datosToken) return <EstadoInvalido trato={tratoDelPedido} />;
 
   const admin = crearClienteServidor();
 
@@ -81,12 +87,15 @@ export default async function PaginaAnticipo({
 
   if (errorNarrador) {
     console.error("anticipo/[token]: fallo la busqueda de narrador", errorNarrador);
-    return <EstadoInvalido />;
+    return <EstadoInvalido trato={tratoDelPedido} />;
   }
   const datosNarrador = narrador as
     | { id: string; como_le_dicen: string; familia_id: string }
     | null;
-  if (!datosNarrador) return <EstadoInvalido />;
+  if (!datosNarrador) return <EstadoInvalido trato={tratoDelPedido} />;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, datosNarrador.familia_id);
+  const tu = trato === "tu";
 
   const { data: archivos } = await admin.storage
     .from("audios")
@@ -96,14 +105,14 @@ export default async function PaginaAnticipo({
   // Sin anticipo.json no hay nada que mostrar: probablemente el correo salió
   // antes de que la fábrica terminara, o alguien guardó el enlace de un
   // narrador que todavía no arrancó.
-  if (!nombresArchivos.has("anticipo.json")) return <EstadoEnCamino />;
+  if (!nombresArchivos.has("anticipo.json")) return <EstadoEnCamino trato={trato} />;
 
   const { data: blob, error: errorDescarga } = await admin.storage
     .from("audios")
     .download(`${datosNarrador.id}/paquete/anticipo.json`);
   if (errorDescarga || !blob) {
     console.error("anticipo/[token]: fallo la descarga del anticipo", errorDescarga);
-    return <EstadoEnCamino />;
+    return <EstadoEnCamino trato={trato} />;
   }
 
   let datos: DatosAnticipo;
@@ -111,7 +120,7 @@ export default async function PaginaAnticipo({
     datos = JSON.parse(await blob.text()) as DatosAnticipo;
   } catch (err) {
     console.error("anticipo/[token]: anticipo.json ilegible", err);
-    return <EstadoEnCamino />;
+    return <EstadoEnCamino trato={trato} />;
   }
 
   const hayAudio = nombresArchivos.has("anticipo_muestra.mp3");
@@ -213,13 +222,13 @@ export default async function PaginaAnticipo({
 
       {/* ─── Y sigue ───────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-2xl px-6 py-20 text-center sm:py-24">
-        <Etiqueta>Esto recién empieza</Etiqueta>
+        <Etiqueta>{tu ? "Esto acaba de empezar" : "Esto recién empieza"}</Etiqueta>
         <h2 className="mt-5 text-2xl leading-snug [font-family:var(--fuente-titulo)] font-medium sm:text-3xl">
           Va a seguir contando, a su ritmo.
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
           Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
-          esté terminado, te avisamos por correo y lo leés y lo escuchás desde
+          esté terminado, te avisamos por correo y {tu ? "lo lees y lo escuchas" : "lo leés y lo escuchás"} desde
           tu panel: el libro en PDF y sus mejores frases, en su voz.
         </p>
         <div className="mt-10 flex flex-col items-center gap-3">
@@ -230,7 +239,7 @@ export default async function PaginaAnticipo({
             Seguir el libro de {datos.nombre.split(" ")[0]}
           </Link>
           <p className="text-[13px] text-[#5F5F55] [font-family:var(--fuente-micro)]">
-            Entrás con tu correo y un código de 6 números.
+            {tu ? "Entras" : "Entrás"} con tu correo y un código de 6 números.
           </p>
         </div>
       </section>
@@ -254,12 +263,12 @@ function Marco({ children }: { children: React.ReactNode }) {
   );
 }
 
-function EstadoInvalido() {
+function EstadoInvalido({ trato }: { trato: TratoComprador }) {
   return (
     <Marco>
       <h1 className="text-2xl font-semibold">Este enlace no es válido</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        Puede que esté incompleto. Probá abrirlo otra vez desde el correo que
+        Puede que esté incompleto. {trato === "tu" ? "Prueba" : "Probá"} abrirlo otra vez desde el correo que
         te mandamos.
       </p>
       <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
@@ -269,12 +278,14 @@ function EstadoInvalido() {
   );
 }
 
-function EstadoEnCamino() {
+function EstadoEnCamino({ trato }: { trato: TratoComprador }) {
   return (
     <Marco>
       <h1 className="text-2xl font-semibold">Todavía se está escribiendo</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        Las primeras páginas aparecen acá en cuanto estén listas. Vuelve a abrir
+        {trato === "tu"
+          ? "Las primeras páginas aparecen aquí en cuanto estén listas. Vuelve a abrir "
+          : "Las primeras páginas aparecen acá en cuanto estén listas. Volvé a abrir "}
         este enlace en un rato.
       </p>
       <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">

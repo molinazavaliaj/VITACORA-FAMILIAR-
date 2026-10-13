@@ -4,20 +4,22 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { validarEdicion, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La edición final y el cierre del libro (docs/panel-usuario.md §7.2 y Regla 0).
 //   PATCH → guarda lo que decidió (título, portada, orden, excluidas, correcciones)
 //   POST  → "Cerrar libro": libro_aprobado_at. Sin vuelta atrás.
 // Solo la dueña, y solo cuando la entrevista terminó.
 
-const GENERICO = "No pudimos guardar. Intenta de nuevo.";
+const GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar. ${intenta(t)} de nuevo.`;
 const ESTADOS_TERMINADOS = ["completado", "cerrado_anticipado"];
 
 type Fila = { edicion: Edicion | null; libro_aprobado_at: string | null; estado: string };
 
 type Preparado =
   | { error: NextResponse; admin?: undefined; narrador?: undefined; fila?: undefined }
-  | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string }; fila: Fila };
+  | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string; familia_id: string }; fila: Fila };
 
 // Las tres fotos del libro se pueden elegir en cualquier momento (§15.2): un
 // cuerpo que trae SOLO esas claves no espera a que termine de contar.
@@ -32,7 +34,7 @@ async function prepararRequest(request: NextRequest, opciones: { permitirAntes?:
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
     soloDuena: true,
-    mensajeError: GENERICO,
+    mensajeError: GENERICO(),
   });
   if (!acceso.ok) return { error: NextResponse.json({ error: acceso.error }, { status: acceso.status }) };
   const { narrador } = acceso;
@@ -79,7 +81,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const { error } = await admin.from("narradores").update({ edicion }).eq("id", narrador.id);
   if (error) {
     console.error("edicion: fallo guardar", error);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
   return NextResponse.json({ ok: true, edicion });
 }
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .select("libro_aprobado_at");
   if (error) {
     console.error("edicion: fallo cerrar", error);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
   const cerrado = (data as { libro_aprobado_at: string }[] | null)?.[0];
   return NextResponse.json({ ok: true, libroAprobadoAt: cerrado?.libro_aprobado_at ?? null, yaEstaba: !cerrado });

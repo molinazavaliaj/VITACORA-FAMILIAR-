@@ -3,8 +3,10 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { pedidoAMostrar, type AudiolibroPaths } from "@/lib/pedido-a-mostrar";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos abrir el audio. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos abrir el audio. ${intenta(t)} de nuevo.`;
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 type Familia = { id: string };
@@ -38,7 +40,7 @@ export async function GET(
 
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO,
+    mensajeError: MENSAJE_ERROR_GENERICO(),
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   if (!puedeEscuchar(indice, acceso.rol)) {
@@ -53,7 +55,7 @@ export async function GET(
 
   if (errorPedidos) {
     console.error("libro/audio: fallo la busqueda de pedido", errorPedidos);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   if (!pedido || pedido.estado !== "entregado" || !pedido.audiolibro_paths) {
@@ -72,7 +74,7 @@ export async function GET(
 
   if (errorFirmado || !firmado?.signedUrl) {
     console.error("libro/audio: fallo al firmar la url", errorFirmado);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   return NextResponse.redirect(firmado.signedUrl, 302);

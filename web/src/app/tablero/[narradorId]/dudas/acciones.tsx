@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DudaFamilia } from "@/lib/dudas";
 import { pedidosDeLoQueCambio } from "@/lib/dudas-formulario";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 export type DudaPrefill = DudaFamilia & {
   /**
@@ -18,11 +19,14 @@ export function FormularioDudas({
   dudas,
   narradorId,
   soloLectura,
+  trato = "vos",
 }: {
   dudas: DudaPrefill[];
   narradorId: string;
   soloLectura: boolean;
+  trato?: TratoComprador;
 }) {
+  const tu = trato === "tu";
   const router = useRouter();
   // Por id de duda: cada una es independiente y no comparten clave.
   const [iniciales, setIniciales] = useState<Record<string, string>>(
@@ -48,7 +52,7 @@ export function FormularioDudas({
       });
       if (!respuesta.ok) {
         const cuerpo = (await respuesta.json().catch(() => ({}))) as { error?: string };
-        setError(cuerpo.error ?? "No pudimos guardar tus respuestas. Intentá de nuevo.");
+        setError(cuerpo.error ?? (tu ? "No pudimos guardar tus respuestas. Intenta de nuevo." : "No pudimos guardar tus respuestas. Intentá de nuevo."));
         return;
       }
       // Lo guardado pasa a ser el punto de partida del próximo guardado.
@@ -56,7 +60,7 @@ export function FormularioDudas({
       setGuardado(true);
       router.refresh();
     } catch {
-      setError("No pudimos guardar tus respuestas. Revisá tu conexión e intentá de nuevo.");
+      setError(tu ? "No pudimos guardar tus respuestas. Revisa tu conexión e intenta de nuevo." : "No pudimos guardar tus respuestas. Revisá tu conexión e intentá de nuevo.");
     } finally {
       setGuardando(false);
     }
@@ -120,7 +124,7 @@ export function FormularioDudas({
             disabled={soloLectura}
             onChange={(e) => setValores((v) => ({ ...v, [duda.id]: e.target.value }))}
             rows={2}
-            placeholder="Lo que sepas. Si no sabés, dejalo vacío."
+            placeholder={tu ? "Lo que sepas. Si no sabes, déjalo vacío." : "Lo que sepas. Si no sabés, dejalo vacío."}
             className="w-full rounded-md border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-3 py-2 text-sm text-[var(--texto)] disabled:opacity-60"
           />
 
@@ -146,7 +150,7 @@ export function FormularioDudas({
           {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
           {guardado ? (
             <p className="text-sm text-[var(--texto-suave)]">
-              Listo, lo guardamos. Podés volver a cambiarlo mientras el libro no esté escrito.
+              Listo, lo guardamos. {tu ? "Puedes" : "Podés"} volver a cambiarlo mientras el libro no esté escrito.
             </p>
           ) : null}
         </div>

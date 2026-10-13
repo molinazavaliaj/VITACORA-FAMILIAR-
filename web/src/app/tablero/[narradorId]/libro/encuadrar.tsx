@@ -3,6 +3,7 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { FOCO_CENTRO, NOMBRE_POSICION, POSICIONES, POSICION_DEFAULT, objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Encuadrar una foto (3b.6, 18/09). No es un recorte libre: la familia toca el
 // punto de la foto que tiene que quedar a la vista (la cara, no el techo) y ve
@@ -12,7 +13,7 @@ import { FOCO_CENTRO, NOMBRE_POSICION, POSICIONES, POSICION_DEFAULT, objectPosit
 
 type Foto = { id: string; foco?: Foco; posicion?: Posicion };
 
-export function Encuadrar({ foto, proporcion, conPosicion, nombreLugar }: { foto: Foto; proporcion: string; conPosicion: boolean; nombreLugar: string }) {
+export function Encuadrar({ foto, proporcion, conPosicion, nombreLugar, trato = "vos" }: { foto: Foto; proporcion: string; conPosicion: boolean; nombreLugar: string; trato?: TratoComprador }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [foco, setFoco] = useState<Foco>(foto.foco ?? FOCO_CENTRO);
@@ -66,7 +67,7 @@ export function Encuadrar({ foto, proporcion, conPosicion, nombreLugar }: { foto
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(20,20,15,0.55)] sm:items-center sm:p-6" onClick={() => setAbierto(false)} role="presentation">
       <div role="dialog" aria-modal aria-label={`Encuadrar la foto para ${nombreLugar}`} onClick={(e) => e.stopPropagation()} className="max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-[var(--texto)] bg-[var(--fondo)] p-5 text-[var(--texto)] shadow-2xl sm:rounded-2xl">
         <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Encuadrar la foto para {nombreLugar}</p>
-        <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">Tocá el punto de la foto que tiene que quedar a la vista — la cara, no el techo. A la derecha ves cómo queda recortada.</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">{trato === "tu" ? "Toca" : "Tocá"} el punto de la foto que tiene que quedar a la vista — la cara, no el techo. A la derecha ves cómo queda recortada.</p>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-[3fr_2fr]">
           <div className="relative cursor-crosshair select-none overflow-hidden rounded-lg border border-[var(--linea)] bg-[var(--hueco)]" onClick={elegirPunto}>

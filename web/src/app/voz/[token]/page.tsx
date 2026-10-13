@@ -8,6 +8,9 @@ import { hayLibroOnline } from "@/lib/libro-online";
 import { Toroide } from "../../marca";
 import { ReproductorRespuesta } from "../../tablero/reproductor";
 import { CompartirFrase } from "./compartir";
+import { headers } from "next/headers";
+import { regionDelRequest } from "@/lib/region";
+import { tratoDeRegion } from "@/lib/regalo-textos";
 
 // La página del cliente (spec 2026-09-20-su-voz-design, "La página pública"):
 // una sola, sin login, con todo adentro — el libro online y sus mejores frases
@@ -35,6 +38,9 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
   const n = narrador as { nombre: string; como_le_dicen: string; libro_aprobado_at: string | null } | null;
   if (!n?.libro_aprobado_at) notFound();
 
+  // Página pública, sin cuenta: el trato sale del país de quien la abre.
+  const trato = tratoDeRegion(regionDelRequest(await headers()));
+  const tu = trato === "tu";
   const publicables = frases ? frasesPublicables(frases) : [];
   const total = publicables.reduce((s, p) => s + p.frases.length, 0);
   const tab = "inline-flex h-11 items-center justify-center rounded-full px-6 text-[15px] font-medium transition-colors [font-family:var(--fuente-micro)]";
@@ -65,8 +71,8 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
             <h2 id="titulo-frases" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">Su voz</h2>
             <p className="mt-3 max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)] font-light">
               {total > 0
-                ? `Las frases que más suenan a ${n.como_le_dicen}, tal como las dijo. Tocá una para escucharla.`
-                : "Sus mejores frases, en su voz, se están preparando. Volvé en un rato."}
+                ? `Las frases que más suenan a ${n.como_le_dicen}, tal como las dijo. ${tu ? "Toca" : "Tocá"} una para escucharla.`
+                : `Sus mejores frases, en su voz, se están preparando. ${tu ? "Vuelve" : "Volvé"} en un rato.`}
             </p>
           </div>
           {publicables.map(({ capitulo, frases: lista }) => (
@@ -81,7 +87,7 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
                     <div className="mt-3">
                       <ReproductorRespuesta src={`/api/voz/${token}/audio/${f.id}`} duracion={f.segundos} etiqueta={`la frase «${f.texto.slice(0, 40)}»`} />
                     </div>
-                    <CompartirFrase texto={f.texto} nombre={n.como_le_dicen} ancla={`f-${f.id}`} />
+                    <CompartirFrase texto={f.texto} nombre={n.como_le_dicen} ancla={`f-${f.id}`} trato={trato} />
                   </li>
                 ))}
               </ul>
@@ -105,7 +111,7 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
               />
             </div>
           ) : (
-            <p className="mt-6 text-[16px] leading-relaxed text-[var(--texto-suave)] font-light">El libro se está armando. Volvé en un rato.</p>
+            <p className="mt-6 text-[16px] leading-relaxed text-[var(--texto-suave)] font-light">El libro se está armando. {tu ? "Vuelve" : "Volvé"} en un rato.</p>
           )}
         </section>
 

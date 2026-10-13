@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos cargar la estructura del libro. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos cargar la estructura del libro. ${intenta(t)} de nuevo.`;
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO,
+    mensajeError: MENSAJE_ERROR_GENERICO(),
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const narrador = acceso.narrador;
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
     estructura = JSON.parse(await descarga.text());
   } catch (err) {
     console.error("estructura GET: estructura.json invalido", err);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(await tratoDeLaFamilia(admin, narrador.familia_id)) }, { status: 500 });
   }
 
   return NextResponse.json(estructura, { status: 200 });
