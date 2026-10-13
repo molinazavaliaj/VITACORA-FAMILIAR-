@@ -265,12 +265,58 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
   },
 };
 
-/** Los textos de un hito: los de siempre, salvo los de cierre de un narrador V3. */
-function textosDe(hito: Hito, variante?: VarianteV3): TextoHito {
+/**
+ * Los mails de cierre del flujo viejo con vos, para las familias de Argentina (13/10: les llegaban en tú). Son
+ * los de siempre con el verbo conjugado, nada más; los aprobó Naza el 13/10. Los hitos que no están acá toman
+ * los de vos de arriba (libro listo, falta dirección, entregado), que ya iban a toda familia de Argentina.
+ */
+const TEXTOS_VOS_VIEJO: Partial<Record<Hito, TextoHito>> = {
+  terminado: {
+    asunto: (quien) => `Tu ${quien} terminó de contar`,
+    parrafos: (quien) => [
+      `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+      'Ahora te toca a vos: entrá, revisá los nombres y lugares que anotamos, elegí el orden de los capítulos y la foto de la tapa, y cerrá el libro.',
+      'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+    ],
+    boton: 'Cerrar el libro',
+  },
+  recordatorio_3: TEXTOS.recordatorio_3,
+  recordatorio_7: {
+    asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
+    parrafos: (quien) => [
+      `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
+      'Si no tenés nada que cambiar, entrá y cerralo tal como te lo proponemos: queda perfecto igual.',
+    ],
+    boton: 'Cerrar el libro',
+  },
+  recordatorio_14: {
+    asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
+    parrafos: (quien) => [
+      `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
+      'Si en dos semanas más no lo cerrás, lo cerramos nosotros con nuestra propuesta y lo escribimos igual — está en los términos, para que ningún libro quede sin hacer.',
+    ],
+    boton: 'Cerrar el libro',
+  },
+  cierre_automatico: {
+    asunto: (quien) => `Cerramos el libro de tu ${quien} por vos`,
+    parrafos: (quien) => [
+      `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros con la propuesta que te habíamos hecho.`,
+      'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
+    ],
+    boton: 'Ver el libro',
+  },
+};
+
+/** El trato de un mail: el de un narrador V3, o `vos_viejo` para una familia de Argentina del flujo viejo. */
+export type VarianteMail = VarianteV3 | 'vos_viejo';
+
+/** Los textos de un hito: los de siempre, salvo los de cierre de un narrador V3 y los de vos de Argentina. */
+function textosDe(hito: Hito, variante?: VarianteMail): TextoHito {
+  if (variante === 'vos_viejo') return TEXTOS_VOS_VIEJO[hito] ?? TEXTOS_V3.vos[hito] ?? TEXTOS[hito];
   return (variante ? TEXTOS_V3[variante][hito] : undefined) ?? TEXTOS[hito];
 }
 
-export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteV3): string {
+export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteMail): string {
   return textosDe(hito, variante).asunto(comoLeDicen);
 }
 
@@ -281,7 +327,7 @@ export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteV
  */
 export function cuerpoHito(
   hito: Hito,
-  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteV3 }
+  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteMail }
 ): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
@@ -349,8 +395,8 @@ export async function enviarMailHito(opciones: {
   enlace: string;
   /** Solo el de "va en camino": el número del correo, cuando ya existe. */
   seguimiento?: string | null;
-  /** Solo el "terminó de contar" de un narrador V3 (ver `VarianteV3`). */
-  variante?: VarianteV3;
+  /** El trato: el de un narrador V3 o `vos_viejo` (ver `VarianteMail`). */
+  variante?: VarianteMail;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
