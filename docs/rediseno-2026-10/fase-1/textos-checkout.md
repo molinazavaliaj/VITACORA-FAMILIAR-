@@ -21,6 +21,10 @@ Leyenda del origen: **M** maqueta tal cual · **M~** maqueta adaptada · **A~** 
   ya», «¿Dudas? Escríbenos», «Otra persona», tarjeta, errores, pago rechazado, pie del total (AR sin
   IVA hasta confirmar), errores del viaje. Igual en catalán.
 
+- **14/10, tanda 8** (todos OK): checkout de Viaje en vosotros y sin dos puntos; fuera «Cada etapa
+  es un capítulo del libro» y «Cada etapa, un capítulo del libro» (como «Cada ciudad, un capítulo»
+  el 06/10). Igual en catalán.
+
 ## /comprar
 
 | Dónde | es (tú) | ar (vos) | Origen |
