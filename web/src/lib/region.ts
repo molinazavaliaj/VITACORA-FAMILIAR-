@@ -7,10 +7,13 @@ import type { Region } from "./precios";
 // el default de siempre. Es solo el punto de partida: el selector de la
 // pantalla sigue mandando.
 
-const EUROPA = new Set([
+/** Los países que van a la versión de España (también los usa next.config.ts). */
+export const PAISES_EUROPA = [
   "ES", "PT", "FR", "IT", "DE", "NL", "BE", "LU", "AT", "CH", "IE", "GB", "DK", "SE", "NO", "FI",
   "IS", "PL", "CZ", "SK", "HU", "RO", "BG", "GR", "HR", "SI", "EE", "LV", "LT", "MT", "CY", "AD", "MC", "SM", "VA", "LI",
-]);
+] as const;
+
+const EUROPA = new Set<string>(PAISES_EUROPA);
 
 export function regionDePais(codigo: string | null | undefined): Region {
   const pais = (codigo ?? "").trim().toUpperCase();
