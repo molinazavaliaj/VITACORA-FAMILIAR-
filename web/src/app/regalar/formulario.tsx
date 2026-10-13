@@ -13,6 +13,7 @@ import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type Eleccio
 import { AREA, AvisoFallo, BotonPagar, CAMPO } from "../_checkout/piezas";
 import { vieneDePagoFallido } from "../_checkout/memoria";
 import { FALLO } from "../_textos/checkout";
+import { COMPRADOR_WEB } from "../_textos/regalar";
 
 // La compra del regalo (plan 2026-10-07-gift-card, Task 8), en cuatro pasos:
 // a quién · tu mensaje · tus datos · pagar. Imita el checkout chico de
@@ -22,7 +23,7 @@ import { FALLO } from "../_textos/checkout";
 //
 // Todos los textos salen de textosComprador(trato): de vos en AR, de tú en ES
 // (plan 2026-10-09-regalo-idiomas), o del diccionario de la versión de la web
-// (`textos`, rediseño 2026-10: el catalán). El idioma del regalo es el del
+// (`idiomaWeb`, rediseño 2026-10: el catalán). El idioma del regalo es el del
 // abuelo y arranca en el de la región de quien compra.
 //
 // Rediseño 2026-10: el mismo formulario, con el tema oscuro de las compras
@@ -46,17 +47,15 @@ function hoyLocal(): string {
 }
 
 export function FormularioRegalo({
-  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false, textos, idiomaWeb,
+  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false, idiomaWeb,
 }: {
   catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso;
   /** Si se ofrece mandarlo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
-  /** Los textos de la versión de la web (catalán); sin ellos, los de `trato`. */
-  textos?: TextosComprador;
-  /** La versión de la web: la pasarela vuelve a /regalar de ese idioma. */
+  /** La versión de la web: sus textos (el catalán) y la pasarela vuelve a /regalar de ese idioma. Sin ella, los de `trato`. */
   idiomaWeb?: IdiomaWeb;
 }) {
-  const T = textos ?? textosComprador(trato);
+  const T = idiomaWeb ? COMPRADOR_WEB[idiomaWeb] : textosComprador(trato);
   const [paso, setPaso] = useState<Paso>(pasoInicial);
   const [idioma, setIdioma] = useState<IdiomaRegalo>(idiomaInicial);
   const [nombre, setNombre] = useState("");

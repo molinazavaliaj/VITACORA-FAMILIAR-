@@ -29,7 +29,6 @@ export function PaginaRegalar({ idioma }: { idioma: IdiomaWeb }) {
         // El idioma del regalo arranca en el de la versión: el catalán, en català.
         idiomaInicial={idioma === "ca" ? "ca" : idiomaPorDefecto(region)}
         entregaWhatsApp={entregaWhatsAppPrendida()}
-        textos={COMPRADOR_WEB[idioma]}
         idiomaWeb={idioma}
       />
     </CascaronCheckout>
