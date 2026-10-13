@@ -30,12 +30,27 @@ pregunta y **cómo se ordena**.
 - **Etapas vivas:** desde el panel (historia → "Las etapas del viaje") se agregan, renombran
   o fechan etapas; las preguntas **todavía no enviadas** se reasignan al capítulo que
   corresponda. Las ya enviadas no se tocan.
+- **Fechas vivas (12/10, Joaquín):** en la misma sección (ahora "Fechas y etapas del
+  viaje") se corren la salida y la vuelta. Antes de la primera pregunta (`dia_actual` = 0),
+  las dos; con el viaje en marcha, solo la vuelta: cada noche es "salida + N" y mover la
+  salida le cambiaría la fecha a lo ya contado. Estirar suma noches al guion; acortar
+  borra las que sobran sin haber salido, nunca antes de la última mandada (ni hasta ella
+  si ya la contestó: el bot cierra al recibir la última respuesta y quedaría colgado).
+  Las noches por venir se rearman enteras (texto y capítulo: la despedida pasa al día
+  nuevo). El guion de la web (`web/src/lib/viaje.ts`) es espejo del bot y un test los
+  compara. La Viaje V2 tiene sus fechas en `viajes_v2.compra`: desde el panel no se
+  cambian (las mueven los socios). ⚠️ Textos a revisar por Naza.
 
 ## El bot
 
 - **Bienvenida:** plantilla `bienvenida_viaje` (a crear en Meta). Hasta que esté
   aprobada, el viajero escribe primero "hola" al número y el bot responde la bienvenida
   como texto libre y pide el SÍ.
+- **La primera noche espera a la salida (12/10):** la noche N no sale antes de su fecha
+  (`esTempranoParaElDia` en el scheduler). Quien dice SÍ días antes de viajar queda en
+  `acepto` y recibe la primera pregunta el día de la salida, a su hora; el SÍ le avisa
+  la fecha ("El 20 de octubre, cuando arranque el viaje, te llega la primera
+  pregunta"). Atrasado nunca espera: si la noche ya pasó, sale.
 - **Cada noche**, a su hora: `pregunta_diaria_vos` (aprobada) fuera de la ventana; texto
   libre dentro. La pregunta rota el ángulo (lo mejor del día · una persona · una comida ·
   lo que salió distinto del plan · un lugar inesperado · qué pensaste de vos) y se apoya

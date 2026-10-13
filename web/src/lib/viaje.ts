@@ -150,6 +150,109 @@ export function diaDeHoy(viaje: Pick<Viaje, "salida" | "vuelta">, ahora: Date, z
   return dia >= 1 && dia <= diasDelViaje(viaje) ? dia : null;
 }
 
+// ── Las fechas, vivas (12/10) ────────────────────────────────────────────────
+// El viajero puede correr la salida y la vuelta desde el panel. Antes de que
+// salga la primera pregunta, las dos; con el viaje en marcha, solo la vuelta:
+// cada noche contada es "salida + N", y mover la salida le cambiaría la fecha
+// a lo que ya contó. El bot manda la noche N recién en su fecha (scheduler),
+// así que correr la salida también corre la primera pregunta.
+
+/**
+ * Valida las fechas nuevas contra lo que ya pasó. `diaActual` es la última
+ * noche que el bot mandó (0 = todavía ninguna). La regla de "esa noche ya la
+ * contó" (acortar justo hasta la última mandada) necesita la base: va en la ruta.
+ */
+export function validarFechas(
+  actual: Pick<Viaje, "salida" | "vuelta">,
+  salida: unknown,
+  vuelta: unknown,
+  diaActual: number,
+): { ok: true; salida: string; vuelta: string } | { ok: false; mensaje: string } {
+  if (!esFecha(salida) || !esFecha(vuelta)) return { ok: false, mensaje: "Necesitamos la fecha de salida y la de vuelta." };
+  if (vuelta < salida) return { ok: false, mensaje: "La vuelta no puede ser antes de la salida." };
+  if (diasDelViaje({ salida, vuelta }) > DIAS_MAXIMO) return { ok: false, mensaje: `Un viaje de más de ${DIAS_MAXIMO} días: escribinos y lo armamos aparte.` };
+  if (diaActual >= 1 && salida !== actual.salida) return { ok: false, mensaje: "El viaje ya arrancó: la salida queda fija. La vuelta sí se puede cambiar." };
+  if (diaActual >= 1 && diasDelViaje({ salida, vuelta }) < diaActual) {
+    const ultima = new Date(`${fechaDelDia({ salida }, diaActual)}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" });
+    return { ok: false, mensaje: `Ya te mandamos la pregunta del ${ultima}: la vuelta no puede ser antes.` };
+  }
+  return { ok: true, salida, vuelta };
+}
+
+// El guion del viaje: espejo EXACTO de entrevistador/src/flujo/viaje.ts (el bot
+// lo crea al decir SÍ). La web lo necesita para rearmar las noches que todavía
+// no salieron cuando cambian las fechas o las etapas. web/test/viaje.test.ts
+// compara los dos: si uno cambia y el otro no, el test falla.
+
+const TEXTO_ANGULO: Record<string, string> = {
+  mejor: "lo mejor del día: el momento que te gustaría volver a vivir",
+  persona: "una persona con la que hablaste hoy: quién era, qué te dijo, qué te quedó",
+  comida: "algo que comiste o tomaste hoy que no vas a olvidar, y dónde",
+  plan: "lo que salió distinto de lo planeado: qué pasó y cómo lo resolviste",
+  lugar: "un lugar que no esperabas y te frenó: cómo era, qué sentiste",
+  vos: "qué pensaste de vos mismo hoy, lejos de casa",
+  llegada: "el momento en que sentiste que habías llegado a esta etapa",
+  despedida: "te vas de esta etapa: con qué te quedás, qué dejás",
+};
+const ROTACION = ["mejor", "persona", "comida", "plan", "lugar", "vos"];
+
+/** El ángulo del día: llegada el primer día de una etapa, despedida el último, y rotación en el medio. */
+export function anguloDelDia(viaje: Viaje, dia: number): string {
+  const fecha = fechaDelDia(viaje, dia);
+  const etapa = etapaDeFecha(viaje, fecha);
+  const e = viaje.etapas.find((x) => x.nombre === etapa);
+  if (dia === 1 || (e?.desde && e.desde === fecha)) return "llegada";
+  if (dia === diasDelViaje(viaje) || (e?.hasta && e.hasta === fecha)) return "despedida";
+  const preferidos = (viaje.angulos ?? []).filter((a) => ROTACION.includes(a));
+  const lista = preferidos.length >= 2 ? [...preferidos, ...ROTACION.filter((a) => !preferidos.includes(a))] : ROTACION;
+  return lista[(dia - 2) % lista.length];
+}
+
+/** El texto base de la pregunta del día (el bot la reescribe al mandar). */
+export function textoBaseDelDia(viaje: Viaje, dia: number): string {
+  const etapa = etapaDeFecha(viaje, fechaDelDia(viaje, dia));
+  const donde = etapa === SIN_ETAPA ? "" : ` en ${etapa}`;
+  const angulo = anguloDelDia(viaje, dia);
+  if (angulo === "llegada") return `Día ${dia}${donde}: contame el momento en que sentiste que habías llegado.`;
+  if (angulo === "despedida") return `Día ${dia}${donde}: te vas. ¿Con qué te quedás? ¿Qué dejás?`;
+  return `Día ${dia}${donde}: contame ${TEXTO_ANGULO[angulo]}. Y mandame la foto de hoy con lo que estaba pasando.`;
+}
+
+/** El guion entero: una pregunta por día. */
+export function guionDelViaje(viaje: Viaje): { orden: number; texto: string; capitulo: string }[] {
+  const dias = diasDelViaje(viaje);
+  return Array.from({ length: dias }, (_, i) => {
+    const dia = i + 1;
+    return { orden: dia, texto: textoBaseDelDia(viaje, dia), capitulo: etapaDeFecha(viaje, fechaDelDia(viaje, dia)) };
+  });
+}
+
+type PreguntaGuardada = { id: string; orden: number; tipo: string; texto: string; capitulo: string };
+
+/**
+ * Qué hay que tocar en `preguntas` para que las noches que todavía no salieron
+ * (orden > diaActual) coincidan con el viaje nuevo: actualizar texto y capítulo,
+ * agregar las noches nuevas (estiró la vuelta) y borrar las que sobran (la
+ * acortó). Lo ya mandado no se toca nunca. Solo las fijas del guion: si hay
+ * otra cosa por venir (la pregunta de cierre), no se toca.
+ */
+export function planDeGuion(viaje: Viaje, diaActual: number, porVenir: PreguntaGuardada[]) {
+  const guion = guionDelViaje(viaje).filter((p) => p.orden > diaActual);
+  const fijas = porVenir.filter((p) => p.tipo === "fija" && p.orden > diaActual);
+  const porOrden = new Map(fijas.map((p) => [p.orden, p]));
+  const actualizar: { id: string; texto: string; capitulo: string; cambiaCapitulo: boolean }[] = [];
+  const agregar: { orden: number; texto: string; capitulo: string }[] = [];
+  for (const p of guion) {
+    const guardada = porOrden.get(p.orden);
+    if (!guardada) agregar.push(p);
+    else if (guardada.texto !== p.texto || guardada.capitulo !== p.capitulo) {
+      actualizar.push({ id: guardada.id, texto: p.texto, capitulo: p.capitulo, cambiaCapitulo: guardada.capitulo !== p.capitulo });
+    }
+  }
+  const borrar = fijas.filter((p) => p.orden > diasDelViaje(viaje)).map((p) => p.id);
+  return { actualizar, agregar, borrar };
+}
+
 /** Valida los ángulos elegidos desde el panel: solo los conocidos, sin repetir. */
 export function validarAngulos(entrada: unknown): { ok: true; angulos: string[] } | { ok: false; mensaje: string } {
   if (!Array.isArray(entrada) || !entrada.every((a) => (ANGULOS as readonly unknown[]).includes(a))) return { ok: false, mensaje: "Los temas elegidos no son válidos." };

@@ -16,7 +16,8 @@ import { bienvenidaAceptacion, noEntendi, noQuiereTodavia } from '../manual/puro
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
-import { esViaje } from './viaje.js';
+import { esViaje, fechaEnPalabras, viajeDe } from './viaje.js';
+import { fechaLocal } from './tiempo.js';
 import { confirmarFoto, crearGuionDelViaje, guardarFotoEntrante } from './viaje-db.js';
 import { recibirFotoFamiliar } from './fotos.js';
 import { pedidoAbierto, pedirObjeto } from './objetos.js';
@@ -240,7 +241,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
     // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
     if (esViaje(narrador.contexto) && !(await ultimaBienvenida(narrador.id))) {
-      const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido' }));
+      const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido', salida: salidaPorVenir(narrador) }));
       await db.from('envios').insert({ narrador_id: narrador.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
       return;
     }
@@ -307,7 +308,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     narrador.telefono_whatsapp,
     idiomaRegalo
       ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
-      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
+      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida, salida: salidaPorVenir(narrador) }),
   );
   // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
   // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
@@ -632,4 +633,11 @@ async function ofrecerSiguiente(narrador: Narrador, orden: number): Promise<void
   await db.from('envios').insert({
     narrador_id: narrador.id, tipo: 'oferta_siguiente', pregunta_orden: orden, wa_message_id: waId,
   });
+}
+
+/** Si es un viaje que todavía no empezó (en su zona), la salida en palabras ("20 de octubre"); si no, undefined. */
+function salidaPorVenir(n: Narrador): string | undefined {
+  if (!esViaje(n.contexto)) return undefined;
+  const { salida } = viajeDe(n.contexto);
+  return fechaLocal(new Date(), n.zona_horaria) < salida ? fechaEnPalabras(salida) : undefined;
 }

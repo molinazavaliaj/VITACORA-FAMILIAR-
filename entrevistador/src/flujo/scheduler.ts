@@ -4,7 +4,7 @@ import { db } from '../db/cliente.js';
 import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
-import { esViaje } from './viaje.js';
+import { esTempranoParaElDia, esViaje, viajeDe } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
 import { PLANTILLAS_V3, entraALaV3, viajeV2ParaNuevos } from '../config.js';
@@ -220,6 +220,12 @@ async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
       // Si hay pregunta vigente sin responder, se reenvía LA MISMA (no avanza el orden).
       const vigenteRespondida = n.dia_actual === 0 || await tieneRespuesta(n.id, n.dia_actual);
       const orden = vigenteRespondida ? n.dia_actual + 1 : n.dia_actual;
+
+      // Vitácora de viaje: la noche N no sale antes de su fecha. Quien dice SÍ
+      // días antes de viajar (o corrió la salida desde el panel) recibe la
+      // primera pregunta el primer día del viaje, a su hora; mientras tanto
+      // queda en 'acepto' sin que nada le llegue.
+      if (esViaje(n.contexto) && esTempranoParaElDia(viajeDe(n.contexto), orden, fechaLocal(ahora, n.zona_horaria))) return;
 
       // Idempotencia: si ya salió hoy esa pregunta, no se repite.
       const envio = await ultimoEnvio(n.id, 'pregunta', orden);

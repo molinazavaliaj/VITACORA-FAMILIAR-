@@ -321,12 +321,12 @@ export function HistoriaViaje({
           </section>
         ) : null}
 
-        {/* ── Las etapas, vivas ── */}
+        {/* ── Las fechas y las etapas, vivas ── */}
         {!cerrado && PUEDE.cambiarRitmo(rol) ? (
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Las etapas del viaje</Etiqueta>
+            <Etiqueta>Fechas y etapas del viaje</Etiqueta>
             <div className="mt-6">
-              <EtapasDelViaje narradorId={n.id} viaje={viaje} />
+              <EtapasDelViaje narradorId={n.id} viaje={viaje} diaActual={n.dia_actual} />
             </div>
           </section>
         ) : null}

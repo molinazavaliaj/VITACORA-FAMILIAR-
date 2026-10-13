@@ -167,15 +167,18 @@ export function bienvenida(
  * `bienvenida_viaje` (PLANTILLAS.md); hasta que Meta la apruebe, sale como texto
  * libre cuando el viajero escribe primero. Incluye el permiso de voz, como la otra.
  */
-export function bienvenidaViaje(comoLeDicen: string, { enseguida = false } = {}): string {
-  const cuando = enseguida ? 'ya' : 'esta noche';
+export function bienvenidaViaje(comoLeDicen: string, { enseguida = false, salida }: { enseguida?: boolean; salida?: string } = {}): string {
+  // `salida` ("20 de octubre"): el viaje todavía no empezó y la primera pregunta espera a ese día.
+  const cuando = salida ? `el ${salida}, cuando salís` : enseguida ? 'ya' : 'esta noche';
   return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
 }
 
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
 export function bienvenidaAceptacion(
-  comoLeDicen: string, trato: Trato = 'usted', { viaje = false, enseguida = false } = {},
+  comoLeDicen: string, trato: Trato = 'usted', { viaje = false, enseguida = false, salida }: { viaje?: boolean; enseguida?: boolean; salida?: string } = {},
 ): string {
+  // `salida` ("20 de octubre"): dijo SÍ antes de viajar; la primera pregunta sale ese día (scheduler).
+  if (viaje && salida) return `¡Listo, ${comoLeDicen}! El ${salida}, cuando arranque el viaje, te llega la primera pregunta. Sin apuro y sin respuestas incorrectas: esto es tu bitácora, a tu ritmo. 🧭`;
   if (viaje) return `¡Buen viaje, ${comoLeDicen}! Esta noche te llega la primera pregunta. Sin apuro y sin respuestas incorrectas: esto es tu bitácora, a tu ritmo. 🧭`;
   // Ritmo «apenas responde» (23/09): la primera pregunta sale con el SÍ, no al
   // día siguiente. El texto tiene que decir lo que va a pasar de verdad — si

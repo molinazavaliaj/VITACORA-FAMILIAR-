@@ -67,7 +67,7 @@ describe("El panel de viaje (3t.19)", () => {
     expect(html).toContain("Agregar fotos de Lisboa");
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain("Sobre qué te preguntamos");
-    expect(html).toContain("Las etapas del viaje");
+    expect(html).toContain("Fechas y etapas del viaje");
     // 3t.23: la hora a la vista, en segunda persona, sin el ritmo.
     expect(html).toContain("A qué hora te llega la pregunta");
     expect(html).toContain("hora de Portugal, Reino Unido, Irlanda");
