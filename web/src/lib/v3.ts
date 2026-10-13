@@ -86,11 +86,11 @@ type ClienteMinimo = { from: (tabla: string) => any };
  * El estado de la entrevista V3 de ese narrador, o null si no es V3. Un error de la base tira: tomar a un
  * narrador V3 por viejo le mostraría a la familia el cierre viejo, que promete cosas que no pasan.
  */
-export async function entrevistaV3(admin: ClienteMinimo, narradorId: string): Promise<{ estado: EstadoV3 } | null> {
-  const { data, error } = await admin.from("entrevistas_v3").select("estado").eq("narrador_id", narradorId).maybeSingle();
+export async function entrevistaV3(admin: ClienteMinimo, narradorId: string): Promise<{ estado: EstadoV3; idioma?: string | null } | null> {
+  const { data, error } = await admin.from("entrevistas_v3").select("estado, idioma").eq("narrador_id", narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer la entrevista V3 de ${narradorId}`);
   if (!data) return null;
-  return data as { estado: EstadoV3 };
+  return data as { estado: EstadoV3; idioma?: string | null };
 }
 
 // ── La historia en el panel (10/10): lo que se le preguntó y lo que contestó, en orden, por bloque ──

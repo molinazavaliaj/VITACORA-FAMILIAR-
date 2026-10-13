@@ -1,4 +1,5 @@
 import type { Muestra } from "@/lib/muestra";
+import { TapaLibro } from "./tapa-libro";
 
 // La muestra de un libro, tal como la ve un primo (página pública) o un
 // visitante que la guardó (adentro del panel). Una sola pieza para las dos.
@@ -8,17 +9,7 @@ import type { Muestra } from "@/lib/muestra";
 export function VistaMuestra({ muestra, urlAudio, urlPortada }: { muestra: Muestra; urlAudio: string | null; urlPortada: string | null }) {
   return (
     <div className="grid gap-10 md:grid-cols-[240px_1fr]">
-      <div className="oscuro flex aspect-[2/3] flex-col justify-between rounded-sm bg-[var(--fondo)] p-6 text-[var(--texto)] shadow-lg">
-        <p className="text-[9px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</p>
-        {urlPortada ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={urlPortada} alt="" className="my-4 aspect-square w-full rounded-sm object-cover" />
-        ) : null}
-        <div>
-          <p className="text-lg leading-snug [font-family:var(--fuente-titulo)] [text-wrap:balance]">{muestra.titulo}</p>
-          <p className="mt-2 text-[11px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]">{muestra.subtitulo}</p>
-        </div>
-      </div>
+      <TapaLibro titulo={muestra.titulo} fotoSrc={urlPortada} idioma={muestra.idioma} className="self-start rounded-sm shadow-lg" />
 
       <div className="flex flex-col gap-8">
         <div>

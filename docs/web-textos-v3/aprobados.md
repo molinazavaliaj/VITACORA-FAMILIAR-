@@ -282,3 +282,14 @@ Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras
 | lib/mail.ts, invitación para las dudas, cuerpo | {quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó. · Entrá con este mismo correo | …Si sabes la respuesta, puedes escribirla… · Entra con este mismo correo |
 | lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
 | api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |
+
+## La tapa nueva (13/10)
+
+La tapa del libro pasa a ser la de la imagen de Naza: la foto arriba, «EL LIBRO DE SU VIDA», el nombre y «para siempre». Sin subtítulo. La misma en el PDF de la fábrica y en el panel. Aprobados por Naza el 13/10.
+
+| Dónde | Argentina (vos) | España (tú) |
+|---|---|---|
+| libro/wizard.tsx, paso Tapa (V3) | Elegí el título y la foto de la tapa. Así va a quedar la tapa. | Elige el título y la foto de la tapa. Así va a quedar la tapa. |
+| libro/wizard.tsx, paso Portada (flujo viejo) | Esta es nuestra propuesta. Cambiá lo que quieras. Así va a quedar la tapa. | …Cambia lo que quieras… |
+| La tapa (lib/tapa.ts y fabrica/src/libro/plantilla-html.ts), libro en castellano | EL LIBRO DE SU VIDA · para siempre | igual |
+| La tapa, libro en catalán | EL LLIBRE DE LA SEVA VIDA · per sempre | igual |
