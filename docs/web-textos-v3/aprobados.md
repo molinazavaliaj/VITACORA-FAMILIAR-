@@ -282,3 +282,13 @@ Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras
 | lib/mail.ts, invitación para las dudas, cuerpo | {quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó. · Entrá con este mismo correo | …Si sabes la respuesta, puedes escribirla… · Entra con este mismo correo |
 | lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
 | api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |
+
+## La contratapa en catalán (13/10)
+
+Libro en catalán (entrevista en `ca`). En castellano no cambia. Aprobados por Naza el 13/10.
+
+| Castellano | Catalán |
+|---|---|
+| VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS | VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES |
+| Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz. | La seva història, explicada amb la seva pròpia veu. Un llibre que es llegeix amb els ulls i s’escolta amb la seva veu. |
+| LA HISTORIA DE UNA VIDA · DESDE 1945 | LA HISTÒRIA D’UNA VIDA · DES DE 1945 |
