@@ -269,3 +269,16 @@ Lo que ve quien compra desde España ya no se mezcla. El panel, los errores de l
 Al revés (punto C): los mensajes que estaban en tú y también los veía Argentina ahora le hablan de vos. Son los genéricos «…Intenta de nuevo.» de las rutas de la API y del panel (cerrar edición, nombres, frases, guion, fotos, cierre anticipado, alerta), «¿Necesitas cerrar la bitácora…?», «Revisa que estén bien escritos», «Actualiza la página» de nombres, «vuelve a esta página» de Leer, «Vuelve a abrir» del anticipo y «entra con tu correo» de la compra. Para Argentina quedan Intentá, ¿Necesitás, Revisá, Actualizá, volvé, Volvé y entrá.
 
 Aprobado aparte el mismo día (13/10): el ejemplo de «¿Dónde vivís?» en /comprar, «Rosario, Argentina» → «Valencia, España» para España. Los tres errores que salen antes de saber de qué historia es (fotos y acceso a dudas) toman el trato por el país desde donde se entra, no por la familia; Naza lo aprobó así.
+
+## Invitar para contestar las dudas (13/10)
+
+Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras queden dudas del escritor sin contestar y el libro no esté escrito. Aprobados por Naza el 13/10.
+
+| Dónde | Argentina (vos) | España (tú) |
+|---|---|---|
+| tablero/[narradorId]/compartir.tsx, terminó de contar con dudas | {nombre} terminó de contar y quedaron algunas dudas para el libro. Si otra persona sabe las respuestas, invitala y va a poder contestarlas. Hasta 3 personas. | …invítala y va a poder contestarlas… |
+| lib/mail.ts, invitación para las dudas, asunto | {quien} te pide ayuda con la historia de {narrador} | igual |
+| lib/mail.ts, invitación para las dudas, título | {narrador} terminó de contar su vida y estamos por escribir su libro. | igual |
+| lib/mail.ts, invitación para las dudas, cuerpo | {quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó. · Entrá con este mismo correo | …Si sabes la respuesta, puedes escribirla… · Entra con este mismo correo |
+| lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
+| api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |

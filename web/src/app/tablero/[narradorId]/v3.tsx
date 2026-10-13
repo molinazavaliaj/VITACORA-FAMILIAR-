@@ -23,7 +23,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, ritmo, horario, alFinal, trato = "vos",
+  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, ritmo, horario, alFinal, trato = "vos",
 }: {
   /** El trato de los textos del panel: el de la familia dueña de la historia. */
   trato?: TratoComprador;
@@ -40,6 +40,8 @@ export function HistoriaV3({
   historiaCerrada: boolean;
   linkPublico: string | null;
   invitados: InvitadoVista[];
+  /** Terminó de contar y quedan dudas del escritor: se puede invitar a quien sepa las respuestas. */
+  dudasAbiertas?: boolean;
   ritmo: Ritmo;
   horario?: { hora: string; zona: string };
 }) {
@@ -78,13 +80,13 @@ export function HistoriaV3({
               </p>
             ) : null}
           </div>
-          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
             {puedeAgregarFotos ? (
               <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>Agregar fotos</SubirFoto>
             ) : null}
             {PUEDE.invitar(rol) ? (
-              <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
-                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={invitados} trato={trato} />
+              <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} trato={trato} />
               </span>
             ) : null}
             {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={trato} /> : null}

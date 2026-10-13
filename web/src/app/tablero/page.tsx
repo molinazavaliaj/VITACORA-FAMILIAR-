@@ -8,8 +8,7 @@ import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
 import { entrevistaV3 } from "@/lib/v3";
-import { hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas } from "@/lib/dudas";
-import { leerDelEscritor } from "@/lib/dudas-archivos";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { regionDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion } from "@/lib/regalo-textos";
 import {
@@ -30,29 +29,13 @@ import {
 // su progreso, UN solo próximo paso, y el dato emocional de cuánta voz hay
 // guardada. Las historias donde es invitada van después, marcadas.
 
-/**
- * ¿Queda alguna duda sin contestar? Si dudas-familia.json está roto o no se
- * pudo leer, no hay a dónde mandarlos: sin aviso. Si lo que falla es leer las
- * correcciones, el aviso queda (mejor de más que perder el plazo).
- */
-async function quedanDudas(admin: ReturnType<typeof crearClienteServidor>, narradorId: string): Promise<boolean> {
-  const [archivoDudas, archivoCorrecciones] = await Promise.all([
-    leerDelEscritor(admin, narradorId, "dudas-familia.json"),
-    leerDelEscritor(admin, narradorId, "correcciones.json"),
-  ]);
-  const dudas = archivoDudas.texto !== null ? leerDudas(archivoDudas.texto) : null;
-  if (!dudas) return false;
-  const correcciones = archivoCorrecciones.texto !== null ? leerCorreccionesGuardadas(archivoCorrecciones.texto) ?? [] : [];
-  return hayDudasSinContestar(dudas, correcciones);
-}
-
 async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
   h: Historia,
 ): Promise<Resumen> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
-  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, { data: escritor }] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
@@ -60,7 +43,8 @@ async function resumirHistoria(
     admin.from("preguntas").select("orden").eq("narrador_id", narradorId),
     admin.from("preguntas").select("orden").is("narrador_id", null),
     admin.storage.from("audios").list(`${narradorId}/paquete`),
-    admin.storage.from("audios").list(`${narradorId}/escritor`),
+    // Dudas del escritor sin contestar (lib/dudas-archivos.ts).
+    hayDudasPendientes(admin, narradorId),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
@@ -79,13 +63,6 @@ async function resumirHistoria(
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
   // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
   const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
-
-  // Dudas del escritor sin contestar: hay dudas, el libro todavía no se escribió
-  // y queda alguna sin respuesta (no alcanza con que alguien haya contestado una).
-  // El listado decide si hace falta bajar los dos archivos.
-  const enEscritor = new Set((escritor ?? []).map((a) => a.name));
-  const dudasPendientes =
-    enEscritor.has("dudas-familia.json") && !enEscritor.has("libro.md") && (await quedanDudas(admin, narradorId));
 
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
 }

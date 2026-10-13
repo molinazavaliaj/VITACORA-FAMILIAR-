@@ -4,15 +4,19 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { enviarMailInvitacion } from "@/lib/mail";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Invitar a alguien a una historia (docs/panel-usuario.md §8): solo la dueña,
-// hasta 3, mientras el libro está abierto. La invitación es por mail; entra con
-// el login de siempre y lib/panel.ts la vincula al usuario cuando aparece.
+// hasta 3, mientras el narrador cuenta. Cuando terminó de contar, solo mientras
+// queden dudas del escritor sin contestar (13/10): para sumar a quien sepa las
+// respuestas. La invitación es por mail; entra con el login de siempre y
+// lib/panel.ts la vincula al usuario cuando aparece.
 
 export const MAXIMO_INVITADOS = 3;
 const GENERICO = (t: TratoComprador = "vos") => `No pudimos mandar la invitación. ${intenta(t)} de nuevo.`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
 export async function POST(request: NextRequest) {
   const admin = crearClienteServidor();
@@ -43,6 +47,11 @@ export async function POST(request: NextRequest) {
   const n = filaNarrador as { libro_aprobado_at: string | null; estado: string } | null;
   if (n?.libro_aprobado_at) {
     return NextResponse.json({ error: "El libro ya está cerrado: ya no se invita, se comparte." }, { status: 400 });
+  }
+  // Terminó de contar: se invita solo para contestar las dudas que quedan.
+  const paraDudas = ESTADOS_CERRADOS.includes(n?.estado ?? narrador.estado);
+  if (paraDudas && !(await hayDudasPendientes(admin, narrador.id))) {
+    return NextResponse.json({ error: "Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link." }, { status: 400 });
   }
 
   const { data: actuales, error: errorLista } = await admin
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
   const region = (familia as { region?: string } | null)?.region ?? null;
 
   try {
-    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region });
+    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region, paraDudas });
   } catch (err) {
     // La invitación existe igual: si el mail falla, entra con su correo cuando quiera.
     console.error("invitados: fallo el mail", err);

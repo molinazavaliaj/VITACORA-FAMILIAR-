@@ -6,15 +6,30 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 
 // El botón Compartir de una historia (docs/panel-usuario.md §8). Un botón,
 // dos comportamientos: con el libro abierto invita (hasta 3); con el libro
-// cerrado da el link público para los primos (próximo paso).
+// cerrado da el link público para los primos (próximo paso). Si terminó de
+// contar y el escritor dejó dudas sin contestar, se sigue pudiendo invitar:
+// a lo mejor el que sabe las respuestas no estaba invitado (13/10, Imma).
 
 export type InvitadoVista = { id: string; email: string; aceptado_at: string | null };
 
 const MAXIMO = 3;
+
+/**
+ * Qué muestra el panel. `link`: el libro está cerrado y se comparte. `esperar`:
+ * terminó de contar y no hay nada que invitar a hacer. `invitar`: está contando.
+ * `invitar-dudas`: terminó de contar pero quedan dudas del escritor (13/10).
+ */
+export function modoCompartir(e: { cerrado: boolean; aprobado: boolean; dudasAbiertas: boolean; linkPublico: string | null }): "link" | "esperar" | "invitar" | "invitar-dudas" {
+  if (e.aprobado && e.linkPublico) return "link";
+  if (!e.cerrado) return "invitar";
+  return e.dudasAbiertas ? "invitar-dudas" : "esperar";
+}
 const boton = "inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 
-export function Compartir({ narradorId, nombre, cerrado, aprobado, linkPublico, invitados, trato = "vos" }: { narradorId: string; nombre: string; cerrado: boolean; aprobado: boolean; linkPublico: string | null; invitados: InvitadoVista[]; trato?: TratoComprador }) {
+export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas = false, linkPublico, invitados, trato = "vos" }: { narradorId: string; nombre: string; cerrado: boolean; aprobado: boolean; dudasAbiertas?: boolean; linkPublico: string | null; invitados: InvitadoVista[]; trato?: TratoComprador }) {
   const tu = trato === "tu";
+  const modo = modoCompartir({ cerrado, aprobado, dudasAbiertas, linkPublico });
+  const invita = modo === "invitar" || modo === "invitar-dudas";
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [email, setEmail] = useState("");
@@ -78,12 +93,12 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, linkPublico, 
         aria-expanded={abierto}
         className={`${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)]`}
       >
-        Compartir{!cerrado && invitados.length > 0 ? ` · ${invitados.length}` : ""}
+        Compartir{invita && invitados.length > 0 ? ` · ${invitados.length}` : ""}
       </button>
 
       {abierto ? (
         <div className="absolute right-0 z-20 mt-2 w-[min(92vw,26rem)] rounded-xl border border-[var(--linea)] bg-[var(--fondo)] p-5 shadow-lg">
-          {aprobado && linkPublico ? (
+          {modo === "link" ? (
             <>
               <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
                 El libro de {nombre} está cerrado. {tu ? "Mándale" : "Mandale"} este link a quien quieras: ve una
@@ -91,23 +106,30 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, linkPublico, 
                 pedir su copia impresa o guardarlo en su cuenta. {tu ? "Tú no tienes" : "Vos no tenés"} que hacer nada más.
               </p>
               <div className="mt-4 flex flex-col gap-2">
-                <input readOnly value={linkPublico} onFocus={(e) => e.currentTarget.select()} className="w-full rounded-lg border border-[var(--linea)] bg-[var(--relieve)] px-3 py-2 text-[13px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]" />
+                <input readOnly value={linkPublico ?? ""} onFocus={(e) => e.currentTarget.select()} className="w-full rounded-lg border border-[var(--linea)] bg-[var(--relieve)] px-3 py-2 text-[13px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]" />
                 <button type="button" onClick={copiar} className={`${boton} bg-[var(--acento)] text-[var(--sobre-acento)] hover:opacity-90`}>
                   {copiado ? "Copiado ✓" : "Copiar el link"}
                 </button>
               </div>
             </>
-          ) : cerrado ? (
+          ) : !invita ? (
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
               {nombre} terminó de contar. Cuando cierres el libro, {tu ? "aquí" : "acá"} va a aparecer el link
               para compartirlo con la familia.
             </p>
           ) : (
             <>
-              <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                {tu ? "Invita" : "Invitá"} hasta {MAXIMO} personas. Van a poder escuchar lo que cuenta, leer sus
-                páginas, sumar preguntas y fotos. No pueden cambiar el guion ni abrir el libro terminado.
-              </p>
+              {modo === "invitar-dudas" ? (
+                <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
+                  {nombre} terminó de contar y quedaron algunas dudas para el libro. Si otra persona sabe las
+                  respuestas, {tu ? "invítala" : "invitala"} y va a poder contestarlas. Hasta {MAXIMO} personas.
+                </p>
+              ) : (
+                <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
+                  {tu ? "Invita" : "Invitá"} hasta {MAXIMO} personas. Van a poder escuchar lo que cuenta, leer sus
+                  páginas, sumar preguntas y fotos. No pueden cambiar el guion ni abrir el libro terminado.
+                </p>
+              )}
 
               {invitados.length > 0 ? (
                 <ul className="mt-4 flex flex-col gap-2">
