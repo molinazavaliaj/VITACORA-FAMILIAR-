@@ -4,6 +4,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
 import { tratoDeLaFamilia } from "@/lib/trato";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
@@ -147,6 +148,9 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
   // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
   const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
+  // Terminó de contar y el escritor dejó dudas sin contestar (13/10): la dueña
+  // puede invitar a quien sepa las respuestas, aunque la historia esté cerrada.
+  const dudasAbiertas = rol === "duena" && !aprobado && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
@@ -189,6 +193,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         historiaCerrada={historiaCerrada}
         linkPublico={linkPublico}
         invitados={soloInvitados}
+        dudasAbiertas={dudasAbiertas}
         ritmo={ritmo}
         evitar={evitar}
         horario={horario}
@@ -228,6 +233,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         historiaCerrada={historiaCerrada}
         linkPublico={linkPublico}
         invitados={soloInvitados}
+        dudasAbiertas={dudasAbiertas}
         ritmo={ritmo}
         horario={horario}
         alFinal={llegoAlFinalV3(v3.estado)}
@@ -330,7 +336,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           </div>
           {/* Editando: el "Listo" va abajo, después de Sugerime preguntas (Joaquín, 17/09). */}
           {!editando ? (
-            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
               {puedeAgregar ? (
                 <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
                   <IconoBarra nombre="lapiz" />
@@ -349,14 +355,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                   Agregar fotos
                 </SubirFoto>
               ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
+                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
                   <IconoBarra nombre="foto" />
                   Agregar fotos
                 </span>
               ) : null}
               {PUEDE.invitar(rol) ? (
-                <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
-                  <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={soloInvitados} trato={tratoPanel} />
+                <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+                  <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={soloInvitados} trato={tratoPanel} />
                 </span>
               ) : null}
               {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (

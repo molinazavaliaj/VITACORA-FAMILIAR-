@@ -46,4 +46,19 @@ describe("mails de la web por país", () => {
     expect(es).toContain("Entra con este mismo correo:");
     expect(ar).not.toContain("leer sus páginas");
   });
+
+  it("invitación para las dudas (13/10): el texto aprobado; sabés / sabes", async () => {
+    const { enviarMailInvitacion } = await import("../src/lib/mail");
+    await enviarMailInvitacion({ para: "a@x.com", nombreNarrador: "Dora", quienInvita: "Marta", region: "AR", paraDudas: true });
+    await enviarMailInvitacion({ para: "e@x.com", nombreNarrador: "Imma", quienInvita: "Pere", region: "ES", paraDudas: true });
+    const [ar, es] = enviados.map((m) => m.html.replace(/\s+/g, " "));
+    expect(enviados[0].subject).toBe("Marta te pide ayuda con la historia de Dora");
+    expect(ar).toContain("Dora terminó de contar su vida y estamos por escribir su libro.");
+    expect(ar).toContain("Marta te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.");
+    expect(es).toContain("Si sabes la respuesta, puedes escribirla antes de que se escriba el libro.");
+    expect(ar).toContain("Entrá con este mismo correo:");
+    expect(es).toContain("Entra con este mismo correo:");
+    expect(ar).toContain("Ver las dudas");
+    expect(ar).not.toContain("sumar preguntas");
+  });
 });

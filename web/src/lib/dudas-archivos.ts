@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas } from "./dudas";
 
 // Los archivos del escritor en Storage (`{narrador}/escritor/...`), para la
 // pantalla de dudas, su API y el aviso del Inicio. Lo escriben la fábrica, los
@@ -53,4 +54,27 @@ export async function archivosDelEscritor(
   const { data, error } = await admin.storage.from("audios").list(`${narradorId}/escritor`);
   if (error) return { nombres: new Set(), error: error.message };
   return { nombres: new Set((data ?? []).map((a) => a.name)), error: null };
+}
+
+/**
+ * ¿Quedan dudas del escritor por contestar? Hay dudas, el libro todavía no se
+ * escribió y alguna sigue sin respuesta (no alcanza con que alguien haya
+ * contestado una). El listado decide si hace falta bajar los dos archivos.
+ *
+ * Si el listado o `dudas-familia.json` fallan o vienen rotos, no hay a dónde
+ * mandar a nadie: false. Si lo que falla es leer las correcciones, queda en
+ * true (mejor de más que perder el plazo). Lo usan el aviso del Inicio y el
+ * botón Compartir (invitar a quien sabe las respuestas, 13/10).
+ */
+export async function hayDudasPendientes(admin: SupabaseClient, narradorId: string): Promise<boolean> {
+  const { nombres, error } = await archivosDelEscritor(admin, narradorId);
+  if (error || !nombres.has("dudas-familia.json") || nombres.has("libro.md")) return false;
+  const [archivoDudas, archivoCorrecciones] = await Promise.all([
+    leerDelEscritor(admin, narradorId, "dudas-familia.json"),
+    leerDelEscritor(admin, narradorId, "correcciones.json"),
+  ]);
+  const dudas = archivoDudas.texto !== null ? leerDudas(archivoDudas.texto) : null;
+  if (!dudas) return false;
+  const correcciones = archivoCorrecciones.texto !== null ? leerCorreccionesGuardadas(archivoCorrecciones.texto) ?? [] : [];
+  return hayDudasSinContestar(dudas, correcciones);
 }
