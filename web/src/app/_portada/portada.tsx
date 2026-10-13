@@ -41,7 +41,7 @@ const FOTOS = {
   poster: "/video/portada-familiar-poster.jpg",
   padre: "/rediseno/para-tu-padre.jpg",
   abuelo: "/rediseno/para-tu-abuelo.jpg",
-  viaje: "/rediseno/para-tu-viaje.jpg",
+  viaje: "/rediseno/viaje-mirador-lisboa.jpg",
   portada: "/rediseno/libro-osvaldo-portada.jpg",
   contraportada: "/rediseno/libro-osvaldo-contraportada.jpg",
   marco: "/rediseno/marco-en-casa.jpg",
@@ -74,8 +74,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   return (
     <div lang={langDeIdioma(idioma)} className="tema-oscuro flex flex-1 flex-col">
       {/* ═══ HERO: vídeo con póster ═══ */}
-      <section id="hero" className="relative h-[880px] overflow-hidden sm:h-[900px]">
-        <div aria-hidden className="absolute inset-x-0 bottom-0 top-[400px] sm:top-[140px]">
+      <section id="hero" className="relative h-[940px] overflow-hidden sm:h-[960px]">
+        <div aria-hidden className="absolute inset-x-0 bottom-0 top-[470px] sm:top-[200px]">
           <Image
             src={FOTOS.poster}
             alt=""
@@ -86,7 +86,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           />
           <VideoPortada {...VIDEO} className="absolute inset-0 h-full w-full object-cover sm:object-[center_60%]" />
         </div>
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#0a0a0a_0%,#0a0a0a_45%,rgba(10,10,10,0.5)_52%,rgba(10,10,10,0)_62%,rgba(10,10,10,0)_82%,#0a0a0a_100%)] sm:bg-[linear-gradient(180deg,#0a0a0a_0%,#0a0a0a_18%,rgba(10,10,10,0.55)_34%,rgba(10,10,10,0)_52%,rgba(10,10,10,0)_82%,#0a0a0a_100%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#0a0a0a_0%,#0a0a0a_45%,rgba(10,10,10,0.5)_52%,rgba(10,10,10,0)_62%,rgba(10,10,10,0)_82%,#0a0a0a_100%)] sm:bg-[linear-gradient(180deg,#0a0a0a_0%,#0a0a0a_24%,rgba(10,10,10,0.6)_44%,rgba(10,10,10,0)_62%,rgba(10,10,10,0)_84%,#0a0a0a_100%)]" />
 
         <Cabecera idioma={idioma} camino="/" sobreHero />
 
@@ -104,13 +104,13 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               {t.hero.verComo}
             </Link>
           </div>
-          <p className="m-hero-3 text-[13px] text-[#b4b1a9] [font-family:var(--fuente-micro)]">
+          <p className="m-hero-3 text-[13px] text-[#b4b1a9] [font-family:var(--fuente-micro)] [text-shadow:0_1px_10px_#0a0a0a]">
             {lista && promo ? <Tachado lista={lista} porcentaje={promo} className="mr-2 text-[20px]" /> : null}
             {t.hero.desde(precio)}
           </p>
           <LinkRegalarLanding
             idioma={idioma}
-            className="m-hero-3 text-[14px] text-[var(--texto-oscuro-suave)] underline decoration-[var(--borde-oscuro-fuerte)] underline-offset-4 hover:text-white [font-family:var(--fuente-micro)]"
+            className="m-hero-3 flex min-h-11 items-center text-[14px] text-[var(--texto-oscuro-suave)] underline decoration-[var(--borde-oscuro-fuerte)] underline-offset-4 hover:text-white [font-family:var(--fuente-micro)] [text-shadow:0_1px_10px_#0a0a0a]"
           />
         </div>
       </section>
@@ -193,7 +193,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <div className="aparece grid gap-8 sm:grid-cols-2 md:grid-cols-3 md:gap-5">
           <FotoConPie src={FOTOS.padre} ancho={800} alto={1072} {...t.paraQuien.padre} />
           <FotoConPie src={FOTOS.abuelo} ancho={900} alto={1116} {...t.paraQuien.abuelo} />
-          <FotoConPie src={FOTOS.viaje} ancho={1200} alto={670} href="/viaje" {...t.paraQuien.viaje} />
+          <FotoConPie src={FOTOS.viaje} ancho={760} alto={943} href="/viaje" {...t.paraQuien.viaje} />
         </div>
       </Seccion>
 
@@ -574,7 +574,14 @@ function Seccion({
   children: ReactNode;
 }) {
   return (
-    <section id={id} data-cta-propio={ctaPropio ? "" : undefined} className={`scroll-mt-6 ${borde ? "border-t border-[#1c1b18]" : ""}`}>
+    // content-visibility: el navegador no calcula estilos ni diseño de lo que
+    // está lejos de la pantalla hasta que se acerca (RENDIMIENTO §3). El alto
+    // estimado evita que la barra de scroll salte; «auto» recuerda el real.
+    <section
+      id={id}
+      data-cta-propio={ctaPropio ? "" : undefined}
+      className={`scroll-mt-6 [contain-intrinsic-size:auto_900px] [content-visibility:auto] ${borde ? "border-t border-[#1c1b18]" : ""}`}
+    >
       <div className="mx-auto flex max-w-[1104px] flex-col gap-10 px-4 py-20 sm:px-6 sm:py-[110px]">{children}</div>
     </section>
   );
