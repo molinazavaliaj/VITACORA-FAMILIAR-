@@ -16,6 +16,14 @@ export type Resumen = {
   dudasPendientes?: boolean;
 };
 
+/** El aviso de las dudas del escritor (aprobado, 12/10): en el Inicio, en la historia y en Encargar libro. */
+export function textoDudas(propia: boolean, comoLeDicen: string, tu: boolean): string {
+  const contestalas = tu ? "Contéstalas" : "Contestalas";
+  return propia
+    ? `Hay dudas sobre lo que contaste. ${contestalas} antes de que se escriba el libro.`
+    : `Hay dudas sobre lo que contó ${comoLeDicen}. ${contestalas} antes de que se escriba el libro.`;
+}
+
 export function viajeDe(h: Historia): Viaje | null {
   const c = h.narrador.contexto as { modo?: unknown; viaje?: Viaje } | null | undefined;
   return c?.modo === "viaje" && c.viaje?.salida && c.viaje?.vuelta ? c.viaje : null;
@@ -38,12 +46,7 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
       // Las dudas tienen plazo: pasado el rato de espera el libro se escribe con
       // o sin ellas. Elegir la tapa no vence, así que las dudas van primero.
       if (r.dudasPendientes) {
-        return {
-          href: `/tablero/${id}/dudas`,
-          texto: propia
-            ? `Hay dudas sobre lo que contaste. ${tu ? "Contéstalas" : "Contestalas"} antes de que se escriba el libro.`
-            : `Hay dudas sobre lo que contó ${h.narrador.como_le_dicen}. ${tu ? "Contéstalas" : "Contestalas"} antes de que se escriba el libro.`,
-        };
+        return { href: `/tablero/${id}/dudas`, texto: textoDudas(propia, h.narrador.como_le_dicen, tu) };
       }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: tu
         ? (propia ? "Ya terminaste de contar. Elige la tapa y encarga tu libro" : "Ya terminó de contar. Elige la tapa y encarga su libro")

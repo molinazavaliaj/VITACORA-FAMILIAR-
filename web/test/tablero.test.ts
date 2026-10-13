@@ -261,7 +261,7 @@ describe('PATCH /api/narrador/[narradorId]', () => {
 // --- el regalo en el panel (gift card, Task 9) -------------------------
 
 import { estadoEnHumano } from '../src/app/tablero/ui';
-import { proximoPaso } from '../src/app/tablero/proximo-paso';
+import { proximoPaso, textoDudas } from '../src/app/tablero/proximo-paso';
 import { textosComprador } from '@/lib/regalo-textos';
 
 const VOS = textosComprador('vos');
@@ -355,5 +355,11 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
   });
   it('sin dudas pendientes, el paso sigue siendo el de siempre', () => {
     expect(proximoPaso(h('completado'), r)?.href).toBe('/tablero/n3/libro');
+  });
+  // El mismo aviso va en la historia y en Encargar libro (13/10): no solo en el Inicio.
+  it('textoDudas: el mismo texto aprobado, de vos o de tú', () => {
+    expect(textoDudas(false, 'Imma', false)).toBe('Hay dudas sobre lo que contó Imma. Contestalas antes de que se escriba el libro.');
+    expect(textoDudas(false, 'Imma', true)).toBe('Hay dudas sobre lo que contó Imma. Contéstalas antes de que se escriba el libro.');
+    expect(textoDudas(true, 'Imma', false)).toBe('Hay dudas sobre lo que contaste. Contestalas antes de que se escriba el libro.');
   });
 });

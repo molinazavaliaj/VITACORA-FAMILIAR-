@@ -18,6 +18,8 @@ import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasV3ParaCerrar, type RespuestaV3 } from "@/lib/v3";
 import { idiomaDelLibro } from "@/lib/tapa";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
+import { textoDudas } from "../../proximo-paso";
 import { tratoDeLaFamilia } from "@/lib/trato";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
@@ -62,6 +64,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
   const v3 = await entrevistaV3(admin, n.id);
+  // Dudas del escritor sin contestar (13/10): el aviso lleva a la pantalla. Vale aun encargado, mientras el libro no esté escrito.
+  const dudasPendientes = terminado ? await hayDudasPendientes(admin, n.id) : false;
 
   const [{ data: filaN }, { data: pedidos }, trato] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
@@ -274,6 +278,11 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       <div className="mt-1">
         <Titulo>Su libro</Titulo>
       </div>
+      {dudasPendientes ? (
+        <div className="mt-6">
+          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tu)}</ProximoPaso>
+        </div>
+      ) : null}
       {estado}
 
       {/* ── El libro en miniatura ──────────────────────────────────────── */}

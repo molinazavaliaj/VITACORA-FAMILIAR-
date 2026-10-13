@@ -10,6 +10,7 @@ import { ReproductorRespuesta } from "../reproductor";
 import { Etiqueta, ProximoPaso, Titulo, estadoEnHumano, fechaCorta, formatearDuracion, tituloHistoria } from "../ui";
 import type { Ritmo } from "@/lib/guion";
 import type { TratoComprador } from "@/lib/regalo-textos";
+import { textoDudas } from "../proximo-paso";
 
 // La historia de un narrador V3 (entrevista por WhatsApp, 10/10). No hay guion de 30 ni capítulos que
 // ordenar: la entrevista va por bloques y lo que viene lo decide el biógrafo. Se muestra lo que se le
@@ -23,7 +24,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, ritmo, horario, alFinal, trato = "vos",
+  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos",
 }: {
   /** El trato de los textos del panel: el de la familia dueña de la historia. */
   trato?: TratoComprador;
@@ -42,6 +43,8 @@ export function HistoriaV3({
   invitados: InvitadoVista[];
   /** Terminó de contar y quedan dudas del escritor: se puede invitar a quien sepa las respuestas. */
   dudasAbiertas?: boolean;
+  /** Quedan dudas del escritor sin contestar y el libro no está escrito: el aviso que lleva a contestarlas. */
+  dudasPendientes?: boolean;
   ritmo: Ritmo;
   horario?: { hora: string; zona: string };
 }) {
@@ -92,6 +95,12 @@ export function HistoriaV3({
             {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={trato} /> : null}
           </div>
         </header>
+
+        {dudasPendientes ? (
+          <div className="mt-8">
+            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tu)}</ProximoPaso>
+          </div>
+        ) : null}
 
         {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
           <div className="mt-8 flex flex-col gap-3">

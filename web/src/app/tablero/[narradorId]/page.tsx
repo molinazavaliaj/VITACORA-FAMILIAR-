@@ -5,6 +5,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
+import { textoDudas } from "../proximo-paso";
 import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
@@ -150,7 +151,10 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
   // Terminó de contar y el escritor dejó dudas sin contestar (13/10): la dueña
   // puede invitar a quien sepa las respuestas, aunque la historia esté cerrada.
-  const dudasAbiertas = rol === "duena" && !aprobado && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
+  // El aviso que lleva a la pantalla de dudas (13/10): la dueña y los invitados, mientras el libro no esté escrito
+  // (aunque ya lo hayan encargado: el libro espera las respuestas). Invitar, solo con el libro sin cerrar.
+  const dudasPendientes = PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
+  const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
@@ -234,6 +238,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         linkPublico={linkPublico}
         invitados={soloInvitados}
         dudasAbiertas={dudasAbiertas}
+        dudasPendientes={dudasPendientes}
         ritmo={ritmo}
         horario={horario}
         alFinal={llegoAlFinalV3(v3.estado)}
@@ -406,6 +411,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             </ol>
           </nav>
         </div>
+
+        {dudasPendientes ? (
+          <div className="mt-8">
+            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
+          </div>
+        ) : null}
 
         {/* Terminó de contar: mientras la edición está abierta, la barra manda (fotos,
             compartir, cerrar). Al cerrarla aparece el paso siguiente. Los invitados
