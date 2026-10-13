@@ -21,9 +21,9 @@ export function Pie({ idioma, camino }: { idioma: IdiomaWeb; camino: string }) {
         <p className="max-w-xs text-[15px] italic text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-cuerpo)]">{t.lema}</p>
         <div className="flex flex-col gap-6 text-[12px] uppercase tracking-[0.18em] [font-family:var(--fuente-micro)] sm:flex-row sm:gap-12">
           <nav aria-label={t.legales} className="flex flex-col">
-            <Link href="/legal/terminos" className={enlace}>{t.terminos}</Link>
-            <Link href="/legal/privacidad" className={enlace}>{t.privacidad}</Link>
-            <Link href="/legal/arrepentimiento" className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
+            <Link prefetch={false} href="/legal/terminos" className={enlace}>{t.terminos}</Link>
+            <Link prefetch={false} href="/legal/privacidad" className={enlace}>{t.privacidad}</Link>
+            <Link prefetch={false} href="/legal/arrepentimiento" className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
@@ -35,7 +35,7 @@ export function Pie({ idioma, camino }: { idioma: IdiomaWeb; camino: string }) {
             ) : null}
           </div>
           <div className="flex flex-col">
-            <Link href="/entrar" className={enlace}>{t.entrar}</Link>
+            <Link prefetch={false} href="/entrar" className={enlace}>{t.entrar}</Link>
             <EnlaceIdioma idioma={idioma === "ar" ? "es" : "ar"} camino={camino} className={`${enlace} normal-case tracking-normal text-[13px]`}>
               {t.cambiarPais}
             </EnlaceIdioma>

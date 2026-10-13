@@ -19,7 +19,7 @@ const REGALAR_POR_IDIOMA: Record<IdiomaWeb, string> = {
 export function LinkRegalarLanding({ trato = "vos", idioma, className }: { trato?: TratoComprador; idioma?: IdiomaWeb; className?: string }) {
   const texto = idioma ? REGALAR_POR_IDIOMA[idioma] : trato === "tu" ? REGALAR_POR_IDIOMA.es : REGALAR_POR_IDIOMA.ar;
   return (
-    <Link
+    <Link prefetch={false}
       href={idioma ? ruta(idioma, "/regalar") : "/regalar"}
       className={
         className ??
@@ -37,7 +37,7 @@ export function SugerenciaRegalo({ trato = "vos" }: { trato?: TratoComprador }) 
   return (
     <p className="mt-4 text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
       {tu ? "¿Quieres que sea una sorpresa?" : "¿Querés que sea una sorpresa?"}{" "}
-      <Link href="/regalar" className="text-[#14140F] underline underline-offset-4">{tu ? "Regálalo con una tarjeta" : "Regalalo con una tarjeta"}</Link>
+      <Link prefetch={false} href="/regalar" className="text-[#14140F] underline underline-offset-4">{tu ? "Regálalo con una tarjeta" : "Regalalo con una tarjeta"}</Link>
       . No hace falta su WhatsApp.
     </p>
   );

@@ -84,7 +84,7 @@ export function CtaSticky({
           <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{textos.desde} {precio}</p>
           <p className="truncate text-[11px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
         </div>
-        <Link
+        <Link prefetch={false}
           href={href}
           tabIndex={visible ? 0 : -1}
           className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#8F7BE0] px-6 text-[15px] font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"

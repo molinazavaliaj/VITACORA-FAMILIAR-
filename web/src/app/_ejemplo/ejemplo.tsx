@@ -48,11 +48,11 @@ export function Ejemplo({ idioma }: { idioma: IdiomaWeb }) {
           posicionesPaginas={t.paginas.map((nombre, i) => t.posicion(i + 1, t.paginas.length, nombre))}
         />
         <div className="mt-2 flex flex-col items-center gap-3 text-center">
-          <Link href={ruta(idioma, "/comprar")} className={clasesBoton("primario", "px-9 py-4 text-[17px]")}>
+          <Link prefetch={false} href={ruta(idioma, "/comprar")} className={clasesBoton("primario", "px-9 py-4 text-[17px]")}>
             {t.cta(precio)}
           </Link>
           <span className="max-w-md text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{t.nota}</span>
-          <Link href={ruta(idioma, "/")} className="flex min-h-11 items-center text-[14px] text-[var(--texto-oscuro-menor)] hover:text-white [font-family:var(--fuente-micro)]">
+          <Link prefetch={false} href={ruta(idioma, "/")} className="flex min-h-11 items-center text-[14px] text-[var(--texto-oscuro-menor)] hover:text-white [font-family:var(--fuente-micro)]">
             {t.volver}
           </Link>
         </div>

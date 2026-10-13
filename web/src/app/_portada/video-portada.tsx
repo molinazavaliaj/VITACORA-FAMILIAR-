@@ -14,6 +14,8 @@ import { useEffect, useRef, useState } from "react";
 type ConAhorro = Navigator & { connection?: { saveData?: boolean } };
 
 const PAUSA_FINAL_MS = 3500;
+/** Antes de este instante (desde que empezó la navegación) el vídeo no empieza a bajar. */
+const ESPERA_MIN_MS = 3000;
 
 export function VideoPortada({
   escritorio,
@@ -63,14 +65,28 @@ export function VideoPortada({
       video.load();
     };
 
-    // Después del primer pintado y con el navegador libre.
+    // Después del primer pintado, de la carga de la página, del segundo 3 y con
+    // el navegador libre. El mp4 móvil pesa ~330 kB: si arranca antes compite
+    // por el ancho de banda con el póster (el LCP), las tipografías y el JS.
     const programar = () => {
-      if ("requestIdleCallback" in window) {
-        const id = window.requestIdleCallback(cargar, { timeout: 2500 });
-        cancelarIdle = () => window.cancelIdleCallback(id);
-      } else {
-        const id = setTimeout(cargar, 1200);
+      const alIdle = () => {
+        if ("requestIdleCallback" in window) {
+          const id = window.requestIdleCallback(cargar, { timeout: 2500 });
+          cancelarIdle = () => window.cancelIdleCallback(id);
+        } else {
+          cargar();
+        }
+      };
+      const alCargar = () => {
+        const faltan = Math.max(0, ESPERA_MIN_MS - performance.now());
+        const id = setTimeout(alIdle, faltan);
         cancelarIdle = () => clearTimeout(id);
+      };
+      if (document.readyState === "complete") {
+        alCargar();
+      } else {
+        window.addEventListener("load", alCargar, { once: true });
+        cancelarIdle = () => window.removeEventListener("load", alCargar);
       }
     };
 
