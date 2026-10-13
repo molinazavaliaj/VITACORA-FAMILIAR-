@@ -3,7 +3,8 @@ import { PAISES_EUROPA } from "./src/lib/region";
 
 // Rendimiento (docs/rediseno-2026-10/RENDIMIENTO.md §3.7): respuestas
 // comprimidas y next/image sirviendo AVIF o WebP según lo que acepte el
-// navegador. La región de las funciones NO va acá: la decide Naza (§3.5).
+// navegador. La región de las funciones está en vercel.json: dub1 (Dublín),
+// al lado de la base de Supabase (eu-west-1, Irlanda; Naza 13/10, §3.5).
 //
 // Idioma por país (DECISIONES.md D2, RENDIMIENTO.md §3.10 opción c): las
 // pantallas públicas son estáticas y tienen una ruta por versión (/, /ca, /ar).
