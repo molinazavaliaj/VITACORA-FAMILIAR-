@@ -17,6 +17,7 @@ import { Extras } from "./extras";
 import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasV3ParaCerrar, type RespuestaV3 } from "@/lib/v3";
+import { idiomaDelLibro } from "@/lib/tapa";
 import { tratoDeLaFamilia } from "@/lib/trato";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
@@ -170,7 +171,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     ...f, foco: focoDe(f.foco), posicion: validarPosicion(f.posicion) ? f.posicion : POSICION_DEFAULT,
   })));
 
-  const propuesta = propuestaPorDefecto(n.nombre, n.nombre, capitulos);
+  const propuesta = propuestaPorDefecto(n.nombre, capitulos);
   const edicion = {
     titulo: edicionGuardada.titulo ?? propuesta.titulo,
     subtitulo: edicionGuardada.subtitulo ?? propuesta.subtitulo,
@@ -195,7 +196,6 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   // El libro en miniatura: capítulos en el orden elegido, con sus fotos y lo contado.
   const datosLibro: LibroDatos = {
     titulo: edicion.titulo,
-    subtitulo: edicion.subtitulo,
     portadaFotoId: edicion.portadaFotoId,
     contratapaFotoId: edicion.contratapaFotoId,
     // Gris solo si lo único impreso que compró es en blanco y negro (si hay uno a color, se ve a color).
@@ -314,13 +314,14 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             edicion={edicion}
             capitulos={capitulos}
             respuestas={resumen}
-            fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
+            fotos={fotos.map(({ id, epigrafe, capitulo, foco }) => ({ id, epigrafe, capitulo, foco }))}
             nombresRevisados={nombresRevisados}
             v3={respuestasV3}
             upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} trato={trato} />}
             envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} trato={trato} /> : undefined}
             faltaDireccion={faltaDireccion}
             trato={trato}
+            idioma={idiomaDelLibro(v3?.idioma)}
           />
         </section>
       ) : null}

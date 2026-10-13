@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Toroide } from "../../../marca";
+import { TapaLibro } from "../../../tapa-libro";
 
 // El libro en miniatura (docs/panel-usuario.md §15.4): se hojea página por
 // página y muestra cómo va a quedar — la tapa elegida, dónde caen las fotos,
@@ -18,7 +18,6 @@ export type FotoLibro = { id: string; epigrafe: string | null; principal: boolea
 export type CapituloLibro = { nombre: string; fotos: FotoLibro[]; textos: { pregunta: string; texto: string }[] };
 export type LibroDatos = {
   titulo: string;
-  subtitulo: string;
   portadaFotoId: string | null;
   contratapaFotoId: string | null;
   /** Encuadre de la tapa y la contratapa (las fotos del álbum también tienen foco). */
@@ -87,16 +86,8 @@ function PaginaVista({ p, d, numero, trato = "vos" }: { p: Pagina; d: LibroDatos
   const folio = <p className="mt-auto pt-2 text-center text-[8px] text-[var(--linea-fuerte)] [font-family:var(--fuente-micro)]">{numero}</p>;
   switch (p.tipo) {
     case "tapa":
-      return (
-        <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
-          <Toroide className="h-5 w-auto text-[#AEAEA6]" />
-          {d.portadaFotoId ? <Foto id={d.portadaFotoId} foco={d.focos?.[d.portadaFotoId]} className="my-3 aspect-square w-full rounded-sm" /> : <span />}
-          <div>
-            <p className="text-[18px] leading-[1.1] [font-family:var(--fuente-titulo)] [text-wrap:balance]">{d.titulo}</p>
-            <p className="mt-2 text-[9px] italic text-[#D4D4CE] [font-family:var(--fuente-cuerpo)]">{d.subtitulo}</p>
-          </div>
-        </div>
-      );
+      // La misma tapa que sale impresa (13/10). El gris del impreso en blanco y negro lo pone el contenedor.
+      return <TapaLibro titulo={d.titulo} fotoSrc={d.portadaFotoId ? `/api/fotos/${d.portadaFotoId}` : null} foco={d.portadaFotoId ? d.focos?.[d.portadaFotoId] : undefined} llenar />;
     case "contratapa":
       return (
         <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">

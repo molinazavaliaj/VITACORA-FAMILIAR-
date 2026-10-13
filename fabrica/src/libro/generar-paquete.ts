@@ -222,8 +222,8 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
 
     // 1c. HTML → Storage (el lector online carga ese mismo archivo) y
     // HTML → PDF (A5, imprenta) → Storage. La foto de tapa que eligió la
-    // dueña reemplaza al retrato de siempre en el frontispicio; si el id
-    // no está entre las fotos (o no se pudo bajar), queda el retrato.
+    // dueña va en la tapa; si el id no está entre las fotos (o no se pudo
+    // bajar), queda el retrato de siempre.
     const contexto = narrador.contexto as { anioNacimiento?: number } | null | undefined;
     const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
     const html = await construirHtmlLibro({

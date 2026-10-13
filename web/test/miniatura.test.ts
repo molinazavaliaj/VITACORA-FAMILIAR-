@@ -7,7 +7,6 @@ import { armarPaginas, paginar, type LibroDatos } from "../src/app/tablero/[narr
 
 const datos: LibroDatos = {
   titulo: "Roberto — La historia de una vida",
-  subtitulo: "Roberto",
   portadaFotoId: null,
   contratapaFotoId: null,
   capitulos: [
