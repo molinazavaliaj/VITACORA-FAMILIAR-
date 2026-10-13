@@ -50,6 +50,25 @@ async function enviar(opciones: { para: string; asunto: string; html: string }):
   return true;
 }
 
+/**
+ * Un aviso de texto a los socios (MAIL_SOCIOS, separados por coma), como `avisarSocios`
+ * de la fábrica. Sin MAIL_SOCIOS o sin RESEND_API_KEY, false. Nunca tira.
+ */
+export async function enviarMailSocios(asunto: string, texto: string): Promise<boolean> {
+  const socios = (process.env.MAIL_SOCIOS ?? "").split(",").map((m) => m.trim()).filter(Boolean);
+  if (socios.length === 0) return false;
+  const html = `<pre style="font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:pre-wrap;">${escapar(texto)}</pre>`;
+  let alguno = false;
+  for (const para of socios) {
+    try {
+      if (await enviar({ para, asunto, html })) alguno = true;
+    } catch (err) {
+      console.error(`mail: no salió el aviso a los socios (${para}):`, err instanceof Error ? err.message : err);
+    }
+  }
+  return alguno;
+}
+
 function envoltorio(cuerpo: string): string {
   return `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8" /></head>
