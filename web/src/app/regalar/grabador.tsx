@@ -13,7 +13,8 @@ const TIPOS = ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/x-m4
 const MAXIMO_BYTES = 10 * 1024 * 1024;
 const TOPE_SEGUNDOS = 120;
 
-const boton = "inline-flex h-11 items-center justify-center rounded-full border border-[#14140F] bg-white px-5 text-[15px] text-[#14140F] transition-colors hover:bg-[#14140F] hover:text-white disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
+// Tema oscuro del rediseño (2026-10): el botón fantasma de la casa.
+const boton = "m-ghost inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-5 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 
 function reloj(segundos: number): string {
   const m = Math.floor(segundos / 60);
@@ -199,19 +200,19 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
             <button type="button" className={boton} onClick={grabar}>{textos.grabar}</button>
           )}
           {grabando && (
-            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[#5F5F55] [font-family:var(--fuente-micro)]">
-              <span className="h-2 w-2 rounded-full bg-[#B42318]" aria-hidden />
+            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
+              <span className="h-2 w-2 rounded-full bg-[#f0a37a]" aria-hidden />
               {reloj(segundos)} / {reloj(TOPE_SEGUNDOS)}
             </span>
           )}
         </div>
       ) : (
         <label className="block">
-          <span className="text-[14px] text-[#5F5F55] [font-family:var(--fuente-micro)]">{textos.elegirAudio}</span>
-          <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] [font-family:var(--fuente-micro)]" />
+          <span className="text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{textos.elegirAudio}</span>
+          <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]" />
         </label>
       )}
-      {error && <p className="mt-2 text-[14px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
+      {error && <p className="mt-2 text-[14px] text-[#f0a37a] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
     </div>
   );
 }

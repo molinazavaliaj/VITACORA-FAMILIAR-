@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
-import { crearCheckout } from "@/lib/pagos";
+import { crearCheckout, type OrigenCompra } from "@/lib/pagos";
+import { esIdiomaWeb, regionDeIdioma } from "@/lib/idioma-web";
 import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
 import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } from "@/lib/regalo";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
@@ -23,6 +24,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
   email?: string;
+  /**
+   * La versión de la web desde donde se compra (es, ca, ar) y la pantalla
+   * (rediseño 2026-10): con esto la pasarela vuelve a la ruta de ese idioma.
+   * No va a la base. Sin esto, las vueltas de siempre.
+   */
+  idiomaWeb?: string;
+  pantalla?: string;
   /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
   productos?: { viaje?: boolean; impresos?: number; marcos?: number };
   /**
@@ -82,6 +90,12 @@ function columnasEntrega(e: EntregaRegalo | null) {
     entrega_hora: e?.hora ?? null,
     entrega_zona: e?.zona ?? null,
   };
+}
+
+/** De dónde salió la compra, si el cuerpo lo dice y coincide con la región; si no, nada (vueltas de siempre). */
+function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
+  if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
+  return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
 }
 
 /** PostgREST no conoce la columna: la migración de la entrega todavía no se aplicó. */
@@ -332,7 +346,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { urlPago } = await crearCheckout({ id: (pedido as { id: string }).id, email }, compra);
+    // Sin origen (otra pantalla, un cliente viejo), el llamado de siempre.
+    const datosPedido = { id: (pedido as { id: string }).id, email };
+    const origen = origenDe(body, compra.region);
+    const { urlPago } = await (origen ? crearCheckout(datosPedido, compra, origen) : crearCheckout(datosPedido, compra));
     // Paso 5 (17/09): las fotos del álbum se suben antes de ir a pagar, sin
     // sesión, con un token atado a este narrador y de una hora (lib/token-fotos).
     return NextResponse.json(

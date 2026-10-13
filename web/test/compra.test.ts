@@ -112,6 +112,27 @@ describe("POST /api/compra", () => {
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
   });
 
+  // Rediseño 2026-10: la compra dice de qué versión de la web sale, para que la
+  // pasarela vuelva a esa ruta (pago fallido y «Pedido confirmado»). No va a la base.
+  it("el idioma de la web viaja a la pasarela si coincide con la región; si no, la vuelta de siempre", async () => {
+    const nuevaCompra = () =>
+      crearAdmin({
+        familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
+        narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
+        pedidos: [{ data: { id: "ped-1" }, error: null }],
+      });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(nuevaCompra());
+    expect((await POST(peticion({ ...CUERPO_VALIDO, idiomaWeb: "ar" }))).status).toBe(200);
+    expect(crearCheckout).toHaveBeenLastCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }), { idioma: "ar", pantalla: "comprar" });
+
+    // Una compra de Argentina no puede volver a la versión de España.
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(nuevaCompra());
+    expect((await POST(peticion({ ...CUERPO_VALIDO, idiomaWeb: "ca" }))).status).toBe(200);
+    expect(crearCheckout).toHaveBeenLastCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
+    const insertado = (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mock.results.at(-1)?.value as ReturnType<typeof crearAdmin>;
+    expect(JSON.stringify(insertado.inserts)).not.toContain("idiomaWeb");
+  });
+
   it("si la familia ya existe (mismo correo, compra anterior) la reusa y no crea otra", async () => {
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-vieja" }, error: null }],

@@ -1,58 +1,146 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CampoVF } from "../../marca";
 import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
-import { tratoDeRegion } from "@/lib/regalo-textos";
+import { esIdiomaWeb, type IdiomaWeb } from "@/lib/idioma-web";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
+import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { esPropia, historiaAccesible } from "@/lib/panel";
+import { CONFIRMADO, type Momento } from "../../_textos/pedido-confirmado";
+import { CascaronCheckout } from "../../_checkout/cascaron";
+import { clasesBoton } from "../../_ui";
+import { AlConfirmar } from "./al-confirmar";
 
-// La pantalla de respaldo después de pagar. Desde el 21/09 (3t.20) el
-// proveedor vuelve a /api/pago/vuelta, que confirma el pago y abre la sesión
-// directo en el panel; acá se cae solo si eso no pudo (pago todavía
-// pendiente, sesión que no abrió). No hay sesión: no se muestra nada de la
-// base, solo qué va a pasar y cómo entrar. El mail de acceso puede llegar
-// unos segundos después — por eso no se promete "ya te llegó".
+// «Pedido confirmado» (rediseño 2026-10, paso 4 de la maqueta Checkout).
+// Adonde vuelve la pasarela: /api/pago/vuelta confirma el pago, abre la sesión
+// y trae acá a quien compró con su narrador (`?n=`) y el idioma de la web
+// (`?idioma=`). Con la sesión se lee lo justo para hablarle bien (cómo le
+// dicen, si es un regalo, si es su propio libro, si algo viaja). Si la vuelta
+// no pudo abrir la sesión o confirmar (pago pendiente), se cae acá sin `n`: la
+// pantalla de respaldo de siempre, que no muestra nada de la base y manda a
+// entrar con el correo. El mail de acceso puede llegar unos segundos después:
+// por eso no se promete «ya te llegó».
+//
+// Es dinámica a propósito (lee la sesión y la URL): no es una página de entrada.
 
-export const metadata: Metadata = { title: "Ya está en marcha", robots: { index: false } };
+export const metadata: Metadata = { title: "Pedido confirmado", robots: { index: false } };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type Confirmado = {
+  narradorId: string;
+  nombre: string;
+  propia: boolean;
+  regalo: boolean;
+  /** Hay algo que viaja (impreso o marcos): la entrega existe. */
+  impreso: boolean;
+  /** La entrega todavía sin dirección (para guardar la del checkout). */
+  entregaSinDireccion: string | null;
+};
+
+/** Lo que se muestra de la compra, si la sesión es de la dueña de ese narrador; si no, null. */
+async function leerConfirmado(narradorId: string): Promise<Confirmado | null> {
+  try {
+    const user = await usuarioDeLaSesion();
+    if (!user) return null;
+    const admin = crearClienteServidor();
+    const { historia } = await historiaAccesible(admin, user, narradorId);
+    if (!historia || historia.rol !== "duena") return null;
+    const n = historia.narrador;
+    // Las dos consultas no dependen una de la otra.
+    const [{ data: regalo }, { data: entrega }] = await Promise.all([
+      admin.from("regalos").select("codigo").eq("narrador_id", n.id).maybeSingle(),
+      admin.from("entregas").select("id, estado").eq("narrador_id", n.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    const e = entrega as { id: string; estado: string } | null;
+    return {
+      narradorId: n.id,
+      nombre: (n.como_le_dicen || n.nombre || "").trim(),
+      propia: esPropia(n),
+      regalo: Boolean((regalo as { codigo?: string } | null)?.codigo) || n.estado === "regalo_pendiente",
+      impreso: Boolean(e),
+      entregaSinDireccion: e && e.estado === "sin_direccion" ? e.id : null,
+    };
+  } catch (err) {
+    console.error("gracias: no pude leer la compra confirmada", err);
+    return null;
+  }
+}
 
 export default async function Gracias({ searchParams }: PageProps<"/comprar/gracias">) {
-  const { viaje } = await searchParams;
+  const { viaje, idioma: crudo, n } = await searchParams;
   const esViaje = viaje === "1";
-  // Sin sesión: el trato sale del país de quien compró.
-  const tu = tratoDeRegion(regionDelRequest(await headers())) === "tu";
+  // El idioma lo trae la vuelta del pago; sin él, el país de quien compró, como antes.
+  const idioma: IdiomaWeb = esIdiomaWeb(crudo) ? crudo : regionDelRequest(await headers()) === "ES" ? "es" : "ar";
+  const T = CONFIRMADO[idioma];
+  const confirmado = typeof n === "string" && UUID.test(n) ? await leerConfirmado(n) : null;
   // El número del biógrafo, para que el viajero le escriba primero mientras no hay plantilla aprobada.
   const numero = process.env.NEXT_PUBLIC_WA_NUMERO ?? null;
+
+  const titulo = confirmado ? (confirmado.propia ? T.tituloPropio : confirmado.nombre ? T.tituloDe(confirmado.nombre) : T.tituloGenerico) : T.tituloGenerico;
+  const momentos: Momento[] = esViaje
+    ? []
+    : confirmado
+      ? confirmado.propia
+        ? T.propio(confirmado.impreso)
+        : confirmado.regalo
+          ? T.regalo(confirmado.nombre, confirmado.impreso)
+          : T.otro(confirmado.nombre, confirmado.impreso)
+      : T.generico;
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-[#14140F] px-6 py-24 text-center text-white">
-      <div className="w-full max-w-lg">
-        <CampoVF halo="#14140F" className="mx-auto h-24 w-auto" />
-        <p className="mt-10 text-[11px] uppercase text-[#AEAEA6] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Listo</p>
-        <h1 className="mt-4 text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-          Gracias. Ya está en marcha.
-        </h1>
-        {esViaje ? (
-          <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-            Tu biógrafo de viaje se presenta por WhatsApp. {numero ? <>Para arrancar ya, mandale un <strong className="font-normal text-white">hola</strong> a <strong className="font-normal text-white">{numero}</strong>: te contesta y te pide el SÍ.</> : "Cuando te escriba, respondé SÍ y esa noche llega la primera pregunta."}
+    <CascaronCheckout idioma={idioma} inicio={esViaje ? "/viaje" : "/"} viaje={esViaje}>
+      <main className="mx-auto flex w-full max-w-[720px] flex-col gap-7 px-4 pb-24 pt-12 sm:px-6">
+        <div className="flex flex-col gap-3.5">
+          <span aria-hidden className="m-up flex h-14 w-14 items-center justify-center rounded-full bg-[var(--boton)] text-[var(--sobre-boton)]">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12.5l4.2 4.2L19 7" />
+            </svg>
+          </span>
+          <span className="text-[12px] uppercase tracking-[0.18em] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.antetitulo}</span>
+          <h1 className="text-[36px] font-medium leading-[1.08] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)] [text-wrap:balance] sm:text-[46px]">{titulo}</h1>
+          <p className="text-[17px] leading-[1.55] text-[var(--texto-oscuro-suave)]">
+            {esViaje ? T.viaje(numero) : confirmado?.regalo ? T.correoRegalo : T.correo}
           </p>
-        ) : (
-          <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-            En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué
-            se trata. Arranca cuando quiera.
-          </p>
-        )}
-        <p className="mt-4 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-          Te mandamos un correo con todo esto y con cómo entrar a tu panel, donde
-          vas a ir escuchando lo que cuenta. Si no lo ves, {tu ? "mira" : "mirá"} en promociones o en spam.
-        </p>
-        <Link
-          href="/entrar"
-          className="mt-10 inline-flex h-13 items-center justify-center rounded-full bg-[#8F7BE0] px-8 text-base font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] [font-family:var(--fuente-micro)]"
-        >
-          Entrar a mi panel
-        </Link>
-        <p className="mt-3 text-[13px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">
-          Con tu correo y un código de 6 números. Sin contraseñas.{/* ⚠️ Naza: texto de respaldo cuando la vuelta no pudo abrir la sesión. */}
-        </p>
-      </div>
-    </div>
+        </div>
+
+        {momentos.length > 0 ? (
+          <ol className="flex flex-col rounded-[22px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] px-6 py-2">
+            {momentos.map((m) => (
+              <li key={m.cuando} className="m-up flex gap-4 border-b border-[var(--tarjeta-alta)] py-4 last:border-b-0">
+                <span className="w-[92px] shrink-0 text-[13px] text-[var(--acento-oscuro)] [font-family:var(--fuente-micro)]">{m.cuando}</span>
+                <span className="text-[16px] leading-normal text-[var(--texto-oscuro)]">{m.que}</span>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+
+        <AlConfirmar
+          narradorId={confirmado?.narradorId ?? null}
+          entregaId={confirmado?.entregaSinDireccion ?? null}
+          textos={{ guardada: T.direccionGuardada, falta: T.faltaDireccion, poner: T.ponerDireccion }}
+        />
+
+        <div className="flex flex-wrap gap-3">
+          {confirmado?.regalo ? (
+            <Link href={`/tablero/${confirmado.narradorId}/regalo`} className={clasesBoton("primario", "min-h-14 px-8 text-[16px]")}>
+              {T.descargarTarjeta}
+            </Link>
+          ) : null}
+          {confirmado ? (
+            <Link href={`/tablero/${confirmado.narradorId}`} className={clasesBoton(confirmado.regalo ? "fantasma" : "primario", "min-h-14 px-7")}>
+              {T.irAlPanel}
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <Link href="/entrar" className={clasesBoton("primario", "min-h-14 self-start px-8 text-[16px]")}>
+                {T.entrarAlPanel}
+              </Link>
+              <p className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.sinContrasenas}</p>
+            </div>
+          )}
+        </div>
+      </main>
+    </CascaronCheckout>
   );
 }

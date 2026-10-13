@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { firmarToken } from "./token-firmado";
 import type { Compra } from "@/lib/productos";
+import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 
 // Crea el link de pago (Stripe para ES, Mercado Pago para AR) a partir de una
 // compra ya calculada (productos.ts). Los clientes de cada SDK se instancian
@@ -13,7 +14,16 @@ import type { Compra } from "@/lib/productos";
 
 type Pedido = { id: string; email: string };
 
-export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ urlPago: string }> {
+/**
+ * De qué pantalla salió la compra (rediseño 2026-10). Con esto la pasarela
+ * vuelve a la versión del idioma correcto: si no cobró, a la misma compra con
+ * `?pago=fallido` (ahí se restaura lo elegido, Casos 2); si cobró, la vuelta
+ * lleva el idioma para que «Pedido confirmado» hable igual. Sin esto (el panel,
+ * Encargar libro), todo queda como antes.
+ */
+export type OrigenCompra = { idioma: IdiomaWeb; pantalla?: "comprar" | "regalar" };
+
+export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: OrigenCompra): Promise<{ urlPago: string }> {
   // Vitácora de viaje: la pantalla de gracias explica cómo arrancar por WhatsApp, y "atrás" vuelve a su compra.
   const esViaje = compra.lineas.some((l) => l.id === "viaje");
   const vuelta = esViaje ? "/viaje" : "";
@@ -21,7 +31,11 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
   // 3t.20: al cobrar, el proveedor vuelve a NUESTRA ruta con un token firmado
   // atado al pedido (1 hora): ahí se verifica el pago con el proveedor, se
   // confirma el pedido aunque el webhook falle, y se abre la sesión.
-  const urlVuelta = `${urlBase}/api/pago/vuelta?pedido=${encodeURIComponent(pedido.id)}&t=${firmarToken("vuelta", pedido.id)}${esViaje ? "&viaje=1" : ""}`;
+  const urlVuelta = `${urlBase}/api/pago/vuelta?pedido=${encodeURIComponent(pedido.id)}&t=${firmarToken("vuelta", pedido.id)}${esViaje ? "&viaje=1" : ""}${origen ? `&idioma=${origen.idioma}` : ""}`;
+  // Si no se cobró (cancelar, tarjeta rechazada): de vuelta a la compra de donde salió.
+  const urlCancelada = origen
+    ? `${urlBase}${ruta(origen.idioma, origen.pantalla === "regalar" ? "/regalar" : `/comprar${vuelta}`)}?pago=fallido`
+    : `${urlBase}/comprar${vuelta}`;
 
   if (compra.region === "ES") {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -41,7 +55,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
       })),
       metadata: { pedido_id: pedido.id },
       success_url: `${urlVuelta}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${urlBase}/comprar${vuelta}`,
+      cancel_url: urlCancelada,
     });
 
     if (!session.url) {
@@ -68,7 +82,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
       statement_descriptor: "VITACORA",
       back_urls: {
         success: urlVuelta,
-        failure: `${urlBase}/comprar${vuelta}`,
+        failure: urlCancelada,
       },
       // MP rechaza auto_return si la URL de vuelta no es https pública (en
       // local, con localhost, tira "invalid_auto_return"). En producción va.

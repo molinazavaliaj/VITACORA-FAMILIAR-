@@ -270,17 +270,27 @@ describe("/comprar", () => {
     process.env.PRECIO_ARS ??= "65000";
     process.env.PRECIO_EUR ??= "79";
   });
-  const checkout = (region: "ES" | "AR") => renderToStaticMarkup(<Checkout catalogo={{ ES: catalogo("ES"), AR: catalogo("AR") }} regionInicial={region} />);
+  // Rediseño 2026-10: la región sale de la versión de la web (/comprar es España,
+  // /ar/comprar Argentina) y el checkout tiene tres pasos. «Mi padre, mi abuela,
+  // mi tío» y «Lo lees y lo escuchas…» eran del checkout de cinco pasos: ahora
+  // las opciones son «Mi padre / Mi papá» y el resumen dice «Escuchas / Escuchás
+  // sus audios mientras cuenta» (TEXTOS-Y-REGLAS §5).
+  const checkout = (idioma: "es" | "ar", paso: 1 | 2 | 3 = 1) =>
+    renderToStaticMarkup(<Checkout idioma={idioma} catalogo={catalogo(idioma === "es" ? "ES" : "AR")} pasoInicial={paso} />);
 
   it("España, de tú y sin nada de vos", () => {
-    const html = checkout("ES");
-    soloEste(html, ["Mi padre, mi abuela, mi tío.", "Lo lees y lo escuchas en la web, cuando quieras"], ["Mi papá", "Lo leés y lo escuchás"]);
+    const html = checkout("es");
+    soloEste(html, ["¿Cómo quieres su libro?", "Escuchas sus audios mientras cuenta, desde tu panel"], ["¿Cómo querés", "Escuchás"]);
     expect(html).not.toMatch(VOSEO);
+    soloEste(checkout("es", 2), ["Mi padre", "Mi madre"], ["Mi papá", "Mi mamá"]);
+    expect(checkout("es", 2)).not.toMatch(VOSEO);
+    expect(checkout("es", 3)).not.toMatch(VOSEO);
     soloEste(renderToStaticMarkup(<SugerenciaRegalo trato="tu" />), ["¿Quieres que sea una sorpresa?", "Regálalo con una tarjeta"], ["¿Querés", "Regalalo"]);
   });
 
-  it("Argentina, igual que siempre", () => {
-    soloEste(checkout("AR"), ["Mi papá, mi abuela, mi tío.", "Lo leés y lo escuchás en la web, cuando quieras"], ["Mi padre", "Lo lees y lo escuchas"]);
+  it("Argentina, de vos", () => {
+    soloEste(checkout("ar"), ["¿Cómo querés su libro?", "Escuchás sus audios mientras cuenta, desde tu panel"], ["¿Cómo quieres", "Escuchas sus"]);
+    soloEste(checkout("ar", 2), ["Mi papá", "Mi mamá"], ["Mi padre", "Mi madre"]);
     soloEste(renderToStaticMarkup(<SugerenciaRegalo />), ["¿Querés que sea una sorpresa?", "Regalalo con una tarjeta"], ["¿Quieres"]);
   });
 });
