@@ -97,6 +97,8 @@ export function Checkout({
   const entradaFotos = useRef<HTMLInputElement>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
+  // El primer paso llega pintado del servidor: se anima recién al cambiar de paso.
+  const [animar, setAnimar] = useState(false);
   const archivos = useRef(new Map<string, File>());
   const audioRef = useRef<Blob | null>(null);
   const antesDeIr = useRef<(c: RespuestaCompra) => void>(() => {});
@@ -307,7 +309,7 @@ export function Checkout({
         <div className="min-w-0">
           {/* ── 1 · Su libro ── */}
           {paso === 1 && (
-            <ContenidoPaso key="p1" className="flex flex-col gap-7">
+            <ContenidoPaso key="p1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, 3)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               <fieldset className="flex flex-col gap-3">
@@ -369,7 +371,7 @@ export function Checkout({
 
           {/* ── 2 · Para quién ── */}
           {paso === 2 && (
-            <ContenidoPaso key="p2" className="flex flex-col gap-7">
+            <ContenidoPaso key="p2" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(2, 3)} titulo={T.paraTitulo} bajada={yo ? T.introYo : T.introOtro} />
 
               <fieldset {...describe("para")}>
@@ -572,7 +574,7 @@ export function Checkout({
 
           {/* ── 3 · Tus datos y el pago ── */}
           {paso === 3 && (
-            <ContenidoPaso key="p3">
+            <ContenidoPaso key="p3" animar={animar}>
               <form onSubmit={pagar} noValidate className="flex flex-col gap-7">
                 <TituloPaso ref={titulo} antetitulo={T.pasoDe(3, 3)} titulo={T.pagoTitulo} bajada={T.pagoBajada(yo, regalo)} />
                 {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}

@@ -1,5 +1,5 @@
 // Mientras carga la confirmación del pago (RENDIMIENTO.md §3.1). Sin esto
-// mandaría el esqueleto del checkout (comprar/loading.tsx), con otra forma, y la página,
+// mandaría el esqueleto de más arriba (si lo hubiera), con otra forma, y la página,
 // que es oscura, aparecería con un salto de color. Mismo fondo, una forma
 // mínima en el centro y un aviso para lectores de pantalla.
 

@@ -27,7 +27,7 @@ export function Pasos({
             <li
               key={`${numero}-${nombre}`}
               aria-current={esActual ? "step" : undefined}
-              className="flex min-w-0 flex-1 items-center gap-3 text-[15px]"
+              className={`flex min-w-0 items-center gap-3 text-[15px] ${esActual ? "flex-1" : "sm:flex-1"}`}
             >
               <span
                 aria-hidden
@@ -40,7 +40,8 @@ export function Pasos({
                 {numero}
               </span>
               <span
-                className={`truncate ${esActual ? "text-[var(--texto-oscuro-fuerte)]" : "text-[var(--texto-oscuro-menor)]"}`}
+                // En el móvil solo se lee el nombre del paso actual (maqueta CheckoutMovil); los otros quedan para lectores de pantalla.
+                className={`truncate ${esActual ? "text-[var(--texto-oscuro-fuerte)]" : "text-[var(--texto-oscuro-menor)] max-sm:sr-only"}`}
               >
                 {nombre}
               </span>
@@ -60,17 +61,20 @@ export function Pasos({
 
 // El contenido de un paso: entra desde la derecha (checkout) o desde abajo
 // (panel y hojas). Para que la entrada se repita al cambiar de paso, el que lo
-// usa le pone key={paso}.
+// usa le pone key={paso}. `animar={false}` para el primer pintado de la página:
+// lo que llega del servidor no entra animado (empezaría transparente y
+// retrasaría el LCP, RENDIMIENTO.md §4); se anima recién al cambiar de paso.
 export function ContenidoPaso({
   children,
   desde = "derecha",
+  animar = true,
   className = "",
 }: {
   children: ReactNode;
   desde?: "derecha" | "abajo";
+  animar?: boolean;
   className?: string;
 }) {
-  return (
-    <div className={`m-step ${desde === "abajo" ? "m-step-abajo" : ""} ${className}`.trim()}>{children}</div>
-  );
+  const movimiento = animar ? `m-step ${desde === "abajo" ? "m-step-abajo" : ""}` : "";
+  return <div className={`${movimiento} ${className}`.replace(/\s+/g, " ").trim()}>{children}</div>;
 }

@@ -59,6 +59,8 @@ export function CheckoutViaje({
   const [fallo, setFallo] = useState<null | "guardado" | "solo">(null);
   const titulo = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
+  // El primer paso llega pintado del servidor: se anima recién al cambiar de paso.
+  const [animar, setAnimar] = useState(false);
   const antesDeIr = useRef<(c: RespuestaCompra) => void>(() => {});
 
   const cambiar = (cambios: Partial<EstadoViaje>) => setE((x) => ({ ...x, ...cambios }));
@@ -117,6 +119,7 @@ export function CheckoutViaje({
 
   function irA(siguiente: PasoViaje) {
     setFalla(null);
+    setAnimar(true);
     if (siguiente < 3) pagador.olvidar();
     setPaso(siguiente);
   }
@@ -168,7 +171,7 @@ export function CheckoutViaje({
         <div className="min-w-0">
           {/* ── 1 · Vuestro libro ── */}
           {paso === 1 && (
-            <ContenidoPaso key="v1" className="flex flex-col gap-7">
+            <ContenidoPaso key="v1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={V.pasoDe(1, 3)} titulo={V.libroTitulo} bajada={V.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               {precio === null ? (
@@ -232,7 +235,7 @@ export function CheckoutViaje({
 
           {/* ── 2 · El viaje ── */}
           {paso === 2 && (
-            <ContenidoPaso key="v2" className="flex flex-col gap-7">
+            <ContenidoPaso key="v2" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={V.pasoDe(2, 3)} titulo={V.viajeTitulo} bajada={V.viajeBajada} />
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -350,7 +353,7 @@ export function CheckoutViaje({
 
           {/* ── 3 · Tus datos y el pago ── */}
           {paso === 3 && (
-            <ContenidoPaso key="v3">
+            <ContenidoPaso key="v3" animar={animar}>
               <form onSubmit={pagar} noValidate className="flex flex-col gap-7">
                 <TituloPaso ref={titulo} antetitulo={V.pasoDe(3, 3)} titulo={V.pagoTitulo} bajada={V.pagoBajada} />
                 {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
