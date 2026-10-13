@@ -99,6 +99,14 @@ describe('construirHtmlLibro', () => {
     expect(html).toContain('VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS');
   });
 
+  it('libro en catalán: la contratapa en catalán (13/10)', async () => {
+    const html = await construir({ idioma: 'ca' });
+    expect(html).toContain('VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES');
+    expect(html).toContain('La seva història, explicada amb la seva pròpia veu.');
+    expect(html).toContain('LA HISTÒRIA D’UNA VIDA · DES DE 1945');
+    expect(html).not.toContain('UNA COLECCIÓN DE VIDAS CONTADAS');
+  });
+
   it('el colofón está presente', async () => {
     const html = await construir();
     expect(html).toContain('Este libro fue contado por');

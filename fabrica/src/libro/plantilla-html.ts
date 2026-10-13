@@ -817,8 +817,25 @@ function construirColofon(opts: { nombreNarrador: string; mono: string }): strin
   </div>`;
 }
 
-function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: string; anioNacimiento?: number | null; mono: string }): string {
-  const { fraseHeroe, nombreNarrador, anioNacimiento, mono } = opts;
+/** Lo fijo de la contratapa, por idioma del libro (Naza, 13/10: el libro en catalán, entero en catalán). */
+const TEXTOS_CONTRATAPA: Record<'es' | 'ca', { coleccion: string; desc: string; historia: string; desde: string }> = {
+  es: {
+    coleccion: 'VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS',
+    desc: 'Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz.',
+    historia: 'LA HISTORIA DE UNA VIDA',
+    desde: 'DESDE',
+  },
+  ca: {
+    coleccion: 'VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES',
+    desc: 'La seva història, explicada amb la seva pròpia veu. Un llibre que es llegeix amb els ulls i s’escolta amb la seva veu.',
+    historia: 'LA HISTÒRIA D’UNA VIDA',
+    desde: 'DES DE',
+  },
+};
+
+function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: string; anioNacimiento?: number | null; mono: string; idioma: 'es' | 'ca' }): string {
+  const { fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma } = opts;
+  const t = TEXTOS_CONTRATAPA[idioma];
   const heroHtml = fraseHeroe
     ? `<div class="contratapa-hero">
         <div class="contratapa-comilla">&ldquo;</div>
@@ -830,14 +847,14 @@ function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: 
     ${svgGrano(4)}
     <div class="franja izquierda">
       ${svgMedallion({ size: 34, texto: 'V·F', colorAro: '#faf7f1', colorTexto: '#faf7f1' })}
-      <div class="vertical">VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS</div>
+      <div class="vertical">${t.coleccion}</div>
       <div class="chip">${anioNacimiento ? escaparHtml(String(anioNacimiento)) : ''}</div>
     </div>
     ${svgCirculoCortado({ bottom: -130, right: -130, size: 300 })}
     ${heroHtml}
     <div class="contratapa-pie">
-      <div class="desc">Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz.</div>
-      <div class="tag">LA HISTORIA DE UNA VIDA${anioNacimiento ? ` · DESDE ${escaparHtml(String(anioNacimiento))}` : ''}</div>
+      <div class="desc">${t.desc}</div>
+      <div class="tag">${t.historia}${anioNacimiento ? ` · ${t.desde} ${escaparHtml(String(anioNacimiento))}` : ''}</div>
     </div>
   </div>`;
 }
@@ -1132,7 +1149,7 @@ export async function construirHtmlLibro(datos: {
       ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente })
       : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono });
-  const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });
+  const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
 
   return `<!DOCTYPE html>
 <html lang="${datos.idioma ?? 'es'}">

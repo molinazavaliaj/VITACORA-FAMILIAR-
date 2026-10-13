@@ -293,3 +293,12 @@ La tapa del libro pasa a ser la de la imagen de Naza: la foto arriba, «EL LIBRO
 | libro/wizard.tsx, paso Portada (flujo viejo) | Esta es nuestra propuesta. Cambiá lo que quieras. Así va a quedar la tapa. | …Cambia lo que quieras… |
 | La tapa (lib/tapa.ts y fabrica/src/libro/plantilla-html.ts), libro en castellano | EL LIBRO DE SU VIDA · para siempre | igual |
 | La tapa, libro en catalán | EL LLIBRE DE LA SEVA VIDA · per sempre | igual |
+## La contratapa en catalán (13/10)
+
+Libro en catalán (entrevista en `ca`). En castellano no cambia. Aprobados por Naza el 13/10.
+
+| Castellano | Catalán |
+|---|---|
+| VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS | VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES |
+| Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz. | La seva història, explicada amb la seva pròpia veu. Un llibre que es llegeix amb els ulls i s’escolta amb la seva veu. |
+| LA HISTORIA DE UNA VIDA · DESDE 1945 | LA HISTÒRIA D’UNA VIDA · DES DE 1945 |
