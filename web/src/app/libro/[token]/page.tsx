@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -14,10 +13,6 @@ import { tratoDeRegion } from "@/lib/regalo-textos";
 // primo sin cuenta: ve la muestra y tiene dos puertas — guardarlo en su cuenta,
 // o comprar su copia impresa. Las dos pasan por el login de siempre y vuelven
 // acá con la sesión puesta (/libro/[token]/guardar).
-
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500", "600"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], variable: "--fuente-cuerpo", display: "swap" });
 
 export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[token]">) {
   const { token } = await params;
@@ -35,7 +30,7 @@ export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[
   const boton = "inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-medium transition-colors [font-family:var(--fuente-micro)]";
 
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} min-h-full bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]`}>
+    <div className="min-h-full bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
       <header className="oscuro flex items-center justify-between bg-[var(--fondo)] px-6 py-5 text-[var(--texto)]">
         <Link href="/" className="flex items-center gap-3">
           <Toroide className="h-8 w-8" />

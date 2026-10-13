@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario } from "@/lib/panel";
@@ -13,29 +12,7 @@ import { BotonTema, COOKIE_TEMA, type Tema } from "./tema";
 // desktop, pestañas abajo en el celular — con el tema que eligió (cookie:
 // el servidor ya pinta claro u oscuro, sin parpadeo).
 //
-// Las tipografías se cargan acá igual que en la landing (web/src/app/page.tsx):
-// el panel es la segunda pantalla pasada al sistema visual de docs/design.md.
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--fuente-titulo",
-  display: "swap",
-});
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--fuente-micro",
-  display: "swap",
-});
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
-  variable: "--fuente-cuerpo",
-  display: "swap",
-});
+// Las tipografías vienen del layout raíz (web/src/app/layout.tsx).
 
 export default async function LayoutPanel({ children }: LayoutProps<"/tablero">) {
   const user = await usuarioDeLaSesion();
@@ -65,7 +42,7 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
   return (
     <div
       id="panel"
-      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
+      className={`${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
     >
       <Navegacion historias={historias} tema={<BotonTema inicial={tema} />} />
       {/* min-w-0: sin esto, una fila ancha de adentro (las miniaturas del

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { obtenerPrecioViaje } from "@/lib/precios";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { Tachado } from "../comprar/tachado";
@@ -14,10 +13,6 @@ import { SelectorProducto } from "../selector-producto";
 // datos. En vos: el viajero se compra a sí mismo. Misma paleta que la home.
 //
 // ⚠️ Textos a aprobar por Naza (regla de la casa).
-
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], style: ["normal", "italic"], variable: "--fuente-cuerpo", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Vitácora de viaje",
@@ -48,7 +43,7 @@ export default function PaginaViaje() {
   const cta = "inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5D3FD3] [font-family:var(--fuente-micro)]";
 
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}>
+    <div className="flex flex-1 flex-col bg-white text-[#14140F]">
       {/* ── Hero, en negro como la home ── */}
       <div className="bg-[#14140F] text-white">
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-7">

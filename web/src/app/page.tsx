@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { CampoVF, Toroide } from "./marca";
 import { Aparece } from "./aparece";
 import { SelectorProducto } from "./selector-producto";
@@ -15,28 +14,7 @@ import { headers } from "next/headers";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
-// habla. Se cargan acá y no en el layout a propósito — la landing es la única
-// pantalla pasada al sistema visual; el tablero carga las suyas en su layout.
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--fuente-titulo",
-  display: "swap",
-});
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--fuente-micro",
-  display: "swap",
-});
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
-  variable: "--fuente-cuerpo",
-  display: "swap",
-});
+// habla. Se cargan una sola vez, en el layout raíz (web/src/app/layout.tsx).
 
 // La landing sigue docs/brief-landing.md §4 (el orden de las secciones),
 // docs/identidad-de-marca.md §7 (los cuatro pilares, en orden de embudo) y §8
@@ -284,7 +262,7 @@ export default async function Home() {
   const precioViaje = obtenerPrecioViaje(region); // Vitácora de viaje: sin precio cargado, la sección va sin número
 
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}>
+    <div className="flex flex-1 flex-col bg-white text-[#14140F]">
       {/* ═══ 1 · HERO — apertura en negro ═══════════════════════════════════ */}
       <div className="bg-[#14140F] text-white">
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-7">
