@@ -2,7 +2,7 @@
 //
 // Todo lo que decide "a dónde va el que todavía no entró" y "a dónde vuelve después de
 // entrar" vive acá, porque lo usan cinco lugares que si deciden por su cuenta se
-// desincronizan: el proxy de sesión (src/middleware.ts), el formulario de /entrar, el
+// desincronizan: el proxy de sesión (src/proxy.ts), el formulario de /entrar, el
 // layout del panel de la empresa y el callback del enlace mágico.
 //
 // Desincronizados fue exactamente el bug (hallazgo de Naza, 2026-09-21): el que mandaba a
