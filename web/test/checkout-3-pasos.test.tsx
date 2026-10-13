@@ -285,6 +285,30 @@ describe("«Pagar» no se puede pulsar dos veces", () => {
     expect(await otra).toEqual({ ok: true });
   });
 
+  it("si vuelve de la pasarela y corrige un dato, la compra se crea de nuevo con los datos nuevos", async () => {
+    const d = deps();
+    const pagador = crearPagador(d, T);
+    const primero = pagador.pagar({ email: "mal@ejemplo.com" }, []);
+    d.soltar(ok());
+    expect(await primero).toEqual({ ok: true });
+    pagador.liberar(); // volvió atrás desde la pasarela (pageshow)
+    const segundo = pagador.pagar({ email: "bien@ejemplo.com" }, []);
+    d.soltar(ok());
+    expect(await segundo).toEqual({ ok: true });
+    expect(d.llamadas).toHaveBeenCalledTimes(2);
+    const cuerpo = (d.llamadas.mock.calls as unknown as [string, RequestInit][])[1][1].body;
+    expect(JSON.parse(String(cuerpo))).toEqual({ email: "bien@ejemplo.com" });
+  });
+
+  it("si algo inesperado falla al irse a la pasarela, el botón no queda bloqueado", async () => {
+    const d = deps();
+    const pagador = crearPagador({ ...d, asignar: () => { throw new Error("x"); } }, T);
+    const intento = pagador.pagar({}, []);
+    d.soltar(ok());
+    expect(await intento).toEqual({ error: T.errorPago });
+    expect(pagador.ocupado).toBe(false);
+  });
+
   it("si una foto falla no va a pagar, y el reintento no crea otra compra ni repite las subidas", async () => {
     const d = deps();
     const subidas: string[] = [];

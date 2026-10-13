@@ -9,6 +9,9 @@
 //   llegan antes de que React lo pinte.
 // - Si una foto falla, NO se va a pagar: se avisa, y el reintento no vuelve a
 //   crear la compra (el narrador ya existe) ni a subir las fotos ya subidas.
+//   Salvo que haya cambiado lo que se manda (p. ej. corrigió el email al volver
+//   de la pasarela): entonces la compra se vuelve a crear con los datos nuevos,
+//   para no cobrar ni mandar el acceso con los viejos.
 
 export type RespuestaCompra = { urlPago: string; narradorId: string; tokenFotos: string };
 
@@ -41,8 +44,11 @@ export type ResultadoPago = { ok: true } | { ocupado: true } | { error: string }
 export function crearPagador(deps: DependenciasPago, T: TextosPago) {
   let enCurso = false;
   let iniciada: RespuestaCompra | null = null;
+  let cuerpoIniciado: string | null = null;
 
   async function intentar(cuerpo: unknown, fotos: Subible[], alSubir: (clave: string) => void): Promise<ResultadoPago> {
+    const cuerpoJson = JSON.stringify(cuerpo);
+    if (iniciada && cuerpoIniciado !== cuerpoJson) iniciada = null;
     if (!iniciada) {
       let datos: Partial<RespuestaCompra> & { error?: string };
       let ok: boolean;
@@ -50,7 +56,7 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
         const r = await deps.fetch("/api/compra", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(cuerpo),
+          body: cuerpoJson,
         });
         ok = r.ok;
         datos = (await r.json().catch(() => ({}))) as typeof datos;
@@ -59,6 +65,7 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
       }
       if (!ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) return { error: datos.error ?? T.errorPago };
       iniciada = { urlPago: datos.urlPago, narradorId: datos.narradorId, tokenFotos: datos.tokenFotos };
+      cuerpoIniciado = cuerpoJson;
     }
     const compra = iniciada;
 
@@ -101,11 +108,18 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
     async pagar(cuerpo: unknown, fotos: Subible[], alSubir: (clave: string) => void = () => {}): Promise<ResultadoPago> {
       if (enCurso) return { ocupado: true };
       enCurso = true;
-      const resultado = await intentar(cuerpo, fotos, alSubir);
-      // Si se fue a la pasarela queda «en curso»: si el navegador vuelve atrás
-      // sin recargar, el formulario lo libera al ver la página otra vez (pageshow).
-      if (!("ok" in resultado)) enCurso = false;
-      return resultado;
+      try {
+        const resultado = await intentar(cuerpo, fotos, alSubir);
+        // Si se fue a la pasarela queda «en curso»: si el navegador vuelve atrás
+        // sin recargar, el formulario lo libera al ver la página otra vez (pageshow).
+        if (!("ok" in resultado)) enCurso = false;
+        return resultado;
+      } catch {
+        // Algo que no esperábamos (guardar lo elegido, ir a la pasarela): el
+        // botón no puede quedar bloqueado.
+        enCurso = false;
+        return { error: T.errorPago };
+      }
     },
     /** Libera el pago cuando la página vuelve a verse desde el historial (pageshow). */
     liberar() {

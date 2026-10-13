@@ -31,7 +31,12 @@ export function AlConfirmar({
   useEffect(() => {
     olvidar(sesion, CLAVE_COMPRA);
     olvidar(sesion, CLAVE_COMPRA_VIAJE);
-    if (!narradorId || !entregaId) return;
+    if (!narradorId || !entregaId) {
+      // Sin entrega que completar (o sin sesión): la dirección no tiene dónde
+      // ir desde acá, así que no se deja guardada en el navegador.
+      olvidar(sesion, CLAVE_DIRECCION);
+      return;
+    }
     const guardada = leer<DireccionGuardada>(sesion, CLAVE_DIRECCION, narradorId);
     if (!guardada) {
       setEstado("falta");

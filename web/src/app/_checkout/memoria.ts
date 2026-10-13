@@ -47,7 +47,11 @@ export function leer<T>(almacen: () => Almacen, nombre: string, clave: string, a
     if (!crudo) return null;
     const sobre = JSON.parse(crudo) as Partial<Sobre<T>> | null;
     if (!sobre || sobre.v !== 1 || sobre.clave !== clave || typeof sobre.guardado !== "number") return null;
-    if (ahora - sobre.guardado > VIGENCIA_MS || sobre.guardado > ahora + 60_000) return null;
+    if (ahora - sobre.guardado > VIGENCIA_MS || sobre.guardado > ahora + 60_000) {
+      // Vencido: además de ignorarlo, se borra (lleva datos personales).
+      almacen().removeItem(nombre);
+      return null;
+    }
     return (sobre.datos ?? null) as T | null;
   } catch {
     return null;
