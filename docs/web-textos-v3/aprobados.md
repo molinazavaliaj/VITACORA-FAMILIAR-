@@ -282,3 +282,11 @@ Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras
 | lib/mail.ts, invitación para las dudas, cuerpo | {quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó. · Entrá con este mismo correo | …Si sabes la respuesta, puedes escribirla… · Entra con este mismo correo |
 | lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
 | api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |
+
+## Mail de dudas a los socios (13/10)
+
+Lo manda la fábrica cuando termina la Etapa A; solo lo leen los socios. Aprobado por Naza el 13/10.
+
+| Dónde | Texto |
+|---|---|
+| fabrica/src/escritor/produccion/libro-v3.ts, avisarDudas | La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: {link a /tablero/{id}/dudas}. Lo que contesten ahí entra al libro. (Reemplaza «La familia no las ve (la pantalla no existe todavía).») |
