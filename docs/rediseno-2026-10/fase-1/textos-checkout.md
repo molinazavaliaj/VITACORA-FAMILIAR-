@@ -8,6 +8,15 @@ las tres versiones. Fuente de verdad: `web/src/app/_textos/checkout.ts`, `checko
 
 Leyenda del origen: **M** maqueta tal cual · **M~** maqueta adaptada · **A~** aprobado adaptado · **N** nuevo.
 
+## Aprobado por Naza
+
+- **14/10, tanda 2** (todos OK, sin dos puntos): impreso «…El envío está incluido. Te avisamos…»;
+  «El marco va con el libro impreso. Elige el impreso para añadirlo.»; «Tu propio libro, sin
+  sorpresa ni tarjeta…»; «Así te vamos a saludar.»; las cuatro horas de España; «Un poco más sobre
+  su vida (opcional)»; «Pagas con tarjeta en la página segura de Stripe.»; «Falta un teléfono. El
+  correo lo pide para entregar el libro.»; «Te mandamos la tarjeta por correo…»; «Dirección de envío
+  guardada.» / «…Ponla desde tu panel». Mismo cambio de puntuación aplicado al catalán.
+
 ## /comprar
 
 | Dónde | es (tú) | ar (vos) | Origen |

@@ -72,7 +72,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
     faltaDireccion: "Falta la dirección de envío del libro impreso.",
-    ponerDireccion: "Ponerla desde tu panel",
+    ponerDireccion: "Ponla desde tu panel",
   },
   ar: {
     tituloPagina: "Pedido confirmado",
@@ -114,7 +114,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
     faltaDireccion: "Falta la dirección de envío del libro impreso.",
-    ponerDireccion: "Cargarla desde tu panel",
+    ponerDireccion: "Cargala desde tu panel",
   },
   ca: {
     tituloPagina: "Comanda confirmada",
@@ -155,6 +155,6 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     descargarTarjeta: "Descarregar la targeta de regal",
     direccionGuardada: "Adreça d'enviament desada.",
     faltaDireccion: "Falta l'adreça d'enviament del llibre imprès.",
-    ponerDireccion: "Posar-la des del teu panell",
+    ponerDireccion: "Posa-la des del teu panell",
   },
 };
