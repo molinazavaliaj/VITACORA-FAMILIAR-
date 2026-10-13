@@ -51,15 +51,15 @@ export type TextosEjemplo = {
 const CAPITULOS_ES = ["La infancia", "Las raíces", "La juventud", "Salir al mundo", "El oficio", "Los hijos", "Las pruebas", "La sabiduría"];
 
 const PARRAFOS_ES: [string, string] = [
-  "Mi madre se levantaba antes que el sol. La oía desde la cama: primero el cerrojo de la puerta del corral, luego la estufa de leña, que tardaba en prender y se quejaba como un viejo. Cuando el olor del café llegaba a la habitación, mi hermano y yo sabíamos que teníamos cinco minutos antes de que nos llamara por segunda vez. A la tercera no llamaba: subía.",
-  "Éramos cuatro en una casa de dos habitaciones, en el pueblo, y a mí me parecía un palacio. Tenía un patio con una higuera que daba más sombra que higos, y debajo de esa higuera aprendí casi todo lo que sé: a perder a las cartas, a guardar un secreto y a escuchar a mi abuelo cuando contaba la guerra sin contarla.",
+  "Mi madre se levantaba antes que el sol. La oía desde la cama. Primero el cerrojo de la puerta del corral, luego la estufa de leña, que tardaba en prender y se quejaba como un viejo. Cuando el olor del café llegaba a la habitación, mi hermano y yo sabíamos que teníamos cinco minutos antes de que nos llamara por segunda vez. A la tercera no llamaba, subía.",
+  "Éramos cuatro en una casa de dos habitaciones, en el pueblo, y a mí me parecía un palacio. Tenía un patio con una higuera que daba más sombra que higos, y debajo de esa higuera aprendí casi todo lo que sé. A perder a las cartas, a guardar un secreto y a escuchar a mi abuelo cuando contaba la guerra sin contarla.",
 ];
 
 export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
   es: {
     meta: {
       titulo: "Un libro de ejemplo",
-      descripcion: "Así es por dentro un libro de Vitácora Familiar: un ejemplo con una historia inventada, para pasar las páginas antes de comprar.",
+      descripcion: "Así es por dentro un libro de Vitácora Familiar. Un ejemplo con una historia inventada, para pasar las páginas antes de comprar.",
     },
     volver: "← Volver a la web",
     etiqueta: "Ejemplo · El libro de Osvaldo",
@@ -97,7 +97,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
   ar: {
     meta: {
       titulo: "Un libro de ejemplo",
-      descripcion: "Así es por dentro un libro de Vitácora Familiar: un ejemplo con una historia inventada, para pasar las páginas antes de comprar.",
+      descripcion: "Así es por dentro un libro de Vitácora Familiar. Un ejemplo con una historia inventada, para pasar las páginas antes de comprar.",
     },
     volver: "← Volver a la web",
     etiqueta: "Ejemplo · El libro de Osvaldo",
@@ -136,7 +136,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
   ca: {
     meta: {
       titulo: "Un llibre d'exemple",
-      descripcion: "Així és per dins un llibre de Vitácora Familiar: un exemple amb una història inventada, per passar les pàgines abans de comprar.",
+      descripcion: "Així és per dins un llibre de Vitácora Familiar. Un exemple amb una història inventada, per passar les pàgines abans de comprar.",
     },
     volver: "← Tornar a la web",
     etiqueta: "Exemple · El llibre d'Osvaldo",
@@ -162,8 +162,8 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
       tituloCapitulo: "La infància",
       citaCapitulo: "«A casa no sobrava res, però mai no hi va faltar el riure.»",
       parrafos: [
-        "La meva mare es llevava abans que el sol. La sentia des del llit: primer el forrellat de la porta del corral, després l'estufa de llenya, que trigava a encendre's i es queixava com un vell. Quan l'olor del cafè arribava a l'habitació, el meu germà i jo sabíem que teníem cinc minuts abans que ens cridés per segona vegada. A la tercera no cridava: pujava.",
-        "Érem quatre en una casa de dues habitacions, al poble, i a mi em semblava un palau. Tenia un pati amb una figuera que feia més ombra que figues, i sota aquella figuera vaig aprendre gairebé tot el que sé: a perdre a les cartes, a guardar un secret i a escoltar el meu avi quan explicava la guerra sense explicar-la.",
+        "La meva mare es llevava abans que el sol. La sentia des del llit. Primer el forrellat de la porta del corral, després l'estufa de llenya, que trigava a encendre's i es queixava com un vell. Quan l'olor del cafè arribava a l'habitació, el meu germà i jo sabíem que teníem cinc minuts abans que ens cridés per segona vegada. A la tercera no cridava, pujava.",
+        "Érem quatre en una casa de dues habitacions, al poble, i a mi em semblava un palau. Tenia un pati amb una figuera que feia més ombra que figues, i sota aquella figuera vaig aprendre gairebé tot el que sé. A perdre a les cartes, a guardar un secret i a escoltar el meu avi quan explicava la guerra sense explicar-la.",
       ],
       altFoto: "L'Osvaldo de jove tocant la guitarra en un carrer del poble, en blanc i negre",
       pieFoto: "Amb la guitarra al carrer de baix, un estiu de joventut. «Tocava fatal, però tocava fort.»",

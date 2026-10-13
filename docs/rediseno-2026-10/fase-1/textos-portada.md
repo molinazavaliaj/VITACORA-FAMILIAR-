@@ -27,6 +27,11 @@ está marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá frase por f
   caja de dudas; FAQ «¿Y si no quiere hacerlo?»; selector ES · CA y aviso en catalán; pie; cabecera,
   botón y nota de /ejemplo.
 
+- **14/10, tanda 10** (todos OK): índice, los dos párrafos de Osvaldo sin dos puntos, «Su voz · Así
+  lo contó él.», navegación, «← Volver a la web», descripción para Google sin dos puntos, y el
+  apellido «Toroide» se queda (está en el vídeo y en la foto). **Textos de la fase 1 en es y ar:
+  aprobados.** Catalán: lo revisa Imma antes del switch.
+
 ## 0. Textos aprobados que el diseño nuevo ya NO usa
 
 | Texto aprobado | Por qué sale | Test |
