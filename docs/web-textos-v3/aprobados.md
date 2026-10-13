@@ -317,3 +317,10 @@ Colofón, «Sus frases» y «Su voz» del PDF (fabrica/src/libro/plantilla-html.
 | … su bajada | Este código abre la página con el libro online y todas sus frases, para escucharlas y compartirlas. | igual | Aquest codi obre la pàgina amb el llibre en línia i totes les seves frases, per escoltar-les i compartir-les. |
 | Colofón | Este libro fue contado por · [nombre] · con su propia voz, y guardado para siempre por | igual | Aquest llibre el va explicar · [nom] · amb la seva pròpia veu, i el va guardar per sempre |
 | Cierre | «Acá adentro están todos vivos.» | «Aquí dentro están todos vivos.» | «Aquí dins hi són tots vius.» |
+## Mail de dudas a los socios (13/10)
+
+Lo manda la fábrica cuando termina la Etapa A; solo lo leen los socios. Aprobado por Naza el 13/10.
+
+| Dónde | Texto |
+|---|---|
+| fabrica/src/escritor/produccion/libro-v3.ts, avisarDudas | La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: {link a /tablero/{id}/dudas}. Lo que contesten ahí entra al libro. (Reemplaza «La familia no las ve (la pantalla no existe todavía).») |

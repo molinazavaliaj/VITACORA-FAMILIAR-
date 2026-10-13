@@ -6,8 +6,9 @@
 //      registro, plan y dudas de datos. Hecha = `{id}/escritor/carpeta-A.json`. Si no pasa sus controles,
 //      queda `{id}/escritor/fallo-A.json` y se avisa a los socios (no se reintenta sola).
 //   2. Las dudas de datos (dudas-familia.json) van por mail a los socios, una vez (`dudas-avisadas.txt`).
-//      La pantalla para la familia no existe todavía: si alguien quiere corregir algo, se escribe en
-//      `{id}/escritor/correcciones.json` antes de que la dueña cierre el libro (CONTRATO, "Escritor V3").
+//      El mail trae el link a la pantalla de dudas (/tablero/{id}/dudas, desde el 12/10), que los socios le
+//      pasan a la familia. Lo que contestan ahí, o lo que se escribe a mano, va a
+//      `{id}/escritor/correcciones.json` antes de que se escriba el libro (CONTRATO, "Escritor V3").
 //   3. Pedido pagado + libro cerrado (libro_aprobado_at) → en segundo plano: A si faltaba, B con las
 //      correcciones (sin correcciones no llama a ningún modelo), C, plantilla → libro.html y libro.pdf,
 //      «Su voz» (frases.json + pedido de corte) y el pedido a 'entregado'. Si algo falla: 'fallido' y aviso.
@@ -294,9 +295,12 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
       `   Qué vio el lector: ${d.que}`,
       ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
     ].join('\n'));
+    // La pantalla de dudas existe desde el 12/10 (web/src/app/tablero/[narradorId]/dudas): los socios le
+    // pasan el link a la familia; no hay mail automático a la familia (decisión del 12/10).
+    const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${narradorId}/dudas`;
     const salio = await avisarSocios(
       `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. La familia no las ve (la pantalla no existe todavía).\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      `La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: ${link}. Lo que contesten ahí entra al libro.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
     if (!salio) return false;
   }

@@ -201,6 +201,9 @@ describe('Etapa A al terminar la entrevista (revisarEtapaAV3)', () => {
     expect(cuerpo.subject).toContain('Dudas de datos');
     expect(cuerpo.text).toContain('¿Cómo se llamaba la Negra');
     expect(cuerpo.text).toContain('n1/escritor/correcciones.json');
+    // La pantalla existe (12/10): el mail trae el link para pasarle a la familia, no «la pantalla no existe».
+    expect(cuerpo.text).toContain('La familia las contesta en este link (la dueña y sus invitados). Pásenselo: https://www.vitacorafamiliar.com/tablero/n1/dudas. Lo que contesten ahí entra al libro.');
+    expect(cuerpo.text).not.toContain('no existe');
     expect(archivos.has('n1/escritor/dudas-avisadas.txt')).toBe(true);
     expect(modelo.llamadas).toHaveLength(3); // ya hecha: no se repite
     vi.unstubAllGlobals();
