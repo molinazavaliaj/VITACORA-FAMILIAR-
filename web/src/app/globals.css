@@ -593,3 +593,34 @@ body {
 @keyframes italicaTardia {
   to { font-style: italic; }
 }
+
+/* Letra de reserva de las tipografías de marca (layout.tsx). Son los mismos
+   valores que calculaba next/font/google con las letras completas: ajustan el
+   tamaño y el interlineado de la letra del sistema para que, mientras llega la
+   de marca, el texto ocupe lo mismo y no salte nada. Con las letras propias
+   (src/app/fuentes) Next los calcularía sobre el subset y los movería unos
+   puntos, por eso se fijan a mano. */
+@font-face {
+  font-family: "Fallback Titulo";
+  src: local("Times New Roman");
+  ascent-override: 97.25%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 111.26%;
+}
+@font-face {
+  font-family: "Fallback Micro";
+  src: local("Arial");
+  ascent-override: 88.96%;
+  descent-override: 21.28%;
+  line-gap-override: 0%;
+  size-adjust: 98.7%;
+}
+@font-face {
+  font-family: "Fallback Cuerpo";
+  src: local("Times New Roman");
+  ascent-override: 87.87%;
+  descent-override: 28.41%;
+  line-gap-override: 0%;
+  size-adjust: 117.91%;
+}
