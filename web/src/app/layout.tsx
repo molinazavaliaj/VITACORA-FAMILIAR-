@@ -18,18 +18,25 @@ import "./globals.css";
 // - Archivo 400, 500 y 600 (600: el código de la tarjeta y los botones del
 //   rediseño).
 // - Source Serif 300 y 400 + itálica (300: el cuerpo largo, font-light).
+//
+// Sin preload: desde el layout raíz, el preload mete los 5 woff2 (~210 kB) en
+// TODAS las páginas, también en /entrar y /legal, que no los usan (la medición
+// del 13/10 dio /entrar de 232 a 448 kB). Sin preload, cada página baja solo
+// las letras que de verdad pinta, apenas el CSS las pide.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["500", "600"],
   style: ["normal", "italic"],
   variable: "--fuente-titulo",
   display: "swap",
+  preload: false,
 });
 const archivo = Archivo({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--fuente-micro",
   display: "swap",
+  preload: false,
 });
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -37,6 +44,7 @@ const sourceSerif = Source_Serif_4({
   style: ["normal", "italic"],
   variable: "--fuente-cuerpo",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
