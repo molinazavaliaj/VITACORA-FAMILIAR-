@@ -81,6 +81,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             alt=""
             fill
             preload
+            fetchPriority="high"
             sizes="(max-width: 639px) 240vw, 100vw"
             className="object-cover object-[42%_70%] sm:object-[center_60%]"
           />
@@ -97,10 +98,10 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           </h1>
           <p className="m-hero-2 max-w-[600px] text-[18px] leading-[1.55] text-[#d6d3cc] sm:text-[21px]">{t.hero.bajada}</p>
           <div className="m-hero-3 mt-2 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:gap-3.5">
-            <Link href={comprar} className={clasesBoton("primario", "w-full px-8 py-3.5 text-base sm:w-auto")}>
+            <Link prefetch={false} href={comprar} className={clasesBoton("primario", "w-full px-8 py-3.5 text-base sm:w-auto")}>
               {t.hero.comprar}
             </Link>
-            <Link href={ruta(idioma, "/ejemplo")} className={clasesBoton("fantasma", "w-full bg-[rgba(10,10,10,0.4)] px-7 py-3.5 text-base sm:w-auto")}>
+            <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className={clasesBoton("fantasma", "w-full bg-[rgba(10,10,10,0.4)] px-7 py-3.5 text-base sm:w-auto")}>
               {t.hero.verComo}
             </Link>
           </div>
@@ -147,7 +148,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
                 <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#1f1b2e] text-[var(--acento-oscuro)]">
                   <IconoPaso cual={i} />
                 </span>
-                <span aria-hidden className="text-[44px] italic leading-none text-[#3a3833] [font-family:var(--fuente-titulo)]">
+                <span aria-hidden className="text-[44px] italica-tardia leading-none text-[#3a3833] [font-family:var(--fuente-titulo)]">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
@@ -435,7 +436,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </Seccion>
 
       {/* ═══ LO QUE SE HEREDA ═══ */}
-      <section className="border-t border-[#1c1b18] bg-[#0d0d0b]">
+      <section className="border-t border-[#1c1b18] bg-[#0d0d0b] [contain-intrinsic-size:auto_500px] [content-visibility:auto]">
         <div className="aparece mx-auto flex max-w-[1104px] flex-col items-center gap-6 px-4 py-24 text-center sm:px-6 sm:py-[140px]">
           <Etiqueta>{t.hereda.etiqueta}</Etiqueta>
           <h2 className="max-w-[860px] text-[34px] font-medium leading-[1.1] text-white [font-family:var(--fuente-titulo)] [text-wrap:balance] sm:text-[52px]">
@@ -458,7 +459,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               <span className="text-[56px] font-medium leading-none tabular-nums text-white [font-family:var(--fuente-titulo)] sm:text-[72px]">{precio}</span>
             </p>
             <p className="text-[16px] leading-[1.6] text-[var(--texto-oscuro-suave)]">{t.precio.texto}</p>
-            <Link href={comprar} className={clasesBoton("primario", "mt-1.5 self-start px-[34px] py-4 text-base")}>
+            <Link prefetch={false} href={comprar} className={clasesBoton("primario", "mt-1.5 self-start px-[34px] py-4 text-base")}>
               {t.comprar}
             </Link>
           </div>
@@ -489,7 +490,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
                 </li>
               ))}
             </ul>
-            <Link href="/viaje" className="mt-auto flex min-h-11 items-center self-start text-[14px] text-[var(--acento-oscuro)] underline underline-offset-4 [font-family:var(--fuente-micro)]">
+            <Link prefetch={false} href="/viaje" className="mt-auto flex min-h-11 items-center self-start text-[14px] text-[var(--acento-oscuro)] underline underline-offset-4 [font-family:var(--fuente-micro)]">
               {t.viaje.enlace}
               {precioViaje !== null ? ` · ${t.viaje.desde(formatear(precioViaje))}` : ""}
             </Link>
@@ -498,7 +499,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             <Etiqueta>{t.elTuyo.etiqueta}</Etiqueta>
             <h2 className="text-[28px] font-medium leading-[1.15] text-white [font-family:var(--fuente-titulo)]">{t.elTuyo.titulo}</h2>
             <p className="text-[16px] leading-[1.6] text-[var(--texto-oscuro-suave)]">{t.elTuyo.texto}</p>
-            <Link href={comprar} className="mt-auto flex min-h-11 items-center self-start text-[14px] text-[var(--acento-oscuro)] underline underline-offset-4 [font-family:var(--fuente-micro)]">
+            <Link prefetch={false} href={comprar} className="mt-auto flex min-h-11 items-center self-start text-[14px] text-[var(--acento-oscuro)] underline underline-offset-4 [font-family:var(--fuente-micro)]">
               {t.elTuyo.enlace}
             </Link>
           </div>
@@ -533,21 +534,23 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </Seccion>
 
       {/* ═══ CIERRE ═══ */}
-      <section data-cta-propio className="border-t border-[var(--linea-oscura)]">
+      <section data-cta-propio className="border-t border-[var(--linea-oscura)] [contain-intrinsic-size:auto_420px] [content-visibility:auto]">
         <div className="aparece mx-auto flex max-w-[1104px] flex-col items-center gap-6 px-4 py-24 text-center sm:px-6 sm:py-[120px]">
           <h2 className="text-[36px] font-medium leading-[1.1] text-white [font-family:var(--fuente-titulo)] sm:text-[52px]">
             {t.cierre.titulo[0]}
             <br />
             {t.cierre.titulo[1]}
           </h2>
-          <Link href={comprar} className={clasesBoton("primario", "px-8 py-3.5 text-base")}>
+          <Link prefetch={false} href={comprar} className={clasesBoton("primario", "px-8 py-3.5 text-base")}>
             {t.comprar}
           </Link>
           <p className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{t.cierre.pie(precio)}</p>
         </div>
       </section>
 
-      <Pie idioma={idioma} camino="/" />
+      <div className="[contain-intrinsic-size:auto_400px] [content-visibility:auto]">
+        <Pie idioma={idioma} camino="/" />
+      </div>
       <WhatsAppFlotante idioma={idioma} />
       <CtaSticky
         precio={precio}
@@ -674,7 +677,7 @@ function FotoConPie({
   return (
     <figure className="flex flex-col gap-3.5">
       {href ? (
-        <Link href={href} className="flex flex-col gap-3.5">
+        <Link prefetch={false} href={href} className="flex flex-col gap-3.5">
           {contenido}
         </Link>
       ) : (

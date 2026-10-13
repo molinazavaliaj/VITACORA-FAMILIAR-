@@ -34,7 +34,7 @@ export function EnlaceIdioma({
   etiqueta?: string;
 }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={ruta(idioma, camino)}
       hrefLang={idioma === "ca" ? "ca-ES" : idioma === "ar" ? "es-AR" : "es-ES"}
       aria-current={actual ? "true" : undefined}

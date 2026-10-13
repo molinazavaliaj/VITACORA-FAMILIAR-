@@ -578,3 +578,18 @@ body {
     transition-duration: 1ms !important;
   }
 }
+
+/* Cursiva que se pide tarde (RENDIMIENTO.md §3.8). La cara itálica de Playfair
+   pesa ~39 kB y, si algo la usa en la primera maquetación, entra en la cola de
+   la tipografía de arriba del pliegue aunque el texto esté 1800 px más abajo.
+   Estas marcas (los números 01 · 02 · 03 de «Cómo funciona», que ni se ven al
+   cargar) arrancan derechas y pasan a cursiva a los 3 s, ya con la página
+   quieta. Es font-style discreto: no mueve nada, y la cursiva ocupa casi lo
+   mismo que la recta en estos dígitos. */
+.italica-tardia {
+  font-style: normal;
+  animation: italicaTardia 1ms linear 3s both;
+}
+@keyframes italicaTardia {
+  to { font-style: italic; }
+}

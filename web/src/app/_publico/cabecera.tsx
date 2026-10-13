@@ -34,7 +34,7 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
       className={`relative z-20 text-[var(--texto-oscuro)] ${sobreHero ? "" : "border-b border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)]"}`}
     >
       <div className="mx-auto flex w-full max-w-[1104px] flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-5 sm:px-6 md:py-7">
-        <Link
+        <Link prefetch={false}
           href={ruta(idioma, "/")}
           aria-label={t.inicio}
           className="flex min-h-11 items-center gap-3 text-[var(--texto-oscuro)] hover:text-[var(--texto-oscuro-fuerte)]"
@@ -50,14 +50,14 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
             </div>
           )}
           <SelectorIdioma idioma={idioma} camino={camino} etiqueta={t.idioma} />
-          <Link
+          <Link prefetch={false}
             href="/entrar"
             className="flex min-h-11 items-center text-[var(--texto-oscuro)] underline decoration-[var(--borde-oscuro-fuerte)] underline-offset-4 hover:text-[var(--texto-oscuro-fuerte)]"
           >
             {t.entrar}
           </Link>
           {compacta ? null : (
-            <Link
+            <Link prefetch={false}
               href={comprar}
               className="m-btn hidden min-h-11 items-center rounded-full bg-white px-5 font-medium text-[#14140f] sm:inline-flex"
             >
@@ -97,10 +97,10 @@ export function Solapas({ idioma, producto = "familiar" }: { idioma: IdiomaWeb; 
       className="m-solapas relative isolate grid grid-cols-2 rounded-full border border-[#2c2c28] bg-[var(--fondo-oscuro)] p-1"
     >
       <span aria-hidden className="m-pill absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-white" />
-      <Link href={ruta(idioma, "/")} data-solapa="familiar" aria-current={producto === "familiar" ? "page" : undefined} className={solapa}>
+      <Link prefetch={false} href={ruta(idioma, "/")} data-solapa="familiar" aria-current={producto === "familiar" ? "page" : undefined} className={solapa}>
         {t.familiar}
       </Link>
-      <Link href="/viaje" data-solapa="viaje" aria-current={producto === "viaje" ? "page" : undefined} className={solapa}>
+      <Link prefetch={false} href="/viaje" data-solapa="viaje" aria-current={producto === "viaje" ? "page" : undefined} className={solapa}>
         {t.viaje}
       </Link>
     </nav>
