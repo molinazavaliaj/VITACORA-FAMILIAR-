@@ -12,6 +12,7 @@ import { regionDelRequest } from "@/lib/region";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { Tachado } from "./comprar/tachado";
 import { headers } from "next/headers";
+import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
 // habla. Se cargan acá y no en el layout a propósito — la landing es la única
@@ -72,11 +73,44 @@ const FORMATOS = [
   { id: "marco", nombre: "Marcos con su voz", detalle: "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viajan con el libro impreso.", nota: "en la repisa" },
 ] as const;
 
-const PASOS = [
+// Trato por país (13/10, textos aprobados por Naza): quien entra desde España
+// lee de tú; el resto, de vos. Solo cambia lo que va en vos o en palabras de
+// Argentina (papá, celular, lindo); lo demás es igual para los dos.
+const POR_TRATO = {
+  vos: {
+    bajada: "Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.",
+    garantiaPanel: "Mientras responde, vos vas escuchando su historia desde tu panel.",
+    fotos: "Tenés el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el celular.",
+    paso1Titulo: "Lo anotás",
+    paso1Texto: "Nos decís su nombre, su WhatsApp y a qué hora prefiere que le escribamos. Le llega un mensaje nuestro contándole de qué se trata, y arranca cuando quiera.",
+    preguntaSobremesa: "En todas las familias hay una historia de los de antes que se contaba en las sobremesas. Un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia?",
+    viaje: "El mismo biógrafo, pero de viaje con vos. Cada noche te pregunta por el día, guarda las fotos que le mandás con su historia, y al volver tu viaje es un libro.",
+    viajeNoche: "Por WhatsApp, cuando el día terminó. Le respondés con un audio, como a un amigo.",
+    viajeFotos: "Le mandás la foto del día y le contás qué pasaba. Queda guardada con su historia.",
+    elTuyo: "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a vos, y el libro es el de tu vida.",
+    faqUsarlo: "¿Mi papá va a saber usarlo?",
+    faqPrecio: "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar. El libro en PDF con «Su voz» va siempre, y el impreso y los marcos se suman si querés.",
+  },
+  tu: {
+    bajada: "Un biógrafo entrevista y escribe el libro de una vida. La de tu padre, la de tu abuela, la tuya.",
+    garantiaPanel: "Mientras responde, tú vas escuchando su historia desde tu panel.",
+    fotos: "Tienes el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el móvil.",
+    paso1Titulo: "Lo anotas",
+    paso1Texto: "Nos dices su nombre, su WhatsApp y a qué hora prefiere que le escribamos. Le llega un mensaje nuestro contándole de qué se trata, y arranca cuando quiera.",
+    preguntaSobremesa: "En todas las familias hay una historia de los de antes que se contaba en las sobremesas. Un viaje, una llegada, alguna hazaña. ¿Cuál sabes de tu familia?",
+    viaje: "El mismo biógrafo, pero de viaje contigo. Cada noche te pregunta por el día, guarda las fotos que le mandas con su historia, y al volver tu viaje es un libro.",
+    viajeNoche: "Por WhatsApp, cuando el día terminó. Le respondes con un audio, como a un amigo.",
+    viajeFotos: "Le mandas la foto del día y le cuentas qué pasaba. Queda guardada con su historia.",
+    elTuyo: "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a ti, y el libro es el de tu vida.",
+    faqUsarlo: "¿Mi padre va a saber usarlo?",
+    faqPrecio: "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar. El libro en PDF con «Su voz» va siempre, y el impreso y los marcos se suman si quieres.",
+  },
+} as const satisfies Record<TratoComprador, Record<string, string>>;
+
+const pasos = (t: (typeof POR_TRATO)[TratoComprador]) => [
   {
-    titulo: "Lo anotás",
-    texto:
-      "Nos decís su nombre, su WhatsApp y a qué hora prefiere que le escribamos. Le llega un mensaje nuestro contándole de qué se trata, y arranca cuando quiera.",
+    titulo: t.paso1Titulo,
+    texto: t.paso1Texto,
   },
   {
     titulo: "Solo manda audios",
@@ -88,20 +122,20 @@ const PASOS = [
     texto:
       "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde tu panel vas escuchando lo que cuenta.",
   },
-] as const;
+];
 
 // Las cuatro cosas que desarman la objeción, a la vista desde el primer
 // segundo. Cada una contesta un miedo de Martina.
-const GARANTIAS = [
+const garantias = (t: (typeof POR_TRATO)[TratoComprador]) => [
   { icono: "whatsapp", texto: "Va respondiendo por WhatsApp, con audios. Nadie tiene que escribir nada." },
   { icono: "sin-app", texto: "Sin app ni nada que instalar." },
   { icono: "voz", texto: "Sus mejores frases, en su voz real. Se escuchan con un código." },
-  { icono: "ojo", texto: "Mientras responde, vos vas escuchando su historia desde tu panel." },
+  { icono: "ojo", texto: t.garantiaPanel },
 ] as const;
 
-const PREGUNTAS = [
+const preguntas = (t: (typeof POR_TRATO)[TratoComprador]) => [
   {
-    pregunta: "¿Mi papá va a saber usarlo?",
+    pregunta: t.faqUsarlo,
     respuesta:
       "No hay nada que instalar ni que aprender. Le llega un mensaje de WhatsApp y contesta con un audio, como hace todos los días.",
   },
@@ -122,15 +156,14 @@ const PREGUNTAS = [
   },
   {
     pregunta: "¿Cuánto sale y cuándo se paga?",
-    respuesta:
-      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar. El libro en PDF con «Su voz» va siempre, y el impreso y los marcos se suman si querés.",
+    respuesta: t.faqPrecio,
   },
   {
     pregunta: "¿Se puede tener el libro impreso?",
     respuesta:
       "Sí. Se suma al comprar o después, desde tu panel, con el libro ya terminado. Tapa dura, a color, con un código en la contratapa que hace sonar su voz.",
   },
-] as const;
+];
 
 // REGLA DURA (brief §7): la landing NO se publica con reseñas inventadas. La
 // sección existe en el código y se enciende cuando estén las cinco reales con
@@ -194,7 +227,7 @@ function Cuerpo({ children, clara = false, className = "" }: { children: React.R
   );
 }
 
-function Icono({ nombre, className = "" }: { nombre: (typeof GARANTIAS)[number]["icono"]; className?: string }) {
+function Icono({ nombre, className = "" }: { nombre: ReturnType<typeof garantias>[number]["icono"]; className?: string }) {
   const comun = { className, fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true, viewBox: "0 0 24 24" };
   switch (nombre) {
     case "whatsapp":
@@ -233,6 +266,8 @@ export default async function Home() {
   // 2.12: los precios en la moneda del país del visitante (Europa → EUR; el resto → ARS).
   const region = regionDelRequest(await headers());
   const cat = catalogo(region);
+  const trato = tratoDeRegion(region);
+  const t = POR_TRATO[trato];
   const formatear = (n: number) => new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(n);
   // Lo que se muestra por formato: la base con su precio; el impreso y los marcos como "+ tanto".
   const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], string | null> = {
@@ -282,7 +317,7 @@ export default async function Home() {
               En cada familia hay un libro sin escribir.
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:text-[1.35rem]">
-              Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.
+              {t.bajada}
             </p>
 
             <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:gap-4">
@@ -294,14 +329,14 @@ export default async function Home() {
                 Cómo funciona ↓
               </a>
             </div>
-            <LinkRegalarLanding />
+            <LinkRegalarLanding trato={trato} />
             <MicrocopyCta clara />
           </div>
 
           {/* El producto en seis segundos: la pregunta llega, él manda un
               audio, y a la derecha aparece la página del libro ya escrita. */}
           <div className="relative mx-auto w-full max-w-[520px] lg:mx-0 lg:justify-self-end">
-            <ChatWhatsApp animado className="relative z-10 lg:mr-auto" />
+            <ChatWhatsApp animado trato={trato} className="relative z-10 lg:mr-auto" />
             <div className="pointer-events-none absolute right-0 bottom-8 z-20 hidden w-[240px] rotate-[3deg] lg:block">
               <PaginaEscrita animado />
             </div>
@@ -311,7 +346,7 @@ export default async function Home() {
         {/* Las garantías: cuatro respuestas a cuatro miedos, en una fila. */}
         <div className="border-y border-[#2B2B24]">
           <ul className="mx-auto grid w-full max-w-6xl grid-cols-1 divide-y divide-[#2B2B24] px-6 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4">
-            {GARANTIAS.map((g, i) => (
+            {garantias(t).map((g, i) => (
               <li
                 key={g.icono}
                 className={`flex items-center gap-4 py-5 text-[15px] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:pr-6 ${i > 0 ? "lg:border-l lg:border-[#2B2B24] lg:pl-6" : ""}`}
@@ -332,7 +367,7 @@ export default async function Home() {
               <span className="italic text-[#AEAEA6]">Los recuerdos se van.</span>
             </p>
             <Cuerpo clara className="mx-auto mt-8 max-w-lg">
-              Tenés el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el celular.
+              {t.fotos}{" "}
               La voz, lo que vivió y cómo lo cuenta, no la guarda nadie.
             </Cuerpo>
           </Aparece>
@@ -357,7 +392,7 @@ export default async function Home() {
           </Aparece>
           <Aparece>
             <ol className="mt-16 grid gap-12 lg:grid-cols-3 lg:gap-10">
-              {PASOS.map((paso, i) => (
+              {pasos(t).map((paso, i) => (
                 <li key={paso.titulo} className="relative border-t border-[#D4D4CE] pt-6">
                   <span className="text-5xl leading-none text-[#AEAEA6] [font-family:var(--fuente-titulo)] tabular-nums">
                     {i + 1}
@@ -391,7 +426,8 @@ export default async function Home() {
           <ChatWhatsApp
             dia={12}
             duracion="5:48"
-            pregunta="En todas las familias hay una historia de los de antes que se contaba en las sobremesas. Un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia?"
+            trato={trato}
+            pregunta={t.preguntaSobremesa}
           />
         </Aparece>
       </section>
@@ -402,7 +438,7 @@ export default async function Home() {
           <Aparece>
             <div className="relative mx-auto max-w-[440px] lg:mx-0">
               <PanelMini />
-              <MailAnticipo className="mt-4 sm:-mr-6 sm:ml-16 sm:-mt-8 sm:shadow-[0_24px_60px_-36px_rgba(20,20,15,0.45)]" />
+              <MailAnticipo trato={trato} className="mt-4 sm:-mr-6 sm:ml-16 sm:-mt-8 sm:shadow-[0_24px_60px_-36px_rgba(20,20,15,0.45)]" />
             </div>
           </Aparece>
           <Aparece>
@@ -428,8 +464,7 @@ export default async function Home() {
             <Capitulo numero="✈" clara>Vitácora de viaje</Capitulo>
             <Titulo clara grande>También hay un libro en cada viaje.</Titulo>
             <Cuerpo clara className="mt-6 max-w-xl">
-              El mismo biógrafo, pero de viaje con vos. Cada noche te pregunta por el día, guarda las fotos que le mandás
-              con su historia, y al volver tu viaje es un libro.
+              {t.viaje}
             </Cuerpo>
             <div className="mt-9 flex flex-wrap items-center gap-5">
               <Link
@@ -446,12 +481,12 @@ export default async function Home() {
           <Aparece>
             <ul className="grid gap-px overflow-hidden rounded-2xl border border-[#45453C] bg-[#45453C]">
               {[
-                ["Cada noche, una pregunta", "Por WhatsApp, cuando el día terminó. Le respondés con un audio, como a un amigo."],
-                ["Tus fotos, con su historia", "Le mandás la foto del día y le contás qué pasaba. Queda guardada con su historia."],
+                ["Cada noche, una pregunta", t.viajeNoche],
+                ["Tus fotos, con su historia", t.viajeFotos],
                 ["Al volver, un libro", "Con lo que contaste cada noche y tus fotos, el biógrafo escribe el libro de tu viaje."],
-              ].map(([t, d]) => (
-                <li key={t} className="flex flex-col gap-2 bg-[#14140F] p-6">
-                  <p className="text-[19px] [font-family:var(--fuente-titulo)] font-medium">{t}</p>
+              ].map(([titulo, d]) => (
+                <li key={titulo} className="flex flex-col gap-2 bg-[#14140F] p-6">
+                  <p className="text-[19px] [font-family:var(--fuente-titulo)] font-medium">{titulo}</p>
                   <p className="text-[15px] leading-[1.7] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">{d}</p>
                 </li>
               ))}
@@ -651,9 +686,7 @@ export default async function Home() {
               ¿Y si el libro es el tuyo?
             </h2>
             <Cuerpo className="mt-5 max-w-2xl">
-              Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su
-              vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a vos, y
-              el libro es el de tu vida.
+              {t.elTuyo}
             </Cuerpo>
           </Aparece>
         </div>
@@ -668,7 +701,7 @@ export default async function Home() {
           </Aparece>
           <Aparece>
             <dl className="divide-y divide-[#EBEBE7] border-y border-[#EBEBE7]">
-              {PREGUNTAS.map((p) => (
+              {preguntas(t).map((p) => (
                 <div key={p.pregunta} className="py-7">
                   <dt className="text-xl [font-family:var(--fuente-titulo)] font-medium">{p.pregunta}</dt>
                   <dd className="mt-3 text-[16px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{p.respuesta}</dd>

@@ -184,3 +184,22 @@ La página `/viaje` y la compra de Viaje describen el Viaje viejo (ciudades, eta
 **Aprobados pero no aplicados (4 y 5):** el texto que se completa solo al subir una foto («Cuénteme todo lo que le venga a la cabeza…» → «Contame todo lo que se te venga a la cabeza…») y el ejemplo «Cuénteme de aquel verano…» → «Contame de aquel verano…». Están en `AgregarPregunta`, el panel del guion viejo, que hoy usan los clientes nuevos de Familiar; ese bot trata de usted a algunos narradores, y el texto de la foto le llega tal cual: en vos quedaría mezclado. El panel de la V3 (`SumarPreguntaV3`) ya no tiene ese problema. Cuando la V3 se prenda para nuevos, el panel viejo deja de usarse y estos dos se caen solos.
 
 **Pendiente, el día que se prenda Viaje V2 para nuevos:** reescribir `/viaje` y la compra de Viaje con lo que hace la V2 (fecha de salida y vuelta, país principal, para mí o regalo, preguntas propias, PDF o impreso, álbum de 20 o 40; sin ciudades ni «con quién viajás»; ver `docs/viajes-v2/flujo-vigente.md` §1 y §9), junto con la compra nueva de Joaquín. Incluye «Cada ciudad, un capítulo», «Cada etapa, un capítulo del libro», «Guardada en Lisboa», la pregunta de las fechas y el panel de etapas.
+
+## Portada de tú para España (13/10)
+
+Quien entra desde España (o desde Europa: `regionDelRequest`) veía la portada en vos; solo cambiaban los precios a euros. Ahora la portada elige el trato con `tratoDeRegion`: España de tú, el resto de vos como siempre. Se cambió el verbo y, donde hacía falta, la palabra de Argentina (papá → padre, celular → móvil, lindo → bonito). Naza aprobó las 10. La versión de vos no cambia.
+
+| # | dónde | vos (sigue igual) | tú (España) |
+|---|---|---|---|
+| 1 | page.tsx, bajada del título | La de tu papá, la de tu abuela, la tuya. | La de tu padre, la de tu abuela, la tuya. |
+| 2 | page.tsx, cuarta garantía | Mientras responde, vos vas escuchando su historia desde tu panel. | Mientras responde, tú vas escuchando su historia desde tu panel. |
+| 3 | page.tsx, «Las fotos quedan» | Tenés el teléfono lleno de fotos suyas… La cara la guarda el celular. | Tienes el teléfono lleno de fotos suyas… La cara la guarda el móvil. |
+| 4 | page.tsx, paso 1 | Lo anotás · Nos decís su nombre… | Lo anotas · Nos dices su nombre… |
+| 5 | maquetas.tsx, el WhatsApp de arriba | Contame el primer recuerdo… · Qué lindo eso del patio con el limonero. Cuando quieras, seguimos con tus papás. | Cuéntame el primer recuerdo… · Qué bonito eso del patio con el limonero. Cuando quieras, seguimos con tus padres. |
+| 6 | page.tsx, dibujo de «Solo tiene que mandar un audio» | ¿Cuál sabés de tu familia? | ¿Cuál sabes de tu familia? |
+| 7 | maquetas.tsx, el mail de ejemplo | Entrá cuando quieras a escucharlo. | Entra cuando quieras a escucharlo. |
+| 8 | page.tsx, bloque de Viaje | …de viaje con vos… le mandás… · Le respondés… · Le mandás… le contás… | …de viaje contigo… le mandas… · Le respondes… · Le mandas… le cuentas… |
+| 9 | page.tsx, «¿Y si el libro es el tuyo?» | …las preguntas te llegan a vos… | …las preguntas te llegan a ti… |
+| 10 | page.tsx y link-regalar.tsx, preguntas y link de regalo | ¿Mi papá va a saber usarlo? · …si querés. · Regalalo con una tarjeta → | ¿Mi padre va a saber usarlo? · …si quieres. · Regálalo con una tarjeta → |
+
+Aprobado aparte el mismo día: el saludo del WhatsApp de ejemplo, «Buen día, Roberto.» → «Buenos días, Roberto.» para España. Siguen en vos para España: `/viaje`, el panel (salvo próximo paso y preguntas), los mensajes de error y los legales.
