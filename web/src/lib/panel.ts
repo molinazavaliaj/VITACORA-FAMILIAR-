@@ -123,31 +123,39 @@ export function historiasDelUsuario(admin: SupabaseClient, user: Usuario): Promi
 async function cargarHistorias(admin: SupabaseClient, user: Usuario): Promise<ResultadoPanel> {
   const vacio: Panel = { familia: null, historias: [] };
 
-  const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
+  // Familia e invitaciones no dependen una de la otra: van juntas
+  // (RENDIMIENTO.md §3.4). Antes eran cuatro rondas en serie (familia →
+  // sus narradores → invitados → los narradores invitados); ahora son dos.
+  const [{ familia, error: errorFamilia }, roles] = await Promise.all([
+    familiaDelUsuario(admin, user),
+    narradoresInvitados(admin, user),
+  ]);
   if (errorFamilia) return { panel: vacio, error: errorFamilia };
 
+  // Las dos consultas de narradores, también juntas. Un narrador de su familia
+  // al que además la invitaron cuenta una sola vez, como dueña: se descarta de
+  // la lista de invitados (antes se filtraba por id contra las propias; es lo mismo).
+  const idsInvitados = [...roles.keys()];
+  const [propias, invitadas] = await Promise.all([
+    familia
+      ? admin.from("narradores").select(CAMPOS_NARRADOR).eq("familia_id", familia.id).order("created_at", { ascending: false })
+      : null,
+    idsInvitados.length > 0
+      ? admin.from("narradores").select(CAMPOS_NARRADOR).in("id", idsInvitados).order("created_at", { ascending: false })
+      : null,
+  ]);
+
   const historias: Historia[] = [];
-
-  if (familia) {
-    const { data, error } = await admin
-      .from("narradores")
-      .select(CAMPOS_NARRADOR)
-      .eq("familia_id", familia.id)
-      .order("created_at", { ascending: false });
-    if (error) return { panel: vacio, error: error.message };
-    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "duena" });
+  if (propias) {
+    if (propias.error) return { panel: vacio, error: propias.error.message };
+    for (const n of (propias.data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "duena" });
   }
-
-  const roles = await narradoresInvitados(admin, user);
-  const idsInvitados = [...roles.keys()].filter((id) => !historias.some((h) => h.narrador.id === id));
-  if (idsInvitados.length > 0) {
-    const { data, error } = await admin
-      .from("narradores")
-      .select(CAMPOS_NARRADOR)
-      .in("id", idsInvitados)
-      .order("created_at", { ascending: false });
-    if (error) return { panel: vacio, error: error.message };
-    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: roles.get(n.id) ?? "invitado" });
+  if (invitadas) {
+    if (invitadas.error) return { panel: vacio, error: invitadas.error.message };
+    for (const n of (invitadas.data as NarradorPanel[] | null) ?? []) {
+      if (familia && n.familia_id === familia.id) continue;
+      historias.push({ narrador: n, rol: roles.get(n.id) ?? "invitado" });
+    }
   }
 
   return { panel: { familia, historias }, error: null };

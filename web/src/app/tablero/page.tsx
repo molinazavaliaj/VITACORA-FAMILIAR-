@@ -35,7 +35,7 @@ async function resumirHistoria(
 ): Promise<Resumen> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
-  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes, v3] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
@@ -45,6 +45,9 @@ async function resumirHistoria(
     admin.storage.from("audios").list(`${narradorId}/paquete`),
     // Dudas del escritor sin contestar (lib/dudas-archivos.ts).
     hayDudasPendientes(admin, narradorId),
+    // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
+    // No depende de nada de arriba: va en la misma ronda (RENDIMIENTO.md §3.4).
+    viaje ? false : entrevistaV3(admin, narradorId).then((e) => e !== null, () => false),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
@@ -61,9 +64,6 @@ async function resumirHistoria(
         TOTAL_PREGUNTAS_BASE,
       );
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
-  // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
-  const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
-
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
 }
 
@@ -97,14 +97,17 @@ export default async function Inicio() {
     );
   }
 
-  const resumenes = await Promise.all(panel.historias.map((h) => resumirHistoria(admin, h)));
-  // Cada tarjeta habla con el trato de la familia dueña de esa historia: la del
-  // panel si es propia, la de quien invitó si no.
-  const regiones = await Promise.all(
-    panel.historias.map((h) =>
-      panel.familia && h.narrador.familia_id === panel.familia.id ? panel.familia.region : regionDeLaFamilia(admin, h.narrador.familia_id),
+  // Los resúmenes y las regiones no dependen unos de otros: una sola ronda (RENDIMIENTO.md §3.4).
+  const [resumenes, regiones] = await Promise.all([
+    Promise.all(panel.historias.map((h) => resumirHistoria(admin, h))),
+    // Cada tarjeta habla con el trato de la familia dueña de esa historia: la del
+    // panel si es propia, la de quien invitó si no.
+    Promise.all(
+      panel.historias.map((h) =>
+        panel.familia && h.narrador.familia_id === panel.familia.id ? panel.familia.region : regionDeLaFamilia(admin, h.narrador.familia_id),
+      ),
     ),
-  );
+  ]);
   const segundosTotales = resumenes.reduce((acc, r) => acc + r.segundos, 0);
 
   return (
