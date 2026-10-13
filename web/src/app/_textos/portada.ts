@@ -261,7 +261,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Lo que nos preguntan antes de regalarlo.",
       movil: {
         pregunta: "«Mi padre no se aclara con el móvil.»",
-        texto: "Si manda audios por WhatsApp, ya sabe. No instala nada ni escribe una línea: aprieta el micrófono y habla.",
+        texto: "Si manda audios por WhatsApp, ya sabe. No instala nada ni escribe una línea. Aprieta el micrófono y habla.",
       },
       hablar: {
         pregunta: "«No le gusta hablar de sí mismo.»",
@@ -299,7 +299,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "No hace falta imaginarlo. Lo vas escuchando.",
       texto: "Desde la primera respuesta, en tu panel aparecen sus audios, uno por uno, con su voz y sus modos de decir.",
       fuerte: "Y cuando termina de contar, el biógrafo escribe su libro.",
-      cierre: "No hay que esperar a ciegas: lo has ido escuchando todo el camino.",
+      cierre: "No hay que esperar a ciegas. Lo has ido escuchando todo el camino.",
       panel: {
         etiqueta: "Tu panel",
         titulo: "La historia de Roberto",
@@ -349,7 +349,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Su voz",
       titulo: "Con esto vas a tener la historia de su vida completa.",
       texto:
-        "El libro viene con sus mejores frases en su voz real: sus dichos, su manera de empezar las frases, la risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva un código QR que las hace sonar.",
+        "El libro viene con sus mejores frases en su voz real. Sus dichos, su manera de empezar las frases, la risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva un código QR que las hace sonar.",
       capitulo: "Capítulo 1 · La infancia",
       cita: "«…mi padre plantó el limonero del patio el año que nací. En verano comíamos debajo, y todavía me acuerdo del olor de los limones y de mi madre gritando que nos laváramos las manos.»",
       duracion: "0:42",
@@ -363,7 +363,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       texto:
         "Un marco negro pequeño, con la foto suya que elijas. Para poner encima de un mueble, junto a su libro, o para regalar a los hermanos.",
       nfcTitulo: "Acerca el móvil al marco y se abre su libro.",
-      nfcTexto: "Por dentro lleva un chip que no se ve. Basta con acercar el móvil: se abre su libro y se escucha su voz. Sin apps ni códigos.",
+      nfcTexto: "Por dentro lleva un chip que no se ve. Basta con acercar el móvil y se abre su libro, con su voz. Sin apps ni códigos.",
       nota: "Lo añades al comprar o después, desde tu panel. Va con el libro impreso.",
       pasos: ["Acercas el móvil al marco", "Se abre su libro", "Escuchas su voz"],
       telefonoQuieto: "Acerca el móvil",
@@ -374,15 +374,15 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "En diciembre",
       titulo: "Este año, regala algo que no está en ninguna tienda.",
       texto:
-        "Todos los años el mismo problema y todos los años lo mismo. Este año hay algo que antes no existía: la historia de la familia, y un trozo de esa historia para cada uno.",
+        "Todos los años el mismo problema y todos los años lo mismo. Este año hay algo que antes no existía, la historia de la familia, y un trozo de esa historia para cada uno.",
       casa: {
         etiqueta: "Para la casa",
         titulo: "Un libro",
         texto: "Impreso, en tapa dura, con su voz en la contraportada. El que queda en la estantería de la familia.",
       },
-      cadaUno: { etiqueta: "Para cada uno", titulo: "Un marco", texto: "Para cada primo y cada tío: acercas el móvil y suena su voz." },
+      cadaUno: { etiqueta: "Para cada uno", titulo: "Un marco", texto: "Para cada primo y cada tío. Acercas el móvil y suena su voz." },
       regalo: {
-        titulo: "Es un regalo: tú eliges cuándo le llega.",
+        titulo: "Es un regalo. Tú eliges cuándo le llega.",
         texto: "Eliges el día en que empieza y te damos una tarjeta para entregárselo.",
       },
       altFoto: "Un abuelo abre una tarjeta de regalo junto al árbol de Navidad",
@@ -391,7 +391,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Lo que se hereda",
       titulo: "Todo lo que aprendió en una vida, guardado para los que vienen.",
       texto:
-        "No es nostalgia: es transmisión. Lo que aprendió en toda una vida les sirve a sus nietos, y a los que todavía no han nacido.",
+        "No es nostalgia, es transmisión. Lo que aprendió en toda una vida les sirve a sus nietos, y a los que todavía no han nacido.",
       cierre: "Hay preguntas que un día ya no se pueden hacer.",
     },
     precio: {
@@ -400,7 +400,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       desde: "desde",
       texto:
         "Lo que cuesta hoy un libro de preguntas que él tendría que rellenar a mano. Aquí lo cuenta hablando, y le queda su voz grabada.",
-      siempre: "Siempre: la entrevista entera del biógrafo, hasta completar su historia, y el panel para escuchar lo que va contando.",
+      siempre: "Siempre va la entrevista entera del biógrafo, hasta completar su historia, y el panel para escuchar lo que va contando.",
       items: ["El libro en PDF con «Su voz», para leer y escuchar siempre"],
       marcos: "Los marcos con su voz se suman al libro impreso.",
     },
@@ -421,7 +421,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Otro caso",
       titulo: "¿Y si el libro es el tuyo?",
       texto:
-        "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a ti, y el libro es el de tu vida.",
+        "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual. Las preguntas te llegan a ti, y el libro es el de tu vida.",
       enlace: "Empezar mi propio libro",
     },
     faq: {
@@ -565,7 +565,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Lo que nos preguntan antes de regalarlo.",
       movil: {
         pregunta: "«Mi papá no se lleva bien con el celular.»",
-        texto: "Si manda audios por WhatsApp, ya sabe. No instala nada ni escribe una línea: aprieta el micrófono y habla.",
+        texto: "Si manda audios por WhatsApp, ya sabe. No instala nada ni escribe una línea. Aprieta el micrófono y habla.",
       },
       hablar: {
         pregunta: "«No le gusta hablar de sí mismo.»",
@@ -603,7 +603,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "No hace falta imaginarlo. Lo vas escuchando.",
       texto: "Desde la primera respuesta, en tu panel aparecen sus audios, uno por uno, con su voz y sus modos de decir.",
       fuerte: "Y cuando termina de contar, el biógrafo escribe su libro.",
-      cierre: "No hay que esperar a ciegas: lo fuiste escuchando todo el camino.",
+      cierre: "No hay que esperar a ciegas. Lo fuiste escuchando todo el camino.",
       panel: {
         etiqueta: "Tu panel",
         titulo: "La historia de Roberto",
@@ -652,7 +652,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Su voz",
       titulo: "Con esto vas a tener la historia de su vida completa.",
       texto:
-        "El libro viene con sus mejores frases en su voz real: sus dichos, su manera de arrancar las frases, la risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva un código QR que las hace sonar.",
+        "El libro viene con sus mejores frases en su voz real. Sus dichos, su manera de arrancar las frases, la risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva un código QR que las hace sonar.",
       capitulo: "Capítulo 1 · La infancia",
       cita: "«…mi papá plantó el limonero del patio el año que nací. En verano comíamos abajo, y todavía me acuerdo del olor de los limones y de mi mamá gritando que nos laváramos las manos.»",
       duracion: "0:42",
@@ -666,7 +666,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       texto:
         "Un marco negro chico, con la foto suya que elijas. Para poner arriba de un mueble, junto a su libro, o para regalarles a los hermanos.",
       nfcTitulo: "Acercá el celular al marco y se abre su libro.",
-      nfcTexto: "Por dentro lleva un chip que no se ve. Alcanza con acercar el celular: se abre su libro y se escucha su voz. Sin apps ni códigos.",
+      nfcTexto: "Por dentro lleva un chip que no se ve. Alcanza con acercar el celular y se abre su libro, con su voz. Sin apps ni códigos.",
       nota: "Lo sumás al comprar o después, desde tu panel. Va con el libro impreso.",
       pasos: ["Acercás el celular al marco", "Se abre su libro", "Escuchás su voz"],
       telefonoQuieto: "Acercá el celular",
@@ -677,15 +677,15 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "En diciembre",
       titulo: "Este año, regalá algo que no está en ninguna tienda.",
       texto:
-        "Todos los años el mismo problema y todos los años lo mismo. Este año hay algo que antes no existía: la historia de la familia, y un pedazo de esa historia para cada uno.",
+        "Todos los años el mismo problema y todos los años lo mismo. Este año hay algo que antes no existía, la historia de la familia, y un pedazo de esa historia para cada uno.",
       casa: {
         etiqueta: "Para la casa",
         titulo: "Un libro",
         texto: "Impreso, en tapa dura, con su voz en la contratapa. El que queda en la biblioteca de la familia.",
       },
-      cadaUno: { etiqueta: "Para cada uno", titulo: "Un marco", texto: "Para cada primo y cada tío: se acerca el teléfono y suena su voz." },
+      cadaUno: { etiqueta: "Para cada uno", titulo: "Un marco", texto: "Para cada primo y cada tío. Se acerca el teléfono y suena su voz." },
       regalo: {
-        titulo: "Es un regalo: vos elegís cuándo le llega.",
+        titulo: "Es un regalo. Vos elegís cuándo le llega.",
         texto: "Elegís el día en que empieza y te damos una tarjeta para dárselo.",
       },
       altFoto: "Un abuelo abre una tarjeta de regalo junto al arbolito de Navidad",
@@ -693,7 +693,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     hereda: {
       etiqueta: "Lo que se hereda",
       titulo: "Todo lo que aprendió en una vida, guardado para los que vienen.",
-      texto: "No es nostalgia: es transmisión. Lo que aprendió en toda una vida les sirve a sus nietos, y a los que todavía no nacieron.",
+      texto: "No es nostalgia, es transmisión. Lo que aprendió en toda una vida les sirve a sus nietos, y a los que todavía no nacieron.",
       cierre: "Hay preguntas que un día ya no se pueden hacer.",
     },
     precio: {
@@ -702,7 +702,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       desde: "desde",
       texto:
         "Lo que cuesta hoy un libro de preguntas que él tendría que completar a mano. Acá lo cuenta hablando, y le queda su voz grabada.",
-      siempre: "Siempre: la entrevista entera del biógrafo, hasta completar su historia, y el panel para escuchar lo que va contando.",
+      siempre: "Siempre va la entrevista entera del biógrafo, hasta completar su historia, y el panel para escuchar lo que va contando.",
       items: ["El libro en PDF con «Su voz», para leer y escuchar siempre"],
       marcos: "Los marcos con su voz se suman al libro impreso.",
     },
@@ -723,7 +723,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Otro caso",
       titulo: "¿Y si el libro es el tuyo?",
       texto:
-        "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a vos, y el libro es el de tu vida.",
+        "Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su vida, de dónde viene, antes de que empiece otra etapa. Funciona igual. Las preguntas te llegan a vos, y el libro es el de tu vida.",
       enlace: "Empezar mi propio libro",
     },
     faq: {
@@ -868,7 +868,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "El que ens pregunten abans de regalar-lo.",
       movil: {
         pregunta: "«El meu pare no se'n surt, amb el mòbil.»",
-        texto: "Si envia àudios per WhatsApp, ja en sap. No instal·la res ni escriu ni una línia: prem el micròfon i parla.",
+        texto: "Si envia àudios per WhatsApp, ja en sap. No instal·la res ni escriu ni una línia. Prem el micròfon i parla.",
       },
       hablar: {
         pregunta: "«No li agrada parlar de si mateix.»",
@@ -906,7 +906,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "No cal imaginar-ho. Ho vas escoltant.",
       texto: "Des de la primera resposta, al teu panell hi apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses.",
       fuerte: "I quan acaba d'explicar, el biògraf escriu el seu llibre.",
-      cierre: "No cal esperar a cegues: l'has anat escoltant tot el camí.",
+      cierre: "No cal esperar a cegues. L'has anat escoltant tot el camí.",
       panel: {
         etiqueta: "El teu panell",
         titulo: "La història d'en Roberto",
@@ -957,7 +957,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "La seva veu",
       titulo: "Amb això tindràs la història de la seva vida completa.",
       texto:
-        "El llibre porta les seves millors frases amb la seva veu real: les seves dites, la seva manera de començar les frases, el riure quan recorda alguna cosa. S'escolten a la web, es reenvien per WhatsApp, i el llibre imprès porta un codi QR que les fa sonar.",
+        "El llibre porta les seves millors frases amb la seva veu real. Les seves dites, la seva manera de començar les frases, el riure quan recorda alguna cosa. S'escolten a la web, es reenvien per WhatsApp, i el llibre imprès porta un codi QR que les fa sonar.",
       capitulo: "Capítol 1 · La infància",
       cita: "«…el meu pare va plantar el llimoner del pati l'any que vaig néixer. A l'estiu menjàvem a sota, i encara recordo l'olor de les llimones i la meva mare cridant que ens rentéssim les mans.»",
       duracion: "0:42",
@@ -971,7 +971,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       texto:
         "Un marc negre petit, amb la foto seva que triïs. Per posar damunt d'un moble, al costat del seu llibre, o per regalar als germans.",
       nfcTitulo: "Apropa el mòbil al marc i s'obre el seu llibre.",
-      nfcTexto: "Per dins porta un xip que no es veu. N'hi ha prou d'apropar-hi el mòbil: s'obre el seu llibre i s'escolta la seva veu. Sense apps ni codis.",
+      nfcTexto: "Per dins porta un xip que no es veu. N'hi ha prou d'apropar-hi el mòbil i s'obre el seu llibre, amb la seva veu. Sense apps ni codis.",
       nota: "L'afegeixes en comprar o després, des del teu panell. Va amb el llibre imprès.",
       pasos: ["Apropes el mòbil al marc", "S'obre el seu llibre", "Escoltes la seva veu"],
       telefonoQuieto: "Apropa el mòbil",
@@ -982,15 +982,15 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Al desembre",
       titulo: "Aquest any, regala una cosa que no és a cap botiga.",
       texto:
-        "Cada any el mateix problema i cada any el mateix. Aquest any hi ha una cosa que abans no existia: la història de la família, i un tros d'aquesta història per a cadascú.",
+        "Cada any el mateix problema i cada any el mateix. Aquest any hi ha una cosa que abans no existia, la història de la família, i un tros d'aquesta història per a cadascú.",
       casa: {
         etiqueta: "Per a casa",
         titulo: "Un llibre",
         texto: "Imprès, en tapa dura, amb la seva veu a la contraportada. El que queda a la prestatgeria de la família.",
       },
-      cadaUno: { etiqueta: "Per a cadascú", titulo: "Un marc", texto: "Per a cada cosí i cada oncle: hi apropes el mòbil i sona la seva veu." },
+      cadaUno: { etiqueta: "Per a cadascú", titulo: "Un marc", texto: "Per a cada cosí i cada oncle. Hi apropes el mòbil i sona la seva veu." },
       regalo: {
-        titulo: "És un regal: tu tries quan li arriba.",
+        titulo: "És un regal. Tu tries quan li arriba.",
         texto: "Tries el dia que comença i et donem una targeta per donar-l'hi.",
       },
       altFoto: "Un avi obre una targeta de regal al costat de l'arbre de Nadal",
@@ -999,7 +999,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "El que s'hereta",
       titulo: "Tot el que va aprendre en una vida, guardat per als que vénen.",
       texto:
-        "No és nostàlgia: és transmissió. El que va aprendre en tota una vida els serveix als seus néts, i als que encara no han nascut.",
+        "No és nostàlgia, és transmissió. El que va aprendre en tota una vida els serveix als seus néts, i als que encara no han nascut.",
       cierre: "Hi ha preguntes que un dia ja no es poden fer.",
     },
     precio: {
@@ -1008,7 +1008,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       desde: "des de",
       texto:
         "El que costa avui un llibre de preguntes que ell hauria d'omplir a mà. Aquí ho explica parlant, i li queda la veu gravada.",
-      siempre: "Sempre: l'entrevista sencera del biògraf, fins a completar la seva història, i el panell per escoltar el que va explicant.",
+      siempre: "Sempre hi ha l'entrevista sencera del biògraf, fins a completar la seva història, i el panell per escoltar el que va explicant.",
       items: ["El llibre en PDF amb «La seva veu», per llegir i escoltar sempre"],
       marcos: "Els marcs amb la seva veu se sumen al llibre imprès.",
     },
@@ -1029,7 +1029,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Un altre cas",
       titulo: "I si el llibre és el teu?",
       texto:
-        "Hi ha qui no ho fa per un pare ni per un avi, sinó pels seus propis fills. Vol deixar guardada la seva vida, d'on ve, abans que comenci una altra etapa. Funciona igual: les preguntes t'arriben a tu, i el llibre és el de la teva vida.",
+        "Hi ha qui no ho fa per un pare ni per un avi, sinó pels seus propis fills. Vol deixar guardada la seva vida, d'on ve, abans que comenci una altra etapa. Funciona igual. Les preguntes t'arriben a tu, i el llibre és el de la teva vida.",
       enlace: "Començar el meu propi llibre",
     },
     faq: {

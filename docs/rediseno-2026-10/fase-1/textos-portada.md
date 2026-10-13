@@ -18,6 +18,11 @@ está marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá frase por f
   bajada de «Para quién es» y sus dos tarjetas; la conversación «a la hora que prefiere»; el precio
   «Un solo pago. Sin sorpresas después.»; el marco sin dos puntos.
 
+- **14/10, tanda 5** (todos OK): sin dos puntos en la portada (duda del celular, Su voz, marco,
+  diciembre, para cada uno, regalo, lo que se hereda) y también en tres aprobados viejos («No hay que
+  esperar a ciegas. Lo has ido…», «Siempre va la entrevista entera…», «Funciona igual. Las
+  preguntas…»). Igual en catalán.
+
 ## 0. Textos aprobados que el diseño nuevo ya NO usa
 
 | Texto aprobado | Por qué sale | Test |
