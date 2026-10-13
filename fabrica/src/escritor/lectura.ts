@@ -22,6 +22,9 @@ export function respuestas(c: Carpeta): Respuesta[] {
 /** lib.mjs:58. */
 export const idioma = (c: Carpeta): IdiomaLibro => idiomaDeFicha(c.leer('entradas/ficha.xml'));
 
+/** El trato de la ficha («Trato: tu» para España y catalán; si no, vos): el de los textos fijos del libro (13/10). */
+export const trato = (c: Carpeta): 'vos' | 'tu' => (/^\s*Trato:\s*tu\b/im.test(c.leer('entradas/ficha.xml')) ? 'tu' : 'vos');
+
 /** lib.mjs:72-77 (con `<confirmado_por_el_narrador>` si hay entradas/confirmado.xml). */
 export function ficha(c: Carpeta): string {
   const f = c.leer('entradas/ficha.xml').trim();

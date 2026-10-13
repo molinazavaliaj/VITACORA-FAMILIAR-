@@ -283,6 +283,40 @@ Cuando el narrador terminó de contar, Compartir deja invitar (hasta 3) mientras
 | lib/mail.ts, invitación para las dudas, botón | Ver las dudas | igual |
 | api/invitados, terminó de contar sin dudas | Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link. | igual |
 
+## La tapa nueva (13/10)
+
+La tapa del libro pasa a ser la de la imagen de Naza: la foto arriba, «EL LIBRO DE SU VIDA», el nombre y «para siempre». Sin subtítulo. La misma en el PDF de la fábrica y en el panel. Aprobados por Naza el 13/10.
+
+| Dónde | Argentina (vos) | España (tú) |
+|---|---|---|
+| libro/wizard.tsx, paso Tapa (V3) | Elegí el título y la foto de la tapa. Así va a quedar la tapa. | Elige el título y la foto de la tapa. Así va a quedar la tapa. |
+| libro/wizard.tsx, paso Portada (flujo viejo) | Esta es nuestra propuesta. Cambiá lo que quieras. Así va a quedar la tapa. | …Cambia lo que quieras… |
+| La tapa (lib/tapa.ts y fabrica/src/libro/plantilla-html.ts), libro en castellano | EL LIBRO DE SU VIDA · para siempre | igual |
+| La tapa, libro en catalán | EL LLIBRE DE LA SEVA VIDA · per sempre | igual |
+## La contratapa en catalán (13/10)
+
+Libro en catalán (entrevista en `ca`). En castellano no cambia. Aprobados por Naza el 13/10.
+
+| Castellano | Catalán |
+|---|---|
+| VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS | VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES |
+| Su historia, contada con su propia voz. Un libro que se lee con los ojos y se escucha con su voz. | La seva història, explicada amb la seva pròpia veu. Un llibre que es llegeix amb els ulls i s’escolta amb la seva veu. |
+| LA HISTORIA DE UNA VIDA · DESDE 1945 | LA HISTÒRIA D’UNA VIDA · DES DE 1945 |
+## Textos fijos del libro: catalán y tú para España (13/10)
+
+Colofón, «Sus frases» y «Su voz» del PDF (fabrica/src/libro/plantilla-html.ts, TEXTOS_LIBRO). Aprobados por Naza el 13/10. La explicación del código del libro entero pierde los dos puntos en las tres lenguas.
+
+| | Argentina | España | Catalán |
+|---|---|---|---|
+| Sus frases, arriba | TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN | igual | TAL COM LES DIU · PERQUÈ NO ES PERDIN |
+| Bajo la frase destacada | Si se lleva una sola de todo el libro, es esta | igual | Si només se n’endú una de tot el llibre, és aquesta |
+| Su voz, título | Su voz | igual | La seva veu |
+| Su voz, bajada | Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás. | Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas. | Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs. |
+| Debajo de cada código | Escuchala | Escúchala | Escolta-la |
+| Código del libro entero | El libro entero, en su voz | igual | El llibre sencer, amb la seva veu |
+| … su bajada | Este código abre la página con el libro online y todas sus frases, para escucharlas y compartirlas. | igual | Aquest codi obre la pàgina amb el llibre en línia i totes les seves frases, per escoltar-les i compartir-les. |
+| Colofón | Este libro fue contado por · [nombre] · con su propia voz, y guardado para siempre por | igual | Aquest llibre el va explicar · [nom] · amb la seva pròpia veu, i el va guardar per sempre |
+| Cierre | «Acá adentro están todos vivos.» | «Aquí dentro están todos vivos.» | «Aquí dins hi són tots vius.» |
 ## Mail de dudas a los socios (13/10)
 
 Lo manda la fábrica cuando termina la Etapa A; solo lo leen los socios. Aprobado por Naza el 13/10.

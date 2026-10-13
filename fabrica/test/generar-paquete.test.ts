@@ -590,7 +590,7 @@ describe('generarPaquete', () => {
     );
   });
 
-  it('título, subtítulo y foto de tapa de la edición llegan a la plantilla; la foto de tapa sale de la tabla fotos', async () => {
+  it('título y foto de tapa de la edición llegan a la plantilla; la foto de tapa sale de la tabla fotos', async () => {
     construirDbN1({
       narrador: {
         data: narradorN1({ edicion: { titulo: 'Mi abuela Rosa', subtitulo: 'Rosa Pérez', portadaFotoId: 'f9' } }),
@@ -607,11 +607,10 @@ describe('generarPaquete', () => {
 
     const html = setContentMock.mock.calls[0][0] as string;
     expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
-    expect(html).toContain('<div class="tag">Rosa Pérez</div>');
     expect(html).toContain(`data:image/jpeg;base64,${Buffer.from('TAPA').toString('base64')}`);
   });
 
-  it('portadaFotoId que no existe → frontispicio con narrador.foto_url como siempre', async () => {
+  it('portadaFotoId que no existe → la tapa usa narrador.foto_url como siempre', async () => {
     construirDbN1({
       narrador: {
         data: narradorN1({ edicion: { portadaFotoId: 'no-existe' }, foto_url: 'https://x/foto.jpg' }),
