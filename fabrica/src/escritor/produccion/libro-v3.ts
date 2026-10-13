@@ -144,6 +144,20 @@ function armarContexto(db: Db, narradorId: string, motor: Motor, c: Carpeta): Co
   return { c, ej, almacen, log, usarLote };
 }
 
+/**
+ * Cómo se nombra a un narrador en los avisos a los socios: su nombre y el id (13/10: el aviso de Imma decía solo
+ * el id y no se entendía de quién era). Si la base no contesta, el id solo: el aviso sale igual.
+ */
+async function quienEs(db: Db, narradorId: string): Promise<string> {
+  try {
+    const { data } = await db.from('narradores').select('como_le_dicen').eq('id', narradorId).maybeSingle();
+    const nombre = (data as { como_le_dicen?: string } | null)?.como_le_dicen?.trim();
+    return nombre ? `${nombre} (${narradorId})` : narradorId;
+  } catch {
+    return narradorId;
+  }
+}
+
 /** Corre la Etapa A. Un control que no pasa (o el tope, o sin material) deja fallo-A.json y avisa; un error de la API tira. */
 export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = motorReal(db)): Promise<ResultadoEtapaA> {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
@@ -158,7 +172,7 @@ export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = 
   if (!r.ok) {
     await almacen.escribir(FALLO_A, JSON.stringify({ motivo: r.motivo, fecha: new Date().toISOString() }, null, 1));
     await avisarSocios(
-      `La Etapa A de ${narradorId} no salió`,
+      `La Etapa A de ${await quienEs(db, narradorId)} no salió`,
       `${r.motivo}\n\nNo se reintenta sola. Lo que se pagó quedó en ${PREFIJO_ESCRITOR(narradorId)}/ (pasos/, costos.json). Para reintentar, borrar ${PREFIJO_ESCRITOR(narradorId)}/${FALLO_A}; si la familia ya cerró el libro y pagó, el pedido la corre igual antes de escribir.`,
     );
   }
@@ -281,7 +295,7 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
       ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
     ].join('\n'));
     const salio = await avisarSocios(
-      `Dudas de datos del libro de ${narradorId} (${dudas.length})`,
+      `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
       `La Etapa A terminó y encontró estas dudas de datos. La familia no las ve (la pantalla no existe todavía).\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
     if (!salio) return false;
@@ -461,7 +475,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     const { error } = await db.from('pedidos').update({ estado: 'fallido' }).eq('id', pedido.id);
     if (error) console.error(`escritor ${narradorId}: no se pudo marcar 'fallido' el pedido ${pedido.id}:`, error.message);
     await avisarSocios(
-      `El libro de ${narradorId} no salió (pedido ${pedido.id})`,
+      `El libro de ${await quienEs(db, narradorId)} no salió (pedido ${pedido.id})`,
       `${motivo}\n\nEl pedido quedó 'fallido'. Lo pagado al modelo quedó en ${PREFIJO_ESCRITOR(narradorId)}/: para reintentar, volver el pedido a 'pagado' (retoma sin repagar).`,
     );
   }
@@ -554,7 +568,7 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
       const p = pendientes.get(n.id)!;
       const horas = Math.floor((ahora - cerrado) / 3_600_000);
       const salio = await avisarSocios(
-        `El libro de ${n.id} lleva ${horas} horas sin salir`,
+        `El libro de ${await quienEs(db, n.id)} lleva ${horas} horas sin salir`,
         `La familia cerró el libro hace ${horas} horas y todavía no se entregó (un libro tarda de 4 a 9 horas, más 24 si hubo dudas). Pedido ${p.id}, estado '${p.estado}'.\n\n` +
           `Qué mirar: los logs de la fábrica en Railway (buscar "escritor ${n.id}"), ${PREFIJO_ESCRITOR(n.id)}/costos.json (si sigue sumando, está trabajando) y ${PREFIJO_ESCRITOR(n.id)}/lotes/ (los lotes de Batch que espera). ` +
           `Si quedó 'fallido', volverlo a 'pagado' retoma sin repagar. Este aviso sale una sola vez.`,

@@ -355,3 +355,15 @@ describe('C12 sin los títulos de capítulo del plan (07/10)', () => {
   });
 });
 
+describe('C14: fecha segura con números en catalán (13/10, Imma)', () => {
+  const reg = (ids: string[]) => ({ episodios: [{ id: 'E1', estado: 'ok', ids, segura: true, que: 'Nace Imma' }], voz: { frases: [] } });
+  const fecha = (texto: string) => E.c14(reg(['R01']), [{ id: 'R01', texto }] as never, '').filter((p) => p.includes('fecha segura'));
+  it('cuenta «catorze o quinze anys» como número', () => {
+    expect(fecha('Devien tenir catorze o quinze anys quan es van conèixer, i quan en van tenir divuit i vint es van casar.')).toEqual([]);
+  });
+  it('sin ningún número, sigue sin pasar (ni con «un», «set», «nou» o «deu»)', () => {
+    expect(fecha('El Nadal passat vam anar a Londres amb els nens.')).toHaveLength(1);
+    expect(fecha('Tenia set i em deu un got nou.')).toHaveLength(1);
+  });
+});
+
