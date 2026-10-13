@@ -22,7 +22,7 @@ function envCompleto(): NodeJS.ProcessEnv {
     ADMIN_EMAILS: "uno@ejemplo.com",
     ENTREVISTADOR_URL: "https://bot.ejemplo.com",
     SUGERIDAS_CLAVE: "clave-secreta",
-  };
+  } as unknown as NodeJS.ProcessEnv;
 }
 
 function storageFalso() {
@@ -101,7 +101,7 @@ describe("avisarVariablesAlArrancar (web)", () => {
   });
 
   it("REGALO_ENTREGA_WHATSAPP prendida sin número es una falta", () => {
-    const env = { ...envCompleto(), REGALO_ENTREGA_WHATSAPP: "1" };
+    const env: NodeJS.ProcessEnv = { ...envCompleto(), REGALO_ENTREGA_WHATSAPP: "1" };
     delete env.WHATSAPP_NUMERO_PUBLICO;
     expect(revisarVariables(env).map((f) => f.variable)).toEqual(["WHATSAPP_NUMERO_PUBLICO"]);
   });
