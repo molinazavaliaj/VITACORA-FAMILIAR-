@@ -298,6 +298,18 @@ body {
   transform-origin: left center;
   transition: transform var(--d-base) var(--ease-io);
 }
+/* Las solapas Familiar · De viaje de la cabecera pública (_publico/cabecera):
+   dos solapas iguales, así la pastilla va de una a otra con translateX(100%).
+   Se queda bajo la activa y se desliza hasta la que se señala. */
+.m-solapas[data-activa="viaje"] .m-pill {
+  transform: translateX(100%);
+}
+.m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
+  transform: none;
+}
+.m-solapas:has(> [data-solapa="viaje"]:hover, > [data-solapa="viaje"]:focus-visible) .m-pill {
+  transform: translateX(100%);
+}
 
 /* 5 · Acordeón con <details> nativo. La respuesta crece de 0fr a 1fr (sin
    conocer el alto) y el «+» gira a «×». Al abrir, @starting-style le da un
