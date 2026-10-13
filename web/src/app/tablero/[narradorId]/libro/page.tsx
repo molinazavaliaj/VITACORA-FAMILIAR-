@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { catalogo, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
@@ -49,10 +49,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const { narradorId } = await params;
   const { encargado } = await searchParams; // ?encargado=1: recién apretó Encargar
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();

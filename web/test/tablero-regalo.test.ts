@@ -7,7 +7,11 @@ const notFound = vi.fn(() => { throw new Error('NOT_FOUND'); });
 vi.mock('next/navigation', () => ({ redirect: (u: string) => redirect(u), notFound: () => notFound() }));
 
 const getUser = vi.fn();
-vi.mock('@/lib/supabase/sesion', () => ({ crearClienteSesion: async () => ({ auth: { getUser } }) }));
+// La página lee el usuario con usuarioDeLaSesion (getUser una vez por request); el doble pasa por el mismo getUser.
+vi.mock('@/lib/supabase/sesion', () => ({
+  crearClienteSesion: async () => ({ auth: { getUser } }),
+  usuarioDeLaSesion: async () => (await getUser()).data.user,
+}));
 
 let filaRegalo: unknown = null;
 const eq = vi.fn(() => ({ maybeSingle: async () => ({ data: filaRegalo, error: null }) }));

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
 import { tratoDeLaFamilia } from "@/lib/trato";
@@ -62,14 +62,36 @@ function IconoBarra({ nombre }: { nombre: "lapiz" | "foto" | "check" }) {
   );
 }
 
+type LecturaV3 = {
+  v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  filasV3: unknown[] | null;
+  e4: { message: string } | null;
+  /** entrevistaV3 tiró: la página muestra el error, salvo en un viaje (que no la mira). */
+  fallo?: unknown;
+};
+
+/** La entrevista V3 y, si hay, sus respuestas en el orden en que llegaron. Nunca rechaza. */
+async function leerV3(admin: ReturnType<typeof crearClienteServidor>, narradorId: string): Promise<LecturaV3> {
+  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  try {
+    v3 = await entrevistaV3(admin, narradorId);
+  } catch (e) {
+    return { v3: null, filasV3: null, e4: null, fallo: e };
+  }
+  if (!v3) return { v3, filasV3: null, e4: null };
+  const { data, error } = await admin
+    .from("respuestas")
+    .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
+    .eq("narrador_id", narradorId)
+    .order("recibido_at", { ascending: true });
+  return { v3, filasV3: data, e4: error };
+}
+
 export default async function PaginaHistoria({ params, searchParams }: PageProps<"/tablero/[narradorId]">) {
   const { narradorId } = await params;
   const { editar, sobre } = await searchParams;
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();
@@ -117,6 +139,8 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     { data: filaNarrador },
     { panel },
     tratoPanel,
+    dudasPendientes,
+    lecturaV3,
   ] = await Promise.all([
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, foto_id, narrador_id").eq("narrador_id", n.id),
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").is("narrador_id", null),
@@ -135,6 +159,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     historiasDelUsuario(admin, user),
     // Los textos del panel van con el trato de la familia dueña de la historia.
     tratoDeLaFamilia(admin, n.familia_id),
+    // Terminó de contar y el escritor dejó dudas sin contestar (13/10). Solo
+    // depende del rol y del estado, que ya están: va en la misma ronda.
+    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? hayDudasPendientes(admin, n.id) : false,
+    // Entrevista V3 y sus respuestas, también en esta ronda (RENDIMIENTO.md §3.4).
+    // Las respuestas V3 se piden solo si hay entrevista V3 (encadenadas acá
+    // adentro): así una historia vieja no baja dos veces sus respuestas. El
+    // error no corta acá: en un viaje no se mira la V3, igual que antes.
+    leerV3(admin, n.id),
   ]);
 
   if (e1 || e2 || e3) {
@@ -153,7 +185,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // puede invitar a quien sepa las respuestas, aunque la historia esté cerrada.
   // El aviso que lleva a la pantalla de dudas (13/10): la dueña y los invitados, mientras el libro no esté escrito
   // (aunque ya lo hayan encargado: el libro espera las respuestas). Invitar, solo con el libro sin cerrar.
-  const dudasPendientes = PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
+  // (`dudasPendientes` llega en el Promise.all de arriba.)
   const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
@@ -207,19 +239,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   // Entrevista V3 (WhatsApp, 10/10): otra pantalla. Sin guion de 30 ni capítulos: lo que se le preguntó y lo
   // que contestó, por bloque (lib/v3.ts).
-  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
-  try {
-    v3 = await entrevistaV3(admin, n.id);
-  } catch (e) {
-    console.error("historia: fallo la lectura V3", e);
+  if ("fallo" in lecturaV3) {
+    console.error("historia: fallo la lectura V3", lecturaV3.fallo);
     return <EstadoError />;
   }
+  const { v3, filasV3, e4 } = lecturaV3;
   if (v3) {
-    const { data: filasV3, error: e4 } = await admin
-      .from("respuestas")
-      .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
-      .eq("narrador_id", n.id)
-      .order("recibido_at", { ascending: true });
     if (e4) {
       console.error("historia: fallo la carga V3", e4);
       return <EstadoError />;

@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { leerFrases, resumenDeCorte } from "@/lib/frases";
@@ -20,10 +20,7 @@ import { tratoDeLaFamilia } from "@/lib/trato";
 export default async function PaginaFrases({ params }: PageProps<"/tablero/[narradorId]/frases">) {
   const { narradorId } = await params;
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();

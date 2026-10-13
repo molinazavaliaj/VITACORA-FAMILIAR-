@@ -58,7 +58,7 @@ vi.mock("next/font/google", () => ({
 }));
 
 import { NextRequest } from "next/server";
-import { middleware } from "../src/middleware";
+import { proxy as middleware, config as configProxy } from "../src/proxy";
 import { destinoSeguro, pideSesion, rutaDeEntrada, rutaDeVuelta } from "../src/lib/destino";
 import { GET as callback } from "../src/app/api/auth/callback/route";
 import LayoutAdmin from "../src/app/admin/layout";
@@ -120,6 +120,10 @@ describe("sin sesión, el proxy manda a /entrar con la vuelta puesta", () => {
     const respuesta = await middleware(new NextRequest("http://localhost/admin"));
 
     expect(respuesta.headers.getSetCookie().join(" ")).toContain("sb-refresco=1");
+  });
+
+  it("el proxy corre solo en el panel y en /admin: el checkout y /entrar no pagan el getUser", () => {
+    expect(configProxy.matcher).toEqual(["/tablero/:path*", "/admin/:path*"]);
   });
 
   it("lo que se compra sin cuenta no se toca", async () => {
