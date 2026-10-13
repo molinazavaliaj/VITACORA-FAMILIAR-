@@ -306,6 +306,18 @@ body {
   transform-origin: left center;
   transition: transform var(--d-base) var(--ease-io);
 }
+/* Las solapas Familiar · De viaje de la cabecera pública (_publico/cabecera):
+   dos solapas iguales, así la pastilla va de una a otra con translateX(100%).
+   Se queda bajo la activa y se desliza hasta la que se señala. */
+.m-solapas[data-activa="viaje"] .m-pill {
+  transform: translateX(100%);
+}
+.m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
+  transform: none;
+}
+.m-solapas:has(> [data-solapa="viaje"]:hover, > [data-solapa="viaje"]:focus-visible) .m-pill {
+  transform: translateX(100%);
+}
 
 /* 5 · Acordeón con <details> nativo. La respuesta crece de 0fr a 1fr (sin
    conocer el alto) y el «+» gira a «×». Al abrir, @starting-style le da un
@@ -469,6 +481,80 @@ body {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
 }
+
+/* 10 · Pasar la página del libro de /ejemplo: la hoja gira sobre el lomo, el
+   único movimiento lento. Adelante, la página derecha entra girando desde el
+   lomo y la izquierda aparece; atrás, al revés. Con «menos movimiento» la
+   regla global de abajo la deja en 1 ms: cambio instantáneo. */
+.m-libro {
+  perspective: 2400px;
+}
+.m-hoja-der {
+  transform-origin: left center;
+}
+.m-hoja-izq {
+  transform-origin: right center;
+}
+.m-pasa-der {
+  animation: flipR var(--d-libro) var(--ease-io) both;
+}
+.m-pasa-izq {
+  animation: flipL var(--d-libro) var(--ease-io) both;
+}
+.m-aparece-hoja {
+  animation: hojaAparece 500ms 200ms both;
+}
+@keyframes flipR {
+  from { transform: rotateY(-95deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes flipL {
+  from { transform: rotateY(95deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes hojaAparece {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
+}
+
+/* 13 · La demo del marco con chip de la portada (_portada/demo-marco): bucle
+   de 7 s, decorativo. Fuera de pantalla se pausa ([data-pausado]); con «menos
+   movimiento» el componente ni lo pinta. */
+.nfc-phone { animation: nfcPhone 7s var(--ease-out) infinite; }
+.nfc-ring { animation: nfcRing 7s ease-out infinite; pointer-events: none; }
+.nfc-ring2 { animation-delay: 0.35s; }
+.nfc-open { animation: nfcOpen 7s var(--ease-out) infinite; }
+.nfc-bar { animation: nfcBar 0.9s ease-in-out infinite; }
+.nfc-bar:nth-child(3n) { animation-delay: -0.3s; }
+.nfc-bar:nth-child(3n + 1) { animation-delay: -0.6s; }
+.nfc-s1 { animation: nfcS1 7s infinite; }
+.nfc-s2 { animation: nfcS2 7s infinite; }
+.nfc-s3 { animation: nfcS3 7s infinite; }
+.nfc-demo[data-pausado="true"] :is(.nfc-phone, .nfc-ring, .nfc-open, .nfc-bar, .nfc-s) {
+  animation-play-state: paused;
+}
+@keyframes nfcPhone {
+  0%, 8% { transform: translate(70%, 60%) rotate(8deg); opacity: 0; }
+  22%, 88% { transform: translate(0, 0) rotate(-4deg); opacity: 1; }
+  100% { transform: translate(70%, 60%) rotate(8deg); opacity: 0; }
+}
+@keyframes nfcRing {
+  0%, 24% { transform: scale(0.4); opacity: 0; }
+  28% { opacity: 0.9; }
+  44%, 100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes nfcOpen {
+  0%, 34% { opacity: 0; transform: translateY(8px); }
+  42%, 90% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes nfcBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+@keyframes nfcS1 { 0%, 34% { opacity: 1; } 40%, 100% { opacity: 0.35; } }
+@keyframes nfcS2 { 0%, 34% { opacity: 0.35; } 40%, 58% { opacity: 1; } 64%, 100% { opacity: 0.35; } }
+@keyframes nfcS3 { 0%, 58% { opacity: 0.35; } 64%, 92% { opacity: 1; } 100% { opacity: 0.35; } }
 
 /* Foco visible del tema nuevo (MOTION.md §4). Va adentro de .tema-oscuro y en
    la capa base para no pisar los focos que ya tienen las pantallas de hoy ni

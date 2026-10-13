@@ -28,3 +28,20 @@ Notas:
   contados en el código: `/tablero/[id]` V3 en marcha 16–27 → 6–8; `/tablero` 13–21 → 5–8;
   subpáginas con riel 14–23 → 4–6; `/comprar` y `/entrar` con cookie 1 → 0. Falta medirlo con
   una sesión real y la región de Supabase (B16): las funciones de Vercel corren en `iad1`.
+
+## Fase 1 — portada nueva (13/10/2026, local)
+
+`next build` + `next start` en la máquina de Naza, Lighthouse 12.8.2 móvil simulado, cookie
+`idioma=es` (sin ella `/` redirige a `/ar` en local, porque no hay cabecera de país). Build con
+`PRECIO_IMPRESO_*` y `PRECIO_VIAJE_*` de prueba para ver todas las secciones.
+
+| Página | Perf | LCP | CLS | TBT | Peso total | Nota |
+|---|---|---|---|---|---|---|
+| `/` (3 corridas) | 81–87 | **4,1 / 4,1 / 3,5 s** | **0** | 60–150 ms | 838 kB (≈ 510 kB sin el vídeo móvil, que baja después) | LCP = el póster del vídeo |
+| `/ca/ejemplo` | 86–87 | 3,7 s | 0 | 100–120 ms | 427 kB | |
+| `/legal/terminos` (control, sin letras de marca) | 96–97 | 2,2 s | 0 | | 191 kB | |
+
+El objetivo LCP < 2,0 s **no se cumple en local**. Ver PENDIENTES «Apuntado en fase 1» P5: las
+5 woff2 (211 kB) y el JS (150 kB) entran en el camino crítico simulado, y en esta máquina el
+primer pintado observado de las páginas largas con letras de marca llega a ~1,3 s sin CPU ni red
+ocupadas (también en `/viaje`). Medir en la preview de Vercel.

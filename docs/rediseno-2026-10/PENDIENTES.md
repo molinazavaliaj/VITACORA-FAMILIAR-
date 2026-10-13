@@ -125,3 +125,17 @@ Se le entrega como referencia con los HTML de `Whatsapp`, `Casos`, `MasFlujos`, 
 | F1-C8 | **/regalar tras pago fallido no restaura los campos** (sí avisa y sí retoma el mismo regalo con `vitacora-regalo-pendiente`). | El audio grabado no se puede guardar en `sessionStorage`; los demás campos se podrían. Pendiente menor. | — |
 | F1-C9 | **Compra de extras desde el panel (Encargar libro)**: si se cancela en la pasarela, sigue volviendo a `/comprar` (como antes). | No es de esta tarea; con `crearCheckout(…, origen)` se puede hacer volver al panel. | — |
 | F1-C10 | **Zonas horarias del viaje** (`lib/horario.ts` `ZONAS`) están en castellano también en `/ca/comprar/viaje`. | Viven en `lib/`; traducirlas = mover a un diccionario. | — |
+
+### Portada y /ejemplo (tarea `portada`)
+
+Ninguna necesita migración. Son decisiones o datos que faltan:
+
+| # | Qué | Mientras tanto | Quién |
+|---|---|---|---|
+| P1 | **Audio de muestra de «Su voz»** en la portada: no hay ningún audio de demo legítimo en el repo. | La onda se muestra quieta, sin botón de play. Si se carga `NEXT_PUBLIC_URL_FRAGMENTO_AUDIO` (un mp3 con permiso), sale el reproductor de verdad. En `/ejemplo` la onda queda quieta siempre (es Osvaldo, inventado). | Naza |
+| P2 | **Tamaño del marco** («13 × 18 cm» en la maqueta): no está en `productos.ts` ni en ningún sitio del código. | Se quitó la medida: «Un marco negro pequeño…». | Naza / imprenta |
+| P3 | **Quiénes somos**: la sección no se renderiza (huecos lilas). Hace falta texto de los socios, foto real, ciudad y contacto. | Fuera de la portada. | Naza y socio |
+| P4 | **Vídeo de Viaje** (`16cc5b84…mp4`): no se usa todavía (la portada solo enlaza a `/viaje`, que es de la fase 4). | Sin vídeo de Viaje. | — |
+| P5 | **Rendimiento de la portada**: el objetivo LCP < 2,0 s (Lighthouse móvil simulado) no se cumple en local (≈ 3,5–4,1 s; CLS 0). Lo que pesa en el camino crítico: 5 woff2 (~211 kB, las itálicas de Playfair y Source Serif cuentan ~88 kB), ~150 kB de JS de Next y el HTML de 180 kB sin comprimir (27 kB gz). Además, en esta máquina Lighthouse ve el primer pintado a ~1,3 s en las páginas largas con letras de marca (también en `/viaje` y a veces en `/ejemplo`), sin CPU ni red ocupadas: medir en la preview de Vercel antes de decidir. Opciones: quitar las itálicas de la portada (diseño), subir el presupuesto, o cargar Archivo solo donde se usa. | Medido y anotado; no se recortó diseño. | Naza |
+| P6 | Las rutas `/ca/comprar`, `/ar/comprar`, `/ca/regalar`, `/ar/regalar` las hacen otras tareas: hasta que existan, esos enlaces de la portada y `/ejemplo` dan 404. `/viaje` existe en una sola versión (la solapa «De viaje» lleva ahí desde las tres). `/entrar` y `/legal/*` también son una sola versión. | — | fase 1 (checkout, regalar), fase 4–5 |
+| P7 | **Fotos generadas** (B10) usadas en la preview: padre e hijo en el sofá, abuelo con la tarjeta, pareja en Lisboa, marco en el aparador, Osvaldo (portada, contraportada, guitarra). Ninguna se presenta como familia real; la foto de Kids no se usa. | Ilustración en la preview. | Naza |
