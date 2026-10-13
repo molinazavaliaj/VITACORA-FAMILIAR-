@@ -25,6 +25,10 @@ Leyenda del origen: **M** maqueta tal cual · **M~** maqueta adaptada · **A~** 
   es un capítulo del libro» y «Cada etapa, un capítulo del libro» (como «Cada ciudad, un capítulo»
   el 06/10). Igual en catalán.
 
+- **14/10, tanda 9** (todos OK): pasos, «Para quién», fechas del regalo, resumen, líneas del ticket,
+  qué incluye (también «Para mí»), «Pagar {total}» / «Procesando…»; y del libro de ejemplo la
+  dedicatoria, el capítulo 1, la foto y la frase en su voz.
+
 ## /comprar
 
 | Dónde | es (tú) | ar (vos) | Origen |
