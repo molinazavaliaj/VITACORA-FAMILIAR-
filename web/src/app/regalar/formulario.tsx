@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { IdiomaWeb } from "@/lib/idioma-web";
 import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
@@ -9,6 +10,9 @@ import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
 import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
+import { AREA, AvisoFallo, BotonPagar, CAMPO } from "../_checkout/piezas";
+import { vieneDePagoFallido } from "../_checkout/memoria";
+import { FALLO } from "../_textos/checkout";
 
 // La compra del regalo (plan 2026-10-07-gift-card, Task 8), en cuatro pasos:
 // a quién · tu mensaje · tus datos · pagar. Imita el checkout chico de
@@ -17,16 +21,23 @@ import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type Eleccio
 // audio y redirección) vive en enviar.ts, probado sin navegador.
 //
 // Todos los textos salen de textosComprador(trato): de vos en AR, de tú en ES
-// (plan 2026-10-09-regalo-idiomas). El idioma del regalo es el del abuelo y
-// arranca en el de la región de quien compra.
+// (plan 2026-10-09-regalo-idiomas), o del diccionario de la versión de la web
+// (`textos`, rediseño 2026-10: el catalán). El idioma del regalo es el del
+// abuelo y arranca en el de la región de quien compra.
+//
+// Rediseño 2026-10: el mismo formulario, con el tema oscuro de las compras
+// (los campos y botones de _checkout) y el aviso del pago que no se cobró.
 
 type Paso = 1 | 2 | 3 | 4;
 
 const ID_ERROR = "error-paso";
 
-const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
-const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
-const titulo = "outline-none text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl";
+const campo = CAMPO;
+const etiqueta = "block text-[13px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
+const titulo = "outline-none text-[32px] leading-[1.1] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)] font-medium sm:text-[38px]";
+/** Una opción redonda (género, idioma): el radio nativo queda a la vista, como antes, sobre el fondo oscuro. */
+const opcion = (elegida: boolean) =>
+  `m-card flex min-h-11 cursor-pointer items-center gap-3 rounded-[14px] border px-4 py-3 text-[16px] text-[var(--texto-oscuro)] accent-[var(--boton)] [font-family:var(--fuente-micro)] ${elegida ? "border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-[var(--borde-oscuro-fuerte)]"}`;
 
 /** Hoy en el reloj de quien compra, como lo pide `input type="date"`. */
 function hoyLocal(): string {
@@ -35,13 +46,17 @@ function hoyLocal(): string {
 }
 
 export function FormularioRegalo({
-  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false,
+  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false, textos, idiomaWeb,
 }: {
   catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso;
   /** Si se ofrece mandarlo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
+  /** Los textos de la versión de la web (catalán); sin ellos, los de `trato`. */
+  textos?: TextosComprador;
+  /** La versión de la web: la pasarela vuelve a /regalar de ese idioma. */
+  idiomaWeb?: IdiomaWeb;
 }) {
-  const T = textosComprador(trato);
+  const T = textos ?? textosComprador(trato);
   const [paso, setPaso] = useState<Paso>(pasoInicial);
   const [idioma, setIdioma] = useState<IdiomaRegalo>(idiomaInicial);
   const [nombre, setNombre] = useState("");
@@ -61,6 +76,17 @@ export function FormularioRegalo({
   const precio = formatearPrecio(catalogo.base.precio, catalogo.moneda, region);
   const encabezado = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
+  // Dos clics en el mismo instante llegan antes de que React pinte el disabled.
+  const pagando = useRef(false);
+  const [fallo, setFallo] = useState(false);
+
+  // Vuelta de un pago que no se cobró (Casos 2): se avisa. El intento queda
+  // recordado (vitacora-regalo-pendiente): el próximo pago retoma el mismo regalo.
+  useEffect(() => {
+    if (!vieneDePagoFallido(window.location.search)) return;
+    setFallo(true);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
 
   // Al cambiar de paso, el foco va al título del paso nuevo (no al cargar la página).
   useEffect(() => {
@@ -85,37 +111,41 @@ export function FormularioRegalo({
 
   async function pagar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
-    if (enviando) return;
+    if (enviando || pagando.current) return;
+    pagando.current = true;
     setEnviando(true);
     setFalla(null);
     const r = await enviarRegalo(
-      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega },
+      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega, idiomaWeb },
       { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage },
     );
     if ("error" in r) {
       fallar(r.error);
       setEnviando(false);
+      pagando.current = false;
     }
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_380px] lg:py-16">
+    <div className="mx-auto grid w-full max-w-[1180px] items-start gap-12 px-4 pb-24 pt-9 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="min-w-0">
         <ol className="flex gap-3 sm:gap-8">
           {T.pasos.map((nombrePaso, i) => {
             const n = i + 1;
             return (
               <li key={nombrePaso} className="min-w-0 flex-1" aria-current={n === paso ? "step" : undefined}>
-                <p className={`truncate text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.18em] sm:[letter-spacing:0.24em] ${n === paso ? "text-[#14140F]" : "text-[#AEAEA6]"}`}>{n}.<span className={n === paso ? "" : "sr-only sm:not-sr-only"}> {nombrePaso}</span></p>
-                <div className={`mt-2 h-[3px] rounded-full ${n <= paso ? "bg-[#14140F]" : "bg-[#D4D4CE]"}`} />
+                <p className={`truncate text-[14px] [font-family:var(--fuente-micro)] ${n === paso ? "text-[var(--texto-oscuro-fuerte)]" : "text-[var(--texto-oscuro-menor)]"}`}>{n}.<span className={n === paso ? "" : "sr-only sm:not-sr-only"}> {nombrePaso}</span></p>
+                <div className={`mt-2 h-[3px] rounded-full transition-colors duration-[var(--d-base)] ${n <= paso ? "bg-[var(--boton)]" : "bg-[var(--borde-oscuro)]"}`} />
               </li>
             );
           })}
         </ol>
 
+        {fallo ? <div className="mt-8"><AvisoFallo textos={FALLO[idiomaWeb ?? (region === "AR" ? "ar" : "es")]} guardado={false} /></div> : null}
+
         {/* ── 1 · A quién ── */}
         {paso === 1 && (
-          <section className="mt-12">
+          <section key="r1" className="m-step mt-12">
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[0]}</h1>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
@@ -131,7 +161,7 @@ export function FormularioRegalo({
               <legend className={etiqueta}>{T.genero}</legend>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {GENEROS.map((g) => (
-                  <label key={g} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${genero === g ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
+                  <label key={g} className={opcion(genero === g)}>
                     <input type="radio" name="genero" value={g} aria-invalid={falla?.campo === "genero" || undefined} checked={genero === g} onChange={() => setGenero(g)} />
                     {T.generos[g]}
                   </label>
@@ -142,7 +172,7 @@ export function FormularioRegalo({
               <legend className={etiqueta}>{T.idioma}</legend>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {IDIOMAS_REGALO.map((i) => (
-                  <label key={i} lang={i === "ca" ? "ca" : undefined} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${idioma === i ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
+                  <label key={i} lang={i === "ca" ? "ca" : undefined} className={opcion(idioma === i)}>
                     <input type="radio" name="idioma" value={i} checked={idioma === i} onChange={() => setIdioma(i)} />
                     {T.idiomas[i]}
                   </label>
@@ -164,12 +194,12 @@ export function FormularioRegalo({
 
         {/* ── 2 · Tu mensaje ── */}
         {paso === 2 && (
-          <section className="mt-12">
+          <section key="r2" className="m-step mt-12">
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[1]}</h1>
             <div className="mt-8">
               <label className={etiqueta} htmlFor="mensaje">{T.tuMensaje}</label>
-              <textarea id="mensaje" {...marca("mensaje")} className={`${campo} mt-2`} rows={6} value={mensaje} maxLength={MENSAJE_MAXIMO} onChange={(e) => setMensaje(e.target.value)} />
-              <p className="mt-1 text-right text-[13px] tabular-nums text-[#83837A] [font-family:var(--fuente-micro)]" aria-live="polite">{T.contador(mensaje.length, MENSAJE_MAXIMO)}</p>
+              <textarea id="mensaje" {...marca("mensaje")} className={`${AREA} mt-2`} rows={6} value={mensaje} maxLength={MENSAJE_MAXIMO} onChange={(e) => setMensaje(e.target.value)} />
+              <p className="mt-1 text-right text-[13px] tabular-nums text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]" aria-live="polite">{T.contador(mensaje.length, MENSAJE_MAXIMO)}</p>
             </div>
             <div className="mt-6">
               <p id="etiqueta-audio" className={etiqueta}>{T.audio}</p>
@@ -203,7 +233,7 @@ export function FormularioRegalo({
 
         {/* ── 3 · Tus datos ── */}
         {paso === 3 && (
-          <section className="mt-12">
+          <section key="r3" className="m-step mt-12">
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[2]}</h1>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               <div className="sm:col-span-2">
@@ -235,26 +265,24 @@ export function FormularioRegalo({
 
         {/* ── 4 · Pagar ── */}
         {paso === 4 && (
-          <form onSubmit={pagar} className="mt-12">
+          <form key="r4" onSubmit={pagar} className="m-step mt-12">
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[3]}</h1>
             <div className="mt-8">
               <TarjetaChica comoLeDicen={comoLeDicen.trim()} mensaje={mensaje.trim()} firma={nombreComprador.trim()} />
             </div>
             {lineaLeLlega(entrega, fechaEntrega, T.entrega) && (
-              <p className="mt-6 text-center text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)]">{lineaLeLlega(entrega, fechaEntrega, T.entrega)}</p>
+              <p className="mt-6 text-center text-[15px] text-[var(--texto-oscuro-suave)]">{lineaLeLlega(entrega, fechaEntrega, T.entrega)}</p>
             )}
-            <div className="mt-8 flex items-baseline justify-between gap-4 rounded-lg border border-[#EBEBE7] bg-white p-5">
-              <p className="text-[17px] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
-              <p className="text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
+            <div className="mt-8 flex items-baseline justify-between gap-4 rounded-[18px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-5">
+              <p className="text-[17px] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
+              <p key={precio} className="m-price text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
             </div>
-            {error && <p id={ID_ERROR} className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
+            {error && <p id={ID_ERROR} className="mt-6 text-[14px] text-[#f0a37a] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button type="button" onClick={() => avanzar(3)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← {T.atras}</button>
-              <button type="submit" disabled={enviando} className="inline-flex min-h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 py-3 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]">
-                {enviando ? T.unMomento : T.botonPagar}
-              </button>
+              <button type="button" onClick={() => avanzar(3)} className="m-ghost inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">← {T.atras}</button>
+              <BotonPagar enviando={enviando} texto={T.botonPagar} procesando={T.unMomento} />
             </div>
-            <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+            <p className="mt-4 text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
               {T.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")}{" "}
               <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
             </p>
@@ -264,10 +292,10 @@ export function FormularioRegalo({
 
       {/* En el paso de pagar el precio ya está en el resumen: en el celular no se repite. */}
       <aside className={`lg:sticky lg:top-8 lg:self-start ${paso === 4 ? "hidden lg:block" : ""}`}>
-        <div className="rounded-lg border border-[#EBEBE7] bg-white p-6">
-          <p className="text-[17px] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
-          <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{catalogo.base.detalle}</p>
-          <p className="mt-4 text-[24px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
+        <div className="rounded-[22px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-6">
+          <p className="text-[19px] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
+          <p className="mt-2 text-[15px] leading-[1.6] text-[var(--texto-oscuro-suave)]">{catalogo.base.detalle}</p>
+          <p className="mt-4 text-[24px] tabular-nums text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{precio}</p>
         </div>
       </aside>
     </div>
@@ -277,7 +305,7 @@ export function FormularioRegalo({
 /** La cara de adentro de la tarjeta (Task 7), en chico: el saludo, el mensaje y la firma. */
 function TarjetaChica({ comoLeDicen, mensaje, firma }: { comoLeDicen: string; mensaje: string; firma: string }) {
   return (
-    <div className="mx-auto flex aspect-[105/148] w-full max-w-[260px] flex-col gap-3 overflow-hidden bg-white p-6 shadow-[0_18px_34px_-20px_rgba(20,20,15,0.4)]">
+    <div className="mx-auto flex aspect-[105/148] w-full max-w-[260px] flex-col gap-3 overflow-hidden rounded-[8px] bg-[#f3ece0] p-6 text-[#2a2620] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
       <p className="text-[18px] [font-family:var(--fuente-titulo)]">{comoLeDicen},</p>
       <p className={`flex-1 overflow-hidden whitespace-pre-line italic leading-[1.5] [overflow-wrap:anywhere] [font-family:var(--fuente-titulo)] ${mensaje.length > 250 ? "text-[10px]" : "text-[13px]"}`}>{mensaje}</p>
       <p className="self-end text-[15px] italic [font-family:var(--fuente-titulo)]">{firma}</p>
@@ -288,10 +316,10 @@ function TarjetaChica({ comoLeDicen, mensaje, firma }: { comoLeDicen: string; me
 function Botones({ atras, siguiente, error, textos: T }: { atras?: () => void; siguiente: () => void; error: string | null; textos: TextosComprador }) {
   return (
     <>
-      {error && <p id={ID_ERROR} className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
+      {error && <p id={ID_ERROR} className="mt-6 text-[14px] text-[#f0a37a] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
       <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {atras ? <button type="button" onClick={atras} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← {T.atras}</button> : <span />}
-        <button type="button" onClick={siguiente} className="inline-flex h-13 items-center justify-center rounded-full bg-[#14140F] px-8 text-base font-medium text-white transition-colors hover:bg-[#2B2B24] [font-family:var(--fuente-micro)]">{T.seguir}</button>
+        {atras ? <button type="button" onClick={atras} className="m-ghost inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">← {T.atras}</button> : <span />}
+        <button type="button" onClick={siguiente} className="m-btn inline-flex min-h-14 items-center justify-center rounded-full bg-[var(--boton)] px-9 text-[16px] font-semibold text-[var(--sobre-boton)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">{T.seguir}</button>
       </div>
     </>
   );
