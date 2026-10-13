@@ -155,11 +155,33 @@ export type TextosPortada = {
   sticky: { desde: string; conImpreso: string; sinImpreso: string };
   comprar: string;
   /**
-   * Prototipo de dirección visual (/prueba-direccion, 2.ª vuelta). La bajada
-   * del hero (bajada) la APROBÓ Naza el 14/10 (es y ar; ca pendiente de
-   * revisión nativa). «Cómo funciona» y su bajada: PENDIENTES DE SU OK.
+   * Prototipo de dirección visual (/prueba-direccion). Estado de cada texto
+   * (ca, siempre pendiente de revisión nativa):
+   * - bajada: APROBADA por Naza el 14/10.
+   * - como (título y bajada): APROBADOS por Naza (3.ª vuelta).
+   * - dolor.frase: APROBADA por Naza (3.ª vuelta).
+   * - dolor.carta y dolor.firma: APROBADAS por Naza el 14/10.
+   * - paraQuien: APROBADO por Naza (3.ª vuelta).
+   * - libro: lo que va impreso en el libro de ejemplo de Osvaldo (tapa, lomo
+   *   y contratapa), copiado del diseño real (vf_book_atlas). El libro de
+   *   ejemplo está en castellano en los tres idiomas, como el de /ejemplo.
    */
-  direccion: { bajada: string; como: { titulo: string; bajada: string } };
+  direccion: {
+    bajada: string;
+    como: { titulo: string; bajada: string };
+    dolor: { frase: string; carta: string; firma: string };
+    paraQuien: string;
+    libro: {
+      etiqueta: string;
+      nombre: [string, string];
+      paraSiempre: string;
+      iniciales: string;
+      lomo: string;
+      contra: string;
+      escucha: string;
+      web: string;
+    };
+  };
 };
 
 const CAPITULOS_ES = ["La infancia", "Las raíces", "La juventud", "Salir al mundo", "El oficio", "Los hijos", "Las pruebas", "La sabiduría"];
@@ -177,6 +199,24 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       como: {
         titulo: "Cómo funciona",
         bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
+      },
+      dolor: {
+        frase: "Un día vas a querer preguntarle algo. Y ya no va a estar para contártelo.",
+        // Carta y firma APROBADAS por Naza el 14/10.
+        carta:
+          "Hicimos Vitácora porque no todas las familias tienen la suerte de que los abuelos sigan ahí cuando los nietos crecen. Muchos niños van a conocer a sus abuelos solo por fotos, sin saber cómo hablaban, qué vivieron ni qué aprendieron. Queremos que eso no se pierda. Que cada nieto, cuando sea grande, pueda abrir un libro y leer quién fue su abuelo, con sus propias palabras.",
+        firma: "Naza y Joaquín, fundadores de Vitácora",
+      },
+      paraQuien: "Para las vidas que merecen su propio libro.",
+      libro: {
+        etiqueta: "El libro de su vida",
+        nombre: ["Osvaldo", "Toroide"],
+        paraSiempre: "para siempre",
+        iniciales: "O · T",
+        lomo: "Osvaldo Toroide – El libro de su vida",
+        contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras: sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
+        escucha: "Escucha su voz",
+        web: "vitacorafamiliar.com",
       },
     },
     hero: {
@@ -489,6 +529,24 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         titulo: "Cómo funciona",
         bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
       },
+      dolor: {
+        frase: "Un día vas a querer preguntarle algo. Y ya no va a estar para contártelo.",
+        // Carta y firma APROBADAS por Naza el 14/10.
+        carta:
+          "Hicimos Vitácora porque no todas las familias tienen la suerte de que los abuelos sigan ahí cuando los nietos crecen. Muchos chicos van a conocer a sus abuelos solo por fotos, sin saber cómo hablaban, qué vivieron ni qué aprendieron. Queremos que eso no se pierda. Que cada nieto, cuando sea grande, pueda abrir un libro y leer quién fue su abuelo, con sus propias palabras.",
+        firma: "Naza y Joaquín, fundadores de Vitácora",
+      },
+      paraQuien: "Para las vidas que merecen su propio libro.",
+      libro: {
+        etiqueta: "El libro de su vida",
+        nombre: ["Osvaldo", "Toroide"],
+        paraSiempre: "para siempre",
+        iniciales: "O · T",
+        lomo: "Osvaldo Toroide – El libro de su vida",
+        contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras: sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
+        escucha: "Escucha su voz",
+        web: "vitacorafamiliar.com",
+      },
     },
     hero: {
       titulo: ["En cada familia hay", "un libro sin escribir."],
@@ -799,6 +857,24 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       como: {
         titulo: "Com funciona",
         bajada: "L'entrevistem per WhatsApp, al seu ritme, i amb el que explica escrivim el seu llibre. Si sap enviar un àudio, ja sap fer-ho.",
+      },
+      dolor: {
+        frase: "Un dia li voldràs preguntar alguna cosa. I ja no hi serà per explicar-t'ho.",
+        // Carta y firma APROBADAS por Naza el 14/10.
+        carta:
+          "Vam fer Vitácora perquè no totes les famílies tenen la sort que els avis encara hi siguin quan els néts es fan grans. Molts nens coneixeran els seus avis només per fotos, sense saber com parlaven, què van viure ni què van aprendre. Volem que això no es perdi. Que cada nét, quan sigui gran, pugui obrir un llibre i llegir qui va ser el seu avi, amb les seves pròpies paraules.",
+        firma: "Naza i Joaquín, fundadors de Vitácora",
+      },
+      paraQuien: "Per a les vides que mereixen el seu propi llibre.",
+      libro: {
+        etiqueta: "El libro de su vida",
+        nombre: ["Osvaldo", "Toroide"],
+        paraSiempre: "para siempre",
+        iniciales: "O · T",
+        lomo: "Osvaldo Toroide – El libro de su vida",
+        contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras: sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
+        escucha: "Escucha su voz",
+        web: "vitacorafamiliar.com",
       },
     },
     hero: {
