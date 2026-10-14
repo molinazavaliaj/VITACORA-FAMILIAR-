@@ -1,0 +1,201 @@
+/* La portada con la dirección nueva (14/10). Lo que NO estaba en el
+   prototipo: las secciones re-vestidas (la conversación, qué recibe, mientras
+   cuenta, el libro y sus formatos, su voz, el marco, diciembre, lo que se
+   hereda, el precio, antes de decidir, las preguntas, viaje) y cómo se
+   re-visten los componentes compartidos dentro de la portada. Lo del
+   prototipo (dir-*, l3-*) sigue en globals.css; los colores, texturas y
+   curvas comunes, en tokens.css. Lo importa _portada/portada.tsx. */
+
+/* ── Los componentes compartidos, sin violeta ──────────────────────────────
+   Acordeón, reproductor, cabecera, pie y la demo del marco usan los tokens
+   del tema oscuro (globals.css: --acento-oscuro, --boton…). Adentro de la
+   portada se redefinen: tinta y papel en vez de violeta. Afuera (checkout,
+   /ejemplo) no cambia nada. */
+.dir-pagina {
+  --fondo-oscuro: var(--dir-tinta);
+  --tarjeta: #121210;
+  --tarjeta-alta: #1c1b18;
+  --texto-oscuro: #e6e2d8;
+  --texto-oscuro-fuerte: var(--dir-sobre-tinta);
+  --texto-oscuro-suave: #c9c5bb;
+  --texto-oscuro-menor: var(--dir-sobre-tinta-suave);
+  --linea-oscura: var(--dir-hilo-tinta);
+  --borde-oscuro: rgba(238, 234, 225, 0.14);
+  --borde-oscuro-fuerte: rgba(238, 234, 225, 0.3);
+  --punto-vacio: rgba(238, 234, 225, 0.4);
+  --acento-oscuro: var(--dir-sobre-tinta);
+  --boton: var(--dir-papel);
+  --sobre-boton: var(--dir-tinta);
+  --elegido-fondo: rgba(238, 234, 225, 0.08);
+  --sombra-boton: transparent;
+}
+.dir-pagina .dir-papel {
+  --texto-oscuro: var(--dir-sobre-papel);
+  --texto-oscuro-fuerte: var(--dir-sobre-papel);
+  --texto-oscuro-suave: var(--dir-sobre-papel-suave);
+  --texto-oscuro-menor: #7a756b;
+  --linea-oscura: var(--dir-hilo-papel);
+  --borde-oscuro: var(--dir-hilo-papel);
+  --borde-oscuro-fuerte: rgba(21, 20, 18, 0.35);
+  --acento-oscuro: var(--dir-sobre-papel);
+  --boton: var(--dir-sobre-papel);
+  --sobre-boton: var(--dir-papel);
+}
+/* El acordeón, en la letra de la portada. */
+.dir-pagina .m-acc-item summary {
+  font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.5rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.dir-pagina .m-acc-item .m-acc > div > div {
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  font-weight: 300;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+/* ── Tipografía de las secciones nuevas ─────────────────────────────────── */
+.dir-t3 { font-size: clamp(2.2rem, 1.45rem + 2.9vw, 3.9rem); line-height: 1.06; }
+.dir-t4 { font-size: clamp(1.75rem, 1.35rem + 1.5vw, 2.6rem); line-height: 1.12; }
+.dir-parrafo {
+  font-size: clamp(1.13rem, 1.02rem + 0.4vw, 1.32rem);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--dir-sobre-tinta-suave);
+}
+.dir-papel .dir-parrafo { color: var(--dir-sobre-papel-suave); }
+.dir-cita {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.9rem, 1.2rem + 2.8vw, 3.6rem);
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  padding-bottom: 0.08em;
+}
+.dir-precio {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(3.6rem, 2.4rem + 5vw, 6.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Una lista con un hilo corto delante de cada línea (en vez de tildes). */
+.dir-lista { display: flex; flex-direction: column; gap: 14px; }
+.dir-lista li {
+  position: relative;
+  padding-left: 28px;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--dir-sobre-papel);
+}
+.dir-lista li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.78em;
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.dir-lista--tinta li { color: var(--dir-sobre-tinta); }
+
+/* Qué recibe cada uno: dos páginas de un pliego, con el lomo al medio. */
+.dir-pliego { display: grid; grid-template-columns: 1fr; gap: 56px; }
+.dir-pliego-pagina { display: flex; flex-direction: column; gap: 18px; }
+@media (min-width: 768px) {
+  .dir-pliego { grid-template-columns: 1fr 1fr; gap: 0; }
+  .dir-pliego-pagina { padding: 8px 56px 8px 0; }
+  .dir-pliego-pagina + .dir-pliego-pagina {
+    padding: 8px 0 8px 56px;
+    border-left: 1px solid var(--dir-hilo-papel);
+  }
+}
+
+/* El índice del libro: número en cursiva, capítulo en Playfair. */
+.dir-indice { display: flex; flex-direction: column; counter-reset: none; }
+.dir-indice li {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--dir-hilo-papel);
+}
+.dir-indice li:first-child { border-top: 1px solid var(--dir-hilo-papel); }
+.dir-indice-num {
+  width: 1.6em;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--dir-dorado);
+}
+.dir-indice-cap { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 500; font-size: 20px; }
+
+/* Los formatos como líneas de un índice: nombre, puntos guía y precio. */
+.dir-formato {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 26px 0;
+  border-top: 1px solid var(--dir-hilo-papel);
+}
+.dir-formato:last-child { border-bottom: 1px solid var(--dir-hilo-papel); }
+.dir-formato-linea { display: flex; align-items: baseline; gap: 14px; }
+.dir-formato-puntos {
+  flex: 1;
+  min-width: 24px;
+  border-bottom: 1px dotted rgba(21, 20, 18, 0.35);
+  transform: translateY(-0.3em);
+}
+
+/* Los temas de «No le gusta hablar de sí mismo»: etiquetas de hilo. */
+.dir-tema {
+  border: 1px solid var(--dir-hilo-papel);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12.5px;
+  color: var(--dir-sobre-papel-suave);
+}
+
+/* El botón oscuro sobre papel (WhatsApp de dudas). */
+.dir-boton--tinta { background: var(--dir-sobre-papel); color: var(--dir-papel); }
+.dir-boton--tinta:hover { background: #000; }
+.dir-boton--tinta:focus-visible { outline-color: var(--dir-sobre-papel); }
+
+/* ── Capas de las secciones nuevas ─────────────────────────────────────────
+   Las mismas reglas que las del prototipo (globals.css): cada hoja que sube
+   declara su reloj (dir-sobre-N) y la sección de atrás se hunde un poco con
+   él (dir-hunde--N). Acá van del 6 al 14; el reloj compartido se vuelve a
+   declarar entero porque timeline-scope no se suma. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dir-pagina {
+      timeline-scope:
+        --dir-sobre-1, --dir-sobre-2, --dir-sobre-3, --dir-sobre-4, --dir-sobre-5, --dir-sobre-6, --dir-sobre-7,
+        --dir-sobre-8, --dir-sobre-9, --dir-sobre-10, --dir-sobre-11, --dir-sobre-12, --dir-sobre-13, --dir-sobre-14;
+    }
+    .dir-sobre-6 { view-timeline-name: --dir-sobre-6; }
+    .dir-sobre-7 { view-timeline-name: --dir-sobre-7; }
+    .dir-sobre-8 { view-timeline-name: --dir-sobre-8; }
+    .dir-sobre-9 { view-timeline-name: --dir-sobre-9; }
+    .dir-sobre-10 { view-timeline-name: --dir-sobre-10; }
+    .dir-sobre-11 { view-timeline-name: --dir-sobre-11; }
+    .dir-sobre-12 { view-timeline-name: --dir-sobre-12; }
+    .dir-sobre-13 { view-timeline-name: --dir-sobre-13; }
+    .dir-sobre-14 { view-timeline-name: --dir-sobre-14; }
+    .dir-hunde--6 { animation-timeline: --dir-sobre-6; }
+    .dir-hunde--7 { animation-timeline: --dir-sobre-7; }
+    .dir-hunde--8 { animation-timeline: --dir-sobre-8; }
+    .dir-hunde--9 { animation-timeline: --dir-sobre-9; }
+    .dir-hunde--10 { animation-timeline: --dir-sobre-10; }
+    .dir-hunde--11 { animation-timeline: --dir-sobre-11; }
+    .dir-hunde--12 { animation-timeline: --dir-sobre-12; }
+    .dir-hunde--13 { animation-timeline: --dir-sobre-13; }
+  }
+}

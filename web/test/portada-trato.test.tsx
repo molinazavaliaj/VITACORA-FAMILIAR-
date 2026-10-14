@@ -14,6 +14,17 @@ import { renderToStaticMarkup } from "react-dom/server";
 //   ser la de la maqueta: «Tu padre lo cuenta con audios de WhatsApp…»).
 // - «¿Cuál sabes/sabés de tu familia?» (la segunda conversación de WhatsApp,
 //   la de la sobremesa, no está en el diseño nuevo).
+//
+// Dirección nueva (14/10, aprobada por Naza): textos que la portada ya no
+// muestra, anotados en docs/rediseno-2026-10/direccion/portada/textos.md:
+// - «Tienes/Tenés el teléfono lleno de fotos suyas…» (fotos.texto): lo
+//   reemplazó el bloque del dolor y la carta (Naza, 3.ª vuelta).
+// - «La de tu padre/papá, la de tu abuelo, la de tu abuela.» (paraQuien.titulo):
+//   pasó a «Para las vidas que merecen su propio libro.» (aprobado).
+// - «Tu padre lo cuenta con audios de WhatsApp…» (hero.bajada): pasó a la
+//   bajada de marca aprobada el 14/10.
+// - «Si sabe mandar un audio, ya sabe hacerlo.» como título (como.titulo):
+//   ahora va dentro de la bajada de «Cómo funciona».
 
 import Home from "../src/app/page";
 import PortadaCa from "../src/app/ca/page";
@@ -28,7 +39,8 @@ function portada(idioma: keyof typeof PAGINAS): string {
 
 const DE_TU = [
   "Mientras responde, tú vas escuchando su historia desde tu panel.",
-  "Tienes el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el móvil.",
+  "La vida de tu padre, contada por él",
+  "Muchos niños van a conocer a sus abuelos solo por fotos",
   "Lo anotas",
   "Nos dices su nombre",
   "Buenos días, Roberto. Cuéntame el primer recuerdo",
@@ -46,7 +58,8 @@ const DE_TU = [
 
 const DE_VOS = [
   "Mientras responde, vos vas escuchando su historia desde tu panel.",
-  "Tenés el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el celular.",
+  "La vida de tu papá, contada por él",
+  "Muchos chicos van a conocer a sus abuelos solo por fotos",
   "Lo anotás",
   "Nos decís su nombre",
   "Buen día, Roberto. Contame el primer recuerdo",
@@ -129,9 +142,10 @@ describe("la portada según el idioma", () => {
     expect(html).toContain("€");
   });
 
-  it("Para quién es: padre, abuelo y abuela, sin Kids", () => {
-    expect(portada("es")).toContain(escapar("La de tu padre, la de tu abuelo, la de tu abuela."));
-    expect(portada("ar")).toContain(escapar("La de tu papá, la de tu abuelo, la de tu abuela."));
+  it("Para quién es: el título aprobado, sin Kids", () => {
+    expect(portada("es")).toContain(escapar("Para las vidas que merecen su propio libro."));
+    expect(portada("ar")).toContain(escapar("Para las vidas que merecen su propio libro."));
+    expect(portada("ca")).toContain(escapar("Per a les vides que mereixen el seu propi llibre."));
   });
 
   it("nada de lo prohibido, en ningún idioma", () => {
@@ -153,11 +167,27 @@ describe("la portada según el idioma", () => {
     expect(sinPreguntas(ca)).not.toContain("tornem");
   });
 
-  it("el vídeo de portada no trae su src en el HTML: primero el póster", () => {
+  it("el inicio no carga imágenes ni vídeo: el primer pintado es el titular", () => {
     const html = portada("es");
-    expect(html).toMatch(/<video[^>]*preload="none"/);
-    expect(html).not.toMatch(/<video[^>]*src=/);
+    const inicio = html.slice(0, html.indexOf('id="hero"'));
+    expect(inicio).not.toContain("<img");
+    expect(html).not.toContain("<video");
     expect(html).not.toContain(".mp4");
-    expect(html).toContain("portada-familiar-poster.jpg");
+  });
+
+  it("el libro de ejemplo en 3D: QR real, «Historia inventada» y «Ver otra vez»", () => {
+    const es = portada("es");
+    expect(es).toMatch(/<path d="M\d+ \d+h1v1h-1z/);
+    expect(es).toContain("Historia inventada");
+    expect(es).toContain("Ver otra vez");
+    expect(es).toContain(escapar("Osvaldo Toroide · El libro de su vida"));
+    expect(portada("ca")).toContain("Tornar-ho a veure");
+  });
+
+  it("sin violeta: la portada no usa los colores del botón viejo", () => {
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const html = portada(idioma).toLowerCase();
+      for (const color of ["#8f7be0", "#a08ce8", "#b9a8f5", "#5d3fd3"]) expect(html, `${idioma}: ${color}`).not.toContain(color);
+    }
   });
 });

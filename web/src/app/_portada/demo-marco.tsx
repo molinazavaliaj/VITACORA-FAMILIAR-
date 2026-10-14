@@ -53,8 +53,8 @@ export function DemoMarco({
         />
         {animar ? (
           <div aria-hidden className="absolute inset-0">
-            <span className="nfc-ring absolute left-[66%] top-1/2 -ml-[35px] -mt-[35px] h-[70px] w-[70px] rounded-full border-2 border-[#d9d4ff]" />
-            <span className="nfc-ring nfc-ring2 absolute left-[66%] top-1/2 -ml-[35px] -mt-[35px] h-[70px] w-[70px] rounded-full border-2 border-[#d9d4ff]" />
+            <span className="nfc-ring absolute left-[66%] top-1/2 -ml-[35px] -mt-[35px] h-[70px] w-[70px] rounded-full border-2 border-[#eeeae1]" />
+            <span className="nfc-ring nfc-ring2 absolute left-[66%] top-1/2 -ml-[35px] -mt-[35px] h-[70px] w-[70px] rounded-full border-2 border-[#eeeae1]" />
             <div className="nfc-phone absolute left-[64%] top-[44%] box-border aspect-[9/19] w-1/4 rounded-[22px] border-[3px] border-[#2c2b28] bg-[#0d0d0c] p-1.5 shadow-[0_24px_50px_rgba(0,0,0,.55)]">
               <div className="relative h-full w-full overflow-hidden rounded-[16px] bg-[#151512]">
                 <div className="absolute inset-0 flex items-center justify-center p-2 text-center text-[10px] text-[#6f6c66] [font-family:var(--fuente-micro)]">
