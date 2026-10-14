@@ -43,7 +43,7 @@ export type TextosViaje = {
   /** La opción del libro completo (impreso + digital + el marco), la primera del paso 1. Aprobada por Naza el 14/10 (es y ar). */
   marcoOpcionTitulo: string;
   marcoOpcionDetalle: string;
-  /** El contador de marcos para regalar (14/10), con la voz de viaje. PENDIENTE OK de Naza. */
+  /** El contador de marcos para regalar (14/10), con la voz de viaje. Aprobado por Naza el 14/10 (es y ar). */
   marcoRegaloDetalle: string;
 
   // 2 · El viaje
@@ -126,7 +126,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + vuestra foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con vuestra foto del viaje. Acercáis el móvil al marco y se abre el libro del viaje, con vuestra voz.",
-    // PENDIENTE OK de Naza (14/10).
+    // APROBADO por Naza el 14/10.
     marcoRegaloDetalle: "Para regalar a vuestra familia. Al acercar el móvil se abre el libro del viaje, con vuestra voz.",
 
     viajeTitulo: "El viaje",
@@ -208,7 +208,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + tu foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con tu foto del viaje. Acercás el celular al marco y se abre el libro del viaje, con tu voz.",
-    // PENDIENTE OK de Naza (14/10).
+    // APROBADO por Naza el 14/10.
     marcoRegaloDetalle: "Para regalar a tu familia. Al acercar el celular se abre el libro del viaje, con tu voz.",
 
     viajeTitulo: "El viaje",
@@ -290,7 +290,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
     marcoOpcionTitulo: "Imprès + digital + la vostra foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la vostra foto del viatge. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
-    // PENDIENTE OK de Naza (14/10) y REVISIÓN NATIVA.
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
     marcoRegaloDetalle: "Per regalar a la vostra família. Quan hi acosteu el mòbil s'obre el llibre del viatge, amb la vostra veu.",
 
     viajeTitulo: "El viatge",
