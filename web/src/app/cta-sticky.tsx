@@ -9,6 +9,9 @@ import { useEffect, useRef, useState } from "react";
 // tiene que estar a un dedo. Se esconde otra vez sobre el precio y el pie,
 // que ya tienen el suyo — dos botones iguales en pantalla no ayudan.
 
+// Colores de la dirección nueva (14/10): tinta y papel, sin violeta. Solo la
+// usa la portada.
+//
 // Los textos y el destino llegan por props para las versiones por idioma del
 // rediseño (/, /ca, /ar); sin ellos, dice lo de siempre y va a /comprar.
 type TextosCta = { desde: string; conImpreso: string; sinImpreso: string; boton: string };
@@ -74,7 +77,7 @@ export function CtaSticky({
     <div
       ref={centinela}
       aria-hidden={!visible}
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-[#2B2B24] bg-[#14140F]/95 px-4 pt-3 text-white backdrop-blur transition-[transform,opacity] duration-[var(--d-base)] ease-out lg:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-[rgba(238,234,225,0.16)] bg-[#070706]/95 px-4 pt-3 text-[#eeeae1] backdrop-blur transition-[transform,opacity] duration-[var(--d-base)] ease-out lg:hidden ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
       style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
@@ -82,12 +85,12 @@ export function CtaSticky({
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{textos.desde} {precio}</p>
-          <p className="truncate text-[11px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
+          <p className="truncate text-[11px] text-[#a39f96] [font-family:var(--fuente-micro)]">{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
         </div>
         <Link prefetch={false}
           href={href}
           tabIndex={visible ? 0 : -1}
-          className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#8F7BE0] px-6 text-[15px] font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"
+          className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#eeeae1] px-6 text-[15px] font-semibold text-[#070706] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"
         >
           {textos.boton}
         </Link>
