@@ -18,3 +18,20 @@ Sin precio de marco adicional (`PRECIO_MARCO_ADICIONAL_*`) el servidor no cobra
 ni manda un segundo marco (`armarCompra`). Por eso, en ese caso, el contador de la
 opción 2 llega hasta 1 («+20 €») y la opción 3 no tiene contador. No es «el resto a
 precio de marco», como sugería el encargo: eso pediría cambiar la cuenta del cobro.
+
+## 2.ª parte (14/10): miniaturas, frases, extras adentro, cinta y pack
+
+| Dónde | es | ar | ca | Estado |
+|---|---|---|---|---|
+| Opción libro completo, cabeza / bajada | El regalo completo / Su libro, su voz y su foto en casa | igual | El regal complet / El seu llibre, la seva veu i la seva foto a casa | es y ar APROBADAS 14/10; ca pendiente nativa |
+| Opción impreso, cabeza / bajada | Para la estantería / Su libro en papel y en PDF | igual | Per a la prestatgeria / El seu llibre en paper i en PDF | es y ar APROBADAS; ca pendiente |
+| Opción digital, cabeza / bajada | Solo digital / Para leer y escuchar en cualquier pantalla | igual | Només digital / Per llegir i escoltar a qualsevol pantalla | es y ar APROBADAS; ca pendiente |
+| Botón del paso 1 (y barra del teléfono) | Quiero su libro · «Para mí»: Quiero mi libro | igual | Vull el seu llibre / Vull el meu llibre | es y ar APROBADOS; ca pendiente |
+| Cinta del libro completo | Para regalar | igual | Per regalar | Texto existente (`impresoEtiqueta`) |
+| Línea del ticket con pack | Pack el regalo completo | igual | Pack el regal complet | PENDIENTE OK |
+| Debajo del total, con pack | Ahorras {cifra} con el pack | Ahorrás {cifra} con el pack | Estalvies {cifra} amb el pack | PENDIENTE OK |
+| Filas de extras | «Copias extra del libro impreso» · «Marco con foto y chip NFC» + detalle | igual | igual que antes | Textos existentes / aprobados |
+
+Debajo de la cabeza y la bajada, cada opción sigue mostrando su título aprobado
+en chico, y la elegida, su detalle aprobado. Viaje: sin frases ni cinta (no
+estaban en el encargo); usa sus títulos de siempre como cabeza.

@@ -405,7 +405,7 @@
   .chk-op-tarjeta { grid-template-columns: 20px 60px minmax(0, 1fr); gap: 12px 14px; padding: 16px; align-items: start; }
   .chk-op-tarjeta--cinta { padding-right: 52px; }
   .chk-op-punto { margin-top: 2px; }
-  .chk-op-precio { grid-column: 3; flex-direction: row-reverse; align-items: baseline; justify-content: flex-end; gap: 10px; }
+  .chk-op-precio { grid-column: 3; flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 10px; }
   .chk-mini { width: 60px; height: 72px; }
   .chk-mini-libro { left: 6px; width: 44px; }
   .chk-mini--pack .chk-mini-libro { left: 0; width: 40px; }
@@ -415,4 +415,6 @@
   .chk-extra-marca { grid-template-columns: 22px 40px minmax(0, 1fr); }
   .chk-extra-precio { grid-column: 3; }
   .chk-mini--fila { width: 40px; height: 50px; }
+  /* El contador, debajo del texto de su fila (no contra el borde). */
+  .chk-extra-contador { margin-left: 86px; }
 }

@@ -50,7 +50,8 @@ export type TextosOpciones = {
 type Tapa = { titulo: string; idioma: IdiomaLibro };
 
 /** La foto de tapa chica, ya optimizada (la tapa de las miniaturas mide ~60 px). */
-const TAPA_CHICA = "/_next/image?url=%2Frediseno%2Flibro-tapa-foto.jpg&w=128&q=70";
+// q=75: la única calidad que acepta el optimizador de imágenes (Next 16, sin `images.qualities`).
+const TAPA_CHICA = "/_next/image?url=%2Frediseno%2Flibro-tapa-foto.jpg&w=128&q=75";
 
 /** Las miniaturas: el libro en 3/4, el libro con su marco al lado, una pantalla con la tapa, o solo el marco. */
 function Miniatura({ tipo, tapa, foto }: { tipo: OpcionLibro | "copia" | "marco-solo"; tapa: Tapa; foto: string }) {
