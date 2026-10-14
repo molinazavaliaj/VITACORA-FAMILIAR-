@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { origenDelNavegador } from "@/lib/origen";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ahorroDelPack, armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -139,6 +140,7 @@ export function Checkout({
           asignar: (url) => window.location.assign(url),
           alProgreso: setProgreso,
           antesDeIr: (c) => antesDeIr.current(c),
+          origen: origenDelNavegador,
           subirFoto: async (narradorId, token, clave) => {
             const archivo = archivos.current.get(clave);
             if (!archivo) return;

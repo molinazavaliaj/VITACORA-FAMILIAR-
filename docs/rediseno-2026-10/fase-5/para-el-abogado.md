@@ -76,6 +76,7 @@ Revisado en el código el 14/10. La web usa solo:
 | `tema` | Recordar panel claro u oscuro, elegido a mano | Panel | 1 año |
 | `idioma` | Recordar el idioma elegido a mano en el selector (y no redirigir por país) | Web pública | 1 año |
 | `sessionStorage` (no es cookie) | Guardar el formulario de compra mientras se rellena | Checkout | Hasta cerrar la pestaña |
+| `localStorage` `vitacora-origen` (no es cookie) | De qué anuncio llegó la visita, para saber qué anuncio trajo cada compra (ver abajo) | Toda la web, solo si se llega con parámetros de campaña en el enlace | 30 días desde la primera visita |
 
 No hay analítica, ni píxel de Meta (B26), ni vídeos o mapas de terceros incrustados, ni fuentes de
 Google cargadas desde el navegador (van alojadas en la web). Los pagos se hacen en la página de
@@ -85,6 +86,20 @@ falta banner ni página de cookies aparte**: basta la sección 12 de privacidad.
 ¿la cookie `idioma` de 1 año entra en la exención? ¿Hace falta una tabla de cookies con nombre y
 duración en la sección 12? Si algún día se instala el píxel de Meta (B26), sí harán falta banner,
 página de cookies y consentimiento previo.
+
+**Origen de campaña (agregado el 14/10, F4-5).** Cuando alguien llega a la web desde un anuncio
+con parámetros en el enlace (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`,
+`fbclid`, `gclid`), el navegador guarda en `localStorage`, con la clave `vitacora-origen`, esos
+valores, la página donde cayó (sin el resto de la dirección) y la fecha: la primera visita así y, si
+vuelve por otro anuncio, también la última. Es de primera parte: no se manda a Meta, Google ni a
+nadie, no hay píxel ni script de terceros, no se cruza con otras webs. Dura 30 días desde la primera
+visita y después se borra solo. Si compra, esos valores viajan con la compra y quedan guardados en el
+pedido (`pedidos.extras.origen`) para contar ventas por campaña. `fbclid` y `gclid` son
+identificadores de clic que pone Meta o Google en el enlace; nosotros no los usamos para nada más que
+guardarlos con el pedido. Pregunta: ¿esto entra en la exención del art. 22.2 LSSI-CE o, como es para
+medir publicidad, requiere consentimiento previo (y entonces banner)? ¿Hay que nombrarlo en la
+sección 12 de privacidad y en la tabla? Si requiere consentimiento, se apaga sin tocar nada más:
+basta con quitar el componente `OrigenVisita` del layout (`web/src/app/layout.tsx`).
 
 ## 5. Lo que ya estaba pendiente (B13)
 

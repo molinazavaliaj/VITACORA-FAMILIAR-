@@ -8,6 +8,7 @@ import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
 import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } from "@/lib/regalo";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
+import { limpiarOrigen } from "@/lib/origen";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -47,6 +48,12 @@ export type CompraBody = RegistroBody & {
     entrega?: { canal?: unknown; contacto?: unknown; hora?: unknown };
     retomar?: { narradorId?: unknown; token?: unknown };
   };
+  /**
+   * De qué anuncio vino (F4-5): primer y último toque guardados en el
+   * navegador (lib/origen.ts). Se limpia estricto y va a `pedidos.extras.origen`;
+   * si viene mal, se descarta sin decir nada.
+   */
+  origen?: unknown;
 };
 
 /**
@@ -96,6 +103,24 @@ function columnasEntrega(e: EntregaRegalo | null) {
 function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
   if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
   return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
+}
+
+/**
+ * `pedidos.extras`: los productos, `regalo: true` si es un regalo y `origen`
+ * (F4-5) solo si vino uno válido. Sin origen, exactamente lo de antes.
+ */
+function extrasDelPedido(compra: Parameters<typeof productosParaPedido>[0], regalo: boolean, origenCrudo: unknown) {
+  let origen: ReturnType<typeof limpiarOrigen> = null;
+  try {
+    origen = limpiarOrigen(origenCrudo, new Date());
+  } catch {
+    origen = null;
+  }
+  return {
+    ...productosParaPedido(compra),
+    ...(regalo ? { regalo: true } : {}),
+    ...(origen ? { origen } : {}),
+  };
 }
 
 /** PostgREST no conoce la columna: la migración de la entrega todavía no se aplicó. */
@@ -270,7 +295,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: datosRegalo ? { ...productosParaPedido(compra), regalo: true } : productosParaPedido(compra),
+      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen),
     })
     .select("id")
     .single();

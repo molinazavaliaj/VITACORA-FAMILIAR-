@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { origenDelNavegador } from "@/lib/origen";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
@@ -151,7 +152,7 @@ export function FormularioRegalo({
     setFalla(null);
     const r = await enviarRegalo(
       { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega, idiomaWeb },
-      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage },
+      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage, origen: origenDelNavegador },
     );
     if ("error" in r) {
       fallar(r.error);

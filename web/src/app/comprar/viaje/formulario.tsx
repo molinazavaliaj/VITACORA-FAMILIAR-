@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { origenDelNavegador } from "@/lib/origen";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { COMPANIAS, PROPOSITOS, ANGULOS, ETAPAS_MAXIMO } from "@/lib/viaje";
 import { armarCompra, type Catalogo } from "@/lib/productos";
@@ -87,7 +88,7 @@ export function CheckoutViaje({
   });
 
   const pagador = useMemo(
-    () => crearPagador({ fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), antesDeIr: (c) => antesDeIr.current(c) }, T),
+    () => crearPagador({ fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), antesDeIr: (c) => antesDeIr.current(c), origen: origenDelNavegador }, T),
     [T],
   );
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { OrigenVisita } from "./origen-visita";
 
 // Las tipografías de marca (Playfair Display, Archivo, Source Serif 4, las mismas
 // de siempre) se sirven desde web/src/app/fuentes: subsets propios con solo los
@@ -89,7 +90,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <OrigenVisita />
+      </body>
     </html>
   );
 }
