@@ -50,7 +50,8 @@ export const CONTACTO = {
   soporte: "soporte@vitacorafamiliar.com",
 };
 
-export const ACTUALIZADO = "16 de septiembre de 2026";
+/** La fecha de la última versión de los legales (la pinta _textos/legal.ts en cada idioma). */
+export const ACTUALIZADO = "14 de octubre de 2026";
 
 /** Campos del titular que todavía no se completaron (se pintan en amarillo). */
 export function faltan(t: Titular): string[] {
