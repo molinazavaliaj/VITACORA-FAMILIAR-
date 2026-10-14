@@ -22,3 +22,13 @@ Las etiquetas numeradas de arriba de cada título no se muestran, porque la dire
 - La página es larga: 18 secciones, unas 23 pantallas en el móvil. «Lo que se hereda» y el cierre dicen casi lo mismo («Hay preguntas que un día ya no se pueden hacer» va en el cierre). Se podrían fusionar.
 - «Antes de decidir» (las tres dudas) y las preguntas frecuentes se pisan en parte («¿Mi padre va a saber usarlo?» está en las dos). Se podría quedar solo con las preguntas frecuentes.
 - La banda de confianza («Pago único, sin suscripciones», «Sus audios son privados»…) va ahora como letra chica junto al precio; su primera frase es el enlace del libro de ejemplo.
+
+## Secciones quitadas el 15/10 (recomendación aplicada, Naza no objetó)
+
+Las claves siguen en el diccionario, sin uso.
+
+| Sección | Textos que dejaron de verse | Dónde queda lo que importa |
+|---|---|---|
+| «Lo que se hereda» | `hereda.etiqueta`, `hereda.titulo` («Todo lo que aprendió en una vida, guardado para los que vienen.»), `hereda.texto` («No es nostalgia, es transmisión…») | `hereda.cierre` («Hay preguntas que un día ya no se pueden hacer.») sigue en el cierre. |
+| «Antes de decidir» | `dudas.etiqueta`, `dudas.titulo` («Lo que nos preguntan antes de regalarlo.»), `dudas.verTodas`, y las tres dudas como tarjetas | «Mi padre no se aclara con el móvil» = FAQ «¿Mi padre va a saber usarlo?». «¿Y si lo deja a medias?» = FAQ «¿Y si empieza y no termina?». «No le gusta hablar de sí mismo» NO estaba en la FAQ: pasó a ser la tercera pregunta de la FAQ, con su texto y sus tres temas. |
+
