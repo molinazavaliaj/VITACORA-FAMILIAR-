@@ -8,7 +8,7 @@ cambiada (dice qué y por qué); **nuevo** = no estaba en ningún lado.
 
 Para aprobar de a 10.
 
-**Aprobado por Naza:** tanda 1 (1–10) el 14/10.
+**Aprobado por Naza:** tandas 1 (1–10) y 2 (11–26) el 14/10.
 
 ## Tanda 1: la cabecera de la historia
 
