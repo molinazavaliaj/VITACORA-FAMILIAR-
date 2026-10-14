@@ -5,6 +5,7 @@ import {
   productosDelPedido,
   productosParaPedido,
   validarCarrito,
+  ahorroDelPack,
   CARRITO_VACIO,
 } from "../src/lib/productos";
 
@@ -145,5 +146,68 @@ describe("productosDelPedido — lee pedidos viejos y nuevos", () => {
   });
   it("viaje se conserva", () => {
     expect(productosDelPedido({ pdf: true, tipo: "viaje", copias: 0, marcos: 0, impreso: null })).toMatchObject({ pdf: true, tipo: "viaje" });
+  });
+});
+
+// El pack con descuento (Naza 14/10: 109 € en España, 190.750 $ en Argentina):
+// el PDF, el primer impreso y el primer marco por el precio del pack. Lo cobra
+// el servidor con la misma cuenta; el cliente solo manda cantidades.
+describe("pack el regalo completo", () => {
+  it("con PRECIO_PACK_EUR el servidor cobra el pack en una sola línea, y manda lo mismo que sueltos", () => {
+    process.env.PRECIO_PACK_EUR = "109";
+    const c = calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 });
+    expect(lineas(c)).toEqual([["pack", 1, 109]]);
+    expect(c.total).toBe(109);
+    expect(productosParaPedido(c)).toMatchObject({ pdf: true, impreso: "color", copias: 1, marcos: 1 });
+    expect(ahorroDelPack(catalogo("ES"))).toBe(49 + 49 + 20 - 109);
+  });
+
+  it("las copias y los marcos de más se suman encima del pack, a su precio", () => {
+    process.env.PRECIO_PACK_EUR = "109";
+    const c = calcularCompra("ES", { base: "pdf", impresos: 3, marcos: 2 });
+    expect(lineas(c)).toEqual([["pack", 1, 109], ["copia", 2, 40], ["marco_adicional", 1, 15]]);
+    expect(c.total).toBe(109 + 80 + 15);
+    expect(productosParaPedido(c)).toMatchObject({ copias: 3, marcos: 2 });
+  });
+
+  it("sin la variable (o mal escrita, o sin ahorro real) se cobra la suma, como antes", () => {
+    const suma = [["pdf", 1, 49], ["impreso", 1, 49], ["marco", 1, 20]];
+    expect(lineas(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 }))).toEqual(suma);
+    process.env.PRECIO_PACK_EUR = "ciento nueve";
+    expect(lineas(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 }))).toEqual(suma);
+    process.env.PRECIO_PACK_EUR = "118"; // igual a la suma: no es descuento
+    expect(lineas(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 }))).toEqual(suma);
+    expect(ahorroDelPack(catalogo("ES"))).toBeNull();
+    process.env.PRECIO_PACK_EUR = "150"; // más caro que la suma: tampoco
+    expect(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 }).total).toBe(118);
+  });
+
+  it("solo con el libro, el impreso y el marco: sin marco, sin impreso, en viaje o en el panel post-venta no hay pack", () => {
+    process.env.PRECIO_PACK_EUR = "109";
+    process.env.PRECIO_VIAJE_EUR = "59";
+    expect(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 0 }).total).toBe(98);
+    expect(calcularCompra("ES", { base: "pdf", impresos: 0, marcos: 1 }).total).toBe(49);
+    expect(lineas(calcularCompra("ES", { base: "viaje", impresos: 1, marcos: 1 })).map((l) => l[0])).toEqual(["viaje", "impreso", "marco"]);
+    // El panel (Encargar libro): ya tiene la base; el impreso y el marco van a su precio.
+    expect(lineas(calcularCompra("ES", { base: null, impresos: 1, marcos: 1 }))).toEqual([["impreso", 1, 49], ["marco", 1, 20]]);
+    // Ni con algo comprado antes.
+    expect(lineas(calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1, marcosPrevios: 1 })).some((l) => l[0] === "pack")).toBe(false);
+  });
+
+  it("el cliente no puede forzar el precio: lo que manda son cantidades, el precio sale de las variables", () => {
+    process.env.PRECIO_PACK_EUR = "109";
+    const conPrecioInventado = { base: "pdf", impresos: 1, marcos: 1, precio: 1, pack: { precio: 1 } } as unknown as Parameters<typeof calcularCompra>[1];
+    expect(calcularCompra("ES", conPrecioInventado).total).toBe(109);
+  });
+
+  it("en Argentina igual, con PRECIO_PACK_ARS", () => {
+    process.env.PRECIO_IMPRESO_ARS = "90000";
+    process.env.PRECIO_MARCO_ARS = "35000";
+    process.env.PRECIO_PACK_ARS = "190750";
+    const c = calcularCompra("AR", { base: "pdf", impresos: 1, marcos: 1 });
+    expect(lineas(c)).toEqual([["pack", 1, 190750]]);
+    expect(catalogo("AR").pack).toEqual({ precio: 190750 });
+    delete process.env.PRECIO_PACK_ARS;
+    expect(calcularCompra("AR", { base: "pdf", impresos: 1, marcos: 1 }).total).toBe(85750 + 90000 + 35000);
   });
 });

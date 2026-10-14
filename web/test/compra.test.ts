@@ -112,6 +112,26 @@ describe("POST /api/compra", () => {
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
   });
 
+  it("el pack (Naza 14/10): con PRECIO_PACK_ARS el servidor cobra el pack y manda el impreso y el marco igual", async () => {
+    process.env.PRECIO_PACK_ARS = "190750";
+    try {
+      const admin = crearAdmin({
+        familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
+        narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
+        pedidos: [{ data: { id: "ped-1" }, error: null }],
+      });
+      (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+      // Aunque el cuerpo traiga un precio, se cobra lo de las variables.
+      const r = await POST(peticion({ ...CUERPO_VALIDO, productos: { impresos: 1, marcos: 1 }, total: 1, precio: 1 }));
+      expect(r.status).toBe(200);
+      expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 190750, extras: { pdf: true, impreso: "color", copias: 1, marcos: 1 } });
+      const compra = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[1];
+      expect(compra.lineas.map((l: { id: string }) => l.id)).toEqual(["pack"]);
+    } finally {
+      delete process.env.PRECIO_PACK_ARS;
+    }
+  });
+
   // Rediseño 2026-10: la compra dice de qué versión de la web sale, para que la
   // pasarela vuelva a esa ruta (pago fallido y «Pedido confirmado»). No va a la base.
   it("el idioma de la web viaja a la pasarela si coincide con la región; si no, la vuelta de siempre", async () => {

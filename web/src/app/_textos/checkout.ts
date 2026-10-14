@@ -83,6 +83,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
+      pack: "Pack el regalo completo",
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
@@ -105,6 +106,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
+      pack: "Pack el regalo completo",
     },
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
@@ -128,6 +130,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Còpia extra del llibre imprès",
       marco: "La seva foto emmarcada",
       marco_adicional: "Marc addicional",
+      pack: "Pack el regal complet", // ca: PENDIENTE REVISIÓN NATIVA
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
