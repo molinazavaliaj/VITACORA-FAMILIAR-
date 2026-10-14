@@ -9,10 +9,10 @@ import { ZONAS } from "@/lib/horario";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../../_ui";
 import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
 import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
-import { AREA, AYUDA, AvisoFallo, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
+import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
 import { CamposDireccion } from "../../_checkout/direccion";
 import { PasosLibro } from "../../_checkout/pasos-libro";
-import { eleccionDe, opcionDe } from "../../_checkout/opciones-libro";
+import { eleccionDe } from "../../_checkout/opciones-libro";
 import { OpcionesLibro } from "../../_checkout/opciones-libro-ui";
 import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
@@ -32,6 +32,8 @@ import { cuerpoViaje, diasDe, estadoViajeInicial, fallaViaje, type EstadoViaje, 
 export type CatalogoViaje = Record<"ES" | "AR", Catalogo>;
 
 const sesion = () => window.sessionStorage;
+/** El formulario del pago: la barra del teléfono lo envía desde afuera. */
+const FORM_PAGO = "pago-viaje";
 const BOTON_PRIMARIO =
   "m-btn inline-flex min-h-14 items-center rounded-full bg-[var(--boton)] px-9 text-[16px] font-semibold text-[var(--sobre-boton)] [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 const BOTON_FANTASMA =
@@ -56,7 +58,7 @@ export function CheckoutViaje({
   const clave = `viaje-${idioma}`;
 
   const [paso, setPaso] = useState<PasoViaje>(pasoInicial);
-  const [e, setE] = useState<EstadoViaje>(() => estadoViajeInicial(idioma));
+  const [e, setE] = useState<EstadoViaje>(() => estadoViajeInicial(idioma, cat));
   const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [fallo, setFallo] = useState<null | "guardado" | "solo">(null);
@@ -95,7 +97,7 @@ export function CheckoutViaje({
     const guardado = leer<EstadoViaje>(sesion, CLAVE_COMPRA_VIAJE, clave);
     setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
-      setE({ ...estadoViajeInicial(idioma), ...guardado });
+      setE({ ...estadoViajeInicial(idioma, cat), ...guardado });
       setPaso(3);
     }
     window.history.replaceState(null, "", window.location.pathname);
@@ -119,6 +121,12 @@ export function CheckoutViaje({
     arriba();
     titulo.current?.focus({ preventScroll: true });
   }, [paso]);
+
+  // Con la barra del teléfono el botón queda lejos del aviso: si el paso tiene
+  // un problema, el aviso se trae a la vista (solo si no se ve).
+  useEffect(() => {
+    if (falla) document.getElementById(ID_ERROR)?.scrollIntoView({ block: "nearest" });
+  }, [falla]);
 
   function irA(siguiente: PasoViaje) {
     setFalla(null);
@@ -170,7 +178,7 @@ export function CheckoutViaje({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
+    <div className="chk-con-barra mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
       <div className="mb-10 sm:mb-14">
         <PasosLibro pasos={V.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
       </div>
@@ -184,21 +192,12 @@ export function CheckoutViaje({
               {precio === null ? (
                 <p className="text-[16px] text-[var(--texto-oscuro-suave)]">{V.noDisponible}</p>
               ) : (
-                <OpcionesLibro cat={cat} base={precio} elegida={opcionDe(e)} onElegir={(o) => cambiar(eleccionDe(o, e))}
-                  textos={{ ...V, titulo: V.libroTitulo }} foto="/checkout/marco-viaje.jpg" formatear={f} />
+                <OpcionesLibro cat={cat} base={precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
+                  textos={{ ...T, ...V, titulo: V.libroTitulo, marcoRegaloDetalle: V.marcoRegaloDetalle, frases: undefined }} foto="/checkout/marco-viaje.jpg"
+                  tapa={{ titulo: e.nombre.trim(), idioma: "es" }} formatear={f} />
               )}
 
-              {impreso && cat.impreso?.precioCopia != null ? (
-                <Contador titulo={T.copiasTitulo} detalle={T.cadaUno(f(cat.impreso.precioCopia))} valor={e.copias} onCambio={(n) => cambiar({ copias: n })}
-                  menos={T.unoMenos(T.copiasTitulo)} mas={T.unoMas(T.copiasTitulo)} max={19} />
-              ) : null}
-
-              {impreso && e.marcos > 0 && cat.marco?.precioAdicional != null ? (
-                <Contador titulo={T.marcosExtraTitulo} detalle={T.cadaUno(f(cat.marco.precioAdicional))} valor={e.marcos - 1} onCambio={(n) => cambiar({ marcos: n + 1 })}
-                  menos={T.unoMenos(T.marcosExtraTitulo)} mas={T.unoMas(T.marcosExtraTitulo)} max={19} />
-              ) : null}
-
-              <div>
+              <div className="chk-solo-escritorio">
                 <button type="button" disabled={precio === null} onClick={() => seguir(1)} className={`${BOTON_PRIMARIO} disabled:opacity-60`}>
                   {V.continuar}
                 </button>
@@ -318,7 +317,7 @@ export function CheckoutViaje({
 
               <ErrorPaso texto={falla?.texto ?? null} />
               <div className="flex flex-wrap items-center gap-3">
-                <button type="button" onClick={() => seguir(2)} className={BOTON_PRIMARIO}>{V.continuar}</button>
+                <button type="button" onClick={() => seguir(2)} className={`chk-solo-escritorio ${BOTON_PRIMARIO}`}>{V.continuar}</button>
                 <button type="button" onClick={() => irA(1)} className={BOTON_FANTASMA}>{V.atras}</button>
               </div>
             </ContenidoPaso>
@@ -327,7 +326,7 @@ export function CheckoutViaje({
           {/* ── 3 · Tus datos y el pago ── */}
           {paso === 3 && (
             <ContenidoPaso key="v3" animar={animar}>
-              <form onSubmit={pagar} noValidate className="flex flex-col gap-7">
+              <form id={FORM_PAGO} onSubmit={pagar} noValidate className="flex flex-col gap-7">
                 <TituloPaso ref={titulo} antetitulo={V.pasoDe(3, 3)} titulo={V.pagoTitulo} bajada={V.pagoBajada} />
                 {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
                 <div>
@@ -339,7 +338,9 @@ export function CheckoutViaje({
                   <strong className="font-medium text-[var(--texto-oscuro-fuerte)]">{V.despues}</strong> {V.despuesTexto}
                 </p>
                 <ErrorPaso texto={falla?.texto ?? null} />
-                <BotonPagar enviando={enviando} texto={T.pagar(f(compra.total))} procesando={T.procesando} />
+                <div className="chk-solo-escritorio">
+                  <BotonPagar enviando={enviando} texto={T.pagar(f(compra.total))} procesando={T.procesando} />
+                </div>
                 <p className="text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
                   {V.legalAntes}
                   <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">
@@ -357,6 +358,17 @@ export function CheckoutViaje({
 
         <Resumen compra={compra} region={region} textos={R} cabeza={cabezaResumen} incluye={V.incluye} tachado={tachado} />
       </div>
+
+      {/* En el teléfono: el total y el botón del paso, abajo y después del resumen. */}
+      <BarraPaso etiqueta={R.total} total={f(compra.total)}>
+        {paso === 3 ? (
+          <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.pagar(f(compra.total))} procesando={T.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
+        ) : (
+          <button type="button" disabled={precio === null} onClick={() => seguir(paso)} className={BOTON_BARRA}>
+            {V.continuar}
+          </button>
+        )}
+      </BarraPaso>
     </div>
   );
 }

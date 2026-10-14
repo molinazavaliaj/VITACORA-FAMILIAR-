@@ -21,7 +21,7 @@ import { obtenerPrecio, obtenerPrecioViaje, precioValido, type Region } from "./
 export type Moneda = "EUR" | "ARS";
 
 /** Las líneas que pueden aparecer en un ticket. */
-export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional";
+export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional" | "pack";
 
 /**
  * Con qué voz se narraba el audiolibro, en los pedidos que lo compraron antes
@@ -42,6 +42,8 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   copia: "Copia extra del libro impreso",
   marco: "Marco con su voz",
   marco_adicional: "Marco adicional",
+  // El pack (Naza 14/10): el PDF, el primer impreso y el primer marco, a un solo precio.
+  pack: "Pack el regalo completo",
 };
 export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
 export const DETALLE_MARCO = "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viaja con el libro.";
@@ -67,6 +69,12 @@ export type Catalogo = {
   impreso: { precio: number; precioCopia: number | null } | null;
   /** El primer marco y cada marco más; null = no se vende. */
   marco: { precio: number; precioAdicional: number | null } | null;
+  /**
+   * El regalo completo con descuento (Naza 14/10, 109 € en España): el PDF, el
+   * primer impreso y el primer marco por este precio. null = sin pack (sin
+   * variable, mal escrita, o sin impreso o marco para armarlo).
+   */
+  pack: { precio: number } | null;
 };
 
 /** Todo lo que se puede comprar en una región, con precio. Baja al cliente ya resuelto. */
@@ -80,7 +88,24 @@ export function catalogo(region: Region): Catalogo {
     viaje: obtenerPrecioViaje(region),
     impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
     marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
+    pack: impreso === null || marco === null ? null : precioDePack(precioDeEntorno("PRECIO_PACK", region), monto + impreso),
   };
+}
+
+// Un pack que no cubre ni el libro impreso solo es un error de carga (p. ej.
+// `10.9` en vez de `109` en Vercel): se ignora y se cobra la suma, nunca de menos.
+const precioDePack = (precio: number | null, piso: number) => (precio === null || precio <= piso ? null : { precio });
+
+/**
+ * Lo que se ahorra con el pack (base + impreso + marco sueltos, menos el
+ * pack), o null si no hay pack o no es más barato que la suma: solo se ofrece
+ * (y solo se tacha la suma) si el descuento es real.
+ */
+export function ahorroDelPack(cat: Catalogo): number | null {
+  if (!cat.pack || !cat.impreso || !cat.marco) return null;
+  const suma = cat.base.precio + cat.impreso.precio + cat.marco.precio;
+  const ahorro = Math.round((suma - cat.pack.precio) * 100) / 100;
+  return ahorro > 0 ? ahorro : null;
 }
 
 // ── El carrito y el ticket ────────────────────────────────────────────────
@@ -129,11 +154,33 @@ export function calcularCompra(region: Region, carrito: Carrito): Compra {
 export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Compra {
   const lineas: LineaDeCompra[] = [];
 
+  const impresosPrevios = entero(carrito.impresosPrevios);
+  const marcosPrevios = entero(carrito.marcosPrevios);
+  let impresos = entero(carrito.impresos);
+  let marcos = entero(carrito.marcos);
+
+  // El pack (Naza 14/10): el libro de una vida con su primer impreso y su
+  // primer marco, todo nuevo, por el precio del pack, si es más barato que la
+  // suma. Una sola línea (las pasarelas no aceptan líneas negativas); las
+  // copias y los marcos de más se suman después, a su precio. El panel
+  // post-venta (sin base) nunca arma pack.
+  if (carrito.base === "pdf" && impresosPrevios === 0 && marcosPrevios === 0 && impresos > 0 && marcos > 0 && cat.pack && ahorroDelPack(cat) !== null) {
+    lineas.push({ id: "pack", nombre: NOMBRES.pack, cantidad: 1, precioUnitario: cat.pack.precio });
+    impresos -= 1;
+    marcos -= 1;
+    if (impresos > 0 && cat.impreso?.precioCopia != null) {
+      lineas.push({ id: "copia", nombre: NOMBRES.copia, cantidad: impresos, precioUnitario: cat.impreso.precioCopia });
+    }
+    if (marcos > 0 && cat.marco?.precioAdicional != null) {
+      lineas.push({ id: "marco_adicional", nombre: NOMBRES.marco_adicional, cantidad: marcos, precioUnitario: cat.marco.precioAdicional });
+    }
+    const totalPack = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
+    return { region, moneda: cat.moneda, lineas, total: totalPack };
+  }
+
   if (carrito.base === "pdf") lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: cat.base.precio });
   if (carrito.base === "viaje" && cat.viaje !== null) lineas.push({ id: "viaje", nombre: NOMBRE_VIAJE, cantidad: 1, precioUnitario: cat.viaje });
 
-  const impresosPrevios = entero(carrito.impresosPrevios);
-  let impresos = entero(carrito.impresos);
   if (impresos > 0 && cat.impreso) {
     if (impresosPrevios === 0) {
       lineas.push({ id: "impreso", nombre: NOMBRES.impreso, cantidad: 1, precioUnitario: cat.impreso.precio });
@@ -146,8 +193,6 @@ export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Co
 
   // Los marcos viajan con el libro: solo si hay un impreso (de antes o de ahora).
   const hayImpreso = impresosPrevios > 0 || lineas.some((l) => l.id === "impreso" || l.id === "copia");
-  const marcosPrevios = entero(carrito.marcosPrevios);
-  let marcos = entero(carrito.marcos);
   if (marcos > 0 && hayImpreso && cat.marco) {
     if (marcosPrevios === 0) {
       lineas.push({ id: "marco", nombre: NOMBRES.marco, cantidad: 1, precioUnitario: cat.marco.precio });
@@ -196,14 +241,16 @@ export type ProductosDelPedido = {
 /** Solo lo que efectivamente entró en la compra. `pdf` = trae la base (PDF o viaje). */
 export function productosParaPedido(compra: Compra): ProductosDelPedido {
   const cantidad = (id: LineaId) => compra.lineas.filter((l) => l.id === id).reduce((s, l) => s + l.cantidad, 0);
-  const copias = cantidad("impreso") + cantidad("copia");
+  // El pack trae adentro el PDF, el primer impreso y el primer marco: se manda lo mismo que sueltos.
+  const pack = cantidad("pack");
+  const copias = cantidad("impreso") + cantidad("copia") + pack;
   const viaje = cantidad("viaje") > 0;
   return {
-    pdf: cantidad("pdf") > 0 || viaje,
+    pdf: cantidad("pdf") > 0 || viaje || pack > 0,
     audiolibro: null,
     impreso: copias > 0 ? "color" : null,
     copias,
-    marcos: cantidad("marco") + cantidad("marco_adicional"),
+    marcos: cantidad("marco") + cantidad("marco_adicional") + pack,
     ...(viaje ? { tipo: "viaje" as const } : {}),
   };
 }

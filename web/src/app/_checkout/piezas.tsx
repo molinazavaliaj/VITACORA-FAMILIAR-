@@ -63,10 +63,11 @@ export function AvisoFallo({ textos: T, guardado }: { textos: TextosFallo; guard
   );
 }
 
-/** Un contador − n + (copias extra, marcos adicionales). */
+/** Un contador − n + (copias extra, marcos para regalar). `precio`, si va, es la línea de lo que cuesta cada uno. */
 export function Contador({
   titulo,
   detalle,
+  precio,
   valor,
   onCambio,
   max = 20,
@@ -75,6 +76,7 @@ export function Contador({
 }: {
   titulo: string;
   detalle: string;
+  precio?: string;
   valor: number;
   onCambio: (n: number) => void;
   max?: number;
@@ -88,6 +90,7 @@ export function Contador({
       <div className="min-w-0">
         <p className="text-[15px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{titulo}</p>
         <p className="mt-1 text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{detalle}</p>
+        {precio ? <p className="mt-1 text-[14px] font-medium tabular-nums text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{precio}</p> : null}
       </div>
       <div className="flex items-center gap-3">
         <button type="button" aria-label={menos} disabled={valor <= 0} onClick={() => onCambio(Math.max(0, valor - 1))} className={boton}>
@@ -108,13 +111,27 @@ export function Contador({
  * corta el segundo envío con una ref, porque dos clics en el mismo instante
  * llegan antes de que React pinte el disabled.
  */
-export function BotonPagar({ enviando, texto, procesando }: { enviando: boolean; texto: string; procesando: string }) {
+export function BotonPagar({
+  enviando,
+  texto,
+  procesando,
+  form,
+  className = "min-h-[60px] w-full px-8 text-[17px] sm:w-auto",
+}: {
+  enviando: boolean;
+  texto: string;
+  procesando: string;
+  /** El id del formulario, para pagar desde la barra del teléfono (que está fuera de él). */
+  form?: string;
+  className?: string;
+}) {
   return (
     <button
       type="submit"
+      form={form}
       disabled={enviando}
       aria-busy={enviando || undefined}
-      className="m-btn inline-flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-full bg-[var(--boton)] px-8 text-[17px] font-semibold text-[var(--sobre-boton)] disabled:cursor-progress disabled:opacity-80 [font-family:var(--fuente-micro)] [touch-action:manipulation] sm:w-auto"
+      className={`m-btn inline-flex items-center justify-center gap-2.5 rounded-full bg-[var(--boton)] font-semibold text-[var(--sobre-boton)] disabled:cursor-progress disabled:opacity-80 [font-family:var(--fuente-micro)] [touch-action:manipulation] ${className}`}
     >
       {enviando ? (
         <>
@@ -147,6 +164,7 @@ export function Resumen({
   cabeza,
   incluye,
   tachado,
+  ahorro,
 }: {
   compra: Compra;
   region: Region;
@@ -155,6 +173,8 @@ export function Resumen({
   incluye: string[];
   /** El precio de lista de la promo, si hay (se muestra tachado junto al total). */
   tachado?: string | null;
+  /** Lo que se ahorra con el pack, ya formateado, si el ticket lo lleva. */
+  ahorro?: string | null;
 }) {
   const f = (n: number) => formatearPrecio(n, compra.moneda, region);
   const total = f(compra.total);
@@ -171,7 +191,7 @@ export function Resumen({
               </span>
               <span aria-hidden className="chk-guia" />
               <span className="tabular-nums text-[var(--texto-oscuro-fuerte)]">
-                {l.id === "pdf" || l.id === "viaje" ? "" : "+"}
+                {l.id === "pdf" || l.id === "viaje" || l.id === "pack" ? "" : "+"}
                 {f(l.cantidad * l.precioUnitario)}
               </span>
             </div>
@@ -185,6 +205,7 @@ export function Resumen({
               </span>
             </span>
           </div>
+          {ahorro ? <span className="chk-ahorro">{T.ahorras(ahorro)}</span> : null}
           <span className="text-[12.5px] text-[var(--texto-oscuro-menor)]">{T.pagoUnico}</span>
         </div>
       </div>
@@ -201,6 +222,35 @@ export function Resumen({
     </aside>
   );
 }
+
+/**
+ * La barra de abajo en el teléfono (Naza 14/10: «el continuar está arriba del
+ * checkout»): el total y el botón del paso, siempre a un dedo, después del
+ * resumen en el orden de la página. En escritorio no existe (el botón va en el
+ * paso y el resumen a la derecha). Tinta sobre la hoja, como el CTA fijo de
+ * la portada. El que la usa deja espacio abajo (.chk-con-barra) para que no
+ * tape nada, y esconde en el teléfono su propio botón principal
+ * (.chk-solo-escritorio) para que no haya dos iguales.
+ */
+export function BarraPaso({ etiqueta, total, children }: { etiqueta: string; total: string; children: ReactNode }) {
+  return (
+    <div data-barra-paso className="chk-barra dir-tinta fixed inset-x-0 bottom-0 z-30 lg:hidden">
+      <div className="mx-auto flex max-w-[640px] items-center justify-between gap-4 px-4 pt-3">
+        <div className="min-w-0">
+          <p className="text-[11.5px] uppercase tracking-[0.14em] text-[var(--dir-sobre-tinta-suave)] [font-family:var(--fuente-micro)]">{etiqueta}</p>
+          <p key={total} className="truncate text-[22px] leading-tight tabular-nums text-[var(--dir-sobre-tinta)] [font-family:var(--fuente-titulo)]">
+            {total}
+          </p>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** El botón de la barra del teléfono (Continuar / Seguir), papel sobre tinta. */
+export const BOTON_BARRA =
+  "m-btn inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-[var(--boton)] px-7 text-[15.5px] font-semibold text-[var(--sobre-boton)] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 
 /** Lleva arriba del todo al cambiar de paso (la maqueta lo hace con `top()`). */
 export function arriba() {

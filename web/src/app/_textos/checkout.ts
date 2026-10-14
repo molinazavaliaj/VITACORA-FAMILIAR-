@@ -65,6 +65,8 @@ export type TextosResumen = {
   lineas: Record<LineaId, string>;
   total: string;
   pagoUnico: string;
+  /** Debajo del total, cuando va el pack: lo que se ahorra frente a la suma. PENDIENTE OK de Naza. */
+  ahorras: (cifra: string) => string;
   incluye: (propia: boolean) => string[];
 };
 
@@ -83,9 +85,11 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
+      pack: "Pack el regalo completo",
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
+    ahorras: (c) => `Ahorras ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde tu panel"]
@@ -105,10 +109,12 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
+      pack: "Pack el regalo completo",
     },
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
     pagoUnico: "Un solo pago, sin suscripciones.",
+    ahorras: (c) => `Ahorrás ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde tu panel"]
@@ -128,9 +134,11 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Còpia extra del llibre imprès",
       marco: "La seva foto emmarcada",
       marco_adicional: "Marc addicional",
+      pack: "Pack el regal complet", // ca: PENDIENTE REVISIÓN NATIVA
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
+    ahorras: (c) => `Estalvies ${c} amb el pack`, // ca: PENDIENTE REVISIÓN NATIVA
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des del teu panell"]
@@ -165,12 +173,21 @@ export type TextosCheckout = {
   marcoAnadir: (precio: string) => string;
   marcoAnadido: (precio: string) => string;
   marcoSoloImpreso: string;
-  /** La tercera opción del paso 1 (Naza 14/10): impreso + digital + el marco. PENDIENTE OK de Naza. */
+  /** La opción del libro completo (impreso + digital + el marco), la primera del paso 1. Aprobada por Naza el 14/10 (es y ar). */
   marcoOpcionTitulo: string;
   marcoOpcionDetalle: string;
   copiasTitulo: string;
   marcosExtraTitulo: string;
   cadaUno: (precio: string) => string;
+  /** El contador de marcos para regalar (Naza 14/10). es y ar APROBADOS por Naza el 14/10; ca pendiente nativa. */
+  marcoRegaloTitulo: string;
+  marcoRegaloDetalle: string;
+  /** «+20 € el primero, +15 € los demás» (el primero a precio de marco, los demás a precio adicional). */
+  primeroYDemas: (primero: string, demas: string) => string;
+  /** Las frases de valor de las opciones del paso 1 (Naza 14/10, APROBADAS en es; ca pendiente nativa). */
+  frases: Record<"marco" | "impreso" | "digital", { cabeza: string; bajada: string }>;
+  /** El botón del paso 1 (Naza 14/10, APROBADO): «Quiero su libro» / «Quiero mi libro». */
+  quieroLibro: (propia: boolean) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
 
@@ -321,12 +338,24 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Añadir el marco · +${p}`,
     marcoAnadido: (p) => `Añadido · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elige el impreso para añadirlo.",
-    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercas el móvil al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
+    // APROBADO por Naza el 14/10.
+    marcoRegaloTitulo: "Marco con foto y chip NFC",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el móvil se abre su libro, con su voz.",
+    // PENDIENTE OK de Naza (14/10).
+    primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
+    // APROBADAS por Naza el 14/10.
+    frases: {
+      marco: { cabeza: "El regalo completo", bajada: "Su libro, su voz y su foto en casa" },
+      impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
+      digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -476,12 +505,24 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Sumar el marco · +${p}`,
     marcoAnadido: (p) => `Sumado · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elegí el impreso para sumarlo.",
-    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercás el celular al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
+    // APROBADO por Naza el 14/10.
+    marcoRegaloTitulo: "Marco con foto y chip NFC",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el celular se abre su libro, con su voz.",
+    // PENDIENTE OK de Naza (14/10).
+    primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
+    // APROBADAS por Naza el 14/10 (las mismas que en España: no llevan voseo).
+    frases: {
+      marco: { cabeza: "El regalo completo", bajada: "Su libro, su voz y su foto en casa" },
+      impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
+      digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -632,12 +673,23 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Afegir el marc · +${p}`,
     marcoAnadido: (p) => `Afegit · +${p}`,
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
-    // PENDIENTE OK de Naza (14/10) y REVISIÓN NATIVA: la tercera opció.
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
     marcoOpcionTitulo: "Imprès + digital + la seva foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la seva foto. Hi acostes el mòbil i s'obre el seu llibre, amb la seva veu.",
     copiasTitulo: "Còpies extra del llibre imprès",
     marcosExtraTitulo: "Marcs addicionals",
     cadaUno: (p) => `+${p} cadascun`,
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    marcoRegaloTitulo: "Marc amb foto i xip NFC",
+    marcoRegaloDetalle: "Per regalar als teus familiars. Quan hi acostes el mòbil s'obre el seu llibre, amb la seva veu.",
+    primeroYDemas: (a, b) => `+${a} el primer, +${b} els altres`,
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    frases: {
+      marco: { cabeza: "El regal complet", bajada: "El seu llibre, la seva veu i la seva foto a casa" },
+      impreso: { cabeza: "Per a la prestatgeria", bajada: "El seu llibre en paper i en PDF" },
+      digital: { cabeza: "Només digital", bajada: "Per llegir i escoltar a qualsevol pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Vull el meu llibre" : "Vull el seu llibre"),
     unoMenos: (q) => `Un menys: ${q}`,
     unoMas: (q) => `Un més: ${q}`,
 

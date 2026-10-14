@@ -10,10 +10,10 @@ import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
 import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
-import { AREA, AvisoFallo, BotonPagar, CAMPO } from "../_checkout/piezas";
+import { AREA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO } from "../_checkout/piezas";
 import { vieneDePagoFallido } from "../_checkout/memoria";
 import { PasosLibro } from "../_checkout/pasos-libro";
-import { CHECKOUT, FALLO } from "../_textos/checkout";
+import { CHECKOUT, FALLO, RESUMEN } from "../_textos/checkout";
 import { COMPRADOR_WEB } from "../_textos/regalar";
 
 // La compra del regalo (plan 2026-10-07-gift-card, Task 8), en cuatro pasos:
@@ -33,6 +33,8 @@ import { COMPRADOR_WEB } from "../_textos/regalar";
 type Paso = 1 | 2 | 3 | 4;
 
 const ID_ERROR = "error-paso";
+/** El formulario del pago: la barra del teléfono lo envía desde afuera. */
+const FORM_PAGO = "pago-regalo";
 
 const campo = CAMPO;
 const etiqueta = "block text-[13.5px] font-medium text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
@@ -94,6 +96,12 @@ export function FormularioRegalo({
     encabezado.current?.focus({ preventScroll: true });
   }, [paso]);
 
+  // Con la barra del teléfono el botón queda lejos del aviso: si el paso tiene
+  // un problema, el aviso se trae a la vista (solo si no se ve).
+  useEffect(() => {
+    if (falla) document.getElementById(ID_ERROR)?.scrollIntoView({ block: "nearest" });
+  }, [falla]);
+
   function fallar(texto: string, campo?: string) {
     setFalla({ texto, campo });
   }
@@ -108,6 +116,32 @@ export function FormularioRegalo({
     setPaso(siguiente);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // Lo que hace «Seguir» en cada paso (lo usan el botón del paso y la barra
+  // del teléfono): valida y avanza.
+  const seguirDesde: Record<1 | 2 | 3, () => void> = {
+    1: () => {
+      if (!nombre.trim()) return fallar(T.faltaNombre, "nombre");
+      if (!comoLeDicen.trim()) return fallar(T.faltaComoLeDecis, "apodo");
+      if (!genero) return fallar(T.faltaGenero, "genero");
+      avanzar(2);
+    },
+    2: () => {
+      if (!mensaje.trim()) return fallar(T.faltaMensaje, "mensaje");
+      // La misma regla que el servidor: real y desde ayer en UTC.
+      const problemaFecha = fechaEntrega ? errorDeFechaEntrega(fechaEntrega, new Date()) : null;
+      if (problemaFecha) return fallar(problemaFecha, "fecha");
+      const problemaEntrega = errorDeEleccion(entrega, fechaEntrega, idioma, new Date(), T.entrega);
+      if (problemaEntrega) return fallar(problemaEntrega.texto, problemaEntrega.campo);
+      avanzar(3);
+    },
+    3: () => {
+      if (!nombreComprador.trim()) return fallar(T.faltaTuNombre, "comprador");
+      if (!vinculoComprador.trim()) return fallar(T.faltaQueEsTuyo, "vinculo");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return fallar(T.correoMal, "email");
+      avanzar(4);
+    },
+  };
 
   async function pagar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -126,12 +160,15 @@ export function FormularioRegalo({
     }
   }
 
-  return (
-    <div className="mx-auto grid w-full max-w-[1240px] items-start gap-14 px-4 pb-28 pt-10 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
-      <div className="min-w-0">
-        <PasosLibro pasos={T.pasos} actual={paso} etiqueta={CHECKOUT[idiomaWeb ?? (region === "AR" ? "ar" : "es")].pasosEtiqueta} />
+  const idiomaDeLaWeb = idiomaWeb ?? (region === "AR" ? "ar" : "es");
 
-        {fallo ? <div className="mt-8"><AvisoFallo textos={FALLO[idiomaWeb ?? (region === "AR" ? "ar" : "es")]} guardado={false} /></div> : null}
+  return (
+    <>
+    <div className="chk-con-barra mx-auto grid w-full max-w-[1240px] items-start gap-14 px-4 pb-28 pt-10 sm:px-8 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
+      <div className="min-w-0">
+        <PasosLibro pasos={T.pasos} actual={paso} etiqueta={CHECKOUT[idiomaDeLaWeb].pasosEtiqueta} />
+
+        {fallo ? <div className="mt-8"><AvisoFallo textos={FALLO[idiomaDeLaWeb]} guardado={false} /></div> : null}
 
         {/* ── 1 · A quién ── */}
         {paso === 1 && (
@@ -171,12 +208,7 @@ export function FormularioRegalo({
             </fieldset>
             <Botones
               textos={T}
-              siguiente={() => {
-                if (!nombre.trim()) return fallar(T.faltaNombre, "nombre");
-                if (!comoLeDicen.trim()) return fallar(T.faltaComoLeDecis, "apodo");
-                if (!genero) return fallar(T.faltaGenero, "genero");
-                avanzar(2);
-              }}
+              siguiente={seguirDesde[1]}
               error={error}
             />
           </section>
@@ -207,15 +239,7 @@ export function FormularioRegalo({
             <Botones
               textos={T}
               atras={() => avanzar(1)}
-              siguiente={() => {
-                if (!mensaje.trim()) return fallar(T.faltaMensaje, "mensaje");
-                // La misma regla que el servidor: real y desde ayer en UTC.
-                const problemaFecha = fechaEntrega ? errorDeFechaEntrega(fechaEntrega, new Date()) : null;
-                if (problemaFecha) return fallar(problemaFecha, "fecha");
-                const problemaEntrega = errorDeEleccion(entrega, fechaEntrega, idioma, new Date(), T.entrega);
-                if (problemaEntrega) return fallar(problemaEntrega.texto, problemaEntrega.campo);
-                avanzar(3);
-              }}
+              siguiente={seguirDesde[2]}
               error={error}
             />
           </section>
@@ -242,12 +266,7 @@ export function FormularioRegalo({
             <Botones
               textos={T}
               atras={() => avanzar(2)}
-              siguiente={() => {
-                if (!nombreComprador.trim()) return fallar(T.faltaTuNombre, "comprador");
-                if (!vinculoComprador.trim()) return fallar(T.faltaQueEsTuyo, "vinculo");
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return fallar(T.correoMal, "email");
-                avanzar(4);
-              }}
+              siguiente={seguirDesde[3]}
               error={error}
             />
           </section>
@@ -255,7 +274,7 @@ export function FormularioRegalo({
 
         {/* ── 4 · Pagar ── */}
         {paso === 4 && (
-          <form key="r4" onSubmit={pagar} className="m-step mt-12">
+          <form key="r4" id={FORM_PAGO} onSubmit={pagar} className="m-step mt-12">
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[3]}</h1>
             <div className="mt-8">
               <TarjetaChica comoLeDicen={comoLeDicen.trim()} mensaje={mensaje.trim()} firma={nombreComprador.trim()} />
@@ -270,7 +289,9 @@ export function FormularioRegalo({
             {error && <p id={ID_ERROR} className="mt-6 text-[14px] text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => avanzar(3)} className="m-ghost inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">← {T.atras}</button>
-              <BotonPagar enviando={enviando} texto={T.botonPagar} procesando={T.unMomento} />
+              <div className="chk-solo-escritorio">
+                <BotonPagar enviando={enviando} texto={T.botonPagar} procesando={T.unMomento} />
+              </div>
             </div>
             <p className="mt-4 text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
               {T.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")}{" "}
@@ -295,6 +316,18 @@ export function FormularioRegalo({
         </div>
       </aside>
     </div>
+
+    {/* En el teléfono: el precio y el botón del paso, abajo y después del resumen. */}
+    <BarraPaso etiqueta={RESUMEN[idiomaDeLaWeb].total} total={precio}>
+      {paso === 4 ? (
+        <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.botonPagar} procesando={T.unMomento} className="min-h-12 shrink-0 px-5 text-[15px]" />
+      ) : (
+        <button type="button" onClick={seguirDesde[paso]} className={BOTON_BARRA}>
+          {T.seguir}
+        </button>
+      )}
+    </BarraPaso>
+    </>
   );
 }
 
@@ -315,7 +348,7 @@ function Botones({ atras, siguiente, error, textos: T }: { atras?: () => void; s
       {error && <p id={ID_ERROR} className="mt-6 text-[14px] text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
       <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         {atras ? <button type="button" onClick={atras} className="m-ghost inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">← {T.atras}</button> : <span />}
-        <button type="button" onClick={siguiente} className="m-btn inline-flex min-h-14 items-center justify-center rounded-full bg-[var(--boton)] px-9 text-[16px] font-semibold text-[var(--sobre-boton)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">{T.seguir}</button>
+        <button type="button" onClick={siguiente} className="chk-solo-escritorio m-btn inline-flex min-h-14 items-center justify-center rounded-full bg-[var(--boton)] px-9 text-[16px] font-semibold text-[var(--sobre-boton)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">{T.seguir}</button>
       </div>
     </>
   );
