@@ -224,3 +224,6 @@
   --dir-sobre-tinta-suave: var(--dir-sobre-papel-suave);
   --dir-hilo-tinta: var(--dir-hilo-papel);
 }
+/* El titular de /viaje: dos mitades que entran enteras en su línea, del
+   teléfono al escritorio (sin saltos de palabra al cambiar de letra). */
+.dir-t-viaje { font-size: clamp(2rem, 0.6rem + 5.2vw, 5.2rem); line-height: 1.04; }

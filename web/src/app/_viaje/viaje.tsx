@@ -55,14 +55,20 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         <div className="absolute inset-x-0 top-0">
           <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
         </div>
-        <div className="mx-auto grid min-h-[100svh] max-w-[1360px] grid-cols-1 items-center gap-14 px-4 pb-16 pt-44 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-40 lg:px-12">
+        {/* En el teléfono, arriba y no centrado: centrado, cuando llega Playfair
+            y el bloque cambia de alto, todo se re-centra y el titular salta
+            (CLS 0,06 en Lighthouse). */}
+        <div className="mx-auto grid min-h-[100svh] max-w-[1360px] grid-cols-1 content-start items-start gap-14 md:content-center md:items-center px-4 pb-16 pt-44 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-40 lg:px-12">
           <div className="flex flex-col items-start gap-7 md:col-span-8">
             <span className="dir-micro dir-entra text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "0.3s" })}>
               {v.etiqueta}
             </span>
-            <h1 className="dir-titular dir-t15 dir-asienta">
-              {v.titulo[0]} <br className="hidden sm:block" />
-              {v.titulo[1]}
+            {/* Una línea por mitad, del tamaño justo para que cada una entre
+                entera también con la letra de reserva: si las palabras saltan
+                de línea al llegar Playfair, Lighthouse lo cuenta como CLS. */}
+            <h1 className="dir-titular dir-t-viaje dir-asienta">
+              <span className="block">{v.titulo[0]}</span>
+              <span className="block">{v.titulo[1]}</span>
             </h1>
             <p className="dir-entra dir-parrafo max-w-[40ch]" style={conVar({ "--e": "0.6s" })}>
               {v.bajada}
