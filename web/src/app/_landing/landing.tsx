@@ -286,14 +286,18 @@ function SeccionesVoz({ idioma, conMarco, precioMarco }: { idioma: IdiomaWeb; co
       ) : null}
 
       <section className={`${conMarco ? "dir-papel dir-deckle" : "dir-tinta"} dir-hoja relative`}>
-        <div className="mx-auto max-w-[1360px] px-4 py-24 sm:px-8 md:py-36 lg:px-12">
-          <h2 className="dir-titular dir-t3 aparece max-w-[18ch]">{v.pasosTitulo}</h2>
-          <div className="md:max-w-[760px]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:py-36 lg:px-12">
+          <div className="md:col-span-5">
+            <div className="flex flex-col items-start gap-8 md:sticky md:top-24">
+              <h2 className="dir-titular dir-t3 aparece max-w-[14ch]">{v.pasosTitulo}</h2>
+              <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className={`${conMarco ? "dir-enlace-papel" : "dir-enlace"} aparece`}>
+                {t.banda[0]} <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
+          <div className="md:col-span-6 md:col-start-7 md:-mt-12">
             <Pasos pasos={t.como.pasos} etiqueta={t.como.paso} tinta={!conMarco} />
           </div>
-          <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className={`${conMarco ? "dir-enlace-papel" : "dir-enlace"} aparece mt-10`}>
-            {t.banda[0]} <span aria-hidden>→</span>
-          </Link>
         </div>
       </section>
     </>
@@ -344,19 +348,21 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       <section className="dir-tinta dir-hoja relative">
-        <div className="mx-auto max-w-[1360px] px-4 py-24 sm:px-8 md:py-36 lg:px-12">
-          <h2 className="dir-titular dir-t3 aparece max-w-[18ch]">{l.pasosTitulo}</h2>
-          <div className="md:max-w-[760px]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:py-36 lg:px-12">
+          <div className="flex flex-col gap-14 md:col-span-5">
+            <h2 className="dir-titular dir-t3 aparece max-w-[14ch]">{l.pasosTitulo}</h2>
+            <Foto
+              src={FOTOS.libroViaje}
+              alt={v.altLibro}
+              forma="ovalo"
+              sizes="(min-width: 768px) 38vw, 92vw"
+              apaisada
+              className="order-last w-full md:order-none"
+            />
+          </div>
+          <div className="md:col-span-6 md:col-start-7 md:-mt-12">
             <Pasos pasos={l.pasos} tinta />
           </div>
-          <Foto
-            src={FOTOS.libroViaje}
-            alt={v.altLibro}
-            forma="ovalo"
-            sizes="(min-width: 768px) 46vw, 92vw"
-            apaisada
-            className="mt-16 w-full md:ml-auto md:mt-8 md:w-[52%]"
-          />
         </div>
       </section>
 

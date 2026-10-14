@@ -56,7 +56,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
           <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
         </div>
         <div className="mx-auto grid min-h-[100svh] max-w-[1360px] grid-cols-1 items-center gap-14 px-4 pb-16 pt-44 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-40 lg:px-12">
-          <div className="flex flex-col items-start gap-7 md:col-span-7">
+          <div className="flex flex-col items-start gap-7 md:col-span-8">
             <span className="dir-micro dir-entra text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "0.3s" })}>
               {v.etiqueta}
             </span>
@@ -89,8 +89,8 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
             src={FOTOS.hotel}
             alt={v.altHotel}
             forma="arco"
-            sizes="(min-width: 768px) 30vw, 70vw"
-            className="w-[70%] justify-self-end md:col-span-4 md:col-start-9 md:w-full"
+            sizes="(min-width: 768px) 24vw, 70vw"
+            className="w-[70%] justify-self-end md:col-span-3 md:col-start-10 md:w-full"
           />
         </div>
       </section>
@@ -114,9 +114,11 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* ═══ 3 · CÓMO FUNCIONA ═══ */}
       <section id="como-funciona" className="dir-papel dir-hoja dir-deckle relative scroll-mt-6">
-        <div className="mx-auto max-w-[1360px] px-4 py-24 sm:px-8 md:py-36 lg:px-12">
-          <h2 className="dir-titular dir-t2 aparece">{v.como.titulo}</h2>
-          <div className="md:ml-[33%] md:max-w-[760px]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:py-36 lg:px-12">
+          <div className="md:col-span-5">
+            <h2 className="dir-titular dir-t2 aparece md:sticky md:top-24">{v.como.titulo}</h2>
+          </div>
+          <div className="md:col-span-6 md:col-start-7 md:-mt-12">
             <Pasos pasos={v.como.pasos} />
           </div>
         </div>
@@ -130,9 +132,11 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
             <h2 className="dir-titular dir-t3">{v.precioBloque.titulo}</h2>
             {precio !== null ? (
               <p className="flex flex-wrap items-baseline gap-3">
-                <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">
-                  <Promo />
-                </span>
+                {lista ? (
+                  <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">
+                    <Promo />
+                  </span>
+                ) : null}
                 <span className="dir-precio">{formatear(precio)}</span>
               </p>
             ) : (
