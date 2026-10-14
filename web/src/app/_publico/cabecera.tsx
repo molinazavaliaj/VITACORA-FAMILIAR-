@@ -85,7 +85,7 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
  * la solapa activa y se desliza hasta la que se señala, solo con transform
  * (las dos solapas miden lo mismo: translateX(100%) es exacto, sin medir nada).
  * El texto va con mix-blend difference: blanco sobre el fondo, negro sobre la
- * pastilla, sin JS. Viaje lleva a /viaje, que hoy existe solo en una versión.
+ * pastilla, sin JS. Viaje lleva a /viaje de su idioma (/ca/viaje, /ar/viaje).
  */
 export function Solapas({ idioma, producto = "familiar" }: { idioma: IdiomaWeb; producto?: Producto }) {
   const t = TEXTOS_PUBLICO[idioma];
@@ -100,7 +100,7 @@ export function Solapas({ idioma, producto = "familiar" }: { idioma: IdiomaWeb; 
       <Link prefetch={false} href={ruta(idioma, "/")} data-solapa="familiar" aria-current={producto === "familiar" ? "page" : undefined} className={solapa}>
         {t.familiar}
       </Link>
-      <Link prefetch={false} href="/viaje" data-solapa="viaje" aria-current={producto === "viaje" ? "page" : undefined} className={solapa}>
+      <Link prefetch={false} href={ruta(idioma, "/viaje")} data-solapa="viaje" aria-current={producto === "viaje" ? "page" : undefined} className={solapa}>
         {t.viaje}
       </Link>
     </nav>
