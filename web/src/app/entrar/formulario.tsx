@@ -24,6 +24,7 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
   const [paso, setPaso] = useState<"correo" | "codigo">("correo");
   const [trabajando, setTrabajando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reenviado, setReenviado] = useState(false);
 
   async function pedirCodigo(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -66,8 +67,26 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
     router.refresh();
   }
 
-  function pedirOtroCodigo() {
+  // Un código vencido se arregla con otro al mismo correo, sin volver a
+  // escribirlo (maqueta `Casos` 5, fase 3). Para cambiar de correo, «Usar
+  // otro correo» vuelve al primer paso como antes.
+  async function pedirOtroCodigo() {
     setError(null);
+    setReenviado(false);
+    setCodigo("");
+    setTrabajando(true);
+    const { error: errorEnvio } = await crearClienteNavegador().auth.signInWithOtp({ email });
+    setTrabajando(false);
+    if (errorEnvio) {
+      setError(tu ? "No pudimos enviar el código. Prueba de nuevo en un momento." : "No pudimos enviar el código. Probá de nuevo en un momento.");
+      return;
+    }
+    setReenviado(true);
+  }
+
+  function usarOtroCorreo() {
+    setError(null);
+    setReenviado(false);
     setCodigo("");
     setPaso("correo");
   }
@@ -123,12 +142,25 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
               {trabajando ? "Entrando..." : "Entrar"}
             </button>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {reenviado && !error ? (
+              <p role="status" className="text-sm text-zinc-700">
+                Te mandamos otro código a <strong>{email}</strong>.
+              </p>
+            ) : null}
             <button
               type="button"
               onClick={pedirOtroCodigo}
-              className="text-sm text-zinc-500 hover:text-zinc-700"
+              disabled={trabajando}
+              className="text-sm text-zinc-500 hover:text-zinc-700 disabled:opacity-60"
             >
               Pedir otro código
+            </button>
+            <button
+              type="button"
+              onClick={usarOtroCorreo}
+              className="text-sm text-zinc-500 hover:text-zinc-700"
+            >
+              Usar otro correo
             </button>
           </form>
         )}

@@ -1,0 +1,23 @@
+Asunto: Tu regalo para abuela está listo
+
+PEDIDO CONFIRMADO
+
+Tu regalo para abuela está listo
+
+Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando abuela la escanee, empieza su entrevista y lo vas a ver en tu tablero.
+
+Ver la tarjeta
+http://localhost:3123/regalo/VF-PRUEBA/tarjeta
+
+QUÉ PASA AHORA
+Mientras cuenta. Desde la primera respuesta, en tu panel aparecen sus audios, uno por uno, con su voz y sus modos de decir.
+Al terminar. Cuando termina de contar, el biógrafo escribe su libro.
+
+Entrar a mi tablero
+http://localhost:3123/entrar
+Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
+
+¿Dudas? Contestá este mail.
+
+Vitácora Familiar · En cada familia hay un libro sin escribir.
+Recibís este mail porque hiciste un pedido.

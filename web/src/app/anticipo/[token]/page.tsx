@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { tratoDeLaFamilia } from "@/lib/trato";
+import { EnlaceQueNoSirve, HojaAviso } from "../../_publico/hoja-aviso";
 
 // Las primeras páginas del libro, con su voz. Llega acá desde el correo que
 // manda la fábrica cuando su narrador contestó la tercera pregunta.
@@ -232,42 +233,25 @@ export default async function PaginaAnticipo({
   );
 }
 
-function Marco({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-center text-[#14140F]">
-      <div className="w-full max-w-md">{children}</div>
-    </div>
-  );
-}
-
+// Las dos salidas sin anticipo, con la hoja de aviso del rediseño (fase 3,
+// `Casos` 5). El texto de «Todavía se está escribiendo» es el de siempre.
 function EstadoInvalido({ trato }: { trato: TratoComprador }) {
-  return (
-    <Marco>
-      <h1 className="text-2xl font-semibold">Este enlace no es válido</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        Puede que esté incompleto. {trato === "tu" ? "Prueba" : "Probá"} abrirlo otra vez desde el correo que
-        te mandamos.
-      </p>
-      <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
-        Ir al inicio
-      </Link>
-    </Marco>
-  );
+  return <EnlaceQueNoSirve idioma={trato === "tu" ? "es" : "ar"} />;
 }
 
 function EstadoEnCamino({ trato }: { trato: TratoComprador }) {
+  const tu = trato === "tu";
   return (
-    <Marco>
-      <h1 className="text-2xl font-semibold">Todavía se está escribiendo</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        {trato === "tu"
-          ? "Las primeras páginas aparecen aquí en cuanto estén listas. Vuelve a abrir "
-          : "Las primeras páginas aparecen acá en cuanto estén listas. Volvé a abrir "}
-        este enlace en un rato.
-      </p>
-      <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
-        Ir al inicio
-      </Link>
-    </Marco>
+    <HojaAviso
+      idioma={tu ? "es" : "ar"}
+      aviso={{
+        etiqueta: "",
+        titulo: "Todavía se está escribiendo",
+        bajada: tu
+          ? "Las primeras páginas aparecen aquí en cuanto estén listas. Vuelve a abrir este enlace en un rato."
+          : "Las primeras páginas aparecen acá en cuanto estén listas. Volvé a abrir este enlace en un rato.",
+      }}
+      salidas={[{ tipo: "entrar" }, { tipo: "inicio" }]}
+    />
   );
 }
