@@ -106,7 +106,10 @@ export function LibroHojeable({
       >
         {/* Escritorio: el libro abierto, dos páginas. */}
         <div aria-live="polite" className="relative mx-auto hidden w-[860px] justify-center pb-10 lg:flex">
-          <span aria-hidden className="absolute bottom-2 left-1/2 h-[60px] w-[900px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(52,40,24,.32),rgba(52,40,24,0)_70%)] blur-[6px]" />
+          {/* La sombra del libro abierto; cerrado, el libro 3D trae la suya. */}
+          {PLIEGOS[pliego][0] !== null && PLIEGOS[pliego][1] !== null ? (
+            <span aria-hidden className="absolute bottom-2 left-1/2 h-[60px] w-[900px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(52,40,24,.32),rgba(52,40,24,0)_70%)] blur-[6px]" />
+          ) : null}
           <div className="relative flex [transform:rotateX(9deg)] [transform-style:preserve-3d]">
             <div key={`i-${pliego}`} className={`m-hoja-izq relative w-[420px] ${claseIzq}`}>
               <Pagina n={PLIEGOS[pliego][0]} lado="izq" libro={libro} fotos={fotos} tapa={tapa} contratapa={contratapa} />
