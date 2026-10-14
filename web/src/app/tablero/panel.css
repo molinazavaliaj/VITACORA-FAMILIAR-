@@ -188,7 +188,7 @@
 .pnl-titular {
   font-family: var(--fuente-titulo), Georgia, serif;
   font-weight: 500;
-  font-size: clamp(2.05rem, 1.45rem + 2.4vw, 3.5rem);
+  font-size: clamp(1.85rem, 1.3rem + 2.5vw, 3.5rem);
   line-height: 1.06;
   letter-spacing: -0.025em;
   text-wrap: balance;

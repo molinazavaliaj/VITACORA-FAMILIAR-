@@ -183,7 +183,11 @@ export function HistoriaViaje({
         {/* ── Cabecera ──────────────────────────────────────────────────── */}
         {enMarco ? (
           <div className="flex flex-col gap-4">
-            <p className="pnl-dato">Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)} · {estadoLinea}</p>
+            {/* El estado ya lo dice la cabecera del marco: acá, las fechas y dónde está hoy. */}
+            <p className="pnl-dato">
+              Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)}
+              {cerrado || !arranco ? "" : ` · ${estadoLinea}`}
+            </p>
             {acciones}
           </div>
         ) : (
