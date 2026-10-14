@@ -1,5 +1,7 @@
 # Fase 4 — textos para aprobar (/viaje y landings de anuncio)
 
+**Aprobado por Naza el 14/10:** los cuatro titulares de landing, opción A.
+
 Para Naza, de a 10. Cada texto lleva **una versión recomendada**; solo los titulares de las
 landings traen tres opciones (son de marca: los eliges tú). Sin dos puntos en nada nuevo. El
 catalán va en el código marcado `ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá fila por fila:
