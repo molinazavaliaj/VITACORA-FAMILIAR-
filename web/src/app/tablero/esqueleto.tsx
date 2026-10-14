@@ -118,7 +118,6 @@ export function CascaronHueco() {
           <span className="h-10 w-10 rounded-full border border-[rgba(238,234,225,0.2)]" aria-hidden />
         </div>
       </div>
-      <div aria-hidden className="pnl-deckle" />
       <HistoriaHueca />
     </>
   );

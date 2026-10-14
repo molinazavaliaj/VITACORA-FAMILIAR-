@@ -89,13 +89,15 @@ const tuOSu = (q: Quien) => (q.propia ? "tu" : "su");
 const ES: TextosPanel = {
   hola: (nombre) => `Hola, ${nombre}.`,
   titular: (t, q) => {
+    // El viaje lo cuenta quien lo compró: en singular, como el resto del panel de
+    // viaje (la maqueta lo decía en vosotros; ver textos-panel.md).
     if (q.viaje) {
-      if (t === "antes") return "Todo listo para vuestro primer mensaje.";
-      if (t === "creciendo") return "Vuestro viaje ya se está guardando.";
-      if (t === "pausa") return "Vuestro viaje está en pausa.";
-      if (t === "termino") return "Ya habéis vuelto. Falta elegir la tapa.";
-      if (t === "escribiendo") return "Estamos escribiendo vuestro libro de viaje.";
-      return "Vuestro libro de viaje está listo.";
+      if (t === "antes") return "Todo listo para tu primer mensaje.";
+      if (t === "creciendo") return "Tu viaje ya se está guardando.";
+      if (t === "pausa") return "Tu viaje está en pausa.";
+      if (t === "termino") return "Ya volviste. Falta elegir la tapa.";
+      if (t === "escribiendo") return "Estamos escribiendo tu libro de viaje.";
+      return "Tu libro de viaje está listo.";
     }
     const libro = q.propia ? "Tu libro" : `El libro de ${q.como}`;
     const libroMin = q.propia ? "tu libro" : `el libro de ${q.como}`;
@@ -107,7 +109,7 @@ const ES: TextosPanel = {
     return `${libro} está listo.`;
   },
   respuestas: (n) => (n === 1 ? "respuesta" : "respuestas"),
-  minutosDeVoz: (q) => (q.viaje ? "min de vuestras voces" : `min de ${tuOSu(q)} voz`),
+  minutosDeVoz: (q) => `min de ${q.viaje ? "tu" : tuOSu(q)} voz`,
   pasos: (q) => ({ pagado: "Pagado", primer: "Primer mensaje", contando: q.viaje ? "De viaje" : "Contándolo", listo: "Libro listo", impreso: "Impreso en casa" }),
   comoVa: "Cómo va",
   hecho: "hecho",
@@ -139,18 +141,15 @@ const ES: TextosPanel = {
   familia: "La familia",
   familiaTexto: (q) =>
     q.viaje
-      ? "Invita a quien queráis para que siga el viaje y escuche vuestros audios."
+      ? "Invita a quien quieras para que siga el viaje y escuche tus audios."
       : q.propia
         ? "Invita a tu familia para que escuche tus audios y proponga preguntas."
         : "Invita a tus hermanos para que escuchen sus audios y propongan preguntas.",
 
-  fotos: (q) => (q.viaje ? "Vuestras fotos" : q.propia ? "Tus fotos" : "Sus fotos"),
-  faltaPortada: (q) => (q.viaje ? "Falta vuestra foto para la portada." : `Falta ${tuOSu(q)} foto para la portada.`),
-  hayPortada: (q) => (q.viaje ? "Vuestra foto de portada ya está." : q.propia ? "Tu foto de portada ya está." : "Su foto de portada ya está."),
-  fotosTexto: (q) =>
-    q.viaje
-      ? "La de la portada es la que verá todo el mundo. Podéis añadirla hasta que cerremos vuestro libro."
-      : `La de la portada es la que verá todo el mundo. Puedes añadirla hasta que cerremos ${tuOSu(q)} libro.`,
+  fotos: (q) => (q.propia || q.viaje ? "Tus fotos" : "Sus fotos"),
+  faltaPortada: (q) => `Falta ${q.viaje ? "tu" : tuOSu(q)} foto para la portada.`,
+  hayPortada: (q) => (q.propia || q.viaje ? "Tu foto de portada ya está." : "Su foto de portada ya está."),
+  fotosTexto: (q) => `La de la portada es la que verá todo el mundo. Puedes añadirla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
   elegirTapa: "Elegir la foto de la tapa",
   cuantasFotos: (n) => (n === 1 ? "1 foto en el álbum" : `${n} fotos en el álbum`),
 
@@ -167,23 +166,11 @@ const ES: TextosPanel = {
 
   cuenta: "Tu cuenta y salir",
   cambiarHistoria: "Cambiar de historia",
-  libroDe: (q) => (q.viaje ? "Vuestro libro de viaje" : q.propia ? "Tu libro" : `El libro de ${q.como}`),
+  libroDe: (q) => (q.viaje ? "Tu libro de viaje" : q.propia ? "Tu libro" : `El libro de ${q.como}`),
 };
 
 const AR: TextosPanel = {
   ...ES,
-  titular: (t, q) => {
-    if (q.viaje) {
-      if (t === "antes") return "Todo listo para tu primer mensaje.";
-      if (t === "creciendo") return "Tu viaje ya se está guardando.";
-      if (t === "pausa") return "Tu viaje está en pausa.";
-      if (t === "termino") return "Ya volviste. Falta elegir la tapa.";
-      if (t === "escribiendo") return "Estamos escribiendo tu libro de viaje.";
-      return "Tu libro de viaje está listo.";
-    }
-    return ES.titular(t, q);
-  },
-  minutosDeVoz: (q) => (q.viaje ? "min de tu voz" : `min de ${tuOSu(q)} voz`),
   pausarTexto: (q) =>
     `La pausa la hace una persona del equipo. Escribinos y frenamos las preguntas y los recordatorios. Lo que ya ${q.propia ? "contaste" : "contó"} queda guardado.`,
   cancelarTexto: "Escribinos y lo vemos con vos. Te contesta una persona.",
@@ -193,12 +180,9 @@ const AR: TextosPanel = {
       : q.propia
         ? "Invitá a tu familia para que escuche tus audios y proponga preguntas."
         : "Invitá a tus hermanos para que escuchen sus audios y propongan preguntas.",
-  fotos: (q) => (q.propia || q.viaje ? "Tus fotos" : "Sus fotos"),
-  faltaPortada: (q) => `Falta ${q.viaje ? "tu" : tuOSu(q)} foto para la portada.`,
-  hayPortada: (q) => (q.propia || q.viaje ? "Tu foto de portada ya está." : "Su foto de portada ya está."),
   fotosTexto: (q) => `La de la portada es la que va a ver todo el mundo. Podés sumarla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
+  anadirMarco: "Sumar el marco",
   dudas: "¿Dudas? Escribinos, te contesta una persona.",
-  libroDe: (q) => (q.viaje ? "Tu libro de viaje" : q.propia ? "Tu libro" : `El libro de ${q.como}`),
 };
 
 export const PANEL: Record<IdiomaPanel, TextosPanel> = { es: ES, ar: AR };

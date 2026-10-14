@@ -240,7 +240,6 @@ export function Navegacion({
           </div>
         </div>
       </header>
-      <div aria-hidden className="pnl-deckle" />
 
       {/* ── Celular: las secciones en pestañas abajo, como siempre ─────── */}
       <nav aria-label="Secciones del panel" className="pnl-pestanas fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>

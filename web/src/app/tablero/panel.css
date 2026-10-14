@@ -110,19 +110,22 @@
 }
 .pnl.oscuro .pnl-cabecera { border-bottom: 1px solid rgba(238, 234, 225, 0.1); }
 .pnl-cabecera :focus-visible { outline-color: var(--dir-sobre-tinta); }
-.pnl-deckle {
-  position: relative;
+/* El borde de la hoja: en papel, los dientes del papel tapan el pie de la
+   cabecera (como el checkout) y viajan con ella al bajar. En tinta no hay hoja. */
+.pnl-cabecera { padding-bottom: 10px; }
+.pnl:not(.oscuro) .pnl-cabecera::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
   height: var(--dir-deckle-alto);
-  margin-top: calc(-1 * var(--dir-deckle-alto) + 1px);
-  margin-bottom: -1px;
-  pointer-events: none;
-}
-.pnl:not(.oscuro) .pnl-deckle {
-  background: var(--fondo);
+  background: var(--dir-papel); /* el papel del panel (adentro de la cabecera, --fondo es tinta) */
   -webkit-mask: var(--dir-deckle-arriba) repeat-x 0 0 / var(--dir-deckle-tamano);
   mask: var(--dir-deckle-arriba) repeat-x 0 0 / var(--dir-deckle-tamano);
+  pointer-events: none;
 }
-.pnl.oscuro .pnl-deckle { display: none; }
+
 
 .pnl-marca { font-family: var(--fuente-micro), sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.22em; }
 .pnl-nav-enlace {
@@ -217,6 +220,8 @@
 }
 .pnl-dato { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-menor); font-variant-numeric: tabular-nums; }
 .pnl-parrafo { font-size: 16.5px; font-weight: 300; line-height: 1.6; color: var(--texto-suave); text-wrap: pretty; }
+/* En las hojas angostas, «pretty» corta las líneas de más: ahí, el corte de siempre. */
+.pnl-hoja .pnl-parrafo { text-wrap: wrap; }
 .pnl-cifra {
   font-family: var(--fuente-titulo), Georgia, serif;
   font-weight: 500;
@@ -311,7 +316,8 @@
 .pnl-fila:hover { color: var(--texto-suave); }
 .pnl-fila > [aria-hidden] { color: var(--texto-menor); transition: transform var(--d-rapido) var(--dir-curva); }
 .pnl-fila:hover > [aria-hidden] { transform: translateX(3px); }
-.pnl-renglon { display: flex; align-items: baseline; gap: 8px; font-family: var(--fuente-micro), sans-serif; font-size: 14px; color: var(--texto-suave); }
+.pnl-renglon { position: relative; padding-left: 22px; font-family: var(--fuente-micro), sans-serif; font-size: 14px; color: var(--texto-suave); }
+.pnl-renglon::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 12px; height: 1px; background: currentColor; opacity: 0.6; }
 .pnl-guia { flex: 1 1 auto; min-width: 12px; border-bottom: 1px dotted var(--linea-fuerte); transform: translateY(-4px); }
 
 /* Botones del panel nuevo: píldora, tinta llena o hilo. */
@@ -360,7 +366,10 @@
 
 /* ── Los bloques entran en orden, desde abajo (MOTION 2, 320 ms, 70 ms) ── */
 @media (prefers-reduced-motion: no-preference) {
-  .pnl-entra > * { animation: stepInAbajo var(--d-base) var(--ease-out) both; }
+  /* backwards y no both: con «both» la animación queda vigente para siempre y el
+     transform convierte al bloque en el marco de los position: fixed de adentro
+     (las hojas de «Pausar o cerrar» quedaban metidas en el lateral). */
+  .pnl-entra > * { animation: stepInAbajo var(--d-base) var(--ease-out) backwards; }
   .pnl-entra > *:nth-child(2) { animation-delay: 70ms; }
   .pnl-entra > *:nth-child(3) { animation-delay: 140ms; }
   .pnl-entra > *:nth-child(4) { animation-delay: 210ms; }

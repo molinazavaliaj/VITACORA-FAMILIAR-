@@ -63,7 +63,8 @@ export function HojaFotos({
 }: {
   idioma: IdiomaPanel;
   quien: Quien;
-  fotos: { id: string; epigrafe: string | null }[];
+  /** `src`: otra dirección para la imagen (la muestra del panel); sin ella, /api/fotos/<id>. */
+  fotos: { id: string; epigrafe: string | null; src?: string }[];
   hayPortada: boolean;
   /** El botón para subir (SubirFoto), si puede. */
   subir?: ReactNode;
@@ -81,7 +82,7 @@ export function HojaFotos({
           {muestra.map((f) => (
             <li key={f.id} className="pnl-miniatura">
               {/* /api/fotos responde con una redirección firmada y pide sesión: sin el optimizador de Next. */}
-              <Image src={`/api/fotos/${f.id}`} alt={f.epigrafe ?? ""} fill sizes="80px" unoptimized className="object-cover" />
+              <Image src={f.src ?? `/api/fotos/${f.id}`} alt={f.epigrafe ?? ""} fill sizes="80px" unoptimized className="object-cover" />
             </li>
           ))}
         </ul>
@@ -162,19 +163,16 @@ export function HojaPedido({
       <ul className="flex flex-col gap-2.5">
         <li className="pnl-renglon">
           <span>{T.lineaBase}</span>
-          <span aria-hidden className="pnl-guia" />
         </li>
         {lineas.impresos > 0 ? (
           <li className="pnl-renglon">
             <span>{T.lineaImpreso(lineas.impresos)}</span>
-            <span aria-hidden className="pnl-guia" />
-          </li>
+            </li>
         ) : null}
         {lineas.marcos > 0 ? (
           <li className="pnl-renglon">
             <span>{T.lineaMarco(lineas.marcos)}</span>
-            <span aria-hidden className="pnl-guia" />
-          </li>
+            </li>
         ) : null}
       </ul>
       <div className="mt-5 flex flex-col">
