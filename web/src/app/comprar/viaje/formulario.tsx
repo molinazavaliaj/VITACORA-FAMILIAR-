@@ -201,9 +201,10 @@ export function CheckoutViaje({
 
               {cat.marco && precio !== null ? (
                 <div className={`m-card mt-3 flex flex-wrap items-center gap-x-8 gap-y-5 rounded-[6px] border px-5 py-6 sm:px-7 ${impreso && e.marcos > 0 ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-[var(--borde-oscuro)] bg-[var(--tarjeta)]"}`}>
+                  {/* La foto del marco es el LCP en el teléfono: se pide con el HTML (preload), no al aparecer. */}
                   <div className="dir-marco dir-marco--arco chk-marco">
                     <div className="dir-foto dir-foto--arco">
-                      <Image src="/checkout/marco-viaje.jpg" alt={V.marcoFotoAlt} fill sizes="(min-width: 640px) 148px, 168px" className="object-cover object-[50%_42%]" />
+                      <Image src="/checkout/marco-viaje.jpg" alt={V.marcoFotoAlt} preload fill sizes="(min-width: 640px) 148px, 168px" className="object-cover object-[50%_42%]" />
                     </div>
                   </div>
                   <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-2.5">

@@ -213,12 +213,11 @@
 /* El aviso del pago que no se cobró, en papel. */
 .chk-aviso { border: 1px solid rgba(154, 52, 18, 0.35); background: rgba(154, 52, 18, 0.06); border-radius: 6px; }
 
-/* Las pistas de los campos en cursiva de la letra del cuerpo: se distinguen
-   de un valor ya escrito sin bajar el contraste. */
+/* Las pistas de los campos: más claras que un valor escrito (4,2:1 sobre el
+   campo). En la letra de siempre, no en cursiva: la cursiva de Source Serif
+   es un archivo más (37 kB) en la primera pintada de cada paso. */
 .chk input::placeholder,
 .chk textarea::placeholder {
-  font-family: var(--fuente-cuerpo), Georgia, serif;
-  font-style: italic;
-  color: #6f6a60;
+  color: #7a756b;
   opacity: 1;
 }

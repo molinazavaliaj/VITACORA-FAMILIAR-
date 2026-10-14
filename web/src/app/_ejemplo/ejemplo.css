@@ -70,3 +70,7 @@
 .ejm-pose--espalda .l3-libro { transform: scale(var(--l3-ki)) rotateX(10deg) rotateY(148deg); }
 /* De espaldas el brillo cruza la contratapa, no la tapa. */
 .ejm-pose--espalda .l3-brillo { transform: translateX(30%); }
+/* Cerrado, las hojas de adentro (portadilla, capítulo y foto) no se ven:
+   fuera del todo, así sus fotos (perezosas) ni se piden. */
+.ejm-pose .l3-hoja,
+.ejm-pose .l3-hoja-derecha { display: none; }
