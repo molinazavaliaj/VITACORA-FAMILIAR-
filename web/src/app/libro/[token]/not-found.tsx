@@ -7,7 +7,7 @@ import { COOKIE_IDIOMA, idiomaDelVisitante } from "../../_publico/idioma-visitan
 // llama a notFound() como siempre y cae acá: «Este enlace ya no sirve», con
 // salida para escribirnos o entrar (rediseño 2026-10, fase 3, `Casos` 5). La
 // validación no cambia y la respuesta sigue siendo 404.
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Enlace caducado", robots: { index: false, follow: false } };
 
 export default async function EnlaceNoEncontrado() {
   const idioma = idiomaDelVisitante(await headers(), (await cookies()).get(COOKIE_IDIOMA)?.value);

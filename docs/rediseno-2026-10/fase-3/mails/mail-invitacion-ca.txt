@@ -1,0 +1,19 @@
+Asunto: Marta et convida a la història de Dora
+
+INVITACIÓ
+
+Marta et convida a la història de Dora
+
+Dora està explicant la seva vida amb àudios de WhatsApp. Quan acabi, un biògraf escriurà el seu llibre.
+
+Marta t'ha convidat a seguir la seva història. Podràs escoltar el que va explicant, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època.
+
+Entra amb aquest mateix correu:
+Veure la història de Dora
+http://localhost:3123/entrar
+Et demanem un codi de 6 números que arriba a aquest correu. Sense contrasenyes.
+
+Dubtes? Respon aquest correu.
+
+Vitácora Familiar · A cada família hi ha un llibre per escriure.
+Reps aquest correu perquè t'han convidat a una història.

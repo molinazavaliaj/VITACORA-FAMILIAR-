@@ -1,0 +1,17 @@
+Asunto: Marta et demana ajuda amb la història de Dora
+
+INVITACIÓ
+
+Dora ha acabat d'explicar la seva vida i estem a punt d'escriure el seu llibre.
+
+Marta t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.
+
+Entra amb aquest mateix correu:
+Veure els dubtes
+http://localhost:3123/entrar
+Et demanem un codi de 6 números que arriba a aquest correu. Sense contrasenyes.
+
+Dubtes? Respon aquest correu.
+
+Vitácora Familiar · A cada família hi ha un llibre per escriure.
+Reps aquest correu perquè t'han convidat a una història.
