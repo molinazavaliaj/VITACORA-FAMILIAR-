@@ -86,7 +86,9 @@ describe("/regalar", () => {
       const t = textosComprador(region === "ES" ? "tu" : "vos");
       const pago = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo(region)} region={region} pasoInicial={4} />);
       expect(pago).toContain(escapar(t.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")));
-      expect(pago).toMatch(new RegExp(`<a href="/legal/terminos"[^>]*>${escapar(t.terminos)}</a>\\.`));
+      // Los términos del idioma de la página: Argentina va a /ar/legal/terminos.
+      const terminos = region === "AR" ? "/ar/legal/terminos" : "/legal/terminos";
+      expect(pago).toMatch(new RegExp(`<a href="${terminos}"[^>]*>${escapar(t.terminos)}</a>\\.`));
     }
   });
 
