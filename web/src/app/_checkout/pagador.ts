@@ -29,6 +29,11 @@ export type DependenciasPago = {
   alProgreso?: (texto: string | null) => void;
   /** Antes de irse a la pasarela: guardar lo elegido para un pago fallido. */
   antesDeIr?: (compra: RespuestaCompra) => void;
+  /**
+   * De qué anuncio vino (F4-5, lib/origen.ts): si devuelve algo, viaja en el
+   * cuerpo como `origen`. Si no hay o tira, la compra va como siempre.
+   */
+  origen?: () => unknown;
 };
 
 export type TextosPago = {
@@ -46,8 +51,18 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
   let iniciada: RespuestaCompra | null = null;
   let cuerpoIniciado: string | null = null;
 
+  function conOrigen(cuerpo: unknown): unknown {
+    let origen: unknown = null;
+    try {
+      origen = deps.origen?.() ?? null;
+    } catch {
+      origen = null;
+    }
+    return origen && cuerpo && typeof cuerpo === "object" ? { ...cuerpo, origen } : cuerpo;
+  }
+
   async function intentar(cuerpo: unknown, fotos: Subible[], alSubir: (clave: string) => void): Promise<ResultadoPago> {
-    const cuerpoJson = JSON.stringify(cuerpo);
+    const cuerpoJson = JSON.stringify(conOrigen(cuerpo));
     if (iniciada && cuerpoIniciado !== cuerpoJson) iniciada = null;
     if (!iniciada) {
       let datos: Partial<RespuestaCompra> & { error?: string };

@@ -42,6 +42,8 @@ export type Dependencias = {
    * también puede tirar error; cualquier error se ignora.
    */
   almacen?: () => Almacen;
+  /** De qué anuncio vino (F4-5, lib/origen.ts); si no hay o tira, va sin origen. */
+  origen?: () => unknown;
 };
 
 /** Lo poco de Storage que se usa. */
@@ -55,7 +57,7 @@ export const CLAVE_PENDIENTE = "vitacora-regalo-pendiente";
 const ESPERA_AUDIO_MS = 30_000;
 
 /** Lo que va a /api/compra. */
-export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
+export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null, origen: unknown = null) {
   return {
     nombreComprador: p.nombreComprador.trim(),
     vinculoComprador: p.vinculoComprador.trim(),
@@ -74,7 +76,16 @@ export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
       ...(retomar ? { retomar } : {}),
     },
     productos: { impresos: 0, marcos: 0 },
+    ...(origen ? { origen } : {}),
   };
+}
+
+function leerOrigen(origen: Dependencias["origen"]): unknown {
+  try {
+    return origen?.() ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function leerPendiente(almacen: Dependencias["almacen"]): Retomar | null {
@@ -108,7 +119,7 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
     const r = await deps.fetch("/api/compra", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpoCompra(p, leerPendiente(deps.almacen))),
+      body: JSON.stringify(cuerpoCompra(p, leerPendiente(deps.almacen), leerOrigen(deps.origen))),
     });
     const crudo = (await r.json()) as Respuesta;
     if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? errorPago };
