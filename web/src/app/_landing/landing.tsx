@@ -8,7 +8,7 @@ import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Coreografia } from "../_direccion/coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D, PaginaCapitulo, PaginaFoto } from "../_direccion/libro-3d";
-import { Foto, ListaHilo, OndaQuieta, conVar } from "../_direccion/piezas";
+import { Foto, OndaQuieta, conVar } from "../_direccion/piezas";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import { TEXTOS_LANDING_COMUN, RUTAS_LANDING, type Landing, type TextosLandingBase } from "../_textos/landings";
@@ -342,7 +342,15 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
           <Foto src={FOTOS.hotel} alt={v.altHotel} forma="arco" sizes="(min-width: 768px) 34vw, 78vw" className="w-[78%] md:col-span-5 md:w-full" />
           <div className="aparece flex flex-col gap-8 md:col-span-6 md:col-start-7">
             <h2 className="dir-titular dir-t3">{l.queda.titulo}</h2>
-            <ListaHilo items={l.queda.items} />
+            {/* Grandes, como un índice: al lado de una foto alta, una lista
+                de cuerpo 17 quedaba perdida. */}
+            <ul className="flex flex-col border-t border-[var(--dir-hilo-papel)]">
+              {l.queda.items.map((item) => (
+                <li key={item} className="dir-titular border-b border-[var(--dir-hilo-papel)] py-5 text-[24px] leading-[1.2] sm:text-[30px]">
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
@@ -366,7 +374,7 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
-      <MiniFaq titulo={l.faqTitulo} dudas={dudas} />
+      <MiniFaq titulo={l.faqTitulo} dudas={dudas} papel />
 
       <Cierre idioma={idioma} lema={v.titulo.join(" ")} titulo={l.cierre} cta={l.cta} href={href} dato={dato} camino={caminoPie("viaje")} />
     </Pagina>

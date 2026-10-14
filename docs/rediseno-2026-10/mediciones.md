@@ -45,3 +45,31 @@ El objetivo LCP < 2,0 s **no se cumple en local**. Ver PENDIENTES «Apuntado en 
 5 woff2 (211 kB) y el JS (150 kB) entran en el camino crítico simulado, y en esta máquina el
 primer pintado observado de las páginas largas con letras de marca llega a ~1,3 s sin CPU ni red
 ocupadas (también en `/viaje`). Medir en la preview de Vercel.
+
+## Fase 4 — /viaje y landings de anuncio (14/10/2026, local)
+
+Mismo método que la fase 1: `next build` + `next start` en la máquina de Naza, Lighthouse 12.8.2
+móvil simulado, 3 corridas, cookie `idioma=es`, build con `PRECIO_IMPRESO_*` y `PRECIO_VIAJE_*` de
+prueba. La portada se midió en la misma tanda, como referencia.
+
+| Página | Perf | LCP (3 corridas) | Mediana | CLS máx. | JS (transfer) | Peso total | LCP es |
+|---|---|---|---|---|---|---|---|
+| `/` (referencia) | 82–83 | 3,80 / 3,73 / 3,29 s | 3,73 s | 0,007 | 148 kB | 457 kB | el titular |
+| `/regalo-para-tu-padre` | 79–85 | 3,91 / 3,79 / 3,84 s | 3,84 s | 0,002 | 146 kB | 448 kB | el titular |
+| `/ar/regalo-para-tu-papa` | 82–85 | 3,94 / 3,83 / 3,97 s | 3,94 s | 0,005 | 146 kB | 448 kB | el titular |
+| `/lo-que-nunca-le-preguntaste` | 77–83 | 3,80 / 3,87 / 3,73 s | 3,80 s | 0 | 146 kB | 415 kB | el titular |
+| `/su-voz` | 77–85 | 3,63 / 3,64 / 3,45 s | 3,63 s | 0,003 | 146 kB | 387 kB | el titular |
+| `/el-libro-del-viaje` | 87–88 | 3,58 / 3,54 / 3,52 s | 3,54 s | 0,004 | 146 kB | 414 kB | el titular |
+| `/viaje` | 86–89 | 3,63 / 3,60 / 3,50 s | 3,60 s | **0** | 146 kB | 416 kB | la foto del hotel |
+| `/ar/viaje` | 84–88 | 3,56 / 3,70 / 3,54 s | 3,56 s | 0 | 146 kB | 416 kB | la foto del hotel |
+| `/ca/viaje` | 82–87 | 3,63 / 3,62 / 3,56 s | 3,62 s | 0 | 146 kB | 416 kB | la foto del hotel |
+
+- `/viaje` daba CLS 0,062 en la primera medición: al llegar Playfair, las palabras del titular
+  cambiaban de línea (y el bloque centrado se re-centraba). Arreglado: el titular va en dos mitades
+  que entran enteras en su línea y, en el teléfono, el inicio va arriba y no centrado. Ahora 0.
+- `/su-voz`, `/el-libro-del-viaje` y `/viaje` quedan mejor que la portada. `/regalo-para-tu-padre`
+  y `/lo-que-nunca-le-preguntaste` quedan 0,07–0,11 s por encima de la mediana de la portada, dentro
+  del ruido de esta máquina (la portada misma va de 3,29 a 3,80 s). Lo que las separa de `/su-voz`
+  es el libro 3D (su tapa y la foto de la página bajan en la misma ventana): es la misma pieza de
+  la portada. El piso es el mismo de P5b: el primer pintado (~2,1–2,3 s) espera las letras de marca.
+- JS por debajo de 150 kB en todas (146 kB: el de Next, la coreografía y la barra de compra).
