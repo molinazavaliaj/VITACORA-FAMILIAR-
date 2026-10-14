@@ -7,10 +7,16 @@ import { tratoDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion } from "@/lib/regalo-textos";
 import { regionDelRequest } from "@/lib/region";
 
-// Ver una foto: URL firmada, corta, solo para quien puede ver esa historia.
+// Ver una foto: URL firmada, solo para quien puede ver esa historia.
 // Mismo criterio que /api/audio/[respuestaId].
+//
+// Rendimiento (RENDIMIENTO.md 3.17, fase 2): el navegador guarda la redirección
+// un día (`private`: solo el de esa persona, nunca un CDN), así las tapas y las
+// miniaturas del panel no vuelven a pedir permiso en cada pantalla. Por eso la
+// URL firmada dura dos días: lo guardado nunca apunta a una firma vencida.
 
-const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
+const DURACION_URL_FIRMADA_SEGUNDOS = 2 * 24 * 3600;
+const CACHE_REDIRECCION = "private, max-age=86400";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ fotoId: string }> }) {
   const { fotoId } = await params;
@@ -31,7 +37,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     console.error("fotos: fallo al firmar", error);
     return NextResponse.json({ error: "No pudimos mostrar la foto." }, { status: 500 });
   }
-  return NextResponse.redirect(firmado.signedUrl, 302);
+  const respuesta = NextResponse.redirect(firmado.signedUrl, 302);
+  respuesta.headers.set("Cache-Control", CACHE_REDIRECCION);
+  return respuesta;
 }
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ fotoId: string }> }) {
