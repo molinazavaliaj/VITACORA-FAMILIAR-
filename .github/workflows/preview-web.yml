@@ -47,15 +47,13 @@ jobs:
       - name: Vercel CLI
         run: npm i -g vercel@latest
 
-      - name: Configuración de preview
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-
+      # Sin `vercel pull` + `vercel build` local: las variables marcadas como
+      # sensibles en Vercel (precios nuevos, URL_BASE, claves) no se bajan y el
+      # build de acá las leía vacías (el impreso desaparecía de /comprar). El
+      # build lo hace Vercel en sus servidores, que sí las tienen.
       - name: Deploy (preview) y alias fijo
         run: |
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})
           echo "Preview: $URL"
           vercel alias set "$URL" "$ALIAS" --token=${{ secrets.VERCEL_TOKEN }}
           echo "### Preview: https://$ALIAS" >> "$GITHUB_STEP_SUMMARY"
