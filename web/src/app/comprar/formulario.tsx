@@ -460,7 +460,7 @@ export function Checkout({
                         ) : null}
                       </fieldset>
                       <CamposEntrega fecha={e.fechaEntrega} idioma={e.idioma} eleccion={e.entrega} onCambio={(entrega) => cambiar({ entrega })} whatsapp={entregaWhatsApp} textos={TR} marca={marca} />
-                      <div className="flex flex-wrap items-center gap-7 border-y border-[var(--borde-oscuro)] py-7">
+                      <div className="flex flex-wrap items-center gap-7 border-y border-[var(--borde-oscuro)] px-3 py-8">
                         <TarjetaChica comoLeDicen={nombreVisible} mensaje={e.mensaje.trim()} firma={e.nombreComprador.trim()} />
                         <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-2">
                           <span className="text-[16px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.tarjetaTitulo}</span>

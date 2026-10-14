@@ -281,7 +281,7 @@ export function FormularioRegalo({
       </div>
 
       {/* En el paso de pagar el precio ya está en el resumen: en el celular no se repite. */}
-      <aside className={`lg:sticky lg:top-8 lg:self-start ${paso === 4 ? "hidden lg:block" : ""}`}>
+      <aside className={`lg:sticky lg:top-8 lg:mt-[116px] lg:self-start ${paso === 4 ? "hidden lg:block" : ""}`}>
         <div className="chk-ficha">
           <div className="dir-tinta chk-ficha-cabeza">
             <p className="chk-ficha-titulo">{catalogo.base.nombre}</p>
