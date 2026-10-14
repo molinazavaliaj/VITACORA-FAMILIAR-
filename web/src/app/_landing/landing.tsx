@@ -128,7 +128,7 @@ function SeccionesRegalo({ idioma }: { idioma: IdiomaWeb }) {
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
           <div className="md:col-span-6">
             <h2 className="dir-titular dir-t3 aparece max-w-[16ch]">{r.pasosTitulo}</h2>
-            <Pasos pasos={[r.pasoDia, t.como.pasos[1], t.como.pasos[2]]} etiqueta={t.como.paso} />
+            <Pasos pasos={[{ titulo: r.pasoDia, texto: t.diciembre.regalo.texto }, t.como.pasos[1], t.como.pasos[2]]} etiqueta={t.como.paso} />
           </div>
           <Foto
             src={FOTOS.abuelo}

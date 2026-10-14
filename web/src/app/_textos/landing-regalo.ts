@@ -12,8 +12,8 @@ import type { TextosLandingBase } from "./landings";
 
 export type TextosLandingRegalo = TextosLandingBase & {
   pasosTitulo: string;
-  /** El primer paso; los otros dos son los aprobados de la portada. */
-  pasoDia: { titulo: string; texto: string };
+  /** El título del primer paso; su texto y los otros dos pasos son los aprobados de la portada. */
+  pasoDia: string;
   tarjeta: { titulo: string; texto: string; pie: string; narrador: string; quien: string };
   altFoto: string;
 };
@@ -29,7 +29,7 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
     bajada: "Le preguntamos por su vida por WhatsApp, él contesta con audios y tú recibes el libro de su vida, con su voz dentro.",
     cta: "Regalarle su libro",
     pasosTitulo: "Tú eliges el día. Él cuenta su vida.",
-    pasoDia: { titulo: "Eliges el día", texto: "Eliges el día en que empieza y te damos una tarjeta para entregárselo." },
+    pasoDia: "Eliges el día",
     tarjeta: {
       titulo: "Una tarjeta para dárselo en mano.",
       texto: "Al comprar te llega una tarjeta lista para imprimir o mandar por WhatsApp. Así tiene algo que abrir ese mismo día.",
@@ -51,7 +51,7 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
     bajada: "Le preguntamos por su vida por WhatsApp, él contesta con audios y vos recibís el libro de su vida, con su voz adentro.",
     cta: "Regalarle su libro",
     pasosTitulo: "Vos elegís el día. Él cuenta su vida.",
-    pasoDia: { titulo: "Elegís el día", texto: "Elegís el día en que empieza y te damos una tarjeta para entregársela." },
+    pasoDia: "Elegís el día",
     tarjeta: {
       titulo: "Una tarjeta para dársela en mano.",
       texto: "Al comprar te llega una tarjeta lista para imprimir o mandar por WhatsApp. Así tiene algo que abrir ese mismo día.",
@@ -74,7 +74,7 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
     bajada: "Li preguntem per la seva vida per WhatsApp, ell respon amb àudios i tu reps el llibre de la seva vida, amb la seva veu a dins.",
     cta: "Regalar-li el seu llibre",
     pasosTitulo: "Tu tries el dia. Ell explica la seva vida.",
-    pasoDia: { titulo: "Tries el dia", texto: "Tries el dia que comença i et donem una targeta per donar-li." },
+    pasoDia: "Tries el dia",
     tarjeta: {
       titulo: "Una targeta per donar-li en mà.",
       texto: "En comprar et sortirà una targeta a punt per imprimir o enviar per WhatsApp. Així té alguna cosa per obrir aquell mateix dia.",
