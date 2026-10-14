@@ -17,6 +17,10 @@ const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/ejemplo", "/rega
 
 const nextConfig: NextConfig = {
   compress: true,
+  // El chequeo de tipos del build deja afuera test/: algunos tests importan de
+  // ../entrevistador, que no existe cuando Vercel construye solo web/ (preview).
+  // Los tests se chequean con vitest y con `npx tsc --noEmit` (tsconfig.json).
+  typescript: { tsconfigPath: "tsconfig.build.json" },
   images: {
     formats: ["image/avif", "image/webp"],
   },
