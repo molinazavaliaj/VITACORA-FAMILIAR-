@@ -244,7 +244,7 @@ async function Cabecera({
         fotoSrc: portada ? `/api/fotos/${portada}` : null,
         idioma: idiomaDelLibro(contexto.idioma === "ca" ? "ca" : null),
       }}
-      pasos={lineaDeTiempo({ estado: n.estado, aprobado, libroEntregado: pedido.libroEntregado, conImpreso: pedido.impresos > 0, impresoEnCasa: pedido.impresoEnCasa })}
+      pasos={lineaDeTiempo({ estado: n.estado, aprobado, libroEntregado: pedido.libroEntregado, conImpreso: rol === "duena" && pedido.impresos > 0, impresoEnCasa: pedido.impresoEnCasa })}
       cifras={
         <Suspense fallback={null}>
           <Cifras pLectura={pLectura} idioma={idioma} quien={quien} />

@@ -14,6 +14,8 @@ import { regionDelRequest } from "@/lib/region";
 // un día (`private`: solo el de esa persona, nunca un CDN), así las tapas y las
 // miniaturas del panel no vuelven a pedir permiso en cada pantalla. Por eso la
 // URL firmada dura dos días: lo guardado nunca apunta a una firma vencida.
+// `Vary: Cookie`: si en ese navegador entra otra cuenta, no usa lo guardado de
+// la anterior; vuelve a pedir permiso.
 
 const DURACION_URL_FIRMADA_SEGUNDOS = 2 * 24 * 3600;
 const CACHE_REDIRECCION = "private, max-age=86400";
@@ -39,6 +41,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
   const respuesta = NextResponse.redirect(firmado.signedUrl, 302);
   respuesta.headers.set("Cache-Control", CACHE_REDIRECCION);
+  respuesta.headers.set("Vary", "Cookie");
   return respuesta;
 }
 

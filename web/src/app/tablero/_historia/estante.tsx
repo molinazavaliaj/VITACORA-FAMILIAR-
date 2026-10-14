@@ -69,7 +69,7 @@ export function LibroDelEstante({ h, r, region, fotoSrc }: { h: Historia; r: Res
             idioma={idioma}
             quien={quien}
             compacta
-            pasos={lineaDeTiempo({ estado: n.estado, aprobado: r.aprobado, libroEntregado: r.pedido.libroEntregado, conImpreso: r.pedido.impresos > 0, impresoEnCasa: r.pedido.impresoEnCasa })}
+            pasos={lineaDeTiempo({ estado: n.estado, aprobado: r.aprobado, libroEntregado: r.pedido.libroEntregado, conImpreso: h.rol === "duena" && r.pedido.impresos > 0, impresoEnCasa: r.pedido.impresoEnCasa })}
           />
         </div>
 
