@@ -45,6 +45,8 @@ export type TextosViaje = {
   marcoOpcionDetalle: string;
   /** El contador de marcos para regalar (14/10), con la voz de viaje. Aprobado por Naza el 14/10 (es y ar). */
   marcoRegaloDetalle: string;
+  /** La fila del primer marco (impreso sin marco), en la voz del viaje. Aprobado por Naza el 14/10. */
+  marcoPrimeroTitulo: string;
 
   // 2 · El viaje
   viajeTitulo: string;
@@ -127,6 +129,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoOpcionTitulo: "Impreso + digital + vuestra foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con vuestra foto del viaje. Acercáis el móvil al marco y se abre el libro del viaje, con vuestra voz.",
     // APROBADO por Naza el 14/10.
+    marcoPrimeroTitulo: "Marco con vuestra foto",
     marcoRegaloDetalle: "Para regalar a vuestra familia. Al acercar el móvil se abre el libro del viaje, con vuestra voz.",
 
     viajeTitulo: "El viaje",
@@ -209,6 +212,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoOpcionTitulo: "Impreso + digital + tu foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con tu foto del viaje. Acercás el celular al marco y se abre el libro del viaje, con tu voz.",
     // APROBADO por Naza el 14/10.
+    marcoPrimeroTitulo: "Marco con tu foto",
     marcoRegaloDetalle: "Para regalar a tu familia. Al acercar el celular se abre el libro del viaje, con tu voz.",
 
     viajeTitulo: "El viaje",
@@ -291,6 +295,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoOpcionTitulo: "Imprès + digital + la vostra foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la vostra foto del viatge. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
     // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    marcoPrimeroTitulo: "Marc amb la vostra foto", // ca: PENDIENTE REVISIÓN NATIVA
     marcoRegaloDetalle: "Per regalar a la vostra família. Quan hi acosteu el mòbil s'obre el llibre del viatge, amb la vostra veu.",
 
     viajeTitulo: "El viatge",

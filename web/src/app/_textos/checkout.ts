@@ -183,7 +183,7 @@ export type TextosCheckout = {
   marcoRegaloTitulo: string;
   /** La fila del marco en el libro completo, que ya trae uno (Naza 14/10): «Marco extra». */
   marcoExtraTitulo: string;
-  /** La fila del marco en el impreso, donde es el primero: «Marco con su foto». PENDIENTE OK de Naza. */
+  /** La fila del marco en el impreso, donde es el primero: «Marco con su foto». Aprobado por Naza el 14/10. */
   marcoPrimeroTitulo: string;
   marcoRegaloDetalle: string;
   /** «+20 € el primero, +15 € los demás» (el primero a precio de marco, los demás a precio adicional). */

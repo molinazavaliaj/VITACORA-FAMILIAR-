@@ -193,7 +193,7 @@ export function CheckoutViaje({
                 <p className="text-[16px] text-[var(--texto-oscuro-suave)]">{V.noDisponible}</p>
               ) : (
                 <OpcionesLibro cat={cat} base={precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
-                  textos={{ ...T, ...V, titulo: V.libroTitulo, marcoRegaloDetalle: V.marcoRegaloDetalle, frases: undefined }}
+                  textos={{ ...T, ...V, titulo: V.libroTitulo, marcoRegaloDetalle: V.marcoRegaloDetalle, marcoPrimeroTitulo: V.marcoPrimeroTitulo, frases: undefined }}
                   tapa={{ titulo: e.nombre.trim(), idioma: "es" }} formatear={f} />
               )}
 
