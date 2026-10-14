@@ -295,7 +295,7 @@ export function FormularioRegalo({
             </div>
             <p className="mt-4 text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
               {T.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")}{" "}
-              <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
+              <a href={ruta(idiomaWeb ?? (region === "AR" ? "ar" : "es"), "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
             </p>
           </form>
         )}
