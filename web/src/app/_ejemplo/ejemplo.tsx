@@ -7,6 +7,7 @@ import { TEXTOS_PORTADA } from "../_textos/portada";
 import { catalogo } from "@/lib/productos";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { LibroHojeable } from "./libro-hojeable";
+import "../_direccion/tokens.css";
 import "../_checkout/checkout.css";
 import "./ejemplo.css";
 

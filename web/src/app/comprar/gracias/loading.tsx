@@ -1,3 +1,4 @@
+import "../../_direccion/tokens.css";
 import "../../_checkout/checkout.css";
 
 // Mientras carga la confirmación del pago (RENDIMIENTO.md §3.1). Sin esto

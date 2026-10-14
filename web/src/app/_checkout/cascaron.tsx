@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { CABECERA } from "../_textos/checkout";
 import { Toroide } from "../marca";
+import "../_direccion/tokens.css";
 import "./checkout.css";
 
 // El cascarón de las compras (dirección «la web es un libro», 14/10): la

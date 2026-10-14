@@ -40,7 +40,7 @@
 /* ── Las páginas: el papel del libro 3D (l3-pagina), con la sombra del lomo
    hacia el centro y los cantos de las hojas de abajo. ── */
 .ejm-papel {
-  background-color: #f7f2e6;
+  background-color: var(--dir-papel-pagina, #f7f2e6);
   color: #26231e;
   font-family: var(--fuente-cuerpo), Georgia, serif;
 }
@@ -58,7 +58,7 @@
   font-family: var(--fuente-titulo), Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  color: #8a7246;
+  color: var(--dir-dorado, #8a7246);
 }
 .ejm-foto img { filter: grayscale(1) sepia(0.25) contrast(1.05); }
 
