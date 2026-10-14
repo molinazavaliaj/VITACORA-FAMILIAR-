@@ -8,8 +8,7 @@
 // vos para Argentina y tú para España (`familias.region`); sin región, vos.
 // El de acceso y la invitación son los aprobados el 06/10 (rama web-textos-v3).
 // Rediseño (fase 1): acceso y regalo con el diseño de la maqueta `Email` y los
-// textos en lib/mail-textos.ts (es/ca/ar); la invitación sigue con el envoltorio
-// de antes hasta la fase 3.
+// textos en lib/mail-textos.ts (es/ca/ar); la invitación, igual desde la fase 3.
 
 /** `familias.region` → ¿de tú? Solo España. */
 const deTu = (region: string | null | undefined): boolean => region === "ES";
@@ -76,24 +75,6 @@ export async function enviarMailSocios(asunto: string, texto: string): Promise<b
   return alguno;
 }
 
-/** El envoltorio de antes del rediseño: solo lo usa la invitación (pasa al diseño nuevo en la fase 3). */
-function envoltorio(cuerpo: string): string {
-  return `<!DOCTYPE html>
-<html lang="es"><head><meta charset="utf-8" /></head>
-<body style="margin:0;padding:0;background:#ffffff;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
-    <tr><td align="center" style="padding:40px 20px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;font-family:Georgia,'Times New Roman',serif;color:#14140F;font-size:17px;line-height:1.65;">
-        ${cuerpo}
-        <tr><td style="border-top:1px solid #e7e5e4;padding-top:20px;font-size:14px;color:#78716c;font-style:italic;">
-          En cada familia hay un libro sin escribir.
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
 // ── El diseño del rediseño (maqueta `Email`, fase 1) ─────────────────────────
 // HTML de mail de verdad: tablas, estilos en línea, 600 px, sin JS. Las fuentes
 // de la maqueta (Playfair, Source Serif, Archivo) van primero en cada pila pero
@@ -103,18 +84,21 @@ function envoltorio(cuerpo: string): string {
 // todo de claro o de oscuro. El botón es una tabla con fondo (Outlook incluido).
 
 const COLOR = {
-  marco: "#1a1916",
-  cabecera: "#0a0a0a",
-  sobreCabecera: "#ededed",
-  tarjeta: "#fbf8f2",
-  etiqueta: "#8a7350",
-  titulo: "#1a1712",
-  texto: "#4a4236",
-  fila: "#3a342b",
-  linea: "#ece4d6",
-  boton: "#2a2620",
-  sobreBoton: "#f3ece0",
-  pie: "#8a7d68",
+  // Tinta y papel (web/src/app/_direccion/tokens.css), en hex sólido: los
+  // clientes de correo no siempre entienden rgba ni variables. La tinta es la
+  // que se VE en la web con el grano encima (#0d0d0c), el papel el crema.
+  marco: "#0d0d0c",
+  cabecera: "#0d0d0c",
+  sobreCabecera: "#eeeae1",
+  tarjeta: "#f4f0e7",
+  etiqueta: "#7a6440",     // el dorado de la marca, un punto más oscuro: 5,1:1 sobre el papel
+  titulo: "#151412",
+  texto: "#45413a",
+  fila: "#1f1d19",
+  linea: "#ddd6c8",
+  boton: "#0d0d0c",
+  sobreBoton: "#f4f0e7",
+  pie: "#6b665c",
 } as const;
 
 const SERIF_TITULO = "'Playfair Display', Georgia, 'Times New Roman', serif";
@@ -167,7 +151,15 @@ function lineaDeTiempo(titulo: string, filas: { cuando: string; que: string }[])
  * clara con etiqueta + título + `cuerpo`, «¿Dudas?» y el pie. `cuerpo` son filas
  * (<tr>) de la tabla de 600.
  */
-function cascaron(o: { idioma: IdiomaWeb; vistaPrevia: string; titulo: string; cuerpo: string }): string {
+function cascaron(o: {
+  idioma: IdiomaWeb;
+  vistaPrevia: string;
+  titulo: string;
+  cuerpo: string;
+  /** La etiqueta de arriba y el «por qué recibes esto»: por defecto, los del pedido. */
+  etiqueta?: string;
+  porQue?: string;
+}): string {
   const t = textosMail(o.idioma).comun;
   const logo = `${urlBaseMail()}${RUTA_LOGO_MAIL}`;
   return `<!DOCTYPE html>
@@ -203,11 +195,11 @@ function cascaron(o: { idioma: IdiomaWeb; vistaPrevia: string; titulo: string; c
       </td></tr>
       <tr><td bgcolor="${COLOR.tarjeta}" style="background:${COLOR.tarjeta};border-radius:0 0 6px 6px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td class="vt-px" style="padding:40px 36px 0;font-family:${SANS};font-size:11px;letter-spacing:.22em;color:${COLOR.etiqueta};">${escapar(t.etiqueta)}</td></tr>
+          <tr><td class="vt-px" style="padding:40px 36px 0;font-family:${SANS};font-size:11px;letter-spacing:.22em;color:${COLOR.etiqueta};">${escapar(o.etiqueta ?? t.etiqueta)}</td></tr>
           <tr><td class="vt-px vt-titulo" style="padding:14px 36px 0;font-family:${SERIF_TITULO};font-weight:500;font-size:32px;line-height:1.15;color:${COLOR.titulo};">${escapar(o.titulo)}</td></tr>
           ${o.cuerpo}
           <tr><td class="vt-px" style="padding:26px 36px 34px;font-family:${SERIF};font-size:15px;line-height:1.55;color:${COLOR.texto};">${escapar(t.dudas)}</td></tr>
-          <tr><td class="vt-px" style="border-top:1px solid ${COLOR.linea};padding:20px 36px 26px;font-family:${SANS};font-size:11px;line-height:1.6;color:${COLOR.pie};">${escapar(t.pie)}<br />${escapar(t.porQue)}</td></tr>
+          <tr><td class="vt-px" style="border-top:1px solid ${COLOR.linea};padding:20px 36px 26px;font-family:${SANS};font-size:11px;line-height:1.6;color:${COLOR.pie};">${escapar(t.pie)}<br />${escapar(o.porQue ?? t.porQue)}</td></tr>
         </table>
       </td></tr>
     </table>
@@ -324,8 +316,54 @@ export async function enviarMailRegalo(opciones: {
 /**
  * La invitación a una historia (docs/panel-usuario.md §8). Entra con el mismo
  * login que la dueña: correo + código. Al entrar por primera vez, lib/panel.ts
- * vincula la invitación con su usuario.
+ * vincula la invitación con su usuario. Fase 3 del rediseño: el mismo diseño
+ * que el de acceso y el del regalo; los asuntos y el link no cambian.
  */
+export function armarMailInvitacion(opciones: {
+  nombreNarrador: string;
+  quienInvita: string;
+  region?: string | null;
+  /** Terminó de contar: la invitación es para contestar las dudas del escritor (13/10). */
+  paraDudas?: boolean;
+  idioma?: IdiomaWeb;
+}): MailArmado {
+  const idioma = opciones.idioma ?? idiomaMailDeRegion(opciones.region);
+  const { comun, invitacion: t } = textosMail(idioma);
+  const narrador = opciones.nombreNarrador;
+  const quien = opciones.quienInvita;
+  const dudas = opciones.paraDudas === true;
+  const entrar = `${urlBaseMail()}/entrar`;
+  const asunto = dudas ? t.asuntoDudas(quien, narrador) : t.asunto(quien, narrador);
+  // Con dudas, el título es el aprobado del 13/10; si no, el asunto, como el del regalo.
+  const titulo = dudas ? t.tituloDudas(narrador) : asunto;
+  const parrafos = dudas ? [t.cuerpoDudas(quien)] : [t.contando(narrador), t.cuerpo(quien)];
+  const textoBoton = dudas ? t.botonDudas : t.boton(narrador);
+
+  const html = cascaron({
+    idioma,
+    vistaPrevia: parrafos[0],
+    titulo,
+    etiqueta: t.etiqueta,
+    porQue: t.porQue,
+    cuerpo: `
+          ${parrafos.map((p) => parrafo(escapar(p))).join("\n")}
+          ${parrafo(escapar(t.entra))}
+          <tr><td class="vt-px" style="padding:18px 36px 0;">${boton(entrar, textoBoton)}</td></tr>
+          <tr><td class="vt-px" style="padding:10px 36px 0;font-family:${SERIF};font-size:14px;line-height:1.5;color:${COLOR.pie};">${escapar(comun.codigo)}</td></tr>`,
+  });
+
+  const texto = textoPlano([
+    t.etiqueta,
+    titulo,
+    ...parrafos,
+    `${t.entra}\n${textoBoton}\n${entrar}\n${comun.codigo}`,
+    comun.dudas,
+    `${comun.pie}\n${t.porQue}`,
+  ]);
+
+  return { asunto, html, texto };
+}
+
 export async function enviarMailInvitacion(opciones: {
   para: string;
   nombreNarrador: string;
@@ -333,43 +371,8 @@ export async function enviarMailInvitacion(opciones: {
   region?: string | null;
   /** Terminó de contar: la invitación es para contestar las dudas del escritor (13/10). */
   paraDudas?: boolean;
+  idioma?: IdiomaWeb;
 }): Promise<boolean> {
-  const narrador = escapar(opciones.nombreNarrador);
-  const quien = escapar(opciones.quienInvita);
-  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
-  const tu = deTu(opciones.region);
-
-  return enviar({
-    para: opciones.para,
-    asunto: opciones.paraDudas
-      ? `${opciones.quienInvita} te pide ayuda con la historia de ${opciones.nombreNarrador}`
-      : `${opciones.quienInvita} te invita a la historia de ${opciones.nombreNarrador}`,
-    html: envoltorio(`
-        <tr><td style="padding-bottom:24px;">
-          <strong style="font-size:22px;font-weight:normal;">${opciones.paraDudas
-            ? `${narrador} terminó de contar su vida y estamos por escribir su libro.`
-            : `Un biógrafo está escribiendo el libro de la vida de ${narrador}.`}</strong>
-        </td></tr>
-        <tr><td style="padding-bottom:24px;">
-          ${opciones.paraDudas
-            ? `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año.
-          Si ${tu ? "sabes" : "sabés"} la respuesta, ${tu ? "puedes" : "podés"} escribirla antes de que se escriba el libro.
-          También vas a poder escuchar lo que contó.`
-            : `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va
-          contando, sumar preguntas que te gustaría que le hagan y agregar fotos de
-          cada época.`}
-        </td></tr>
-        <tr><td style="padding-bottom:12px;">
-          ${tu ? "Entra" : "Entrá"} con este mismo correo:
-        </td></tr>
-        <tr><td style="padding-bottom:32px;">
-          <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
-            ${opciones.paraDudas ? "Ver las dudas" : `Ver la historia de ${narrador}`}
-          </a>
-          <div style="margin-top:10px;font-size:14px;color:#78716c;">
-            Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
-          </div>
-        </td></tr>
-    `),
-  });
+  const mail = armarMailInvitacion(opciones);
+  return enviar({ para: opciones.para, asunto: mail.asunto, html: mail.html, texto: mail.texto });
 }

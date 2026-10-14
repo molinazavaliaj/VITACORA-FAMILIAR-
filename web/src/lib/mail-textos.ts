@@ -1,5 +1,6 @@
 // Los textos de los mails que manda la web con el diseño del rediseño (maqueta
-// `Email`, fase 1): el de acceso tras el pago y el de la tarjeta del regalo.
+// `Email`, fase 1): el de acceso tras el pago y el de la tarjeta del regalo, y
+// desde la fase 3 la invitación a una historia.
 // Un diccionario por idioma de la web (`Textos<T>`: es / ca / ar).
 //
 // Hoy el idioma sale de `familias.region` (ES → es, AR o sin región → ar), como
@@ -49,7 +50,28 @@ export type TextosMailRegalo = {
   mientrasCuentaTexto: string;
 };
 
-export type TextosMail = { comun: TextosMailComun; acceso: TextosMailAcceso; regalo: TextosMailRegalo };
+/**
+ * La invitación a una historia (fase 3). Dos variantes: seguir la historia o,
+ * cuando terminó de contar, ayudar con las dudas del escritor (13/10). Los
+ * párrafos de quien invita son los aprobados (06/10 y 13/10); lo demás está en
+ * docs/rediseno-2026-10/fase-3/textos.md.
+ */
+export type TextosMailInvitacion = {
+  etiqueta: string;
+  asunto: (quien: string, narrador: string) => string;
+  asuntoDudas: (quien: string, narrador: string) => string;
+  /** La primera línea: está contando, y el libro se escribe cuando termina (DECISIONES D4). */
+  contando: (narrador: string) => string;
+  cuerpo: (quien: string) => string;
+  tituloDudas: (narrador: string) => string;
+  cuerpoDudas: (quien: string) => string;
+  entra: string;
+  boton: (narrador: string) => string;
+  botonDudas: string;
+  porQue: string;
+};
+
+export type TextosMail = { comun: TextosMailComun; acceso: TextosMailAcceso; regalo: TextosMailRegalo; invitacion: TextosMailInvitacion };
 
 const VOS = textosComprador("vos");
 const TU = textosComprador("tu");
@@ -91,6 +113,22 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       boton: TU.mailBoton,
       mientrasCuentaTexto: DESDE_LA_PRIMERA,
     },
+
+    invitacion: {
+      etiqueta: "INVITACIÓN",
+      asunto: (quien, n) => `${quien} te invita a la historia de ${n}`,
+      asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
+      contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo escribirá su libro.`,
+      cuerpo: (quien) =>
+        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y añadir fotos de cada época.`,
+      tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
+      cuerpoDudas: (quien) =>
+        `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
+      entra: "Entra con este mismo correo:",
+      boton: (n) => `Ver la historia de ${n}`,
+      botonDudas: "Ver las dudas",
+      porQue: "Recibes este email porque te han invitado a una historia.",
+    },
   },
 
   ar: {
@@ -121,6 +159,24 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       cuerpo: VOS.mailCuerpo,
       boton: VOS.mailBoton,
       mientrasCuentaTexto: DESDE_LA_PRIMERA,
+    },
+
+    invitacion: {
+      etiqueta: "INVITACIÓN",
+      asunto: (quien, n) => `${quien} te invita a la historia de ${n}`,
+      asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
+      contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo va a escribir su libro.`,
+      // Aprobado 06/10.
+      cuerpo: (quien) =>
+        `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época.`,
+      // Aprobados 13/10.
+      tituloDudas: (n) => `${n} terminó de contar su vida y estamos por escribir su libro.`,
+      cuerpoDudas: (quien) =>
+        `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
+      entra: "Entrá con este mismo correo:",
+      boton: (n) => `Ver la historia de ${n}`,
+      botonDudas: "Ver las dudas",
+      porQue: "Recibís este mail porque te invitaron a una historia.",
     },
   },
 
@@ -155,6 +211,22 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
         `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, començarà la seva entrevista i ho veuràs al teu tauler.`,
       boton: "Veure la targeta",
       mientrasCuentaTexto: "Des de la primera resposta, al teu tauler apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses.",
+    },
+
+    invitacion: {
+      etiqueta: "INVITACIÓ",
+      asunto: (quien, n) => `${quien} et convida a la història de ${n}`,
+      asuntoDudas: (quien, n) => `${quien} et demana ajuda amb la història de ${n}`,
+      contando: (n) => `${n} està explicant la seva vida amb àudios de WhatsApp. Quan acabi, un biògraf escriurà el seu llibre.`,
+      cuerpo: (quien) =>
+        `${quien} t'ha convidat a seguir la seva història. Podràs escoltar el que va explicant, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època.`,
+      tituloDudas: (n) => `${n} ha acabat d'explicar la seva vida i estem a punt d'escriure el seu llibre.`,
+      cuerpoDudas: (quien) =>
+        `${quien} t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.`,
+      entra: "Entra amb aquest mateix correu:",
+      boton: (n) => `Veure la història de ${n}`,
+      botonDudas: "Veure els dubtes",
+      porQue: "Reps aquest correu perquè t'han convidat a una història.",
     },
   },
 };

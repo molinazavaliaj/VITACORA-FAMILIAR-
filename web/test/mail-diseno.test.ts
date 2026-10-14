@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { armarMailAcceso, armarMailRegalo, enviarMailAcceso, enviarMailRegalo, idiomaMailDeRegion, RUTA_LOGO_MAIL } from "../src/lib/mail";
+import { armarMailAcceso, armarMailInvitacion, armarMailRegalo, enviarMailAcceso, enviarMailInvitacion, enviarMailRegalo, idiomaMailDeRegion, RUTA_LOGO_MAIL } from "../src/lib/mail";
 import { TEXTOS_MAIL } from "../src/lib/mail-textos";
 import { IDIOMAS_WEB } from "../src/lib/idioma-web";
 
@@ -25,7 +25,7 @@ describe("mail de acceso con el diseño nuevo", () => {
     const { html, asunto } = armarMailAcceso({ comoLeDicen: "abuela", region: "ES" });
     expect(asunto).toBe("Listo. Hoy le escribimos a tu abuela.");
     expect(html).toContain(`href="${URL}/entrar"`);
-    expect(html).toMatch(/<td bgcolor="#2a2620"[^>]*>\s*<a href="https:\/\/prueba\.vitacora\.test\/entrar"/);
+    expect(html).toMatch(/<td bgcolor="#0d0d0c"[^>]*>\s*<a href="https:\/\/prueba\.vitacora\.test\/entrar"/);
     expect(html).toContain(`src="${URL}${RUTA_LOGO_MAIL}"`);
     expect(html).toContain('<html lang="es-ES"');
     expect(html).toContain('width="600"');
@@ -79,7 +79,7 @@ describe("mail de acceso con el diseño nuevo", () => {
 describe("mail del regalo con el diseño nuevo", () => {
   it("el botón va a /regalo/<código>/tarjeta y abajo el link a /entrar", () => {
     const { html, texto } = armarMailRegalo({ comoLeDicen: "abuelo", codigo: "VF-7K3M2Q", trato: "vos" });
-    expect(html).toMatch(/<td bgcolor="#2a2620"[^>]*>\s*<a href="https:\/\/prueba\.vitacora\.test\/regalo\/VF-7K3M2Q\/tarjeta"/);
+    expect(html).toMatch(/<td bgcolor="#0d0d0c"[^>]*>\s*<a href="https:\/\/prueba\.vitacora\.test\/regalo\/VF-7K3M2Q\/tarjeta"/);
     expect(html).toContain(`href="${URL}/entrar"`);
     expect(html).toContain("Tu regalo para abuelo está listo");
     expect(texto).toContain(`Ver la tarjeta\n${URL}/regalo/VF-7K3M2Q/tarjeta`);
@@ -101,6 +101,69 @@ describe("mail del regalo con el diseño nuevo", () => {
     await enviarMailRegalo({ para: "a@x.com", comoLeDicen: "abuela", codigo: "VF-AAAAAA", trato: "tu" });
     const cuerpo = JSON.parse(fetchFalso.mock.calls[0][1].body);
     expect(cuerpo.text).toContain(`${URL}/regalo/VF-AAAAAA/tarjeta`);
+  });
+});
+
+describe("mail de invitación con el diseño nuevo (fase 3)", () => {
+  it("el botón va a /entrar como tabla con fondo de tinta; mismos asuntos de antes", () => {
+    const comun = armarMailInvitacion({ nombreNarrador: "Dora", quienInvita: "Marta", region: "AR" });
+    const dudas = armarMailInvitacion({ nombreNarrador: "Dora", quienInvita: "Marta", region: "AR", paraDudas: true });
+    expect(comun.asunto).toBe("Marta te invita a la historia de Dora");
+    expect(dudas.asunto).toBe("Marta te pide ayuda con la historia de Dora");
+    for (const { html } of [comun, dudas]) {
+      expect(html).toMatch(/<td bgcolor="#0d0d0c"[^>]*>\s*<a href="https:\/\/prueba\.vitacora\.test\/entrar"/);
+      expect(html).toContain('width="600"');
+      expect(html).toContain('<html lang="es-AR"');
+      expect(html).not.toMatch(/<script|#5D3FD3/i);
+    }
+    expect(plano(comun.html)).toContain("Ver la historia de Dora");
+    expect(plano(comun.html)).toContain("INVITACIÓN");
+    expect(plano(comun.html)).toContain("Recibís este mail porque te invitaron a una historia.");
+    expect(plano(comun.html)).not.toContain("PEDIDO CONFIRMADO");
+    expect(plano(dudas.html)).toContain("Ver las dudas");
+  });
+
+  it("escapa el nombre del narrador y de quien invita en el HTML (no en el asunto ni en el texto plano)", () => {
+    const { html, asunto, texto } = armarMailInvitacion({ nombreNarrador: '<img src=x onerror="a">', quienInvita: "Ana & <b>Leo</b>", region: "ES" });
+    expect(html).not.toContain("<img src=x");
+    expect(html).not.toContain("<b>Leo</b>");
+    expect(html).toContain("&lt;img src=x onerror=&quot;a&quot;&gt;");
+    expect(html).toContain("Ana &amp; &lt;b&gt;Leo&lt;/b&gt;");
+    expect(asunto).toBe('Ana & <b>Leo</b> te invita a la historia de <img src=x onerror="a">');
+    expect(texto).toContain("Ana & <b>Leo</b> te ha invitado a seguir su historia.");
+  });
+
+  it("España de tú, Argentina de vos; el texto plano trae el link", () => {
+    const es = armarMailInvitacion({ nombreNarrador: "Imma", quienInvita: "Pere", region: "ES" });
+    expect(plano(es.html)).toContain("Pere te ha invitado a seguir su historia. Podrás escuchar lo que va contando");
+    expect(plano(es.html)).toContain("Recibes este email porque te han invitado a una historia.");
+    expect(plano(es.html)).not.toMatch(/Entrá|invitó|Recibís|sabés/);
+    expect(es.texto).toContain(`Entra con este mismo correo:\nVer la historia de Imma\n${URL}/entrar`);
+    expect(es.texto).not.toMatch(/<[a-z]/i);
+  });
+
+  it("ninguna promesa que el sistema no cumple; el libro se escribe al terminar (D4)", () => {
+    for (const idioma of IDIOMAS_WEB) {
+      for (const paraDudas of [false, true]) {
+        const m = armarMailInvitacion({ nombreNarrador: "Dora", quienInvita: "Marta", idioma, paraDudas });
+        for (const t of [m.asunto, m.html, m.texto]) {
+          expect(t).not.toMatch(PROHIBIDAS);
+          expect(t).not.toMatch(/está escribiendo el libro/);
+        }
+      }
+    }
+    expect(armarMailInvitacion({ nombreNarrador: "Dora", quienInvita: "Marta", idioma: "ca" }).html).toContain('<html lang="ca-ES"');
+  });
+
+  it("a Resend le llegan el html y el texto plano", async () => {
+    vi.stubEnv("RESEND_API_KEY", "clave-prueba");
+    const fetchFalso = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => "" });
+    vi.stubGlobal("fetch", fetchFalso);
+    await enviarMailInvitacion({ para: "tia@x.com", nombreNarrador: "Dora", quienInvita: "Marta", region: "AR" });
+    const cuerpo = JSON.parse(fetchFalso.mock.calls[0][1].body);
+    expect(cuerpo.to).toEqual(["tia@x.com"]);
+    expect(cuerpo.subject).toBe("Marta te invita a la historia de Dora");
+    expect(cuerpo.text).toContain(`${URL}/entrar`);
   });
 });
 
