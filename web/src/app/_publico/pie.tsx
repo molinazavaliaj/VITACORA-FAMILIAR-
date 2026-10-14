@@ -2,14 +2,14 @@ import Link from "next/link";
 import { CONTACTO } from "../legal/titulares";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
-import type { IdiomaWeb } from "@/lib/idioma-web";
+import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { EnlaceIdioma } from "./idioma-cliente";
 
 // El pie público del rediseño 2026-10: el lema de siempre, los legales que
 // existen hoy y el contacto. «Botón de arrepentimiento» en Argentina es
 // obligatorio y tiene que verse desde la portada (Res. 424/2020); en España la
-// misma página se llama «Desistimiento». Las tres rutas legales son una sola
-// versión por ahora (fase 5 las pasa al diseño y a los idiomas).
+// misma página se llama «Desistimiento». Cada idioma enlaza a sus legales
+// (/legal/…, /ca/legal/…, /ar/legal/…; fase 5).
 
 export function Pie({ idioma, camino }: { idioma: IdiomaWeb; camino: string }) {
   const t = TEXTOS_PUBLICO[idioma];
@@ -21,9 +21,9 @@ export function Pie({ idioma, camino }: { idioma: IdiomaWeb; camino: string }) {
         <p className="max-w-xs text-[15px] italic text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-cuerpo)]">{t.lema}</p>
         <div className="flex flex-col gap-6 text-[12px] uppercase tracking-[0.18em] [font-family:var(--fuente-micro)] sm:flex-row sm:gap-12">
           <nav aria-label={t.legales} className="flex flex-col">
-            <Link prefetch={false} href="/legal/terminos" className={enlace}>{t.terminos}</Link>
-            <Link prefetch={false} href="/legal/privacidad" className={enlace}>{t.privacidad}</Link>
-            <Link prefetch={false} href="/legal/arrepentimiento" className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/legal/terminos")} className={enlace}>{t.terminos}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className={enlace}>{t.privacidad}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
