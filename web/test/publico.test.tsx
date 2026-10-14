@@ -43,16 +43,24 @@ describe("el pie público", () => {
   it("en Argentina, «Botón de arrepentimiento»; en España, «Desistimiento»", () => {
     const ar = renderToStaticMarkup(<Pie idioma="ar" camino="/" />);
     expect(ar).toContain("Botón de arrepentimiento");
-    expect(ar).toContain('href="/legal/arrepentimiento"');
+    expect(ar).toContain('href="/ar/legal/arrepentimiento"');
     const es = renderToStaticMarkup(<Pie idioma="es" camino="/" />);
     expect(es).toContain("Desistimiento");
     expect(es).not.toContain("Botón de arrepentimiento");
     for (const html of [ar, es]) {
-      expect(html).toContain('href="/legal/terminos"');
-      expect(html).toContain('href="/legal/privacidad"');
       expect(html).toContain(escapar("Para las vidas que merecen su propio libro"));
       expect(html).toContain("hola@vitacorafamiliar.com");
     }
+  });
+
+  it("cada idioma enlaza a sus tres legales (fase 5)", () => {
+    for (const [idioma, prefijo] of [["es", ""], ["ca", "/ca"], ["ar", "/ar"]] as const) {
+      const html = renderToStaticMarkup(<Pie idioma={idioma} camino="/" />);
+      for (const doc of ["terminos", "privacidad", "arrepentimiento"]) {
+        expect(html).toContain(`href="${prefijo}/legal/${doc}"`);
+      }
+    }
+    expect(renderToStaticMarkup(<Pie idioma="ca" camino="/" />)).toContain("Desistiment");
   });
 
   it("el cambio de país va a la misma pantalla en la otra versión", () => {
