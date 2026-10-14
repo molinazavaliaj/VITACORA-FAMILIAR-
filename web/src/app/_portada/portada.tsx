@@ -1,6 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Fragment, type CSSProperties, type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Acordeon } from "../_ui/acordeon";
 import { ReproductorOnda } from "../_ui/reproductor-onda";
 import { Cabecera, IconoWhatsApp, Pie, WhatsAppFlotante } from "../_publico";
@@ -17,6 +16,7 @@ import { Coreografia } from "../_direccion/coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D, PaginaCapitulo, PaginaFoto } from "../_direccion/libro-3d";
 import { DemoMarco } from "./demo-marco";
+import { Foto, ListaHilo, ONDA, OndaQuieta, Palabras, conVar } from "../_direccion/piezas";
 // Una sola hoja de estilo para la portada (trae los tokens adentro): cada
 // archivo CSS aparte es un pedido más que frena el primer pintado.
 import "../_direccion/direccion.css";
@@ -67,12 +67,6 @@ const FOTOS = {
 } as const;
 
 const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
-
-// Alturas fijas de las ondas de audio de muestra: misma forma en el servidor
-// y en el cliente.
-const ONDA = [10, 18, 28, 14, 24, 32, 16, 12, 26, 30, 14, 20, 28, 10, 22, 30, 16, 8, 24, 18, 12, 26, 20, 14];
-
-const conVar = (vars: Record<string, number | string>) => vars as CSSProperties;
 
 export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_PORTADA[idioma];
@@ -318,7 +312,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               src={FOTOS.viaje}
               alt={t.paraQuien.viaje.alt}
               forma="circulo"
-              href="/viaje"
+              href={ruta(idioma, "/viaje")}
               sizes="(min-width: 768px) 20vw, 56vw"
               className="w-[56%] md:col-span-3 md:col-start-3 md:-mt-12 md:w-full"
             >
@@ -621,7 +615,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
                 </li>
               ))}
             </ul>
-            <Link prefetch={false} href="/viaje" className="dir-enlace mt-2 self-start">
+            <Link prefetch={false} href={ruta(idioma, "/viaje")} className="dir-enlace mt-2 self-start">
               {t.viaje.enlace}
               {precioViaje !== null ? ` · ${t.viaje.desde(formatear(precioViaje))}` : ""}
             </Link>
@@ -662,26 +656,6 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
 /* ───────────────────────── piezas ───────────────────────── */
 
-/**
- * Una frase partida en palabras para encenderlas de a una (Coreografia). El
- * texto entero va aparte para lectores de pantalla; las palabras, ocultas.
- */
-function Palabras({ texto, desde = 0, total, clase = "" }: { texto: string; desde?: number; total: number; clase?: string }) {
-  const palabras = texto.split(" ");
-  return (
-    <>
-      {palabras.map((p, j) => (
-        <span key={`${p}-${j}`}>
-          <span className={`dir-palabra ${clase}`} style={conVar({ "--i": desde + j, "--n": total })}>
-            {p}
-          </span>
-          {j < palabras.length - 1 ? " " : null}
-        </span>
-      ))}
-    </>
-  );
-}
-
 function Segmentos({ partes }: { partes: Segmento[] }) {
   return (
     <>
@@ -698,64 +672,6 @@ function Segmentos({ partes }: { partes: Segmento[] }) {
   );
 }
 
-/** Retrato en óvalo, arco o círculo, que pasa del blanco y negro al sepia. */
-function Foto({
-  src,
-  alt,
-  forma,
-  sizes,
-  className = "",
-  recorte = false,
-  href,
-  children,
-}: {
-  src: string;
-  alt: string;
-  forma: "ovalo" | "arco" | "circulo";
-  sizes: string;
-  className?: string;
-  /** La foto trae borde de papel: se agranda un poco para que no se vea. */
-  recorte?: boolean;
-  href?: string;
-  children?: ReactNode;
-}) {
-  const marco = (
-    <div className={`dir-marco dir-marco--${forma}`}>
-      <div className={`dir-foto dir-foto--${forma}`}>
-        <div className={`absolute ${recorte ? "-inset-[7%]" : "inset-0"}`}>
-          <Image src={src} alt={alt} fill sizes={sizes} className="dir-revela object-cover" />
-        </div>
-      </div>
-    </div>
-  );
-  return (
-    <figure className={`flex flex-col gap-5 ${className}`}>
-      {href ? (
-        <Link prefetch={false} href={href} className="flex flex-col gap-5">
-          {marco}
-          {children ? <figcaption className="flex flex-col gap-2">{children}</figcaption> : null}
-        </Link>
-      ) : (
-        <>
-          {marco}
-          {children ? <figcaption className="flex flex-col gap-2">{children}</figcaption> : null}
-        </>
-      )}
-    </figure>
-  );
-}
-
-/** Una lista con un hilo fino delante de cada línea (sin tildes de check). */
-function ListaHilo({ items, tinta = false }: { items: string[]; tinta?: boolean }) {
-  return (
-    <ul className={`dir-lista ${tinta ? "dir-lista--tinta" : ""}`}>
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
 function Formato({ f, precio }: { f: { nota: string; nombre: string; detalle: string }; precio: string }) {
   return (
     <li className="dir-formato">
@@ -767,24 +683,6 @@ function Formato({ f, precio }: { f: { nota: string; nombre: string; detalle: st
       </span>
       <span className="max-w-[46ch] text-[16px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)]">{f.detalle}</span>
     </li>
-  );
-}
-
-function OndaQuieta({ duracion }: { duracion: string }) {
-  return (
-    <div aria-hidden className="flex items-center gap-4">
-      <span className="flex h-12 w-12 flex-none items-center justify-center rounded-full border border-[var(--dir-hilo-tinta)] text-[var(--dir-sobre-tinta)]">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-          <path d="M8 5.5v13l11-6.5z" />
-        </svg>
-      </span>
-      <span className="flex h-10 min-w-0 flex-1 items-center gap-[3px] overflow-hidden">
-        {ONDA.map((alto, i) => (
-          <span key={i} className="block w-[3px] flex-none rounded-full bg-[var(--dir-sobre-tinta)] opacity-70" style={{ height: alto }} />
-        ))}
-      </span>
-      <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">{duracion}</span>
-    </div>
   );
 }
 

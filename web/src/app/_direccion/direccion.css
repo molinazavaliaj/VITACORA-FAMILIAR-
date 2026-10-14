@@ -201,3 +201,29 @@
     .dir-hunde--13 { animation-timeline: --dir-sobre-13; }
   }
 }
+
+/* ── Landings de anuncio y /viaje (fase 4) ─────────────────────────────────
+   Lo que agregan sobre lo de la portada: una foto apaisada en óvalo (el libro
+   del viaje sobre la mesa), las preguntas del banco en cursiva grande y un
+   número de paso más chico que el de «Cómo funciona». */
+.dir-foto.dir-foto--apaisada { aspect-ratio: 16 / 10; }
+.dir-pregunta {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.45rem, 1.05rem + 1.4vw, 2.35rem);
+  line-height: 1.22;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+  padding-bottom: 0.06em;
+}
+.dir-numero--chico { font-size: clamp(3.2rem, 2.2rem + 3.4vw, 5rem); }
+/* La onda de su voz sobre papel: los colores de la tinta, invertidos. */
+.dir-sobre-papel-onda {
+  --dir-sobre-tinta: var(--dir-sobre-papel);
+  --dir-sobre-tinta-suave: var(--dir-sobre-papel-suave);
+  --dir-hilo-tinta: var(--dir-hilo-papel);
+}
+/* El titular de /viaje: dos mitades que entran enteras en su línea, del
+   teléfono al escritorio (sin saltos de palabra al cambiar de letra). */
+.dir-t-viaje { font-size: clamp(2rem, 0.6rem + 5.2vw, 5.2rem); line-height: 1.04; }
