@@ -183,7 +183,7 @@
   overflow-wrap: anywhere;
 }
 .lgl-enlace:hover { text-decoration-color: var(--dir-sobre-papel); }
-.lgl-pendiente { background: #f1e2a6; padding: 0 4px; }
+.lgl-pendiente { background: #f1e2a6; padding: 0 4px; white-space: nowrap; }
 
 .lgl-cierre {
   margin-top: 32px;

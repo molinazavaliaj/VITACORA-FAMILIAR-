@@ -156,3 +156,14 @@ Ninguna se hizo: o necesitan base, o son decisiones. El panel funciona sin ellas
 | F2-7 | **Miniaturas de verdad para las fotos** (RENDIMIENTO 3.17): `/api/fotos/[id]` redirige a la foto original firmada; las miniaturas de 80 px del lateral bajan la foto entera (100–300 kB cada una). Supabase tiene transformación de imágenes (plan Pro) o se puede guardar una miniatura al subir. Hecho: la redirección se guarda un día en el navegador (`private, max-age=86400`) y la firma dura dos. | Fotos enteras, cacheadas. | Naza (plan de Supabase) |
 | F2-8 | **Muestra del panel** (`/panel-muestra/...`): existe para mirar el diseño sin sesión; da 404 con `VERCEL_ENV=production`. Ojo: el `.env.local` bajado de Vercel trae `VERCEL_ENV=production`, así que en local hay que arrancar con `VERCEL_ENV=development`. Borrarla antes del switch si Naza prefiere. | — | Naza |
 | F2-9 | **LCP de la muestra** (Lighthouse móvil simulado, local): 3,9–4,3 s, CLS 0, TBT 100–330 ms. El LCP es el titular: el mismo piso de las letras de marca que en la portada (P5b). Medir en la preview con una cuenta real. | — | — |
+
+## Apuntado en fase 5 (legales)
+
+- **Garantía en legales PENDIENTE DE REVISIÓN DEL ABOGADO** (D1): sección «La garantía de cada libro» en términos §7 y en desistimiento, con el texto exacto del checkout. Choca con «menos de diez respuestas → devolución» (términos §8) y con el desistimiento proporcional de España: lo decide el abogado con Naza. Detalle en `fase-5/para-el-abogado.md` §1.
+- **Cookies sin banner** (B26 sigue abierto): revisado el 14/10, la web solo usa `sb-…` (sesión de Supabase, solo en /entrar, /tablero, /admin), `tema` (panel), `idioma` (selector, 1 año) y `sessionStorage` del checkout. Ninguna de publicidad ni analítica: técnicas o de personalización pedida por el usuario (art. 22.2 LSSI-CE), sin banner. Que lo confirme el abogado (¿`idioma` de 1 año exenta?, ¿tabla de cookies en privacidad §12?). Si entra el píxel de Meta: banner, página de cookies y consentimiento previo.
+- **Catalán de los legales**: traducción PENDIENTE REVISIÓN NATIVA Y ABOGADO; confirmar qué textos legales deben ir en catalán obligatoriamente (D2).
+- **Términos sin Viaje ni «Para mí»**: la §2 solo describe el libro de otra persona. Lo redacta el abogado.
+- **Enlace «términos» del checkout y de /regalar** siempre a `/legal/terminos` aunque se compre en /ca o /ar: pasar a `ruta(idioma, "/legal/terminos")` en la fase del checkout.
+- **Catalán, FAQ vs checkout**: «et tornem» / «et retornem» els diners; elegir uno.
+- **Fecha de los legales** (`_textos/legal.ts` `fecha`): 14/10/2026 provisoria; poner la de publicación.
+- `web/src/app/legal/ui.tsx` (piezas de la maqueta vieja) queda sin uso: no se borró por la regla de no borrar funciones exportadas; se puede quitar cuando Naza diga.
