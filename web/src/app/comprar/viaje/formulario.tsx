@@ -12,6 +12,8 @@ import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
 import { AREA, AYUDA, AvisoFallo, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
 import { CamposDireccion } from "../../_checkout/direccion";
 import { PasosLibro } from "../../_checkout/pasos-libro";
+import { eleccionDe, opcionDe } from "../../_checkout/opciones-libro";
+import { OpcionesLibro } from "../../_checkout/opciones-libro-ui";
 import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
 import { formatearPrecio, listaDe } from "../productos-ui";
@@ -152,7 +154,6 @@ export function CheckoutViaje({
     }
   }
 
-  const precioImpreso = precio !== null && cat.impreso ? precio + cat.impreso.precio : null;
   const tachado = promo && precio !== null ? listaDe(compra.total, cat.moneda, region, promo).texto : null;
 
   const cabezaResumen = (
@@ -183,51 +184,13 @@ export function CheckoutViaje({
               {precio === null ? (
                 <p className="text-[16px] text-[var(--texto-oscuro-suave)]">{V.noDisponible}</p>
               ) : (
-                <fieldset className="flex flex-col gap-3">
-                  <legend className="sr-only">{V.libroTitulo}</legend>
-                  <Opcion name="formato" value="digital" checked={e.formato === "digital"} onChange={() => cambiar({ formato: "digital" })}
-                    titulo={V.digitalTitulo} detalle={V.digitalDetalle} precio={f(precio)} />
-                  {precioImpreso !== null ? (
-                    <Opcion name="formato" value="impreso" checked={impreso} onChange={() => cambiar({ formato: "impreso" })}
-                      titulo={V.impresoTitulo} detalle={V.impresoDetalle} precio={f(precioImpreso)} />
-                  ) : null}
-                </fieldset>
+                <OpcionesLibro cat={cat} base={precio} elegida={opcionDe(e)} onElegir={(o) => cambiar(eleccionDe(o, e))}
+                  textos={{ ...V, titulo: V.libroTitulo }} foto="/checkout/marco-viaje.jpg" formatear={f} />
               )}
 
               {impreso && cat.impreso?.precioCopia != null ? (
                 <Contador titulo={T.copiasTitulo} detalle={T.cadaUno(f(cat.impreso.precioCopia))} valor={e.copias} onCambio={(n) => cambiar({ copias: n })}
                   menos={T.unoMenos(T.copiasTitulo)} mas={T.unoMas(T.copiasTitulo)} max={19} />
-              ) : null}
-
-              {cat.marco && precio !== null ? (
-                <div className={`m-card mt-3 flex flex-wrap items-center gap-x-8 gap-y-5 rounded-[6px] border px-5 py-6 sm:px-7 ${impreso && e.marcos > 0 ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-[var(--borde-oscuro)] bg-[var(--tarjeta)]"}`}>
-                  {/* La foto del marco es el LCP en el teléfono: se pide con el HTML (preload), no al aparecer. */}
-                  <div className="dir-marco dir-marco--arco chk-marco">
-                    <div className="dir-foto dir-foto--arco">
-                      <Image src="/checkout/marco-viaje.jpg" alt={V.marcoFotoAlt} preload fill sizes="(min-width: 640px) 148px, 168px" className="object-cover object-[50%_42%]" />
-                    </div>
-                  </div>
-                  <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-2.5">
-                    <Etiqueta>{V.marcoEtiqueta}</Etiqueta>
-                    <span className="chk-h2">{V.marcoTitulo}</span>
-                    <span className="text-[15px] leading-relaxed text-[var(--texto-oscuro-suave)]">{V.marcoDetalle}</span>
-                    {impreso ? (
-                      <label className="m-card m-chip mt-1 inline-flex min-h-11 cursor-pointer items-center gap-2.5 self-start rounded-full border border-[var(--punto-vacio)] py-2 pl-3 pr-5 text-[15px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">
-                        <input type="checkbox" className="sr-only" checked={e.marcos > 0} onChange={(ev) => cambiar({ marcos: ev.target.checked ? 1 : 0 })} />
-                        <span aria-hidden className="flex h-6 w-6 items-center justify-center rounded-[7px] border-[1.5px] border-current">
-                          {e.marcos > 0 ? (
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M5 12.5l4.2 4.2L19 7" />
-                            </svg>
-                          ) : null}
-                        </span>
-                        {e.marcos > 0 ? T.marcoAnadido(f(cat.marco.precio)) : T.marcoAnadir(f(cat.marco.precio))}
-                      </label>
-                    ) : (
-                      <span className="text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.marcoSoloImpreso}</span>
-                    )}
-                  </div>
-                </div>
               ) : null}
 
               {impreso && e.marcos > 0 && cat.marco?.precioAdicional != null ? (

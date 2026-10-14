@@ -20,7 +20,8 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/supabase/sesion", () => ({ usuarioDeLaSesion: vi.fn(async () => null), crearClienteSesion: vi.fn() }));
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
-import { catalogo } from "@/lib/productos";
+import { armarCompra, catalogo } from "@/lib/productos";
+import { eleccionDe, opcionDe, opcionesDeLibro, precioDeOpcion } from "../src/app/_checkout/opciones-libro";
 import { idiomaDePrefijo, idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { textosComprador } from "@/lib/regalo-textos";
 import { Checkout } from "../src/app/comprar/formulario";
@@ -97,6 +98,59 @@ describe("/comprar en tres pasos", () => {
     const sin = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
     expect(sin).not.toContain('value="impreso"');
     expect(sin).toMatch(/<input(?=[^>]*value="digital")(?=[^>]*checked="")[^>]*>/);
+  });
+
+  it("paso 1: tres opciones en orden (digital, impreso, impreso con marco), una sola elegida", () => {
+    const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
+    const orden = ['value="digital"', 'value="impreso"', 'value="marco"'].map((v) => html.indexOf(v));
+    expect(orden.every((i) => i > 0)).toBe(true);
+    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
+    expect(html.match(/name="formato"/g)).toHaveLength(3);
+    expect(html.match(/<input(?=[^>]*name="formato")(?=[^>]*checked="")[^>]*>/g)).toHaveLength(1);
+    expect(html).toContain(escapar(ES.marcoOpcionTitulo));
+    // La tarjeta suelta del marco ya no está: quedó adentro de la tercera opción.
+    expect(html).not.toContain(escapar(ES.marcoTitulo));
+    expect(html).not.toContain('type="checkbox"');
+    // Los precios salen del catálogo: 49, 49 + 50 y 49 + 50 + 20.
+    const eur = (n: number) => escapar(new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n));
+    for (const n of [49, 99, 119]) expect(html).toContain(eur(n));
+  });
+
+  it("paso 1: sin marco en la región no hay tercera opción; sin impreso, solo la digital", () => {
+    delete process.env.PRECIO_MARCO_EUR;
+    const sinMarco = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
+    expect(sinMarco).toContain('value="impreso"');
+    expect(sinMarco).not.toContain('value="marco"');
+    expect(opcionesDeLibro(catalogo("ES"))).toEqual(["digital", "impreso"]);
+    process.env.PRECIO_MARCO_EUR = "20";
+    delete process.env.PRECIO_IMPRESO_EUR;
+    // Con marco pero sin impreso: el marco viaja con el libro, así que tampoco.
+    expect(opcionesDeLibro(catalogo("ES"))).toEqual(["digital"]);
+    expect(renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />)).not.toContain('value="marco"');
+  });
+
+  it("cada opción arma el carrito de siempre y el total es el del servidor", () => {
+    const cat = catalogo("ES");
+    const e = estadoInicial("es", cat);
+    expect(opcionDe(e)).toBe("impreso");
+    const casos = [
+      ["digital", { base: "pdf", impresos: 0, marcos: 0 }],
+      ["impreso", { base: "pdf", impresos: 1, marcos: 0 }],
+      ["marco", { base: "pdf", impresos: 1, marcos: 1 }],
+    ] as const;
+    for (const [opcion, carrito] of casos) {
+      const elegido = { ...e, ...eleccionDe(opcion, e) };
+      expect(opcionDe(elegido)).toBe(opcion);
+      expect(carritoDe(elegido)).toEqual(carrito);
+      expect(armarCompra(cat, "ES", carritoDe(elegido)).total).toBe(precioDeOpcion(opcion, cat.base.precio, cat));
+    }
+    // Con marcos de más, volver a elegir el marco no los pierde; pasar al impreso solo, sí.
+    const tres = { ...e, formato: "impreso" as const, marcos: 3 };
+    expect(eleccionDe("marco", tres).marcos).toBe(3);
+    expect(eleccionDe("impreso", tres).marcos).toBe(0);
+    // Lo guardado antes de un pago fallido vuelve a la misma opción.
+    expect(opcionDe({ formato: "impreso", marcos: 2 })).toBe("marco");
+    expect(opcionDe({ formato: "digital", marcos: 0 })).toBe("digital");
   });
 
   it("el marco va solo con el impreso (D4): con digital no se puede sumar", () => {
@@ -399,6 +453,16 @@ describe("/comprar/viaje con el mismo cascarón", () => {
     }
     expect(Object.values(CHECKOUT_VIAJE.es).join(" ")).toContain("os escribe");
     expect(render(PaginaViajeCa)).toContain('lang="ca-ES"');
+  });
+
+  it("paso 1 de viaje: las mismas tres opciones, arrancando en digital como antes", () => {
+    const html = renderToStaticMarkup(<CheckoutViaje idioma="es" catalogo={catalogo("ES")} />);
+    const orden = ['value="digital"', 'value="impreso"', 'value="marco"'].map((v) => html.indexOf(v));
+    expect(orden.every((i) => i > 0)).toBe(true);
+    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
+    expect(html).toMatch(/<input(?=[^>]*value="digital")(?=[^>]*checked="")[^>]*>/);
+    expect(html).toContain(escapar(CHECKOUT_VIAJE.es.marcoOpcionTitulo));
+    expect(html).not.toContain('type="checkbox"');
   });
 
   it("hace lo de antes: un POST con el viaje en el contexto, y el impreso con su dirección", () => {

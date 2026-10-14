@@ -165,6 +165,9 @@ export type TextosCheckout = {
   marcoAnadir: (precio: string) => string;
   marcoAnadido: (precio: string) => string;
   marcoSoloImpreso: string;
+  /** La tercera opción del paso 1 (Naza 14/10): impreso + digital + el marco. PENDIENTE OK de Naza. */
+  marcoOpcionTitulo: string;
+  marcoOpcionDetalle: string;
   copiasTitulo: string;
   marcosExtraTitulo: string;
   cadaUno: (precio: string) => string;
@@ -318,6 +321,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Añadir el marco · +${p}`,
     marcoAnadido: (p) => `Añadido · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elige el impreso para añadirlo.",
+    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
+    marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercas el móvil al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
@@ -470,6 +476,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Sumar el marco · +${p}`,
     marcoAnadido: (p) => `Sumado · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elegí el impreso para sumarlo.",
+    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
+    marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercás el celular al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
@@ -623,6 +632,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Afegir el marc · +${p}`,
     marcoAnadido: (p) => `Afegit · +${p}`,
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
+    // PENDIENTE OK de Naza (14/10) y REVISIÓN NATIVA: la tercera opció.
+    marcoOpcionTitulo: "Imprès + digital + la seva foto emmarcada",
+    marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la seva foto. Hi acostes el mòbil i s'obre el seu llibre, amb la seva veu.",
     copiasTitulo: "Còpies extra del llibre imprès",
     marcosExtraTitulo: "Marcs addicionals",
     cadaUno: (p) => `+${p} cadascun`,
