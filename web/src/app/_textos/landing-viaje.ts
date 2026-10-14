@@ -33,7 +33,7 @@ export const TEXTOS_LANDING_VIAJE: Textos<TextosLandingViaje> = {
     cta: "Empezar el libro del viaje",
     queda: {
       titulo: "Más que un álbum.",
-      items: ["Cada ciudad, un capítulo", "Vuestras fotos, junto a su historia", "Se lee y se escucha en la web"],
+      items: ["Os pregunta por el día", "Vuestras fotos, junto a su historia", "Se lee y se escucha en la web"],
     },
     pasosTitulo: "Un audio y una foto. El resto, nosotros.",
     pasos: [
@@ -55,7 +55,7 @@ export const TEXTOS_LANDING_VIAJE: Textos<TextosLandingViaje> = {
     cta: "Empezar mi Vitácora de viaje",
     queda: {
       titulo: "Más que un álbum.",
-      items: ["Cada ciudad, un capítulo", "Tus fotos, junto a su historia", "Se lee y se escucha en la web"],
+      items: ["Te pregunta por el día", "Tus fotos, junto a su historia", "Se lee y se escucha en la web"],
     },
     pasosTitulo: "Un audio y una foto. El resto, nosotros.",
     pasos: [
@@ -78,7 +78,7 @@ export const TEXTOS_LANDING_VIAJE: Textos<TextosLandingViaje> = {
     cta: "Començar el llibre del viatge",
     queda: {
       titulo: "Més que un àlbum.",
-      items: ["Cada ciutat, un capítol", "Les vostres fotos, amb la seva història", "Es llegeix i s'escolta al web"],
+      items: ["Us pregunta pel dia", "Les vostres fotos, amb la seva història", "Es llegeix i s'escolta al web"],
     },
     pasosTitulo: "Un àudio i una foto. La resta, nosaltres.",
     pasos: [

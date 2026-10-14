@@ -55,7 +55,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     etiqueta: "Vitácora de Viaje",
     titulo: ["En cada viaje hay", "un libro sin escribir."],
     bajada:
-      "Un biógrafo que viaja con vosotros por WhatsApp. Os pregunta por el día, guarda vuestras fotos con su historia y, al volver, vuestro viaje es un libro. Cada ciudad, un capítulo.",
+      "Un biógrafo que viaja con vosotros por WhatsApp. Os pregunta por el día, guarda vuestras fotos con su historia y, al volver, vuestro viaje es un libro.",
     comprar: "Empezar el libro del viaje",
     precio: (p) => `${p} · el viaje entero`,
     proximamente: "Próximamente",
@@ -76,7 +76,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         },
         {
           titulo: "Al volver, vuestro viaje es un libro",
-          texto: "Cada ciudad, un capítulo. Se lee y se escucha en la web, y tenéis un enlace para compartirlo con vuestra gente.",
+          texto: "Se lee y se escucha en la web, y tenéis un enlace para compartirlo con vuestra gente.",
         },
       ],
     },
@@ -118,7 +118,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     etiqueta: "Vitácora de Viaje",
     titulo: ["En cada viaje hay", "un libro sin escribir."],
     bajada:
-      "Un biógrafo que viaja con vos por WhatsApp. Te pregunta por el día, guarda tus fotos con su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo.",
+      "Un biógrafo que viaja con vos por WhatsApp. Te pregunta por el día, guarda tus fotos con su historia, y al volver, tu viaje es un libro.",
     comprar: "Empezar mi Vitácora de viaje",
     precio: (p) => `${p} · el viaje entero`,
     proximamente: "Próximamente",
@@ -139,7 +139,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         },
         {
           titulo: "Al volver, tu viaje es un libro",
-          texto: "Cada ciudad, un capítulo. Se lee y se escucha en la web, y tenés un link para compartirlo con tu gente.",
+          texto: "Se lee y se escucha en la web, y tenés un link para compartirlo con tu gente.",
         },
       ],
     },
@@ -188,7 +188,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     etiqueta: "Vitácora de Viatge",
     titulo: ["A cada viatge hi ha", "un llibre per escriure."],
     bajada:
-      "Un biògraf que viatja amb vosaltres per WhatsApp. Us pregunta pel dia, guarda les vostres fotos amb la seva història i, en tornar, el vostre viatge és un llibre. Cada ciutat, un capítol.",
+      "Un biògraf que viatja amb vosaltres per WhatsApp. Us pregunta pel dia, guarda les vostres fotos amb la seva història i, en tornar, el vostre viatge és un llibre.",
     comprar: "Començar el llibre del viatge",
     precio: (p) => `${p} · el viatge sencer`,
     proximamente: "Aviat",
@@ -209,7 +209,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         },
         {
           titulo: "En tornar, el vostre viatge és un llibre",
-          texto: "Cada ciutat, un capítol. Es llegeix i s'escolta al web, i teniu un enllaç per compartir-lo amb la vostra gent.",
+          texto: "Es llegeix i s'escolta al web, i teniu un enllaç per compartir-lo amb la vostra gent.",
         },
       ],
     },

@@ -1,5 +1,7 @@
 # Fase 3: textos nuevos para aprobar
 
+**Aprobados por Naza el 14/10:** todos los de este archivo (es y ar).
+
 Todo lo que no es copia literal de `aprobados.md`, de `POR_TRATO` o de la lista «se pueden usar tal
 cual» (TEXTOS-Y-REGLAS §5). Una versión recomendada por texto. El catalán está en los diccionarios
 marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá. Los textos para el socio (mails del

@@ -42,7 +42,7 @@ describe("la página de Viaje por idioma", () => {
     const html = renderToStaticMarkup(ViajeEs());
     expect(html).toContain('lang="es-ES"');
     expect(html).toContain(escapar("Un biógrafo que viaja con vosotros por WhatsApp."));
-    expect(html).toContain(escapar("Cada ciudad, un capítulo."));
+    expect(html).not.toContain("Cada ciudad, un capítulo"); // Naza lo quitó (06/10 y 14/10)
     expect(html).toContain(escapar("Lo pagas una vez, antes de salir."));
     expect(html).toContain(escapar("Si el viaje se cancela, te devolvemos el dinero."));
     expect(html).toContain('href="/comprar/viaje"');
