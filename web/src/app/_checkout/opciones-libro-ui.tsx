@@ -1,8 +1,8 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
 import type { Catalogo } from "@/lib/productos";
 import type { IdiomaLibro } from "@/lib/tapa";
 import { TapaLibro } from "../tapa-libro";
+import { MarcoDibujado } from "./marco-dibujado";
 import {
   conMarcosParaRegalar,
   contadorDeMarcos,
@@ -40,7 +40,10 @@ export type TextosOpciones = {
   /** Las frases de valor de cada opción (cabeza y bajada). Sin ellas, la cabeza es el título. */
   frases?: Record<OpcionLibro, { cabeza: string; bajada: string }>;
   copiasTitulo: string;
-  marcoRegaloTitulo: string;
+  /** La fila del marco cuando la opción ya trae uno (el libro completo): «Marco extra». */
+  marcoExtraTitulo: string;
+  /** La fila del marco cuando la opción no trae ninguno (el impreso): el primero, «Marco con su foto». */
+  marcoPrimeroTitulo: string;
   marcoRegaloDetalle: string;
   primeroYDemas: (primero: string, demas: string) => string;
   unoMenos: (t: string) => string;
@@ -54,17 +57,16 @@ type Tapa = { titulo: string; idioma: IdiomaLibro };
 const TAPA_CHICA = "/_next/image?url=%2Frediseno%2Flibro-tapa-foto.jpg&w=128&q=75";
 
 /** Las miniaturas: el libro en 3/4, el libro con su marco al lado, una pantalla con la tapa, o solo el marco. */
-function Miniatura({ tipo, tapa, foto }: { tipo: OpcionLibro | "copia" | "marco-solo"; tapa: Tapa; foto: string }) {
+function Miniatura({ tipo, tapa }: { tipo: OpcionLibro | "copia" | "marco-solo"; tapa: Tapa }) {
   const libro = (
     <span className="chk-mini-libro">
       <TapaLibro titulo={tapa.titulo} fotoSrc={TAPA_CHICA} idioma={tapa.idioma} />
     </span>
   );
+  // El marco dibujado (como el libro): moldura, paspartú y su foto, no la foto de un cuadro.
   const marco = (
-    <span className="dir-marco dir-marco--arco chk-mini-marco">
-      <span className="dir-foto dir-foto--arco block">
-        <Image src={foto} alt="" fill sizes="40px" className="object-cover object-[50%_42%]" />
-      </span>
+    <span className="chk-mini-marco">
+      <MarcoDibujado sizes="32px" />
     </span>
   );
   if (tipo === "digital")
@@ -96,7 +98,6 @@ export function OpcionesLibro({
   onElegir,
   onCambio,
   textos: T,
-  foto,
   tapa,
   conPack = false,
   formatear: f,
@@ -109,8 +110,6 @@ export function OpcionesLibro({
   /** Los cambios de los extras: copias y marcos. */
   onCambio: (cambios: Partial<ConLibro>) => void;
   textos: TextosOpciones;
-  /** La foto del marco de esta compra. */
-  foto: string;
   /** Lo que dice la tapa de las miniaturas (el nombre que se va escribiendo, o nada). */
   tapa: Tapa;
   /** Si el libro completo puede ir con el precio de pack (solo el libro de una vida). */
@@ -142,7 +141,7 @@ export function OpcionesLibro({
             <label className={`chk-op-tarjeta ${cinta ? "chk-op-tarjeta--cinta" : ""}`.trim()}>
               <input type="radio" className="sr-only" name="formato" value={o} checked={esta} onChange={() => onElegir(o)} />
               <span aria-hidden className="chk-op-punto" />
-              <Miniatura tipo={o} tapa={tapa} foto={foto} />
+              <Miniatura tipo={o} tapa={tapa} />
               <span className="chk-op-textos">
                 {cinta ? <span className="sr-only">{cinta}. </span> : null}
                 <span className="chk-op-cabeza">{frase ? frase.cabeza : titulos[o].titulo}</span>
@@ -155,7 +154,7 @@ export function OpcionesLibro({
                 <span className="chk-op-cifra">{precio === null ? "" : f(precio)}</span>
               </span>
             </label>
-            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} foto={foto} tapa={tapa} formatear={f} /> : null}
+            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} /> : null}
           </div>
         );
       })}
@@ -176,7 +175,6 @@ function Extras({
   estado,
   onCambio,
   textos: T,
-  foto,
   tapa,
   formatear: f,
 }: {
@@ -184,13 +182,14 @@ function Extras({
   estado: ConLibro;
   onCambio: (cambios: Partial<ConLibro>) => void;
   textos: TextosOpciones;
-  foto: string;
   tapa: Tapa;
   formatear: (n: number) => string;
 }) {
   const copia = cat.impreso?.precioCopia ?? null;
   const marco = contadorDeMarcos(opcionDe(estado), cat);
   if (copia === null && !marco) return null;
+  // Con el libro completo ya viene un marco: la fila es otro igual («Marco extra»); con el impreso, el primero.
+  const tituloMarco = opcionDe(estado) === "marco" ? T.marcoExtraTitulo : T.marcoPrimeroTitulo;
   return (
     <div className="chk-extras">
       {copia !== null ? (
@@ -203,22 +202,22 @@ function Extras({
           onValor={(n) => onCambio({ copias: n })}
           menos={T.unoMenos(T.copiasTitulo)}
           mas={T.unoMas(T.copiasTitulo)}
-          miniatura={<Miniatura tipo="copia" tapa={tapa} foto={foto} />}
+          miniatura={<Miniatura tipo="copia" tapa={tapa} />}
         />
       ) : null}
       {marco ? (
         <FilaExtra
           nombre="marcos"
-          titulo={T.marcoRegaloTitulo}
+          titulo={tituloMarco}
           detalle={T.marcoRegaloDetalle}
           precio={`+${f(marco.primero)}`}
           regla={marco.demas !== null && marco.demas !== marco.primero ? T.primeroYDemas(f(marco.primero), f(marco.demas)) : undefined}
           valor={marcosParaRegalar(estado)}
           max={marco.max}
           onValor={(n) => onCambio(conMarcosParaRegalar(estado, n))}
-          menos={T.unoMenos(T.marcoRegaloTitulo)}
-          mas={T.unoMas(T.marcoRegaloTitulo)}
-          miniatura={<Miniatura tipo="marco-solo" tapa={tapa} foto={foto} />}
+          menos={T.unoMenos(tituloMarco)}
+          mas={T.unoMas(tituloMarco)}
+          miniatura={<Miniatura tipo="marco-solo" tapa={tapa} />}
         />
       ) : null}
     </div>

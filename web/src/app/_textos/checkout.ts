@@ -65,7 +65,7 @@ export type TextosResumen = {
   lineas: Record<LineaId, string>;
   total: string;
   pagoUnico: string;
-  /** Debajo del total, cuando va el pack: lo que se ahorra frente a la suma. PENDIENTE OK de Naza. */
+  /** Debajo del total, cuando va el pack: lo que se ahorra frente a la suma. Aprobado por Naza el 14/10 (es y ar). */
   ahorras: (cifra: string) => string;
   incluye: (propia: boolean) => string[];
 };
@@ -85,7 +85,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
-      pack: "Pack el regalo completo",
+      pack: "Pack el regalo completo", // APROBADO por Naza el 14/10
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
@@ -109,7 +109,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Copia extra del libro impreso",
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
-      pack: "Pack el regalo completo",
+      pack: "Pack el regalo completo", // APROBADO por Naza el 14/10
     },
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
@@ -181,6 +181,10 @@ export type TextosCheckout = {
   cadaUno: (precio: string) => string;
   /** El contador de marcos para regalar (Naza 14/10). es y ar APROBADOS por Naza el 14/10; ca pendiente nativa. */
   marcoRegaloTitulo: string;
+  /** La fila del marco en el libro completo, que ya trae uno (Naza 14/10): «Marco extra». */
+  marcoExtraTitulo: string;
+  /** La fila del marco en el impreso, donde es el primero: «Marco con su foto». PENDIENTE OK de Naza. */
+  marcoPrimeroTitulo: string;
   marcoRegaloDetalle: string;
   /** «+20 € el primero, +15 € los demás» (el primero a precio de marco, los demás a precio adicional). */
   primeroYDemas: (primero: string, demas: string) => string;
@@ -346,8 +350,11 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     cadaUno: (p) => `+${p} cada uno`,
     // APROBADO por Naza el 14/10.
     marcoRegaloTitulo: "Marco con foto y chip NFC",
-    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el móvil se abre su libro, con su voz.",
+    marcoExtraTitulo: "Marco extra",
     // PENDIENTE OK de Naza (14/10).
+    marcoPrimeroTitulo: "Marco con su foto",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el móvil se abre su libro, con su voz.",
+    // APROBADO por Naza el 14/10.
     primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
     // APROBADAS por Naza el 14/10.
     frases: {
@@ -513,8 +520,11 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     cadaUno: (p) => `+${p} cada uno`,
     // APROBADO por Naza el 14/10.
     marcoRegaloTitulo: "Marco con foto y chip NFC",
-    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el celular se abre su libro, con su voz.",
+    marcoExtraTitulo: "Marco extra",
     // PENDIENTE OK de Naza (14/10).
+    marcoPrimeroTitulo: "Marco con su foto",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el celular se abre su libro, con su voz.",
+    // APROBADO por Naza el 14/10.
     primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
     // APROBADAS por Naza el 14/10 (las mismas que en España: no llevan voseo).
     frases: {
@@ -681,6 +691,8 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     cadaUno: (p) => `+${p} cadascun`,
     // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
     marcoRegaloTitulo: "Marc amb foto i xip NFC",
+    marcoExtraTitulo: "Marc extra", // ca: PENDIENTE REVISIÓN NATIVA
+    marcoPrimeroTitulo: "Marc amb la seva foto", // ca: PENDIENTE REVISIÓN NATIVA
     marcoRegaloDetalle: "Per regalar als teus familiars. Quan hi acostes el mòbil s'obre el seu llibre, amb la seva veu.",
     primeroYDemas: (a, b) => `+${a} el primer, +${b} els altres`,
     // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).

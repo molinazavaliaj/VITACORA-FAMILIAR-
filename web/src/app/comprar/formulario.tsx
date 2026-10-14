@@ -324,7 +324,7 @@ export function Checkout({
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, 3)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
-                textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }} foto="/checkout/marco.jpg"
+                textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }}
                 tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack formatear={f} />
 
               <div className="chk-solo-escritorio">
