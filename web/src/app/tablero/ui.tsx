@@ -53,31 +53,30 @@ export function tituloHistoria(nombre: string, propia: boolean): string {
 
 export const TOTAL_PREGUNTAS_BASE = 30;
 
+// Rediseño 2026-10 (fase 2): las piezas de abajo son las mismas, con la letra
+// y las hojas de la dirección «la web es un libro» (clases pnl-, panel.css).
+// Así las sub-pantallas (dudas, frases, nombres, preguntas, libro, leer,
+// cuenta) cambian de piel sin tocar su lógica.
+
 export function Contenedor({ children, ancho = "max-w-3xl" }: { children: ReactNode; ancho?: string }) {
-  return <div className={`mx-auto w-full ${ancho} px-6 py-10 md:px-10 md:py-14`}>{children}</div>;
+  return <div className={`pnl-cuerpo mx-auto w-full ${ancho} px-4 py-8 sm:px-8 md:py-12`}>{children}</div>;
 }
 
 export function Etiqueta({ children }: { children: ReactNode }) {
   return (
-    <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">
-      {children}
-    </p>
+    <p className="pnl-micro">{children}</p>
   );
 }
 
 export function Titulo({ children, nivel = 1 }: { children: ReactNode; nivel?: 1 | 2 | 3 }) {
-  const clases = {
-    1: "text-3xl md:text-4xl leading-[1.15] [letter-spacing:-0.01em]",
-    2: "text-2xl leading-snug",
-    3: "text-lg leading-snug",
-  }[nivel];
+  const clases = { 1: "pnl-titular", 2: "pnl-h2", 3: "pnl-h3" }[nivel];
   const Tag = (`h${nivel}`) as "h1" | "h2" | "h3";
-  return <Tag className={`${clases} font-medium [font-family:var(--fuente-titulo)] [text-wrap:balance]`}>{children}</Tag>;
+  return <Tag className={clases}>{children}</Tag>;
 }
 
 export function Tarjeta({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-[var(--linea)] bg-[var(--fondo)] p-6 ${className}`}>{children}</div>
+    <div className={`pnl-hoja p-6 ${className}`}>{children}</div>
   );
 }
 
@@ -86,10 +85,10 @@ export function ProximoPaso({ href, children }: { href: string; children: ReactN
   return (
     <Link
       href={href}
-      className="flex items-center justify-between gap-4 rounded-xl border border-[var(--acento)] bg-[var(--fondo)] p-5 text-[15px] font-medium text-[var(--texto)] transition-colors hover:bg-[var(--hueco)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
+      className="pnl-hoja group flex items-center justify-between gap-4 py-4 pl-5 pr-4 text-[17px] leading-snug text-[var(--texto)] transition-[border-color,transform] duration-200 hover:border-[var(--linea-fuerte)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] [font-family:var(--fuente-titulo)] [touch-action:manipulation]"
     >
       <span>{children}</span>
-      <span aria-hidden className="shrink-0 text-[var(--acento)]">→</span>
+      <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--texto)] text-[15px] text-[var(--fondo)] transition-transform duration-200 group-hover:translate-x-0.5 [font-family:var(--fuente-micro)]">→</span>
     </Link>
   );
 }
@@ -98,10 +97,10 @@ export function BarraProgreso({ respondidas, total }: { respondidas: number; tot
   const porcentaje = total > 0 ? Math.min(100, Math.round((respondidas / total) * 100)) : 0;
   return (
     <div className="flex flex-col gap-2">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--hueco)]">
+      <div className="h-[2px] w-full overflow-hidden rounded-full bg-[var(--linea)]">
         <div className="h-full rounded-full bg-[var(--texto)] transition-[width] duration-500 ease-out" style={{ width: `${porcentaje}%` }} />
       </div>
-      <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
+      <p className="pnl-dato">
         {respondidas} de {total} respuestas
       </p>
     </div>

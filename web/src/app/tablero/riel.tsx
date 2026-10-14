@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { esPropia, historiasDelUsuario, type Rol } from "@/lib/panel";
+import type { Rol } from "@/lib/panel";
 import { textosComprador } from "@/lib/regalo-textos";
 
 // El riel de la izquierda de una historia (docs/panel-usuario.md §15.3):
@@ -133,16 +133,19 @@ export function Riel({
   );
 }
 
+/** Cómo va una historia, en pocas palabras: lo usa el selector de historias de la cabecera. */
+export function estadoCorto(estado: string, propia: boolean): string {
+  return (propia ? ESTADO_CORTO_PROPIO : ESTADO_CORTO)[estado] ?? estado;
+}
+
 /**
  * Las pantallas de una historia que no son la historia (Encargar libro, el
- * lector) también llevan el riel con las historias, para cambiar de una a
- * otra sin volver a Inicio. Carga las historias y arma las dos columnas.
+ * lector, las frases). Antes llevaban el riel con las historias a la
+ * izquierda; desde el rediseño (fase 2) cambiar de historia se hace desde la
+ * cabecera (nav.tsx, que se queda en la misma pantalla), así que esto es solo
+ * el ancho de la hoja. Se conservan los parámetros para no tocar a quien lo usa.
  */
-export async function ConRiel({
-  admin,
-  user,
-  actual,
-  sufijo,
+export function ConRiel({
   children,
 }: {
   admin: SupabaseClient;
@@ -151,18 +154,5 @@ export async function ConRiel({
   sufijo: "/libro" | "/leer" | "/frases";
   children: ReactNode;
 }) {
-  const { panel } = await historiasDelUsuario(admin, user);
-  const historias: HistoriaRiel[] = panel.historias.map((h) => ({
-    id: h.narrador.id,
-    nombre: h.narrador.nombre,
-    rol: h.rol,
-    estado: h.narrador.estado,
-    propia: esPropia(h.narrador),
-  }));
-  return (
-    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
-      <Riel historias={historias} actual={actual} sufijo={sufijo} />
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  );
+  return <div className="pnl-cuerpo mx-auto w-full max-w-4xl px-4 py-8 sm:px-8 md:py-12">{children}</div>;
 }

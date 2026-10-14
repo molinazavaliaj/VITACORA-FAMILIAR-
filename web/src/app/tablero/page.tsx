@@ -2,40 +2,32 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiasDelUsuario, type Historia } from "@/lib/panel";
-import { proximoPaso, viajeDe, type Resumen } from "./proximo-paso";
-import { BannerAlertaSilencio } from "./acciones";
+import { historiasDelUsuario, type Historia } from "@/lib/panel";
+import { viajeDe, type Resumen } from "./proximo-paso";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
 import { entrevistaV3 } from "@/lib/v3";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { regionDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion } from "@/lib/regalo-textos";
-import {
-  BarraProgreso,
-  Contenedor,
-  estadoEnHumano,
-  tituloHistoria,
-  EstadoError,
-  Etiqueta,
-  ProximoPaso,
-  Tarjeta,
-  Titulo,
-  TOTAL_PREGUNTAS_BASE,
-  formatearDuracion,
-} from "./ui";
+import { PANEL, idiomaDelTrato } from "../_textos/panel";
+import { leerPedido } from "./_historia/pedido";
+import { LibroDelEstante, type Extra } from "./_historia/estante";
+import { primerNombre } from "./momento";
+import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Titulo, TOTAL_PREGUNTAS_BASE, formatearDuracion } from "./ui";
 
-// Inicio (docs/panel-usuario.md §4): una tarjeta por historia con su estado,
-// su progreso, UN solo próximo paso, y el dato emocional de cuánta voz hay
-// guardada. Las historias donde es invitada van después, marcadas.
+// Inicio (docs/panel-usuario.md §4). Rediseño 2026-10 (fase 2): un estante.
+// Cada historia es su libro —la tapa de verdad, con la foto y el nombre—, con
+// cómo va, su línea de tiempo y UN solo próximo paso. Las historias donde es
+// invitada van después, marcadas.
 
 async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
   h: Historia,
-): Promise<Resumen> {
+): Promise<Resumen & Extra> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
-  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes, v3] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes, v3, { data: fila }, pedido] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
@@ -48,6 +40,10 @@ async function resumirHistoria(
     // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
     // No depende de nada de arriba: va en la misma ronda (RENDIMIENTO.md §3.4).
     viaje ? false : entrevistaV3(admin, narradorId).then((e) => e !== null, () => false),
+    // La tapa (la foto y el título que eligieron) y si ya lo encargaron: también en la misma ronda.
+    admin.from("narradores").select("libro_aprobado_at, edicion").eq("id", narradorId).maybeSingle(),
+    // Lo comprado, para la línea de tiempo (nunca rechaza).
+    leerPedido(admin, h.narrador),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
@@ -64,7 +60,19 @@ async function resumirHistoria(
         TOTAL_PREGUNTAS_BASE,
       );
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
-  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
+  const f = (fila as { libro_aprobado_at?: string | null; edicion?: { portadaFotoId?: string | null; titulo?: string } | null } | null) ?? {};
+  return {
+    respondidas: ordenes.size,
+    total,
+    segundos,
+    tieneAnticipo,
+    v3,
+    dudasPendientes,
+    aprobado: Boolean(f.libro_aprobado_at),
+    portadaFotoId: f.edicion?.portadaFotoId ?? null,
+    titulo: f.edicion?.titulo?.trim() || null,
+    pedido,
+  };
 }
 
 export default async function Inicio() {
@@ -78,19 +86,22 @@ export default async function Inicio() {
     return <EstadoError />;
   }
 
+  const tratoFamilia = tratoDeRegion(panel.familia?.region === "ES" ? "ES" : "AR");
+  const hola = primerNombre(panel.familia?.nombre);
+
   if (panel.historias.length === 0) {
     return (
-      <Contenedor>
+      <Contenedor ancho="max-w-[1040px]">
         <Etiqueta>Inicio</Etiqueta>
         <div className="mt-3">
           <Titulo>Todavía no hay ninguna historia</Titulo>
         </div>
-        <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-[var(--texto-suave)] font-light">
+        <p className="pnl-parrafo mt-4 max-w-lg">
           {panel.familia?.region === "ES"
             ? "Cuando compres el libro de alguien de tu familia, su historia aparece aquí."
             : "Cuando compres el libro de alguien de tu familia, su historia aparece acá."}
         </p>
-        <div className="mt-8">
+        <div className="mt-8 max-w-lg">
           <ProximoPaso href="/comprar">Empezar una historia</ProximoPaso>
         </div>
       </Contenedor>
@@ -109,74 +120,30 @@ export default async function Inicio() {
     ),
   ]);
   const segundosTotales = resumenes.reduce((acc, r) => acc + r.segundos, 0);
+  const T = PANEL[idiomaDelTrato(tratoFamilia)];
 
   return (
-    <Contenedor>
-      <Etiqueta>Inicio</Etiqueta>
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-        <Titulo>{panel.historias.length === 1 ? "Tu historia" : "Tus historias"}</Titulo>
+    <Contenedor ancho="max-w-[1040px]">
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+        <h1 className="pnl-titular">
+          {hola ? <span className="block italic text-[var(--texto-suave)]">{T.hola(hola)}</span> : null}
+          {panel.historias.length === 1 ? "Tu historia" : "Tus historias"}
+        </h1>
         {segundosTotales > 0 ? (
-          <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosTotales)}</span> de su voz
-            guardadas
+          <p className="pnl-dato pb-2">
+            <span className="text-[var(--texto)]">{formatearDuracion(segundosTotales)}</span> de su voz guardadas
           </p>
         ) : null}
       </div>
 
-      <div className="mt-8 flex flex-col gap-6">
-        {panel.historias.map((h, i) => {
-          const r = resumenes[i];
-          const paso = proximoPaso(h, r, regiones[i]);
-          const trato = tratoDeRegion(regiones[i]);
-          const n = h.narrador;
-          return (
-            <Tarjeta key={n.id}>
-              {n.alerta_silencio && h.rol === "duena" ? (
-                <div className="mb-5">
-                  <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={trato} />
-                </div>
-              ) : null}
+      <ol className="pnl-entra mt-10 flex flex-col md:mt-14">
+        {panel.historias.map((h, i) => (
+          <LibroDelEstante key={h.narrador.id} h={h} r={resumenes[i]} region={regiones[i]} />
+        ))}
+      </ol>
 
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Etiqueta>{h.rol === "invitado" ? (viajeDe(h) ? "Te invitaron a este viaje" : "Te invitaron a esta historia") : h.rol === "visitante" ? "Lo guardaste" : viajeDe(h) ? "Vitácora de viaje" : "Historia"}</Etiqueta>
-                  <Link href={`/tablero/${n.id}`} className="mt-1 block">
-                    <Titulo nivel={2}>{viajeDe(h) ? (h.rol === "duena" ? "Tu viaje" : `El viaje de ${n.nombre}`) : tituloHistoria(n.nombre, esPropia(n))}</Titulo>
-                  </Link>
-                  <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-                    {estadoEnHumano(n.estado, esPropia(n), trato)}
-                  </p>
-                </div>
-                {r.segundos > 0 ? (
-                  <p className="shrink-0 text-right text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
-                    {formatearDuracion(r.segundos)}
-                    <br />
-                    <span className="text-[11px] uppercase [letter-spacing:0.2em]">{esPropia(n) ? "de tu voz" : "de su voz"}</span>
-                  </p>
-                ) : null}
-              </div>
-
-              {r.v3 ? null : (
-                <div className="mt-5">
-                  <BarraProgreso respondidas={r.respondidas} total={r.total} />
-                </div>
-              )}
-
-              {paso ? (
-                <div className="mt-5">
-                  <ProximoPaso href={paso.href}>{paso.texto}</ProximoPaso>
-                </div>
-              ) : null}
-            </Tarjeta>
-          );
-        })}
-      </div>
-
-      <div className="mt-10">
-        <Link
-          href="/comprar"
-          className="text-[15px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]"
-        >
+      <div className="border-t border-[var(--linea)] pt-8">
+        <Link href="/comprar" className="pnl-boton pnl-boton--hilo">
           + Empezar otra historia
         </Link>
       </div>

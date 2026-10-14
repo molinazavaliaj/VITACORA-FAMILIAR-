@@ -1,23 +1,25 @@
-import { Cargando, Hueso, TarjetaHueca } from "./esqueleto";
+import { Cargando, Hueso } from "./esqueleto";
 
 // Mientras carga el Inicio (RENDIMIENTO.md §3.1): el cascarón ya está pintado
-// por el layout; acá va la forma de la página — etiqueta, título y una tarjeta
-// por historia — para que el clic responda al instante.
+// por el layout; acá va la forma de la página —el saludo y un libro por
+// historia, con su tapa al lado— para que el clic responda al instante.
 
 export default function CargandoInicio() {
   return (
-    <Cargando className="mx-auto w-full max-w-3xl px-6 py-10 md:px-10 md:py-14">
-      <Hueso className="h-3 w-16" />
-      <Hueso className="mt-4 h-9 w-56 md:h-10" />
-      <div className="mt-8 flex flex-col gap-6">
+    <Cargando className="mx-auto w-full max-w-[1040px] px-4 pb-16 pt-8 sm:px-8 md:pt-14">
+      <Hueso className="h-10 w-64 md:h-14" />
+      <Hueso className="mt-4 h-4 w-48" />
+      <div className="mt-12 flex flex-col">
         {[0, 1].map((i) => (
-          <TarjetaHueca key={i}>
-            <Hueso className="h-3 w-24" />
-            <Hueso className="mt-3 h-7 w-64 max-w-full" />
-            <Hueso className="mt-3 h-4 w-48 max-w-full" />
-            <Hueso className="mt-6 h-2 w-full rounded-full" />
-            <Hueso className="mt-6 h-11 w-44 rounded-full" />
-          </TarjetaHueca>
+          <div key={i} className="flex gap-6 border-t border-[var(--linea)] py-8 sm:gap-10">
+            <Hueso className="aspect-[148/210] w-[84px] shrink-0 rounded-[2px] sm:w-[120px]" />
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <Hueso className="h-7 w-64 max-w-full" />
+              <Hueso className="h-4 w-48 max-w-full" />
+              <Hueso className="mt-4 h-[2px] w-full" />
+              <Hueso className="mt-4 h-11 w-56 max-w-full rounded-full" />
+            </div>
+          </div>
         ))}
       </div>
     </Cargando>

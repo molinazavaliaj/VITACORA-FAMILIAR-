@@ -71,7 +71,13 @@ export function HistoriaViaje({
   ritmo,
   evitar,
   horario,
+  enMarco = false,
 }: {
+  /**
+   * Rediseño 2026-10 (fase 2): adentro del marco nuevo (MarcoHistoria), que trae la cabecera y el
+   * lateral (la familia, tu pedido con el cierre anticipado). Acá quedan las etapas, sin riel ni título.
+   */
+  enMarco?: boolean;
   n: NarradorViaje;
   rol: Rol;
   viaje: Viaje;
@@ -143,10 +149,30 @@ export function HistoriaViaje({
   else if (Date.parse(`${viaje.salida}T00:00:00Z`) > Date.now()) estadoLinea = `${duena ? "Salís" : "Sale"} el ${fechaLarga(viaje.salida)}. ${noches} ${noches === 1 ? "noche" : "noches"} de viaje.`;
   else estadoLinea = duena ? "Ya volviste. El biógrafo te hace la última pregunta." : "Ya volvió. El biógrafo le hace la última pregunta.";
 
-  return (
-    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
-      <Riel historias={historiasRiel} actual={n.id} capitulos={capitulosRiel} respondidas={contadas} total={noches} segundosDeVoz={segundosDeVoz} />
+  const acciones = (
+    <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
+      {/* En el marco, subir fotos va en «Sus fotos», en el lateral. */}
+      {enMarco ? null : puedeAgregarFotos ? (
+        <SubirFoto narradorId={n.id} capitulos={etapasParaFotos} variante="barra">
+          <IconoFoto />
+          Agregar fotos
+        </SubirFoto>
+      ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
+        <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
+          <IconoFoto />
+          Agregar fotos
+        </span>
+      ) : null}
+      {PUEDE.invitar(rol) && !enMarco ? (
+        <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} />
+        </span>
+      ) : null}
+      {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={duena} /> : null}
+    </div>
+  );
 
+  const contenido = (
       <div className="min-w-0 flex-1">
         {n.alerta_silencio && duena ? (
           <div className="mb-8">
@@ -155,6 +181,16 @@ export function HistoriaViaje({
         ) : null}
 
         {/* ── Cabecera ──────────────────────────────────────────────────── */}
+        {enMarco ? (
+          <div className="flex flex-col gap-4">
+            {/* El estado ya lo dice la cabecera del marco: acá, las fechas y dónde está hoy. */}
+            <p className="pnl-dato">
+              Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)}
+              {cerrado || !arranco ? "" : ` · ${estadoLinea}`}
+            </p>
+            {acciones}
+          </div>
+        ) : (
         <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 md:pr-14">
           <div className="min-w-0">
             <Etiqueta>{rol === "invitado" ? "Te invitaron a este viaje" : "Vitácora de viaje"}</Etiqueta>
@@ -165,30 +201,13 @@ export function HistoriaViaje({
               Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)} · {estadoLinea}
             </p>
           </div>
-          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
-            {puedeAgregarFotos ? (
-              <SubirFoto narradorId={n.id} capitulos={etapasParaFotos} variante="barra">
-                <IconoFoto />
-                Agregar fotos
-              </SubirFoto>
-            ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-              <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
-                <IconoFoto />
-                Agregar fotos
-              </span>
-            ) : null}
-            {PUEDE.invitar(rol) ? (
-              <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
-                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} />
-              </span>
-            ) : null}
-            {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={duena} /> : null}
-          </div>
+          {acciones}
         </header>
+        )}
 
-        {/* ── En el celular: progreso + las etapas en pastillas ───────────── */}
-        <div className="mt-6 lg:hidden">
-          <div className="flex items-end justify-between gap-4">
+        {/* ── En el celular: progreso + las etapas en pastillas (en el marco, siempre: no hay riel) ── */}
+        <div className={enMarco ? "mt-6" : "mt-6 lg:hidden"}>
+          <div className={`flex items-end justify-between gap-4 ${enMarco ? "hidden" : ""}`}>
             <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">{contadas} de {noches} noches contadas</p>
             {segundosDeVoz > 0 ? (
               <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
@@ -196,10 +215,12 @@ export function HistoriaViaje({
               </p>
             ) : null}
           </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--hueco)]">
-            <div className="h-full rounded-full bg-[var(--texto)]" style={{ width: `${noches > 0 ? Math.min(100, Math.round((contadas / noches) * 100)) : 0}%` }} />
-          </div>
-          <nav aria-label="Etapas" className="-mx-6 mt-5 overflow-x-auto px-6 md:mx-0 md:px-0">
+          {enMarco ? null : (
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--hueco)]">
+              <div className="h-full rounded-full bg-[var(--texto)]" style={{ width: `${noches > 0 ? Math.min(100, Math.round((contadas / noches) * 100)) : 0}%` }} />
+            </div>
+          )}
+          <nav aria-label="Etapas" className={`-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 ${enMarco ? "" : "mt-5"}`}>
             <ol className="flex gap-2 pb-1">
               {capitulosRiel.map((cap, i) => {
                 const completo = cap.total > 0 && cap.contestadas === cap.total;
@@ -252,7 +273,7 @@ export function HistoriaViaje({
               <section key={cap.nombre} id={`etapa-${i}`} aria-labelledby={`etapa-titulo-${i}`} className="scroll-mt-20">
                 <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-[var(--texto)] pb-4">
                   <div className="flex min-w-0 items-baseline gap-3">
-                    <span aria-hidden className="text-3xl leading-none text-[var(--linea-fuerte)] [font-family:var(--fuente-titulo)] tabular-nums">
+                    <span aria-hidden className="pnl-num text-3xl leading-none">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="min-w-0">
@@ -343,12 +364,19 @@ export function HistoriaViaje({
           </section>
         ) : null}
 
-        {puedeCerrarAnticipado ? (
+        {puedeCerrarAnticipado && !enMarco ? (
           <div className="mt-8">
             <CierreAnticipado narradorId={n.id} />
           </div>
         ) : null}
       </div>
+  );
+
+  if (enMarco) return contenido;
+  return (
+    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
+      <Riel historias={historiasRiel} actual={n.id} capitulos={capitulosRiel} respondidas={contadas} total={noches} segundosDeVoz={segundosDeVoz} />
+      {contenido}
     </div>
   );
 }

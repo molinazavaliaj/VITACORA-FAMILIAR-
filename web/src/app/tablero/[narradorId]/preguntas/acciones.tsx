@@ -137,8 +137,8 @@ function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archiv
 // ── editar / sacar / reordenar (solo dueña) ────────────────────────────
 
 export function EditorGuion({
-  narradorId, futuras, puedeEditar, puedeSaltar, capitulo, trato = "vos",
-}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string; trato?: TratoComprador }) {
+  narradorId, futuras, puedeEditar, puedeSaltar, capitulo, trato = "vos", ella = false,
+}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string; trato?: TratoComprador; /** La que cuenta es mujer (contexto.genero): «ella», no «él». */ ella?: boolean }) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
@@ -222,7 +222,7 @@ export function EditorGuion({
           p.tipo === "familia" ? "la sumó la familia" : null,
           p.tipo === "sugerida" ? "sugerida por el biógrafo" : null,
           p.foto_id ? "con foto" : null,
-          esAdaptativa ? "la escribe el biógrafo con lo que él haya contado" : null,
+          esAdaptativa ? `la escribe el biógrafo con lo que ${ella ? "ella" : "él"} haya contado` : null,
         ].filter(Boolean).join(" · ");
         return (
           <li
@@ -415,7 +415,7 @@ export function AgregarPregunta({
 
 type Sugerida = { texto: string; capitulo: string };
 
-export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato = "vos" }: { narradorId: string; lugarLibre: number; propia?: boolean; trato?: TratoComprador }) {
+export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato = "vos", ella = false }: { narradorId: string; lugarLibre: number; propia?: boolean; trato?: TratoComprador; /** La que cuenta es mujer (contexto.genero). */ ella?: boolean }) {
   const tu = trato === "tu";
   const router = useRouter();
   const [sugeridas, setSugeridas] = useState<Sugerida[] | null>(null);
@@ -481,7 +481,7 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato
               ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.")
               : pidiendo
                 ? `El biógrafo está releyendo todo lo que ${propia ? "contaste" : "contó"}. Tarda medio minuto.`
-                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : "él contó"} hasta hoy. ${tu ? "Tú eliges" : "Vos elegís"} cuáles entran.`}
+                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : ella ? "ella contó" : "él contó"} hasta hoy. ${tu ? "Tú eliges" : "Vos elegís"} cuáles entran.`}
           </span>
         </span>
       </button>
