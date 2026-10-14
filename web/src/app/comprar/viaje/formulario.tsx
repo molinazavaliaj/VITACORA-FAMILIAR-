@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { COMPANIAS, PROPOSITOS, ANGULOS, ETAPAS_MAXIMO } from "@/lib/viaje";
 import { armarCompra, type Catalogo } from "@/lib/productos";
-import { regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
+import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { ZONAS } from "@/lib/horario";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../../_ui";
 import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
@@ -343,7 +343,7 @@ export function CheckoutViaje({
                 </div>
                 <p className="text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
                   {V.legalAntes}
-                  <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">
+                  <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">
                     {T.terminos}
                   </a>
                   {V.legalDespues} {V.garantia}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { IdiomaWeb } from "@/lib/idioma-web";
+import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
@@ -295,7 +295,7 @@ export function FormularioRegalo({
             </div>
             <p className="mt-4 text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
               {T.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")}{" "}
-              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
+              <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
             </p>
           </form>
         )}

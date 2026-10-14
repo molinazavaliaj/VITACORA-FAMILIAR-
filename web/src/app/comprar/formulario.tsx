@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ahorroDelPack, armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
-import { regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
+import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO } from "@/lib/regalo-reglas";
 import { nombreDePila } from "@/lib/como-le-dicen";
 import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
@@ -575,7 +575,7 @@ export function Checkout({
                 </div>
                 <p className="text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
                   {T.legalAntes}
-                  <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">
+                  <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">
                     {T.terminos}
                   </a>
                   {T.legalDespues} {yo ? T.garantiaPropia : T.garantiaFamiliar}
