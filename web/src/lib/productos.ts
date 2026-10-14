@@ -88,11 +88,13 @@ export function catalogo(region: Region): Catalogo {
     viaje: obtenerPrecioViaje(region),
     impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
     marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
-    pack: impreso === null || marco === null ? null : precioDePack(precioDeEntorno("PRECIO_PACK", region)),
+    pack: impreso === null || marco === null ? null : precioDePack(precioDeEntorno("PRECIO_PACK", region), monto + impreso),
   };
 }
 
-const precioDePack = (precio: number | null) => (precio === null ? null : { precio });
+// Un pack que no cubre ni el libro impreso solo es un error de carga (p. ej.
+// `10.9` en vez de `109` en Vercel): se ignora y se cobra la suma, nunca de menos.
+const precioDePack = (precio: number | null, piso: number) => (precio === null || precio <= piso ? null : { precio });
 
 /**
  * Lo que se ahorra con el pack (base + impreso + marco sueltos, menos el

@@ -153,6 +153,13 @@ describe("productosDelPedido — lee pedidos viejos y nuevos", () => {
 // el PDF, el primer impreso y el primer marco por el precio del pack. Lo cobra
 // el servidor con la misma cuenta; el cliente solo manda cantidades.
 describe("pack el regalo completo", () => {
+  it("un pack mal cargado que no cubre ni el impreso se ignora y se cobra la suma", () => {
+    process.env.PRECIO_PACK_EUR = "10.9";
+    const c = calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 });
+    expect(lineas(c).some(([id]) => id === "pack")).toBe(false);
+    expect(c.total).toBeGreaterThan(99);
+  });
+
   it("con PRECIO_PACK_EUR el servidor cobra el pack en una sola línea, y manda lo mismo que sueltos", () => {
     process.env.PRECIO_PACK_EUR = "109";
     const c = calcularCompra("ES", { base: "pdf", impresos: 1, marcos: 1 });
