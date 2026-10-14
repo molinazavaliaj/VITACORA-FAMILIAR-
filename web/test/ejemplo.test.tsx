@@ -51,7 +51,10 @@ describe("el libro de ejemplo", () => {
     const html = ejemplo("es");
     expect(html).toContain('aria-label="Página anterior"');
     expect(html).toContain('aria-label="Página siguiente"');
-    expect(html).toContain("libro-osvaldo-portada.jpg");
+    // La tapa es la del libro 3D: la foto del atlas, con el QR de la contratapa.
+    expect(html).toContain("libro-tapa-foto.jpg");
+    expect(html).toContain("Escucha su voz");
+    expect(html).toContain("Osvaldo Toroide · El libro de su vida");
     expect(html).toContain(escapar("1 de 5 · Portada"));
   });
 });

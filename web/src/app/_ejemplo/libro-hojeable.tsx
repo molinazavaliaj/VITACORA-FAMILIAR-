@@ -11,6 +11,10 @@ import type { TextosEjemplo } from "../_textos/ejemplo";
 // 700 ms) y con «menos movimiento» el cambio es instantáneo (regla global de
 // globals.css). Las dos vistas están en el HTML y el CSS elige cuál se ve:
 // nada depende de medir la pantalla al pintar (sin saltos de diseño).
+//
+// La tapa y la contratapa llegan ya pintadas del servidor (`tapa`,
+// `contratapa`: el libro 3D del prototipo, quieto); las páginas de adentro son
+// del mismo papel que ese libro (ejemplo.css).
 
 type Libro = TextosEjemplo["libro"];
 
@@ -32,13 +36,19 @@ const ONDA = [10, 18, 28, 14, 24, 32, 16, 12, 26, 30, 14, 20, 28, 10, 22, 30, 16
 export function LibroHojeable({
   libro,
   fotos,
+  tapa,
+  contratapa,
   anterior,
   siguiente,
   posicionesPliegos,
   posicionesPaginas,
 }: {
   libro: Libro;
-  fotos: { portada: string; contraportada: string; juventud: string };
+  fotos: { juventud: string };
+  /** La tapa, ya armada en el servidor (el libro 3D de frente). */
+  tapa: ReactNode;
+  /** La contratapa, igual (el libro 3D de espaldas, con el QR). */
+  contratapa: ReactNode;
   anterior: string;
   siguiente: string;
   /** «1 de 5 · Portada», ya armado en el servidor, uno por pliego. */
@@ -96,13 +106,13 @@ export function LibroHojeable({
       >
         {/* Escritorio: el libro abierto, dos páginas. */}
         <div aria-live="polite" className="relative mx-auto hidden w-[860px] justify-center pb-10 lg:flex">
-          <span aria-hidden className="absolute bottom-2 left-1/2 h-[60px] w-[900px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,.65),rgba(0,0,0,0)_70%)] blur-[6px]" />
+          <span aria-hidden className="absolute bottom-2 left-1/2 h-[60px] w-[900px] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(52,40,24,.32),rgba(52,40,24,0)_70%)] blur-[6px]" />
           <div className="relative flex [transform:rotateX(9deg)] [transform-style:preserve-3d]">
             <div key={`i-${pliego}`} className={`m-hoja-izq relative w-[420px] ${claseIzq}`}>
-              <Pagina n={PLIEGOS[pliego][0]} lado="izq" libro={libro} fotos={fotos} />
+              <Pagina n={PLIEGOS[pliego][0]} lado="izq" libro={libro} fotos={fotos} tapa={tapa} contratapa={contratapa} />
             </div>
             <div key={`d-${pliego}`} className={`m-hoja-der relative w-[420px] ${claseDer}`}>
-              <Pagina n={PLIEGOS[pliego][1]} lado="der" libro={libro} fotos={fotos} />
+              <Pagina n={PLIEGOS[pliego][1]} lado="der" libro={libro} fotos={fotos} tapa={tapa} contratapa={contratapa} />
             </div>
             {PLIEGOS[pliego][0] !== null && PLIEGOS[pliego][1] !== null ? (
               <span
@@ -116,7 +126,7 @@ export function LibroHojeable({
         {/* Teléfono: una página que ocupa el ancho. */}
         <div aria-live="polite" className="mx-auto w-full max-w-[350px] lg:hidden">
           <div key={`m-${pagina}`} className={`m-hoja-der ${sentido === -1 ? "m-pasa-izq" : sentido === 1 ? "m-pasa-der" : ""}`}>
-            <Pagina n={pagina} lado={pagina === 7 ? "izq" : "der"} libro={libro} fotos={fotos} />
+            <Pagina n={pagina} lado={pagina === 7 ? "izq" : "der"} libro={libro} fotos={fotos} tapa={tapa} contratapa={contratapa} />
           </div>
         </div>
       </div>
@@ -194,16 +204,12 @@ function Puntos({
 
 // Las letras van en unidades del contenedor (cqw): la página es la misma a
 // 420 px en escritorio y a 350 en el teléfono, y todo escala junto.
-const PAPEL_IZQ =
-  "bg-[linear-gradient(90deg,#f1eadc_0%,#f3ece0_88%,#e6dccb_100%)] rounded-l-[4px] shadow-[-1px_0_0_#e9e0cf,-2px_1px_0_#cfc2aa,-3px_1px_0_#e9e0cf,-4px_2px_0_#cfc2aa,-5px_2px_0_#e9e0cf,-6px_3px_0_#cfc2aa]";
-const PAPEL_DER =
-  "bg-[linear-gradient(90deg,#e3d8c5_0%,#efe7d8_10%,#f3ece0_100%)] rounded-r-[4px] shadow-[1px_0_0_#e9e0cf,2px_1px_0_#cfc2aa,3px_1px_0_#e9e0cf,4px_2px_0_#cfc2aa,5px_2px_0_#e9e0cf,6px_3px_0_#cfc2aa]";
 
 // El papel es el contenedor (cqw); el contenido va en una capa adentro, así
 // los márgenes en cqw se miden contra la página y no contra la pantalla.
 function Papel({ lado, className, children }: { lado: "izq" | "der"; className: string; children: ReactNode }) {
   return (
-    <div className={`relative aspect-[420/580] w-full text-[#2a2620] [container-type:inline-size] ${lado === "izq" ? PAPEL_IZQ : PAPEL_DER}`}>
+    <div className={`ejm-papel relative aspect-[420/580] w-full [container-type:inline-size] ${lado === "izq" ? "ejm-papel--izq" : "ejm-papel--der"}`}>
       <div className={`absolute inset-0 flex flex-col overflow-hidden px-[11.4cqw] pb-[9.5cqw] pt-[12.9cqw] ${className}`}>{children}</div>
     </div>
   );
@@ -214,37 +220,21 @@ function Pagina({
   lado,
   libro,
   fotos,
+  tapa,
+  contratapa,
 }: {
   n: number | null;
   lado: "izq" | "der";
   libro: Libro;
-  fotos: { portada: string; contraportada: string; juventud: string };
+  fotos: { juventud: string };
+  tapa: ReactNode;
+  contratapa: ReactNode;
 }) {
   const marco = "relative aspect-[420/580] w-full [container-type:inline-size]";
   if (n === null) return <div aria-hidden className={marco} />;
 
-  if (n === 0 || n === 7) {
-    const tapa = n === 0;
-    return (
-      <div className={`${marco} overflow-hidden ${tapa ? "rounded-[3px_7px_7px_3px]" : "rounded-[7px_3px_3px_7px]"} shadow-[0_18px_40px_rgba(0,0,0,0.5)]`}>
-        <Image
-          src={tapa ? fotos.portada : fotos.contraportada}
-          alt={tapa ? libro.altPortada : libro.altContraportada}
-          fill
-          sizes="(min-width: 1024px) 420px, 350px"
-          className="object-cover"
-        />
-        <span
-          aria-hidden
-          className={`absolute inset-y-0 w-[6%] ${
-            tapa
-              ? "left-0 bg-[linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.15)_40%,rgba(255,255,255,.12)_55%,rgba(0,0,0,0)_100%)]"
-              : "right-0 bg-[linear-gradient(270deg,rgba(0,0,0,.55),rgba(0,0,0,.15)_40%,rgba(0,0,0,0)_100%)]"
-          }`}
-        />
-      </div>
-    );
-  }
+  // Cerrado, en escritorio el libro va al centro (sobre el lomo), no en su mitad del pliego.
+  if (n === 0 || n === 7) return <div className={`${marco} ${n === 0 ? "lg:-translate-x-1/2" : "lg:translate-x-1/2"}`}>{n === 0 ? tapa : contratapa}</div>;
 
   const folio = (numero: number) => (
     <span
@@ -292,7 +282,7 @@ function Pagina({
   if (n === 3)
     return (
       <Papel lado={lado} className="justify-between">
-        <span className={etiqueta}>{libro.capitulo}</span>
+        <span className="ejm-cap-numero text-[5.2cqw]">{libro.capitulo}</span>
         <div className="flex flex-col gap-[5.2cqw]">
           <span className="text-[12.9cqw] font-medium leading-none [font-family:var(--fuente-titulo)]">{libro.tituloCapitulo}</span>
           <span aria-hidden className="h-px w-[11.4cqw] bg-[#8a7350]" />
@@ -327,14 +317,14 @@ function Pagina({
   if (n === 5)
     return (
       <Papel lado={lado} className="items-center gap-[3.8cqw] pt-[10.5cqw]!">
-        <div className="w-[71%] -rotate-[1.5deg] bg-[#fbf8f1] p-[2.9cqw] pb-[8cqw] shadow-[0_6px_14px_rgba(60,40,20,.18)]">
+        <div className="ejm-foto w-[71%] -rotate-[1.5deg] bg-[#fbf8f1] p-[2.9cqw] pb-[8cqw] shadow-[0_6px_14px_rgba(60,40,20,.18)]">
           <Image
             src={fotos.juventud}
             alt={libro.altFoto}
             width={700}
             height={870}
             sizes="(min-width: 1024px) 300px, 250px"
-            className="aspect-[4/5] h-auto w-full object-cover [filter:sepia(.15)_contrast(1.03)]"
+            className="aspect-[4/5] h-auto w-full object-cover"
           />
         </div>
         <span className="text-center text-[3.1cqw] italic leading-[1.45] text-[#5c5446]">{libro.pieFoto}</span>

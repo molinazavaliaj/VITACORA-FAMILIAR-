@@ -38,8 +38,9 @@
   font-family: var(--fuente-cuerpo), Georgia, serif;
 }
 
-/* El foco del tema (antes lo daba .tema-oscuro): tinta, separado 2 px. */
-.chk :focus-visible { outline: 2px solid var(--acento-oscuro); outline-offset: 2px; }
+/* El foco del tema (antes lo daba .tema-oscuro): tinta, separado 2 px. El
+   título del paso recibe el foco por código (tabindex=-1) y no lo dibuja. */
+.chk :focus-visible:not([tabindex="-1"]) { outline: 2px solid var(--acento-oscuro); outline-offset: 2px; }
 .chk-cabecera :focus-visible { outline-color: var(--dir-sobre-tinta); }
 
 /* La cabecera: tinta con trama de tela. Abajo deja 14 px más para que la
@@ -211,3 +212,13 @@
 
 /* El aviso del pago que no se cobró, en papel. */
 .chk-aviso { border: 1px solid rgba(154, 52, 18, 0.35); background: rgba(154, 52, 18, 0.06); border-radius: 6px; }
+
+/* Las pistas de los campos en cursiva de la letra del cuerpo: se distinguen
+   de un valor ya escrito sin bajar el contraste. */
+.chk input::placeholder,
+.chk textarea::placeholder {
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  font-style: italic;
+  color: #6f6a60;
+  opacity: 1;
+}
