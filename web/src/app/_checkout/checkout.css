@@ -254,3 +254,165 @@
   .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
   .chk-solo-escritorio { display: none; }
 }
+
+/* ── Las opciones del paso 1 con miniatura, frase y extras adentro (Naza
+   14/10, sobre un checkout de tienda que vende mucho, a nuestra manera). La
+   tarjeta es el contenedor .chk-op: el radio va en su <label>, y los extras de
+   la elegida, debajo, dentro del mismo borde. ── */
+.chk-op {
+  position: relative;
+  border: 1px solid var(--borde-oscuro);
+  border-radius: 6px;
+  transition: border-color var(--d-rapido) var(--ease-out), background-color var(--d-rapido) var(--ease-out);
+}
+.chk-op:has(> label input[name="formato"]:checked) {
+  border-color: var(--texto-oscuro-fuerte);
+  box-shadow: inset 0 0 0 0.5px var(--texto-oscuro-fuerte);
+  background-color: var(--elegido-fondo);
+}
+.chk-op:has(> label input[name="formato"]:focus-visible) { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 2px; }
+@media (hover: hover) {
+  .chk-op:not(:has(> label input[name="formato"]:checked)):hover { border-color: var(--borde-oscuro-fuerte); }
+}
+.chk-op-tarjeta {
+  display: grid;
+  grid-template-columns: 20px 76px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  cursor: pointer;
+}
+.chk-op-tarjeta:active { transform: scale(0.995); }
+.chk-op-tarjeta--cinta { padding-right: 62px; }
+.chk-op-punto {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--punto-vacio);
+  transition: border-width var(--d-rapido) var(--ease-out), border-color var(--d-rapido);
+}
+.chk-op:has(> label input[name="formato"]:checked) .chk-op-punto { border-width: 5.5px; border-color: var(--texto-oscuro-fuerte); }
+.chk-op-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.chk-op-cabeza { font-family: var(--fuente-micro), sans-serif; font-size: 16.5px; font-weight: 600; line-height: 1.3; color: var(--texto-oscuro-fuerte); }
+.chk-op-bajada { font-size: 15.5px; line-height: 1.45; color: var(--texto-oscuro-suave); }
+.chk-op-meta { margin-top: 3px; font-family: var(--fuente-micro), sans-serif; font-size: 12.5px; letter-spacing: 0.01em; color: var(--texto-oscuro-menor); }
+.chk-op-detalle { margin-top: 8px; font-size: 14.5px; line-height: 1.5; color: var(--texto-oscuro-suave); text-wrap: pretty; }
+.chk-op-precio { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; }
+.chk-op-cifra {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--texto-oscuro-fuerte);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.chk-op-tachado { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-oscuro-menor); text-decoration-thickness: 1px; }
+
+/* La cinta de marcapáginas del libro completo: tela de tinta que cuelga del
+   borde de arriba, con la punta cortada en V. */
+.chk-cinta {
+  position: absolute;
+  top: -5px;
+  right: 18px;
+  z-index: 1;
+  width: 28px;
+  padding: 12px 0 20px;
+  background-color: #141413;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 40%, rgba(0, 0, 0, 0.25));
+  color: #f4f0e7;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-align: center;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
+  pointer-events: none;
+}
+/* El pliegue de arriba: donde la cinta sale del lomo, un poco más oscuro. */
+.chk-cinta::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: rgba(0, 0, 0, 0.45); }
+
+/* Las miniaturas: tapa real en 3/4, el marco en arco, una pantalla. */
+.chk-mini { position: relative; display: block; width: 76px; height: 84px; }
+.chk-mini-libro {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  width: 50px;
+  overflow: hidden;
+  border-radius: 1px 3px 3px 1px;
+  transform: perspective(320px) rotateY(-20deg);
+  transform-origin: left center;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.12), 7px 9px 14px -7px rgba(30, 24, 14, 0.5);
+}
+.chk-mini--pack .chk-mini-libro { left: 2px; }
+.chk .chk-mini-marco { position: absolute; right: 2px; bottom: 0; width: 32px; }
+.chk .chk-mini-marco::before { inset: -3px; }
+.chk-mini--pantalla .chk-mini-pantalla {
+  position: absolute;
+  top: 5px;
+  left: 13px;
+  width: 52px;
+  height: 74px;
+  overflow: hidden;
+  border: 3px solid #1b1a17;
+  border-radius: 7px;
+  background: #1b1a17;
+  box-shadow: 0 8px 14px -8px rgba(30, 24, 14, 0.5);
+}
+.chk-mini--fila { width: 44px; height: 54px; }
+.chk-mini--fila .chk-mini-libro { top: 2px; left: 6px; width: 34px; }
+.chk-mini--fila .chk-mini-marco { right: auto; left: 8px; bottom: 4px; width: 28px; }
+
+/* Los extras de la elegida: filas dentro de la tarjeta, separadas por hilos. */
+.chk-extras { margin: 0 20px; padding: 2px 0 8px; border-top: 1px solid var(--borde-oscuro); }
+.chk-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; padding: 12px 0; }
+.chk-extra + .chk-extra { border-top: 1px solid var(--linea-oscura); }
+.chk-extra-marca {
+  display: grid;
+  flex: 1 1 280px;
+  grid-template-columns: 22px 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.chk-extra-marca:has(:focus-visible) { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 4px; border-radius: 4px; }
+.chk-extra-caja {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--punto-vacio);
+  border-radius: 5px;
+  transition: background-color var(--d-rapido), border-color var(--d-rapido);
+}
+.chk-extra[data-marcado] .chk-extra-caja { border-color: var(--texto-oscuro-fuerte); background: var(--texto-oscuro-fuerte); color: #f4f0e7; }
+.chk-extra-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.chk-extra-titulo { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--texto-oscuro-fuerte); }
+.chk-extra-detalle { font-family: var(--fuente-micro), sans-serif; font-size: 13px; line-height: 1.4; color: var(--texto-oscuro-menor); }
+.chk-extra-precio { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chk-extra-contador { display: flex; align-items: center; gap: 10px; margin-left: 34px; }
+
+/* El ahorro del pack, debajo del total de la ficha. */
+.chk-ahorro { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); }
+
+@media (max-width: 639px) {
+  .chk-op-tarjeta { grid-template-columns: 20px 60px minmax(0, 1fr); gap: 12px 14px; padding: 16px; align-items: start; }
+  .chk-op-tarjeta--cinta { padding-right: 52px; }
+  .chk-op-punto { margin-top: 2px; }
+  .chk-op-precio { grid-column: 3; flex-direction: row-reverse; align-items: baseline; justify-content: flex-end; gap: 10px; }
+  .chk-mini { width: 60px; height: 72px; }
+  .chk-mini-libro { left: 6px; width: 44px; }
+  .chk-mini--pack .chk-mini-libro { left: 0; width: 40px; }
+  .chk .chk-mini--pack .chk-mini-marco { width: 26px; }
+  .chk-mini--pantalla .chk-mini-pantalla { left: 7px; width: 46px; height: 66px; }
+  .chk-extras { margin: 0 16px; }
+  .chk-extra-marca { grid-template-columns: 22px 40px minmax(0, 1fr); }
+  .chk-extra-precio { grid-column: 3; }
+  .chk-mini--fila { width: 40px; height: 50px; }
+}

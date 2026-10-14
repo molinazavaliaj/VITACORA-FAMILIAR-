@@ -9,11 +9,11 @@ import { ZONAS } from "@/lib/horario";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../../_ui";
 import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
 import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
-import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
+import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
 import { CamposDireccion } from "../../_checkout/direccion";
 import { PasosLibro } from "../../_checkout/pasos-libro";
-import { conMarcosParaRegalar, eleccionDe, opcionDe } from "../../_checkout/opciones-libro";
-import { ContadorMarcos, OpcionesLibro } from "../../_checkout/opciones-libro-ui";
+import { eleccionDe } from "../../_checkout/opciones-libro";
+import { OpcionesLibro } from "../../_checkout/opciones-libro-ui";
 import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
 import { formatearPrecio, listaDe } from "../productos-ui";
@@ -192,19 +192,10 @@ export function CheckoutViaje({
               {precio === null ? (
                 <p className="text-[16px] text-[var(--texto-oscuro-suave)]">{V.noDisponible}</p>
               ) : (
-                <OpcionesLibro cat={cat} base={precio} elegida={opcionDe(e)} onElegir={(o) => cambiar(eleccionDe(o, e))}
-                  textos={{ ...V, titulo: V.libroTitulo }} foto="/checkout/marco-viaje.jpg" formatear={f} />
+                <OpcionesLibro cat={cat} base={precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
+                  textos={{ ...T, ...V, titulo: V.libroTitulo, marcoRegaloDetalle: V.marcoRegaloDetalle, frases: undefined }} foto="/checkout/marco-viaje.jpg"
+                  tapa={{ titulo: e.nombre.trim(), idioma: "es" }} formatear={f} />
               )}
-
-              {impreso && cat.impreso?.precioCopia != null ? (
-                <Contador titulo={T.copiasTitulo} detalle={T.cadaUno(f(cat.impreso.precioCopia))} valor={e.copias} onCambio={(n) => cambiar({ copias: n })}
-                  menos={T.unoMenos(T.copiasTitulo)} mas={T.unoMas(T.copiasTitulo)} max={19} />
-              ) : null}
-
-              {precio !== null ? (
-                <ContadorMarcos estado={e} cat={cat} onCambio={(n) => cambiar(conMarcosParaRegalar(e, n))}
-                  titulo={T.marcoRegaloTitulo} detalle={V.marcoRegaloDetalle} textos={T} formatear={f} />
-              ) : null}
 
               <div className="chk-solo-escritorio">
                 <button type="button" disabled={precio === null} onClick={() => seguir(1)} className={`${BOTON_PRIMARIO} disabled:opacity-60`}>

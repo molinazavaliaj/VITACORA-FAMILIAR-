@@ -22,7 +22,7 @@ vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
 import { armarCompra, catalogo } from "@/lib/productos";
 import { conMarcosParaRegalar, contadorDeMarcos, eleccionDe, eleccionInicial, marcosParaRegalar, opcionDe, opcionesDeLibro, precioDeOpcion } from "../src/app/_checkout/opciones-libro";
-import { ContadorMarcos } from "../src/app/_checkout/opciones-libro-ui";
+import { OpcionesLibro } from "../src/app/_checkout/opciones-libro-ui";
 import { idiomaDePrefijo, idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { textosComprador } from "@/lib/regalo-textos";
 import { Checkout } from "../src/app/comprar/formulario";
@@ -112,11 +112,18 @@ describe("/comprar en tres pasos", () => {
     expect(html.match(/name="formato"/g)).toHaveLength(3);
     expect(html.match(/<input(?=[^>]*name="formato")(?=[^>]*checked="")[^>]*>/g)).toHaveLength(1);
     expect(html).toContain(escapar(ES.marcoOpcionTitulo));
-    // La pastilla va en el libro completo: entre su input y su título, y una sola vez.
-    const regalar = html.indexOf(escapar(ES.impresoEtiqueta));
-    expect(regalar).toBeGreaterThan(orden[0]);
-    expect(regalar).toBeLessThan(html.indexOf(escapar(ES.marcoOpcionTitulo)));
-    expect(html.split(escapar(ES.impresoEtiqueta)).length - 1).toBe(1);
+    // «Para regalar» es la cinta del libro completo (y su lectura para lectores de pantalla), solo ahí.
+    const cinta = html.indexOf('class="chk-cinta"');
+    expect(cinta).toBeGreaterThan(0);
+    expect(cinta).toBeLessThan(orden[0]);
+    expect(html.slice(cinta, orden[1])).toContain(escapar(ES.impresoEtiqueta));
+    expect(html.slice(orden[1])).not.toContain(escapar(ES.impresoEtiqueta));
+    // Cada opción con su frase de valor (aprobadas) y su título de siempre.
+    for (const o of ["marco", "impreso", "digital"] as const) {
+      expect(html).toContain(escapar(ES.frases[o].cabeza));
+      expect(html).toContain(escapar(ES.frases[o].bajada));
+    }
+    expect(html).toContain(escapar(ES.impresoTitulo));
     // La tarjeta suelta del marco ya no está: quedó adentro de la primera opción.
     expect(html).not.toContain(escapar(ES.marcoTitulo));
     expect(html).not.toContain('type="checkbox"');
@@ -184,24 +191,58 @@ describe("/comprar en tres pasos", () => {
     // Pasar de la 3 a la 2 deja los mismos marcos para regalar (y saca el incluido), y al revés.
     expect(marcosParaRegalar({ ...dosEnLa3, ...eleccionDe("impreso", dosEnLa3) })).toBe(2);
     expect(marcosParaRegalar({ ...dosEnLa2, ...eleccionDe("marco", dosEnLa2) })).toBe(2);
-    // Lo que se ve: en la 3 (la de entrada) los dos contadores; el precio del marco, como lo cobra el servidor.
+    // Lo que se ve: en la 3 (la de entrada) las dos filas de extras adentro de la opción, sin marcar.
     const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={cat} />);
+    const extras = html.indexOf('class="chk-extras"');
+    expect(extras).toBeGreaterThan(html.indexOf('value="marco"'));
+    expect(extras).toBeLessThan(html.indexOf('value="impreso"'));
     expect(html).toContain(escapar(ES.copiasTitulo));
     expect(html).toContain(escapar(ES.marcoRegaloTitulo));
     expect(html).toContain(escapar(ES.marcoRegaloDetalle));
+    expect(html).toContain('name="copias"');
+    expect(html).toContain('name="marcos"');
+    // Sin marcar no hay contador; marcadas, aparece ahí mismo.
+    expect(html).not.toContain(`aria-label="${escapar(ES.unoMas(ES.marcoRegaloTitulo))}"`);
     const eur = (n: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
-    expect(html).toContain(escapar(ES.cadaUno(eur(15))));
-    const contador = (estado: typeof base) =>
+    const opciones = (estado: typeof base) =>
       renderToStaticMarkup(
-        <ContadorMarcos estado={estado} cat={cat} onCambio={() => {}} titulo={ES.marcoRegaloTitulo} detalle={ES.marcoRegaloDetalle} textos={ES} formatear={eur} />,
+        <OpcionesLibro cat={cat} base={49} estado={estado} onElegir={() => {}} onCambio={() => {}} textos={{ ...ES, titulo: ES.libroTitulo, cinta: ES.impresoEtiqueta }}
+          foto="/checkout/marco.jpg" tapa={{ titulo: "", idioma: "es" }} conPack formatear={eur} />,
       );
-    expect(contador(impreso)).toContain(escapar(ES.primeroYDemas(eur(20), eur(15))));
+    // En la 3, el marco del contador es adicional (+15); en la 2 el primero es +20 y dice cuánto los demás.
+    expect(opciones(dosEnLa3)).toContain(`>${escapar(`+${eur(15)}`)}<`);
+    expect(opciones(dosEnLa3)).toContain(`aria-label="${escapar(ES.unoMas(ES.marcoRegaloTitulo))}"`);
+    const enLa2 = opciones(dosEnLa2);
+    expect(enLa2).toContain(`>${escapar(`+${eur(20)}`)}<`);
+    expect(enLa2).toContain(escapar(ES.primeroYDemas(eur(20), eur(15))));
     expect(ES.primeroYDemas("20 €", "15 €")).toBe("+20 € el primero, +15 € los demás");
-    expect(contador(digital)).toBe("");
+    // Con la digital no hay extras.
+    expect(opciones(digital)).not.toContain('class="chk-extras"');
     // Sin precio adicional, el servidor no cobra un segundo marco: en la 2 se puede uno solo y en la 3 no hay contador.
     delete process.env.PRECIO_MARCO_ADICIONAL_EUR;
     expect(contadorDeMarcos("impreso", catalogo("ES"))).toEqual({ primero: 20, demas: null, max: 1 });
     expect(contadorDeMarcos("marco", catalogo("ES"))).toBeNull();
+  });
+
+  it("el pack (Naza 14/10): el libro completo cuesta el pack, con la suma tachada; el ticket lleva una línea y lo que se ahorra", () => {
+    process.env.PRECIO_PACK_EUR = "109";
+    try {
+      const eur = (n: number) => escapar(new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n));
+      const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
+      expect(html).toContain(`<s class="chk-op-tachado">${eur(119)}</s>`);
+      expect(html).toContain(`<span class="chk-op-cifra">${eur(109)}</span>`);
+      expect(html).toContain(escapar(RESUMEN.es.lineas.pack));
+      expect(html).toContain(escapar(RESUMEN.es.ahorras(new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(10))));
+      // El total del ticket es el del servidor.
+      expect(armarCompra(catalogo("ES"), "ES", carritoDe(estadoInicial("es", catalogo("ES")))).total).toBe(109);
+      // Si el pack no es más barato, no se tacha nada y se cobra la suma.
+      process.env.PRECIO_PACK_EUR = "119";
+      const igual = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
+      expect(igual).not.toContain("chk-op-tachado");
+      expect(igual).not.toContain(escapar(RESUMEN.es.lineas.pack));
+    } finally {
+      delete process.env.PRECIO_PACK_EUR;
+    }
   });
 
   it("con la digital no hay contadores (copias y marcos van solo con impreso)", () => {
@@ -228,7 +269,8 @@ describe("/comprar en tres pasos", () => {
         expect(html).toContain('id="pago-compra"');
         expect(enLaBarra).toContain(escapar(ES.pagar(total)));
       } else {
-        expect(enLaBarra).toContain(`>${escapar(ES.continuar)}<`);
+        // Paso 1: «Quiero su libro» (Naza 14/10); paso 2: «Continuar».
+        expect(enLaBarra).toContain(`>${escapar(paso === 1 ? ES.quieroLibro(false) : ES.continuar)}<`);
       }
       // El botón del paso (el mismo) se esconde en el teléfono, y la página deja lugar para la barra.
       expect(html).toContain("chk-solo-escritorio");

@@ -65,6 +65,8 @@ export type TextosResumen = {
   lineas: Record<LineaId, string>;
   total: string;
   pagoUnico: string;
+  /** Debajo del total, cuando va el pack: lo que se ahorra frente a la suma. PENDIENTE OK de Naza. */
+  ahorras: (cifra: string) => string;
   incluye: (propia: boolean) => string[];
 };
 
@@ -87,6 +89,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
+    ahorras: (c) => `Ahorras ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde tu panel"]
@@ -111,6 +114,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
     pagoUnico: "Un solo pago, sin suscripciones.",
+    ahorras: (c) => `Ahorrás ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde tu panel"]
@@ -134,6 +138,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
+    ahorras: (c) => `Estalvies ${c} amb el pack`, // ca: PENDIENTE REVISIÓN NATIVA
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des del teu panell"]
@@ -179,6 +184,10 @@ export type TextosCheckout = {
   marcoRegaloDetalle: string;
   /** «+20 € el primero, +15 € los demás» (el primero a precio de marco, los demás a precio adicional). */
   primeroYDemas: (primero: string, demas: string) => string;
+  /** Las frases de valor de las opciones del paso 1 (Naza 14/10, APROBADAS en es; ca pendiente nativa). */
+  frases: Record<"marco" | "impreso" | "digital", { cabeza: string; bajada: string }>;
+  /** El botón del paso 1 (Naza 14/10, APROBADO): «Quiero su libro» / «Quiero mi libro». */
+  quieroLibro: (propia: boolean) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
 
@@ -340,6 +349,13 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el móvil se abre su libro, con su voz.",
     // PENDIENTE OK de Naza (14/10).
     primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
+    // APROBADAS por Naza el 14/10.
+    frases: {
+      marco: { cabeza: "El regalo completo", bajada: "Su libro, su voz y su foto en casa" },
+      impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
+      digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -500,6 +516,13 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el celular se abre su libro, con su voz.",
     // PENDIENTE OK de Naza (14/10).
     primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
+    // APROBADAS por Naza el 14/10 (las mismas que en España: no llevan voseo).
+    frases: {
+      marco: { cabeza: "El regalo completo", bajada: "Su libro, su voz y su foto en casa" },
+      impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
+      digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -660,6 +683,13 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoRegaloTitulo: "Marc amb foto i xip NFC",
     marcoRegaloDetalle: "Per regalar als teus familiars. Quan hi acostes el mòbil s'obre el seu llibre, amb la seva veu.",
     primeroYDemas: (a, b) => `+${a} el primer, +${b} els altres`,
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    frases: {
+      marco: { cabeza: "El regal complet", bajada: "El seu llibre, la seva veu i la seva foto a casa" },
+      impreso: { cabeza: "Per a la prestatgeria", bajada: "El seu llibre en paper i en PDF" },
+      digital: { cabeza: "Només digital", bajada: "Per llegir i escoltar a qualsevol pantalla" },
+    },
+    quieroLibro: (propia) => (propia ? "Vull el meu llibre" : "Vull el seu llibre"),
     unoMenos: (q) => `Un menys: ${q}`,
     unoMas: (q) => `Un més: ${q}`,
 

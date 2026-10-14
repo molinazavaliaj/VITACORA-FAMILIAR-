@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
+import { ahorroDelPack, armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
 import { regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO } from "@/lib/regalo-reglas";
 import { nombreDePila } from "@/lib/como-le-dicen";
@@ -13,13 +13,13 @@ import { idiomaDelLibro } from "@/lib/tapa";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
 import { COMPRADOR_WEB } from "../_textos/regalar";
-import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
+import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
 import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
-import { conMarcosParaRegalar, eleccionDe, opcionDe } from "../_checkout/opciones-libro";
-import { ContadorMarcos, OpcionesLibro } from "../_checkout/opciones-libro-ui";
+import { eleccionDe } from "../_checkout/opciones-libro";
+import { OpcionesLibro } from "../_checkout/opciones-libro-ui";
 import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { formatearPrecio, listaDe } from "./productos-ui";
@@ -290,6 +290,9 @@ export function Checkout({
   }
 
   const tachado = promo ? listaDe(compra.total, cat.moneda, region, promo).texto : null;
+  // Si el ticket va con el pack, cuánto se ahorra frente a la suma (calculado del catálogo).
+  const ahorroPack = compra.lineas.some((l) => l.id === "pack") ? ahorroDelPack(cat) : null;
+  const ahorro = ahorroPack === null ? null : f(ahorroPack);
   const nombreVisible = (e.comoLeDicen || nombreDePila(e.nombre)).trim();
   const pideContacto = regalo || e.regalo === false || yo;
 
@@ -320,20 +323,13 @@ export function Checkout({
             <ContenidoPaso key="p1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, 3)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
-              <OpcionesLibro cat={cat} base={cat.base.precio} elegida={opcionDe(e)} onElegir={(o) => cambiar(eleccionDe(o, e))}
-                textos={{ ...T, titulo: T.libroTitulo }} foto="/checkout/marco.jpg" etiquetaMarco={<Etiqueta rellena>{T.impresoEtiqueta}</Etiqueta>} formatear={f} />
-
-              {e.formato === "impreso" && cat.impreso?.precioCopia != null ? (
-                <Contador titulo={T.copiasTitulo} detalle={T.cadaUno(f(cat.impreso.precioCopia))} valor={e.copias} onCambio={(n) => cambiar({ copias: n })}
-                  menos={T.unoMenos(T.copiasTitulo)} mas={T.unoMas(T.copiasTitulo)} max={19} />
-              ) : null}
-
-              <ContadorMarcos estado={e} cat={cat} onCambio={(n) => cambiar(conMarcosParaRegalar(e, n))}
-                titulo={T.marcoRegaloTitulo} detalle={T.marcoRegaloDetalle} textos={T} formatear={f} />
+              <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
+                textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }} foto="/checkout/marco.jpg"
+                tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack formatear={f} />
 
               <div className="chk-solo-escritorio">
                 <button type="button" onClick={() => seguir(1)} className={BOTON_PRIMARIO}>
-                  {T.continuar}
+                  {T.quieroLibro(yo)}
                 </button>
               </div>
             </ContenidoPaso>
@@ -594,7 +590,7 @@ export function Checkout({
           )}
         </div>
 
-        <Resumen compra={compra} region={region} textos={R} cabeza={cabezaResumen} incluye={R.incluye(yo)} tachado={tachado} />
+        <Resumen compra={compra} region={region} textos={R} cabeza={cabezaResumen} incluye={R.incluye(yo)} tachado={tachado} ahorro={ahorro} />
       </div>
 
       {/* En el teléfono: el total y el botón del paso, abajo y después del resumen. */}
@@ -603,7 +599,7 @@ export function Checkout({
           <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.pagar(f(compra.total))} procesando={progreso ?? T.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
         ) : (
           <button type="button" onClick={() => seguir(paso)} className={BOTON_BARRA}>
-            {T.continuar}
+            {paso === 1 ? T.quieroLibro(yo) : T.continuar}
           </button>
         )}
       </BarraPaso>

@@ -91,10 +91,28 @@ export function contadorDeMarcos(
   return { primero: adicional, demas: adicional, max: 19 };
 }
 
-/** El precio de cada opción, sumado del catálogo (el mismo que cobra el servidor para una unidad de cada cosa). */
-export function precioDeOpcion(opcion: OpcionLibro, base: number, cat: Pick<Catalogo, "impreso" | "marco">): number | null {
+/**
+ * El precio de cada opción, del catálogo, el mismo que cobra el servidor para
+ * una unidad de cada cosa. Con `conPack` (el libro de una vida, no el viaje),
+ * el libro completo vale el pack si es más barato que la suma.
+ */
+export function precioDeOpcion(
+  opcion: OpcionLibro,
+  base: number,
+  cat: Pick<Catalogo, "impreso" | "marco"> & { pack?: Catalogo["pack"] },
+  conPack = false,
+): number | null {
   if (opcion === "digital") return base;
   if (!cat.impreso) return null;
   if (opcion === "impreso") return base + cat.impreso.precio;
-  return cat.marco ? base + cat.impreso.precio + cat.marco.precio : null;
+  if (!cat.marco) return null;
+  const suma = base + cat.impreso.precio + cat.marco.precio;
+  return conPack && cat.pack && cat.pack.precio < suma ? cat.pack.precio : suma;
+}
+
+/** La suma sin pack del libro completo, para tacharla al lado del pack; null si no hay ahorro real. */
+export function sumaSinPack(base: number, cat: Pick<Catalogo, "impreso" | "marco" | "pack">): number | null {
+  if (!cat.impreso || !cat.marco || !cat.pack) return null;
+  const suma = base + cat.impreso.precio + cat.marco.precio;
+  return cat.pack.precio < suma ? suma : null;
 }

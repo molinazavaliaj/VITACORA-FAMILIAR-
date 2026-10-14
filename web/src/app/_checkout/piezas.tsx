@@ -164,6 +164,7 @@ export function Resumen({
   cabeza,
   incluye,
   tachado,
+  ahorro,
 }: {
   compra: Compra;
   region: Region;
@@ -172,6 +173,8 @@ export function Resumen({
   incluye: string[];
   /** El precio de lista de la promo, si hay (se muestra tachado junto al total). */
   tachado?: string | null;
+  /** Lo que se ahorra con el pack, ya formateado, si el ticket lo lleva. */
+  ahorro?: string | null;
 }) {
   const f = (n: number) => formatearPrecio(n, compra.moneda, region);
   const total = f(compra.total);
@@ -188,7 +191,7 @@ export function Resumen({
               </span>
               <span aria-hidden className="chk-guia" />
               <span className="tabular-nums text-[var(--texto-oscuro-fuerte)]">
-                {l.id === "pdf" || l.id === "viaje" ? "" : "+"}
+                {l.id === "pdf" || l.id === "viaje" || l.id === "pack" ? "" : "+"}
                 {f(l.cantidad * l.precioUnitario)}
               </span>
             </div>
@@ -202,6 +205,7 @@ export function Resumen({
               </span>
             </span>
           </div>
+          {ahorro ? <span className="chk-ahorro">{T.ahorras(ahorro)}</span> : null}
           <span className="text-[12.5px] text-[var(--texto-oscuro-menor)]">{T.pagoUnico}</span>
         </div>
       </div>
