@@ -13,7 +13,16 @@ import { PAISES_EUROPA } from "./src/lib/region";
 // Vercel con la cabecera del país, sin arrancar ninguna función. Si la persona
 // eligió idioma a mano (cookie `idioma`, lib/idioma-web.ts), no se la mueve.
 const EUROPA = `^(${PAISES_EUROPA.join("|")})$`;
-const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/ejemplo", "/regalar"];
+const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/ejemplo", "/regalar", "/viaje"];
+// Las landings de anuncio (fase 4) también, con su ruta de Argentina (la de
+// regalo dice «papá»). El anuncio ya apunta a la de su país; esto es por si
+// alguien comparte el enlace de España con alguien de afuera.
+const LANDINGS_POR_PAIS: ReadonlyArray<readonly [string, string]> = [
+  ["/regalo-para-tu-padre", "/ar/regalo-para-tu-papa"],
+  ["/lo-que-nunca-le-preguntaste", "/ar/lo-que-nunca-le-preguntaste"],
+  ["/su-voz", "/ar/su-voz"],
+  ["/el-libro-del-viaje", "/ar/el-libro-del-viaje"],
+];
 
 const nextConfig: NextConfig = {
   compress: true,
@@ -25,9 +34,13 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   async redirects() {
-    return PUBLICAS_POR_PAIS.map((camino) => ({
-      source: camino,
-      destination: camino === "/" ? "/ar" : `/ar${camino}`,
+    const pares: Array<readonly [string, string]> = [
+      ...PUBLICAS_POR_PAIS.map((camino) => [camino, camino === "/" ? "/ar" : `/ar${camino}`] as const),
+      ...LANDINGS_POR_PAIS,
+    ];
+    return pares.map(([source, destination]) => ({
+      source,
+      destination,
       permanent: false,
       missing: [
         { type: "header" as const, key: "x-vercel-ip-country", value: EUROPA },

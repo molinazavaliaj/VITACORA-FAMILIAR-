@@ -85,3 +85,20 @@ export function alternativas(idioma: IdiomaWeb, camino: string) {
  * no se lo redirige más por país (next.config.ts, `redirects`).
  */
 export const COOKIE_IDIOMA = "idioma";
+
+/**
+ * Como `alternativas`, para una pantalla cuyo camino cambia según el idioma
+ * (las landings de anuncio: /regalo-para-tu-padre en España, /ar/regalo-para-tu-papa
+ * en Argentina). `caminos` va sin prefijo.
+ */
+export function alternativasPorCamino(idioma: IdiomaWeb, caminos: Record<IdiomaWeb, string>) {
+  return {
+    canonical: ruta(idioma, caminos[idioma]),
+    languages: {
+      "es-ES": ruta("es", caminos.es),
+      "ca-ES": ruta("ca", caminos.ca),
+      "es-AR": ruta("ar", caminos.ar),
+      "x-default": ruta("es", caminos.es),
+    },
+  };
+}
