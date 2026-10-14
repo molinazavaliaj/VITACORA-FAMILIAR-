@@ -14,8 +14,8 @@ export const SIN_ENTREGA: EleccionEntrega = { canal: null, contacto: "", hora: n
 
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-// Tema oscuro del rediseño (2026-10): los mismos campos que el checkout.
-const campo = "h-[52px] w-full rounded-[14px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors focus:border-[var(--acento-oscuro)] aria-invalid:border-[#f0a37a] [font-family:var(--fuente-micro)]";
+// Rediseño 2026-10: los mismos campos que el checkout (tokens de papel en .chk).
+const campo = "h-[52px] w-full rounded-[6px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors focus:border-[var(--acento-oscuro)] aria-invalid:border-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]";
 const etiqueta = "block text-[13px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
 const pista = "mt-2 text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]";
 

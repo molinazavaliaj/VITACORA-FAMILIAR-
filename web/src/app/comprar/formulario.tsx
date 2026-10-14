@@ -11,13 +11,14 @@ import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
 import { idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { medirImagen } from "@/lib/medir-imagen";
 import { idiomaDelLibro } from "@/lib/tapa";
-import { ContenidoPaso, Etiqueta, Opcion, Pasos, Pastilla } from "../_ui";
+import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
 import { COMPRADOR_WEB } from "../_textos/regalar";
 import { AREA, AYUDA, AvisoFallo, BotonPagar, CAMPO, Contador, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
 import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
+import { PasosLibro } from "../_checkout/pasos-libro";
 import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { formatearPrecio, listaDe } from "./productos-ui";
@@ -287,12 +288,12 @@ export function Checkout({
 
   const cabezaResumen = (
     <div className="flex items-center gap-4">
-      <div className="w-[72px] shrink-0 overflow-hidden rounded-[6px] shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
+      <div className="w-[68px] shrink-0 overflow-hidden rounded-[3px] shadow-[0_12px_22px_rgba(0,0,0,0.55)]">
         <TapaLibro titulo={e.nombre.trim()} fotoSrc={null} idioma={idiomaDelLibro(e.idioma)} />
       </div>
       <div className="flex min-w-0 flex-col gap-1">
         <Etiqueta>{R.marca}</Etiqueta>
-        <span className="text-[22px] font-medium leading-tight text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">
+        <span className="chk-ficha-titulo">
           {yo ? R.tuLibro : nombreVisible ? R.libroDe(nombreVisible) : R.suLibro}
         </span>
         {e.para ? <span className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{R.para[e.para]}</span> : null}
@@ -301,11 +302,11 @@ export function Checkout({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-4 pb-24 pt-9 sm:px-6">
-      <div className="mb-9">
-        <Pasos pasos={T.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
+    <div className="mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
+      <div className="mb-10 sm:mb-14">
+        <PasosLibro pasos={T.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
       </div>
-      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
         <div className="min-w-0">
           {/* ── 1 · Su libro ── */}
           {paso === 1 && (
@@ -329,13 +330,17 @@ export function Checkout({
 
               {cat.marco ? (
                 <div
-                  className={`m-card flex flex-wrap items-center gap-5 rounded-[22px] border p-5 ${conMarco ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-dashed border-[var(--punto-vacio)] bg-[var(--tarjeta)]"}`}
+                  className={`m-card mt-3 flex flex-wrap items-center gap-x-8 gap-y-5 rounded-[6px] border px-5 py-6 sm:px-7 ${conMarco ? "border-solid border-[var(--acento-oscuro)] bg-[var(--elegido-fondo)]" : "border-[var(--borde-oscuro)] bg-[var(--tarjeta)]"}`}
                 >
-                  <Image src="/checkout/marco.jpg" alt={T.marcoFotoAlt} width={480} height={596} sizes="(min-width: 640px) 170px, 60vw"
-                    className="aspect-[4/5] w-full max-w-[220px] rounded-[14px] object-cover sm:w-[170px]" />
+                  {/* La foto del marco es el LCP en el teléfono: se pide con el HTML (preload), no al aparecer. */}
+                  <div className="dir-marco dir-marco--arco chk-marco">
+                    <div className="dir-foto dir-foto--arco">
+                      <Image src="/checkout/marco.jpg" alt={T.marcoFotoAlt} preload fill sizes="(min-width: 640px) 148px, 168px" className="object-cover object-[50%_42%]" />
+                    </div>
+                  </div>
                   <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-2.5">
                     <Etiqueta>{T.marcoEtiqueta}</Etiqueta>
-                    <span className="text-[26px] font-medium leading-tight text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{T.marcoTitulo}</span>
+                    <span className="chk-h2">{T.marcoTitulo}</span>
                     <span className="text-[15px] leading-relaxed text-[var(--texto-oscuro-suave)]">{T.marcoDetalle}</span>
                     {e.formato === "impreso" ? (
                       <label className="m-card m-chip mt-1 inline-flex min-h-11 cursor-pointer items-center gap-2.5 self-start rounded-full border border-[var(--punto-vacio)] py-2 pl-3 pr-5 text-[15px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">
@@ -427,7 +432,7 @@ export function Checkout({
                     </fieldset>
                   ) : null}
 
-                  {pideContacto ? <div className="h-px bg-[var(--tarjeta-alta)]" /> : null}
+                  {pideContacto ? <div className="h-px bg-[var(--borde-oscuro)]" /> : null}
 
                   {regalo ? (
                     <div className="flex flex-col gap-6">
@@ -456,7 +461,7 @@ export function Checkout({
                         ) : null}
                       </fieldset>
                       <CamposEntrega fecha={e.fechaEntrega} idioma={e.idioma} eleccion={e.entrega} onCambio={(entrega) => cambiar({ entrega })} whatsapp={entregaWhatsApp} textos={TR} marca={marca} />
-                      <div className="flex flex-wrap items-center gap-6 rounded-[22px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)] p-6">
+                      <div className="flex flex-wrap items-center gap-7 border-y border-[var(--borde-oscuro)] px-3 py-8">
                         <TarjetaChica comoLeDicen={nombreVisible} mensaje={e.mensaje.trim()} firma={e.nombreComprador.trim()} />
                         <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-2">
                           <span className="text-[16px] font-semibold text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.tarjetaTitulo}</span>
@@ -496,10 +501,10 @@ export function Checkout({
                     </fieldset>
                   ) : null}
 
-                  <details className="m-acc-item rounded-[18px] border border-[var(--borde-oscuro)] px-5" open={Boolean(e.anio || e.estadoCivil || e.hijos || e.dondeVive) || falla?.campo === "anio"}>
+                  <details className="m-acc-item rounded-[6px] border border-[var(--borde-oscuro)] px-5" open={Boolean(e.anio || e.estadoCivil || e.hijos || e.dondeVive) || falla?.campo === "anio"}>
                     <summary className="flex min-h-12 items-center justify-between gap-4 py-3 text-[15px] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">
                       {T.masTitulo(yo)}
-                      <span aria-hidden className="m-plus text-xl text-[var(--acento-oscuro)]">+</span>
+                      <span aria-hidden className="m-plus text-xl font-light text-[var(--acento-oscuro)]">+</span>
                     </summary>
                     <div className="m-acc">
                       <div>
@@ -536,7 +541,7 @@ export function Checkout({
                   </details>
 
                   <section className="flex flex-col gap-3">
-                    <h2 className="text-[24px] font-medium leading-tight text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{yo ? T.fotosTituloYo : T.fotosTituloOtro}</h2>
+                    <h2 className="chk-h2">{yo ? T.fotosTituloYo : T.fotosTituloOtro}</h2>
                     <p className="text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">{T.fotosBajada}</p>
                     <p className={`${ETIQUETA} mt-2`}>{T.album}</p>
                     <p className="text-[15px] leading-relaxed text-[var(--texto-oscuro-menor)]">{T.albumDetalle}</p>
@@ -544,7 +549,7 @@ export function Checkout({
                     {fotos.length > 0 ? (
                       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
                         {fotos.map((x) => (
-                          <li key={x.clave} className="relative aspect-square overflow-hidden rounded-[12px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)]">
+                          <li key={x.clave} className="relative aspect-square overflow-hidden rounded-[4px] border border-[var(--borde-oscuro)] bg-[var(--tarjeta)]">
                             {/* eslint-disable-next-line @next/next/no-img-element -- miniatura local, no pasa por next/image */}
                             <img src={x.url} alt="" className="h-full w-full object-cover" />
                             {x.subida ? (
@@ -560,7 +565,7 @@ export function Checkout({
                       </ul>
                     ) : null}
                     <button type="button" disabled={enviando || fotos.length >= FOTOS_MAXIMO} onClick={() => entradaFotos.current?.click()}
-                      className="min-h-11 self-start text-[15px] text-[var(--acento-oscuro)] underline underline-offset-4 disabled:opacity-60 [font-family:var(--fuente-micro)]">
+                      className="m-ghost mt-1 inline-flex min-h-12 items-center self-start rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)]">
                       {fotos.length === 0 ? T.agregarFotos : T.agregarMas(fotos.length, FOTOS_MAXIMO)}
                     </button>
                   </section>
@@ -645,7 +650,7 @@ function Botonera({ atras, siguiente, textoAtras, textoSiguiente }: { atras: () 
 /** La cara de adentro de la tarjeta, en chico: el saludo, el mensaje y la firma (como en /regalar). */
 function TarjetaChica({ comoLeDicen, mensaje, firma }: { comoLeDicen: string; mensaje: string; firma: string }) {
   return (
-    <div className="flex aspect-[105/148] w-[150px] shrink-0 -rotate-3 flex-col gap-2 overflow-hidden rounded-[8px] bg-[#f3ece0] p-4 text-[#2a2620] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+    <div className="chk-tarjeta flex aspect-[105/148] w-[150px] shrink-0 -rotate-3 flex-col gap-2 overflow-hidden rounded-[3px] p-4">
       <p className="text-[14px] [font-family:var(--fuente-titulo)]">{comoLeDicen ? `${comoLeDicen},` : ""}</p>
       <p className="flex-1 overflow-hidden whitespace-pre-line text-[9px] italic leading-[1.5] [overflow-wrap:anywhere] [font-family:var(--fuente-titulo)]">{mensaje}</p>
       <p className="self-end text-[11px] italic [font-family:var(--fuente-titulo)]">{firma}</p>
