@@ -7,6 +7,7 @@ import { esPalabraDeFamilia } from "@/lib/como-le-dicen";
 import { validarDireccion, type Direccion } from "@/lib/entregas";
 import type { Para, TextosCheckout } from "../_textos/checkout";
 import { errorDeEleccion, type EleccionEntrega } from "../regalar/entrega";
+import { eleccionInicial, type OpcionLibro } from "../_checkout/opciones-libro";
 
 // La lógica del checkout del libro de una vida (rediseño 2026-10, DECISIONES D3),
 // sin React ni navegador para poder probarla: el estado, qué pide cada uno de los
@@ -17,6 +18,7 @@ import { errorDeEleccion, type EleccionEntrega } from "../regalar/entrega";
 // para que la pasarela vuelva a la versión correcta.
 
 export type Paso = 1 | 2 | 3;
+
 export type Formato = "digital" | "impreso";
 export type ModoFecha = "" | "navidad" | "otra";
 
@@ -27,6 +29,8 @@ export type EstadoCompra = {
   formato: Formato;
   /** Marcos (0 = sin marco). Solo cuentan con el impreso. */
   marcos: number;
+  /** Cuál de las tres opciones del paso 1 eligió (sin ella, se deduce de formato y marcos). */
+  opcion?: OpcionLibro;
   /** Copias impresas además de la primera. */
   copias: number;
   para: Para | null;
@@ -66,10 +70,11 @@ export function idiomaInicial(idioma: IdiomaWeb): IdiomaRegalo {
 export function estadoInicial(idioma: IdiomaWeb, cat: Catalogo): EstadoCompra {
   const region: Region = idioma === "ar" ? "AR" : "ES";
   return {
-    // Arranca con el impreso puesto (Naza 06/10): quien quiera solo el PDF, lo saca.
-    // Donde el impreso no se vende (sin precio), arranca en digital: si no, el pago se rechazaría.
-    formato: cat.impreso ? "impreso" : "digital",
-    marcos: 0,
+    // Arranca con el libro completo (impreso + digital + marco, Naza 14/10; antes,
+    // desde el 06/10, con el impreso): quien quiera menos, lo cambia. Sin marco en
+    // la región arranca con el impreso; sin impreso, en digital (si no, el pago
+    // se rechazaría).
+    ...eleccionInicial(cat),
     copias: 0,
     para: null,
     genero: null,

@@ -165,12 +165,17 @@ export type TextosCheckout = {
   marcoAnadir: (precio: string) => string;
   marcoAnadido: (precio: string) => string;
   marcoSoloImpreso: string;
-  /** La tercera opción del paso 1 (Naza 14/10): impreso + digital + el marco. PENDIENTE OK de Naza. */
+  /** La opción del libro completo (impreso + digital + el marco), la primera del paso 1. Aprobada por Naza el 14/10 (es y ar). */
   marcoOpcionTitulo: string;
   marcoOpcionDetalle: string;
   copiasTitulo: string;
   marcosExtraTitulo: string;
   cadaUno: (precio: string) => string;
+  /** El contador de marcos para regalar (Naza 14/10). es y ar APROBADOS por Naza el 14/10; ca pendiente nativa. */
+  marcoRegaloTitulo: string;
+  marcoRegaloDetalle: string;
+  /** «+20 € el primero, +15 € los demás» (el primero a precio de marco, los demás a precio adicional). */
+  primeroYDemas: (primero: string, demas: string) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
 
@@ -321,12 +326,17 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Añadir el marco · +${p}`,
     marcoAnadido: (p) => `Añadido · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elige el impreso para añadirlo.",
-    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercas el móvil al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
+    // APROBADO por Naza el 14/10.
+    marcoRegaloTitulo: "Marco con foto y chip NFC",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el móvil se abre su libro, con su voz.",
+    // PENDIENTE OK de Naza (14/10).
+    primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -476,12 +486,17 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Sumar el marco · +${p}`,
     marcoAnadido: (p) => `Sumado · +${p}`,
     marcoSoloImpreso: "El marco va con el libro impreso. Elegí el impreso para sumarlo.",
-    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    // APROBADO por Naza el 14/10 (la opción del libro completo).
     marcoOpcionTitulo: "Impreso + digital + su foto enmarcada",
     marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con su foto. Acercás el celular al marco y se abre su libro, con su voz.",
     copiasTitulo: "Copias extra del libro impreso",
     marcosExtraTitulo: "Marcos adicionales",
     cadaUno: (p) => `+${p} cada uno`,
+    // APROBADO por Naza el 14/10.
+    marcoRegaloTitulo: "Marco con foto y chip NFC",
+    marcoRegaloDetalle: "Para regalar a tus familiares. Al acercar el celular se abre su libro, con su voz.",
+    // PENDIENTE OK de Naza (14/10).
+    primeroYDemas: (a, b) => `+${a} el primero, +${b} los demás`,
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -632,12 +647,16 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Afegir el marc · +${p}`,
     marcoAnadido: (p) => `Afegit · +${p}`,
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
-    // PENDIENTE OK de Naza (14/10) y REVISIÓN NATIVA: la tercera opció.
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
     marcoOpcionTitulo: "Imprès + digital + la seva foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la seva foto. Hi acostes el mòbil i s'obre el seu llibre, amb la seva veu.",
     copiasTitulo: "Còpies extra del llibre imprès",
     marcosExtraTitulo: "Marcs addicionals",
     cadaUno: (p) => `+${p} cadascun`,
+    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    marcoRegaloTitulo: "Marc amb foto i xip NFC",
+    marcoRegaloDetalle: "Per regalar als teus familiars. Quan hi acostes el mòbil s'obre el seu llibre, amb la seva veu.",
+    primeroYDemas: (a, b) => `+${a} el primer, +${b} els altres`,
     unoMenos: (q) => `Un menys: ${q}`,
     unoMas: (q) => `Un més: ${q}`,
 

@@ -2,10 +2,11 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import type { Catalogo } from "@/lib/productos";
 import { Opcion } from "../_ui";
-import { opcionesDeLibro, precioDeOpcion, type OpcionLibro } from "./opciones-libro";
+import { contadorDeMarcos, marcosParaRegalar, opcionDe, opcionesDeLibro, precioDeOpcion, type OpcionLibro } from "./opciones-libro";
+import { Contador } from "./piezas";
 
-// Las opciones del paso 1 de /comprar y /comprar/viaje (Naza 14/10): digital,
-// impreso + digital, e impreso + digital + su foto enmarcada. Radios nativos
+// Las opciones del paso 1 de /comprar y /comprar/viaje (Naza 14/10), en este
+// orden: impreso + digital + su foto enmarcada, impreso + digital, y digital. Radios nativos
 // del mismo grupo (`formato`): una sola elegida, con el dedo o las flechas.
 // La tercera lleva la foto del marco, en arco y en sepia. Sin texto propio:
 // todo llega del diccionario de cada compra.
@@ -28,7 +29,7 @@ export function OpcionesLibro({
   onElegir,
   textos: T,
   foto,
-  etiquetaImpreso,
+  etiquetaMarco,
   formatear,
 }: {
   cat: Pick<Catalogo, "impreso" | "marco">;
@@ -39,8 +40,8 @@ export function OpcionesLibro({
   textos: TextosOpciones;
   /** La foto del marco de esta compra. */
   foto: string;
-  /** La pastilla sobre el impreso («Para regalar»), si la compra la lleva. */
-  etiquetaImpreso?: ReactNode;
+  /** La pastilla sobre el libro completo con marco («Para regalar», Naza 14/10), si la compra la lleva. */
+  etiquetaMarco?: ReactNode;
   formatear: (n: number) => string;
 }) {
   const precio = (o: OpcionLibro) => {
@@ -56,10 +57,10 @@ export function OpcionesLibro({
             titulo={T.digitalTitulo} detalle={T.digitalDetalle} precio={precio("digital")} />
         ) : o === "impreso" ? (
           <Opcion key={o} name="formato" value="impreso" checked={elegida === "impreso"} onChange={() => onElegir("impreso")}
-            etiqueta={etiquetaImpreso} titulo={T.impresoTitulo} detalle={T.impresoDetalle} precio={precio("impreso")} />
+            titulo={T.impresoTitulo} detalle={T.impresoDetalle} precio={precio("impreso")} />
         ) : (
           <Opcion key={o} name="formato" value="marco" checked={elegida === "marco"} onChange={() => onElegir("marco")}
-            titulo={T.marcoOpcionTitulo}
+            etiqueta={etiquetaMarco} titulo={T.marcoOpcionTitulo}
             detalle={
               <span className="mt-1 flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
                 <span className="dir-marco dir-marco--arco chk-marco-mini">
@@ -74,5 +75,44 @@ export function OpcionesLibro({
         ),
       )}
     </fieldset>
+  );
+}
+
+/**
+ * El contador de marcos con foto para regalar (Naza 14/10), con la 2 y la 3.
+ * El precio que dice sale del catálogo como lo cobra `armarCompra`: en la 2,
+ * el primero a precio de marco y los demás a precio adicional; en la 3, solo
+ * adicionales (el primero ya va en la opción). Con digital no se muestra.
+ */
+export function ContadorMarcos({
+  estado,
+  cat,
+  onCambio,
+  titulo,
+  detalle,
+  textos: T,
+  formatear: f,
+}: {
+  estado: { formato: "digital" | "impreso"; marcos: number; opcion?: OpcionLibro };
+  cat: Pick<Catalogo, "marco">;
+  /** Los marcos para regalar elegidos (sin contar el de la opción 3). */
+  onCambio: (n: number) => void;
+  titulo: string;
+  detalle: string;
+  textos: {
+    cadaUno: (p: string) => string;
+    primeroYDemas: (primero: string, demas: string) => string;
+    unoMenos: (t: string) => string;
+    unoMas: (t: string) => string;
+  };
+  formatear: (n: number) => string;
+}) {
+  const c = contadorDeMarcos(opcionDe(estado), cat);
+  if (!c) return null;
+  const precio =
+    c.demas === null ? `+${f(c.primero)}` : c.demas === c.primero ? T.cadaUno(f(c.primero)) : T.primeroYDemas(f(c.primero), f(c.demas));
+  return (
+    <Contador titulo={titulo} detalle={detalle} precio={precio} valor={marcosParaRegalar(estado)} onCambio={onCambio}
+      menos={T.unoMenos(titulo)} mas={T.unoMas(titulo)} max={c.max} />
   );
 }

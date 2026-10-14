@@ -41,6 +41,15 @@ describe("/regalar", () => {
     estado.pais = null;
   });
 
+  it("en el teléfono «Seguir» va en la barra de abajo, después del resumen, con el precio (Naza 14/10)", async () => {
+    const html = await renderPagina("ES");
+    const barra = html.indexOf("data-barra-paso");
+    expect(barra).toBeGreaterThan(html.indexOf("<aside"));
+    expect(html.slice(barra)).toContain(`>${escapar(COMPRADOR_WEB.es.seguir)}<`);
+    expect(html.slice(barra)).toContain(precioBase("ES"));
+    expect(html).toContain("chk-solo-escritorio");
+  });
+
   it("desde Argentina arranca en el paso 1, con la etiqueta 11 y en pesos", async () => {
     const html = await renderPagina("AR");
     expect(html).toContain(escapar(VOS.aQuien));

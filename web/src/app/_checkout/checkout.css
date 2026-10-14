@@ -236,3 +236,21 @@
   .chk label.m-card:not(.m-chip) > .m-dot { margin-top: 2px; }
   .chk label.m-card:not(.m-chip) > span:nth-child(4) { flex-basis: 100%; padding-left: 36px; }
 }
+
+/* ── La barra de abajo en el teléfono (BarraPaso): el total y el botón del
+   paso. Adentro, el botón lleno es papel sobre tinta. Debajo de 1024 px la
+   página deja lugar para que la barra no tape lo último, y el botón principal
+   del paso (el mismo que el de la barra) se esconde. ── */
+.chk-barra {
+  --boton: #f4f0e7;
+  --sobre-boton: #0d0d0c;
+  --sombra-boton: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid var(--dir-hilo-tinta);
+  box-shadow: 0 -18px 34px -20px rgba(30, 24, 14, 0.5);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+.chk-barra :focus-visible { outline-color: var(--dir-sobre-tinta); }
+@media (max-width: 1023px) {
+  .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
+  .chk-solo-escritorio { display: none; }
+}

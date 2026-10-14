@@ -4,6 +4,8 @@ import type { Direccion } from "@/lib/entregas";
 import { validarDireccion } from "@/lib/entregas";
 import type { TextosCheckout } from "../../_textos/checkout";
 import type { TextosViaje } from "../../_textos/checkout-viaje";
+import type { Catalogo } from "@/lib/productos";
+import { eleccionInicial, type OpcionLibro } from "../../_checkout/opciones-libro";
 
 // Lo puro de la compra de viaje, para probarlo sin navegador: el estado, qué
 // pide cada paso y el cuerpo de /api/compra (el mismo de antes: el viajero se
@@ -15,6 +17,8 @@ export type EstadoViaje = {
   formato: "digital" | "impreso";
   copias: number;
   marcos: number;
+  /** Cuál de las tres opciones del paso 1 eligió (sin ella, se deduce de formato y marcos). */
+  opcion?: OpcionLibro;
   nombre: string;
   comoLeDicen: string;
   telefono: string;
@@ -33,12 +37,12 @@ export type EstadoViaje = {
   direccion: Partial<Direccion>;
 };
 
-export function estadoViajeInicial(idioma: IdiomaWeb): EstadoViaje {
+export function estadoViajeInicial(idioma: IdiomaWeb, cat?: Pick<Catalogo, "impreso" | "marco">): EstadoViaje {
   return {
-    // Como antes: el viaje arranca solo con el PDF; el impreso y los marcos se suman.
-    formato: "digital",
+    // Arranca con el libro completo (impreso + digital + marco), como /comprar
+    // (Naza 14/10); sin marco, con el impreso; sin impreso o sin catálogo, digital.
+    ...(cat ? eleccionInicial(cat) : { formato: "digital" as const, marcos: 0, opcion: "digital" as const }),
     copias: 0,
-    marcos: 0,
     nombre: "",
     comoLeDicen: "",
     telefono: "",
