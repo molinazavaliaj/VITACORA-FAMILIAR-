@@ -184,6 +184,21 @@ describe("la portada según el idioma", () => {
     expect(portada("ca")).toContain("Tornar-ho a veure");
   });
 
+  it("sin secciones repetidas (15/10): ni «Lo que se hereda» ni «Antes de decidir»; su duda propia pasó a la FAQ", () => {
+    const html = portada("es");
+    expect(html).not.toContain(escapar("Todo lo que aprendió en una vida, guardado para los que vienen."));
+    expect(html).not.toContain(escapar("Lo que nos preguntan antes de regalarlo."));
+    const faq = html.slice(html.indexOf('id="preguntas"'));
+    expect(faq).toContain(escapar("«No le gusta hablar de sí mismo.»"));
+    expect(faq).toContain(escapar("¿Mi padre va a saber usarlo?"));
+    expect(faq).toContain(escapar("¿Y si empieza y no termina?"));
+  });
+
+  it("una sola capa (el inicio): ninguna hoja tapa texto a medio leer", () => {
+    const html = portada("es");
+    expect(html.match(/data-capa/g)?.length).toBe(1);
+  });
+
   it("sin violeta: la portada no usa los colores del botón viejo", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const html = portada(idioma).toLowerCase();

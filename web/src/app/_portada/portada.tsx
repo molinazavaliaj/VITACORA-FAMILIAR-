@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { Acordeon } from "../_ui/acordeon";
 import { ReproductorOnda } from "../_ui/reproductor-onda";
 import { Cabecera, IconoWhatsApp, Pie, WhatsAppFlotante } from "../_publico";
@@ -17,13 +17,20 @@ import { Coreografia } from "../_direccion/coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D, PaginaCapitulo, PaginaFoto } from "../_direccion/libro-3d";
 import { DemoMarco } from "./demo-marco";
-import "../_direccion/tokens.css";
+// Una sola hoja de estilo para la portada (trae los tokens adentro): cada
+// archivo CSS aparte es un pedido más que frena el primer pintado.
 import "../_direccion/direccion.css";
 
 // La portada con la dirección visual nueva (14/10, aprobada por Naza: «sí,
 // continuemos»): la web como un libro. Tinta y papel que se alternan como
-// capítulos y se tapan al bajar (capas), letra enorme, fotos en blanco y negro
-// que se revelan en sepia, el libro de Osvaldo en 3D. Sin violeta.
+// capítulos, letra enorme, fotos en blanco y negro que se revelan en sepia,
+// el libro de Osvaldo en 3D. Sin violeta.
+//
+// Capas (regla de Naza, 15/10): una hoja solo tapa a la anterior cuando lo
+// que se estaba leyendo ya pasó; nunca se tapa texto a medio leer. Por eso la
+// única capa es el inicio (una pantalla, todo centrado), que queda fijo
+// mientras sube «Las fotos quedan». Las demás hojas bajan con la página, con
+// su borde (sombra arriba y, en el papel, el corte a mano).
 //
 // La misma para /, /ca y /ar: cambia el idioma y, con él, la región (precios,
 // moneda) y el trato. Es ESTÁTICA: no lee headers ni cookies; los precios
@@ -34,9 +41,11 @@ import "../_direccion/direccion.css";
 // 4 el dolor y la carta, 5 cómo funciona, 6 para quién (lo del prototipo,
 // tal cual); después 7 la conversación (lo que vive él), 8 qué recibe cada
 // uno, 9 mientras cuenta (lo que vives tú), 10 el libro y sus formatos con
-// precio, 11 su voz, 12 su foto en casa, 13 en diciembre (regalo), 14 lo que
-// se hereda, 15 el precio, 16 antes de decidir + preguntas (la garantía SOLO
-// ahí), 17 viaje y «el tuyo», 18 cierre y pie.
+// precio, 11 su voz, 12 su foto en casa, 13 en diciembre (regalo), 15 el
+// precio, 16 preguntas (la garantía SOLO ahí), 17 viaje y «el tuyo», 18
+// cierre y pie. «Lo que se hereda» (repetía el cierre) y las tres dudas de
+// «Antes de decidir» (repetían la FAQ) salieron el 15/10; la duda que no
+// estaba en la FAQ («No le gusta hablar de sí mismo») pasó a ella.
 //
 // Movimiento: CSS (globals.css bloques dir-/l3-, y _direccion/direccion.css)
 // más lo poco que corre en el navegador (_direccion/coreografia.tsx). Todo
@@ -139,13 +148,14 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           (el inicio es una capa fija: no sirve de referencia). */}
       <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
-      {/* ═══ 2 · LAS FOTOS QUEDAN: sube tapando el inicio; la frase se
-          completa sola al llegar, palabra por palabra ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-1 relative z-[2] -mt-px">
-        <div className="dir-hunde dir-hunde--2">
+      {/* ═══ 2 · LAS FOTOS QUEDAN: sube tapando el inicio; la frase arranca
+          enseguida (sin una pantalla de negro antes) y se completa sola al
+          llegar, palabra por palabra ═══ */}
+      <section className="dir-tinta dir-hoja dir-sobre-1 relative z-[2] -mt-px">
+        <div>
           <div
             data-revela
-            className="mx-auto flex min-h-[100dvh] w-full max-w-[1360px] items-center px-4 py-24 sm:px-8 lg:px-12"
+            className="mx-auto w-full max-w-[1360px] px-4 pb-28 pt-16 sm:px-8 sm:pt-20 md:pb-40 lg:px-12"
             style={conVar({ "--paso": "0.17s" })}
           >
             <h2 className="dir-titular dir-txl">
@@ -195,8 +205,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 4 · EL DOLOR Y LA CARTA de los fundadores ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[4]">
-        <div className="dir-hunde dir-hunde--4 mx-auto max-w-[1360px] px-4 pb-28 pt-28 sm:px-8 md:pb-40 md:pt-40 lg:px-12">
+      <section className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[4]">
+        {/* data-lejos: con «Las fotos quedan» más corta, esto queda cerca del
+            inicio; sin él, la cursiva de la firma y la foto bajarían antes de
+            que se pinte el titular (Coreografia lo arma cuando hay tiempo). */}
+        <div data-lejos className="mx-auto max-w-[1360px] px-4 pb-28 pt-28 sm:px-8 md:pb-40 md:pt-40 lg:px-12">
           <h2 data-revela className="dir-titular dir-t15 max-w-[17ch]" style={conVar({ "--paso": "0.11s" })}>
             <span className="sr-only">{t.direccion.dolor.frase}</span>
             <span aria-hidden>
@@ -278,8 +291,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 6 · PARA LAS VIDAS QUE MERECEN SU PROPIO LIBRO ═══ */}
-      <section data-capa className="dir-papel dir-diferido relative z-[6]">
-        <div className="dir-hunde dir-hunde--5 mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
+      <section className="dir-papel dir-diferido relative z-[6]">
+        <div className="mx-auto max-w-[1360px] px-4 pb-28 sm:px-8 md:pb-44 lg:px-12">
           <div className="border-t border-[var(--dir-hilo-papel)] pt-20 md:pt-32">
             <h2 className="dir-titular dir-t2 aparece max-w-[15ch] md:max-w-[17ch]">{t.direccion.paraQuien}</h2>
             <p className="aparece mt-7 max-w-[44ch] text-[19px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)] sm:text-[21px]">
@@ -317,8 +330,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 7 · LA CONVERSACIÓN: lo que vive él, en su WhatsApp ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-5 dir-diferido relative z-[7]">
-        <div className="dir-hunde dir-hunde--6 mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
+      <section className="dir-tinta dir-hoja dir-sobre-5 dir-diferido relative z-[7]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
           <div className="aparece flex flex-col gap-6 md:col-span-6">
             <h2 className="dir-titular dir-t3">{t.conversacion.titulo}</h2>
             {t.conversacion.parrafos.map((p) => (
@@ -334,8 +347,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 8 · QUÉ RECIBE CADA UNO: dos páginas de un pliego ═══ */}
-      <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-6 dir-diferido relative z-[8]">
-        <div className="dir-hunde dir-hunde--7 mx-auto max-w-[1360px] px-4 py-28 sm:px-8 md:py-40 lg:px-12">
+      <section className="dir-papel dir-hoja dir-deckle dir-sobre-6 dir-diferido relative z-[8]">
+        <div className="mx-auto max-w-[1360px] px-4 py-28 sm:px-8 md:py-40 lg:px-12">
           <h2 className="dir-titular dir-t2 aparece max-w-[16ch]">{t.recibe.titulo}</h2>
           <p className="dir-parrafo aparece mt-7 max-w-[44ch]">{t.recibe.bajada}</p>
           <div className="dir-pliego aparece mt-16 md:mt-24">
@@ -357,8 +370,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* ═══ 9 · MIENTRAS CUENTA: lo que vives tú (sin anticipo ni «lo lees
           mientras se escribe») ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-7 dir-diferido relative z-[9]">
-        <div className="dir-hunde dir-hunde--8 mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
+      <section className="dir-tinta dir-hoja dir-sobre-7 dir-diferido relative z-[9]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
           <div className="aparece flex flex-col gap-6 md:col-span-5">
             <h2 className="dir-titular dir-t3">{t.mientras.titulo}</h2>
             <p className="dir-parrafo max-w-[40ch]">{t.mientras.texto}</p>
@@ -374,8 +387,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 10 · EL LIBRO: índice y formatos con precio, como un índice ═══ */}
-      <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-8 dir-diferido relative z-[10]">
-        <div className="dir-hunde dir-hunde--9 mx-auto grid max-w-[1360px] grid-cols-1 gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
+      <section className="dir-papel dir-hoja dir-deckle dir-sobre-8 dir-diferido relative z-[10]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
           <div className="aparece flex flex-col gap-6 md:col-span-5">
             <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{t.libro.etiqueta}</span>
             <h2 className="dir-titular dir-t3">{t.libro.titulo}</h2>
@@ -398,8 +411,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 11 · SU VOZ: la cita del limonero, grande ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-9 dir-diferido relative z-[11]">
-        <div className="dir-hunde dir-hunde--10 mx-auto flex max-w-[1100px] flex-col gap-10 px-4 py-28 sm:px-8 md:py-40">
+      <section className="dir-tinta dir-hoja dir-sobre-9 dir-diferido relative z-[11]">
+        <div className="mx-auto flex max-w-[1100px] flex-col gap-10 px-4 py-28 sm:px-8 md:py-40">
           <div className="aparece flex flex-col gap-6">
             <h2 className="dir-titular dir-t3">{t.voz.titulo}</h2>
             <p className="dir-parrafo max-w-[46ch]">{t.voz.texto}</p>
@@ -420,8 +433,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* ═══ 12 · SU FOTO, EN CASA: el marco con chip (solo con el impreso) ═══ */}
       {conMarco && cat.marco ? (
-        <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-10 dir-diferido relative z-[12]">
-          <div className="dir-hunde dir-hunde--11 mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
+        <section className="dir-papel dir-hoja dir-deckle dir-sobre-10 dir-diferido relative z-[12]">
+          <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
             <div className="aparece flex flex-col gap-6 md:col-span-6">
               <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{t.marco.etiqueta}</span>
               <h2 className="dir-titular dir-t3">
@@ -459,8 +472,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       ) : null}
 
       {/* ═══ 13 · EN DICIEMBRE: el regalo (sin la cita de IFEMA ni fechas) ═══ */}
-      <section data-capa className="dir-tinta dir-hoja dir-sobre-11 dir-diferido relative z-[13]">
-        <div className="dir-hunde dir-hunde--12 mx-auto grid max-w-[1360px] grid-cols-1 items-start gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
+      <section className="dir-tinta dir-hoja dir-sobre-11 dir-diferido relative z-[13]">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-start gap-16 px-4 py-28 sm:px-8 md:grid-cols-12 md:gap-8 md:py-40 lg:px-12">
           <Foto
             src={FOTOS.abuelo}
             alt={t.diciembre.altFoto}
@@ -501,15 +514,6 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
-      {/* ═══ 14 · LO QUE SE HEREDA ═══ */}
-      <section data-capa className="dir-papel dir-hoja dir-deckle dir-sobre-12 dir-diferido relative z-[14]">
-        <div className="dir-hunde dir-hunde--13 mx-auto flex max-w-[1100px] flex-col items-center gap-8 px-4 py-32 text-center sm:px-8 md:py-44">
-          <h2 className="dir-titular dir-t2 aparece max-w-[18ch]">{t.hereda.titulo}</h2>
-          <p className="dir-parrafo aparece max-w-[48ch]">{t.hereda.texto}</p>
-        </div>
-      </section>
-
-      {/* ═══ 15 · EL PRECIO (sin garantía: va solo en la FAQ) ═══ */}
       {/* No es capa: tiene su propio botón (data-cta-propio) y la barra del
           teléfono necesita saber cuándo deja de verse. */}
       <section data-cta-propio className="dir-tinta dir-hoja dir-sobre-13 dir-diferido relative z-[15]">
@@ -542,32 +546,9 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
-      {/* ═══ 16 · ANTES DE DECIDIR ═══ */}
-      <section className="dir-papel dir-hoja dir-deckle dir-sobre-14 dir-diferido relative z-[16]">
-        <div className="mx-auto max-w-[1360px] px-4 pb-10 pt-28 sm:px-8 md:pt-40 lg:px-12">
-          <h2 className="dir-titular dir-t3 aparece max-w-[20ch]">{t.dudas.titulo}</h2>
-          <div className="mt-16 grid grid-cols-1 gap-14 md:grid-cols-3 md:gap-10">
-            <Duda pregunta={t.dudas.movil.pregunta} texto={t.dudas.movil.texto} />
-            <Duda pregunta={t.dudas.hablar.pregunta} texto={t.dudas.hablar.texto}>
-              <ul className="flex flex-wrap gap-2">
-                {t.dudas.hablar.temas.map((tema) => (
-                  <li key={tema} className="dir-tema">
-                    {tema}
-                  </li>
-                ))}
-              </ul>
-            </Duda>
-            <Duda pregunta={t.dudas.medias.pregunta} texto={t.dudas.medias.texto} />
-          </div>
-          <a href="#preguntas" className="dir-enlace-papel mt-10">
-            {t.dudas.verTodas}
-          </a>
-        </div>
-      </section>
-
       {/* ═══ PREGUNTAS (la garantía vive acá y solo acá: DECISIONES D1) ═══ */}
-      <section id="preguntas" className="dir-papel dir-diferido relative z-[16] scroll-mt-6">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-12 px-4 pb-28 pt-16 sm:px-8 md:grid-cols-12 md:gap-8 md:pb-40 lg:px-12">
+      <section id="preguntas" className="dir-papel dir-hoja dir-deckle dir-diferido relative z-[16] scroll-mt-6">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-12 px-4 pb-28 pt-28 sm:px-8 md:pt-40 md:grid-cols-12 md:gap-8 md:pb-40 lg:px-12">
           <div className="aparece flex flex-col gap-6 md:col-span-4">
             <h2 className="dir-titular dir-t3">{t.faq.titulo}</h2>
             {whatsapp ? (
@@ -583,9 +564,24 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           </div>
           <div className="aparece border-t border-[var(--dir-hilo-papel)] md:col-span-7 md:col-start-6">
             {t.faq.preguntas.map((p, i) => (
-              <Acordeon key={p.pregunta} pregunta={p.pregunta} abierta={i === 0} grupo="preguntas">
-                {p.respuesta}
-              </Acordeon>
+              <Fragment key={p.pregunta}>
+                <Acordeon pregunta={p.pregunta} abierta={i === 0} grupo="preguntas">
+                  {p.respuesta}
+                </Acordeon>
+                {/* La duda de «Antes de decidir» que no estaba en la FAQ (15/10). */}
+                {i === 1 ? (
+                  <Acordeon pregunta={t.dudas.hablar.pregunta} grupo="preguntas">
+                    {t.dudas.hablar.texto}
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {t.dudas.hablar.temas.map((tema) => (
+                        <li key={tema} className="dir-tema">
+                          {tema}
+                        </li>
+                      ))}
+                    </ul>
+                  </Acordeon>
+                ) : null}
+              </Fragment>
             ))}
           </div>
         </div>
@@ -771,16 +767,6 @@ function Formato({ f, precio }: { f: { nota: string; nombre: string; detalle: st
       </span>
       <span className="max-w-[46ch] text-[16px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)]">{f.detalle}</span>
     </li>
-  );
-}
-
-function Duda({ pregunta, texto, children }: { pregunta: string; texto: string; children?: ReactNode }) {
-  return (
-    <div className="aparece flex flex-col gap-4 border-t border-[var(--dir-hilo-papel)] pt-6">
-      <h3 className="dir-pie">{pregunta}</h3>
-      <p className="text-[16px] font-light leading-[1.6] text-[var(--dir-sobre-papel-suave)]">{texto}</p>
-      {children}
-    </div>
   );
 }
 
