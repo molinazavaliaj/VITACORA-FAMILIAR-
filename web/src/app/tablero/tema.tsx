@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-// El botón del tema: claro / oscuro, arriba a la derecha, siempre a la vista.
+// El botón del tema: claro / oscuro, en la cabecera de tinta, siempre a la vista.
+// Desde el rediseño (fase 2) los dos temas son papel (claro) y tinta con tela
+// (oscuro): tablero/panel.css. El cambio es instantáneo, sin transición de
+// colores (parpadea en móviles lentos, MOTION «Panel»).
 // No reescribe nada: pone o saca la clase .oscuro del panel, que invierte los
 // roles de color de globals.css. La elección viaja en una cookie para que el
 // servidor ya pinte el tema correcto en la próxima carga — sin el parpadeo de
@@ -31,7 +34,7 @@ export function BotonTema({ inicial }: { inicial: Tema }) {
       aria-label={oscuro ? "Pasar al tema claro" : "Pasar al tema oscuro"}
       aria-pressed={oscuro}
       title={oscuro ? "Tema claro" : "Tema oscuro"}
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--linea-fuerte)] bg-[var(--fondo)] text-[var(--texto)] transition-colors hover:bg-[var(--hueco)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] [touch-action:manipulation]"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(238,234,225,0.32)] text-[var(--dir-sobre-tinta)] transition-colors hover:border-[var(--dir-sobre-tinta)] hover:bg-[rgba(238,234,225,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--dir-sobre-tinta)] [touch-action:manipulation]"
     >
       {oscuro ? (
         <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

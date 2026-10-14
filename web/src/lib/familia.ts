@@ -12,7 +12,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // Se vincula por correo y solo si la familia no tiene dueño todavía: una
 // familia ya vinculada nunca cambia de usuario por acá.
 
-export type FamiliaResumen = { id: string; region: "ES" | "AR" };
+/** `nombre`: el de quien compró (para el «Hola, Laura.» del panel). */
+export type FamiliaResumen = { id: string; region: "ES" | "AR"; nombre?: string | null };
 
 type ResultadoFamilia = { familia: FamiliaResumen | null; error: string | null };
 
@@ -38,7 +39,7 @@ async function buscarFamilia(
 ): Promise<ResultadoFamilia> {
   const { data: propia, error: errorPropia } = await admin
     .from("familias")
-    .select("id, region")
+    .select("id, region, nombre")
     .eq("auth_user_id", user.id)
     .maybeSingle();
   if (errorPropia) return { familia: null, error: errorPropia.message };
@@ -48,7 +49,7 @@ async function buscarFamilia(
 
   const { data: huerfana, error: errorHuerfana } = await admin
     .from("familias")
-    .select("id, region")
+    .select("id, region, nombre")
     .ilike("email", user.email)
     .is("auth_user_id", null)
     .maybeSingle();

@@ -1,17 +1,19 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { Toroide } from "../marca";
 
-// La navegación del panel: sidebar en desktop, pestañas abajo en el
-// celular. Cliente porque necesita saber en qué historia está parado (lo lee
-// de la URL) para que Historias / Preguntas / Encargar libro apunten a ella.
+// La navegación del panel (rediseño 2026-10, fase 2): una cabecera de tinta
+// arriba, en los dos temas, con el logo, las tres secciones, el selector de
+// historia, el tema y la cuenta. En el celular las secciones siguen abajo en
+// pestañas, como antes. Cliente porque necesita saber en qué historia está
+// parado (lo lee de la URL) para que Historias / Encargar libro apunten a ella.
 //
-// Cada sección lleva ícono + nombre (un ícono solo no se entiende; un nombre
-// solo, en el celular, se pierde). Los íconos son SVG de línea, un solo
-// grosor, como manda docs/design.md: nada de emojis.
+// Al cambiar de historia se queda en la misma pantalla (la historia, Encargar
+// libro, el lector, las frases), como hacía el riel. El enlace marca «cargando»
+// al instante (useLinkStatus) mientras llega el esqueleto de la otra.
 
 export type HistoriaNav = {
   id: string;
@@ -19,6 +21,8 @@ export type HistoriaNav = {
   comoLeDicen: string;
   rol: "duena" | "invitado" | "visitante";
   propia?: boolean;
+  /** Cómo va, en pocas palabras (lo del riel de antes). */
+  estadoCorto?: string;
 };
 
 // Tres secciones (decisión del 13/09): "Preguntas" dejó de ser una sección —
@@ -30,6 +34,9 @@ const SECCIONES: ReadonlyArray<{ clave: Clave; nombre: string; corto: string; ru
   { clave: "historia", nombre: "Historias", corto: "Historias", ruta: (id) => `/tablero/${id}` },
   { clave: "libro", nombre: "Encargar libro", corto: "Libro", ruta: (id) => `/tablero/${id}/libro` },
 ];
+
+/** Las pantallas de una historia que se conservan al cambiar de historia. */
+const SUFIJOS_QUE_SIGUEN = ["libro", "leer", "frases"];
 
 /** Qué sección y qué historia describe esta URL. */
 export function leerUbicacion(pathname: string, historias: HistoriaNav[]) {
@@ -45,8 +52,16 @@ export function leerUbicacion(pathname: string, historias: HistoriaNav[]) {
   return { historia, seccion };
 }
 
+/** Adónde lleva otra historia desde esta URL: la misma pantalla si existe en todas, si no, la historia. */
+export function rutaDeOtraHistoria(pathname: string, id: string): string {
+  const tercera = pathname.split("/").filter(Boolean)[2];
+  return tercera && SUFIJOS_QUE_SIGUEN.includes(tercera) ? `/tablero/${id}/${tercera}` : `/tablero/${id}`;
+}
+
+const nombreDe = (h: HistoriaNav) => (h.propia ? "Tu historia" : `La historia de ${h.nombre}`);
+
 function Icono({ clave, className = "" }: { clave: Clave; className?: string }) {
-  const comun = { className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+  const comun = { className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   switch (clave) {
     case "inicio":
       return (
@@ -72,54 +87,64 @@ function Icono({ clave, className = "" }: { clave: Clave; className?: string }) 
   }
 }
 
-function IconoCuenta({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-    </svg>
-  );
-}
-
-function IconoSalir({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9" />
-    </svg>
-  );
-}
-
 function Chevron({ abierto }: { abierto: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 transition-transform duration-200 ${abierto ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 transition-transform duration-200 ${abierto ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="m6 9 6 6 6-6" />
     </svg>
   );
 }
 
+/** El punto que late mientras la otra historia carga (adentro de su <Link>). */
+function Cargando() {
+  const { pending } = useLinkStatus();
+  return <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full bg-current transition-opacity ${pending ? "opacity-80 motion-safe:animate-pulse" : "opacity-0"}`} />;
+}
 
-const foco = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)]";
-
-export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema?: ReactNode }) {
-  const pathname = usePathname();
-  const { historia, seccion } = leerUbicacion(pathname, historias);
-  const [selectorAbierto, setSelectorAbierto] = useState(false);
-
-  // El selector se cierra al navegar, al tocar afuera y con Escape.
-  useEffect(() => setSelectorAbierto(false), [pathname]);
+/** Cierra un menú al tocar afuera y con Escape. */
+function useCerrarAfuera(abierto: boolean, cerrar: () => void, marca: string) {
   useEffect(() => {
-    if (!selectorAbierto) return;
+    if (!abierto) return;
     const alClic = (e: MouseEvent) => {
-      if (!(e.target as Element).closest("[data-selector]")) setSelectorAbierto(false);
+      if (!(e.target as Element).closest(`[data-${marca}]`)) cerrar();
     };
-    const alTecla = (e: KeyboardEvent) => e.key === "Escape" && setSelectorAbierto(false);
+    const alTecla = (e: KeyboardEvent) => e.key === "Escape" && cerrar();
     document.addEventListener("mousedown", alClic);
     document.addEventListener("keydown", alTecla);
     return () => {
       document.removeEventListener("mousedown", alClic);
       document.removeEventListener("keydown", alTecla);
     };
-  }, [selectorAbierto]);
+  }, [abierto, cerrar, marca]);
+}
+
+const itemMenu = "flex min-h-11 items-center justify-between gap-3 rounded-[4px] px-3 py-2 text-[14px] text-[var(--dir-sobre-tinta)] transition-colors hover:bg-[rgba(238,234,225,0.07)] [font-family:var(--fuente-micro)]";
+
+export function Navegacion({
+  historias,
+  tema,
+  correo,
+  inicial,
+}: {
+  historias: HistoriaNav[];
+  tema?: ReactNode;
+  /** El correo con el que entró: va arriba del menú de la cuenta. */
+  correo?: string | null;
+  /** La letra del círculo de la cuenta. */
+  inicial?: string;
+}) {
+  const pathname = usePathname();
+  const { historia, seccion } = leerUbicacion(pathname, historias);
+  const [selectorAbierto, setSelectorAbierto] = useState(false);
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+
+  // Los menús se cierran al navegar, al tocar afuera y con Escape.
+  useEffect(() => {
+    setSelectorAbierto(false);
+    setCuentaAbierta(false);
+  }, [pathname]);
+  useCerrarAfuera(selectorAbierto, () => setSelectorAbierto(false), "selector");
+  useCerrarAfuera(cuentaAbierta, () => setCuentaAbierta(false), "cuenta");
 
   const rutaDe = (s: (typeof SECCIONES)[number]) =>
     s.clave === "inicio" ? s.ruta("") : historia ? s.ruta(historia.id) : "/tablero";
@@ -130,122 +155,95 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
         const actual = h.id === historia?.id;
         return (
           <li key={h.id}>
-            <Link
-              href={`/tablero/${h.id}`}
-              aria-current={actual ? "true" : undefined}
-              className={`flex items-center justify-between gap-3 rounded-md px-3 py-2.5 text-[14px] transition-colors hover:bg-[var(--linea)] ${foco} ${actual ? "bg-[var(--linea)]" : ""}`}
-            >
-              <span className="truncate [font-family:var(--fuente-titulo)]">{h.propia ? "Tu historia" : `La historia de ${h.nombre}`}</span>
-              {h.rol !== "duena" ? (
-                <span className="shrink-0 text-[10px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
-                  {h.rol === "invitado" ? "invitado" : "muestra"}
-                </span>
-              ) : null}
+            <Link href={rutaDeOtraHistoria(pathname, h.id)} aria-current={actual ? "true" : undefined} className={`${itemMenu} ${actual ? "bg-[rgba(238,234,225,0.07)]" : ""}`}>
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-[15px] [font-family:var(--fuente-titulo)]">{nombreDe(h)}</span>
+                {h.estadoCorto || h.rol !== "duena" ? (
+                  <span className="truncate text-[12px] text-[var(--dir-sobre-tinta-suave)]">
+                    {h.rol === "invitado" ? "te invitaron · " : h.rol === "visitante" ? "la guardaste · " : ""}
+                    {h.estadoCorto ?? ""}
+                  </span>
+                ) : null}
+              </span>
+              <Cargando />
             </Link>
           </li>
         );
       })}
-      <li className="mt-1 border-t border-[var(--linea)] pt-1">
-        <Link href="/comprar" className={`block rounded-md px-3 py-2.5 text-[14px] text-[var(--acento)] transition-colors hover:bg-[var(--linea)] ${foco} [font-family:var(--fuente-micro)]`}>
+      <li className="mt-1 border-t border-[rgba(238,234,225,0.12)] pt-1">
+        <Link href="/comprar" className={itemMenu}>
           + Empezar otra historia
         </Link>
-      </li>
-      <li className="mt-1 flex border-t border-[var(--linea)] pt-1">
-        <Link href="/tablero/cuenta" className={`flex flex-1 items-center gap-2 rounded-md px-3 py-2.5 text-[13px] text-[var(--texto-suave)] hover:bg-[var(--linea)] ${foco} [font-family:var(--fuente-micro)]`}><IconoCuenta className="h-4 w-4" />Tu cuenta</Link>
-        <a href="/api/auth/salir" className={`flex flex-1 items-center gap-2 rounded-md px-3 py-2.5 text-[13px] text-[var(--texto-suave)] hover:bg-[var(--linea)] ${foco} [font-family:var(--fuente-micro)]`}><IconoSalir className="h-4 w-4" />Salir</a>
       </li>
     </ul>
   );
 
+  const etiquetaHistoria = historia ? nombreDe(historia) : "Vitácora";
+
   return (
     <>
-      {/* ── Desktop: sidebar ─────────────────────────────────────────── */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-[var(--linea)] bg-[var(--fondo)] text-[var(--texto)] md:flex">
-        <Link href="/tablero" className={`flex items-center gap-3 px-6 pb-6 pt-7 ${foco}`} aria-label="Vitácora Familiar, inicio del panel">
-          <Toroide className="h-9 w-9" />
-          <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</span>
-        </Link>
+      <header className="pnl-cabecera">
+        <div className="mx-auto flex h-16 w-full max-w-[1240px] items-center gap-2 px-4 sm:gap-3 sm:px-8 md:h-[72px] md:gap-8">
+          <Link href="/tablero" className="flex min-h-11 shrink-0 items-center gap-3 text-[var(--dir-sobre-tinta)]" aria-label="Vitácora, inicio del panel">
+            <Toroide className="h-6 w-auto" />
+            <span aria-hidden className="pnl-marca hidden sm:inline">
+              VITÁCORA
+            </span>
+          </Link>
 
-        <nav className="mt-2 flex flex-col gap-0.5 px-4" aria-label="Secciones del panel">
-          {SECCIONES.map((s) => {
-            const activa = s.clave === seccion;
-            return (
-              <Link
-                key={s.clave}
-                href={rutaDe(s)}
-                aria-current={activa ? "page" : undefined}
-                className={`relative flex items-center gap-3 rounded-md px-4 py-2.5 text-[15px] transition-colors [font-family:var(--fuente-micro)] ${foco} ${
-                  activa
-                    ? "bg-[var(--linea)] text-[var(--texto)]"
-                    : "text-[var(--texto-suave)] hover:bg-[var(--linea)] hover:text-[var(--texto)]"
-                }`}
-              >
-                {activa ? <span aria-hidden className="absolute -left-4 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-[var(--texto)]" /> : null}
-                <Icono clave={s.clave} className={`h-5 w-5 shrink-0 ${activa ? "" : "opacity-70"}`} />
+          <nav className="hidden items-center gap-7 md:flex" aria-label="Secciones del panel">
+            {SECCIONES.map((s) => (
+              <Link key={s.clave} href={rutaDe(s)} aria-current={s.clave === seccion ? "page" : undefined} className="pnl-nav-enlace">
                 {s.nombre}
               </Link>
-            );
-          })}
-        </nav>
+            ))}
+          </nav>
 
-        {/* Abajo: la cuenta y salir */}
-        <div className="mt-auto flex flex-col gap-0.5 px-4 pb-4">
-          <Link
-            href="/tablero/cuenta"
-            aria-current={pathname === "/tablero/cuenta" ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-md px-4 py-2.5 text-[14px] text-[var(--texto-suave)] transition-colors hover:bg-[var(--linea)] hover:text-[var(--texto)] [font-family:var(--fuente-micro)] ${foco} ${pathname === "/tablero/cuenta" ? "bg-[var(--linea)] text-[var(--texto)]" : ""}`}
-          >
-            <IconoCuenta className="h-5 w-5 shrink-0 opacity-70" />
-            Tu cuenta
-          </Link>
-          <a
-            href="/api/auth/salir"
-            className={`flex items-center gap-3 rounded-md px-4 py-2.5 text-[14px] text-[var(--texto-suave)] transition-colors hover:bg-[var(--linea)] hover:text-[var(--texto)] [font-family:var(--fuente-micro)] ${foco}`}
-          >
-            <IconoSalir className="h-5 w-5 shrink-0 opacity-70" />
-            Cerrar sesión
-          </a>
-          <p className="mt-3 px-4 text-[11px] italic leading-relaxed text-[var(--texto-menor)] [font-family:var(--fuente-cuerpo)]">
-            Para las vidas que merecen su propio libro
-          </p>
-        </div>
-      </aside>
+          <div className="relative flex min-w-0 flex-1 justify-center md:justify-end" data-selector>
+            {historias.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSelectorAbierto((v) => !v)}
+                aria-expanded={selectorAbierto}
+                aria-label={`Cambiar de historia. Ahora, ${etiquetaHistoria}`}
+                className="flex min-h-11 min-w-0 items-center gap-2 rounded-full px-3 text-[var(--dir-sobre-tinta)] transition-colors hover:bg-[rgba(238,234,225,0.06)]"
+              >
+                <span className="truncate text-[15px] italic [font-family:var(--fuente-titulo)]">{etiquetaHistoria}</span>
+                <Chevron abierto={selectorAbierto} />
+              </button>
+            ) : null}
+            {selectorAbierto ? <div className="pnl-menu left-1/2 w-[min(320px,calc(100vw-32px))] -translate-x-1/2 md:left-auto md:translate-x-0">{listaHistorias}</div> : null}
+          </div>
 
-      {/* ── Mobile: cabecera con la historia + pestañas abajo ───────── */}
-      <header className="sticky top-0 z-20 border-b border-[var(--linea)] bg-[var(--fondo)] text-[var(--texto)] md:hidden" data-selector>
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <Link href="/tablero" className={`flex shrink-0 items-center rounded-full p-1 ${foco}`} aria-label="Inicio del panel">
-            <Toroide className="h-7 w-7" />
-          </Link>
-          {historias.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => setSelectorAbierto((v) => !v)}
-              aria-expanded={selectorAbierto}
-              className={`flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-3 ${foco}`}
-            >
-              <span className="truncate text-[15px] [font-family:var(--fuente-titulo)]">
-                {historia ? (historia.propia ? "Tu historia" : `La historia de ${historia.nombre}`) : "Vitácora"}
-              </span>
-              <Chevron abierto={selectorAbierto} />
-            </button>
-          ) : (
-            <p className="min-w-0 flex-1 truncate text-center text-[15px] [font-family:var(--fuente-titulo)]">
-              {historia ? (historia.propia ? "Tu historia" : `La historia de ${historia.nombre}`) : "Vitácora"}
-            </p>
-          )}
           <span className="shrink-0">{tema}</span>
-        </div>
-        {selectorAbierto ? (
-          <div className="border-t border-[var(--linea)] px-2 pb-2">{listaHistorias}</div>
-        ) : null}
-      </header>
 
-      <nav
-        aria-label="Secciones del panel"
-        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-[var(--linea)] bg-[var(--fondo)] md:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
+          <div className="relative shrink-0" data-cuenta>
+            <button type="button" onClick={() => setCuentaAbierta((v) => !v)} aria-expanded={cuentaAbierta} aria-label="Tu cuenta y salir" className="pnl-avatar">
+              <span aria-hidden>{inicial || "·"}</span>
+            </button>
+            {cuentaAbierta ? (
+              <div className="pnl-menu">
+                {correo ? <p className="truncate border-b border-[rgba(238,234,225,0.12)] px-4 py-3 text-[13px] text-[var(--dir-sobre-tinta-suave)] [font-family:var(--fuente-micro)]">{correo}</p> : null}
+                <div className="flex flex-col p-1.5">
+                  <Link href="/tablero/cuenta" aria-current={pathname === "/tablero/cuenta" ? "page" : undefined} className={itemMenu}>
+                    Tu cuenta
+                  </Link>
+                  <Link href="/comprar" className={itemMenu}>
+                    + Empezar otra historia
+                  </Link>
+                  <a href="/api/auth/salir" className={itemMenu}>
+                    Cerrar sesión
+                  </a>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </header>
+      <div aria-hidden className="pnl-deckle" />
+
+      {/* ── Celular: las secciones en pestañas abajo, como siempre ─────── */}
+      <nav aria-label="Secciones del panel" className="pnl-pestanas fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 md:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {SECCIONES.map((s) => {
           const activa = s.clave === seccion;
           return (
@@ -253,9 +251,7 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
               key={s.clave}
               href={rutaDe(s)}
               aria-current={activa ? "page" : undefined}
-              className={`flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] [font-family:var(--fuente-micro)] [touch-action:manipulation] ${foco} ${
-                activa ? "text-[var(--texto)]" : "text-[var(--texto-menor)]"
-              }`}
+              className={`flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activa ? "text-[var(--texto)]" : "text-[var(--texto-menor)]"}`}
             >
               <Icono clave={s.clave} className="h-5.5 w-5.5" />
               <span className={activa ? "font-medium" : ""}>{s.corto}</span>
