@@ -40,6 +40,9 @@ export type TextosViaje = {
   marcoDetalle: string;
   marcoFotoAlt: string;
   marcoSoloImpreso: string;
+  /** La tercera opción del paso 1 (14/10): impreso + digital + el marco. PENDIENTE OK de Naza. */
+  marcoOpcionTitulo: string;
+  marcoOpcionDetalle: string;
 
   // 2 · El viaje
   viajeTitulo: string;
@@ -118,6 +121,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoDetalle: "Un marco con la foto que elijáis. Lleva un chip escondido. Acercáis el móvil y se abre el libro del viaje, con vuestra voz.",
     marcoFotoAlt: "Un marco con la foto de un viaje junto a su libro",
     marcoSoloImpreso: "El marco va con el libro impreso. Elige el impreso para añadirlo.",
+    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    marcoOpcionTitulo: "Impreso + digital + vuestra foto enmarcada",
+    marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con vuestra foto del viaje. Acercáis el móvil al marco y se abre el libro del viaje, con vuestra voz.",
 
     viajeTitulo: "El viaje",
     viajeBajada: "Lo que sepáis hoy. Las etapas que no tengan fecha se completan después desde tu panel, y si aparece una ciudad nueva, se añade ahí.",
@@ -195,6 +201,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoDetalle: "Un marco con la foto que elijas. Lleva un chip escondido. Acercás el celular y se abre el libro del viaje, con tu voz.",
     marcoFotoAlt: "Un marco con la foto de un viaje junto a su libro",
     marcoSoloImpreso: "El marco va con el libro impreso. Elegí el impreso para sumarlo.",
+    // PENDIENTE OK de Naza (14/10): la tercera opción.
+    marcoOpcionTitulo: "Impreso + digital + tu foto enmarcada",
+    marcoOpcionDetalle: "El libro impreso y en PDF, y un marco con tu foto del viaje. Acercás el celular al marco y se abre el libro del viaje, con tu voz.",
 
     viajeTitulo: "El viaje",
     viajeBajada: "Lo que sepas hoy. Las etapas que no tengan fecha se completan después desde tu panel, y si aparece una ciudad nueva, la agregás ahí.",
@@ -272,6 +281,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoDetalle: "Un marc amb la foto que trieu. Porta un xip amagat. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
     marcoFotoAlt: "Un marc amb la foto d'un viatge al costat del seu llibre",
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
+    // PENDIENTE OK de Naza (14/10) y REVISIÓN NATIVA: la tercera opció.
+    marcoOpcionTitulo: "Imprès + digital + la vostra foto emmarcada",
+    marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la vostra foto del viatge. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
 
     viajeTitulo: "El viatge",
     viajeBajada: "El que sapigueu avui. Les etapes sense data es completen després des del teu panell, i si apareix una ciutat nova, s'hi afegeix.",

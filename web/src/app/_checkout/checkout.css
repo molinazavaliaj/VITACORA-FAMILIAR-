@@ -221,3 +221,18 @@
   color: #7a756b;
   opacity: 1;
 }
+
+/* La foto del marco dentro de la tercera opción del paso 1: un arco chico,
+   con su hilo más pegado. */
+.chk .chk-marco-mini { display: block; width: 64px; flex: none; margin: 6px 4px 6px 6px; }
+.chk .chk-marco-mini::before { inset: -6px; }
+@media (min-width: 640px) { .chk .chk-marco-mini { width: 76px; } }
+
+/* En el teléfono, el precio de cada opción baja debajo del texto (alineado con
+   él) y el texto usa todo el ancho: con tres opciones largas, el precio a la
+   derecha dejaba una columna de tres palabras. El punto, arriba. */
+@media (max-width: 639px) {
+  .chk label.m-card:not(.m-chip) { flex-wrap: wrap; align-items: flex-start; row-gap: 10px; }
+  .chk label.m-card:not(.m-chip) > .m-dot { margin-top: 2px; }
+  .chk label.m-card:not(.m-chip) > span:nth-child(4) { flex-basis: 100%; padding-left: 36px; }
+}
