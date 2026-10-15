@@ -24,7 +24,10 @@ import { TEXTOS_LANDING_KIDS } from "../src/app/_textos/landing-kids";
 import { POST } from "../src/app/api/compra/route";
 import {
   KIDS_TODAVIA_NO,
+  catalogoKids,
+  compraKids,
   cuerpoKids,
+  fallaEnvioKids,
   estadoKidsInicial,
   fallaKids,
   fichaDeCompra,
@@ -33,6 +36,9 @@ import {
   type EstadoKids,
 } from "../src/lib/kids";
 import { obtenerPrecioKids } from "../src/lib/precios";
+import { CHECKOUT } from "../src/app/_textos/checkout";
+import { KIDS_IMPRESO } from "../src/app/_textos/checkout-kids";
+import type { Catalogo } from "../src/lib/productos";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const pagina = (p: () => React.ReactElement) => renderToStaticMarkup(p());
@@ -209,6 +215,65 @@ describe("/comprar/kids", () => {
     const paso3 = renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" escribir={{ href: "#", externo: false }} pasoInicial={3} />);
     for (const s of [K.temasTitulo, K.temasBajada, K.temasDebajo, K.fotos, K.fotosAyuda, K.despuesTexto, ...Object.values(K.temas)]) expect(paso3, s).toContain(escapar(s));
     expect(paso3).toMatch(/Pagar \$\s?90\.000/);
+  });
+});
+
+// El libro impreso en Kids (Naza 15/10, tanda 3, punto 10): las opciones y la
+// dirección de la casa, en el paso 3, con el impreso arriba y elegido.
+describe("/comprar/kids con el libro impreso", () => {
+  const CASA: Catalogo = {
+    moneda: "ARS",
+    base: { nombre: "El libro en PDF + Su voz", detalle: "", precio: 85750 },
+    viaje: null,
+    impreso: { precio: 85750, precioCopia: 40000 },
+    marco: { precio: 30000, precioAdicional: 20000 },
+    pack: { precio: 180000 },
+  };
+  const cat = catalogoKids(CASA, 90000);
+  const paso3 = () =>
+    renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" catalogo={cat} escribir={{ href: "#", externo: false }} pasoInicial={3} />);
+
+  it("el catálogo de Kids es su precio con el impreso de la casa, sin marco ni pack", () => {
+    expect(cat).toMatchObject({ base: { precio: 90000 }, impreso: { precio: 85750, precioCopia: 40000 }, marco: null, pack: null, viaje: null });
+    expect(compraKids(cat, "AR", 2).total).toBe(90000 + 85750 + 40000);
+    expect(compraKids(cat, "AR", 0).lineas).toEqual([{ id: "pdf", nombre: "Vitácora Kids", cantidad: 1, precioUnitario: 90000 }]);
+  });
+
+  it("arranca con el impreso elegido y arriba, pide la dirección de la casa y cobra la suma", () => {
+    const html = paso3();
+    const T = CHECKOUT.ar;
+    expect(html).toContain(escapar(T.libroTitulo));
+    // El impreso primero y elegido; después el digital; ningún marco.
+    const impreso = html.indexOf('value="impreso"');
+    const digital = html.indexOf('value="digital"');
+    expect(impreso).toBeGreaterThan(-1);
+    expect(digital).toBeGreaterThan(impreso);
+    expect(html).not.toContain('value="marco"');
+    expect(html).toMatch(/checked="" value="impreso"/);
+    expect(html).toContain(escapar(KIDS_IMPRESO.impresoDetalle));
+    for (const s of [T.direccionTitulo, T.direccionAyuda, T.recibe, T.copiasTitulo]) expect(html, s).toContain(escapar(s));
+    expect(html).not.toContain(escapar("Su voz"));
+    // Los textos aprobados del paso 3 siguen.
+    for (const s of [CHECKOUT_KIDS.ar.temasTitulo, CHECKOUT_KIDS.ar.despuesTexto]) expect(html, s).toContain(escapar(s));
+    expect(html).toMatch(/Pagar \$\s?175\.750/);
+  });
+
+  it("sin catálogo (o sin impreso en la región), el paso 3 de siempre", () => {
+    const html = renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" escribir={{ href: "#", externo: false }} pasoInicial={3} />);
+    expect(html).not.toContain('value="impreso"');
+    expect(html).not.toContain(escapar(CHECKOUT.ar.direccionTitulo));
+    expect(html).toMatch(/Pagar \$\s?90\.000/);
+  });
+
+  it("con el impreso, el paso 3 pide quién recibe, un teléfono y la dirección, con los avisos de la casa", () => {
+    const T = CHECKOUT.ar;
+    const conImpreso = { ...estadoKidsInicial(cat), ...LLENO, formato: "impreso" as const };
+    expect(fallaEnvioKids(conImpreso, T)).toEqual({ texto: T.faltaRecibe, campo: "recibe" });
+    expect(fallaEnvioKids({ ...conImpreso, recibe: "Laura" }, T)).toEqual({ texto: T.faltaTelefonoRecibe, campo: "telefono-recibe" });
+    expect(fallaEnvioKids({ ...conImpreso, recibe: "Laura", telefonoRecibe: "11 5555 1234" }, T)?.campo).toBe("direccion");
+    const completo = { ...conImpreso, recibe: "Laura", telefonoRecibe: "11 5555 1234", direccion: { linea1: "Pelliza 1234", ciudad: "Vicente López", cp: "1638", pais: "Argentina" } };
+    expect(fallaEnvioKids(completo, T)).toBeNull();
+    expect(fallaEnvioKids({ ...conImpreso, formato: "digital" }, T)).toBeNull();
   });
 });
 

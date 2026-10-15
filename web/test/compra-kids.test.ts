@@ -392,3 +392,99 @@ describe("validarFichaKids (copia de validarFicha del motor)", () => {
     expect(() => validarFichaKids({ ...base, preguntasPadre: cuatro })).toThrow("Ficha: hasta 3 preguntas del padre");
   });
 });
+
+// El libro impreso en Kids (Naza 15/10, tanda 3, punto 10): «El mismo precio
+// de la casa, con el impreso arriba como en la casa». El impreso y sus copias
+// valen lo del catálogo de la casa (PRECIO_IMPRESO_*, PRECIO_COPIA_*) y se
+// suman al precio de Kids; el precio lo calcula el servidor.
+describe("POST /api/compra con producto kids y el libro impreso", () => {
+  const IMPRESO = ["PRECIO_IMPRESO_ARS", "PRECIO_COPIA_ARS", "PRECIO_MARCO_ARS"] as const;
+  const antes: Record<string, string | undefined> = {};
+  beforeEach(() => {
+    for (const k of IMPRESO) antes[k] = process.env[k];
+    process.env.PRECIO_IMPRESO_ARS = "85750";
+    process.env.PRECIO_COPIA_ARS = "40000";
+    process.env.PRECIO_MARCO_ARS = "30000";
+  });
+  afterEach(() => {
+    for (const k of IMPRESO) {
+      if (antes[k] === undefined) delete process.env[k];
+      else process.env[k] = antes[k];
+    }
+  });
+
+  const CON_IMPRESO: EstadoKids = { ...LLENO, formato: "impreso", copias: 1 };
+
+  it("con impreso: el precio de Kids más el impreso y la copia de la casa, y extras con impreso", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const cuerpo = cuerpoKids(CON_IMPRESO, "AR", "ar");
+    expect(cuerpo.productos).toEqual({ impresos: 2 });
+    const r = await POST(peticion(cuerpo));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({
+      monto: 90000 + 85750 + 40000,
+      moneda: "ARS",
+      extras: { tipo: "kids", pdf: true, impreso: "color", copias: 2, marcos: 0 },
+    });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra).toMatchObject({
+      total: 215750,
+      lineas: [
+        { id: "pdf", nombre: "Vitácora Kids", cantidad: 1, precioUnitario: 90000 },
+        { id: "impreso", cantidad: 1, precioUnitario: 85750 },
+        { id: "copia", cantidad: 1, precioUnitario: 40000 },
+      ],
+    });
+    // Lo demás nace igual que sin impreso.
+    expect(admin.inserts.narradores[0]).toMatchObject({ contexto: { modo: "kids" }, estado: "pendiente_pago" });
+    expect(admin.upserts.kids_v2[0]).toMatchObject({ narrador_id: "nar-1", canal: "B" });
+  });
+
+  it("sin impreso: igual que hoy, solo el precio de Kids y extras sin impreso", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, formato: "digital", copias: 3 }, "AR", "ar")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 90000, extras: { tipo: "kids", pdf: true, impreso: null, copias: 0, marcos: 0 } });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra.lineas).toHaveLength(1);
+  });
+
+  it("el precio que manda el cliente no cuenta, y Kids nunca lleva marco", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const manipulado = {
+      ...cuerpoKids({ ...LLENO, formato: "impreso", copias: 0 }, "AR", "ar"),
+      monto: 1,
+      total: 1,
+      precio: 1,
+      productos: { impresos: 1, marcos: 4, precio: 1, total: 1 },
+      compra: { total: 1, lineas: [{ id: "pdf", cantidad: 1, precioUnitario: 1 }] },
+    };
+    const r = await POST(peticion(manipulado));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 90000 + 85750, extras: { impreso: "color", copias: 1, marcos: 0 } });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra.total).toBe(175750);
+    expect(compra.lineas.map((l: { id: string }) => l.id)).toEqual(["pdf", "impreso"]);
+  });
+
+  it("sin precio del impreso en la región, pedir el impreso responde 400 sin tocar la base", async () => {
+    delete process.env.PRECIO_IMPRESO_ARS;
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(CON_IMPRESO, "AR", "ar")));
+
+    expect(r.status).toBe(400);
+    expect((await r.json()).error).toBe("El libro impreso todavía no está disponible en tu región.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+});

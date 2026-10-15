@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
-import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
+import { calcularCompra, catalogo, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
 import { crearCheckout, type OrigenCompra } from "@/lib/pagos";
 import { esIdiomaWeb, regionDeIdioma } from "@/lib/idioma-web";
 import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
@@ -9,7 +9,7 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import { limpiarOrigen } from "@/lib/origen";
-import { KIDS_TODAVIA_NO, kidsVende } from "@/lib/kids";
+import { KIDS_TODAVIA_NO, catalogoKids, compraKids, kidsVende } from "@/lib/kids";
 import { IDIOMA_KIDS, conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra";
 import { obtenerPrecioKids } from "@/lib/precios";
 import { esTablaAusente } from "@/lib/tabla-ausente";
@@ -421,9 +421,6 @@ export async function POST(request: NextRequest) {
 // (un chico a medias sin su fila en kids_v2 lo agarraría el entrevistador
 // como a un adulto). Sin la migración de kids_v2, lo mismo y 409: no se vende.
 
-/** El nombre de la línea en la pasarela (Stripe / Mercado Pago). */
-const NOMBRE_LINEA_KIDS = "Vitácora Kids";
-
 /** «Todavía no se vende», de tú o de vos (los dos ya existen: lib/kids.ts y _textos/checkout-kids). */
 const kidsTodaviaNo = (region: "ES" | "AR") => (region === "AR" ? CHECKOUT_KIDS.ar.proximamenteTexto : KIDS_TODAVIA_NO);
 
@@ -470,14 +467,15 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const { familia: familiaAInsertar, narrador: narradorAInsertar, canal, telefonoPadre, ficha } = leida.compra;
 
-  // Kids no ofrece impreso ni marco (K6): una sola línea, al precio de Kids. Va
-  // con id "pdf" para que `extras` diga lo de siempre (`pdf: true`: trae la base).
-  const compra: Compra = {
-    region,
-    moneda: region === "ES" ? "EUR" : "ARS",
-    lineas: [{ id: "pdf", nombre: NOMBRE_LINEA_KIDS, cantidad: 1, precioUnitario: precio }],
-    total: precio,
-  };
+  // El libro impreso (Naza 15/10, tanda 3, punto 10): como la casa, el cliente
+  // manda solo cuántos impresos; el precio sale del catálogo de la casa
+  // (PRECIO_IMPRESO_*, PRECIO_COPIA_*) sumado al de Kids. Cualquier monto, total
+  // o marco que mande el cliente se ignora. La base va con id "pdf" para que
+  // `extras` diga lo de siempre (`pdf: true`: trae la base).
+  const carrito: Carrito = { base: "pdf", impresos: leerCarrito(body.productos).impresos, marcos: 0 };
+  const carritoOk = validarCarrito(region, carrito);
+  if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
+  const compra: Compra = compraKids(catalogoKids(catalogo(region), precio), region, carrito.impresos);
 
   const admin = crearClienteServidor();
   const generico = () => NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });

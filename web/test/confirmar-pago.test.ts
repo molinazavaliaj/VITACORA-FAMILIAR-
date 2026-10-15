@@ -228,6 +228,13 @@ describe("confirmarPago — la entrega de lo físico", () => {
     expect(entrega?.valores).toMatchObject({ pedido_id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1", estado: "sin_direccion", origen: "ES" });
   });
 
+  it("Kids con impreso crea su entrega igual que la casa (Naza 15/10, tanda 3, punto 10)", async () => {
+    const { admin, inserts } = adminConEntrega({ extras: { tipo: "kids", pdf: true, audiolibro: null, impreso: "color", copias: 2, marcos: 0 }, region: "AR" });
+    await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    const entrega = inserts.find((e) => e.tabla === "entregas");
+    expect(entrega?.valores).toMatchObject({ pedido_id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1", estado: "sin_direccion", origen: "AR" });
+  });
+
   it("un pedido de solo PDF no crea entrega: no hay nada que mandar", async () => {
     const { admin, inserts } = adminConEntrega({ extras: { pdf: true, impreso: null, copias: 0, marcos: 0 }, region: "AR" });
     await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
