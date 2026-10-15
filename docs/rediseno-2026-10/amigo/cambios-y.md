@@ -80,3 +80,56 @@ la teva història» cuando el libro es propio).
   casos (ca también, pendiente de Imma).
 - Marco: con `PRECIO_MARCO` y `PRECIO_MARCO_ADICIONAL` iguales (19 y 19), la fila dice solo
   «+19 €», sin «el primero, los demás». Lo que se cobra no cambió.
+
+## 16/10 — pendientes
+
+Los que quedaron arriba en «No lo toqué» / «Falta», aprobados por Naza. Cambios mínimos.
+
+### 1. «tu panel» que quedó
+
+| Dónde (archivo) | Antes | Después |
+|---|---|---|
+| Checkout de viaje, etapas (`web/src/app/_textos/checkout-viaje.ts`, es) | «…se completan después desde tu panel, y si aparece…» | «…desde la página de vuestro viaje, y si aparece…» (la frase va de vosotros) |
+| Checkout de viaje, pago (es) | «Con ese mismo correo entras a tu panel.» | «…entras a la página de tu viaje.» |
+| Checkout de viaje, después de pagar (es) | «te llega un correo para entrar a tu panel, …» | «…para entrar a la página de tu viaje, …» |
+| Checkout de viaje, correo mal (es) | «Con ese entras a tu panel.» | «Con ese entras a la página de tu viaje.» |
+| Checkout de viaje, etapas / pago / después / correo mal (ar) | «…desde tu panel…», «…entrás a tu panel.», «…para entrar a tu panel, …», «Con ese entrás a tu panel.» | lo mismo con «la página de tu viaje» |
+| Checkout de viaje (ca, pendiente de Imma) | «des del teu panell», «entres al teu panell», «per entrar al teu panell» | «des de la pàgina del vostre viatge» (etapas, de vosaltres), «entres a la pàgina del teu viatge», «per entrar a la pàgina del teu viatge» |
+| /viaje, pregunta de las fechas (`web/src/app/_textos/viaje.ts`) | es «…desde tu panel…» · ar «…desde tu panel…» · ca «…des del teu panell…» | es «…desde la página de vuestro viaje…» · ar «…desde la página de tu viaje…» · ca «…des de la pàgina del vostre viatge…» |
+| Pedido confirmado, botón sin sesión (`web/src/app/_textos/pedido-confirmado.ts` y `comprar/gracias/page.tsx`) | «Entrar a mi panel» / ca «Entrar al meu panell» | si la compra es de viaje «Entrar a la página de tu viaje» (ca «…a la pàgina del teu viatge»); si no, «Entrar a la página de la historia» (ca «…a la pàgina de la història»). Ahí no sabemos de quién es la compra. |
+| Página del anticipo (`web/src/app/anticipo/[token]/page.tsx`) | «Desde tu panel vas a ver el libro crecer…» · «…desde tu panel: el libro en PDF…» | «Desde la página de su historia vas a ver…» · «…desde la página de su historia: el libro en PDF…» |
+| Legal, proveedores (`web/src/app/_textos/legal.ts`, es/ar/ca) | «Aloja la web que estás leyendo y tu panel.» · ca «…i el teu panell.» | «…y la página de la historia.» · ca «…i la pàgina de la història.» |
+| Legal, cookies (es/ar/ca) | «…si prefieres (preferís) el panel en claro o en oscuro…» · ca «…el panell clar o fosc…» | «…la página de la historia en claro o en oscuro…» · ca «…la pàgina de la història clara o fosca…» |
+
+La landing del libro del viaje (`/el-libro-del-viaje`) no decía «panel» en ningún lado. El texto
+de muestra `MailAnticipo` de `web/src/app/maquetas.tsx` («Sus primeros audios ya están en tu
+panel») no se usa en ninguna página y quedó igual.
+
+### 2. Pregunta diaria de Viaje
+
+| Dónde | Antes | Después |
+|---|---|---|
+| `web/src/lib/viaje.ts` y `entrevistador/src/flujo/viaje.ts` (idénticas) | «Día N, en X: contame Y. Y mandame la foto de hoy con lo que estaba pasando.» | «Día N, en X: contame Y, y mandame la foto de hoy con lo que estaba pasando.» |
+
+Queda una igual en el banco de Viaje V2 (`F4` de `banco-es-ES.json`, «…lo que se te vaya
+ocurriendo. Y mándame todas las fotos…», en `entrevistador/src/viaje-v2/nucleo/` y
+`fabrica/src/viaje-v2/`). No era parte del pedido, no la toqué.
+
+### 3. El lema
+
+| Dónde | Antes | Después |
+|---|---|---|
+| Mail de hitos del bot, pie (`entrevistador/src/mail/hitos.ts`) | «Para las vidas que merecen su propio libro.» | «Todas las vidas merecen su propio libro.» |
+
+La contratapa que arma la fábrica (`fabrica/src/libro/plantilla-html.ts`, `TEXTOS_CONTRATAPA`) no
+lleva el lema (dice «Vitácora Familiar · Una colección de vidas contadas» y la descripción), así
+que no hubo nada que cambiar. Fuera de `docs/` no queda ninguna otra aparición del lema viejo
+(salvo la lista de frases prohibidas de `web/test/portada-trato.test.tsx`, que es a propósito).
+
+### 4. Foto de la contratapa
+
+`web/public/rediseno/libro-osvaldo-contraportada.jpg` ahora dice «Todas las vidas merecen su
+propio libro», en la misma línea, centro, tamaño y color (Source Serif 4 itálica bold, la que
+mejor calzaba con la letra impresa). El original quedó en
+`docs/rediseno-2026-10/amigo/fotos/libro-osvaldo-contraportada-original.jpg` y el recorte antes y
+después en `docs/rediseno-2026-10/amigo/fotos/contraportada-antes-despues.png`.

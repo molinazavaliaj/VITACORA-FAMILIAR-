@@ -25,7 +25,8 @@ export type TextosConfirmado = {
   viaje: (numero: string | null) => string;
   /** El botón a la página de su historia (o la de tu historia, si el libro es propio). */
   irAlPanel: (propia: boolean) => string;
-  entrarAlPanel: string;
+  /** Sin pedido confirmado no sabemos de quién es: en viaje, la del viajero; si no, neutra. */
+  entrarAlPanel: (viaje: boolean) => string;
   sinContrasenas: string;
   descargarTarjeta: string;
   direccionGuardada: string;
@@ -68,7 +69,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
         ? `Vuestro biógrafo de viaje se presenta por WhatsApp. Para empezar ya, mandadle un «hola» a ${numero}: os contesta y os pide el SÍ.`
         : "Vuestro biógrafo de viaje se presenta por WhatsApp. Cuando os escriba, responded SÍ y empieza.",
     irAlPanel: (propia) => (propia ? "Ir a la página de tu historia" : "Ir a la página de su historia"),
-    entrarAlPanel: "Entrar a mi panel",
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página de tu viaje" : "Entrar a la página de la historia"),
     sinContrasenas: "Con tu correo y un código de 6 números. Sin contraseñas.",
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
@@ -110,7 +111,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
         ? `Tu biógrafo de viaje se presenta por WhatsApp. Para arrancar ya, mandale un hola a ${numero}: te contesta y te pide el SÍ.`
         : "Tu biógrafo de viaje se presenta por WhatsApp. Cuando te escriba, respondé SÍ y esa noche llega la primera pregunta.",
     irAlPanel: (propia) => (propia ? "Ir a la página de tu historia" : "Ir a la página de su historia"),
-    entrarAlPanel: "Entrar a mi panel",
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página de tu viaje" : "Entrar a la página de la historia"),
     sinContrasenas: "Con tu correo y un código de 6 números. Sin contraseñas.",
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
@@ -151,7 +152,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
         ? `El vostre biògraf de viatge es presenta per WhatsApp. Per començar ja, envieu-li un «hola» a ${numero}: us contesta i us demana el SÍ.`
         : "El vostre biògraf de viatge es presenta per WhatsApp. Quan us escrigui, responeu SÍ i comença.",
     irAlPanel: (propia) => (propia ? "Anar a la pàgina de la teva història" : "Anar a la pàgina de la seva història"),
-    entrarAlPanel: "Entrar al meu panell",
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del teu viatge" : "Entrar a la pàgina de la història"), // ca: PENDIENTE REVISIÓN NATIVA
     sinContrasenas: "Amb el teu correu i un codi de 6 xifres. Sense contrasenyes.",
     descargarTarjeta: "Descarregar la targeta de regal",
     direccionGuardada: "Adreça d'enviament desada.",

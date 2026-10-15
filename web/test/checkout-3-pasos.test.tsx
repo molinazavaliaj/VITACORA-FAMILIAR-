@@ -643,11 +643,11 @@ describe("«Pedido confirmado»", () => {
   const pagina = async (params: Record<string, string>) =>
     renderToStaticMarkup(await (Gracias as unknown as (p: { searchParams: Promise<Record<string, string>> }) => Promise<ReactElement>)({ searchParams: Promise.resolve(params) }));
 
-  it("sin sesión: la pantalla de respaldo, en el idioma de la vuelta, con «Entrar a mi panel»", async () => {
+  it("sin sesión: la pantalla de respaldo, en el idioma de la vuelta, con «Entrar a la página de la historia»", async () => {
     const ca = await pagina({ idioma: "ca" });
     expect(ca).toContain('lang="ca-ES"');
     expect(ca).toContain(escapar(CONFIRMADO.ca.tituloGenerico));
-    expect(ca).toContain(escapar(CONFIRMADO.ca.entrarAlPanel));
+    expect(ca).toContain(escapar(CONFIRMADO.ca.entrarAlPanel(false)));
     const ar = await pagina({ idioma: "ar" });
     expect(ar).toContain(escapar("Si no lo ves, mirá en promociones o en spam."));
   });
