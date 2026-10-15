@@ -21,6 +21,9 @@ const html = (idioma: IdiomaWeb, documento: DocumentoLegal) =>
 /** El texto visible, sin etiquetas, para buscar frases. */
 const texto = (h: string) => h.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/\s+/g, " ");
 
+/** La cabecera pública lleva la solapa «Kids» desde el 15/10: el resto de la página no la nombra. */
+const sinSolapas = (h: string) => h.replace(/<nav[^>]*m-solapas[\s\S]*?<\/nav>/g, "");
+
 const TODAS = IDIOMAS_WEB.flatMap((idioma) => DOCUMENTOS_LEGALES.map((doc) => [idioma, doc] as const));
 
 describe("las páginas legales", () => {
@@ -131,7 +134,7 @@ describe("nada que el producto ya no hace (D4, C4)", () => {
     [/se suman a cualquiera|s'afegeixen a qualsevol/i, "marco sin impreso"],
   ];
   it.each(TODAS)("%s / %s", (idioma, doc) => {
-    const t = texto(html(idioma, doc));
+    const t = texto(sinSolapas(html(idioma, doc)));
     for (const [patron, que] of PROHIBIDO) expect(t, que).not.toMatch(patron);
   });
 });

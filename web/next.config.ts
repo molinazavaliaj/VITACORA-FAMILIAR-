@@ -13,7 +13,7 @@ import { PAISES_EUROPA } from "./src/lib/region";
 // Vercel con la cabecera del país, sin arrancar ninguna función. Si la persona
 // eligió idioma a mano (cookie `idioma`, lib/idioma-web.ts), no se la mueve.
 const EUROPA = `^(${PAISES_EUROPA.join("|")})$`;
-const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/ejemplo", "/regalar", "/viaje"];
+const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/comprar/kids", "/ejemplo", "/regalar", "/viaje", "/kids"];
 // Las landings de anuncio (fase 4) también, con su ruta de Argentina (la de
 // regalo dice «papá»). El anuncio ya apunta a la de su país; esto es por si
 // alguien comparte el enlace de España con alguien de afuera.
@@ -22,6 +22,8 @@ const LANDINGS_POR_PAIS: ReadonlyArray<readonly [string, string]> = [
   ["/lo-que-nunca-le-preguntaste", "/ar/lo-que-nunca-le-preguntaste"],
   ["/su-voz", "/ar/su-voz"],
   ["/el-libro-del-viaje", "/ar/el-libro-del-viaje"],
+  ["/kids/su-mundo", "/ar/kids/su-mundo"],
+  ["/kids/a-los-once", "/ar/kids/a-los-once"],
 ];
 
 const nextConfig: NextConfig = {

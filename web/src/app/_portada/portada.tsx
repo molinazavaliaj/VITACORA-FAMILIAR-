@@ -8,6 +8,7 @@ import { CtaSticky } from "../cta-sticky";
 import { LinkRegalarLanding } from "../link-regalar";
 import { TEXTOS_PORTADA, type Segmento } from "../_textos/portada";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
+import { TEXTOS_KIDS } from "../_textos/kids";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -64,6 +65,7 @@ const FOTOS = {
   padre: "/rediseno/para-tu-padre.jpg",
   abuelo: "/rediseno/para-tu-abuelo.jpg",
   viaje: "/rediseno/viaje-mirador-lisboa.jpg",
+  kids: "/rediseno/kids-audio-cama.jpg",
   portada: "/rediseno/libro-osvaldo-portada.jpg",
   marco: "/rediseno/marco-en-casa.jpg",
 } as const;
@@ -72,6 +74,7 @@ const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_PORTADA[idioma];
+  const kids = TEXTOS_KIDS[idioma].portada;
   const ej = TEXTOS_EJEMPLO[idioma];
   const cat = catalogo(regionDeIdioma(idioma));
   const formatear = (n: number) =>
@@ -325,6 +328,18 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             >
               <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{t.paraQuien.viaje.etiqueta}</span>
               <span className="dir-pie">{t.paraQuien.viaje.texto}</span>
+            </Foto>
+            {/* Kids (15/10): la cuarta, que lleva a /kids. Su compra solo vende con KIDS_VENTA. */}
+            <Foto
+              src={FOTOS.kids}
+              alt={kids.alt}
+              forma="arco"
+              href={ruta(idioma, "/kids")}
+              sizes="(min-width: 768px) 24vw, 62vw"
+              className="w-[62%] justify-self-end md:col-span-3 md:col-start-9 md:mt-20 md:w-full"
+            >
+              <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{kids.etiqueta}</span>
+              <span className="dir-pie">{kids.texto}</span>
             </Foto>
           </div>
         </div>

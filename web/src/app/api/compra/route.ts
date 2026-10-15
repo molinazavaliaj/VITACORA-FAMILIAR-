@@ -9,6 +9,7 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import { limpiarOrigen } from "@/lib/origen";
+import { KIDS_TODAVIA_NO } from "@/lib/kids";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -54,6 +55,14 @@ export type CompraBody = RegistroBody & {
    * si viene mal, se descarta sin decir nada.
    */
   origen?: unknown;
+  /**
+   * Vitácora Kids (15/10): la compra de /comprar/kids manda `producto: "kids"`.
+   * Hoy se rechaza siempre: la base de main no sabe guardar un pedido de Kids
+   * (lib/kids.ts, PENDIENTES «Apuntado: Kids»). Sin esto, un cuerpo de Kids se
+   * cobraría como el libro de una vida y el entrevistador le escribiría a un
+   * chico con las preguntas de un adulto.
+   */
+  producto?: unknown;
 };
 
 /**
@@ -135,6 +144,9 @@ export async function POST(request: NextRequest) {
     body = (await request.json()) as CompraBody;
   } catch {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
+  }
+  if (body.producto === "kids") {
+    return NextResponse.json({ error: KIDS_TODAVIA_NO }, { status: 409 });
   }
   // Vos o tú: el de la región que eligió en el formulario.
   const trato: TratoComprador = body.region === "ES" ? "tu" : "vos";

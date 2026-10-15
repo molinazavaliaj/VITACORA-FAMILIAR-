@@ -306,17 +306,24 @@ body {
   transform-origin: left center;
   transition: transform var(--d-base) var(--ease-io);
 }
-/* Las solapas Familiar · De viaje de la cabecera pública (_publico/cabecera):
-   dos solapas iguales, así la pastilla va de una a otra con translateX(100%).
-   Se queda bajo la activa y se desliza hasta la que se señala. */
-.m-solapas[data-activa="viaje"] .m-pill {
+/* Las solapas Familiar · Kids · De viaje de la cabecera pública
+   (_publico/cabecera): tres solapas iguales, así la pastilla va de una a otra
+   con translateX(100%) y (200%). Se queda bajo la activa y se desliza hasta la
+   que se señala. */
+.m-solapas[data-activa="kids"] .m-pill {
   transform: translateX(100%);
+}
+.m-solapas[data-activa="viaje"] .m-pill {
+  transform: translateX(200%);
 }
 .m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
   transform: none;
 }
-.m-solapas:has(> [data-solapa="viaje"]:hover, > [data-solapa="viaje"]:focus-visible) .m-pill {
+.m-solapas:has(> [data-solapa="kids"]:hover, > [data-solapa="kids"]:focus-visible) .m-pill {
   transform: translateX(100%);
+}
+.m-solapas:has(> [data-solapa="viaje"]:hover, > [data-solapa="viaje"]:focus-visible) .m-pill {
+  transform: translateX(200%);
 }
 
 /* 5 · Acordeón con <details> nativo. La respuesta crece de 0fr a 1fr (sin
