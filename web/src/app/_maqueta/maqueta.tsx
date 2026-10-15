@@ -9,11 +9,14 @@ import { Coreografia } from "../_direccion/coreografia";
 import { Libro3D } from "../_direccion/libro-3d";
 import { conVar } from "../_direccion/piezas";
 import { MaquetaParte2 } from "./parte-2";
+import { MaquetaParte3 } from "./parte-3";
 import "../_direccion/direccion.css";
 import "./maqueta.css";
 
 // La maqueta escondida de la portada nueva (15/10), por partes. Parte 1, la de
-// ARRIBA (acá); parte 2 (Cómo funciona, la carta, Escúchalo) en parte-2.tsx:
+// ARRIBA (acá); parte 2 (Cómo funciona, la carta, Escúchalo) en parte-2.tsx;
+// parte 3 (el libro con su precio, marcos, regalo, preguntas, cierre y pie)
+// en parte-3.tsx:
 // /maqueta y /ar/maqueta, sin enlaces ni sitemap, noindex. Es para que Naza
 // decida en el celular cómo queda el orden de docs/rediseno-2026-10/amigo/
 // maquetas/1-arriba.html con la estética real. No toca la portada: usa las
@@ -124,8 +127,12 @@ export function MaquetaArriba({ idioma }: { idioma: "es" | "ar" }) {
       </section>
 
       {/* ═══ PARTE 2 · Cómo funciona («Cómo funciona ↓» baja ahí), la carta y
-          Escúchalo, con la franja de servicio al final ═══ */}
+          Escúchalo ═══ */}
       <MaquetaParte2 idioma={idioma} />
+
+      {/* ═══ PARTE 3 · El libro (el único precio), marcos, regalo, preguntas
+          y el cierre con el pie ═══ */}
+      <MaquetaParte3 idioma={idioma} />
     </div>
   );
 }
