@@ -43,7 +43,7 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
   es: {
     titulo: ["En cada familia hay", "un libro sin escribir."],
     bajada:
-      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro, que queda en tu familia para siempre.",
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
     iniciar: "Iniciar Vitácora",
     comoFunciona: "Cómo funciona ↓",
     ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
@@ -68,7 +68,7 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
   ar: {
     titulo: ["En cada familia hay", "un libro sin escribir."],
     bajada:
-      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro, que queda en tu familia para siempre.",
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
     iniciar: "Iniciar Vitácora",
     comoFunciona: "Cómo funciona ↓",
     ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
