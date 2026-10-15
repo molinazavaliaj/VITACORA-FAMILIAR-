@@ -37,3 +37,21 @@ ar: igual con vos (Querés, podés, Escuchás, sumás, ves, elegís).
 | 20 | Escúchalo, texto | El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contratapa o desde el móvil, cuando quieras. | PROPUESTA |
 
 ar: igual con vos (decís, dejás, querés, escuchás).
+
+## Tanda 3 (el libro y los marcos, regalo, preguntas, cierre) — PROPUESTA, la ve Naza en /maqueta
+
+| # | Dónde | Texto (es) | Estado |
+|---|---|---|---|
+| 21 | Título «El libro» | Cada vida merece su propio libro. | PROPUESTA (pedido del amigo; reemplaza «Una vida merece un libro» y saca «vida corriente») |
+| 22 | Tres beneficios | Léelo / Su vida contada con sus palabras, capítulo a capítulo, con sus fotos. · Escúchalo / Sus mejores frases suenan con su voz desde el código de la contratapa. · Para siempre / Tapa dura y su foto en la portada, para que pase de mano en mano en tu familia. | PROPUESTA (los tres titulares cortos de Remento) |
+| 23 | Qué incluye | La entrevista entera por WhatsApp, hasta completar su historia · La página de su historia, para escuchar cada audio · El libro impreso en tapa dura, con el envío incluido · El libro en PDF, con sus mejores frases en su voz | PROPUESTA |
+| 24 | Precio (el ÚNICO de la portada, el del impreso) | {precio} · pago único, sin suscripciones | PROPUESTA (el digital solo aparece en el checkout) |
+| 25 | Marcos | Un marco con su voz para cada uno. / Un marco con su foto y un chip por dentro. Acercas el móvil y suena su voz. Puedes pedir uno para cada hermano, cada hijo o cada nieto, a 19 € cada uno. | PROPUESTA (marco 19 € todos) |
+| 26 | Regalo | No le regales la misma camisa de todos los años. / Regálale algo que va a quedar para toda la vida. Eliges el día en que empieza y te damos una tarjeta para entregárselo. | PROPUESTA (idea del amigo) |
+| 27 | Pregunta nueva | ¿Puedo ver el libro antes de que se imprima? / Sí. Cuando está terminado lo ves en la página de su historia, eliges la tapa y recién ahí se imprime. | PROPUESTA (de Remento: «¿puedo editar?») |
+| 28 | Pregunta nueva | ¿Y si quiero hacer mi propio libro? / Funciona igual. Las preguntas te llegan a ti y el libro es el de tu vida. | PROPUESTA |
+| 29 | Pregunta cambiada | ¿Va a saber usarlo? (antes «¿Mi padre va a saber usarlo?»; la respuesta sigue igual) | PROPUESTA (sin «padre») |
+| 30 | Cierre | Todas las vidas merecen su propio libro. + botón «Iniciar Vitácora» | PROPUESTA (lema del amigo; también va en el pie, la 404 y la contratapa del libro 3D) |
+
+Las demás preguntas y «¿Te queda alguna duda?» son las aprobadas; la duda va DESPUÉS de las preguntas.
+ar: igual con vos (Leelo, Escuchalo, Acercás, Podés, Regalale, Elegís, ves, elegís, te llegan a vos). En ar el precio del marco va en pesos (PRECIO_MARCO de AR).
