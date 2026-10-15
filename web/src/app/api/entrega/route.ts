@@ -3,6 +3,8 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { validarDireccion, type EstadoEntrega } from "@/lib/entregas";
+import { intenta, tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La dirección de envío de lo físico (3t.26, CONTRATO "Entregas"). Dos cosas:
 //
@@ -15,14 +17,16 @@ import { validarDireccion, type EstadoEntrega } from "@/lib/entregas";
 // Solo el comprador de ESE pedido: la entrega es de su familia, no del
 // narrador. Un primo no toca la entrega de la dueña ni al revés.
 
-const GENERICO = "No pudimos guardar la dirección. Intenta de nuevo.";
+const GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar la dirección. ${intenta(t)} de nuevo.`;
 const EDITABLES: EstadoEntrega[] = ["sin_direccion", "lista", "con_problema"];
 
 export async function PATCH(request: NextRequest) {
   const admin = crearClienteServidor();
-  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO });
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO() });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const { user } = acceso;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, acceso.narrador.familia_id);
 
   const entregaId = request.nextUrl.searchParams.get("entrega");
   if (!entregaId) return NextResponse.json({ error: "Falta la entrega." }, { status: 400 });
@@ -46,14 +50,14 @@ export async function PATCH(request: NextRequest) {
 
   // "Ya me llegó": solo tiene sentido si ya se despachó.
   if (body.accion === "ya_llego") {
-    if (entrega.estado !== "enviado") return NextResponse.json({ error: "Todavía no salió de acá: cuando se despache vas a poder marcarlo." }, { status: 400 });
+    if (entrega.estado !== "enviado") return NextResponse.json({ error: trato === "tu" ? "Todavía no salió de aquí: cuando se despache vas a poder marcarlo." : "Todavía no salió de acá: cuando se despache vas a poder marcarlo." }, { status: 400 });
     const { error } = await admin.from("entregas").update({ estado: "entregado", entregado_at: new Date().toISOString() }).eq("id", entrega.id);
-    if (error) { console.error("entrega: fallo marcar entregado", error); return NextResponse.json({ error: GENERICO }, { status: 500 }); }
+    if (error) { console.error("entrega: fallo marcar entregado", error); return NextResponse.json({ error: GENERICO(trato) }, { status: 500 }); }
     return NextResponse.json({ ok: true, estado: "entregado" });
   }
 
   if (!EDITABLES.includes(entrega.estado)) {
-    return NextResponse.json({ error: "El libro ya entró en producción con esta dirección: escribinos si hay que cambiarla." }, { status: 400 });
+    return NextResponse.json({ error: trato === "tu" ? "El libro ya entró en producción con esta dirección: escríbenos si hay que cambiarla." : "El libro ya entró en producción con esta dirección: escribinos si hay que cambiarla." }, { status: 400 });
   }
 
   const nombre = typeof body.destinatarioNombre === "string" ? body.destinatarioNombre.trim().replace(/\s+/g, " ").slice(0, 120) : "";
@@ -75,7 +79,7 @@ export async function PATCH(request: NextRequest) {
   }).eq("id", entrega.id);
   if (error) {
     console.error("entrega: fallo guardar la dirección", error);
-    return NextResponse.json({ error: GENERICO }, { status: 500 });
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
   return NextResponse.json({ ok: true, estado: "lista" });
 }

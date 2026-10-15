@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
+import { tratoDeLaFamilia } from "@/lib/trato";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
+import { textoDudas } from "../proximo-paso";
 import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
@@ -113,6 +116,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     { data: invitadosData },
     { data: filaNarrador },
     { panel },
+    tratoPanel,
   ] = await Promise.all([
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, foto_id, narrador_id").eq("narrador_id", n.id),
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").is("narrador_id", null),
@@ -129,6 +133,8 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
       : Promise.resolve({ data: null }),
     admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria, hora_preferida").eq("id", n.id).maybeSingle(),
     historiasDelUsuario(admin, user),
+    // Los textos del panel van con el trato de la familia dueña de la historia.
+    tratoDeLaFamilia(admin, n.familia_id),
   ]);
 
   if (e1 || e2 || e3) {
@@ -143,6 +149,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
   // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
   const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
+  // Terminó de contar y el escritor dejó dudas sin contestar (13/10): la dueña
+  // puede invitar a quien sepa las respuestas, aunque la historia esté cerrada.
+  // El aviso que lleva a la pantalla de dudas (13/10): la dueña y los invitados, mientras el libro no esté escrito
+  // (aunque ya lo hayan encargado: el libro espera las respuestas). Invitar, solo con el libro sin cerrar.
+  const dudasPendientes = PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
+  const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
@@ -185,6 +197,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         historiaCerrada={historiaCerrada}
         linkPublico={linkPublico}
         invitados={soloInvitados}
+        dudasAbiertas={dudasAbiertas}
         ritmo={ritmo}
         evitar={evitar}
         horario={horario}
@@ -224,9 +237,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         historiaCerrada={historiaCerrada}
         linkPublico={linkPublico}
         invitados={soloInvitados}
+        dudasAbiertas={dudasAbiertas}
+        dudasPendientes={dudasPendientes}
         ritmo={ritmo}
         horario={horario}
         alFinal={llegoAlFinalV3(v3.estado)}
+        trato={tratoPanel}
       />
     );
   }
@@ -304,7 +320,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
       <div className="min-w-0 flex-1">
         {n.alerta_silencio && rol === "duena" ? (
           <div className="mb-8">
-            <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} />
+            <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={tratoPanel} />
           </div>
         ) : null}
 
@@ -316,12 +332,16 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               <Titulo>{tituloHistoria(n.nombre, propia)}</Titulo>
             </div>
             <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-              {editando ? "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové." : estadoEnHumano(n.estado, propia)}
+              {editando
+                ? tratoPanel === "tu"
+                  ? "Las que ya se mandaron no se tocan. Las que vienen, sí: edita, saca, mueve."
+                  : "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové."
+                : estadoEnHumano(n.estado, propia, tratoPanel)}
             </p>
           </div>
           {/* Editando: el "Listo" va abajo, después de Sugerime preguntas (Joaquín, 17/09). */}
           {!editando ? (
-            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
               {puedeAgregar ? (
                 <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
                   <IconoBarra nombre="lapiz" />
@@ -335,23 +355,23 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                 </span>
               ) : null}
               {puedeAgregarFotos ? (
-                <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} variante="barra">
+                <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} variante="barra" trato={tratoPanel}>
                   <IconoBarra nombre="foto" />
                   Agregar fotos
                 </SubirFoto>
               ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
+                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
                   <IconoBarra nombre="foto" />
                   Agregar fotos
                 </span>
               ) : null}
               {PUEDE.invitar(rol) ? (
-                <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
-                  <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={soloInvitados} />
+                <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+                  <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={soloInvitados} trato={tratoPanel} />
                 </span>
               ) : null}
               {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (
-                <CerrarEdicion narradorId={n.id} propia={propia} />
+                <CerrarEdicion narradorId={n.id} propia={propia} trato={tratoPanel} />
               ) : null}
             </div>
           ) : null}
@@ -392,6 +412,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           </nav>
         </div>
 
+        {dudasPendientes ? (
+          <div className="mt-8">
+            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
+          </div>
+        ) : null}
+
         {/* Terminó de contar: mientras la edición está abierta, la barra manda (fotos,
             compartir, cerrar). Al cerrarla aparece el paso siguiente. Los invitados
             ven "Leer su libro" cuando el libro está cerrado. */}
@@ -402,7 +428,9 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               {aprobado
                 ? (propia ? "Leer tu libro y escuchar tu voz" : "Leer su libro y escuchar su voz")
                 : PUEDE.cerrarLibro(rol)
-                  ? (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
+                  ? tratoPanel === "tu"
+                    ? (propia ? "Dale los últimos retoques y encarga tu libro" : "Dale los últimos retoques y encarga su libro")
+                    : (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
                   : "Leer su libro"}
             </ProximoPaso>
             {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
@@ -423,9 +451,10 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               textoInicial={preguntaSobre ? (propia ? `Quiero contar más sobre esto: "${preguntaSobre.texto}"` : `Me gustaría que me cuente más sobre esto: "${preguntaSobre.texto}"`) : ""}
               propia={propia}
               capituloInicial={preguntaSobre?.capitulo}
+              trato={tratoPanel}
             />
             <div className="mt-3">
-              <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} />
+              <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} trato={tratoPanel} />
             </div>
             <div className="mt-5 flex justify-end">
               <Link href={`/tablero/${n.id}`} className={botonBarraPri}>
@@ -550,13 +579,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                       puedeEditar={PUEDE.editarGuion(rol)}
                       puedeSaltar={puedeSaltar(guion).ok}
                       capitulo={cap.nombre}
+                      trato={tratoPanel}
                     />
                   ) : null}
                 </div>
 
                 {!editando && puedeAgregar ? (
                   <div className="mt-5">
-                    <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre}>
+                    <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre} trato={tratoPanel}>
                       + Agregar una foto de esta época
                     </SubirFoto>
                   </div>
@@ -581,12 +611,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
                 Las fotos que todavía no tienen lugar. En{" "}
                 <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>{" "}
-                las arrastrás a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
+                {tratoPanel === "tu" ? "las arrastras" : "las arrastrás"} a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
               </p>
               <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={user.id} esDuena={rol === "duena"} />
               {puedeAgregar ? (
                 <div className="mt-5">
-                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos}>+ Agregar una foto al álbum</SubirFoto>
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} trato={tratoPanel}>+ Agregar una foto al álbum</SubirFoto>
                 </div>
               ) : null}
             </section>
@@ -598,14 +628,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
             <Etiqueta>Ajustes de la entrevista</Etiqueta>
             <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={contexto.sinFotos !== true} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} />
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={contexto.sinFotos !== true} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
             </div>
           </section>
         ) : null}
 
         {puedeCerrarAnticipado ? (
           <div className="mt-8">
-            <CierreAnticipado narradorId={n.id} />
+            <CierreAnticipado narradorId={n.id} trato={tratoPanel} />
           </div>
         ) : null}
       </div>

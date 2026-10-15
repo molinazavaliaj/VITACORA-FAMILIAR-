@@ -43,6 +43,22 @@ export function fechaDelDia(viaje: Viaje, dia: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * ¿Es temprano para mandar la pregunta del día `dia`? Las noches del guion
+ * (1..N) tienen fecha: la del día 3 no sale antes del tercer día del viaje,
+ * aunque el viajero haya dicho SÍ una semana antes de salir. `hoy` es la fecha
+ * local del viajero (YYYY-MM-DD). Lo que va después del guion (la pregunta de
+ * cierre, N+1…) no tiene fecha: sale cuando toca.
+ */
+export function esTempranoParaElDia(viaje: Viaje, dia: number, hoy: string): boolean {
+  return dia >= 1 && dia <= diasDelViaje(viaje) && hoy < fechaDelDia(viaje, dia);
+}
+
+/** "20 de octubre" desde YYYY-MM-DD, sin que la zona del servidor corra el día. */
+export function fechaEnPalabras(ymd: string): string {
+  return new Date(`${ymd}T00:00:00Z`).toLocaleDateString('es', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+}
+
 /** Cuántos días tiene el viaje (salida y vuelta inclusive). Mínimo 1. */
 export function diasDelViaje(viaje: Viaje): number {
   const a = Date.parse(`${viaje.salida}T00:00:00Z`);

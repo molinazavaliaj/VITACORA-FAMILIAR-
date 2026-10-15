@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
@@ -104,6 +104,9 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   }
   const regalo = await leerRegalo(crearClienteServidor(), crudo);
   if (!regalo) notFound();
+  // Ya canjeado (Naza, 10/10): la tarjeta cumplió su función y su código no
+  // sirve más. Un link viejo (el mail del pago) lleva al tablero de quien compró.
+  if (regalo.usado) redirect("/tablero");
   const numero = numeroPublico();
   const qr = await qrDataUri(urlRegalo(regalo.codigo));
   // Lo impreso va en el idioma del abuelo. Los botones de pantalla los lee quien

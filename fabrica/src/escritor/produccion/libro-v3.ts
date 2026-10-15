@@ -6,8 +6,9 @@
 //      registro, plan y dudas de datos. Hecha = `{id}/escritor/carpeta-A.json`. Si no pasa sus controles,
 //      queda `{id}/escritor/fallo-A.json` y se avisa a los socios (no se reintenta sola).
 //   2. Las dudas de datos (dudas-familia.json) van por mail a los socios, una vez (`dudas-avisadas.txt`).
-//      La pantalla para la familia no existe todavía: si alguien quiere corregir algo, se escribe en
-//      `{id}/escritor/correcciones.json` antes de que la dueña cierre el libro (CONTRATO, "Escritor V3").
+//      El mail trae el link a la pantalla de dudas (/tablero/{id}/dudas, desde el 12/10), que los socios le
+//      pasan a la familia. Lo que contestan ahí, o lo que se escribe a mano, va a
+//      `{id}/escritor/correcciones.json` antes de que se escriba el libro (CONTRATO, "Escritor V3").
 //   3. Pedido pagado + libro cerrado (libro_aprobado_at) → en segundo plano: A si faltaba, B con las
 //      correcciones (sin correcciones no llama a ningún modelo), C, plantilla → libro.html y libro.pdf,
 //      «Su voz» (frases.json + pedido de corte) y el pedido a 'entregado'. Si algo falla: 'fallido' y aviso.
@@ -16,6 +17,7 @@
 // si el proceso se corta (Railway reinicia), volver a correr retoma sin pagar de nuevo.
 import { randomUUID } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../../alarma-anthropic.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../../config.js';
 import { anotarUsoEscritor } from '../../costos.js';
@@ -26,7 +28,7 @@ import { AlmacenSupabase } from '../almacen/supabase.js';
 import type { Almacen } from '../almacen/tipos.js';
 import { Carpeta, leerJSON, parseJSONTolerante } from '../carpeta.js';
 import { Ejecutor, ErrorJSON, OPCIONES_CLIENTE, TopeDeGasto } from '../ejecutor.js';
-import { salida } from '../lectura.js';
+import { salida, trato } from '../lectura.js';
 import { materialACarpeta, type CorreccionFamilia } from '../material/a-carpeta.js';
 import { leerEntrevistaV3, type AudioV3 } from '../material/de-base.js';
 import type { FichaParaXml } from '../material/ficha-xml.js';
@@ -75,7 +77,7 @@ export type Motor = {
 export function motorReal(db: Db): Motor {
   return {
     ejecutor({ almacen, narradorId, log }) {
-      const cliente = new Anthropic({ ...OPCIONES_CLIENTE, apiKey: cargarConfig().anthropicApiKey });
+      const cliente = vigilarClave(new Anthropic({ ...OPCIONES_CLIENTE, apiKey: cargarConfig().anthropicApiKey }), 'el escritor');
       const tope = Number(process.env.ESCRITOR_TOPE_USD ?? 15);
       const ej = new Ejecutor({
         modelo: new ModeloAnthropic(cliente as unknown as ClienteMensajes),
@@ -143,6 +145,20 @@ function armarContexto(db: Db, narradorId: string, motor: Motor, c: Carpeta): Co
   return { c, ej, almacen, log, usarLote };
 }
 
+/**
+ * Cómo se nombra a un narrador en los avisos a los socios: su nombre y el id (13/10: el aviso de Imma decía solo
+ * el id y no se entendía de quién era). Si la base no contesta, el id solo: el aviso sale igual.
+ */
+async function quienEs(db: Db, narradorId: string): Promise<string> {
+  try {
+    const { data } = await db.from('narradores').select('como_le_dicen').eq('id', narradorId).maybeSingle();
+    const nombre = (data as { como_le_dicen?: string } | null)?.como_le_dicen?.trim();
+    return nombre ? `${nombre} (${narradorId})` : narradorId;
+  } catch {
+    return narradorId;
+  }
+}
+
 /** Corre la Etapa A. Un control que no pasa (o el tope, o sin material) deja fallo-A.json y avisa; un error de la API tira. */
 export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = motorReal(db)): Promise<ResultadoEtapaA> {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
@@ -157,7 +173,7 @@ export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = 
   if (!r.ok) {
     await almacen.escribir(FALLO_A, JSON.stringify({ motivo: r.motivo, fecha: new Date().toISOString() }, null, 1));
     await avisarSocios(
-      `La Etapa A de ${narradorId} no salió`,
+      `La Etapa A de ${await quienEs(db, narradorId)} no salió`,
       `${r.motivo}\n\nNo se reintenta sola. Lo que se pagó quedó en ${PREFIJO_ESCRITOR(narradorId)}/ (pasos/, costos.json). Para reintentar, borrar ${PREFIJO_ESCRITOR(narradorId)}/${FALLO_A}; si la familia ya cerró el libro y pagó, el pedido la corre igual antes de escribir.`,
     );
   }
@@ -279,9 +295,12 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
       `   Qué vio el lector: ${d.que}`,
       ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
     ].join('\n'));
+    // La pantalla de dudas existe desde el 12/10 (web/src/app/tablero/[narradorId]/dudas): los socios le
+    // pasan el link a la familia; no hay mail automático a la familia (decisión del 12/10).
+    const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${narradorId}/dudas`;
     const salio = await avisarSocios(
-      `Dudas de datos del libro de ${narradorId} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. La familia no las ve (la pantalla no existe todavía).\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
+      `La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: ${link}. Lo que contesten ahí entra al libro.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
     if (!salio) return false;
   }
@@ -297,6 +316,21 @@ export const esperaPorDudasMs = (): number => {
   const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
   return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
 };
+/**
+ * ¿Cada duda tiene una respuesta con texto en correcciones.json? Como `hayDudasSinContestar` de la web
+ * (web/src/lib/dudas.ts). Si el archivo falta o está roto, no: mejor esperar el plazo que escribir sin ellas.
+ */
+async function todasContestadas(dudas: unknown[], almacen: Almacen): Promise<boolean> {
+  let correcciones: CorreccionFamilia[];
+  try {
+    correcciones = await leerCorrecciones(almacen);
+  } catch {
+    return false;
+  }
+  const conTexto = new Set(correcciones.filter((c) => c.dudaId && c.texto.trim()).map((c) => c.dudaId));
+  return dudas.every((d) => typeof (d as { id?: unknown })?.id === 'string' && conTexto.has((d as { id: string }).id));
+}
+
 /** Si el mail de dudas no salió, el libro reintenta mandarlo en este rato (no se escribe sin que las veamos). */
 const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
@@ -305,11 +339,18 @@ const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
  * así hay tiempo de escribir correcciones.json. Sin dudas, 0 (arranca ya). Si el mail todavía no salió (no hay
  * `dudas-avisadas.txt`, o quedó vacío porque la Etapa A se rehízo), lo manda acá. Sin a quién avisar (falta
  * MAIL_SOCIOS o la clave de Resend), no se espera: nadie iba a ver las dudas. Devuelve cuántos ms faltan.
+ *
+ * Naza, 13/10: si todas las dudas ya tienen respuesta en correcciones.json, no hay nada que esperar: el libro
+ * se escribe en cuanto se encarga.
  */
 async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
   if (!dudas.length || esperaPorDudasMs() === 0) return 0;
+  if (await todasContestadas(dudas, almacen)) {
+    console.log(`escritor ${narradorId}: las ${dudas.length} dudas tienen respuesta; el libro no espera`);
+    return 0;
+  }
   if (!hayAQuienAvisar()) {
     console.warn(`escritor ${narradorId}: hay ${dudas.length} dudas pero no hay a quién avisarlas (MAIL_SOCIOS); el libro no espera`);
     return 0;
@@ -425,7 +466,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     // La plantilla y el PDF (el lector online carga libro.html; la familia descarga libro.pdf).
     const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion').eq('id', narradorId).maybeSingle();
     if (error || !n) throw new Error(`No se pudo leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
-    const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma });
+    const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma, trato: trato(x.c) });
     await subir(db, RUTA_LIBRO_HTML(narradorId), html, 'text/html; charset=utf-8');
     await subir(db, RUTA_LIBRO_PDF(narradorId), await htmlAPdf(html), 'application/pdf');
 
@@ -460,7 +501,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     const { error } = await db.from('pedidos').update({ estado: 'fallido' }).eq('id', pedido.id);
     if (error) console.error(`escritor ${narradorId}: no se pudo marcar 'fallido' el pedido ${pedido.id}:`, error.message);
     await avisarSocios(
-      `El libro de ${narradorId} no salió (pedido ${pedido.id})`,
+      `El libro de ${await quienEs(db, narradorId)} no salió (pedido ${pedido.id})`,
       `${motivo}\n\nEl pedido quedó 'fallido'. Lo pagado al modelo quedó en ${PREFIJO_ESCRITOR(narradorId)}/: para reintentar, volver el pedido a 'pagado' (retoma sin repagar).`,
     );
   }
@@ -553,7 +594,7 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
       const p = pendientes.get(n.id)!;
       const horas = Math.floor((ahora - cerrado) / 3_600_000);
       const salio = await avisarSocios(
-        `El libro de ${n.id} lleva ${horas} horas sin salir`,
+        `El libro de ${await quienEs(db, n.id)} lleva ${horas} horas sin salir`,
         `La familia cerró el libro hace ${horas} horas y todavía no se entregó (un libro tarda de 4 a 9 horas, más 24 si hubo dudas). Pedido ${p.id}, estado '${p.estado}'.\n\n` +
           `Qué mirar: los logs de la fábrica en Railway (buscar "escritor ${n.id}"), ${PREFIJO_ESCRITOR(n.id)}/costos.json (si sigue sumando, está trabajando) y ${PREFIJO_ESCRITOR(n.id)}/lotes/ (los lotes de Batch que espera). ` +
           `Si quedó 'fallido', volverlo a 'pagado' retoma sin repagar. Este aviso sale una sola vez.`,

@@ -139,11 +139,16 @@ export async function enviarPregunta(
   // (regalo-idiomas, 09/10): su bienvenida es el BIEN del banco, que describe
   // la V3, y solo la V3 habla catalán y castellano de España. Si el alta se
   // frena ('frenada'), no sale la pregunta vieja: devuelve false.
+  // Un regalo devuelve true solo si OR1 salió de verdad (10/10): con true se manda
+  // el mail «dijo que sí», que dice que la primera pregunta ya salió. Si OR1 quedó
+  // en la cola ('en-cola'), ese mail lo manda drenar cuando la saque. Un nuevo de
+  // la V3 que no es regalo sigue igual: 'en-cola' cuenta como mandada.
   // Un nuevo que recibió la bienvenida vieja (antes de prender el interruptor) sigue entero por el flujo viejo.
   if (n.estado === 'acepto' && orden === 1 && entraALaV3(n.contexto) && (n.contexto?.regalo === true || n.contexto?.bienvenidaV3 === true)) {
     const { altaNuevo } = await import('../v3/pasar.js');
     const { depsReales } = await import('../v3/deps-reales.js');
-    return (await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla })) === 'mandada';
+    const alta = await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla });
+    return n.contexto?.regalo === true ? alta === 'mandada' : alta !== 'frenada';
   }
   let pregunta = await preguntaDeOrden(n.id, orden);
   // Red de seguridad: las 4 finales se generan al responder la última del guion.

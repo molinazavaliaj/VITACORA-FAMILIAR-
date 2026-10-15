@@ -74,6 +74,22 @@ describe('alta V3 de los nuevos en enviarPregunta', () => {
     expect(h.preguntaDeOrden).not.toHaveBeenCalled();
   });
 
+  // Robustez (10/10): el mail «dijo que sí» de un regalo sale solo si OR1 salió de verdad.
+  it('un regalo cuya OR1 quedó en la cola (Meta la rechazó o falta la plantilla) devuelve false', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '');
+    h.altaNuevo.mockResolvedValueOnce('en-cola' as never);
+    const regalo = { ...N, contexto: { genero: 'mujer', regalo: true, idioma: 'es-ES' } };
+    expect(await enviarPregunta(regalo, 1, { plantilla: false })).toBe(false);
+    expect(h.preguntaDeOrden).not.toHaveBeenCalled();
+  });
+
+  it('un nuevo de la V3 que no es regalo sigue igual: con OR1 en la cola devuelve true', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '1');
+    h.altaNuevo.mockResolvedValueOnce('en-cola' as never);
+    const nuevo = { ...N, contexto: { ...N.contexto, bienvenidaV3: true } };
+    expect(await enviarPregunta(nuevo, 1, { plantilla: false })).toBe(true);
+  });
+
   it('prendido pero no es la 1 de un acepto: flujo viejo', async () => {
     vi.stubEnv('V3_PARA_NUEVOS', '1');
     await enviarPregunta({ ...N, estado: 'activo', dia_actual: 4 }, 5, { plantilla: false });

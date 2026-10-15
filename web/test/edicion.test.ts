@@ -4,10 +4,10 @@ import { validarEdicion, propuestaPorDefecto } from "../src/lib/edicion";
 const ctx = { capitulosValidos: ["La infancia", "El amor", "El oficio"], respuestasValidas: new Set(["r1", "r2", "r3"]) };
 
 describe("propuestaPorDefecto", () => {
-  it("título con el nombre, subtítulo con el nombre completo, todo incluido", () => {
-    const p = propuestaPorDefecto("Alfredo", "Alfredo Pérez", ctx.capitulosValidos);
-    expect(p.titulo).toBe("Alfredo — La historia de una vida");
-    expect(p.subtitulo).toBe("Alfredo Pérez");
+  it("el título es el nombre solo, sin subtítulo (la tapa nueva, 13/10), todo incluido", () => {
+    const p = propuestaPorDefecto("Alfredo Pérez", ctx.capitulosValidos);
+    expect(p.titulo).toBe("Alfredo Pérez");
+    expect(p.subtitulo).toBe("");
     expect(p.ordenCapitulos).toEqual(ctx.capitulosValidos);
     expect(p.excluidas).toEqual([]);
   });

@@ -14,9 +14,22 @@ vi.mock('../src/db/cliente.js', () => {
   function builder(tabla: string) {
     const b: any = { _op: 'select' };
     b.select = () => b; b.eq = () => b; b.limit = () => b; b.order = () => b; b.is = () => b;
-    b.update = (p: any) => { b._op = 'update'; estado.updates.push({ tabla, p }); return b; };
+    // Filtros de jsonb (cs = contiene): se evalúan contra el contexto «de la base» al resolver,
+    // como el WHERE de un UPDATE en Postgres (que se reevalúa sobre la fila ya escrita por otro).
+    b.not = (col: string, op: string, v: string) => { if (col === 'contexto' && op === 'cs') b._noContiene = JSON.parse(v); return b; };
+    b.contains = (col: string, v: any) => { if (col === 'contexto') b._contiene = v; return b; };
+    b.update = (p: any) => { b._op = 'update'; b._p = p; return b; };
+    const contiene = (ctx: any, sub: any) => (sub.mailsEnviados as string[]).every((h) => Array.isArray(ctx?.mailsEnviados) && ctx.mailsEnviados.includes(h));
     const resolver = () => {
-      if (b._op === 'update') return { data: null, error: null };
+      if (b._op === 'update') {
+        if (tabla === 'narradores') {
+          if (b._noContiene && contiene(estado.contexto, b._noContiene)) return { data: [], error: null };
+          if (b._contiene && !contiene(estado.contexto, b._contiene)) return { data: [], error: null };
+          estado.contexto = b._p.contexto;
+        }
+        estado.updates.push({ tabla, p: b._p });
+        return { data: [{ id: 'n1' }], error: null };
+      }
       if (tabla === 'narradores') return { data: { contexto: estado.contexto } };
       if (tabla === 'familias') return { data: estado.email ? { email: estado.email, region: estado.region } : null };
       return { data: null };
@@ -34,7 +47,7 @@ vi.mock('../src/ia/personalizar.js', () => ({ personalizarPregunta: vi.fn() }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: vi.fn() }));
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.fn() }; } }));
 
-import { mandarHito, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
+import { mandarHito, mandarMail, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
 import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
 import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
@@ -62,7 +75,7 @@ describe('mails de hitos', () => {
     const r = redactarHito('acepto', n);
     expect(r.asunto).toBe('Roberto dijo que sí');
     expect(r.cuerpo).toBe('<p>Roberto aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="https://www.vitacorafamiliar.com/tablero/n1?editar=1">https://www.vitacorafamiliar.com/tablero/n1</a></p>');
-    expect(redactarHito('acepto', n, { regalo: false, trato: 'tu' }).cuerpo).toBe(r.cuerpo.replace('podés', 'puedes'));
+    expect(redactarHito('acepto', n, { regalo: false, trato: 'tu' }).cuerpo).toBe(r.cuerpo.replace('Roberto aceptó', 'Roberto ha aceptado').replace('podés sumar', 'puedes añadir'));
   });
 
   it('«dijo que sí» de un regalo, de vos: ya le mandamos la primera pregunta, sin guion ni «mañana»', () => {
@@ -87,6 +100,7 @@ describe('mails de hitos', () => {
     await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
     expect(JSON.parse(estado.fetch.mock.calls[0][1].body).subject).toBe('Roberto ha dicho que sí');
     estado.region = 'AR';
+    estado.contexto = { regalo: true }; // el mock guarda lo anotado: se limpia para mandar de nuevo
     await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
     expect(JSON.parse(estado.fetch.mock.calls[1][1].body).html).toContain('ya le mandamos la primera pregunta');
     estado.contexto = {};
@@ -94,7 +108,7 @@ describe('mails de hitos', () => {
     await mandarHito({ ...n, contexto: {} }, 'acepto');
     // Sin regalo, de España: el «dijo que sí» de siempre, con tú.
     expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('Enseguida le llega la primera pregunta');
-    expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('puedes sumar fotos');
+    expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('puedes añadir fotos');
   });
 
   it('manda una sola vez por narrador y lo anota en contexto.mailsEnviados', async () => {
@@ -120,6 +134,56 @@ describe('mails de hitos', () => {
     estado.email = 'martina@mail.com';
     estado.fetch.mockRejectedValue(new Error('caída'));
     await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+  });
+
+  it('dos llamadas casi juntas mandan el mail UNA sola vez (el hito se toma en la base antes de mandar)', async () => {
+    estado.contexto = { regalo: true };
+    await Promise.all([
+      mandarHito({ ...n, contexto: { regalo: true } }, 'acepto'),
+      mandarHito({ ...n, contexto: { regalo: true } }, 'acepto'),
+    ]);
+    expect(estado.fetch).toHaveBeenCalledTimes(1);
+    expect(estado.contexto.mailsEnviados).toEqual(['acepto']);
+    expect(estado.contexto.regalo).toBe(true);
+  });
+
+  it('si Resend falla, el hito se suelta para que un próximo intento lo mande', async () => {
+    estado.contexto = { mailsEnviados: ['primera'] };
+    estado.fetch.mockRejectedValueOnce(new Error('caída'));
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await mandarHito({ ...n, contexto: {} }, 'acepto');
+    } finally {
+      error.mockRestore();
+    }
+    expect(estado.contexto.mailsEnviados).toEqual(['primera']);
+    await mandarHito({ ...n, contexto: {} }, 'acepto');
+    expect(estado.fetch).toHaveBeenCalledTimes(2);
+    expect(estado.contexto.mailsEnviados).toEqual(['primera', 'acepto']);
+  });
+});
+
+describe('timeout del fetch a Resend', () => {
+  it('mandarHito, mandarMailFamilia y mandarMail le pasan un AbortSignal al fetch', async () => {
+    await mandarHito({ ...n, contexto: {} }, 'primera');
+    await mandarMailFamilia('fam-1', 'a', 'b', 'n1');
+    await mandarMail('x@y.com', 'a', '<p>b</p>');
+    expect(estado.fetch).toHaveBeenCalledTimes(3);
+    for (const llamada of estado.fetch.mock.calls) expect(llamada[1].signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('un timeout cuenta como fallo: false (o el hito se suelta) y nunca tira', async () => {
+    const timeout = () => Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError'));
+    estado.fetch.mockImplementation(timeout);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+      expect(await mandarMail('x@y.com', 'a', '<p>b</p>')).toBe(false);
+      await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+    } finally {
+      error.mockRestore();
+    }
+    expect(estado.contexto.mailsEnviados ?? []).not.toContain('acepto');
   });
 });
 
@@ -220,17 +284,49 @@ describe('el trato en las sugeridas', () => {
   });
 });
 
-describe('mails de hitos con tú para España (Naza, 09/10)', () => {
-  it('con tú cambian puedes y quieres; con vos (o sin decir), los de siempre; el silencio no cambia', async () => {
+describe('mails de hitos con tú para España (aprobados por Naza el 10/10)', () => {
+  const P = 'https://www.vitacorafamiliar.com/tablero/n1';
+  const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
+
+  it('de tú, palabra por palabra', async () => {
     const { redactarHito } = await import('../src/mail/hitos.js');
-    const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
-    expect(redactarHito('acepto', n, { trato: 'tu' }).cuerpo).toContain('Mientras tanto, puedes sumar fotos de cada época o preguntas para su entrevista.');
-    expect(redactarHito('acepto', n).cuerpo).toContain('Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
-    expect(redactarHito('acepto', n).cuerpo).not.toContain('guion');
-    expect(redactarHito('primera', n, { trato: 'tu' }).asunto).toBe('Ya puedes escuchar a Imma');
-    expect(redactarHito('mitad', n, { trato: 'tu' }).cuerpo).toContain('si quieres, pedirle que cuente más');
-    expect(redactarHito('silencio', n, { trato: 'tu' })).toEqual(redactarHito('silencio', n, { trato: 'vos' }));
+    expect(redactarHito('acepto', n, { trato: 'tu' })).toEqual({
+      asunto: 'Imma ha dicho que sí',
+      cuerpo: `<p>Imma ha aceptado. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, puedes añadir fotos de cada época o preguntas para su entrevista.</p><p><a href="${P}?editar=1">${P}</a></p>`,
+    });
+    expect(redactarHito('primera', n, { trato: 'tu' })).toEqual({
+      asunto: 'Ya puedes escuchar a Imma',
+      cuerpo: `<p>Imma ha contestado la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${P}">${P}</a></p>`,
+    });
+    expect(redactarHito('mitad', n, { trato: 'tu' })).toEqual({
+      asunto: 'Imma va por la mitad',
+      cuerpo: `<p>Imma ya ha contado la mitad de su historia. Es un buen momento para leer lo que hay y, si quieres, pedirle que cuente más sobre algo.</p><p><a href="${P}">${P}</a></p>`,
+    });
+    expect(redactarHito('silencio', n, { trato: 'tu' })).toEqual({
+      asunto: 'Hace tres días que Imma no responde',
+      cuerpo: `<p>Imma lleva tres días sin contestar. No pasa nada grave, a veces es el móvil y a veces las ganas. Una llamada tuya suele ayudar.</p><p>Cuando vuelva a contestar, la entrevista sigue donde se quedó.</p><p><a href="${P}">${P}</a></p>`,
+    });
+  });
+
+  it('de vos, los de siempre; el silencio sin dos puntos', async () => {
+    const { redactarHito } = await import('../src/mail/hitos.js');
+    expect(redactarHito('acepto', n).asunto).toBe('Imma dijo que sí');
+    expect(redactarHito('acepto', n).cuerpo).toContain('Imma aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
     expect(redactarHito('primera', n).asunto).toBe('Ya podés escuchar a Imma');
-    for (const h of ['acepto', 'primera', 'mitad'] as const) expect(redactarHito(h, n, { trato: 'tu' }).cuerpo + redactarHito(h, n, { trato: 'tu' }).asunto).not.toMatch(/podés|querés/);
+    expect(redactarHito('primera', n).cuerpo).toContain('Imma contestó la primera pregunta.');
+    expect(redactarHito('mitad', n).cuerpo).toContain('Imma ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si querés, pedirle');
+    expect(redactarHito('silencio', n)).toEqual({
+      asunto: 'Hace tres días que Imma no responde',
+      cuerpo: `<p>Imma lleva tres días sin contestar. No pasa nada grave, a veces es el teléfono y a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó.</p><p><a href="${P}">${P}</a></p>`,
+    });
+  });
+
+  it('de tú, nada de vos ni de dos puntos en el texto', async () => {
+    const { redactarHito } = await import('../src/mail/hitos.js');
+    for (const h of ['acepto', 'primera', 'mitad', 'silencio'] as const) {
+      const { asunto, cuerpo } = redactarHito(h, n, { trato: 'tu' });
+      const texto = (asunto + cuerpo).replace(/<[^>]+>/g, ' ').replace(/https?:\/\/\S+/g, '');
+      expect(texto).not.toMatch(/podés|querés|dijo|aceptó|contestó|contó|llamado|celular|:/);
+    }
   });
 });

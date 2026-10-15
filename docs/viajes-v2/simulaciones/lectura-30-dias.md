@@ -25,7 +25,7 @@ _[texto: SÍ]_
 **21:00 · Irene**  
 _[audio: Bruno me regaló la guía hace cinco años y nunca la abrí; en el cumple me la devolvió con el pasaje adentro]_
 
-**21:00 · Vitácora** `ACA2` + `AS2`  
+**21:03 · Vitácora** `ACA2` + `AS2`  
 > Lo escuché. Sigo con esto.
 >
 > Ya falta poco, Irene. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza.
@@ -35,10 +35,10 @@ _[audio: Bruno me regaló la guía hace cinco años y nunca la abrí; en el cump
 **13:20 · Irene**  
 _[texto: nervios de los buenos; el que me cayó fue cuando compré el adaptador de enchufe]_
 
-**13:20 · Vitácora** `TXT`  
+**13:23 · Vitácora** `TXT`  
 > Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás.
 
-**13:20 · Vitácora** `IM1`  
+**13:23 · Vitácora** `IM1`  
 > Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Decime cuál es y de dónde te viene.
 
 ## Antes de salir · viernes 25/9 (hora de Madrid)
@@ -46,7 +46,7 @@ _[texto: nervios de los buenos; el que me cayó fue cuando compré el adaptador 
 **18:45 · Irene**  
 _[audio: una calle angosta con farolitos rojos, y yo sola caminando de noche]_
 
-**18:45 · Vitácora** `ACA3` + `VA1`  
+**18:48 · Vitácora** `ACA3` + `VA1`  
 > Quedó guardado. Te pregunto una más.
 >
 > ¿Qué es lo que va en la valija sí o sí, Irene? No el cargador ni los documentos: algo tuyo. Y por qué va con vos.
@@ -55,7 +55,7 @@ _[audio: una calle angosta con farolitos rojos, y yo sola caminando de noche]_
 
 _(VA1 lleva 3 días sin respuesta.)_
 
-**18:45 · Vitácora** `REC1-U`  
+**18:48 · Vitácora** `REC1-U`  
 > Hola, Irene. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso", y nos vemos el día que salís.
 
 ## Día 1 · salida · lunes 12/10 (hora de Madrid)
@@ -66,7 +66,7 @@ _(VA1 lleva 3 días sin respuesta.)_
 **10:30 · Irene**  
 _[audio: cerrando la maleta con la rodilla y la radio puesta, como hacía mi padre]_
 
-**10:30 · Vitácora** `ACM1`  
+**10:33 · Vitácora** `ACM1`  
 > Ya está, gracias.
 
 ## Día 2 del viaje · martes 13/10 (hora de Madrid)
@@ -77,7 +77,7 @@ _[audio: cerrando la maleta con la rodilla y la radio puesta, como hacía mi pad
 **11:40 · Irene**  
 _[audio: el avión apagó las luces y alguien abrió la ventanilla: todo blanco abajo]_
 
-**11:40 · Vitácora** `ACM2`  
+**11:43 · Vitácora** `ACM2`  
 > Gracias, quedó.
 
 ## Día 2 del viaje · martes 13/10 (hora de Tokyo)
@@ -88,7 +88,7 @@ _[audio: el avión apagó las luces y alguien abrió la ventanilla: todo blanco 
 **22:20 · Irene**  
 _[audio: me perdí en la estación y un señor me acompañó tres andenes sin decir una palabra]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 3 del viaje · miércoles 14/10 (hora de Tokyo)
@@ -99,7 +99,7 @@ _[audio: me perdí en la estación y un señor me acompañó tres andenes sin de
 **13:25 · Irene**  
 _[foto: diez segundos de cigarras]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C1` + `NO1` + `F1`  
 > Contame cómo fue hoy, Irene, como se lo contarías a alguien que te quiere y no estuvo. Arrancá por algo que comiste, y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden.
@@ -107,7 +107,7 @@ _[foto: diez segundos de cigarras]_
 **22:20 · Irene**  
 _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 4 del viaje · jueves 15/10 (hora de Tokyo)
@@ -121,7 +121,7 @@ _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas
 **22:20 · Irene**  
 _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 
-**22:20 · Vitácora** `ACN3`  
+**22:23 · Vitácora** `ACN3`  
 > Lo escuché. Hasta mañana, Irene.
 
 ## Día 5 del viaje · viernes 16/10 (hora de Tokyo)
@@ -132,7 +132,7 @@ _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 **13:25 · Irene**  
 _[foto: un cartel que no entiendo]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R`  
 > Hoy la pregunta no es mía, es de Bruno: «¿Qué comida te gustaría que aprendamos a cocinar juntos?». Contale a Bruno, aunque me lo mandes a mí. Si hay foto, va.
@@ -140,7 +140,7 @@ _[foto: un cartel que no entiendo]_
 **22:35 · Irene**  
 _[texto: el tren bala: me dormí y me desperté con la montaña en la ventana]_
 
-**22:35 · Vitácora** `TXT`  
+**22:38 · Vitácora** `TXT`  
 > Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás.
 
 ## Día 6 del viaje · sábado 17/10 (hora de Tokyo)
@@ -151,7 +151,7 @@ _[texto: el tren bala: me dormí y me desperté con la montaña en la ventana]_
 **13:25 · Irene**  
 _[foto: un vaso de té frío]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C3` + `NO4` + `F5`  
 > ¿Cómo fue hoy, Irene? Contámelo como se lo contarías en la mesa cuando vuelvas, con lo que valga la pena. Arrancá por el momento en que más sentiste que estabas de viaje, y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.
@@ -159,7 +159,7 @@ _[foto: un vaso de té frío]_
 **22:20 · Irene**  
 _[audio: un baño público de aguas termales; me costó entrar y después no quería salir]_
 
-**22:20 · Vitácora** `ACN4`  
+**22:23 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 7 del viaje · domingo 18/10 (hora de Tokyo)
@@ -170,12 +170,12 @@ _[audio: un baño público de aguas termales; me costó entrar y después no que
 **13:25 · Irene**  
 _[foto: una esquina con cables]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **17:10 · Irene**  
 _[foto suelta: un gato durmiendo sobre una moto]_
 
-**17:10 · Vitácora** reacciona ❤️ a su mensaje
+**17:13 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C4` + `NO3` + `F2`  
 > Dejame verlo como lo viste vos, Irene: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una. Arrancá por algo que viste hoy y que allá donde vivís sería raro, y después seguí con lo que venga. Si hay fotos, mandalas.
@@ -183,7 +183,7 @@ _[foto suelta: un gato durmiendo sobre una moto]_
 **22:20 · Irene**  
 _[audio: una chica me enseñó a doblar una grulla de papel en el andén]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 8 del viaje · lunes 19/10 (hora de Tokyo)
@@ -194,7 +194,7 @@ _[audio: una chica me enseñó a doblar una grulla de papel en el andén]_
 **13:25 · Irene**  
 _[foto: mis zapatillas mojadas]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C5` + `NO9` + `F4`  
 > Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís. Arrancá por algo que te hizo reír, aunque sea una tontería, y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.
@@ -202,7 +202,7 @@ _[foto: mis zapatillas mojadas]_
 **22:20 · Irene**  
 _[audio: caminé hasta que me dolieron los pies y terminé en un parque lleno de ciervos]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 9 del viaje · martes 20/10 (hora de Tokyo)
@@ -216,7 +216,7 @@ _[audio: caminé hasta que me dolieron los pies y terminé en un parque lleno de
 **22:20 · Irene**  
 _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni una vez y fue lo mejor del día + 2 fotos]_
 
-**22:20 · Vitácora** `ACN3`  
+**22:23 · Vitácora** `ACN3`  
 > Lo escuché. Hasta mañana, Irene.
 
 ## Día 10 del viaje · miércoles 21/10 (hora de Tokyo)
@@ -227,7 +227,7 @@ _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni u
 **13:25 · Irene**  
 _[foto: el cielo blanco]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R2`  
 > Esta noche te escribe otra persona, no yo. Bruno te dejó esta pregunta: «¿Hubo algún momento en que te sentiste perdida?». Contestale como si la tuvieras enfrente. Si hay foto, mandala.
@@ -240,7 +240,7 @@ _[foto: el cielo blanco]_
 **13:25 · Irene**  
 _[foto: un cartel que no entiendo]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 _(La noche anterior quedó sin contestar.)_
 
@@ -257,7 +257,7 @@ _(La noche anterior quedó sin contestar.)_
 **13:25 · Irene**  
 _[foto: un vaso de té frío]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 _(La noche anterior quedó sin contestar.)_
 
@@ -274,7 +274,7 @@ _(La noche anterior quedó sin contestar.)_
 **13:25 · Irene**  
 _[foto: una esquina con cables]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C4` + `NO6` + `F3`  
 > Dejame verlo como lo viste vos, Irene: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una. Arrancá por algo que no estaba en el plan, y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.
@@ -282,7 +282,7 @@ _[foto: una esquina con cables]_
 **22:20 · Irene**  
 _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 2 fotos]_
 
-**22:20 · Vitácora** `ACN4`  
+**22:23 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 14 del viaje · domingo 25/10 (hora de Tokyo)
@@ -296,7 +296,7 @@ _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 
 **22:20 · Irene**  
 _[audio: un baño público de aguas termales; me costó entrar y después no quería salir]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 15 del viaje · lunes 26/10 (hora de Tokyo)
@@ -307,7 +307,7 @@ _[audio: un baño público de aguas termales; me costó entrar y después no que
 **13:25 · Irene**  
 _[foto: diez segundos de cigarras]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C1` + `NO2` + `F3`  
 > Contame cómo fue hoy, Irene, como se lo contarías a alguien que te quiere y no estuvo. Arrancá por un lugar donde te quedaste un rato, y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.
@@ -315,7 +315,7 @@ _[foto: diez segundos de cigarras]_
 **22:20 · Irene**  
 _[audio: una chica me enseñó a doblar una grulla de papel en el andén]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 16 del viaje · martes 27/10 (hora de Tokyo)
@@ -326,7 +326,7 @@ _[audio: una chica me enseñó a doblar una grulla de papel en el andén]_
 **13:25 · Irene**  
 _[foto: el cielo blanco]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R3`  
 > Bruno quiso saber esto de tu viaje: «¿Qué palabra de allá te vas a quedar?». Es para Bruno, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.
@@ -334,7 +334,7 @@ _[foto: el cielo blanco]_
 **22:35 · Irene**  
 _[texto: caminé hasta que me dolieron los pies y terminé en un parque lleno de ciervos]_
 
-**22:35 · Vitácora** `ACN4`  
+**22:38 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 17 del viaje · miércoles 28/10 (hora de Tokyo)
@@ -345,7 +345,7 @@ _[texto: caminé hasta que me dolieron los pies y terminé en un parque lleno de
 **13:25 · Irene**  
 _[foto: un cartel que no entiendo]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C2` + `NO4` + `F5`  
 > Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por el momento en que más sentiste que estabas de viaje, y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.
@@ -353,7 +353,7 @@ _[foto: un cartel que no entiendo]_
 **22:20 · Irene**  
 _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni una vez y fue lo mejor del día + 2 fotos]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 18 del viaje · jueves 29/10 (hora de Tokyo)
@@ -364,7 +364,7 @@ _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni u
 **13:25 · Irene**  
 _[foto: un vaso de té frío]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C3` + `NO3` + `F2`  
 > ¿Cómo fue hoy, Irene? Contámelo como se lo contarías en la mesa cuando vuelvas, con lo que valga la pena. Arrancá por algo que viste hoy y que allá donde vivís sería raro, y después seguí con lo que venga. Si hay fotos, mandalas.
@@ -372,7 +372,7 @@ _[foto: un vaso de té frío]_
 **22:20 · Irene**  
 _[audio: me perdí en la estación y un señor me acompañó tres andenes sin decir una palabra]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 19 del viaje · viernes 30/10 (hora de Tokyo)
@@ -383,7 +383,7 @@ _[audio: me perdí en la estación y un señor me acompañó tres andenes sin de
 **19:40 · Irene**  
 _[foto suelta: el monte Fuji desde el tren]_
 
-**19:40 · Vitácora** reacciona ❤️ a su mensaje
+**19:43 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C4` + `NO9` + `F4`  
 > Dejame verlo como lo viste vos, Irene: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una. Arrancá por algo que te hizo reír, aunque sea una tontería, y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.
@@ -391,7 +391,7 @@ _[foto suelta: el monte Fuji desde el tren]_
 **22:20 · Irene**  
 _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas]_
 
-**22:20 · Vitácora** `ACN3`  
+**22:23 · Vitácora** `ACN3`  
 > Lo escuché. Hasta mañana, Irene.
 
 ## Día 20 del viaje · sábado 31/10 (hora de Tokyo)
@@ -402,7 +402,7 @@ _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas
 **13:25 · Irene**  
 _[foto: mis zapatillas mojadas]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C5` + `NO8` + `F1`  
 > Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís. Arrancá por el momento en que el cuerpo te avisó algo, cansancio o hambre, lo que fuera, y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden.
@@ -410,7 +410,7 @@ _[foto: mis zapatillas mojadas]_
 **22:20 · Irene**  
 _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 
-**22:20 · Vitácora** `ACN4`  
+**22:23 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 21 del viaje · domingo 1/11 (hora de Tokyo)
@@ -421,7 +421,7 @@ _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 **13:25 · Irene**  
 _[foto: diez segundos de cigarras]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R`  
 > Hoy la pregunta no es mía, es de Bruno: «¿Qué le mostrarías a mamá si estuviera ahí?». Contale a Bruno, aunque me lo mandes a mí. Si hay foto, va.
@@ -429,7 +429,7 @@ _[foto: diez segundos de cigarras]_
 **22:20 · Irene**  
 _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 2 fotos]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 22 del viaje · lunes 2/11 (hora de Tokyo)
@@ -440,7 +440,7 @@ _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 
 **13:25 · Irene**  
 _[foto: el cielo blanco]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C1` + `NO5` + `F4`  
 > Contame cómo fue hoy, Irene, como se lo contarías a alguien que te quiere y no estuvo. Arrancá por alguien que te cruzaste y no conocías, y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.
@@ -448,7 +448,7 @@ _[foto: el cielo blanco]_
 **22:20 · Irene**  
 _[audio: un baño público de aguas termales; me costó entrar y después no quería salir]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 23 del viaje · martes 3/11 (hora de Tokyo)
@@ -459,7 +459,7 @@ _[audio: un baño público de aguas termales; me costó entrar y después no que
 **13:25 · Irene**  
 _[foto: un cartel que no entiendo]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C2` + `NO7` + `F1`  
 > Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por un rato en que no estabas haciendo nada, y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden.
@@ -467,7 +467,7 @@ _[foto: un cartel que no entiendo]_
 **22:35 · Irene**  
 _[texto: una chica me enseñó a doblar una grulla de papel en el andén]_
 
-**22:35 · Vitácora** `ACN4`  
+**22:38 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 24 del viaje · miércoles 4/11 (hora de Tokyo)
@@ -481,7 +481,7 @@ _[texto: una chica me enseñó a doblar una grulla de papel en el andén]_
 **22:20 · Irene**  
 _[audio: caminé hasta que me dolieron los pies y terminé en un parque lleno de ciervos]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 25 del viaje · jueves 5/11 (hora de Tokyo)
@@ -492,7 +492,7 @@ _[audio: caminé hasta que me dolieron los pies y terminé en un parque lleno de
 **13:25 · Irene**  
 _[foto: una esquina con cables]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C4` + `NO1` + `F5`  
 > Dejame verlo como lo viste vos, Irene: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una. Arrancá por algo que comiste, y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.
@@ -500,7 +500,7 @@ _[foto: una esquina con cables]_
 **22:20 · Irene**  
 _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni una vez y fue lo mejor del día + 2 fotos]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 26 del viaje · viernes 6/11 (hora de Tokyo)
@@ -511,7 +511,7 @@ _[audio: unos fideos en un puesto de seis asientos; el cocinero no me miró ni u
 **13:25 · Irene**  
 _[foto: mis zapatillas mojadas]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R2`  
 > Esta noche te escribe otra persona, no yo. Bruno te dejó esta pregunta: «¿Qué te dio más vergüenza?». Contestale como si la tuvieras enfrente. Si hay foto, mandala.
@@ -519,7 +519,7 @@ _[foto: mis zapatillas mojadas]_
 **22:20 · Irene**  
 _[audio: me perdí en la estación y un señor me acompañó tres andenes sin decir una palabra]_
 
-**22:20 · Vitácora** `ACN3`  
+**22:23 · Vitácora** `ACN3`  
 > Lo escuché. Hasta mañana, Irene.
 
 ## Día 27 del viaje · sábado 7/11 (hora de Tokyo)
@@ -530,7 +530,7 @@ _[audio: me perdí en la estación y un señor me acompañó tres andenes sin de
 **13:25 · Irene**  
 _[foto: diez segundos de cigarras]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C5` + `NO2` + `F2`  
 > Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís. Arrancá por un lugar donde te quedaste un rato, y después seguí con lo que venga. Si hay fotos, mandalas.
@@ -538,7 +538,7 @@ _[foto: diez segundos de cigarras]_
 **22:20 · Irene**  
 _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas]_
 
-**22:20 · Vitácora** `ACN4`  
+**22:23 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 28 del viaje · domingo 8/11 (hora de Tokyo)
@@ -549,7 +549,7 @@ _[audio: un templo chiquito entre dos edificios, con una señora barriendo hojas
 **13:25 · Irene**  
 _[foto: el cielo blanco]_
 
-**13:25 · Vitácora** reacciona ❤️ a su mensaje
+**13:28 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C1` + `NO4` + `F5`  
 > Contame cómo fue hoy, Irene, como se lo contarías a alguien que te quiere y no estuvo. Arrancá por el momento en que más sentiste que estabas de viaje, y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.
@@ -557,7 +557,7 @@ _[foto: el cielo blanco]_
 **22:20 · Irene**  
 _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 
-**22:20 · Vitácora** `ACN1`  
+**22:23 · Vitácora** `ACN1`  
 > Gracias, Irene. A dormir, que mañana sigue.
 
 ## Día 29 del viaje · lunes 9/11 (hora de Tokyo)
@@ -571,7 +571,7 @@ _[audio: llovió todo el día y me quedé leyendo en un café con gatos]_
 **22:20 · Irene**  
 _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 2 fotos]_
 
-**22:20 · Vitácora** `ACN2`  
+**22:23 · Vitácora** `ACN2`  
 > Quedó guardado. Buenas noches.
 
 ## Día 30 · vuelta · martes 10/11 (hora de Tokyo)
@@ -582,7 +582,7 @@ _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 
 **14:10 · Irene**  
 _[foto: un paquete de té, unos palillos envueltos en tela]_
 
-**14:10 · Vitácora** reacciona ❤️ a su mensaje
+**14:13 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · miércoles 11/11 (hora de Madrid)
 
@@ -592,7 +592,7 @@ _[foto: un paquete de té, unos palillos envueltos en tela]_
 **11:30 · Irene**  
 _[audio: en el aeropuerto de escala, cuando oí a alguien hablar en español]_
 
-**11:30 · Vitácora** `ACM3`  
+**11:33 · Vitácora** `ACM3`  
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
@@ -601,7 +601,7 @@ _[audio: en el aeropuerto de escala, cuando oí a alguien hablar en español]_
 **21:50 · Irene**  
 _[audio: la luz: mi casa tiene una luz amarilla que no sabía que tenía + una foto]_
 
-**21:50 · Vitácora** `ACN3`  
+**21:53 · Vitácora** `ACN3`  
 > Lo escuché. Hasta mañana, Irene.
 
 ## Ya en casa · jueves 12/11 (hora de Madrid)
@@ -621,13 +621,13 @@ _[20 fotos más]_
 **20:30 · Irene**  
 _[texto: sí, ya están]_
 
-**20:30 · Vitácora** `AL3`  
+**20:33 · Vitácora** `AL3`  
 > Mandaste 45 fotos y en el álbum entran 40. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras 40.
 
-**20:55 · Irene**  
+**20:58 · Irene**  
 _[reenvía 5 fotos para sacar]_
 
-**20:55 · Vitácora** `DES`  
+**21:01 · Vitácora** `DES`  
 > Ya está, Irene: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 40 fotos quedan, guardadas 40, afuera 0.)_

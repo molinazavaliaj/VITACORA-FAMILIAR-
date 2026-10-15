@@ -5,6 +5,10 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Edicion, EdicionCompleta } from "@/lib/edicion";
 import type { RespuestaV3 } from "@/lib/v3";
+import type { TratoComprador } from "@/lib/regalo-textos";
+import type { Foco } from "@/lib/encuadre";
+import type { IdiomaLibro } from "@/lib/tapa";
+import { TapaLibro } from "../../../tapa-libro";
 
 // La edición final en 4 pasos (docs/panel-usuario.md §7.2). Siempre arranca
 // de la propuesta de la casa; ella cambia lo que quiere. Cada paso guarda con
@@ -16,7 +20,7 @@ import type { RespuestaV3 } from "@/lib/v3";
 // escribe recién al encargar. «Qué dejar afuera» va por pregunta y saca todas sus filas.
 
 export type RespuestaResumen = { id: string; orden: number; capitulo: string; pregunta: string; fragmento: string };
-export type FotoResumen = { id: string; epigrafe: string | null; capitulo: string | null };
+export type FotoResumen = { id: string; epigrafe: string | null; capitulo: string | null; foco?: Foco };
 
 type Props = {
   narradorId: string;
@@ -35,6 +39,10 @@ type Props = {
   faltaDireccion?: boolean;
   /** Narrador V3: lo que contó, por pregunta (reemplaza a `respuestas` y `capitulos`). */
   v3?: RespuestaV3[];
+  /** Vos o tú: el de la familia dueña de la historia. */
+  trato?: TratoComprador;
+  /** El idioma del libro: la tapa dice «el libro de su vida» o «el llibre de la seva vida». */
+  idioma?: IdiomaLibro;
 };
 
 type PasoId = "portada" | "capitulos" | "contenido" | "encargar";
@@ -58,12 +66,12 @@ async function guardarEdicion(narradorId: string, cambios: Edicion) {
   if (!r.ok) throw new Error(j.error ?? "No pudimos guardar.");
 }
 
-export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell, envio, faltaDireccion = false, v3 }: Props) {
+export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell, envio, faltaDireccion = false, v3, trato = "vos", idioma = "es" }: Props) {
+  const tu = trato === "tu";
   const PASOS = v3 ? PASOS_V3 : PASOS_VIEJOS;
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [titulo, setTitulo] = useState(inicial.titulo);
-  const [subtitulo, setSubtitulo] = useState(inicial.subtitulo);
   const [portadaFotoId, setPortadaFotoId] = useState<string | null>(inicial.portadaFotoId);
   const [orden, setOrden] = useState<string[]>(inicial.ordenCapitulos.length ? inicial.ordenCapitulos : capitulos);
   const [titulos, setTitulos] = useState<Record<string, string>>(inicial.titulosCapitulos ?? {});
@@ -83,7 +91,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
 
   // Lo que guarda cada paso. Se usa desde el botón de abajo y desde el de arriba.
   const cambiosPorPaso: Record<PasoId, Edicion | null> = {
-    portada: { titulo, subtitulo, portadaFotoId },
+    portada: { titulo, portadaFotoId },
     capitulos: { ordenCapitulos: orden, titulosCapitulos: titulos },
     contenido: { excluidas: [...excluidas], correcciones },
     encargar: null,
@@ -112,7 +120,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
     setOcupado(true);
     setError(null);
     try {
-      await guardarEdicion(narradorId, v3 ? { titulo, subtitulo, portadaFotoId, excluidas: [...excluidas], correcciones } : { titulo, subtitulo, portadaFotoId, ordenCapitulos: orden, excluidas: [...excluidas], correcciones });
+      await guardarEdicion(narradorId, v3 ? { titulo, portadaFotoId, excluidas: [...excluidas], correcciones } : { titulo, portadaFotoId, ordenCapitulos: orden, excluidas: [...excluidas], correcciones });
       const r = await fetch(`/api/edicion?narrador=${encodeURIComponent(narradorId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,21 +185,17 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           <div className="flex flex-col gap-6">
             <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
               {v3
-                ? "Elegí el título, el subtítulo y la foto de la tapa. El libro va en blanco y negro, como la marca."
-                : "Esta es nuestra propuesta. Cambiá lo que quieras. Sin colores de tapa: el libro es blanco y negro, como la marca."}
+                ? `${tu ? "Elige" : "Elegí"} el título y la foto de la tapa. Así va a quedar la tapa.`
+                : `Esta es nuestra propuesta. ${tu ? "Cambia" : "Cambiá"} lo que quieras. Así va a quedar la tapa.`}
             </p>
             <label className="flex flex-col gap-2">
               <span className={etiqueta}>Título</span>
               <input value={titulo} onChange={(e) => setTitulo(e.target.value)} maxLength={80} className={campo} />
             </label>
-            <label className="flex flex-col gap-2">
-              <span className={etiqueta}>Subtítulo</span>
-              <input value={subtitulo} onChange={(e) => setSubtitulo(e.target.value)} maxLength={80} className={campo} />
-            </label>
             <div className="flex flex-col gap-2">
               <span className={etiqueta}>Foto de portada</span>
               {fotos.length === 0 ? (
-                <p className="text-sm text-[var(--texto-menor)]">No hay fotos subidas. Podés subir una desde Historias, o dejar la portada sin foto.</p>
+                <p className="text-sm text-[var(--texto-menor)]">No hay fotos subidas. {tu ? "Puedes" : "Podés"} subir una desde Historias, o dejar la portada sin foto.</p>
               ) : (
                 <ul className="flex flex-wrap gap-3">
                   <li>
@@ -212,18 +216,14 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             </div>
           </div>
 
-          {/* Vista previa de la tapa */}
-          <div className="oscuro flex aspect-[2/3] flex-col justify-between rounded-sm bg-[var(--fondo)] p-6 text-[var(--texto)] shadow-lg">
-            <p className="text-[9px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</p>
-            {fotoPortada ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/fotos/${fotoPortada.id}`} alt="" className="my-4 aspect-square w-full rounded-sm object-cover" />
-            ) : null}
-            <div>
-              <p className="text-lg leading-snug [font-family:var(--fuente-titulo)] [text-wrap:balance]">{titulo || "Sin título"}</p>
-              <p className="mt-2 text-[11px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]">{subtitulo}</p>
-            </div>
-          </div>
+          {/* Vista previa de la tapa: la misma que sale impresa */}
+          <TapaLibro
+            titulo={titulo || "Sin título"}
+            fotoSrc={fotoPortada ? `/api/fotos/${fotoPortada.id}` : null}
+            foco={fotoPortada?.foco}
+            idioma={idioma}
+            className="rounded-sm shadow-lg"
+          />
 
           <div className="md:col-span-2 flex items-center gap-4">
             <button type="button" disabled={ocupado || !titulo.trim()} onClick={() => guardarYSeguir(cambiosPorPaso.portada!)} className={principal}>
@@ -237,7 +237,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
       {pasoId === "capitulos" ? (
         <section className="mt-10 flex flex-col gap-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
-            Este es el orden del guion, el que armó el biógrafo. Podés moverlos y ponerles el título que quieras (dejá el campo vacío para volver al del guion). Lo que se contó dentro de cada capítulo queda en el orden en que él lo decidió.
+            Este es el orden del guion, el que armó el biógrafo. {tu ? "Puedes" : "Podés"} moverlos y ponerles el título que quieras ({tu ? "deja" : "dejá"} el campo vacío para volver al del guion). Lo que se contó dentro de cada capítulo queda en el orden en que él lo decidió.
           </p>
           <ol className="flex flex-col gap-2">
             {orden.map((cap, i) => (
@@ -277,7 +277,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           {v3 ? null : (
           <div className="rounded-xl border border-[var(--linea)] p-5">
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              <strong className="font-medium text-[var(--texto)]">Los nombres.</strong> El biógrafo escribe los nombres como los escucha; revisalos antes de encargar.{" "}
+              <strong className="font-medium text-[var(--texto)]">Los nombres.</strong> El biógrafo escribe los nombres como los escucha; {tu ? "revísalos" : "revisalos"} antes de encargar.{" "}
               {nombresRevisados ? <span className="text-[var(--texto-menor)]">Ya los revisaste ✓</span> : null}
             </p>
             <Link href={`/tablero/${narradorId}/nombres`} className={`${secundario} mt-4`}>
@@ -290,8 +290,8 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             <p className={etiqueta}>Qué dejar afuera</p>
             <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
               {v3
-                ? "Si hay algo que no querés que salga en el libro, destildalo. Sale entero, con todo lo que contó sobre eso."
-                : "Si hay algo que no querés que salga en el libro, destildalo. El capítulo puede quedar más corto."}
+                ? `${tu ? "Si hay algo que no quieres que salga en el libro, desmárcalo." : "Si hay algo que no querés que salga en el libro, destildalo."} Sale entero, con todo lo que contó sobre eso.`
+                : `${tu ? "Si hay algo que no quieres que salga en el libro, desmárcalo." : "Si hay algo que no querés que salga en el libro, destildalo."} El capítulo puede quedar más corto.`}
             </p>
             {v3 ? (
               <ul className="mt-4 flex flex-col gap-2">
@@ -355,7 +355,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
 
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Correcciones (opcional)</span>
-            <textarea value={correcciones} onChange={(e) => setCorrecciones(e.target.value)} rows={4} maxLength={4000} className={campo} placeholder="Por ejemplo: el taller estaba en Villa Domínico, no en Avellaneda. La hermana se llama Marta, no Martha." />
+            <textarea value={correcciones} onChange={(e) => setCorrecciones(e.target.value)} rows={4} maxLength={4000} className={campo} placeholder={tu ? "Por ejemplo: el taller estaba en Getafe, no en Leganés. La hermana se llama Marta, no Martha." : "Por ejemplo: el taller estaba en Villa Domínico, no en Avellaneda. La hermana se llama Marta, no Martha."} />
             <span className="text-sm text-[var(--texto-menor)]">{v3 ? "Lo tiene en cuenta el biógrafo cuando escribe el libro." : "Lo lee el biógrafo antes de producir el libro."}</span>
           </label>
 
@@ -374,7 +374,6 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             <p className={etiqueta}>Así queda</p>
             <dl className="mt-4 grid gap-x-8 gap-y-3 text-[15px] md:grid-cols-[140px_1fr]">
               <dt className="text-[var(--texto-menor)]">Título</dt><dd>{titulo}</dd>
-              <dt className="text-[var(--texto-menor)]">Subtítulo</dt><dd>{subtitulo || "—"}</dd>
               <dt className="text-[var(--texto-menor)]">{v3 ? "Tapa" : "Portada"}</dt><dd>{fotoPortada ? "Con foto" : "Sin foto"}</dd>
               {v3 ? (
                 <>
@@ -425,7 +424,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
               {ocupado ? "Encargando…" : "Encargar"}
             </button>
             <span className="text-sm text-[var(--texto-menor)]">
-              {todoAfuera ? "Dejaste todo afuera. Para encargar el libro tiene que quedar algo de lo que contó." : faltaDireccion ? "Falta la dirección de envío, acá arriba: el libro impreso tiene que llegar a algún lado." : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
+              {todoAfuera ? "Dejaste todo afuera. Para encargar el libro tiene que quedar algo de lo que contó." : faltaDireccion ? `Falta la dirección de envío, ${tu ? "aquí" : "acá"} arriba: el libro impreso tiene que llegar a algún lado.` : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
             </span>
             <button type="button" className={chico} disabled={ocupado} onClick={() => irAlPaso(ultimo - 1)}>Volver a revisar</button>
           </div>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/navegador";
 import { normalizarCodigo, esCodigoCompleto } from "@/lib/codigo-otp";
 import { destinoSeguro } from "@/lib/destino";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Entrada por código de 6 dígitos (OTP), en dos pasos: correo → código.
 // Reemplaza al enlace mágico, que exigía abrirse en el mismo navegador donde
@@ -14,7 +15,8 @@ import { destinoSeguro } from "@/lib/destino";
 // criterio que usa el proxy para mandar acá, y lo que hace que entrar a /admin
 // devuelva al panel en vez de dejarte en el carrito (T3.7).
 
-export default function FormularioEntrar() {
+export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoComprador }) {
+  const tu = trato === "tu";
   const router = useRouter();
   const destino = destinoSeguro(useSearchParams().get("volver"));
   const [email, setEmail] = useState("");
@@ -34,7 +36,7 @@ export default function FormularioEntrar() {
     setTrabajando(false);
 
     if (errorEnvio) {
-      setError("No pudimos enviar el código. Probá de nuevo en un momento.");
+      setError(tu ? "No pudimos enviar el código. Prueba de nuevo en un momento." : "No pudimos enviar el código. Probá de nuevo en un momento.");
       return;
     }
 
@@ -56,7 +58,7 @@ export default function FormularioEntrar() {
 
     if (errorVerificacion) {
       setTrabajando(false);
-      setError("El código no es correcto o ya venció. Revisalo o pedí uno nuevo.");
+      setError(tu ? "El código no es correcto o ya venció. Revísalo o pide uno nuevo." : "El código no es correcto o ya venció. Revisalo o pedí uno nuevo.");
       return;
     }
 
@@ -73,7 +75,7 @@ export default function FormularioEntrar() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-zinc-900">
       <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900">Entrá</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">{tu ? "Entra" : "Entrá"}</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           Te mandamos un código de 6 números a tu correo. Sin contraseñas.
         </p>
@@ -101,7 +103,7 @@ export default function FormularioEntrar() {
         ) : (
           <form onSubmit={verificarCodigo} className="mt-8 flex flex-col gap-3">
             <p className="text-sm text-zinc-700">
-              Te mandamos un código a <strong>{email}</strong>. Escribilo acá:
+              Te mandamos un código a <strong>{email}</strong>. {tu ? "Escríbelo aquí:" : "Escribilo acá:"}
             </p>
             <input
               type="text"

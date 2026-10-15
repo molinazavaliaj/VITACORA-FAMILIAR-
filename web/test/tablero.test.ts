@@ -261,7 +261,7 @@ describe('PATCH /api/narrador/[narradorId]', () => {
 // --- el regalo en el panel (gift card, Task 9) -------------------------
 
 import { estadoEnHumano } from '../src/app/tablero/ui';
-import { proximoPaso } from '../src/app/tablero/proximo-paso';
+import { proximoPaso, textoDudas } from '../src/app/tablero/proximo-paso';
 import { textosComprador } from '@/lib/regalo-textos';
 
 const VOS = textosComprador('vos');
@@ -335,5 +335,31 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
   });
   it('una historia vieja sigue igual', () => {
     expect(proximoPaso(h('acepto'), { ...r, v3: false })?.href).toBe('/tablero/n3?editar=1');
+  });
+
+  // Las dudas del escritor tienen plazo: el libro se escribe con o sin ellas, así
+  // que ganan a elegir la tapa, que no vence.
+  it('con dudas sin contestar, el paso es contestarlas y no encargar el libro', () => {
+    const paso = proximoPaso(h('completado'), { ...r, dudasPendientes: true });
+    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.' });
+  });
+  it('si el libro es para quien lo compró, le habla de vos', () => {
+    const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contaste. Contestalas antes de que se escriba el libro.');
+  });
+  it('un invitado también las ve: son los que saben los datos', () => {
+    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  });
+  it('un visitante no', () => {
+    expect(proximoPaso(h('completado', 'visitante'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
+  });
+  it('sin dudas pendientes, el paso sigue siendo el de siempre', () => {
+    expect(proximoPaso(h('completado'), r)?.href).toBe('/tablero/n3/libro');
+  });
+  // El mismo aviso va en la historia y en Encargar libro (13/10): no solo en el Inicio.
+  it('textoDudas: el mismo texto aprobado, de vos o de tú', () => {
+    expect(textoDudas(false, 'Imma', false)).toBe('Hay dudas sobre lo que contó Imma. Contestalas antes de que se escriba el libro.');
+    expect(textoDudas(false, 'Imma', true)).toBe('Hay dudas sobre lo que contó Imma. Contéstalas antes de que se escriba el libro.');
+    expect(textoDudas(true, 'Imma', false)).toBe('Hay dudas sobre lo que contaste. Contestalas antes de que se escriba el libro.');
   });
 });

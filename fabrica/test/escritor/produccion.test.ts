@@ -201,6 +201,9 @@ describe('Etapa A al terminar la entrevista (revisarEtapaAV3)', () => {
     expect(cuerpo.subject).toContain('Dudas de datos');
     expect(cuerpo.text).toContain('¿Cómo se llamaba la Negra');
     expect(cuerpo.text).toContain('n1/escritor/correcciones.json');
+    // La pantalla existe (12/10): el mail trae el link para pasarle a la familia, no «la pantalla no existe».
+    expect(cuerpo.text).toContain('La familia las contesta en este link (la dueña y sus invitados). Pásenselo: https://www.vitacorafamiliar.com/tablero/n1/dudas. Lo que contesten ahí entra al libro.');
+    expect(cuerpo.text).not.toContain('no existe');
     expect(archivos.has('n1/escritor/dudas-avisadas.txt')).toBe(true);
     expect(modelo.llamadas).toHaveLength(3); // ya hecha: no se repite
     vi.unstubAllGlobals();
@@ -478,6 +481,31 @@ describe('el libro espera 24 horas si la Etapa A encontró dudas (Naza, 09/10)',
     expect(tablas.pedidos[0].estado).toBe('entregado');
     expect(modelo.llamadas.filter((p) => p.clave.startsWith('A/'))).toHaveLength(3);
     expect(fetch).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
+  it('con todas las dudas contestadas no espera las 24 horas (Naza, 13/10); con una sin contestar, sí', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n11' }], pedidos: [{ id: 'p11', narrador_id: 'n11', estado: 'generando' }] } });
+    const { motor, modelo } = motorFalso();
+    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado'); // recién avisadas: espera
+    const ids = (JSON.parse(String(archivos.get('n11/escritor/dudas-familia.json'))).dudas as { id: string }[]).map((d) => d.id);
+    expect(ids.length).toBeGreaterThan(0);
+    // Falta una (o tiene solo espacios): sigue esperando.
+    archivos.set('n11/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((id, i) => ({ dudaId: id, texto: i === 0 ? '  ' : 'Sí' })) }));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(modelo.llamadas.some((p) => p.clave.startsWith('B/'))).toBe(false);
+    // Todas contestadas, sin que pasen las 24 horas: no espera, pasa a escribir (la Etapa B ya usa las respuestas).
+    archivos.set('n11/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((id) => ({ dudaId: id, texto: 'Sí' })) }));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    expect(tablas.pedidos[0].estado).not.toBe('pagado');
+    expect(modelo.llamadas.some((p) => p.clave.startsWith('B/'))).toBe(true);
     vi.unstubAllGlobals();
   });
 

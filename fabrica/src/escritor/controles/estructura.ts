@@ -160,7 +160,10 @@ export function c14(reg: Json, rs: Respuesta[], fichaTxt: string): string[] {
     if (x.segura !== true) continue;
     const textos = (x.ids || []).map((i: Json) => (i === 'FICHA' ? fichaTxt : porId[i] || '')).join(' ');
     const num = /\d/.test(textos) || /\b(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte|treinta|cuarenta|cincuenta)\b/.test(norm(textos));
-    if (!num) out.push(`C14: "${(x.evento || x.que || '').slice(0, 50)}" está como fecha segura y sus ids no tienen un número`);
+    // Catalán (13/10: la Etapa A de Imma cayó porque «catorze o quinze anys» no contaba). Sin un, set, nou ni deu: en
+    // catalán también son palabras comunes (sed, nuevo, debe) y harían pasar cualquier fecha.
+    const numCa = /\b(quatre|cinc|sis|vuit|onze|dotze|tretze|catorze|quinze|setze|disset|divuit|dinou|vint|trenta|quaranta|cinquanta)\b/.test(norm(textos));
+    if (!num && !numCa) out.push(`C14: "${(x.evento || x.que || '').slice(0, 50)}" está como fecha segura y sus ids no tienen un número`);
   }
   const usadas = new Set((reg.episodios || []).flatMap((e: Json) => e.ids));
   const cortadas = new Set((reg.frases_cortadas || []).map((f: Json) => f.id));

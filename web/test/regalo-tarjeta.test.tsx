@@ -22,6 +22,7 @@ vi.mock("next/font/google", () => {
 });
 vi.mock("next/navigation", () => ({
   notFound: () => { throw new Error("NEXT_NOT_FOUND"); },
+  redirect: (url: string) => { throw new Error(`NEXT_REDIRECT ${url}`); },
 }));
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: () => ({}) }));
 vi.mock("@/lib/regalo-datos", () => ({
@@ -252,5 +253,26 @@ describe("la imagen para WhatsApp", () => {
     });
     expect(res.status).toBe(404);
     expect(estado.codigos).toEqual(["VF-XXXXXX"]);
+  });
+});
+
+// Ya canjeado (Naza, 10/10): la tarjeta cumplió su función y su código no sirve
+// más. Un link viejo (el mail del pago) lleva al tablero de quien compró.
+describe("tarjeta e imagen de un regalo ya canjeado", () => {
+  beforeEach(() => {
+    estado.regalo = regalo({ usado: true });
+    estado.numero = null;
+  });
+
+  it("la tarjeta lleva al tablero", async () => {
+    await expect(render()).rejects.toThrow("NEXT_REDIRECT /tablero");
+  });
+
+  it("la imagen también lleva al tablero (303), sin dibujar la tarjeta", async () => {
+    estado.imagen = null;
+    const r = (await GET(new Request("https://x/regalo/VF-7K3M2Q/imagen"), { params: Promise.resolve({ codigo: "VF-7K3M2Q" }) })) as Response;
+    expect(r.status).toBe(303);
+    expect(r.headers.get("location")).toBe("https://x/tablero");
+    expect(estado.imagen).toBeNull();
   });
 });

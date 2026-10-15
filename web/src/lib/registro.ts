@@ -6,7 +6,7 @@ import { EVITAR_MAXIMO, validarRitmo } from './guion';
 import { validarViaje } from './viaje';
 import { validarImprescindible, validarTemas } from './temas';
 import { esIdiomaRegalo, GENEROS, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
-import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA } from './como-le-dicen';
+import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, MENSAJE_PALABRA_DE_FAMILIA_TU } from './como-le-dicen';
 
 export type Region = 'ES' | 'AR';
 
@@ -94,6 +94,11 @@ const REGION_CONFIG: Record<Region, { zonaHoraria: string }> = {
   AR: { zonaHoraria: 'America/Argentina/Buenos_Aires' },
 };
 
+/** La zona horaria por defecto de una región (la misma que toma el narrador al registrarse sin elegir otra). */
+export function zonaDeRegion(region: Region): string {
+  return REGION_CONFIG[region].zonaHoraria;
+}
+
 const HORA_PREFERIDA_DEFAULT = '10:00';
 // HH:MM de 24hs. Un string basura acá rompe el scheduler del entrevistador
 // (cruza servicios vía la base compartida), así que se valida en la frontera.
@@ -171,7 +176,7 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   }
   // Compra (no regalo, no "la mía"): así lo saluda el biógrafo; «papá» o «abuela» es cómo le dice la familia.
   if (!opciones.sinTelefono && body.vinculoComprador.trim() !== 'yo mismo' && esPalabraDeFamilia(narrador.comoLeDicen)) {
-    return { ok: false, status: 400, mensaje: MENSAJE_PALABRA_DE_FAMILIA };
+    return { ok: false, status: 400, mensaje: region === 'ES' ? MENSAJE_PALABRA_DE_FAMILIA_TU : MENSAJE_PALABRA_DE_FAMILIA };
   }
   // Gift card (08/10): quien regala no sabe ni carga el teléfono; lo pone el
   // entrevistador cuando el narrador escribe con su código.
@@ -224,7 +229,9 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
       return {
         ok: false,
         status: 400,
-        mensaje: 'El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.',
+        mensaje: region === 'ES'
+          ? 'El WhatsApp no parece un número válido. Revísalo e intenta de nuevo.'
+          : 'El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.',
       };
     }
   }

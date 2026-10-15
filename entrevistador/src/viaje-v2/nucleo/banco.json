@@ -1,0 +1,562 @@
+[
+  {
+    "id": "BIEN-1",
+    "momento": "arranque",
+    "orden": 1,
+    "texto": "Hola, {{nombre}}. Soy quien va a escribir el libro de tu viaje. Funciona así: yo te pregunto por acá, vos me contás en audio cuando puedas, y al volver tenés {{formato}} con tu viaje contado con tu voz, tus fotos y un código QR para escuchar algunos de tus audios. ¿Arrancamos? Contestame SÍ: con eso me das permiso para guardar lo que me mandes.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "BIEN-1R",
+    "momento": "arranque",
+    "orden": 1,
+    "texto": "Hola, {{nombre}}. Te escribo porque {{quien_regala}} te hizo un regalo: {{formato}} con tu viaje, contado por vos. Funciona así: yo te pregunto por acá, vos me contás en audio cuando puedas, y al volver lo tenés escrito con tu voz, con tus fotos y con un código QR para escuchar algunos de tus audios. ¿Arrancamos? Contestame SÍ: con eso me das permiso para guardar lo que me mandes.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "BIEN-2",
+    "momento": "arranque",
+    "orden": 2,
+    "texto": "Vamos. Antes de salir te mando unas pocas preguntas, de a una; cuando las contestás, silencio hasta el día que te vas. En el viaje, dos por día: una cortita al mediodía, que es una foto o diez segundos de audio, y una a la noche para que me cuentes el día. Si un día no tenés ganas, \"paso\" y seguimos. La hora la tomo del país adonde vas; si cambiás de país y te llega a deshora, la corregís desde tu panel. Ahí va la primera.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AS1",
+    "momento": "antes",
+    "orden": 1,
+    "texto": "Empecemos por el principio, antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste \"lo hago\".",
+    "yaDeViaje": "Ya arrancaste, pero quiero empezar por antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste \"lo hago\"."
+  },
+  {
+    "id": "AS2",
+    "momento": "antes",
+    "orden": 2,
+    "texto": "Ya falta poco, {{nombre}}. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza.",
+    "yaDeViaje": "Ya saliste, así que esta te agarra allá. ¿Cómo venías con este viaje los últimos días? Ganas, nervios, cansancio, lo que haya habido, y qué esperabas encontrar allá. Contame el momento en que te cayó la ficha de que se venía en serio: qué estabas haciendo y qué se te cruzó por la cabeza."
+  },
+  {
+    "id": "IM1",
+    "momento": "antes",
+    "orden": 3,
+    "texto": "Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Decime cuál es y de dónde te viene.",
+    "yaDeViaje": "Antes de salir, cuando pensabas en este viaje, ¿qué imagen se te aparecía? No lo que habías leído ni lo que había que ver: la que se te venía sola, aunque fuera una calle. Decime cuál era y de dónde te venía."
+  },
+  {
+    "id": "VA1",
+    "momento": "antes",
+    "orden": 4,
+    "texto": "¿Qué es lo que va en la valija sí o sí, {{nombre}}? No el cargador ni los documentos: algo tuyo. Y por qué va con vos.",
+    "yaDeViaje": "Ya estás allá y la valija ya viajó. Contame una cosa que metiste y que no podía faltar, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos."
+  },
+  {
+    "id": "UC1",
+    "momento": "salida",
+    "orden": null,
+    "texto": "Hoy es el día, {{nombre}}. Estés todavía en casa o ya en camino, contame cómo fue el último rato antes de cerrar la puerta: qué hacías, qué quedó dando vueltas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ID1",
+    "momento": "dia-siguiente-salida",
+    "orden": null,
+    "texto": "Ayer fue el día del viaje, {{nombre}}. No me cuentes horarios: contame un rato del camino en el que no estabas haciendo nada, solo yendo, y te diste cuenta de que ya estabas lejos. Qué había del otro lado de la ventanilla y qué pensabas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C1",
+    "momento": "noche-comienzo",
+    "orden": 1,
+    "texto": "Contame cómo fue hoy, {{nombre}}, como se lo contarías a alguien que te quiere y no estuvo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C2",
+    "momento": "noche-comienzo",
+    "orden": 2,
+    "texto": "Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C3",
+    "momento": "noche-comienzo",
+    "orden": 3,
+    "texto": "¿Cómo fue hoy, {{nombre}}? Contámelo como se lo contarías en la mesa cuando vuelvas, con lo que valga la pena.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C4",
+    "momento": "noche-comienzo",
+    "orden": 4,
+    "texto": "Dejame verlo como lo viste vos, {{nombre}}: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C5",
+    "momento": "noche-comienzo",
+    "orden": 5,
+    "texto": "Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO1",
+    "momento": "noche-puerta",
+    "orden": 1,
+    "texto": "Arrancá por algo que comiste",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO2",
+    "momento": "noche-puerta",
+    "orden": 2,
+    "texto": "Arrancá por un lugar donde te quedaste un rato",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO3",
+    "momento": "noche-puerta",
+    "orden": 3,
+    "texto": "Arrancá por algo que viste hoy y que allá donde vivís sería raro",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO4",
+    "momento": "noche-puerta",
+    "orden": 4,
+    "texto": "Arrancá por el momento en que más sentiste que estabas de viaje",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO5",
+    "momento": "noche-puerta",
+    "orden": 5,
+    "texto": "Arrancá por alguien que te cruzaste y no conocías",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO6",
+    "momento": "noche-puerta",
+    "orden": 6,
+    "texto": "Arrancá por algo que no estaba en el plan",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO7",
+    "momento": "noche-puerta",
+    "orden": 7,
+    "texto": "Arrancá por un rato en que no estabas haciendo nada",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO8",
+    "momento": "noche-puerta",
+    "orden": 8,
+    "texto": "Arrancá por el momento en que el cuerpo te avisó algo, cansancio o hambre, lo que fuera",
+    "yaDeViaje": null
+  },
+  {
+    "id": "NO9",
+    "momento": "noche-puerta",
+    "orden": 9,
+    "texto": "Arrancá por algo que te hizo reír, aunque sea una tontería",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F1",
+    "momento": "noche-cierre",
+    "orden": 1,
+    "texto": ", y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F2",
+    "momento": "noche-cierre",
+    "orden": 2,
+    "texto": ", y después seguí con lo que venga. Si hay fotos, mandalas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F3",
+    "momento": "noche-cierre",
+    "orden": 3,
+    "texto": ", y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F4",
+    "momento": "noche-cierre",
+    "orden": 4,
+    "texto": ", y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F5",
+    "momento": "noche-cierre",
+    "orden": 5,
+    "texto": ", y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD1",
+    "momento": "mediodia",
+    "orden": 1,
+    "texto": "¿Dónde andás ahora, {{nombre}}? Mandame una foto de eso, tal cual está, sin explicarme nada.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD5",
+    "momento": "mediodia",
+    "orden": 2,
+    "texto": "Hoy quiero verte a vos, {{nombre}}. Una foto de cómo saliste: de cuerpo entero o solo las zapatillas, como te dé.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD3",
+    "momento": "mediodia",
+    "orden": 3,
+    "texto": "Quiero escuchar dónde estás. Grabame diez segundos de lo que suena ahí, sin hablar vos, así lo guardo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD4",
+    "momento": "mediodia",
+    "orden": 4,
+    "texto": "Levantá la cabeza un segundo. ¿Cómo está el cielo ahí hoy? Sacale una foto, con lo que se cuele abajo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD9",
+    "momento": "mediodia",
+    "orden": 5,
+    "texto": "¿Aprendiste alguna palabra de ahí, aunque sea una? Mandámela en un audio, dicha como la escuchaste.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD2",
+    "momento": "mediodia",
+    "orden": 6,
+    "texto": "Te agarro en medio del día. ¿Qué tenés en la mano ahora, además del teléfono? Sacale una foto, y si querés contame en un audio qué es.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD10",
+    "momento": "mediodia",
+    "orden": 7,
+    "texto": "¿A qué huele donde estás ahora, {{nombre}}? Decímelo en un audio de una frase.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD6",
+    "momento": "mediodia",
+    "orden": 8,
+    "texto": "Regalame una foto de algo escrito que tengas cerca ahora, un cartel o lo que sea, tal cual está.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD7",
+    "momento": "mediodia",
+    "orden": 9,
+    "texto": "Mirá a menos de un metro tuyo. Sacale una foto a algo chiquito que haya ahí, lo que sea, y seguí.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD12",
+    "momento": "mediodia",
+    "orden": 10,
+    "texto": "Sacale una foto a tu mano, apoyada donde esté ahora, con lo que tenga.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD8",
+    "momento": "mediodia",
+    "orden": 11,
+    "texto": "Contame en una frase qué viene ahora, {{nombre}}, y mandame una foto de por dónde vas. Después seguí.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "MD11",
+    "momento": "mediodia",
+    "orden": 12,
+    "texto": "En una frase, así como estás ahora: ¿cómo venís hoy? Un audio y listo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "FN1",
+    "momento": "ultima-noche",
+    "orden": null,
+    "texto": "Mañana te volvés. Antes de armar la valija, contame una cosa de este viaje que no querés que se te olvide, una sola, y por qué esa. Si tenés una foto, que venga.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "VU0",
+    "momento": "vuelta",
+    "orden": null,
+    "texto": "Hoy se vuelve, {{nombre}}. ¿Qué te traés en la valija que no estaba a la ida? Sacale una foto, donde estés.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "VU1",
+    "momento": "dia-siguiente-vuelta",
+    "orden": null,
+    "texto": "La vuelta se hace distinto que la ida. Contame el momento de la vuelta en que sentiste que ya estabas volviendo, lo que fuera que te lo marcó. Qué había alrededor y en qué pensabas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "IV1",
+    "momento": "dia-siguiente-vuelta",
+    "orden": null,
+    "texto": "Ayer fue el viaje, ida y vuelta en el día. Contame un rato del camino, a la ida o a la vuelta, en que no estabas haciendo nada, solo yendo. Qué había del otro lado de la ventanilla y qué pensabas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "CA1",
+    "momento": "noche-casa",
+    "orden": null,
+    "texto": "Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AL1",
+    "momento": "album",
+    "orden": 1,
+    "texto": "Gracias, {{nombre}}. Y una última cosa: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime \"listo\"; si te olvidás, en un rato te pregunto yo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AL1-P",
+    "momento": "album",
+    "orden": null,
+    "texto": "Una última cosa, {{nombre}}: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime \"listo\"; si te olvidás, en un rato te pregunto yo.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AL2",
+    "momento": "album",
+    "orden": 2,
+    "texto": "¿Ya están todas, {{nombre}}? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AL3",
+    "momento": "album",
+    "orden": 3,
+    "texto": "Mandaste {{fotos_mandadas}} fotos y en el álbum entran {{fotos_album}}. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras {{fotos_album}}.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACN1",
+    "momento": "acuse-noche",
+    "orden": 1,
+    "texto": "Gracias, {{nombre}}. A dormir, que mañana sigue.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACN2",
+    "momento": "acuse-noche",
+    "orden": 2,
+    "texto": "Quedó guardado. Buenas noches.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACN3",
+    "momento": "acuse-noche",
+    "orden": 3,
+    "texto": "Lo escuché. Hasta mañana, {{nombre}}.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACN4",
+    "momento": "acuse-noche",
+    "orden": 4,
+    "texto": "Gracias por contármelo. Que descanses.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACM1",
+    "momento": "acuse-mediodia",
+    "orden": 1,
+    "texto": "Ya está, gracias.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACM2",
+    "momento": "acuse-mediodia",
+    "orden": 2,
+    "texto": "Gracias, quedó.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACM3",
+    "momento": "acuse-mediodia",
+    "orden": 3,
+    "texto": "Lo tengo. Hasta la noche.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACM4",
+    "momento": "acuse-mediodia",
+    "orden": 4,
+    "texto": "Llegó, {{nombre}}. Hasta la noche.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACA1",
+    "momento": "acuse-antes",
+    "orden": 1,
+    "texto": "Gracias, {{nombre}}. Ahora otra cosa.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACA2",
+    "momento": "acuse-antes",
+    "orden": 2,
+    "texto": "Lo escuché. Sigo con esto.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACA3",
+    "momento": "acuse-antes",
+    "orden": 3,
+    "texto": "Quedó guardado. Te pregunto una más.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ACA4",
+    "momento": "acuse-antes",
+    "orden": 4,
+    "texto": "Gracias. Y ahora...",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PAS-V",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Dale, esta la salteamos. Mañana hay otra.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PAS-V2",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Dale, esta la salteamos.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PAS-A",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Perfecto, {{nombre}}, sin problema. Seguimos con la próxima.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PAS-A2",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Perfecto, {{nombre}}, sin problema. Ya está: silencio hasta el día que te vas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "TXT",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "COR",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "REC1",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o \"paso\" y seguimos con la que viene.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "REC1-U",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o \"paso\", y nos vemos el día que salís.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ATR1",
+    "momento": "atraso",
+    "orden": 1,
+    "texto": "Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ATR2",
+    "momento": "atraso",
+    "orden": 2,
+    "texto": "Anoche quedó sin contar, y está bien. Hoy contame los dos días si tenés ganas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ATR3",
+    "momento": "atraso",
+    "orden": 3,
+    "texto": "No te preocupes por lo de ayer. Si algo de ese día merece quedar, sumalo hoy.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ATR-V",
+    "momento": "atraso",
+    "orden": null,
+    "texto": "Hace unos días que no me contás, y no pasa nada. Si querés, hoy contame lo que quieras de esos días, lo que te quedó. Si no, con lo de hoy está bien.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "ATR-PR",
+    "momento": "atraso",
+    "orden": null,
+    "texto": "Ayer te dejé la pregunta de {{quien_regala}} y no me contaste, no pasa nada. Si querés, metela hoy junto con lo de hoy.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-R",
+    "momento": "propia",
+    "orden": null,
+    "texto": "Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a {{quien_regala}}, aunque me lo mandes a mí. Si hay foto, va.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-R2",
+    "momento": "propia",
+    "orden": 2,
+    "texto": "Esta noche te escribe otra persona, no yo. {{quien_regala}} te dejó esta pregunta: «{{pregunta}}». Contestale como si la tuvieras enfrente. Si hay foto, mandala.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-R3",
+    "momento": "propia",
+    "orden": 3,
+    "texto": "{{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para {{quien_regala}}, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-P",
+    "momento": "propia",
+    "orden": null,
+    "texto": "Hoy va una que te dejaste vos, {{nombre}}, antes de salir: «{{pregunta}}». A ver qué le decís ahora. Si tenés una foto, mandala.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "DES",
+    "momento": "despedida",
+    "orden": null,
+    "texto": "Ya está, {{nombre}}: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "DES+",
+    "momento": "despedida",
+    "orden": null,
+    "texto": "Del álbum me quedé con las primeras {{fotos_album}} que mandaste, que son las que entran.",
+    "yaDeViaje": null
+  }
+]

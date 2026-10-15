@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../alarma-anthropic.js';
 import { cargarConfig } from '../config.js';
 import { registrarUso, type PasoModelo } from '../costos.js';
 import { obtenerClienteDb } from '../db.js';
@@ -64,7 +65,7 @@ export async function escribirCapitulo(
   paso: Extract<PasoModelo, 'capitulo' | 'preview'> = 'capitulo'
 ): Promise<string> {
   const config = cargarConfig();
-  const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+  const cliente = vigilarClave(new Anthropic({ apiKey: config.anthropicApiKey }), 'los capítulos');
 
   const prompt = PROMPT_CAPITULO(narrador.nombre, capitulo, materiales, historiaCompleta, nombresCorregidos);
 

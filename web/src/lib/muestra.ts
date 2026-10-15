@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Edicion } from "./edicion";
 import { propuestaPorDefecto } from "./edicion";
 import { armarGuion, capitulosDelGuion } from "./guion";
+import { idiomaDelLibro, type IdiomaLibro } from "./tapa";
 
 // La muestra de un libro cerrado (docs/panel-usuario.md §8): lo que ve quien
 // abre el link público o lo guardó como visitante. Portada, nombres de los
@@ -12,8 +13,9 @@ export type Muestra = {
   narradorId: string;
   nombre: string;
   titulo: string;
-  subtitulo: string;
   portadaFotoId: string | null;
+  /** El idioma del libro: la tapa dice «el libro de su vida» o «el llibre de la seva vida». */
+  idioma: IdiomaLibro;
   capitulos: string[];
   primerParrafo: string | null;
   tieneAudio: boolean;
@@ -29,7 +31,7 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
   // Solo un libro CERRADO tiene muestra pública.
   if (!narrador || !narrador.libro_aprobado_at) return null;
 
-  const [{ data: propias }, { data: globales }, { data: primera }, { data: paquete }] = await Promise.all([
+  const [{ data: propias }, { data: globales }, { data: primera }, { data: paquete }, { data: entrevista }] = await Promise.all([
     admin.from("preguntas").select("orden, capitulo").eq("narrador_id", narrador.id).order("orden"),
     admin.from("preguntas").select("orden, capitulo").is("narrador_id", null).order("orden"),
     admin
@@ -40,6 +42,8 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
       .order("pregunta_orden")
       .limit(1),
     admin.storage.from("audios").list(`${narrador.id}/paquete`),
+    // Sin fila (flujo viejo) o sin la tabla, castellano.
+    admin.from("entrevistas_v3").select("idioma").eq("narrador_id", narrador.id).maybeSingle(),
   ]);
 
   // El guion entero (base global + propias), como en el panel; solo las propias
@@ -48,7 +52,7 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
   const guion = armarGuion(globales as PreguntaMuestra[] | null, propias as PreguntaMuestra[] | null);
   const capitulosGuion = capitulosDelGuion(guion);
   const edicion = narrador.edicion ?? {};
-  const propuesta = propuestaPorDefecto(narrador.nombre, narrador.nombre, capitulosGuion);
+  const propuesta = propuestaPorDefecto(narrador.nombre, capitulosGuion);
 
   const texto = ((primera as { transcripcion: string | null; texto_directo: string | null }[] | null)?.[0]);
   const crudo = (texto?.transcripcion ?? texto?.texto_directo ?? "").trim();
@@ -58,8 +62,8 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
     narradorId: narrador.id,
     nombre: narrador.nombre,
     titulo: edicion.titulo ?? propuesta.titulo,
-    subtitulo: edicion.subtitulo ?? propuesta.subtitulo,
     portadaFotoId: edicion.portadaFotoId ?? null,
+    idioma: idiomaDelLibro((entrevista as { idioma?: string | null } | null)?.idioma),
     // T3.1 (bitácora #36): con los títulos que puso la dueña en Encargar libro,
     // como el panel y el libro impreso. Sin título, el nombre del guion.
     capitulos: (edicion.ordenCapitulos?.length ? edicion.ordenCapitulos : capitulosGuion)

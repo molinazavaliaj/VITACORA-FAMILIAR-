@@ -62,6 +62,51 @@ export const PLANTILLA_REGALO_ENTREGA: Readonly<Record<'es-AR' | 'es-ES' | 'ca',
   ca: { nombre: 'regalo_entrega_ca', idiomaMeta: 'ca' },
 };
 
+export type CualPlantillaViaje = 'mensaje' | 'recordatorio' | 'recordatorio_ultima' | 'bienvenida' | 'bienvenida_regalo';
+
+/**
+ * Las plantillas de Meta de la Vitácora de Viaje V2 (docs/viajes-v2/plantillas-meta.md, textos aprobados por Naza
+ * el 05/10), por idioma. Las carga Joaquín en Meta y se marcan como aprobadas en WA_PLANTILLAS_VIAJE_V2_LISTAS
+ * (`es-AR:mensaje,es-AR:bienvenida,…`); hasta entonces no salen. Si cambia un nombre en Meta, se cambia acá.
+ */
+export const PLANTILLAS_VIAJE_V2: Readonly<Record<'es-AR' | 'es-ES' | 'ca', Record<CualPlantillaViaje, PlantillaV3>>> = {
+  'es-AR': {
+    mensaje: { nombre: 'mensaje_viaje_v2', idiomaMeta: 'es' },
+    recordatorio: { nombre: 'recordatorio_viaje_v2', idiomaMeta: 'es' },
+    recordatorio_ultima: { nombre: 'recordatorio_viaje_ultima_v2', idiomaMeta: 'es' },
+    bienvenida: { nombre: 'bienvenida_viaje_v2', idiomaMeta: 'es' },
+    bienvenida_regalo: { nombre: 'bienvenida_viaje_regalo_v2', idiomaMeta: 'es' },
+  },
+  'es-ES': {
+    mensaje: { nombre: 'mensaje_viaje_v2_es_es', idiomaMeta: 'es_ES' },
+    recordatorio: { nombre: 'recordatorio_viaje_v2_es_es', idiomaMeta: 'es_ES' },
+    recordatorio_ultima: { nombre: 'recordatorio_viaje_ultima_v2_es_es', idiomaMeta: 'es_ES' },
+    bienvenida: { nombre: 'bienvenida_viaje_v2_es_es', idiomaMeta: 'es_ES' },
+    bienvenida_regalo: { nombre: 'bienvenida_viaje_regalo_v2_es_es', idiomaMeta: 'es_ES' },
+  },
+  ca: {
+    mensaje: { nombre: 'mensaje_viaje_v2_ca', idiomaMeta: 'ca' },
+    recordatorio: { nombre: 'recordatorio_viaje_v2_ca', idiomaMeta: 'ca' },
+    recordatorio_ultima: { nombre: 'recordatorio_viaje_ultima_v2_ca', idiomaMeta: 'ca' },
+    bienvenida: { nombre: 'bienvenida_viaje_v2_ca', idiomaMeta: 'ca' },
+    bienvenida_regalo: { nombre: 'bienvenida_viaje_regalo_v2_ca', idiomaMeta: 'ca' },
+  },
+};
+
+/** ¿Está aprobada en Meta? Se lee en el momento (WA_PLANTILLAS_VIAJE_V2_LISTAS), para poder prenderla sin deploy. */
+export function plantillaViajeLista(idioma: 'es-AR' | 'es-ES' | 'ca', cual: CualPlantillaViaje, env: NodeJS.ProcessEnv = process.env): boolean {
+  return (env.WA_PLANTILLAS_VIAJE_V2_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
+}
+
+/**
+ * ¿Los viajeros NUEVOS van a la Viaje V2? (VIAJE_V2_PARA_NUEVOS=1, cuando Naza lo diga y con las bienvenidas
+ * aprobadas en Meta). Prendido, a un viajero nuevo sin fila en `viajes_v2` no le sale la bienvenida vieja: se
+ * avisa a los socios para que le creen la fila (npm run viaje-v2-alta) hasta que exista /comprar/viaje V2.
+ */
+export function viajeV2ParaNuevos(): boolean {
+  return process.env.VIAJE_V2_PARA_NUEVOS === '1';
+}
+
 /**
  * ¿Los narradores NUEVOS entran a la entrevista V3? (spec 2026-10-07). Se
  * prende en Railway con V3_PARA_NUEVOS=1 cuando Naza lo diga; apagado, el alta

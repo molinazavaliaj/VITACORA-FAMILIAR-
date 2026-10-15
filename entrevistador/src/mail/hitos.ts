@@ -29,6 +29,7 @@ type NarradorParaMail = {
 
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 const URL_BASE = process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com';
+const TIMEOUT_RESEND_MS = 15_000;
 
 function escapar(texto: string): string {
   return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -53,25 +54,34 @@ export function redactarHito(
         const t = HITO_ACEPTO_REGALO[o.trato ?? 'vos'];
         return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
       }
-      return {
-        asunto: `${quien} dijo que sí`,
-        // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
-        cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
-      };
+      // De vos: aprobado por Naza el 06/10 (rama web-textos-v3), sin "repasar el guion". De tú: aprobado el 10/10.
+      return tu
+        ? {
+          asunto: `${quien} ha dicho que sí`,
+          cuerpo: `<p>${escapar(quien)} ha aceptado. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, puedes añadir fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
+        }
+        : {
+          asunto: `${quien} dijo que sí`,
+          cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
+        };
+    // Los de tú (primera, mitad, silencio) aprobados por Naza el 10/10, en castellano de España.
     case 'primera':
       return {
         asunto: `Ya ${tu ? 'puedes' : 'podés'} escuchar a ${quien}`,
-        cuerpo: `<p>${escapar(quien)} contestó la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ${tu ? 'ha contestado' : 'contestó'} la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'mitad':
       return {
         asunto: `${quien} va por la mitad`,
-        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ya ${tu ? 'ha contado' : 'contó'} la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'silencio':
+      // Sin dos puntos (Naza, 10/10): el link va en su renglón.
       return {
         asunto: `Hace tres días que ${quien} no responde`,
-        cuerpo: `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave: a veces es el teléfono, a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó: <a href="${panel}">${panel}</a></p>`,
+        cuerpo: tu
+          ? `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave, a veces es el móvil y a veces las ganas. Una llamada tuya suele ayudar.</p><p>Cuando vuelva a contestar, la entrevista sigue donde se quedó.</p><p><a href="${panel}">${panel}</a></p>`
+          : `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave, a veces es el teléfono y a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó.</p><p><a href="${panel}">${panel}</a></p>`,
       };
   }
 }
@@ -95,6 +105,9 @@ async function enviar(para: string, asunto: string, html: string): Promise<boole
     method: 'POST',
     headers: { Authorization: `Bearer ${clave}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: REMITENTE, to: [para], subject: asunto, html }),
+    // Un Resend colgado no puede colgar el entrante: a los 15 s el fetch tira
+    // (TimeoutError) y cuenta como fallo; todos los que llaman lo atrapan.
+    signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
   });
   if (!r.ok) throw new Error(`Resend rechazó "${asunto}" (${r.status}): ${await r.text()}`);
   return true;
@@ -103,9 +116,20 @@ async function enviar(para: string, asunto: string, html: string): Promise<boole
 /**
  * Manda el mail del hito a la familia, una sola vez por narrador. Nunca tira:
  * un mail que falla no puede frenar la entrevista.
+ *
+ * Una sola vez aunque lleguen dos llamadas casi juntas (dos mensajes del
+ * narrador): el hito se TOMA en la base antes de mandar, con un UPDATE
+ * condicional (`contexto` que todavía no contiene el hito en mailsEnviados).
+ * Postgres reevalúa ese WHERE sobre la fila ya escrita por la otra llamada, así
+ * que solo una recibe la fila de vuelta y manda. Si el envío falla, el hito se
+ * suelta para que un próximo intento lo mande. Sin DDL.
  */
 export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void> {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn(`mail: falta RESEND_API_KEY, no se manda el hito '${hito}' de ${n.id}.`);
+      return;
+    }
     // Se relee el contexto: otro módulo puede haberlo escrito entre medio.
     const { data: fresco } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
     const contexto = { ...((fresco as { contexto?: Record<string, any> } | null)?.contexto ?? n.contexto) };
@@ -120,14 +144,40 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
       regalo: contexto.regalo === true,
       trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
     });
-    const mandado = await enviar(para, asunto, envoltorio(cuerpo));
-    if (!mandado) return;
 
+    // Tomar el hito. Si la base falla acá, no se manda: mejor un mail de menos
+    // que uno repetido (queda en el log).
     contexto.mailsEnviados = [...enviados, hito];
-    n.contexto = { ...n.contexto, mailsEnviados: contexto.mailsEnviados };
-    await db.from('narradores').update({ contexto }).eq('id', n.id);
+    const marca = JSON.stringify({ mailsEnviados: [hito] });
+    const { data: tomado, error: errorTomar } = await db.from('narradores')
+      .update({ contexto }).eq('id', n.id).not('contexto', 'cs', marca).select('id');
+    if (errorTomar) throw new Error(`no pude anotar el hito antes de mandarlo: ${errorTomar.message}`);
+    if (!Array.isArray(tomado) || tomado.length === 0) return; // otra llamada ya lo tomó
+
+    let mandado = false;
+    try {
+      mandado = await enviar(para, asunto, envoltorio(cuerpo));
+    } finally {
+      if (!mandado) await soltarHito(n.id, hito);
+    }
+    if (mandado) n.contexto = { ...n.contexto, mailsEnviados: contexto.mailsEnviados };
   } catch (err) {
     console.error(`mail: falló el hito '${hito}' de ${n.id}:`, err);
+  }
+}
+
+/** Saca el hito de mailsEnviados (el envío falló): así otro intento lo puede mandar. Nunca tira. */
+async function soltarHito(narradorId: string, hito: Hito): Promise<void> {
+  try {
+    const { data: fresco } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+    const contexto = { ...((fresco as { contexto?: Record<string, any> } | null)?.contexto ?? {}) };
+    const enviados: string[] = Array.isArray(contexto.mailsEnviados) ? contexto.mailsEnviados : [];
+    contexto.mailsEnviados = enviados.filter((h) => h !== hito);
+    const { error } = await db.from('narradores')
+      .update({ contexto }).eq('id', narradorId).contains('contexto', { mailsEnviados: [hito] }).select('id');
+    if (error) throw new Error(error.message);
+  } catch (err) {
+    console.error(`mail: no pude soltar el hito '${hito}' de ${narradorId}; queda como mandado:`, err);
   }
 }
 

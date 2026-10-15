@@ -5,7 +5,7 @@ import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
-import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteV3 } from './mail/hitos.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteMail, type VarianteV3 } from './mail/hitos.js';
 import {
   CANDADO_RECORDATORIO_FRASES,
   DIAS_RECORDATORIO_FRASES,
@@ -21,6 +21,8 @@ import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
+import { chequearClaveAlArrancar } from './alarma-anthropic.js';
+import { avisarVariablesAlArrancar } from './variables.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -488,8 +490,9 @@ async function mandarHito(
     throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
   }
 
-  // "El libro está listo" va con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
-  const trato = variante ?? (hito === 'libro_listo' && (familia as { region?: string }).region === 'AR' ? 'vos' : undefined);
+  // Una familia de Argentina del flujo viejo recibe los de vos (13/10: los de cierre le llegaban en tú). El
+  // "libro está listo" ya iba con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
+  const trato: VarianteMail | undefined = variante ?? ((familia as { region?: string }).region === 'AR' ? 'vos_viejo' : undefined);
   const enviado = await enviarMailHito({
     hito,
     para: (familia as { email: string }).email,
@@ -886,6 +889,12 @@ async function entregarConLosMismosArchivos(
 }
 
 export function iniciarWorker(): void {
+  // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
+  // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
+  void chequearClaveAlArrancar();
+  // Revisa las variables de Railway; si falta alguna, avisa a los socios (una vez por día).
+  // Sin await: no frena el arranque y nunca tira.
+  void avisarVariablesAlArrancar();
   setInterval(() => {
     void tick();
   }, INTERVALO_MS);

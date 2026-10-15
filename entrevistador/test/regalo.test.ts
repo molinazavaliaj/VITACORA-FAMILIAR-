@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
-import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
+import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos, telefonosEnElLimite } from '../src/flujo/regalo.js';
 import { AVISOS, RECORDATORIO, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenidaDeRegalo } from '../src/flujo/regalo-arranque.js';
 
@@ -184,6 +184,25 @@ describe('canjearRegalo: arreglos de la revisión', () => {
     reloj += 24 * 3600_000;
     expect(await canjearRegalo(conReloj, { telefono: TEL, texto: 'VF-ZZZZZZ' })).toBe('no_existe');
     expect(enviados).toHaveLength(7);
+  });
+
+  it('el mismo número con y sin el 9 de Argentina cuenta como uno solo', async () => {
+    const { deps, enviados } = armar();
+    const conReloj = { ...deps, ahora: () => Date.parse('2026-10-08T10:00:00Z') };
+    for (let i = 0; i < 3; i++) await canjearRegalo(conReloj, { telefono: '+5491155551234', texto: 'VF-ZZZZZZ' });
+    for (let i = 0; i < 3; i++) await canjearRegalo(conReloj, { telefono: '541155551234', texto: 'VF-ZZZZZZ' });
+    expect(enviados).toHaveLength(5);
+  });
+
+  it('los teléfonos sin intentos en las últimas 24 hs se borran del límite (no crece sin fin)', async () => {
+    const { deps } = armar();
+    let reloj = Date.parse('2026-10-08T10:00:00Z');
+    const conReloj = { ...deps, ahora: () => reloj };
+    for (let i = 0; i < 50; i++) await canjearRegalo(conReloj, { telefono: `+34600000${String(i).padStart(3, '0')}`, texto: 'VF-ZZZZZZ' });
+    expect(telefonosEnElLimite()).toBe(50);
+    reloj += 24 * 3600_000 + 1;
+    await canjearRegalo(conReloj, { telefono: '+34699999999', texto: 'VF-ZZZZZZ' });
+    expect(telefonosEnElLimite()).toBe(1);
   });
 });
 

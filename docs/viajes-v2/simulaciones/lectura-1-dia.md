@@ -24,7 +24,7 @@ _[texto: SÍ]_
 **09:15 · Nora**  
 _[audio: hace años que digo que quiero ver el río desde el otro lado; hoy a la mañana me desperté y dije "hoy"]_
 
-**09:15 · Vitácora** `ACM1`  
+**09:18 · Vitácora** `ACM1`  
 > Ya está, gracias.
 
 **10:00 · Vitácora** `UC1`  
@@ -33,7 +33,7 @@ _[audio: hace años que digo que quiero ver el río desde el otro lado; hoy a la
 **10:25 · Nora**  
 _[audio: el termo cargado, las llaves en la mano y la gata mirándome desde la silla]_
 
-**10:25 · Vitácora** `ACM2`  
+**10:28 · Vitácora** `ACM2`  
 > Gracias, quedó.
 
 **13:00 · Vitácora** `VU0`  
@@ -42,7 +42,7 @@ _[audio: el termo cargado, las llaves en la mano y la gata mirándome desde la s
 **13:50 · Nora**  
 _[foto: un frasco de dulce de leche casero y una piedra lisa]_
 
-**13:50 · Vitácora** reacciona ❤️ a su mensaje
+**13:53 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · domingo 15/11 (hora de Buenos Aires)
 
@@ -54,7 +54,7 @@ _(Aviso a Naza: No entran en las noches del viaje 3 de antes de salir: AS2, IM1,
 **11:05 · Nora**  
 _[audio: a la vuelta, en el micro, con la cabeza contra el vidrio, mirando los campos ponerse naranjas]_
 
-**11:05 · Vitácora** `ACM3`  
+**11:08 · Vitácora** `ACM3`  
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
@@ -63,7 +63,7 @@ _[audio: a la vuelta, en el micro, con la cabeza contra el vidrio, mirando los c
 **21:55 · Nora**  
 _[audio: que la casa estaba igual pero yo no; y que la gata ni se enteró que me fui + una foto]_
 
-**21:55 · Vitácora** `ACN1`  
+**21:58 · Vitácora** `ACN1`  
 > Gracias, Nora. A dormir, que mañana sigue.
 
 ## Ya en casa · lunes 16/11 (hora de Buenos Aires)
@@ -77,7 +77,7 @@ _[9 fotos]_
 **10:44 · Nora**  
 _[texto: listo, son esas]_
 
-**10:44 · Vitácora** `DES`  
+**10:47 · Vitácora** `DES`  
 > Ya está, Nora: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 9 fotos quedan, guardadas 9, afuera 0.)_

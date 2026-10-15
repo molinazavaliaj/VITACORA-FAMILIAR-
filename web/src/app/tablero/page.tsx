@@ -8,6 +8,9 @@ import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
 import { entrevistaV3 } from "@/lib/v3";
+import { hayDudasPendientes } from "@/lib/dudas-archivos";
+import { regionDeLaFamilia } from "@/lib/trato";
+import { tratoDeRegion } from "@/lib/regalo-textos";
 import {
   BarraProgreso,
   Contenedor,
@@ -32,7 +35,7 @@ async function resumirHistoria(
 ): Promise<Resumen> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
-  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
@@ -40,6 +43,8 @@ async function resumirHistoria(
     admin.from("preguntas").select("orden").eq("narrador_id", narradorId),
     admin.from("preguntas").select("orden").is("narrador_id", null),
     admin.storage.from("audios").list(`${narradorId}/paquete`),
+    // Dudas del escritor sin contestar (lib/dudas-archivos.ts).
+    hayDudasPendientes(admin, narradorId),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
@@ -59,7 +64,7 @@ async function resumirHistoria(
   // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
   const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
 
-  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3 };
+  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
 }
 
 export default async function Inicio() {
@@ -84,7 +89,9 @@ export default async function Inicio() {
           <Titulo>Todavía no hay ninguna historia</Titulo>
         </div>
         <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-[var(--texto-suave)] font-light">
-          Cuando compres el libro de alguien de tu familia, su historia aparece acá.
+          {panel.familia?.region === "ES"
+            ? "Cuando compres el libro de alguien de tu familia, su historia aparece aquí."
+            : "Cuando compres el libro de alguien de tu familia, su historia aparece acá."}
         </p>
         <div className="mt-8">
           <ProximoPaso href="/comprar">Empezar una historia</ProximoPaso>
@@ -94,6 +101,13 @@ export default async function Inicio() {
   }
 
   const resumenes = await Promise.all(panel.historias.map((h) => resumirHistoria(admin, h)));
+  // Cada tarjeta habla con el trato de la familia dueña de esa historia: la del
+  // panel si es propia, la de quien invitó si no.
+  const regiones = await Promise.all(
+    panel.historias.map((h) =>
+      panel.familia && h.narrador.familia_id === panel.familia.id ? panel.familia.region : regionDeLaFamilia(admin, h.narrador.familia_id),
+    ),
+  );
   const segundosTotales = resumenes.reduce((acc, r) => acc + r.segundos, 0);
 
   return (
@@ -112,14 +126,14 @@ export default async function Inicio() {
       <div className="mt-8 flex flex-col gap-6">
         {panel.historias.map((h, i) => {
           const r = resumenes[i];
-          // El paso del regalo es de la dueña: su familia es la del panel.
-          const paso = proximoPaso(h, r, panel.familia?.region);
+          const paso = proximoPaso(h, r, regiones[i]);
+          const trato = tratoDeRegion(regiones[i]);
           const n = h.narrador;
           return (
             <Tarjeta key={n.id}>
               {n.alerta_silencio && h.rol === "duena" ? (
                 <div className="mb-5">
-                  <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} />
+                  <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={trato} />
                 </div>
               ) : null}
 
@@ -130,7 +144,7 @@ export default async function Inicio() {
                     <Titulo nivel={2}>{viajeDe(h) ? (h.rol === "duena" ? "Tu viaje" : `El viaje de ${n.nombre}`) : tituloHistoria(n.nombre, esPropia(n))}</Titulo>
                   </Link>
                   <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-                    {estadoEnHumano(n.estado, esPropia(n))}
+                    {estadoEnHumano(n.estado, esPropia(n), trato)}
                   </p>
                 </div>
                 {r.segundos > 0 ? (

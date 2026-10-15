@@ -2,8 +2,21 @@
 // las dudas de datos que salieron de la Etapa A, un libro que no se pudo escribir. Son internos: no los ve
 // ninguna familia. Mismo camino que el aviso del candado V3 (v3/candado.ts): Resend directo.
 import { cargarConfig } from '../../config.js';
+import { TIMEOUT_RESEND_MS } from '../../mail/resend.js';
 
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
+
+/**
+ * La clave de Resend. Si falta otra variable obligatoria, cargarConfig tira; el aviso
+ * igual tiene que poder salir (es justo el que avisa que falta algo, variables.ts).
+ */
+function claveResend(): string | null {
+  try {
+    return cargarConfig().resendApiKey;
+  } catch {
+    return process.env.RESEND_API_KEY?.trim() || null;
+  }
+}
 
 /**
  * Devuelve true si el mail salió o si no hay a quién mandarlo (sin MAIL_SOCIOS o sin clave de Resend:
@@ -14,7 +27,7 @@ const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafam
 export function hayAQuienAvisar(): boolean {
   try {
     const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
-    return Boolean(cargarConfig().resendApiKey) && para.length > 0;
+    return Boolean(claveResend()) && para.length > 0;
   } catch {
     return false;
   }
@@ -23,11 +36,12 @@ export function hayAQuienAvisar(): boolean {
 export async function avisarSocios(asunto: string, texto: string, o: { fetch?: typeof fetch } = {}): Promise<boolean> {
   try {
     console.warn(`aviso a socios: ${asunto}`);
-    const { resendApiKey } = cargarConfig();
+    const resendApiKey = claveResend();
     const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
     if (!resendApiKey || para.length === 0) return true;
     const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
       method: 'POST',
+      signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
       headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora escritor] ${asunto}`, text: texto }),
     });

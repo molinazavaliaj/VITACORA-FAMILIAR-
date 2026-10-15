@@ -54,7 +54,7 @@ function cargarFuentes(): Promise<Fuente[]> {
   return fuentes;
 }
 
-export async function GET(_request: Request, { params }: { params: Promise<{ codigo: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ codigo: string }> }) {
   const { codigo } = await params;
   let crudo = codigo;
   try {
@@ -64,6 +64,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
   }
   const regalo = await leerRegalo(crearClienteServidor(), crudo);
   if (!regalo) return new Response("No encontrado", { status: 404 });
+  // Ya canjeado (Naza, 10/10): igual que la tarjeta, al tablero de quien compró.
+  if (regalo.usado) return Response.redirect(new URL("/tablero", request.url), 303);
   const numero = numeroPublico();
   const [qr, fonts] = await Promise.all([qrDataUri(urlRegalo(regalo.codigo)), cargarFuentes()]);
 

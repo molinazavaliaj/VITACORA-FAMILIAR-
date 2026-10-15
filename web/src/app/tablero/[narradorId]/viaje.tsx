@@ -67,6 +67,7 @@ export function HistoriaViaje({
   historiaCerrada,
   linkPublico,
   invitados,
+  dudasAbiertas = false,
   ritmo,
   evitar,
   horario,
@@ -85,6 +86,8 @@ export function HistoriaViaje({
   historiaCerrada: boolean;
   linkPublico: string | null;
   invitados: InvitadoVista[];
+  /** Terminó de contar y quedan dudas del escritor: se puede invitar a quien sepa las respuestas. */
+  dudasAbiertas?: boolean;
   ritmo: Ritmo;
   evitar: string;
   horario?: { hora: string; zona: string };
@@ -162,21 +165,21 @@ export function HistoriaViaje({
               Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)} · {estadoLinea}
             </p>
           </div>
-          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
             {puedeAgregarFotos ? (
               <SubirFoto narradorId={n.id} capitulos={etapasParaFotos} variante="barra">
                 <IconoFoto />
                 Agregar fotos
               </SubirFoto>
             ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-              <span aria-disabled className={`${botonBarraSec} cursor-not-allowed`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
+              <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
                 <IconoFoto />
                 Agregar fotos
               </span>
             ) : null}
             {PUEDE.invitar(rol) ? (
-              <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
-                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={invitados} />
+              <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} />
               </span>
             ) : null}
             {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={duena} /> : null}
@@ -321,12 +324,12 @@ export function HistoriaViaje({
           </section>
         ) : null}
 
-        {/* ── Las etapas, vivas ── */}
+        {/* ── Las fechas y las etapas, vivas ── */}
         {!cerrado && PUEDE.cambiarRitmo(rol) ? (
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Las etapas del viaje</Etiqueta>
+            <Etiqueta>Fechas y etapas del viaje</Etiqueta>
             <div className="mt-6">
-              <EtapasDelViaje narradorId={n.id} viaje={viaje} />
+              <EtapasDelViaje narradorId={n.id} viaje={viaje} diaActual={n.dia_actual} />
             </div>
           </section>
         ) : null}

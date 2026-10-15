@@ -8,6 +8,7 @@ import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
 import { ReproductorRespuesta } from "../../reproductor";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
 import { ConRiel } from "../../riel";
+import { tratoDeLaFamilia } from "@/lib/trato";
 
 // El lector (docs/panel-usuario.md §15.1): el libro terminado se LEE y se
 // ESCUCHA acá. Nada se descarga — es lo que hace que el impreso sea "el que
@@ -39,7 +40,7 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
 
   // Qué compró la dueña (los pedidos de su familia); qué pedido manda (el
   // entregado más nuevo, aunque haya uno pendiente de un desconocido después).
-  const [{ data: pedidosData, error: errorPedidos }, { pedido: manda, error: errorManda }] = await Promise.all([
+  const [{ data: pedidosData, error: errorPedidos }, { pedido: manda, error: errorManda }, trato] = await Promise.all([
     admin
       .from("pedidos")
       .select("id, estado, extras, audiolibro_paths, libro_pdf_path")
@@ -47,10 +48,12 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
       .eq("familia_id", n.familia_id)
       .order("created_at", { ascending: true }),
     pedidoAMostrar(admin, n.id),
+    tratoDeLaFamilia(admin, n.familia_id),
   ]);
+  const tu = trato === "tu";
   if (errorPedidos || errorManda) {
     console.error("tablero/leer: fallo la busqueda de pedidos", errorPedidos ?? errorManda);
-    return <EstadoError />;
+    return <EstadoError trato={trato} />;
   }
   const pedidos = (pedidosData as Pedido[] | null) ?? [];
   const validos = pedidos.filter((p) => p.estado !== "fallido" && p.estado !== "pendiente");
@@ -91,8 +94,8 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
         <Tarjeta className="mt-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
             {enFabricacion
-              ? "Estamos armando el libro. Tarda unos minutos: vuelve a esta página en un rato."
-              : "Cuando el libro esté cerrado y producido, se lee y se escucha acá."}
+              ? `Estamos armando el libro. Tarda unos minutos: ${tu ? "vuelve" : "volvé"} a esta página en un rato.`
+              : `Cuando el libro esté cerrado y producido, se lee y se escucha ${tu ? "aquí" : "acá"}.`}
           </p>
         </Tarjeta>
         <div className="mt-8"><ProximoPaso href={`/tablero/${n.id}/libro`}>Ver el estado en Encargar libro</ProximoPaso></div>
@@ -108,13 +111,13 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
   return (
     <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
       {cabecera}
-      <p className="mt-2 text-[15px] text-[var(--texto-suave)]">Queda acá para siempre. Volvé cuando quieras.</p>
+      <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{tu ? "Queda aquí para siempre. Vuelve cuando quieras." : "Queda acá para siempre. Volvé cuando quieras."}</p>
 
       {/* ── El libro ─────────────────────────────────────────────────── */}
       <section className="mt-10" aria-labelledby="leer-libro">
         <div className="flex items-end justify-between gap-4 border-b border-[var(--texto)] pb-4">
           <h2 id="leer-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">El libro</h2>
-          {tienePdf ? <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">se lee acá</span> : null}
+          {tienePdf ? <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{tu ? "se lee aquí" : "se lee acá"}</span> : null}
         </div>
         {tienePdf ? (
           <div className="mt-6 overflow-hidden rounded-xl border border-[var(--linea)] bg-[var(--relieve)]">

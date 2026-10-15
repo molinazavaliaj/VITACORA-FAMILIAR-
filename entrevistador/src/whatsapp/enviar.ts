@@ -65,6 +65,14 @@ export function enviarBotones(telefono: string, texto: string, botones: string[]
   }, o);
 }
 
+/**
+ * Una reacción (la ❤️ de la Viaje V2) sobre un mensaje de la persona. Meta la acepta solo dentro de la ventana de
+ * 24 h y sobre un mensaje de los últimos 30 días; devuelve un id como cualquier envío.
+ */
+export function enviarReaccion(telefono: string, waMessageId: string, emoji: string, o: OpcionesEnvio = {}) {
+  return postMensaje({ recipient_type: 'individual', to: telefono, type: 'reaction', reaction: { message_id: waMessageId, emoji } }, o);
+}
+
 export function enviarAudioPorLink(telefono: string, url: string) {
   return postMensaje({ to: telefono, type: 'audio', audio: { link: url } });
 }

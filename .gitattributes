@@ -1,0 +1,7 @@
+# Los fijos de los tests de la fábrica se comparan byte a byte: siempre LF, también en Windows
+# (con core.autocrlf=true salían con CRLF y fallaban los tests que guardan y releen).
+fabrica/test/fijos/** text eol=lf
+
+# Los .md de docs/ los leen los tests de la fábrica (bancos, plantillas, prompts): siempre LF,
+# para que un .md editado en Windows no rompa los tests que comparan texto.
+docs/**/*.md text eol=lf

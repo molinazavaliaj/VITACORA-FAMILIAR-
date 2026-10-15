@@ -5,8 +5,13 @@ import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { FormularioNombres } from "./acciones";
 import { citasDeNombre, type RespuestaConTexto } from "@/lib/citas";
 import { PasosDelLibro, VolverAlTablero } from "../../pasos";
+import { tratoDeLaFamilia } from "@/lib/trato";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
-const MENSAJE_ERROR_CARGA = "No pudimos cargar los nombres. Actualiza la página en un momento.";
+const MENSAJE_ERROR_CARGA: Record<TratoComprador, string> = {
+  vos: "No pudimos cargar los nombres. Actualizá la página en un momento.",
+  tu: "No pudimos cargar los nombres. Actualiza la página en un momento.",
+};
 
 type Narrador = {
   id: string;
@@ -53,6 +58,8 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
     notFound();
   }
   const narrador = historia.narrador;
+  // Vos o tú: el de la familia dueña de la historia.
+  const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
   const { data: descargaEstructura, error: errorDescargaEstructura } = await admin.storage
     .from("audios")
@@ -67,7 +74,7 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
     estructura = JSON.parse(await descargaEstructura.text());
   } catch (err) {
     console.error("tablero/nombres: estructura.json invalido", err);
-    return <EstadoError />;
+    return <EstadoError trato={trato} />;
   }
 
   let nombres: Nombres = { correcciones: [] };
@@ -126,22 +133,22 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
           Nombres de {narrador.como_le_dicen}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
-          Revisa que estén bien escritos antes de que imprimamos el libro — la transcripción
+          {trato === "tu" ? "Revisa" : "Revisá"} que estén bien escritos antes de que imprimamos el libro — la transcripción
           automática a veces oye mal un nombre o un lugar.
         </p>
 
         <div className="mt-8">
-          <FormularioNombres narradorId={narrador.id} entidades={entidades} />
+          <FormularioNombres narradorId={narrador.id} entidades={entidades} trato={trato} />
         </div>
       </div>
     </div>
   );
 }
 
-function EstadoError() {
+function EstadoError({ trato = "vos" }: { trato?: TratoComprador }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
-      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA}</p>
+      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA[trato]}</p>
     </div>
   );
 }

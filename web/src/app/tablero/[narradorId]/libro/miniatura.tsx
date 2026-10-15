@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Toroide } from "../../../marca";
+import { TapaLibro } from "../../../tapa-libro";
 
 // El libro en miniatura (docs/panel-usuario.md §15.4): se hojea página por
 // página y muestra cómo va a quedar — la tapa elegida, dónde caen las fotos,
@@ -11,13 +11,13 @@ import { Toroide } from "../../../marca";
 // exponga su HTML paginado, esta pieza lo muestra en vez de armarlo.
 
 import { objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 /** `foco` y `posicion` (3b.6): cómo se recorta y dónde va la principal. Sin ellos: centro y arriba. */
 export type FotoLibro = { id: string; epigrafe: string | null; principal: boolean; foco?: Foco; posicion?: Posicion };
 export type CapituloLibro = { nombre: string; fotos: FotoLibro[]; textos: { pregunta: string; texto: string }[] };
 export type LibroDatos = {
   titulo: string;
-  subtitulo: string;
   portadaFotoId: string | null;
   contratapaFotoId: string | null;
   /** Encuadre de la tapa y la contratapa (las fotos del álbum también tienen foco). */
@@ -82,26 +82,18 @@ function Foto({ id, foco, className = "" }: { id: string; foco?: Foco; className
   return <img src={`/api/fotos/${id}`} alt="" loading="lazy" className={`object-cover ${className}`} style={{ objectPosition: objectPosition(foco) }} />;
 }
 
-function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: number }) {
+function PaginaVista({ p, d, numero, trato = "vos" }: { p: Pagina; d: LibroDatos; numero: number; trato?: TratoComprador }) {
   const folio = <p className="mt-auto pt-2 text-center text-[8px] text-[var(--linea-fuerte)] [font-family:var(--fuente-micro)]">{numero}</p>;
   switch (p.tipo) {
     case "tapa":
-      return (
-        <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
-          <Toroide className="h-5 w-auto text-[#AEAEA6]" />
-          {d.portadaFotoId ? <Foto id={d.portadaFotoId} foco={d.focos?.[d.portadaFotoId]} className="my-3 aspect-square w-full rounded-sm" /> : <span />}
-          <div>
-            <p className="text-[18px] leading-[1.1] [font-family:var(--fuente-titulo)] [text-wrap:balance]">{d.titulo}</p>
-            <p className="mt-2 text-[9px] italic text-[#D4D4CE] [font-family:var(--fuente-cuerpo)]">{d.subtitulo}</p>
-          </div>
-        </div>
-      );
+      // La misma tapa que sale impresa (13/10). El gris del impreso en blanco y negro lo pone el contenedor.
+      return <TapaLibro titulo={d.titulo} fotoSrc={d.portadaFotoId ? `/api/fotos/${d.portadaFotoId}` : null} foco={d.portadaFotoId ? d.focos?.[d.portadaFotoId] : undefined} llenar />;
     case "contratapa":
       return (
         <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
           {d.contratapaFotoId ? <Foto id={d.contratapaFotoId} foco={d.focos?.[d.contratapaFotoId]} className="aspect-[4/5] w-full rounded-sm" /> : <span />}
           <div className="flex items-end justify-between gap-3">
-            <p className="text-[8px] leading-relaxed text-[#AEAEA6] [font-family:var(--fuente-micro)]">Acercá el teléfono al código y escuchá su voz.</p>
+            <p className="text-[8px] leading-relaxed text-[#AEAEA6] [font-family:var(--fuente-micro)]">{trato === "tu" ? "Acerca el teléfono al código y escucha su voz." : "Acercá el teléfono al código y escuchá su voz."}</p>
             <span aria-hidden className="h-9 w-9 shrink-0 rounded-sm border border-[#83837A] bg-[repeating-linear-gradient(0deg,#83837A_0_2px,transparent_2px_4px)]" />
           </div>
         </div>
@@ -171,7 +163,7 @@ function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: numbe
   }
 }
 
-export function LibroMiniatura({ datos }: { datos: LibroDatos }) {
+export function LibroMiniatura({ datos, trato = "vos" }: { datos: LibroDatos; trato?: TratoComprador }) {
   const paginas = useMemo(() => armarPaginas(datos), [datos]);
   // `pliego` es el índice de la página izquierda del par abierto (siempre par).
   const [pliego, setPliego] = useState(0);
@@ -207,10 +199,10 @@ export function LibroMiniatura({ datos }: { datos: LibroDatos }) {
         </button>
         <div className={`flex max-w-full drop-shadow-[0_24px_40px_rgba(20,20,15,0.25)] ${datos.blancoYNegro ? "[&_img]:grayscale" : ""}`} style={{ width: "min(100%, 520px)" }}>
           <div className="aspect-[2/3] w-1/2 overflow-hidden rounded-l-[3px] border border-r-0 border-[var(--linea)] bg-[var(--fondo)] shadow-[inset_-12px_0_20px_-16px_rgba(20,20,15,0.3)]">
-            {izq ? <PaginaVista p={izq} d={datos} numero={pliego - 1} /> : null}
+            {izq ? <PaginaVista p={izq} d={datos} numero={pliego - 1} trato={trato} /> : null}
           </div>
           <div className="aspect-[2/3] w-1/2 overflow-hidden rounded-r-[3px] border border-l-0 border-[var(--linea)] bg-[var(--fondo)] shadow-[inset_12px_0_20px_-16px_rgba(20,20,15,0.3)]">
-            {der ? <PaginaVista p={der} d={datos} numero={pliego} /> : null}
+            {der ? <PaginaVista p={der} d={datos} numero={pliego} trato={trato} /> : null}
           </div>
         </div>
         <button type="button" className={flecha} aria-label="Página siguiente" disabled={pliego >= ultimo} onClick={() => setPliego((p) => Math.min(ultimo, p + 2))}>

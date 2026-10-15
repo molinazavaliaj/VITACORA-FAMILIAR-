@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { anguloDelDia, diaDeHoy, diasDelViaje, etapaDeFecha, fechaDelDia, guionDelViaje, SIN_ETAPA, type Viaje } from '../src/flujo/viaje.js';
+import { anguloDelDia, diaDeHoy, diasDelViaje, esTempranoParaElDia, etapaDeFecha, fechaDelDia, fechaEnPalabras, guionDelViaje, SIN_ETAPA, type Viaje } from '../src/flujo/viaje.js';
 
 const viaje: Viaje = {
   salida: '2026-09-20', vuelta: '2026-09-29',
@@ -57,5 +57,20 @@ describe('Vitácora de viaje — lo puro', () => {
     expect(diaDeHoy(viaje, new Date('2026-09-21T23:30:00Z'), 'Europe/Lisbon')).toBe(3); // 00:30 del 22 en Lisboa
     expect(diaDeHoy(viaje, new Date('2026-09-21T23:30:00Z'), 'America/Argentina/Buenos_Aires')).toBe(2);
     expect(diaDeHoy(viaje, new Date('2026-10-05T12:00:00Z'), 'Europe/Lisbon')).toBeNull();
+  });
+});
+
+describe('la pregunta espera a su noche (12/10)', () => {
+  it('cada noche del guion tiene fecha: antes de esa fecha es temprano', () => {
+    expect(esTempranoParaElDia(viaje, 1, '2026-09-19')).toBe(true);
+    expect(esTempranoParaElDia(viaje, 1, '2026-09-20')).toBe(false);
+    expect(esTempranoParaElDia(viaje, 3, '2026-09-21')).toBe(true);
+    expect(esTempranoParaElDia(viaje, 3, '2026-09-25')).toBe(false); // atrasado: sale
+  });
+  it('lo que va después del guion (la pregunta de cierre) no tiene fecha', () => {
+    expect(esTempranoParaElDia(viaje, diasDelViaje(viaje) + 1, '2026-09-01')).toBe(false);
+  });
+  it('la fecha en palabras no se corre con la zona del servidor', () => {
+    expect(fechaEnPalabras('2026-10-20')).toBe('20 de octubre');
   });
 });

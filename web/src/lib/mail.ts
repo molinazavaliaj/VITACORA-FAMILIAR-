@@ -39,12 +39,34 @@ async function enviar(opciones: { para: string; asunto: string; html: string }):
       subject: opciones.asunto,
       html: opciones.html,
     }),
+    // Un Resend colgado no puede colgar la ruta (webhook de pago): a los 15 s tira
+    // (TimeoutError) como cualquier fallo; quienes llaman ya lo atrapan.
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!respuesta.ok) {
     throw new Error(`Resend rechazó "${opciones.asunto}" (${respuesta.status}): ${await respuesta.text()}`);
   }
   return true;
+}
+
+/**
+ * Un aviso de texto a los socios (MAIL_SOCIOS, separados por coma), como `avisarSocios`
+ * de la fábrica. Sin MAIL_SOCIOS o sin RESEND_API_KEY, false. Nunca tira.
+ */
+export async function enviarMailSocios(asunto: string, texto: string): Promise<boolean> {
+  const socios = (process.env.MAIL_SOCIOS ?? "").split(",").map((m) => m.trim()).filter(Boolean);
+  if (socios.length === 0) return false;
+  const html = `<pre style="font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:pre-wrap;">${escapar(texto)}</pre>`;
+  let alguno = false;
+  for (const para of socios) {
+    try {
+      if (await enviar({ para, asunto, html })) alguno = true;
+    } catch (err) {
+      console.error(`mail: no salió el aviso a los socios (${para}):`, err instanceof Error ? err.message : err);
+    }
+  }
+  return alguno;
 }
 
 function envoltorio(cuerpo: string): string {
@@ -86,7 +108,7 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
           cuando quiera.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          Cuando empiece a contar su historia te avisamos por acá, y vas a poder
+          Cuando empiece a contar su historia te avisamos por ${deTu(opciones.region) ? "aquí" : "acá"}, y vas a poder
           escuchar su voz desde tu panel.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
@@ -138,29 +160,40 @@ export async function enviarMailInvitacion(opciones: {
   nombreNarrador: string;
   quienInvita: string;
   region?: string | null;
+  /** Terminó de contar: la invitación es para contestar las dudas del escritor (13/10). */
+  paraDudas?: boolean;
 }): Promise<boolean> {
   const narrador = escapar(opciones.nombreNarrador);
   const quien = escapar(opciones.quienInvita);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const tu = deTu(opciones.region);
 
   return enviar({
     para: opciones.para,
-    asunto: `${opciones.quienInvita} te invita a la historia de ${opciones.nombreNarrador}`,
+    asunto: opciones.paraDudas
+      ? `${opciones.quienInvita} te pide ayuda con la historia de ${opciones.nombreNarrador}`
+      : `${opciones.quienInvita} te invita a la historia de ${opciones.nombreNarrador}`,
     html: envoltorio(`
         <tr><td style="padding-bottom:24px;">
-          <strong style="font-size:22px;font-weight:normal;">Un biógrafo está escribiendo el libro de la vida de ${narrador}.</strong>
+          <strong style="font-size:22px;font-weight:normal;">${opciones.paraDudas
+            ? `${narrador} terminó de contar su vida y estamos por escribir su libro.`
+            : `Un biógrafo está escribiendo el libro de la vida de ${narrador}.`}</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          ${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va
+          ${opciones.paraDudas
+            ? `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año.
+          Si ${tu ? "sabes" : "sabés"} la respuesta, ${tu ? "puedes" : "podés"} escribirla antes de que se escriba el libro.
+          También vas a poder escuchar lo que contó.`
+            : `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va
           contando, sumar preguntas que te gustaría que le hagan y agregar fotos de
-          cada época.
+          cada época.`}
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          ${deTu(opciones.region) ? "Entra" : "Entrá"} con este mismo correo:
+          ${tu ? "Entra" : "Entrá"} con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
-            Ver la historia de ${narrador}
+            ${opciones.paraDudas ? "Ver las dudas" : `Ver la historia de ${narrador}`}
           </a>
           <div style="margin-top:10px;font-size:14px;color:#78716c;">
             Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.

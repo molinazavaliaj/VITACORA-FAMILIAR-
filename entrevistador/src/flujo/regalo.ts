@@ -35,15 +35,32 @@ export function reiniciarLimiteDeCodigos(): void {
   noExistePorTelefono.clear();
 }
 
+/** Para los tests: cuántos teléfonos guarda hoy el límite. */
+export function telefonosEnElLimite(): number {
+  return noExistePorTelefono.size;
+}
+
+/**
+ * La clave del límite: el mismo número con y sin el 9 de Argentina cuenta como
+ * uno (se usa la forma con 9, +549…); los demás, tal cual con su +.
+ */
+function claveDelLimite(telefono: string): string {
+  const variantes = variantesDeTelefono(telefono);
+  return variantes.find((v) => v.startsWith('+549')) ?? variantes[0];
+}
+
 /** ¿Todavía se le puede contestar "no encuentro ese código"? Si sí, lo anota. */
 function puedeContestarNoExiste(telefono: string, ahora: number): boolean {
-  const recientes = (noExistePorTelefono.get(telefono) ?? []).filter((t) => ahora - t < VENTANA_MS);
-  if (recientes.length >= MAXIMO_NO_EXISTE) {
-    noExistePorTelefono.set(telefono, recientes);
-    return false;
+  // Poda: un teléfono sin intentos en la ventana se borra, así el mapa no crece sin fin.
+  for (const [clave, veces] of noExistePorTelefono) {
+    const vigentes = veces.filter((t) => ahora - t < VENTANA_MS);
+    if (vigentes.length === 0) noExistePorTelefono.delete(clave);
+    else if (vigentes.length !== veces.length) noExistePorTelefono.set(clave, vigentes);
   }
-  recientes.push(ahora);
-  noExistePorTelefono.set(telefono, recientes);
+  const clave = claveDelLimite(telefono);
+  const recientes = noExistePorTelefono.get(clave) ?? [];
+  if (recientes.length >= MAXIMO_NO_EXISTE) return false;
+  noExistePorTelefono.set(clave, [...recientes, ahora]);
   return true;
 }
 

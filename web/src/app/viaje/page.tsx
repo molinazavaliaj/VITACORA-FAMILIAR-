@@ -34,7 +34,7 @@ const PASOS = [
 const PREGUNTAS = [
   ["¿Y si todavía no tengo todas las fechas?", "Cargás lo que sabés. Las etapas sin fecha se completan después desde tu panel, y si aparece una ciudad nueva la agregás ahí: las noches que faltan se acomodan solas."],
   ["¿Cuántas fotos puedo mandar?", "Las que quieras, por WhatsApp, cuando quieras. Para el libro impreso, al volver te pedimos las mejores en su tamaño original."],
-  ["¿Me trata de vos?", "Sí. Es tu biógrafo: te habla como te hablaría un amigo que viaja contigo. En castellano."],
+  ["¿Me trata de vos?", "Sí. Es tu biógrafo: te habla como te hablaría un amigo que viaja con vos. En castellano."],
   ["¿Cuándo llega el libro?", "Cuando volvés, tu biógrafo te hace una última pregunta —¿faltó algo?— y con eso escribe el libro. Lo leés en la web a los pocos días."],
 ] as const;
 
@@ -69,7 +69,7 @@ export default function PaginaViaje() {
               También hay un libro en cada viaje.
             </h1>
             <p className="max-w-xl text-[18px] leading-[1.7] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-              Un biógrafo que viaja contigo por WhatsApp: cada noche te pregunta por el día, guarda tus fotos con su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo.
+              Un biógrafo que viaja con vos por WhatsApp: cada noche te pregunta por el día, guarda tus fotos con su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo.
             </p>
             <div className="flex flex-wrap items-center gap-5">
               <Link href="/comprar/viaje" className={cta}>Empezar mi Vitácora de viaje</Link>

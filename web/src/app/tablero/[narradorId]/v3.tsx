@@ -9,6 +9,8 @@ import { Riel, type HistoriaRiel } from "../riel";
 import { ReproductorRespuesta } from "../reproductor";
 import { Etiqueta, ProximoPaso, Titulo, estadoEnHumano, fechaCorta, formatearDuracion, tituloHistoria } from "../ui";
 import type { Ritmo } from "@/lib/guion";
+import type { TratoComprador } from "@/lib/regalo-textos";
+import { textoDudas } from "../proximo-paso";
 
 // La historia de un narrador V3 (entrevista por WhatsApp, 10/10). No hay guion de 30 ni capítulos que
 // ordenar: la entrevista va por bloques y lo que viene lo decide el biógrafo. Se muestra lo que se le
@@ -22,8 +24,10 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, ritmo, horario, alFinal,
+  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos",
 }: {
+  /** El trato de los textos del panel: el de la familia dueña de la historia. */
+  trato?: TratoComprador;
   /** Ya llegó a la foto del final (FO1): las preguntas de la familia ya no le llegan. */
   alFinal: boolean;
   n: Narrador;
@@ -37,6 +41,10 @@ export function HistoriaV3({
   historiaCerrada: boolean;
   linkPublico: string | null;
   invitados: InvitadoVista[];
+  /** Terminó de contar y quedan dudas del escritor: se puede invitar a quien sepa las respuestas. */
+  dudasAbiertas?: boolean;
+  /** Quedan dudas del escritor sin contestar y el libro no está escrito: el aviso que lleva a contestarlas. */
+  dudasPendientes?: boolean;
   ritmo: Ritmo;
   horario?: { hora: string; zona: string };
 }) {
@@ -49,6 +57,7 @@ export function HistoriaV3({
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const puedeCerrarAnticipado = rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contestadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
   const suya = propia ? "tu" : "su";
+  const tu = trato === "tu";
 
   return (
     <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
@@ -57,7 +66,7 @@ export function HistoriaV3({
       <div className="min-w-0 flex-1">
         {n.alerta_silencio && rol === "duena" ? (
           <div className="mb-8">
-            <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} />
+            <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={trato} />
           </div>
         ) : null}
 
@@ -67,25 +76,31 @@ export function HistoriaV3({
             <div className="mt-1">
               <Titulo>{tituloHistoria(n.nombre, propia)}</Titulo>
             </div>
-            <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{estadoEnHumano(n.estado, propia)}</p>
+            <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{estadoEnHumano(n.estado, propia, trato)}</p>
             {segundosDeVoz > 0 ? (
               <p className="mt-1 text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
                 <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosDeVoz)}</span> de {suya} voz
               </p>
             ) : null}
           </div>
-          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
             {puedeAgregarFotos ? (
-              <SubirFoto narradorId={n.id} capitulos={[]} variante="barra">Agregar fotos</SubirFoto>
+              <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>Agregar fotos</SubirFoto>
             ) : null}
             {PUEDE.invitar(rol) ? (
-              <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
-                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={invitados} />
+              <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} trato={trato} />
               </span>
             ) : null}
-            {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} /> : null}
+            {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={trato} /> : null}
           </div>
         </header>
+
+        {dudasPendientes ? (
+          <div className="mt-8">
+            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tu)}</ProximoPaso>
+          </div>
+        ) : null}
 
         {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
           <div className="mt-8 flex flex-col gap-3">
@@ -93,7 +108,9 @@ export function HistoriaV3({
               {aprobado
                 ? (propia ? "Leer tu libro y escuchar tu voz" : "Leer su libro y escuchar su voz")
                 : PUEDE.cerrarLibro(rol)
-                  ? (propia ? "Elegí la tapa y encargá tu libro" : "Elegí la tapa y encargá su libro")
+                  ? tu
+                    ? (propia ? "Elige la tapa y encarga tu libro" : "Elige la tapa y encarga su libro")
+                    : (propia ? "Elegí la tapa y encargá tu libro" : "Elegí la tapa y encargá su libro")
                   : "Leer su libro"}
             </ProximoPaso>
             {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
@@ -107,14 +124,14 @@ export function HistoriaV3({
 
         {puedeSumar ? (
           <div className="mt-8">
-            <SumarPreguntaV3 narradorId={n.id} propia={propia} />
+            <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} />
           </div>
         ) : null}
 
         <div className="mt-10 flex flex-col gap-14">
           {bloques.length === 0 ? (
             <p className="text-[15px] text-[var(--texto-suave)]">
-              {propia ? "Cuando contestes la primera pregunta, lo que cuentes aparece acá." : "Cuando conteste la primera pregunta, lo que cuente aparece acá."}
+              {propia ? "Cuando contestes la primera pregunta, lo que cuentes aparece" : "Cuando conteste la primera pregunta, lo que cuente aparece"} {tu ? "aquí." : "acá."}
             </p>
           ) : null}
           {bloques.map((b, i) => (
@@ -173,7 +190,7 @@ export function HistoriaV3({
               <GaleriaCapitulo fotos={fotos} usuarioId={usuarioId} esDuena={rol === "duena"} />
               {puedeAgregarFotos ? (
                 <div className="mt-5">
-                  <SubirFoto narradorId={n.id} capitulos={[]}>+ Agregar una foto al álbum</SubirFoto>
+                  <SubirFoto narradorId={n.id} capitulos={[]} trato={trato}>+ Agregar una foto al álbum</SubirFoto>
                 </div>
               ) : null}
             </section>
@@ -184,14 +201,14 @@ export function HistoriaV3({
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
             <Etiqueta>Ajustes de la entrevista</Etiqueta>
             <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 />
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 tratoPanel={trato} />
             </div>
           </section>
         ) : null}
 
         {puedeCerrarAnticipado ? (
           <div className="mt-8">
-            <CierreAnticipado narradorId={n.id} />
+            <CierreAnticipado narradorId={n.id} trato={trato} />
           </div>
         ) : null}
       </div>

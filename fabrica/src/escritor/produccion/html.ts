@@ -1,7 +1,7 @@
 // El HTML del libro del escritor nuevo con la plantilla de producción. Lo comparten la entrega (libro.html y
 // libro.pdf) y la imprenta (libro-imprenta.pdf, con «Su voz» y sus códigos): el mismo libro, la misma tapa.
 //
-// De la edición de la dueña (narradores.edicion) valen el título y el subtítulo de tapa y la foto de tapa.
+// De la edición de la dueña (narradores.edicion) valen el título y la foto de tapa (el subtítulo ya no sale, 13/10).
 // El orden y los títulos de los capítulos NO: la web los guarda con los nombres del guion viejo, y en la V3
 // el plan y los títulos los arma el escritor. Tampoco van fotos por capítulo (se buscan por esos mismos
 // nombres viejos): solo la de tapa.
@@ -18,9 +18,12 @@ export type NarradorParaLibro = { id: string; nombre: string; contexto: unknown;
 /** El idioma del libro sale del de la entrevista: catalán → 'ca'; castellano (de acá o de España) → 'es'. */
 export const idiomaDelLibro = (idiomaEntrevista: string | null | undefined): IdiomaLibro => (idiomaEntrevista === 'ca' ? 'ca' : 'es');
 
+/** El trato de los textos fijos del libro (13/10): España de tú, acá de vos (como `TRATO` de la ficha). */
+export const tratoDelLibro = (idiomaEntrevista: string | null | undefined): 'vos' | 'tu' => (idiomaEntrevista === 'es-ES' || idiomaEntrevista === 'ca' ? 'tu' : 'vos');
+
 export async function htmlLibroV3(
   db: SupabaseClient,
-  a: { narrador: NarradorParaLibro; libroMd: string; idioma: IdiomaLibro; frases?: FrasesJson; urlCliente?: string },
+  a: { narrador: NarradorParaLibro; libroMd: string; idioma: IdiomaLibro; trato?: 'vos' | 'tu'; frases?: FrasesJson; urlCliente?: string },
 ): Promise<string> {
   const p = libroParaPlantilla(a.libroMd);
   const edicion = leerEdicion(a.narrador.edicion);
@@ -37,6 +40,7 @@ export async function htmlLibroV3(
     indice: p.indice,
     libroMarkdown: p.libroMarkdown,
     idioma: a.idioma,
+    ...(a.trato ? { trato: a.trato } : {}),
     ...(a.frases ? { frases: a.frases } : {}),
     ...(a.urlCliente ? { urlCliente: a.urlCliente } : {}),
   });

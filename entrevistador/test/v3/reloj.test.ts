@@ -173,7 +173,7 @@ describe('el tick', () => {
     const pedidas: unknown[][] = [];
     const desde = r.base.cliente.from.bind(r.base.cliente);
     (r.base.cliente as any).from = (t: string) => {
-      const q = desde(t);
+      const q: any = desde(t);
       if (t !== 'entrevistas_v3') return q;
       const enOriginal = q.in?.bind(q);
       if (enOriginal) q.in = (c: string, vs: unknown[]) => { pedidas.push(vs); return enOriginal(c, vs); };

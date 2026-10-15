@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { armarCompra, type Carrito, type Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
+import type { TratoComprador } from "@/lib/regalo-textos";
 import { Ticket, Upsells, formatearPrecio } from "../../../comprar/productos-ui";
 
 // Sumar cosas a un libro que ya existe (catálogo base + upsells, 21/09): las
@@ -15,7 +16,7 @@ import { Ticket, Upsells, formatearPrecio } from "../../../comprar/productos-ui"
 const boton = "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 const etiqueta = "text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]";
 
-export function Extras({ narradorId, region, catalogo, previos, titulo = "Sumar", propia = false }: {
+export function Extras({ narradorId, region, catalogo, previos, titulo = "Sumar", propia = false, trato = "vos" }: {
   narradorId: string;
   region: Region;
   catalogo: Catalogo;
@@ -23,7 +24,10 @@ export function Extras({ narradorId, region, catalogo, previos, titulo = "Sumar"
   previos: { impresos: number; marcos: number };
   titulo?: string;
   propia?: boolean;
+  /** Vos o tú: el de la familia dueña de la historia. */
+  trato?: TratoComprador;
 }) {
+  const tu = trato === "tu";
   const [carritoElegido, setCarrito] = useState<Carrito>({ base: null, impresos: 0, marcos: 0, impresosPrevios: previos.impresos, marcosPrevios: previos.marcos });
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,15 +58,15 @@ export function Extras({ narradorId, region, catalogo, previos, titulo = "Sumar"
   return (
     <div className="flex flex-col gap-6">
       <p className={etiqueta}>{titulo}</p>
-      <Upsells cat={catalogo} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={propia} />
+      <Upsells cat={catalogo} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={propia} trato={trato} />
       {compra.lineas.length > 0 ? (
         <div className="rounded-xl border border-[var(--linea)] p-5">
-          <Ticket compra={compra} region={region} titulo="Lo que sumás" />
+          <Ticket compra={compra} region={region} titulo={tu ? "Lo que sumas" : "Lo que sumás"} />
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-4">
         <button type="button" className={`${boton} bg-[var(--texto)] text-[var(--fondo)] hover:opacity-90`} disabled={ocupado || compra.total <= 0} onClick={pagar}>
-          {ocupado ? "Un momento…" : compra.total > 0 ? `Pagar ${formatearPrecio(compra.total, compra.moneda, region)}` : "Elegí qué sumar"}
+          {ocupado ? "Un momento…" : compra.total > 0 ? `Pagar ${formatearPrecio(compra.total, compra.moneda, region)}` : tu ? "Elige qué sumar" : "Elegí qué sumar"}
         </button>
         <span className="text-sm text-[var(--texto-menor)]">Pago único. Envío incluido en lo físico.</span>
       </div>

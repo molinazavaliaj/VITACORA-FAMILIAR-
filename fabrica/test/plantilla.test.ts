@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { construirHtmlLibro } from '../src/libro/plantilla-html.js';
+import { construirHtmlLibro, tamanoNombreTapa } from '../src/libro/plantilla-html.js';
 
 const LIBRO_MARKDOWN = `# A mis lectores
 
@@ -47,10 +47,9 @@ describe('construirHtmlLibro', () => {
     expect(html).toContain('1945');
   });
 
-  it('la portada trae la franja de lomo con el acento por default', async () => {
+  it('el acento por default es el vino de la identidad', async () => {
     const html = await construir();
     expect(html).toContain('#6e2618');
-    expect(html).toContain('class="franja"');
   });
 
   it('la franja de lomo usa el acento pasado por parámetro', async () => {
@@ -59,16 +58,40 @@ describe('construirHtmlLibro', () => {
     expect(html).not.toContain('#6e2618');
   });
 
-  it('el frontispicio aparece con la foto entera cuando hay foto', async () => {
+  it('la foto va en la tapa, arriba, y ya no hay frontispicio (Naza, 13/10)', async () => {
     const html = await construir();
-    expect(html).toContain('class="frontispicio-img"');
-    expect(html).toContain('https://x/foto.jpg');
+    expect(html).toContain('<div class="tapa-foto"><img src="https://x/foto.jpg" alt="" /></div>');
+    expect(html).not.toContain('frontispicio');
+    expect((html.match(/https:\/\/x\/foto\.jpg/g) ?? []).length).toBe(1);
   });
 
-  it('sin foto no hay ni <img> ni el bloque de frontispicio', async () => {
+  it('sin foto la tapa lleva el toroide en lugar de la foto, sin <img>', async () => {
     const html = await construir({ fotoUrl: null });
     expect(html).not.toContain('<img');
-    expect(html).not.toContain('class="frontispicio-img"');
+    expect(html).toContain('class="tapa-toroide"');
+  });
+
+  it('la tapa: «EL LIBRO DE SU VIDA», el nombre, «para siempre» y la marca', async () => {
+    const html = await construir();
+    expect(html).toContain('<div class="tapa-eyebrow">EL LIBRO DE SU VIDA</div>');
+    expect(html).toContain('<div class="portada-nombre-narrador">Roberto</div>');
+    expect(html).toContain('<span class="tapa-siempre">para siempre</span>');
+    expect(html).toContain('V·F</span>');
+  });
+
+  it('el nombre nunca se corta a mitad de palabra: si no entra, se achica (13/10)', async () => {
+    expect(tamanoNombreTapa('Osvaldo Toroide')).toBe(48);
+    expect(tamanoNombreTapa('IMMACULADA COLELL')).toBe(48);
+    expect(tamanoNombreTapa('MAXIMILIANO BARTOLOMEOVSKIENKO')).toBeLessThan(48);
+    const html = await construir({ tapa: { titulo: 'MAXIMILIANO BARTOLOMEOVSKIENKO', subtitulo: null } });
+    expect(html).toMatch(/<div class="portada-nombre-narrador" style="font-size: \d+px">MAXIMILIANO BARTOLOMEOVSKIENKO<\/div>/);
+    expect(html).not.toContain('overflow-wrap: break-word; text-wrap: balance; max-width: 66%');
+  });
+
+  it('libro en catalán: la tapa en catalán', async () => {
+    const html = await construir({ idioma: 'ca' });
+    expect(html).toContain('<div class="tapa-eyebrow">EL LLIBRE DE LA SEVA VIDA</div>');
+    expect(html).toContain('<span class="tapa-siempre">per sempre</span>');
   });
 
   it('cada capítulo del índice arranca con su numeral de capítulo', async () => {
@@ -83,6 +106,14 @@ describe('construirHtmlLibro', () => {
   it('la contratapa está presente, con la marca de la colección', async () => {
     const html = await construir();
     expect(html).toContain('VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS');
+  });
+
+  it('libro en catalán: la contratapa en catalán (13/10)', async () => {
+    const html = await construir({ idioma: 'ca' });
+    expect(html).toContain('VITÁCORA FAMILIAR · UNA COL·LECCIÓ DE VIDES EXPLICADES');
+    expect(html).toContain('La seva història, explicada amb la seva pròpia veu.');
+    expect(html).toContain('LA HISTÒRIA D’UNA VIDA · DES DE 1945');
+    expect(html).not.toContain('UNA COLECCIÓN DE VIDAS CONTADAS');
   });
 
   it('el colofón está presente', async () => {
@@ -146,13 +177,12 @@ describe('construirHtmlLibro', () => {
 const LIBRO = '# A mis lectores\n\nHola.\n\n# La infancia\n\nNací en 1940.\n\n# Sus frases\n\n> Todo pasa.\n';
 
 describe('construirHtmlLibro — tapa de la edición', () => {
-  it('sin tapa: la portada lleva el nombre del narrador y "LA HISTORIA DE UNA VIDA"', async () => {
+  it('sin tapa: la portada lleva el nombre del narrador', async () => {
     const html = await construirHtmlLibro({ titulo: 'Rosa Pérez — La historia de una vida', indice: ['La infancia'], libroMarkdown: LIBRO });
     expect(html).toContain('<div class="portada-nombre-narrador">Rosa Pérez</div>');
-    expect(html).toContain('LA HISTORIA DE UNA VIDA');
   });
 
-  it('con tapa: el título elegido va grande y el subtítulo reemplaza la frase fija', async () => {
+  it('con tapa: el título elegido va grande y el subtítulo ya no sale (Naza, 13/10)', async () => {
     const html = await construirHtmlLibro({
       titulo: 'Rosa Pérez — La historia de una vida',
       nombreNarrador: 'Rosa Pérez',
@@ -161,7 +191,7 @@ describe('construirHtmlLibro — tapa de la edición', () => {
       libroMarkdown: LIBRO,
     });
     expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
-    expect(html).toContain('<div class="tag">Rosa Pérez de Gómez</div>');
+    expect(html).not.toContain('Rosa Pérez de Gómez');
     // el nombre del narrador sigue mandando en cabeceras y aperturas
     expect(html).toContain('<div class="marca-narrador">Rosa Pérez</div>');
   });
@@ -287,14 +317,14 @@ describe('construirHtmlLibro — fotos por capítulo', () => {
 });
 
 describe('construirHtmlLibro — foco de la tapa', () => {
-  it('con foco, el frontispicio recorta alrededor de ese punto', async () => {
+  it('con foco, la foto de tapa recorta alrededor de ese punto', async () => {
     const html = await construir({ fotoFoco: { x: 0.3, y: 0.2 } });
-    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" style="object-position: 30% 20%" alt="" />');
+    expect(html).toContain('<img src="https://x/foto.jpg" style="object-position: 30% 20%" alt="" />');
   });
 
   it('sin foco, la tapa sale igual que hoy: sin object-position', async () => {
     const html = await construir();
-    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" alt="" />');
+    expect(html).toContain('<img src="https://x/foto.jpg" alt="" />');
     expect(html).not.toContain('object-position:');
   });
 });

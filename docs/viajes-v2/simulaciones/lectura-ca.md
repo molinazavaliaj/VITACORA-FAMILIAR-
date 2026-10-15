@@ -25,7 +25,7 @@ _[texto: SÍ]_
 **20:30 · Laia**  
 _[audio: en Jordi em va dir: «fa deu anys que dius que vols veure Lisboa». I va comprar els bitllets aquella mateixa nit]_
 
-**20:30 · Vitácora** `ACA2` + `AS2`  
+**20:33 · Vitácora** `ACA2` + `AS2`  
 > Ho he escoltat. Passem a una altra.
 >
 > Ja falta poc, Laia. Com ho portes, això del viatge? Ganes, nervis, cansament, el que hi hagi, i què esperes trobar-hi. Explica'm el moment, aquests dies, en què et vas adonar que anava de debò. Què feies i què et va passar pel cap.
@@ -35,7 +35,7 @@ _[audio: en Jordi em va dir: «fa deu anys que dius que vols veure Lisboa». I v
 **19:15 · Laia**  
 _[audio: ganes i una mica de por de viatjar sola; me n'he adonat fent la llista de coses a la nevera]_
 
-**19:15 · Vitácora** `ACA3` + `IM1`  
+**19:18 · Vitácora** `ACA3` + `IM1`  
 > Queda guardat. Et faig una pregunta més.
 >
 > Quan penses en aquest viatge, quina imatge et ve al cap? No la de les guies ni la dels llocs que s'han de veure, sinó la que et surt sola, encara que sigui un carrer qualsevol. Digues-me quina és i d'on et ve.
@@ -45,7 +45,7 @@ _[audio: ganes i una mica de por de viatjar sola; me n'he adonat fent la llista 
 **09:40 · Laia**  
 _[texto: passo]_
 
-**09:40 · Vitácora** `PAS-A` + `VA1`  
+**09:43 · Vitácora** `PAS-A` + `VA1`  
 > D'acord, Laia, cap problema. Passem a la següent.
 >
 > Què és allò que no pot faltar a la maleta, Laia? No el carregador ni els documents, sinó alguna cosa teva. I per què te l'emportes.
@@ -53,7 +53,7 @@ _[texto: passo]_
 **22:00 · Laia**  
 _[audio: la llibreta de tapes vermelles on dibuixo; va a tots els viatges]_
 
-**22:00 · Vitácora** `ACM1`  
+**22:03 · Vitácora** `ACM1`  
 > Ja està, gràcies.
 
 ## Día 1 · salida · viernes 16/10 (hora de Madrid)
@@ -64,7 +64,7 @@ _[audio: la llibreta de tapes vermelles on dibuixo; va a tots els viatges]_
 **10:40 · Laia**  
 _[audio: regant les plantes i deixant la clau a la veïna; el gat ja sabia que marxava]_
 
-**10:40 · Vitácora** `ACM2`  
+**10:43 · Vitácora** `ACM2`  
 > Gràcies, ja ho tinc.
 
 ## Día 2 del viaje · sábado 17/10 (hora de Lisbon)
@@ -75,7 +75,7 @@ _[audio: regant les plantes i deixant la clau a la veïna; el gat ja sabia que m
 **11:20 · Laia**  
 _[audio: a l'avió, quan es va veure el mar i després el riu tan ample; vaig pensar que ja era lluny]_
 
-**11:20 · Vitácora** `ACM3`  
+**11:23 · Vitácora** `ACM3`  
 > Rebut. Fins a la nit.
 
 **21:30 · Vitácora** `C1` + `NO1` + `F1`  
@@ -84,7 +84,7 @@ _[audio: a l'avió, quan es va veure el mar i després el riu tan ample; vaig pe
 **22:10 · Laia**  
 _[audio: vaig dinar sardines a la brasa en una terrassa petita; el cambrer em parlava en portuguès i jo li contestava en català, i ens enteníem + 2 fotos]_
 
-**22:10 · Vitácora** `ACN1`  
+**22:13 · Vitácora** `ACN1`  
 > Gràcies, Laia. A dormir, que demà continuem.
 
 ## Día 3 del viaje · domingo 18/10 (hora de Lisbon)
@@ -95,7 +95,7 @@ _[audio: vaig dinar sardines a la brasa en una terrassa petita; el cambrer em pa
 **13:30 · Laia**  
 _[foto: un tramvia groc]_
 
-**13:30 · Vitácora** reacciona ❤️ a su mensaje
+**13:33 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R`  
 > Avui la pregunta no és meva. L'ha escrita Jordi: «Quin racó de Lisboa voldries ensenyar-me?». Explica-ho com si Jordi t'escoltés, encara que m'ho enviïs a mi. Si hi ha foto, també.
@@ -103,7 +103,7 @@ _[foto: un tramvia groc]_
 **22:30 · Laia**  
 _[audio: el tramvia 28 ple a vessar; una senyora em va fer lloc i em va explicar on baixar]_
 
-**22:30 · Vitácora** `ACN2`  
+**22:33 · Vitácora** `ACN2`  
 > Queda guardat. Bona nit.
 
 ## Día 4 del viaje · lunes 19/10 (hora de Lisbon)
@@ -114,7 +114,7 @@ _[audio: el tramvia 28 ple a vessar; una senyora em va fer lloc i em va explicar
 **13:30 · Laia**  
 _[foto: el cel net sobre el riu]_
 
-**13:30 · Vitácora** reacciona ❤️ a su mensaje
+**13:33 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C2` + `NO2` + `F3`  
 > El dia ja s'ha acabat. Explica-me'l com si algú de casa et truqués ara mateix per preguntar-te com t'ha anat. Comença per un lloc on t'has quedat una estona, i a partir d'aquí ves per on et porti el dia. Les fotos que vulguis guardar, envia-me-les.
@@ -122,7 +122,7 @@ _[foto: el cel net sobre el riu]_
 **21:50 · Laia**  
 _[texto: passo]_
 
-**21:50 · Vitácora** `PAS-V`  
+**21:53 · Vitácora** `PAS-V`  
 > D'acord, aquesta la saltem. Demà n'hi ha una altra.
 
 ## Día 5 del viaje · martes 20/10 (hora de Lisbon)
@@ -141,7 +141,7 @@ _[texto: passo]_
 **13:30 · Laia**  
 _[foto: les meves vambes a la pujada]_
 
-**13:30 · Vitácora** reacciona ❤️ a su mensaje
+**13:33 · Vitácora** reacciona ❤️ a su mensaje
 
 _(La noche anterior quedó sin contestar.)_
 
@@ -153,7 +153,7 @@ _(La noche anterior quedó sin contestar.)_
 **22:05 · Laia**  
 _[audio: a Belém, la cua dels pastissos; me'n vaig menjar tres asseguda al riu + una foto]_
 
-**22:05 · Vitácora** `ACN3`  
+**22:08 · Vitácora** `ACN3`  
 > Ho he escoltat. Fins demà, Laia.
 
 ## Día 7 del viaje · jueves 22/10 (hora de Lisbon)
@@ -164,7 +164,7 @@ _[audio: a Belém, la cua dels pastissos; me'n vaig menjar tres asseguda al riu 
 **13:30 · Laia**  
 _[foto: un tramvia groc]_
 
-**13:30 · Vitácora** reacciona ❤️ a su mensaje
+**13:33 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `FN1`  
 > Demà tornes. Abans de fer la maleta, explica'm una cosa d'aquest viatge que no vols oblidar, només una, i per què aquesta. Si en tens una foto, envia-la.
@@ -172,7 +172,7 @@ _[foto: un tramvia groc]_
 **22:15 · Laia**  
 _[audio: el miradouro de la Graça al vespre, amb una noia cantant fado fluixet; aquesta no la vull oblidar]_
 
-**22:15 · Vitácora** `ACN4`  
+**22:18 · Vitácora** `ACN4`  
 > Gràcies per explicar-m'ho. Que descansis.
 
 ## Día 8 · vuelta · viernes 23/10 (hora de Lisbon)
@@ -183,7 +183,7 @@ _[audio: el miradouro de la Graça al vespre, amb una noia cantant fado fluixet;
 **13:40 · Laia**  
 _[foto: una llauna de sardines i un tovalló brodat]_
 
-**13:40 · Vitácora** reacciona ❤️ a su mensaje
+**13:43 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · sábado 24/10 (hora de Madrid)
 
@@ -193,7 +193,7 @@ _[foto: una llauna de sardines i un tovalló brodat]_
 **11:00 · Laia**  
 _[audio: quan vaig sentir l'avís en català a l'aeroport del Prat]_
 
-**11:00 · Vitácora** `ACM4`  
+**11:03 · Vitácora** `ACM4`  
 > Ha arribat, Laia. Fins a la nit.
 
 **21:30 · Vitácora** `CA1`  
@@ -202,7 +202,7 @@ _[audio: quan vaig sentir l'avís en català a l'aeroport del Prat]_
 **21:45 · Laia**  
 _[audio: que el pis fa olor de casa, i que el rellotge de la cuina fa molt de soroll]_
 
-**21:45 · Vitácora** `ACN1`  
+**21:48 · Vitácora** `ACN1`  
 > Gràcies, Laia. A dormir, que demà continuem.
 
 ## Ya en casa · domingo 25/10 (hora de Madrid)
@@ -219,7 +219,7 @@ _[11 fotos més]_
 **11:15 · Laia**  
 _[texto: ja està]_
 
-**11:15 · Vitácora** `AL3`  
+**11:18 · Vitácora** `AL3`  
 > Has enviat 26 fotos i a l'àlbum n'hi caben 20. Si vols, tria tu quines es queden fora i reenvia'm les que vulguis que tregui. Si d'aquí a unes hores no em dius res, em quedo amb les primeres 20.
 
 **16:15 · Vitácora** `DES` + `DES+`  

@@ -284,6 +284,44 @@ describe('tick', () => {
   });
 });
 
+// Vitácora de viaje (12/10, pedido de Joaquín): la noche N no sale antes de su
+// fecha. Hoy (A_LAS_10_05) es 2026-09-01 en Buenos Aires.
+describe('tick en viaje: la pregunta espera a su noche', () => {
+  const viajero = (salida: string, extra: Record<string, any> = {}) => narrador({
+    contexto: { modo: 'viaje', viaje: { salida, vuelta: '2026-09-20', etapas: [] } }, ...extra,
+  });
+
+  it('dijo SÍ antes de viajar: la primera pregunta no sale hasta el día de la salida', async () => {
+    mocks.filas.narradores = [viajero('2026-09-05', { estado: 'acepto', dia_actual: 0 })];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
+  });
+
+  it('el día de la salida, a su hora, sale la primera', async () => {
+    mocks.filas.narradores = [viajero('2026-09-01', { estado: 'acepto', dia_actual: 0 })];
+    await tick(A_LAS_10_05);
+    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
+    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
+  });
+
+  it('nunca se adelanta: con la noche 2 contestada, la 3 espera a su fecha', async () => {
+    // Salió el 31/08: hoy es el día 2. Ya contestó la 2 → la 3 es del 02/09.
+    mocks.filas.narradores = [viajero('2026-08-31', { estado: 'activo', dia_actual: 2 })];
+    mocks.filas.respuestas = [{ pregunta_orden: 2 }];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
+  it('atrasado no espera: si la noche ya pasó, sale', async () => {
+    // Salió el 25/08 y va por la 3 (contestada): la 4 era del 28/08, sale hoy.
+    mocks.filas.narradores = [viajero('2026-08-25', { estado: 'activo', dia_actual: 3 })];
+    mocks.filas.respuestas = [{ pregunta_orden: 3 }];
+    await tick(A_LAS_10_05);
+    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 4 });
+  });
+});
+
 describe('el latido del tick', () => {
   it('se anota ANTES de las fases: el servicio no puede verse caído mientras trabaja', async () => {
     mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 5 })];

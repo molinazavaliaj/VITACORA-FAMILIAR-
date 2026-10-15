@@ -25,7 +25,7 @@ function admin(filas: Record<string, Record<string, unknown>>) {
 }
 
 function peticion(body: unknown) {
-  return { json: async () => body } as never;
+  return { json: async () => body, headers: new Headers() } as never;
 }
 const params = Promise.resolve({ fotoId: "f1" });
 

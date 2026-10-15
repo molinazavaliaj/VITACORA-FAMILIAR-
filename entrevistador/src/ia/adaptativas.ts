@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
@@ -153,4 +154,4 @@ export async function generarPreguntasAdaptativas(
 }
 
 let _cliente: Anthropic | null = null;
-const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicKey }));
+const cliente = () => (_cliente ??= vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'adaptativas'));

@@ -71,7 +71,11 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
       className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
     >
       <Navegacion historias={historias} tema={<BotonTema inicial={tema} />} />
-      <main className="relative flex-1 pb-24 md:pb-0">
+      {/* min-w-0: sin esto, una fila ancha de adentro (las miniaturas del
+          álbum, que scrollean de costado) estira el main más allá de la
+          pantalla y la página entera se corre — el fondo del panel termina
+          y se ve el del body al costado. */}
+      <main className="relative min-w-0 flex-1 pb-24 md:pb-0">
         {/* El botón del tema, opuesto al logo: arriba a la derecha, siempre. */}
         <div className="absolute right-4 top-4 z-10 hidden md:block">
           <BotonTema inicial={tema} />

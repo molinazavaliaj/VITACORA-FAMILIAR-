@@ -1,4 +1,5 @@
 import { Toroide } from "./marca";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Maquetas del producto hechas en código, para que la landing se vea completa
 // sin esperar el material real (video, captura, mp3). Respetan docs/design.md:
@@ -71,6 +72,8 @@ type ChatProps = {
   /** Con animación: la pregunta llega, él contesta, se escribe la página. */
   animado?: boolean;
   pregunta?: string;
+  /** España lee de tú (13/10); el resto, de vos. */
+  trato?: TratoComprador;
   dia?: number;
   duracion?: string;
   className?: string;
@@ -82,7 +85,10 @@ type ChatProps = {
  */
 export function ChatWhatsApp({
   animado = false,
-  pregunta = "Cuénteme de la casa donde pasó su infancia. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está?",
+  trato = "vos",
+  pregunta = trato === "tu"
+    ? "Cuéntame el primer recuerdo que tengas de la casa donde creciste. Un día, qué estabas haciendo, quién andaba por ahí."
+    : "Contame el primer recuerdo que tengas de la casa donde creciste. Un día, qué estabas haciendo, quién andaba por ahí.",
   dia = 1,
   duracion = "2:14",
   className = "",
@@ -111,7 +117,7 @@ export function ChatWhatsApp({
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(1)}`}>
               <p className="text-[13.5px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">
-                Buen día, {NARRADOR}. {pregunta}
+                {trato === "tu" ? "Buenos días" : "Buen día"}, {NARRADOR}. {pregunta}
               </p>
             </div>
 
@@ -132,7 +138,9 @@ export function ChatWhatsApp({
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(4)}`}>
               <p className="text-[13.5px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">
-                Qué lindo eso del patio con el limonero. Cuando quiera, seguimos con sus padres.
+                {trato === "tu"
+                  ? "Qué bonito eso del patio con el limonero. Cuando quieras, seguimos con tus padres."
+                  : "Qué lindo eso del patio con el limonero. Cuando quieras, seguimos con tus papás."}
               </p>
             </div>
           </div>
@@ -327,7 +335,7 @@ export function PanelMini({ className = "" }: { className?: string }) {
 /* ───────────────────────── El anticipo ───────────────────────── */
 
 /** El mail que avisa que empezó a contar. */
-export function MailAnticipo({ className = "" }: { className?: string }) {
+export function MailAnticipo({ className = "", trato = "vos" }: { className?: string; trato?: TratoComprador }) {
   return (
     <figure className={`rounded-2xl border border-[#D4D4CE] bg-[#F7F7F5] p-5 text-[#14140F] ${className}`}>
       <div className="flex items-center gap-3 border-b border-[#EBEBE7] pb-3">
@@ -341,7 +349,7 @@ export function MailAnticipo({ className = "" }: { className?: string }) {
       </div>
       <p className="mt-3 text-[15px] [font-family:var(--fuente-titulo)] font-medium">{NARRADOR} ya empezó a contar</p>
       <p className="mt-2 text-[13.5px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-        Sus primeros audios ya están en tu panel. Entrá cuando quieras a escucharlo.
+        Sus primeros audios ya están en tu panel. {trato === "tu" ? "Entra" : "Entrá"} cuando quieras a escucharlo.
       </p>
       <p className="mt-3 text-[13px] underline decoration-[#AEAEA6] underline-offset-4 [font-family:var(--fuente-micro)]">
         Escuchar →
