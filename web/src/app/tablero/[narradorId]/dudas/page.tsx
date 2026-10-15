@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
+import { textosPantallaDudas, type TextosPantallaDudas } from "@/lib/dudas-textos";
 import {
   correccionesPorDuda,
   estadoDelPlazo,
@@ -71,6 +72,8 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     notFound();
   }
   const narrador = historia.narrador;
+  // «Para mí»: la dueña compró el libro para sí. Le habla de lo que contó ella.
+  const textos = textosPantallaDudas(esPropia(narrador) && historia.rol === "duena", narrador.como_le_dicen);
   // Vos o tú: el de la familia dueña de la historia.
   const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 
@@ -81,7 +84,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     return <EstadoError trato={trato} />;
   }
   if (archivoDudas.texto === null) {
-    return <EstadoSinDudas narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} />;
+    return <EstadoSinDudas narradorId={narrador.id} textos={textos} />;
   }
 
   // Roto incluye un `dudas` que no es lista: la pantalla no se cae, dice que no pudo.
@@ -137,12 +140,10 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
           <VolverAlTablero narradorId={narrador.id} />
         </div>
         <h1 className="text-2xl font-semibold text-[var(--texto)]">
-          Dudas sobre lo que contó {narrador.como_le_dicen}
+          {textos.titulo}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
-          Al escuchar los audios quedaron algunas cosas sin resolver: un nombre que se oye de dos
-          formas, una fecha que no cierra. Lo que sepas entra al libro. Lo que dejes vacío queda
-          tal como lo contó.
+          {textos.intro}
         </p>
 
         <AvisoDelPlazo estado={plazo.estado} venceAt={plazo.venceAt} zona={zona} trato={trato} />
@@ -153,6 +154,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
             narradorId={narrador.id}
             soloLectura={plazo.estado === "libro_escrito"}
             trato={trato}
+            textos={textos}
           />
         </div>
       </div>
@@ -208,11 +210,11 @@ function EstadoError({ trato = "vos" }: { trato?: TratoComprador }) {
   );
 }
 
-function EstadoSinDudas({ comoLeDicen, narradorId }: { comoLeDicen: string; narradorId: string }) {
+function EstadoSinDudas({ textos, narradorId }: { textos: TextosPantallaDudas; narradorId: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
       <p className="text-sm text-[var(--texto-suave)]">
-        Todavía no hay dudas sobre lo que contó {comoLeDicen}.
+        {textos.sinDudas}
       </p>
       <div className="mt-6">
         <VolverAlTablero narradorId={narradorId} />

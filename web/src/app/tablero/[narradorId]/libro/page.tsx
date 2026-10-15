@@ -280,7 +280,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       </div>
       {dudasPendientes ? (
         <div className="mt-6">
-          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tu)}</ProximoPaso>
+          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tu)}</ProximoPaso>
         </div>
       ) : null}
       {estado}
