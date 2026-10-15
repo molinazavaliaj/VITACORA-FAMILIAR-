@@ -262,3 +262,48 @@ export function HoraYTemas({ narradorId, hora, temasSacados }: { narradorId: str
     </div>
   );
 }
+
+// ── Aprobar el libro escrito (decisión 9) ───────────────────────────────
+
+export function AprobarLibro({ narradorId }: { narradorId: string }) {
+  const router = useRouter();
+  const [confirmando, setConfirmando] = useState(false);
+  const [aprobando, setAprobando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const L = T.libro;
+
+  async function aprobar() {
+    setAprobando(true);
+    setError(null);
+    const e = await enviar(`/api/kids/libro?narrador=${encodeURIComponent(narradorId)}`, "POST", { confirmo: true });
+    setAprobando(false);
+    if (e) return setError(e);
+    setConfirmando(false);
+    router.refresh();
+  }
+
+  if (!confirmando) {
+    return (
+      <div className="flex flex-col gap-2">
+        <button type="button" onClick={() => { setConfirmando(true); setError(null); }} className="pnl-boton pnl-boton--lleno w-full sm:w-fit">
+          {L.aprobar}
+        </button>
+        <Aviso error={error} listo={null} />
+      </div>
+    );
+  }
+  return (
+    <div role="group" aria-label={L.aprobar} className="flex flex-col gap-3 rounded-md border border-[var(--linea-fuerte)] p-4">
+      <p className="text-[15px] leading-relaxed text-[var(--texto)]">{L.confirmar}</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={aprobar} disabled={aprobando} className="pnl-boton pnl-boton--lleno disabled:opacity-60">
+          {aprobando ? L.aprobando : L.si}
+        </button>
+        <button type="button" onClick={() => setConfirmando(false)} disabled={aprobando} className="pnl-boton pnl-boton--hilo">
+          {L.no}
+        </button>
+      </div>
+      <Aviso error={error} listo={null} />
+    </div>
+  );
+}

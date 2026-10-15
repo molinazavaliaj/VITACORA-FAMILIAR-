@@ -407,3 +407,39 @@ export function sinCorreccion(lista: CorreccionKids[], respuestaId: string, dice
 export function esKids(n: { contexto?: Record<string, unknown> | null }): boolean {
   return (n.contexto as { modo?: unknown } | null | undefined)?.modo === "kids";
 }
+
+// ── El libro escrito (decisión 9 de Naza, 15/10) ─────────────────────────
+//
+// Cuando la fábrica termina de escribir el libro deja, en el bucket `audios`:
+//   {id}/paquete/libro.pdf, {id}/paquete/sobre.pdf y
+//   {id}/escritor-kids/listo.json = { at, paginas, sobrePaginas }.
+// El padre lo ve en su panel y lo aprueba: eso es `narradores.libro_aprobado_at`
+// para Kids (con eso la fábrica entrega y lo manda al impreso).
+
+export const RUTA_LISTO_KIDS = (narradorId: string) => `${narradorId}/escritor-kids/listo.json`;
+
+export const ARCHIVOS_LIBRO_KIDS = { libro: "libro.pdf", sobre: "sobre.pdf" } as const;
+export type ArchivoLibroKids = keyof typeof ARCHIVOS_LIBRO_KIDS;
+
+export const rutaArchivoKids = (narradorId: string, archivo: ArchivoLibroKids) => `${narradorId}/paquete/${ARCHIVOS_LIBRO_KIDS[archivo]}`;
+
+export type ListoKids = { at: string; paginas: number | null; sobrePaginas: number | null };
+
+/** Lo que dice listo.json, o null si no es un objeto con `at`. */
+export function leerListoKids(texto: string): ListoKids | null {
+  try {
+    const j = JSON.parse(texto) as Record<string, unknown> | null;
+    if (!j || typeof j !== "object" || Array.isArray(j) || typeof j.at !== "string" || !j.at) return null;
+    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+    return { at: j.at, paginas: n(j.paginas), sobrePaginas: n(j.sobrePaginas) };
+  } catch {
+    return null;
+  }
+}
+
+/** El libro para el panel: null mientras no esté escrito (no hay listo.json). */
+export type LibroKids = { listo: ListoKids; aprobadoAt: string | null };
+
+export function esArchivoLibroKids(x: unknown): x is ArchivoLibroKids {
+  return x === "libro" || x === "sobre";
+}

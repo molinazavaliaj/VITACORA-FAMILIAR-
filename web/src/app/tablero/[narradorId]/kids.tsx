@@ -9,11 +9,12 @@ import {
   valoresDelPanel,
   type CapituloKids,
   type FilaKids,
+  type LibroKids,
 } from "@/lib/kids-panel";
 import { ReproductorRespuesta } from "../reproductor";
 import { fechaCorta } from "../ui";
 import { estadoKids, errorDelMotor, LEE_TODO, PANEL_GUIA, PANEL_KIDS } from "../../_textos/panel-kids";
-import { CorregirNombre, HoraYTemas, PreguntasDelPadre } from "./kids-acciones";
+import { AprobarLibro, CorregirNombre, HoraYTemas, PreguntasDelPadre } from "./kids-acciones";
 
 // El panel de Vitácora Kids para los padres (K5, 15/10). Lo ve solo quien
 // compró (la página lo cuida). Sale en /tablero/<id> cuando el narrador tiene
@@ -22,13 +23,26 @@ import { CorregirNombre, HoraYTemas, PreguntasDelPadre } from "./kids-acciones";
 //     también lo del sobre cerrado (la cápsula), marcado;
 //   - al lado de cada respuesta, corregir cómo se escribe un nombre;
 //   - sus preguntas para el libro (hasta 3, hasta que empieza la cuarta parte);
-//   - la hora y los temas que no se tocan.
+//   - la hora y los temas que no se tocan;
+//   - cuando la fábrica dejó listo.json, el libro escrito para ver, descargar
+//     y aprobar (decisión 9). Antes, esa parte no aparece.
 // Con la paleta de Kids (panel.css, data-producto="kids"). En el celular, una
 // columna: lo que se cambia arriba, después lo que cuenta.
 
 const T = PANEL_KIDS;
 
-export function PanelKids({ n, fila, capitulos }: { n: Pick<NarradorPanel, "id" | "nombre" | "como_le_dicen" | "estado">; fila: FilaKids; capitulos: CapituloKids[] }) {
+export function PanelKids({
+  n,
+  fila,
+  capitulos,
+  libro = null,
+}: {
+  n: Pick<NarradorPanel, "id" | "nombre" | "como_le_dicen" | "estado">;
+  fila: FilaKids;
+  capitulos: CapituloKids[];
+  /** El libro escrito: null mientras no haya listo.json. */
+  libro?: LibroKids | null;
+}) {
   const ficha = fichaVigente(fila);
   const apodo = n.como_le_dicen?.trim() || ficha.apodo;
   const capitulo = capituloActual(fila);
@@ -53,6 +67,8 @@ export function PanelKids({ n, fila, capitulos }: { n: Pick<NarradorPanel, "id" 
           {errorDelMotor(fila.cambios_error)}
         </p>
       ) : null}
+
+      {libro ? <TuLibro narradorId={n.id} apodo={apodo} libro={libro} /> : null}
 
       <div className="mt-10 grid grid-cols-1 gap-x-14 gap-y-10 md:mt-14 lg:grid-cols-[minmax(0,1fr)_380px]">
         <aside className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-1">
@@ -124,6 +140,38 @@ export function PanelKids({ n, fila, capitulos }: { n: Pick<NarradorPanel, "id" 
         </section>
       </div>
     </div>
+  );
+}
+
+/** El libro ya escrito: verlo, bajarlo y aprobarlo (una sola vez). */
+function TuLibro({ narradorId, apodo, libro }: { narradorId: string; apodo: string; libro: LibroKids }) {
+  const L = T.libro;
+  const url = (archivo: "libro" | "sobre", descargar = false) =>
+    `/api/kids/libro?narrador=${encodeURIComponent(narradorId)}&archivo=${archivo}${descargar ? "&descargar=1" : ""}`;
+  return (
+    <section id="tu-libro" aria-labelledby="titulo-libro" data-libro={libro.aprobadoAt ? "aprobado" : "por-aprobar"} className="pnl-hoja mt-10 scroll-mt-24 p-5 sm:p-6 md:mt-14">
+      <h2 id="titulo-libro" className="pnl-h3">{L.titulo}</h2>
+      <p className="mt-3 text-[15px] leading-relaxed text-[var(--texto-suave)]">{L.texto(apodo)}</p>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <a href={url("libro")} target="_blank" rel="noopener" className="pnl-boton pnl-boton--hilo">{L.ver}</a>
+        <a href={url("libro", true)} className="pnl-boton pnl-boton--hilo">{L.bajar}</a>
+      </div>
+      <p className="mt-5 text-[14.5px] leading-snug text-[var(--texto-suave)]">{L.sobre}</p>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <a href={url("sobre")} target="_blank" rel="noopener" className="pnl-boton pnl-boton--hilo">{L.verSobre}</a>
+        <a href={url("sobre", true)} className="pnl-boton pnl-boton--hilo">{L.bajarSobre}</a>
+      </div>
+      <div className="mt-6 border-t border-[var(--linea)] pt-5">
+        {libro.aprobadoAt ? (
+          <p role="status" className="text-[15px] leading-relaxed text-[var(--texto)]">{L.aprobado}</p>
+        ) : (
+          <>
+            <p className="mb-4 text-[14px] leading-snug text-[var(--texto-menor)]">{L.algoMal}</p>
+            <AprobarLibro narradorId={narradorId} />
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 

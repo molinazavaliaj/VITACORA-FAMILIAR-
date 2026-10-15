@@ -191,6 +191,48 @@ export const PANEL_KIDS = {
     noEsta: "Ese nombre no aparece en esta respuesta. Copialo como está escrito.",
   },
 
+  /** El libro ya escrito (decisión 9): se ve solo cuando la fábrica dejó listo.json. */
+  libro: {
+    // TEXTO PARA NAZA · KP-LIBRO-TITULO
+    titulo: "El libro ya está escrito",
+    // TEXTO PARA NAZA · KP-LIBRO-TEXTO
+    texto: (apodo: string) => `Acá está el libro de ${apodo}, con lo que contó. Leelo antes de aprobarlo.`,
+    // TEXTO PARA NAZA · KP-LIBRO-SOBRE
+    sobre: "El sobre cerrado va aparte.",
+    // TEXTO PARA NAZA · KP-LIBRO-VER
+    ver: "Ver el libro",
+    // TEXTO PARA NAZA · KP-LIBRO-BAJAR
+    bajar: "Descargar el libro",
+    // TEXTO PARA NAZA · KP-LIBRO-VER-SOBRE
+    verSobre: "Ver el sobre",
+    // TEXTO PARA NAZA · KP-LIBRO-BAJAR-SOBRE
+    bajarSobre: "Descargar el sobre",
+    // TEXTO PARA NAZA · KP-LIBRO-ALGO-MAL
+    algoMal: "Si algo no está bien, escribinos antes de aprobarlo.",
+    // TEXTO PARA NAZA · KP-LIBRO-APROBAR
+    aprobar: "Aprobar el libro",
+    // TEXTO PARA NAZA · KP-LIBRO-CONFIRMAR
+    confirmar: "Cuando lo aprobás, lo mandamos a imprimir y ya no se cambia.",
+    // TEXTO PARA NAZA · KP-LIBRO-SI
+    si: "Sí, aprobarlo",
+    // TEXTO PARA NAZA · KP-LIBRO-NO
+    no: "Todavía no",
+    // TEXTO PARA NAZA · KP-LIBRO-APROBANDO
+    aprobando: "Aprobando…",
+    // TEXTO PARA NAZA · KP-LIBRO-APROBADO
+    aprobado: "Aprobaste el libro. Ahora lo mandamos a imprimir.",
+    errores: {
+      // TEXTO PARA NAZA · KP-LIBRO-ERR-NO-LISTO
+      noListo: "El libro todavía no está listo para aprobar.",
+      // TEXTO PARA NAZA · KP-LIBRO-ERR-YA-APROBADO
+      yaAprobado: "Este libro ya está aprobado.",
+      // TEXTO PARA NAZA · KP-LIBRO-ERR-CONFIRMAR
+      confirmar: "Falta confirmar que lo querés aprobar.",
+      // TEXTO PARA NAZA · KP-LIBRO-ERR-ARCHIVO
+      archivo: "No encontramos ese archivo.",
+    },
+  },
+
   inicio: {
     // TEXTO PARA NAZA · KP-INICIO-PREGUNTAS
     preguntas: "Escribí tus preguntas para el libro",
@@ -223,6 +265,25 @@ export function errorCambioKids(falla: FallaCambioKids | FallaCorreccion | "noKi
       return e.ocupado;
     default:
       return e.generico;
+  }
+}
+
+/** El texto de error de /api/kids/libro. */
+export function errorLibroKids(falla: "noKids" | "noListo" | "yaAprobado" | "confirmar" | "archivo" | "base"): string {
+  const e = PANEL_KIDS.libro.errores;
+  switch (falla) {
+    case "noKids":
+      return PANEL_KIDS.errores.noKids;
+    case "noListo":
+      return e.noListo;
+    case "yaAprobado":
+      return e.yaAprobado;
+    case "confirmar":
+      return e.confirmar;
+    case "archivo":
+      return e.archivo;
+    default:
+      return PANEL_KIDS.errores.generico;
   }
 }
 

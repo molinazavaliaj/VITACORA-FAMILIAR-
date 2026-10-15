@@ -153,7 +153,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     }
     if (vista) {
       if (rol !== "duena") notFound();
-      return <PanelKids n={n} fila={vista.fila} capitulos={vista.capitulos} />;
+      return <PanelKids n={n} fila={vista.fila} capitulos={vista.capitulos} libro={vista.libro} />;
     }
   }
 

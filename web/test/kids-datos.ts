@@ -54,8 +54,12 @@ export function resp(clave: string | null, o: Partial<RespuestaKids> = {}): Resp
 
 type Llamada = { tabla: string; metodo: string; args: unknown[] };
 
-/** Cada `from(tabla)` toma el próximo resultado de su lista; se anota todo lo que se llama. */
-export function baseFalsa(guion: Record<string, unknown[]>) {
+/**
+ * Cada `from(tabla)` toma el próximo resultado de su lista; se anota todo lo que se llama.
+ * `archivos` = lo que hay en el bucket (ruta → contenido): `download` lo devuelve y
+ * `createSignedUrl` firma cualquier ruta.
+ */
+export function baseFalsa(guion: Record<string, unknown[]>, archivos: Record<string, string> = {}) {
   const llamadas: Llamada[] = [];
   const usados: Record<string, number> = {};
   const from = (tabla: string) => {
@@ -73,6 +77,18 @@ export function baseFalsa(guion: Record<string, unknown[]>) {
     b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(resultado).then(res, rej);
     return b;
   };
-  return { admin: { from } as never, llamadas };
+  const storage = {
+    from: (bucket: string) => ({
+      download: async (ruta: string) => {
+        llamadas.push({ tabla: `storage:${bucket}`, metodo: "download", args: [ruta] });
+        return ruta in archivos ? { data: { text: async () => archivos[ruta] }, error: null } : { data: null, error: { message: "Object not found" } };
+      },
+      createSignedUrl: async (ruta: string, segundos: number, opciones?: unknown) => {
+        llamadas.push({ tabla: `storage:${bucket}`, metodo: "createSignedUrl", args: [ruta, segundos, opciones] });
+        return { data: { signedUrl: `https://firmada.test/${ruta}` }, error: null };
+      },
+    }),
+  };
+  return { admin: { from, storage } as never, llamadas };
 }
 

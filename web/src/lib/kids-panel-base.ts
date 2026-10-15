@@ -1,12 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { esTablaAusente } from "./tabla-ausente";
 import {
+  ARCHIVOS_LIBRO_KIDS,
   conCorreccion,
   diceEstaEn,
   fichaVigente,
   fusionarCambioKids,
+  leerListoKids,
   loQueCuenta,
+  rutaArchivoKids,
+  RUTA_LISTO_KIDS,
   sinCorreccion,
+  type ArchivoLibroKids,
   type CambioKids,
   type CambiosPanel,
   type CapituloKids,
@@ -15,6 +20,8 @@ import {
   type FallaCorreccion,
   type FilaKids,
   type FotoKids,
+  type LibroKids,
+  type ListoKids,
   type RespuestaKids,
 } from "./kids-panel";
 
@@ -44,11 +51,11 @@ export async function leerFilaKids(admin: SupabaseClient, narradorId: string): P
   return { fila: { ...f, fichaMotor: f.fichaMotor ?? null, correcciones: Array.isArray(f.correcciones) ? f.correcciones : [] }, error: null };
 }
 
-export type VistaKids = { fila: FilaKids; capitulos: CapituloKids[] };
+export type VistaKids = { fila: FilaKids; capitulos: CapituloKids[]; libro: LibroKids | null };
 
 /** La fila y todo lo que contó, para la página. Null si no es de Kids (o la tabla no existe). */
 export async function leerPanelKids(admin: SupabaseClient, narradorId: string): Promise<{ vista: VistaKids | null; error: string | null }> {
-  const [{ fila, error }, respuestas, fotos] = await Promise.all([
+  const [{ fila, error }, respuestas, fotos, libro] = await Promise.all([
     leerFilaKids(admin, narradorId),
     admin
       .from("respuestas")
@@ -57,6 +64,7 @@ export async function leerPanelKids(admin: SupabaseClient, narradorId: string): 
       .order("pregunta_orden", { ascending: true })
       .order("recibido_at", { ascending: true }),
     admin.from("fotos").select("id, pregunta_orden").eq("narrador_id", narradorId).order("pregunta_orden", { ascending: true }),
+    leerLibroKids(admin, narradorId),
   ]);
   if (error) return { vista: null, error };
   if (!fila) return { vista: null, error: null };
@@ -67,7 +75,86 @@ export async function leerPanelKids(admin: SupabaseClient, narradorId: string): 
     fichaVigente(fila),
     fila.correcciones ?? [],
   );
-  return { vista: { fila, capitulos }, error: null };
+  return { vista: { fila, capitulos, libro }, error: null };
+}
+
+// ── El libro escrito ─────────────────────────────────────────────────────
+
+/** listo.json de la fábrica, o null si todavía no está (o no se pudo leer: entonces no se muestra nada). */
+export async function leerListo(admin: SupabaseClient, narradorId: string): Promise<ListoKids | null> {
+  try {
+    const { data, error } = await admin.storage.from("audios").download(RUTA_LISTO_KIDS(narradorId), undefined, { cache: "no-store" });
+    if (error || !data) return null;
+    return leerListoKids(await data.text());
+  } catch (e) {
+    console.error("kids: fallo leer listo.json", e);
+    return null;
+  }
+}
+
+async function aprobadoAt(admin: SupabaseClient, narradorId: string): Promise<{ at: string | null; error: boolean }> {
+  const { data, error } = await admin.from("narradores").select("libro_aprobado_at").eq("id", narradorId).maybeSingle();
+  if (error) return { at: null, error: true };
+  return { at: (data as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at ?? null, error: false };
+}
+
+/** El libro para el panel: null mientras no haya listo.json. */
+export async function leerLibroKids(admin: SupabaseClient, narradorId: string): Promise<LibroKids | null> {
+  const [listo, aprobado] = await Promise.all([leerListo(admin, narradorId), aprobadoAt(admin, narradorId)]);
+  if (!listo) return null;
+  return { listo, aprobadoAt: aprobado.at };
+}
+
+export type FallaLibroKids = "noKids" | "noListo" | "yaAprobado" | "base";
+
+/**
+ * El padre aprueba el libro ya escrito (decisión 9): `narradores.libro_aprobado_at = now()`
+ * solo si es de Kids (tiene fila en kids_v2), hay listo.json y todavía es null
+ * (compare-and-swap: dos pestañas no pisan la fecha). Quién puede, lo cuida la ruta.
+ */
+export async function aprobarLibroKids(
+  admin: SupabaseClient,
+  narradorId: string,
+  ahora: string,
+): Promise<{ ok: true; aprobadoAt: string } | { ok: false; falla: FallaLibroKids }> {
+  const { fila, error } = await leerFilaKids(admin, narradorId);
+  if (error) return { ok: false, falla: "base" };
+  if (!fila) return { ok: false, falla: "noKids" };
+  if (!(await leerListo(admin, narradorId))) return { ok: false, falla: "noListo" };
+  const { data, error: errorUpdate } = await admin
+    .from("narradores")
+    .update({ libro_aprobado_at: ahora })
+    .eq("id", narradorId)
+    .is("libro_aprobado_at", null)
+    .select("libro_aprobado_at");
+  if (errorUpdate) {
+    console.error("kids: fallo aprobar el libro", errorUpdate);
+    return { ok: false, falla: "base" };
+  }
+  const fecha = (data as { libro_aprobado_at: string }[] | null)?.[0]?.libro_aprobado_at;
+  return fecha ? { ok: true, aprobadoAt: fecha } : { ok: false, falla: "yaAprobado" };
+}
+
+/** URL firmada (una hora) del libro o del sobre, si es de Kids y está escrito. Con `descargar`, el navegador lo baja. */
+export async function urlArchivoKids(
+  admin: SupabaseClient,
+  narradorId: string,
+  archivo: ArchivoLibroKids,
+  descargar: boolean,
+): Promise<{ ok: true; url: string } | { ok: false; falla: "noKids" | "noListo" | "base" }> {
+  const { fila, error } = await leerFilaKids(admin, narradorId);
+  if (error) return { ok: false, falla: "base" };
+  if (!fila) return { ok: false, falla: "noKids" };
+  if (!(await leerListo(admin, narradorId))) return { ok: false, falla: "noListo" };
+  const nombre = ARCHIVOS_LIBRO_KIDS[archivo];
+  const { data, error: errorFirma } = await admin.storage
+    .from("audios")
+    .createSignedUrl(rutaArchivoKids(narradorId, archivo), 3600, descargar ? { download: nombre } : undefined);
+  if (errorFirma || !data?.signedUrl) {
+    console.error("kids: fallo firmar el libro", errorFirma);
+    return { ok: false, falla: "base" };
+  }
+  return { ok: true, url: data.signedUrl };
 }
 
 export type ResultadoGuardar<F extends string> =
