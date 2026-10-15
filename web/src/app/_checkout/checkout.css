@@ -9,12 +9,14 @@
    Los formularios y las piezas de _ui pintan con los tokens del tema oscuro
    (--texto-oscuro-fuerte, --tarjeta, --boton…). En vez de reescribir cada
    clase, .chk les da valores de papel y tinta: el «oscuro» del nombre queda
-   como historia, el color es el de la hoja. Sin violeta y sin el azul de
-   Viaje: las dos compras son el mismo libro.
+   como historia, el color es el de la hoja. Sin violeta. La de Viaje lleva
+   su paleta (15/10, al final de este archivo y en _direccion/viaje.css): la
+   misma hoja, de azul noche.
 
    Ojo: este archivo no va en una capa, así que le gana a las utilidades de
    Tailwind (que sí van en @layer). Por eso todo va bajo .chk y sin reglas
    sueltas sobre etiquetas. */
+@import "../_direccion/viaje.css";
 
 .chk {
   --fondo-oscuro: #fbf9f4;            /* el fondo de los campos: un papel más claro */
@@ -419,3 +421,71 @@
   /* El contador, debajo del texto de su fila (no contra el borde). */
   .chk-extra-contador { margin-left: 86px; }
 }
+
+/* ── La compra de Viaje con su color (15/10) ───────────────────────────────
+   Cabecera de noche y la hoja en azul noche (la de la maqueta CheckoutViaje:
+   «Para regalar», la opción elegida). Las opciones son hilo; la elegida
+   se marca con el azul de la guía. El botón, #7aa7ff con texto oscuro. */
+.dir-pagina.chk[data-producto="viaje"] {
+  --fondo-oscuro: var(--viaje-hoja-honda);   /* el fondo de los campos */
+  --tarjeta: transparent;
+  --tarjeta-alta: rgba(201, 214, 245, 0.12);
+  --texto-oscuro: #e9eefa;
+  --texto-oscuro-fuerte: var(--viaje-texto);
+  --texto-oscuro-suave: var(--viaje-hoja-suave);
+  --texto-oscuro-menor: var(--viaje-hoja-menor);
+  --linea-oscura: rgba(201, 214, 245, 0.14);
+  --borde-oscuro: rgba(201, 214, 245, 0.2);
+  --borde-oscuro-fuerte: rgba(201, 214, 245, 0.42);
+  --punto-vacio: #7d8bab;                      /* 4,9:1 sobre la hoja */
+  --acento-oscuro: var(--viaje-acento);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --elegido-fondo: var(--viaje-hoja-alta);
+  --sombra-boton: var(--viaje-sombra-boton);
+  --error: #ffb4a0;
+}
+.chk[data-producto="viaje"] .chk-paso-numero { color: rgba(201, 214, 245, 0.32); }
+.chk[data-producto="viaje"] .chk-paso[data-estado="hecho"] .chk-paso-numero { color: rgba(201, 214, 245, 0.62); }
+.chk[data-producto="viaje"] .chk-paso[data-estado="actual"] .chk-paso-numero { color: var(--viaje-acento); }
+.chk[data-producto="viaje"] .chk-pasos-hilo > div { background: var(--viaje-acento); }
+.chk[data-producto="viaje"] .chk-antetitulo { color: var(--viaje-acento); }
+.chk[data-producto="viaje"] .m-card:has(:checked),
+.chk[data-producto="viaje"] .chk-op:has(> label input[name="formato"]:checked) {
+  border-color: var(--viaje-acento);
+  box-shadow: inset 0 0 0 0.5px var(--viaje-acento);
+}
+.chk[data-producto="viaje"] .m-card:has(:checked) .m-dot,
+.chk[data-producto="viaje"] .chk-op:has(> label input[name="formato"]:checked) .chk-op-punto { border-color: var(--viaje-boton); }
+.chk[data-producto="viaje"] .chk-extra[data-marcado] .chk-extra-caja {
+  border-color: var(--viaje-boton);
+  background: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
+.chk[data-producto="viaje"] .chk-ficha {
+  border-color: rgba(201, 214, 245, 0.16);
+  background-color: var(--viaje-hoja-honda);
+  box-shadow: 0 1px 0 rgba(157, 189, 255, 0.06) inset, 0 22px 44px -26px rgba(0, 0, 0, 0.8);
+}
+.chk[data-producto="viaje"] .chk-ficha-cabeza { --acento-oscuro: var(--viaje-acento); }
+.chk[data-producto="viaje"] .chk-guia { border-bottom-color: rgba(201, 214, 245, 0.3); }
+.chk[data-producto="viaje"] .chk-total { border-top-color: rgba(201, 214, 245, 0.5); }
+.chk[data-producto="viaje"] .chk-sello {
+  border-color: var(--viaje-acento);
+  color: var(--viaje-acento);
+  box-shadow: 0 0 0 5px var(--viaje-hoja), 0 0 0 6px rgba(157, 189, 255, 0.3);
+}
+.chk[data-producto="viaje"] .chk-aviso { border-color: rgba(255, 180, 160, 0.4); background: rgba(255, 180, 160, 0.08); }
+.chk[data-producto="viaje"] input::placeholder,
+.chk[data-producto="viaje"] textarea::placeholder { color: #8d9bbd; }
+.chk[data-producto="viaje"] .chk-barra {
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --sombra-boton: var(--viaje-sombra-boton);
+}
+.chk[data-producto="viaje"] .chk-barra :focus-visible,
+.chk[data-producto="viaje"] .chk-cabecera :focus-visible { outline-color: var(--viaje-acento); }
+/* La marca de la cabecera sigue blanca (como en la maqueta): el azul es para
+   las etiquetas del contenido. Y el título de la ficha, en blanco. */
+.chk[data-producto="viaje"] .chk-cabecera .dir-micro { color: var(--viaje-texto); }
+.chk[data-producto="viaje"] .chk-ficha-cabeza { --texto-oscuro-fuerte: var(--viaje-texto); }

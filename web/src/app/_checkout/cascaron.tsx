@@ -31,7 +31,7 @@ export function CascaronCheckout({
   idioma: IdiomaWeb;
   /** Adónde lleva el logo, sin el prefijo de idioma (la compra de viaje vuelve a /viaje). */
   inicio?: string;
-  /** La compra de Viaje: hoy solo la marca en data-producto (el azul se fue: es el mismo libro). */
+  /** La compra de Viaje: data-producto="viaje" le da su paleta, noche y azul (checkout.css y _direccion/viaje.css). */
   viaje?: boolean;
   children: ReactNode;
 }) {

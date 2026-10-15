@@ -22,7 +22,7 @@ import { cuerpoViaje, diasDe, estadoViajeInicial, fallaViaje, type EstadoViaje, 
 
 // La compra de la Vitácora de viaje (docs/vitacora-de-viaje.md, 18/09) con el
 // cascarón del rediseño (maquetas CheckoutViaje y CheckoutViajeMovil; desde
-// el 14/10 en el papel y la tinta del libro, sin el azul), en tres pasos: 1 vuestro libro (digital o impreso, marco,
+// el 15/10 en la hoja azul noche de Viaje, checkout.css), en tres pasos: 1 vuestro libro (digital o impreso, marco,
 // copias), 2 el viaje (quién viaja, fechas, etapas, con quién, para qué, qué
 // preguntar, a qué hora, qué no) y 3 tus datos y el pago. Hace lo mismo que la
 // compra de antes: un solo POST a /api/compra con `productos.viaje` y
