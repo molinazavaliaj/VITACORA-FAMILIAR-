@@ -14,7 +14,7 @@ export const TABLA_KIDS = 'kids_v2';
 /** ¿La tabla no existe? (la migración sin aplicar): Postgres 42P01 o PostgREST PGRST205. */
 function esTablaAusente(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === '42P01' || error.code === 'PGRST205' || /does not exist|could not find the table/i.test(error.message ?? '');
+  return error.code === '42P01' || error.code === 'PGRST205' || /relation "(public\.)?kids_v2" does not exist|could not find the table/i.test(error.message ?? '');
 }
 
 /**

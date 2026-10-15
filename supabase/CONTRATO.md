@@ -723,14 +723,14 @@ narrador esté en `pendiente_pago`, el entrevistador no toca la fila.
 | `canal` | web | `A` (su WhatsApp) o `B` («lo hago yo»). Elegir A es la autorización del adulto a cargo. Un `check` cuida que sea el mismo que `ficha.canal`. |
 | `telefono_padre` | web | WhatsApp del padre, E.164 (con `check` de formato). En canal A le llegan AVISO-PADRE, los recordatorios y TERMINO-PADRE; en canal B tiene que ser el mismo número que `narradores.telefono_whatsapp` (lo cuida la web: un `check` no puede mirar otra tabla). |
 | `ficha` (jsonb) | web (al comprar) | La `Ficha` de `fabrica/src/kids-v2/compra.ts`, **ya pasada por `validarFicha`**: `nombre`, `apodo`, `genero` (`chico`/`chica`), `edad`, `quienRegala` («tu mamá», en minúscula), `canal`, `nombrePadre`, `linkPanel`, `hora` (`HH:MM` entre 09:00 y 21:59), `zona` (IANA, la del país del número), `temasSacados`, `fotosConOtrosChicos`, `preguntasPadre` (vacía al comprar). Después de arrancar, la ficha que vale es la de `estado.motor.ficha`; esta columna queda como lo que se compró. |
-| `estado` (jsonb) | entrevistador | Null hasta el arranque. Después: `{ motor, salida, enviados, vistos, fallosEnvio }`. `motor` es el `Estado` del motor (serializable; **es la verdad de la entrevista**; adentro ya viven la ráfaga, lo que llegó de noche y todo lo que espera). `salida`: los mensajes que el motor ya decidió y falta mandar por WhatsApp. `enviados`: `envio` del motor ↔ `wa_message_id` (los últimos 200), para traducir el `context.id` de un botón tocado en el `aMensaje` del evento (decisión 22, botones viejos). `vistos`: los últimos 200 ids de WhatsApp procesados (dedupe). |
+| `estado` (jsonb) | entrevistador | Null hasta el arranque. Después: `{ motor, salida, enviados, vistos, recibidos, fallosEnvio, avisoFallos }` (`entrevistador/src/kids-v2/tipos.ts`). `motor` es el `Estado` del motor (serializable; **es la verdad de la entrevista**; adentro ya viven la ráfaga, lo que llegó de noche y todo lo que espera). `salida`: los mensajes que el motor ya decidió y falta mandar por WhatsApp. `enviados`: `envio` del motor ↔ `wa_message_id` (los últimos 200), para traducir el `context.id` de un botón tocado en el `aMensaje` del evento (decisión 22, botones viejos). `vistos`: los últimos 200 ids de WhatsApp procesados (dedupe). `recibidos`: los últimos 200 `wa_message_id` → `clave_kids` que dio el motor, para que la reconciliación recupere la clave si se perdió la escritura en `respuestas`. |
 | `cambios_panel` (jsonb) | web (panel) | Un cambio del padre que el motor todavía no tomó: `{ hora?, temasSacados?, preguntasPadre?, pedido_at }`, con la **lista completa** de `temasSacados` y de `preguntasPadre` (no un diff). La web la valida antes con las mismas reglas de `validarFicha`. Ver «Cambios del panel», abajo. |
 | `cambios_error` (text) | entrevistador / web | Por qué no se tomó el último cambio del panel. El panel lo muestra; la web lo borra con el cambio siguiente. |
 | `avance` (jsonb) | entrevistador | Lo que el panel necesita sin leer el motor: `{ capitulo, preguntasPadreAbiertas, terminado }`. `capitulo` = el del item en curso (0 antes de K1). `preguntasPadreAbiertas` es false desde que empieza el capítulo 4. `terminado` = la misma regla que `termino_at`. Se escribe en cada guardada del estado. |
 | `marcas` (jsonb) | entrevistador (solo agrega) | Las salidas `marca` del motor: `[{ motivo, detalle, at }]` con `motivo` = `preocupante`, `silencio-8-dias`, `escribio-despues-del-final` o `cerro-sin-respuesta`. Cada marca nueva también va por mail a `MAIL_SOCIOS`. La lee el panel de Naza (`/admin`); **los padres no la ven**. |
 | `version` | entrevistador | Sus escrituras son `UPDATE … WHERE version = n`; si cambió, relee y reaplica (el `paso` es puro). **La web no la toca.** |
 | `enviando_hasta` | entrevistador | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
-| `despertar_at` | entrevistador | `proximoDespertar(motor, ahora)`, escrito en cada guardada. El reloj busca los chicos con `despertar_at <= now()` (índice parcial) en vez de leer el jsonb de todos cada minuto. |
+| `despertar_at` | entrevistador | `proximoDespertar(motor, ahora)`, escrito en cada guardada (si la cola no pudo salir, queda en el momento en que se guardó; si es de noche, a las 9). El reloj busca los chicos con `despertar_at <= now()` en vez de leer el jsonb de todos cada minuto. |
 | `creada_at`, `empezo_at`, `termino_at` | web / entrevistador | `empezo_at`: se mandó el evento `inicio`. `termino_at`: **terminó de contar** (abajo). Es la señal para la fábrica. |
 
 ### Cuándo «terminó de contar»
@@ -783,6 +783,8 @@ respuesta, como siempre; `alerta_silencio` se prende con la marca `silencio-8-di
   cada evento de contenido o botón que aplica (también los nocturnos), con el `id` que trae el evento (el
   `wa_message_id`); el entrevistador la escribe en la fila. Mientras tanto la fila queda con `clave_kids` null.
   `∅` = se guardó y quedó afuera a propósito (un botón viejo que el motor ignoró). Null en todo lo que no es Kids.
+  Una fila con `clave_kids` null de más de 5 minutos la retoma el reloj (reconciliar): la pasa al motor, o le pone la
+  clave de `estado.recibidos` si el motor ya la había procesado.
   La fábrica arma el libro con esto; la cápsula son las claves del capítulo 5.
 - **La transcripción va en el evento** (`contenido.transcripcion`): sin ella, la lista de palabras de «algo
   preocupante» no ve los audios. Se transcribe antes de pasar el evento al motor.
@@ -799,17 +801,20 @@ y el candado de la V3) y, si la hay, no hace nada:
 
 - **Entrevistador:** `procesar.ts` (el mensaje va al motor de Kids y a nada más); en `scheduler.ts`, `narradoresEn`
   (bienvenidas de `invitado`, preguntas, recordatorios, y `prenderAlertasDeSilencio`, que a los 3 días manda el
-  hito «silencio» al comprador); la entrada a la V3 (`entraALaV3` en `config.ts` y `v3/pasar.ts`: con
-  `V3_PARA_NUEVOS=1` hoy un chico entraría a la V3); el mail «no le llegan los mensajes» (`mail/no-llega.ts`,
-  escrito para un narrador adulto).
-- **Fábrica** (`fabrica/src/worker.ts`), con un `narradoresConKids` al estilo de `v3/candado.ts`: el anticipo (lee
-  `activo` y `pausado` y con 3 respuestas llama al modelo viejo y le manda mail a la familia); los hitos de cierre
-  (mail «terminó», recordatorios a los 3, 7 y 14 días y el cierre solo a los 30 días desde `ultima_respuesta_at`, que
-  corren después de `completado`); estructura, previsualización y paquete; y el escritor V3. El libro de Kids se
-  diseña aparte y arranca con `termino_at`.
-- **Web:** el tablero de biografías (`tablero/[narradorId]`, `proximo-paso.ts`) no es el panel de Kids; y
-  `confirmarPago` manda el mail de acceso al tablero (para Kids, el mismo mail con el link al panel de Kids:
-  COMPRA-3-DESPUES dice «igual que el resto de la casa») y crea la entrega del impreso como siempre.
+  hito «silencio» al comprador); la entrada a la V3 (`entraALaV3` en `config.ts`, que además mira
+  `contexto.modo === 'kids'`; `v3/pasar.ts`; y `v3/estado.ts:crearFila`, que tira si es un chico); el mail «no le
+  llegan los mensajes» (`mail/no-llega.ts`, escrito para un narrador adulto).
+- **Fábrica**, con `narradoresConKids` (`fabrica/src/kids/candado.ts`). En `worker.ts`: el anticipo (lee `activo` y
+  `pausado` y con 3 respuestas llama al modelo viejo y le manda mail a la familia); los hitos de cierre (mail
+  «terminó», recordatorios a los 3, 7 y 14 días y el cierre solo a los 30 días desde `ultima_respuesta_at`, que corren
+  después de `completado`); estructura, previsualización, pedidos pagados (paquete, escritor V3, entrega con los
+  mismos archivos), «el libro está listo» y el recordatorio de frases. En `entregas.ts`: la imprenta y los mails de la
+  entrega. **Mientras no exista el libro de Kids, un impreso de Kids no avanza**: el libro y su entrega se programan
+  aparte y arrancan con `termino_at`.
+- **Web:** el tablero de biografías (`tablero/[narradorId]`, `proximo-paso.ts`) no es el panel de Kids, ni
+  `/api/sugeridas` (sugerencias con modelo); y `confirmarPago` manda el mail de acceso al tablero (para Kids, el mismo
+  mail con el link al panel de Kids: COMPRA-3-DESPUES dice «igual que el resto de la casa») y crea la fila de la
+  entrega del impreso, que queda quieta hasta el libro de Kids.
 
 ### Plantillas y variables
 

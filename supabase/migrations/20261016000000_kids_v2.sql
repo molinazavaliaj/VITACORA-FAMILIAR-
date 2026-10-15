@@ -30,7 +30,7 @@ create table if not exists kids_v2 (
   constraint kids_v2_canal_de_la_ficha check (ficha->>'canal' = canal)
 );
 
-create index if not exists kids_v2_despertar_idx on kids_v2 (despertar_at) where termino_at is null;
+create index if not exists kids_v2_despertar_idx on kids_v2 (despertar_at);  -- el reloj busca despertar_at <= now(), también después de termino_at (la cola del final)
 
 alter table kids_v2 enable row level security;  -- sin policies: solo la service role
 
