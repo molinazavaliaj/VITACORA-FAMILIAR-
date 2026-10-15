@@ -218,3 +218,30 @@ order by compras desc;
 ```
 
 Para el último toque: `coalesce(extras->'origen'->'ultimo'->>'utm_campaign', extras->'origen'->'primero'->>'utm_campaign', '(sin campaña)')`.
+
+## Apuntado: Kids (15/10, rama `rediseno-web-kids-web`)
+
+Naza decidió que Kids va en la web nueva (supera D4 y B7). Quedó hecho:
+- `/kids`, `/comprar/kids` y las landings `/kids/su-mundo` y `/kids/a-los-once`, en es, ca y ar;
+- la solapa «Kids» en la cabecera y la 4.ª foto de «Para quién es».
+
+**Nada vende todavía.** La compra solo se ofrece con `KIDS_VENTA="1"` **y** `PRECIO_KIDS_EUR` / `PRECIO_KIDS_ARS` válidos (`lib/kids.ts`, `kidsVende`). Sin las dos se ve:
+- en /kids y en las landings, «Próximamente» con «Escríbenos», que abre el WhatsApp de dudas o, si no está, un correo a hola@;
+- en la compra, las 3 pantallas para llenar y, en el paso 3, «Próximamente» en lugar de «Pagar».
+
+Aunque se prenda la variable, `/api/compra` **rechaza** todo cuerpo con `producto: "kids"` (409, «Vitácora Kids todavía no se vende…»). Sin eso, un pedido de Kids se cobraría como el libro de una vida, y el entrevistador le escribiría a un chico con las preguntas de un adulto. **No prender KIDS_VENTA hasta cerrar K1 a K4.**
+
+| # | Qué falta | Por qué | Quién |
+|---|---|---|---|
+| K1 | **Cómo se marca un pedido de Kids en la base.** En `main` no hay nada. No existe `contexto.modo = 'kids'`, ni `pedidos.extras.tipo = 'kids'`, ni tabla propia, ni migración en la rama `vitacora-kids`. El precedente es Viaje (`extras.tipo = "viaje"` y `contexto.modo = "viaje"`, CONTRATO.md). | Hay que acordar en CONTRATO.md la marca y dónde va la `Ficha` del motor (`fabrica/src/kids-v2/compra.ts`). La web ya la arma (`fichaDeCompra`, `cuerpoKids`): nombre, apodo, genero, edad, quienRegala, canal, nombrePadre, hora, zona, temasSacados, fotosConOtrosChicos, preguntasPadre. Podría ir en `narradores.contexto.kids`, sin migración, si Joaquín está de acuerdo. | Joaquín (CONTRATO) + Naza |
+| K2 | **Dónde guardar el WhatsApp de quien compra.** En Kids el padre recibe las preguntas (canal B) o los avisos (canal A). `familias` no tiene teléfono (es el mismo hueco que F1-C1). Con el canal A, el narrador es el chico (`narradores.telefono_whatsapp`). Con el canal B, el número del narrador es el del padre. | Una columna, o una clave en `contexto`, con la migración que diga Joaquín. Hay que decidir de quién es `telefono_whatsapp` en cada canal. | Joaquín |
+| K3 | **El motor no está conectado** al entrevistador, y faltan las 13 plantillas de Meta (handoff 05/10). El libro de Kids (la fábrica) no está empezado. | Sin esto no hay producto que vender. | Joaquín |
+| K4 | **`/api/compra` para Kids.** Hay que crear el narrador con la ficha y el pedido con la marca de K1, en estado `pendiente_pago`, y que `confirmarPago` lo pase a donde el motor lo lea. Recién ahí se quita el 409 de `route.ts`. | Depende de K1 y K2. | Joaquín + quien siga la web |
+| K5 | **Panel de Kids.** El panel no puede mostrar una historia de Kids con lo que hay en la base: no hay marca de Kids (K1), ni respuestas del motor guardadas en ningún lado, ni el «sobre cerrado», ni «Tus preguntas para el libro» con «¿Quién se la manda?» (aprobados en `mensajes.md` 248–261). **No se re-vistió nada.** La maqueta PanelKids además trae anticipo, «escribiéndose», «Cambiarla», el marco y la garantía, cosas que no aplican. Cuando exista K1, el panel puede tomar la paleta de `_kids/kids.css` (los tokens `--kids-*` ya re-visten los componentes compartidos). | Hace falta saber dónde guarda el motor el `Estado` de cada chico. | Joaquín, después la web |
+| K6 | **Precio de Kids.** No hay precio definido en v2: `{precio}` en COMPRA-3-BOTON, y el hueco #34 de la rama. Las variables son `PRECIO_KIDS_EUR` y `PRECIO_KIDS_ARS` (mismos nombres que la rama). Tampoco está definido si Kids tiene libro impreso aparte, marco o copias: «igual que el resto de la casa» (#34), pero la compra aprobada no tiene paso de formato. Por eso la compra de la web **no ofrece impreso ni marco**. | Decidir el precio y si hay formatos. Si los hay, sumar el paso de formato (el de la maqueta CheckoutKids) con textos aprobados. | Naza + Joaquín |
+| K7 | **El bot de Kids solo habla rioplatense.** En España (tú) y en catalán, la web dice las cosas de tú, pero el WhatsApp le llegaría en vos. «Quién se lo regala» se guarda en vos («tu mamá») aunque la pantalla diga «Tu madre». Lo mismo que F4-2 con Viaje. | Textos del bot en es-ES y ca antes de vender en España. | Naza (textos) + Joaquín |
+| K8 | **Garantía de Kids.** D1 no tiene texto para Kids, así que no aparece ni en la FAQ, ni en la compra, ni en legales. La maqueta decía «Si al final no quiere hacerlo, te devolvemos el dinero». | Si va, Naza da el texto y el abogado lo pasa a legales. | Naza + abogado |
+| K9 | **Abogado antes de vender** (handoff de Kids). Faltan tres cosas: el aviso de «algo preocupante» (LOPIVI en España, Ley 26.061 en Argentina); que con el canal A el adulto autorice escribirle al chico (WhatsApp pide 13 años, `mi-primer-capitulo-design.md`); y los términos y la privacidad de Kids (hoy no lo mencionan). | — | Naza + abogado |
+| K10 | **Landing «para los abuelos»** (LandingKidsAbuelos). No se hizo: vende el impreso con el marco y «llega unos 9 días después». | Se hace si K6 define el marco, y cuando la imprenta confirme el plazo (B9). | Naza |
+| K11 | **Fotos generadas de Kids** (B10): `public/rediseno/kids-audio-cama.jpg`, `kids-cuarto-juguetes.jpg`, `kids-familia-sofa.jpg`, `kids-libro-abierto.jpg`, `kids-libro-tapa.jpg`. Son ilustración, no clientes. El libro de las fotos dice «Nico Rivas». | Antes del switch, decidir si se usan. | Naza |
+| K12 | **Textos para aprobar**: `docs/rediseno-2026-10/kids/textos.md`. Son 50 líneas en tandas de 10, más los 3 titulares de cada landing. El catalán necesita revisión nativa. | — | Naza |
