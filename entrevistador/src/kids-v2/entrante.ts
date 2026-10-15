@@ -2,8 +2,8 @@
 // y de la Viaje V2: un narrador con fila en `kids_v2` (y que no esté en pendiente_pago) va entero por acá. No se llama
 // a ningún modelo (salvo la transcripción).
 //
-// Solo llega lo del número de las preguntas: en canal A el del chico (el padre no es un narrador, así que lo que él
-// escriba no encuentra a nadie); en canal B, el del padre.
+// Solo llega lo del número de las preguntas: en canal A el del chico (el padre no es un narrador: lo que él escriba
+// va a padre.ts, que le contesta una vez y no lo pasa al motor); en canal B, el del padre.
 //
 // Cada mensaje se guarda al llegar (audio a Storage y su transcripción; foto a `fotos`; texto y botón) con su fila en
 // `respuestas` (`clave_kids` null), se le pasa al motor como evento con el id de WhatsApp, y el `recibido` del motor

@@ -6,8 +6,8 @@
 // A dónde: `chico` → narradores.telefono_whatsapp (el número de las preguntas); `padre` → kids_v2.telefono_padre.
 // Cómo: con `plantilla` → plantilla de Meta (si no está en WA_PLANTILLAS_KIDS_LISTAS, queda y se avisa); sin
 // plantilla y con botones → botones de respuesta rápida; si no, texto. El texto libre solo sale con la ventana de
-// 24 h de ESE número abierta: el del número de las preguntas por `motor.ultimaEntrada`; el padre en canal A nunca le
-// escribe al bot, así que para él siempre está cerrada. El motor no debería pedirlo nunca: si pasa, queda y se avisa.
+// 24 h de ESE número abierta: el del número de las preguntas por `motor.ultimaEntrada`; para el padre en canal A
+// siempre está cerrada (si le escribe al bot, padre.ts le contesta aparte, fuera de esta cola). El motor no debería pedirlo nunca: si pasa, queda y se avisa.
 // Cuándo: nunca entre las 22 y las 9 (hora de la ficha). El motor no decide nada de noche, pero lo que decidió a las
 // 21:59 y no salió (Meta falló, la plantilla se aprobó a las 23) espera a las 9 en la cola (lo encontró la simulación).
 

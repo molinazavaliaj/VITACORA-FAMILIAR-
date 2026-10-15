@@ -64,6 +64,20 @@ export async function chicosKids(db: SupabaseClient): Promise<Set<string>> {
   return new Set(((data as { narrador_id: string }[] | null) ?? []).map((f) => f.narrador_id));
 }
 
+/**
+ * Las filas de canal A cuyo `telefono_padre` es ese número (con y sin el 9 de celular argentino): el padre que le
+ * escribe al número del bot (padre.ts). Sin la tabla, ninguna; con cualquier otro error, tira.
+ */
+export async function filasDelPadre<F extends FilaKidsV2 = FilaKidsV2>(db: SupabaseClient, telefonos: readonly string[]): Promise<F[]> {
+  if (telefonos.length === 0) return [];
+  const { data, error } = await db.from(TABLA_KIDS).select('*').eq('canal', 'A').in('telefono_padre', [...telefonos]);
+  if (error) {
+    if (esTablaAusente(error)) return [];
+    throw new Error(`No pude buscar el padre en kids_v2: ${error.message}`);
+  }
+  return (data as F[] | null) ?? [];
+}
+
 export async function leerFila<F extends FilaKidsV2 = FilaKidsV2>(db: SupabaseClient, narradorId: string): Promise<F | null> {
   const { data, error } = await db.from(TABLA_KIDS).select('*').eq('narrador_id', narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer el Kids de ${narradorId}: ${error.message}`);

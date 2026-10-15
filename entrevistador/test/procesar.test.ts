@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
   avisarSocios: vi.fn(),
   procesarEntranteV3: vi.fn(),
   procesarEntranteKids: vi.fn(),
+  atenderPadreKids: vi.fn(),
   estado: { filaKids: null as any, errorKids: null as any, errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -120,6 +121,8 @@ vi.mock('../src/v3/deps-reales.js', () => ({ depsReales: () => ({}) }));
 // El bot de Kids se prueba en test/kids-v2; acá solo que procesar lo llama a él y a nada más.
 vi.mock('../src/kids-v2/entrante.js', () => ({ procesarEntranteKids: mocks.procesarEntranteKids }));
 vi.mock('../src/kids-v2/deps-reales.js', () => ({ depsKidsReales: () => ({ kids: true }) }));
+// El padre de canal A se prueba en test/kids-v2/padre.test.ts; acá solo cuándo procesar lo llama.
+vi.mock('../src/kids-v2/padre.js', () => ({ atenderPadreKids: mocks.atenderPadreKids }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -160,6 +163,8 @@ beforeEach(() => {
   mocks.pedidoAbierto.mockResolvedValue(null);  // por defecto, no hay pedido esperando
   mocks.canjearRegalo.mockReset();
   mocks.canjearRegalo.mockResolvedValue('sin_codigo');
+  mocks.atenderPadreKids.mockReset();
+  mocks.atenderPadreKids.mockResolvedValue(false);
   mocks.mandarBienvenidaDeRegalo.mockReset();
   mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
   mocks.avisarSocios.mockReset();
@@ -1170,6 +1175,45 @@ describe('un chico de Kids', () => {
     mocks.estado.errorKids = { code: 'PGRST205', message: "Could not find the table 'public.kids_v2' in the schema cache" };
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
     expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).toHaveBeenCalled();
+  });
+});
+
+// Kids V2 (15/10, decisión de Naza): el padre de un chico de canal A que le escribe al número del bot.
+describe('el padre de un chico de Kids (canal A)', () => {
+  it('un número desconocido que es padre de Kids: lo atiende el bot de Kids y no va al canje', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    const m = { telefono: TEL, tipo: 'texto', texto: 'buenas', waMessageId: 'w' } as MensajeEntrante;
+    await procesarEntrante(m);
+    expect(mocks.atenderPadreKids).toHaveBeenCalledWith({ kids: true }, m);
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('si no es padre de Kids, sigue como hoy (el canje)', async () => {
+    mocks.estado.narrador = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+  });
+
+  it('con un código con VF, primero el canje; si no había regalo, después el padre', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo.mock.invocationCallOrder[0]).toBeLessThan(mocks.atenderPadreKids.mock.invocationCallOrder[0]);
+  });
+
+  it('un padre que además es narrador va por su flujo de narrador: no se lo trata como padre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorKids = null;
+    mocks.estado.filaKids = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.atenderPadreKids).not.toHaveBeenCalled();
     expect(mocks.descargarAudio).toHaveBeenCalled();
   });
 });

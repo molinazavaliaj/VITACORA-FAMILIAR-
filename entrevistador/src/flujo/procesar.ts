@@ -40,6 +40,13 @@ async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   return (data as Narrador | null) ?? null;
 }
 
+/** ¿Es el padre de un chico de Kids de canal A? Si lo es, el bot de Kids ya se ocupó. Imports dinámicos, como el resto de Kids. */
+async function atenderPadreKids(m: MensajeEntrante): Promise<boolean> {
+  const { atenderPadreKids: atender } = await import('../kids-v2/padre.js');
+  const { depsKidsReales } = await import('../kids-v2/deps-reales.js');
+  return atender(depsKidsReales(), m);
+}
+
 async function ultimaBienvenida(narradorId: string): Promise<boolean> {
   const { data } = await db.from('envios').select('id').eq('narrador_id', narradorId).eq('tipo', 'bienvenida').limit(1);
   return (data?.length ?? 0) > 0;
@@ -126,11 +133,17 @@ function estimarDuracion(texto: string): number {
 export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
+    // Kids V2 (15/10, decisión de Naza): el padre de un chico de canal A no es un narrador. Se le contesta una vez
+    // por chico y su mensaje no entra a nada (kids-v2/padre.ts). Va antes del canje del regalo: un «buenas» parece
+    // un código y el canje le contestaría «no encuentro ese código»; con un código con VF, primero el canje.
+    const conCodigo = /VF/i.test(m.texto ?? '');
+    if (!conCodigo && (await atenderPadreKids(m))) return;
     // Gift card (08/10): quien escribe puede ser un narrador con su tarjeta en la mano.
     // Con cualquier mensaje (10/10): si se le mandó el regalo por WhatsApp el día
     // elegido, contesta con un audio o con el botón y canjea sin el código.
     const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
     if (canje !== 'sin_codigo') return;
+    if (conCodigo && (await atenderPadreKids(m))) return;
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }

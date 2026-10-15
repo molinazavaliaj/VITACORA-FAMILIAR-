@@ -723,7 +723,7 @@ narrador esté en `pendiente_pago`, el entrevistador no toca la fila.
 | `canal` | web | `A` (su WhatsApp) o `B` («lo hago yo»). Elegir A es la autorización del adulto a cargo. Un `check` cuida que sea el mismo que `ficha.canal`. |
 | `telefono_padre` | web | WhatsApp del padre, E.164 (con `check` de formato). En canal A le llegan AVISO-PADRE, los recordatorios y TERMINO-PADRE; en canal B tiene que ser el mismo número que `narradores.telefono_whatsapp` (lo cuida la web: un `check` no puede mirar otra tabla). |
 | `ficha` (jsonb) | web (al comprar) | La `Ficha` de `fabrica/src/kids-v2/compra.ts`, **ya pasada por `validarFicha`**: `nombre`, `apodo`, `genero` (`chico`/`chica`), `edad`, `quienRegala` («tu mamá», en minúscula), `canal`, `nombrePadre`, `linkPanel`, `hora` (`HH:MM` entre 09:00 y 21:59), `zona` (IANA, la del país del número), `temasSacados`, `fotosConOtrosChicos`, `preguntasPadre` (vacía al comprar). Después de arrancar, la ficha que vale es la de `estado.motor.ficha`; esta columna queda como lo que se compró. |
-| `estado` (jsonb) | entrevistador | Null hasta el arranque. Después: `{ motor, salida, enviados, vistos, recibidos, fallosEnvio, avisoFallos }` (`entrevistador/src/kids-v2/tipos.ts`). `motor` es el `Estado` del motor (serializable; **es la verdad de la entrevista**; adentro ya viven la ráfaga, lo que llegó de noche y todo lo que espera). `salida`: los mensajes que el motor ya decidió y falta mandar por WhatsApp. `enviados`: `envio` del motor ↔ `wa_message_id` (los últimos 200), para traducir el `context.id` de un botón tocado en el `aMensaje` del evento (decisión 22, botones viejos). `vistos`: los últimos 200 ids de WhatsApp procesados (dedupe). `recibidos`: los últimos 200 `wa_message_id` → `clave_kids` que dio el motor, para que la reconciliación recupere la clave si se perdió la escritura en `respuestas`. |
+| `estado` (jsonb) | entrevistador | Null hasta el arranque. Después: `{ motor, salida, enviados, vistos, recibidos, fallosEnvio, avisoFallos, respondioAlPadre? }` (`entrevistador/src/kids-v2/tipos.ts`). `motor` es el `Estado` del motor (serializable; **es la verdad de la entrevista**; adentro ya viven la ráfaga, lo que llegó de noche y todo lo que espera). `salida`: los mensajes que el motor ya decidió y falta mandar por WhatsApp. `enviados`: `envio` del motor ↔ `wa_message_id` (los últimos 200), para traducir el `context.id` de un botón tocado en el `aMensaje` del evento (decisión 22, botones viejos). `vistos`: los últimos 200 ids de WhatsApp procesados (dedupe). `recibidos`: los últimos 200 `wa_message_id` → `clave_kids` que dio el motor, para que la reconciliación recupere la clave si se perdió la escritura en `respuestas`. `respondioAlPadre`: canal A, ya se le contestó al padre que escribió al bot (falta = false). |
 | `cambios_panel` (jsonb) | web (panel) | Un cambio del padre que el motor todavía no tomó: `{ hora?, temasSacados?, preguntasPadre?, pedido_at }`, con la **lista completa** de `temasSacados` y de `preguntasPadre` (no un diff). La web la valida antes con las mismas reglas de `validarFicha`. Ver «Cambios del panel», abajo. |
 | `cambios_error` (text) | entrevistador / web | Por qué no se tomó el último cambio del panel. El panel lo muestra; la web lo borra con el cambio siguiente. |
 | `avance` (jsonb) | entrevistador | Lo que el panel necesita sin leer el motor: `{ capitulo, preguntasPadreAbiertas, terminado }`. `capitulo` = el del item en curso (0 antes de K1). `preguntasPadreAbiertas` es false desde que empieza el capítulo 4. `terminado` = la misma regla que `termino_at`. Se escribe en cada guardada del estado. |
@@ -792,7 +792,16 @@ respuesta, como siempre; `alerta_silencio` se prende con la marca `silencio-8-di
   está en la fila de `respuestas` con el mismo `pregunta_orden` (`⟦foto⟧`); `fotos` no lleva columna nueva. Las fotos
   con otros chicos las mira Naza antes de imprimir (`ficha.fotosConOtrosChicos`).
 - **Canal A: solo lo que manda el número del chico entra al motor.** Lo que escriba el padre desde su número no se
-  pasa (se acusaría como si fuera del chico). Ese número no es un narrador, así que el entrevistador no lo encuentra.
+  pasa (se acusaría como si fuera del chico) ni va a `respuestas`. Ese número no es un narrador: el entrevistador lo
+  reconoce por `kids_v2.telefono_padre` (canal A, chico que no está en `pendiente_pago`) y le contesta **una vez por
+  chico**, como texto libre (la ventana está abierta), el texto aprobado por Naza el 15/10: «Este número es para las
+  preguntas de {apodo}. Lo que cuenta lo ves en tu panel.» (`{apodo}` = `ficha.apodo`; constante `TEXTO_AL_PADRE` en
+  `entrevistador/src/kids-v2/padre.ts`). Que ya se le contestó queda en `kids_v2.estado.respondioAlPadre` (con el
+  compare-and-swap de siempre; se marca antes de mandar y se desmarca si Meta falla). Cada mensaje del padre va por
+  mail a los socios (el texto, o la transcripción si es un audio). Si el número es padre de dos chicos de canal A, o
+  el chico todavía no arrancó (`estado` null), no se le contesta y se avisa. Si ese número además es un narrador (un
+  padre con su biografía), manda el flujo del narrador, como siempre. Va antes del canje del regalo, salvo que el
+  mensaje traiga un código con VF.
 
 ### Lo que no tiene que tocar a un chico de Kids
 
@@ -827,8 +836,9 @@ mientras no estén, el chico no arranca (el primer mensaje siempre es plantilla)
 1. **Un mismo WhatsApp en dos chicos.** `narradores.telefono_whatsapp` es único: dos hermanos en canal B con el mismo
    padre, o un padre que ya es narrador, chocan. Propuesta: por ahora la compra lo rechaza (ya existe el 409 de teléfono
    repetido) y el formulario sugiere el canal A. Si hace falta, más adelante se busca por `kids_v2` y no por el teléfono.
-2. **El padre que le escribe al número en canal A.** Hoy un número desconocido no encuentra narrador. ¿Se le contesta
-   algo fijo (texto a aprobar por Naza) o nada?
+2. ~~**El padre que le escribe al número en canal A.**~~ **Resuelto (Naza, 15/10):** se le contesta una vez por chico
+   un texto fijo aprobado y nada más; su mensaje no entra al motor y va a los socios (detalle en «Respuestas, audios
+   y fotos»). Con dos chicos de canal A en el mismo número, no se contesta (no hay texto aprobado) y se avisa.
 3. **Dónde vive el motor.** Como la Viaje V2: copia byte a byte en `entrevistador/src/kids-v2/nucleo/` con un test que
    compara contra `fabrica/src/kids-v2/`, y la web usa una copia de `validarFicha`.
 

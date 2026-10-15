@@ -26,6 +26,11 @@ export type EstadoBotKids = {
   recibidos: { id: string; clave: string }[];
   fallosEnvio: number;
   avisoFallos: boolean;
+  /**
+   * Canal A: ya se le contestó al padre que le escribió al número del bot (padre.ts, una sola vez por chico). Falta
+   * en los estados de antes del 15/10: es lo mismo que false.
+   */
+  respondioAlPadre?: boolean;
 };
 
 /** Lo que el padre cambió en el panel y el motor todavía no tomó (CONTRATO, «Cambios del panel»): listas completas. */
