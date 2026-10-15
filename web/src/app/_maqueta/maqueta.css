@@ -1,0 +1,127 @@
+/* La maqueta escondida de la parte de arriba de la portada nueva (/maqueta,
+   15/10). Solo lo que la portada no tiene: el libro 3D chico dentro del
+   inicio, las cuatro ventajas, los pasos de quien regala y el teléfono con la
+   página de su historia. Todo lo demás (tinta, papel, deckle, letra, botones,
+   capas) es lo de la portada: _direccion/direccion.css y globals.css. Prefijo
+   mq- (maqueta- ya lo usa otra cosa en globals.css). */
+
+/* ── El libro 3D dentro del inicio ──────────────────────────────────────────
+   El mismo Libro3D de la portada, más chico: entra entre la bajada y los
+   botones y, abierto, el pliego (2 tapas × --l3-s) cabe en el teléfono con
+   margen. El piso, una luz apenas (sobre tinta la sombra no se ve). */
+.mq-libro .l3-escena { --l3-w: min(44vw, 190px); --l3-s: 0.98; }
+@media (min-width: 768px) {
+  .mq-libro .l3-escena { --l3-w: min(230px, calc(36svh * 0.68)); --l3-s: 1.05; }
+}
+.mq-libro .l3-sombra {
+  background: radial-gradient(closest-side, rgba(238, 234, 225, 0.1), rgba(238, 234, 225, 0));
+}
+.mq-libro {
+  display: flex;
+  justify-content: center;
+  /* El aire de abajo es para el piso del libro. */
+  padding: 8px 0 28px;
+}
+
+/* ── Las cuatro ventajas: 2 × 2 en el teléfono, en fila en la pantalla grande.
+   La marca es un tilde fino a lápiz, en el dorado de la marca. */
+.mq-ventajas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+  width: 100%;
+  max-width: 560px;
+  text-align: left;
+}
+@media (min-width: 900px) {
+  .mq-ventajas { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 900px; gap: 24px; }
+}
+.mq-ventajas li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--dir-sobre-tinta);
+}
+.mq-tilde { flex: none; width: 15px; height: 15px; margin-top: 2px; color: #b59a68; }
+
+/* La línea de «tu propio libro», bajo un hilo. */
+.mq-propio {
+  width: 100%;
+  max-width: 560px;
+  border-top: 1px solid var(--dir-hilo-tinta);
+  padding-top: 20px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--dir-sobre-tinta-suave);
+}
+@media (min-width: 900px) { .mq-propio { max-width: 900px; } }
+
+/* ── Qué es: la etiqueta en el dorado, los pasos como un índice ─────────── */
+.mq-etiqueta { color: var(--dir-dorado); }
+.mq-pasos li {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 18px 0;
+  border-top: 1px solid var(--dir-hilo-papel);
+  font-size: clamp(1.08rem, 1rem + 0.3vw, 1.25rem);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.mq-pasos li:last-child { border-bottom: 1px solid var(--dir-hilo-papel); }
+.mq-paso-num {
+  flex: none;
+  width: 1.2em;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.6em;
+  line-height: 1;
+  color: var(--dir-dorado);
+}
+
+/* ── El teléfono con la página de su historia ───────────────────────────────
+   Adentro va un iframe de 390 × 800 (el panel con sus cortes de teléfono)
+   achicado al ancho de la pantalla (--mq-w, en px sin unidad). */
+.mq-movil {
+  --mq-w: 262;
+  border-radius: 40px;
+  border: 1px solid #2c2b28;
+  background: #121210;
+  padding: 10px;
+  box-shadow: 0 40px 70px -30px rgba(52, 40, 24, 0.55), 0 12px 24px -16px rgba(0, 0, 0, 0.4);
+}
+@media (min-width: 768px) { .mq-movil { --mq-w: 300; } }
+.mq-pantalla {
+  position: relative;
+  width: calc(var(--mq-w) * 1px);
+  height: calc(var(--mq-w) * 800px / 390);
+  overflow: hidden;
+  border-radius: 30px;
+  background: #f4f0e7;
+}
+.mq-pantalla iframe {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 390px;
+  height: 800px;
+  border: 0;
+  transform-origin: 0 0;
+  transform: scale(calc(var(--mq-w) / 390));
+  pointer-events: none;
+}
+
+/* ── La franja de servicio del final (no es de la portada) ─────────────── */
+.mq-sigue {
+  border-top: 1px dashed var(--dir-hilo-papel);
+  padding: 26px 16px 34px;
+  text-align: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--dir-sobre-papel-suave);
+}
