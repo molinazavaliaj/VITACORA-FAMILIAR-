@@ -434,6 +434,47 @@ async function aplicarFoto(deps: DepsV3, narradorId: string, guardada: FilaGuard
 
 // ---------------------------------------------------------------- reconciliación
 
+/** De a cuántos narradores va la búsqueda junta de respuestas sin clave (36 caracteres por id: la URL queda en ~4 KB). */
+export const TROZO_RECONCILIAR = 100;
+/**
+ * Tope de filas de la búsqueda junta (el max-rows de PostgREST en Supabase es 1000). Si un trozo lo alcanza, puede
+ * haber quedado alguna afuera: ese trozo vuelve al camino de antes (reconciliarV3 de cada uno).
+ */
+export const LIMITE_SIN_CLAVE = 1000;
+
+/**
+ * Qué narradores tienen algo para reconciliar, en UNA consulta por trozo en vez de una por narrador (roadmap 13/10).
+ * Los mismos filtros que reconciliarV3 salvo el "después de crear su V3", que en SQL va con la fila más vieja del
+ * trozo y acá se afina por narrador. Es un aviso de más, nunca de menos: ante la duda (error, tope, mismo
+ * milisegundo) el narrador entra, y reconciliarV3 hace la consulta exacta como siempre.
+ */
+export async function conSinClave(deps: DepsV3, filas: readonly Pick<FilaV3, 'narrador_id' | 'creada_at'>[]): Promise<Set<string>> {
+  const con = new Set<string>();
+  const limite = new Date(deps.ahora().getTime() - RECONCILIAR_MS).toISOString();
+  for (let i = 0; i < filas.length; i += TROZO_RECONCILIAR) {
+    const trozo = filas.slice(i, i + TROZO_RECONCILIAR);
+    const desdePor = new Map(trozo.map((f) => [f.narrador_id, Date.parse(f.creada_at)]));
+    const desde = new Date(Math.min(...desdePor.values())).toISOString();
+    const { data, error } = await deps.db.from('respuestas')
+      .select('narrador_id,recibido_at')
+      .in('narrador_id', [...desdePor.keys()]).is('clave_v3', null).not('wa_message_id', 'is', null)
+      .gt('recibido_at', desde).lt('recibido_at', limite)
+      .limit(LIMITE_SIN_CLAVE);
+    const encontradas = (data as { narrador_id: string; recibido_at: string }[] | null) ?? [];
+    if (error || Number.isNaN(Date.parse(desde)) || encontradas.length >= LIMITE_SIN_CLAVE) {
+      if (error) console.error(`reloj V3: falló la búsqueda junta de respuestas sin clave; este trozo va uno por uno: ${error.message}`);
+      for (const id of desdePor.keys()) con.add(id);
+      continue;
+    }
+    for (const r of encontradas) {
+      const desdeN = desdePor.get(r.narrador_id);
+      // >= y no >: reconciliarV3 compara en milisegundos y la base en microsegundos; ante la duda, entra.
+      if (desdeN === undefined || Number.isNaN(desdeN) || Date.parse(r.recibido_at) >= desdeN) con.add(r.narrador_id);
+    }
+  }
+  return con;
+}
+
 type FilaSinClave = { id: string; wa_message_id: string; audio_path: string | null; transcripcion: string | null; texto_directo: string | null };
 
 /**
