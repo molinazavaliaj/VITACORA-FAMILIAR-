@@ -125,7 +125,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     panel: {
       titulo: "Tú lo ves todo.",
-      texto: "Todo lo que cuente lo ves en tu panel. Audios, fotos y respuestas, también las del sobre cerrado.",
+      texto: "Todo lo que cuente lo ves en la página de su historia. Audios, fotos y respuestas, también las del sobre cerrado.",
       tuyas: "Puedes añadir hasta tres preguntas tuyas. Le llegan cerca del final.",
       pedido: "Una sola cosa te pedimos. Lee todo, pero no le digas nada hasta el libro.",
       altFoto: "Una madre, un padre y su hijo leen un libro juntos en el sofá",
@@ -164,7 +164,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
         },
         {
           pregunta: "¿Quién escucha sus audios?",
-          respuesta: "Tú, desde tu panel, y el equipo que escribe su libro. Nadie más.",
+          respuesta: "Tú, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
       ],
     },
@@ -237,7 +237,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     panel: {
       titulo: "Tu ho veus tot.",
-      texto: "Tot el que expliqui ho veus al teu panell. Àudios, fotos i respostes, també les del sobre tancat.",
+      texto: "Tot el que expliqui ho veus a la pàgina de la seva història. Àudios, fotos i respostes, també les del sobre tancat.",
       tuyas: "Pots afegir fins a tres preguntes teves. Li arriben cap al final.",
       pedido: "Només et demanem una cosa. Llegeix-ho tot, però no li diguis res fins al llibre.",
       altFoto: "Una mare, un pare i el seu fill llegeixen un llibre junts al sofà",
@@ -276,7 +276,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
         },
         {
           pregunta: "Qui escolta els seus àudios?",
-          respuesta: "Tu, des del teu panell, i l'equip que escriu el seu llibre. Ningú més.",
+          respuesta: "Tu, des de la pàgina de la seva història, i l'equip que escriu el seu llibre. Ningú més.",
         },
       ],
     },
@@ -348,9 +348,9 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     panel: {
       titulo: "Vos ves todo.",
-      texto: "Todo lo que cuente lo podés ver en tu panel. Audios, fotos y respuestas, también las del sobre cerrado.",
+      texto: "Todo lo que cuente lo podés ver en la página de su historia. Audios, fotos y respuestas, también las del sobre cerrado.",
       tuyas: "Podés agregar hasta tres preguntas tuyas. Le llegan cerca del final.",
-      pedido: "Y una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.",
+      pedido: "Una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.",
       altFoto: "Una mamá, un papá y su hijo leen un libro juntos en el sillón",
     },
     temas: {
@@ -387,7 +387,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
         },
         {
           pregunta: "¿Quién escucha sus audios?",
-          respuesta: "Vos, desde tu panel, y el equipo que escribe su libro. Nadie más.",
+          respuesta: "Vos, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
       ],
     },

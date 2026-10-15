@@ -11,12 +11,12 @@ import type { IdiomaPanel, Quien } from "../_textos/panel";
 import "../_direccion/tokens.css";
 import "../tablero/panel.css";
 
-// Lo que se ve adentro del teléfono de la maqueta (/maqueta): la parte de
+// Lo que se ve adentro del teléfono de la portada (/telefono-historia): la parte de
 // arriba de la página de su historia, con las MISMAS piezas del panel
 // (cabecera de tinta, tapa, «Hola, Laura.», cifras, línea de tiempo y «Lo
 // último que contó») y los datos inventados de la muestra (Antonio, contado a
 // medias; panel-muestra/datos.ts). Va en un iframe de 390 px achicado: así
-// las piezas se pintan con los cortes del teléfono aunque la maqueta se mire
+// las piezas se pintan con los cortes del teléfono aunque la portada se mire
 // en una pantalla grande. Todo quieto (inert): es una ilustración.
 
 const QUIEN: Quien = { como: "Antonio", propia: false, ella: false, viaje: false };

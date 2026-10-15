@@ -291,7 +291,7 @@ function SeccionesVoz({ idioma, conMarco, precioMarco }: { idioma: IdiomaWeb; co
             <div className="flex flex-col items-start gap-8 md:sticky md:top-24">
               <h2 className="dir-titular dir-t3 aparece max-w-[14ch]">{v.pasosTitulo}</h2>
               <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className={`${conMarco ? "dir-enlace-papel" : "dir-enlace"} aparece`}>
-                {t.banda[0]} <span aria-hidden>→</span>
+                {t.verEjemplo} <span aria-hidden>→</span>
               </Link>
             </div>
           </div>
@@ -487,7 +487,7 @@ function SeccionLibro({ idioma, titulo }: { idioma: IdiomaWeb; titulo: string })
           <div className="l3-leyenda">
             <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{ej.inventada}</span>
             <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className="dir-enlace-papel">
-              {t.banda[0]} <span aria-hidden>→</span>
+              {t.verEjemplo} <span aria-hidden>→</span>
             </Link>
             <button type="button" data-libro-otra-vez className="l3-otra-vez">
               {t.direccion.libroOtraVez}

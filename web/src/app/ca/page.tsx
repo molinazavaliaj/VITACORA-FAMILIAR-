@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     locale: "ca_ES",
     type: "website",
   },
+  // Sin esto, twitter:* sale del layout (que dice «tu papá»).
+  twitter: { title: TEXTOS_PORTADA.ca.hero.titulo.join(" "), description: TEXTOS_PORTADA.ca.meta.descripcion },
 };
 
 export default function PortadaCa() {

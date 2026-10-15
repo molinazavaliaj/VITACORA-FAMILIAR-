@@ -191,7 +191,7 @@ export default async function PaginaAnticipo({
             <div className="mt-12 border-t border-[#EBEBE7] pt-8 text-center">
               <p className="text-[26px] tracking-[0.4em] text-[#AEAEA6]">…</p>
               <p className="mt-3 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light italic">
-                Y sigue contando.
+                Sigue contando.
               </p>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default async function PaginaAnticipo({
       <footer className="mt-auto border-t border-[#EBEBE7]">
         <div className="mx-auto w-full max-w-2xl px-6 py-8 text-center">
           <p className="text-[15px] italic text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-            Para las vidas que merecen su propio libro
+            Todas las vidas merecen su propio libro
           </p>
         </div>
       </footer>

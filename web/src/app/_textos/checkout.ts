@@ -92,8 +92,8 @@ export const RESUMEN: Textos<TextosResumen> = {
     ahorras: (c) => `Ahorras ${c} con el pack`,
     incluye: (propia) =>
       propia
-        ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde tu panel"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchas sus audios mientras cuenta, desde tu panel"],
+        ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde la página de tu historia"]
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchas sus audios mientras cuenta, desde la página de su historia"],
   },
   ar: {
     etiqueta: "Resumen del pedido",
@@ -117,8 +117,8 @@ export const RESUMEN: Textos<TextosResumen> = {
     ahorras: (c) => `Ahorrás ${c} con el pack`,
     incluye: (propia) =>
       propia
-        ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde tu panel"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchás sus audios mientras cuenta, desde tu panel"],
+        ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde la página de tu historia"]
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchás sus audios mientras cuenta, desde la página de su historia"],
   },
   ca: {
     etiqueta: "Resum de la comanda",
@@ -141,8 +141,8 @@ export const RESUMEN: Textos<TextosResumen> = {
     ahorras: (c) => `Estalvies ${c} amb el pack`, // ca: PENDIENTE REVISIÓN NATIVA
     incluye: (propia) =>
       propia
-        ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des del teu panell"]
-        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Escoltes els seus àudios mentre explica, des del teu panell"],
+        ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des de la pàgina de la teva història"]
+        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Escoltes els seus àudios mentre explica, des de la pàgina de la seva història"],
   },
 };
 
@@ -190,7 +190,7 @@ export type TextosCheckout = {
   primeroYDemas: (primero: string, demas: string) => string;
   /** Las frases de valor de las opciones del paso 1 (Naza 14/10, APROBADAS en es; ca pendiente nativa). */
   frases: Record<"marco" | "impreso" | "digital", { cabeza: string; bajada: string }>;
-  /** El botón del paso 1 (Naza 14/10, APROBADO): «Quiero su libro» / «Quiero mi libro». */
+  /** El botón del paso 1: «Iniciar Vitácora» en los dos casos (Naza 15/10, amigo/textos.md 3). ca: PENDIENTE REVISIÓN NATIVA. */
   quieroLibro: (propia: boolean) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
@@ -362,7 +362,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
       digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
     },
-    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
+    quieroLibro: () => "Iniciar Vitácora",
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -421,9 +421,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     masNota: "Opcional. Con esto el biógrafo no pregunta por una boda que no hubo ni por hijos que no tiene, y sabe de qué época hablan.",
     fotosTituloOtro: "Sus fotos",
     fotosTituloYo: "Tus fotos",
-    fotosBajada: "Si tienes fotos suyas, súbelas aquí. También puedes hacerlo después, desde tu panel.",
+    fotosBajada: "Si tienes fotos suyas, súbelas aquí. También puedes hacerlo después, desde la página de su historia.",
     album: "El álbum del libro",
-    albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde tu panel, eliges cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
+    albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde la página de su historia, eliges cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
     agregarFotos: "+ Añadir fotos",
     agregarMas: (n, m) => `+ Añadir más (${n} de ${m})`,
     fotoSubida: "Subida",
@@ -433,8 +433,8 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pagoTitulo: "Tus datos y el pago",
     pagoBajada: (yo, regalo) =>
       regalo
-        ? "Ahí te llega la tarjeta. Con ese mismo correo entras a tu panel."
-        : `Ahí te avisamos ${yo ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo entras a tu panel.`,
+        ? "Ahí te llega la tarjeta. Con ese mismo correo entras a la página de su historia."
+        : `Ahí te avisamos ${yo ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo entras a la página de ${yo ? "tu" : "su"} historia.`,
     email: "Tu correo",
     emailPista: "martina@ejemplo.com",
     tuNombre: "Tu nombre",
@@ -532,7 +532,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
       digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
     },
-    quieroLibro: (propia) => (propia ? "Quiero mi libro" : "Quiero su libro"),
+    quieroLibro: () => "Iniciar Vitácora",
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -591,9 +591,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     masNota: "Opcional. Con esto el biógrafo no pregunta por una boda que no hubo ni por hijos que no tiene, y sabe de qué época hablan.",
     fotosTituloOtro: "Sus fotos",
     fotosTituloYo: "Tus fotos",
-    fotosBajada: "Si tenés fotos suyas, subilas acá. También podés hacerlo después, desde tu panel.",
+    fotosBajada: "Si tenés fotos suyas, subilas acá. También podés hacerlo después, desde la página de su historia.",
     album: "El álbum del libro",
-    albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde tu panel, elegís cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
+    albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde la página de su historia, elegís cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
     agregarFotos: "+ Agregar fotos",
     agregarMas: (n, m) => `+ Agregar más (${n} de ${m})`,
     fotoSubida: "Subida",
@@ -603,8 +603,8 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pagoTitulo: "Tus datos y el pago",
     pagoBajada: (yo, regalo) =>
       regalo
-        ? "Ahí te llega la tarjeta. Con ese mismo correo entrás a tu panel."
-        : `Ahí te avisamos ${yo ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo entrás a tu panel.`,
+        ? "Ahí te llega la tarjeta. Con ese mismo correo entrás a la página de su historia."
+        : `Ahí te avisamos ${yo ? "cuando el libro esté listo" : "cuando acepte y cuando el libro esté listo"}. Con ese mismo correo entrás a la página de ${yo ? "tu" : "su"} historia.`,
     email: "Tu correo",
     emailPista: "martina@ejemplo.com",
     tuNombre: "Tu nombre",
@@ -701,7 +701,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Per a la prestatgeria", bajada: "El seu llibre en paper i en PDF" },
       digital: { cabeza: "Només digital", bajada: "Per llegir i escoltar a qualsevol pantalla" },
     },
-    quieroLibro: (propia) => (propia ? "Vull el meu llibre" : "Vull el seu llibre"),
+    quieroLibro: () => "Iniciar Vitácora",
     unoMenos: (q) => `Un menys: ${q}`,
     unoMas: (q) => `Un més: ${q}`,
 
@@ -760,9 +760,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     masNota: "Opcional. Així el biògraf no pregunta per un casament que no va existir ni per fills que no té, i sap de quina època parlen.",
     fotosTituloOtro: "Les seves fotos",
     fotosTituloYo: "Les teves fotos",
-    fotosBajada: "Si tens fotos seves, puja-les aquí. També ho pots fer després, des del teu panell.",
+    fotosBajada: "Si tens fotos seves, puja-les aquí. També ho pots fer després, des de la pàgina de la seva història.",
     album: "L'àlbum del llibre",
-    albumDetalle: "Les fotos que vulguis que surtin al seu llibre, de qualsevol moment de la seva vida. Després, des del teu panell, tries quina va a la tapa i quines als marcs. Com més píxels, millor s'imprimeixen.",
+    albumDetalle: "Les fotos que vulguis que surtin al seu llibre, de qualsevol moment de la seva vida. Després, des de la pàgina de la seva història, tries quina va a la tapa i quines als marcs. Com més píxels, millor s'imprimeixen.",
     agregarFotos: "+ Afegir fotos",
     agregarMas: (n, m) => `+ Afegir-ne més (${n} de ${m})`,
     fotoSubida: "Pujada",
@@ -772,8 +772,8 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pagoTitulo: "Les teves dades i el pagament",
     pagoBajada: (yo, regalo) =>
       regalo
-        ? "Allà t'arriba la targeta. Amb aquest mateix correu entres al teu panell."
-        : `Allà t'avisem ${yo ? "quan el llibre estigui llest" : "quan accepti i quan el llibre estigui llest"}. Amb aquest mateix correu entres al teu panell.`,
+        ? "Allà t'arriba la targeta. Amb aquest mateix correu entres a la pàgina de la seva història."
+        : `Allà t'avisem ${yo ? "quan el llibre estigui llest" : "quan accepti i quan el llibre estigui llest"}. Amb aquest mateix correu entres a la pàgina de la ${yo ? "teva" : "seva"} història.`,
     email: "El teu correu",
     emailPista: "martina@exemple.com",
     tuNombre: "El teu nom",

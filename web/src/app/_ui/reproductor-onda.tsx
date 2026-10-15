@@ -16,8 +16,11 @@ export function ReproductorOnda({
   src,
   etiquetaReproducir,
   etiquetaPausar,
+  duracion,
 }: {
   src: string;
+  /** Lo que dura el fragmento («0:30»), a la derecha de la onda. Opcional. */
+  duracion?: string;
   /** Nombre accesible del botón cuando está quieto, p. ej. «Escuchar su voz». */
   etiquetaReproducir: string;
   etiquetaPausar: string;
@@ -83,6 +86,7 @@ export function ReproductorOnda({
           />
         ))}
       </div>
+      {duracion ? <span className="dir-dato opacity-70">{duracion}</span> : null}
       <audio ref={audio} src={src} preload="none" />
     </div>
   );

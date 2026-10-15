@@ -2,33 +2,20 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // La portada por idioma (rediseño 2026-10): / es España, de tú; /ar es
-// Argentina, de vos como siempre; /ca, catalán. Antes la portada leía el país
-// en cada visita (x-vercel-ip-country); ahora cada versión es una página
-// estática y el CDN manda a /ar a quien llega de fuera de Europa
-// (next.config.ts). Textos aprobados en docs/web-textos-v3/aprobados.md y el
-// POR_TRATO del 13/10.
+// Argentina, de vos; /ca, catalán. Cada versión es una página estática y el
+// CDN manda a /ar a quien llega de fuera de Europa (next.config.ts).
 //
-// Textos aprobados que el diseño nuevo ya no usa (anotados en
-// docs/rediseno-2026-10/fase-1/textos-portada.md para Naza):
-// - «La de tu padre/papá, la de tu abuela, la tuya.» (la bajada del hero pasó a
-//   ser la de la maqueta: «Tu padre lo cuenta con audios de WhatsApp…»).
-// - «¿Cuál sabes/sabés de tu familia?» (la segunda conversación de WhatsApp,
-//   la de la sobremesa, no está en el diseño nuevo).
-//
-// Dirección nueva (14/10, aprobada por Naza): textos que la portada ya no
-// muestra, anotados en docs/rediseno-2026-10/direccion/portada/textos.md:
-// - «Tienes/Tenés el teléfono lleno de fotos suyas…» (fotos.texto): lo
-//   reemplazó el bloque del dolor y la carta (Naza, 3.ª vuelta).
-// - «La de tu padre/papá, la de tu abuelo, la de tu abuela.» (paraQuien.titulo):
-//   pasó a «Para las vidas que merecen su propio libro.» (aprobado).
-// - «Tu padre lo cuenta con audios de WhatsApp…» (hero.bajada): pasó a la
-//   bajada de marca aprobada el 14/10.
-// - «Si sabe mandar un audio, ya sabe hacerlo.» como título (como.titulo):
-//   ahora va dentro de la bajada de «Cómo funciona».
+// Desde el 15/10 la portada es la maqueta que aprobó Naza (correcciones de su
+// amigo y brief de Remento, docs/rediseno-2026-10/amigo/textos.md 1 a 30):
+// inicio → qué es → cómo funciona → carta → escúchalo → el libro (un solo
+// precio, el del impreso) → marcos → regalo → preguntas → duda → cierre. Se
+// fueron la banda, «Las fotos quedan», «Para quién» con Viaje, la
+// conversación, «Mientras cuenta», «Lo que se hereda», el precio con «desde»,
+// el bloque de Viaje y «el tuyo».
 
-import Home from "../src/app/page";
-import PortadaCa from "../src/app/ca/page";
-import PortadaAr from "../src/app/ar/page";
+import Home, { metadata as metaEs } from "../src/app/page";
+import PortadaCa, { metadata as metaCa } from "../src/app/ca/page";
+import PortadaAr, { metadata as metaAr } from "../src/app/ar/page";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const PAGINAS = { es: Home, ca: PortadaCa, ar: PortadaAr } as const;
@@ -37,46 +24,45 @@ function portada(idioma: keyof typeof PAGINAS): string {
   return renderToStaticMarkup(PAGINAS[idioma]());
 }
 
+const eur = (n: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+const ars = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+
 const DE_TU = [
-  "Mientras responde, tú vas escuchando su historia desde tu panel.",
-  "La vida de tu padre, contada por él",
+  "¿Quieres contar tu propia vida?",
+  "También puedes hacer tu libro.",
+  "Tú lo vas siguiendo de cerca.",
+  "Escuchas cada audio en cuanto lo manda.",
+  "Lo ves terminado y eliges la tapa antes de imprimirlo.",
+  "Nos dices quién es",
+  "Nos dejas su nombre, su WhatsApp y el día en que quieres que empiece.",
   "Muchos niños van a conocer a sus abuelos solo por fotos",
-  "Lo anotas",
-  "Nos dices su nombre",
-  "Buenos días, Roberto. Cuéntame el primer recuerdo",
-  "Qué bonito eso del patio con el limonero. Cuando quieras, seguimos con tus padres.",
-  "Entra cuando quieras a escucharlo.",
-  "El mismo biógrafo, pero de viaje contigo.",
-  "guarda las fotos que le mandas con su historia",
-  "Le respondes con un audio",
-  "Le mandas la foto del día y le cuentas qué pasaba.",
+  "Las escuchas con el código de la contratapa o desde el móvil, cuando quieras.",
+  "Léelo",
+  "Acercas el móvil y suena su voz. Puedes pedir uno",
+  "Regálale algo que va a quedar para toda la vida. Eliges el día",
   "Las preguntas te llegan a ti",
-  "¿Mi padre va a saber usarlo?",
   "se suman si quieres.",
-  "Regálalo con una tarjeta →",
 ];
 
 const DE_VOS = [
-  "Mientras responde, vos vas escuchando su historia desde tu panel.",
-  "La vida de tu papá, contada por él",
+  "¿Querés contar tu propia vida?",
+  "También podés hacer tu libro.",
+  "Vos lo vas siguiendo de cerca.",
+  "Escuchás cada audio en cuanto lo manda.",
+  "Lo ves terminado y elegís la tapa antes de imprimirlo.",
+  "Nos decís quién es",
+  "Nos dejás su nombre, su WhatsApp y el día en que querés que empiece.",
   "Muchos chicos van a conocer a sus abuelos solo por fotos",
-  "Lo anotás",
-  "Nos decís su nombre",
-  "Buen día, Roberto. Contame el primer recuerdo",
-  "Qué lindo eso del patio con el limonero. Cuando quieras, seguimos con tus papás.",
-  "Entrá cuando quieras a escucharlo.",
-  "El mismo biógrafo, pero de viaje con vos.",
-  "guarda las fotos que le mandás con su historia",
-  "Le respondés con un audio",
-  "Le mandás la foto del día y le contás qué pasaba.",
+  "Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
+  "Leelo",
+  "Acercás el celular y suena su voz. Podés pedir uno",
+  "Regalale algo que va a quedar para toda la vida. Elegís el día",
   "Las preguntas te llegan a vos",
-  "¿Mi papá va a saber usarlo?",
   "se suman si querés.",
-  "Regalalo con una tarjeta →",
 ];
 
 // Lo que no puede aparecer en ninguna versión (DECISIONES D1 y D4,
-// TEXTOS-Y-REGLAS §1).
+// TEXTOS-Y-REGLAS §1) ni lo que se fue el 15/10.
 const PROHIBIDO = [
   "mientras se escribe",
   "anticipo",
@@ -88,6 +74,20 @@ const PROHIBIDO = [
   "El amor",
   "Quiénes somos",
   "Lo que dicen las familias",
+  // Lo que se fue con la portada nueva (15/10).
+  "Las fotos quedan.",
+  "Les fotos queden.",
+  "Lo que se hereda",
+  "Todo lo que aprendió en una vida",
+  "Un solo pago. Sin sorpresas después.",
+  "También hay un libro en cada viaje.",
+  "Conocer la Vitácora de viaje",
+  "¿Y si el libro es el tuyo?",
+  "Qué lindo eso del patio con el limonero",
+  "No hace falta imaginarlo",
+  "tu panel",
+  "teu panell",
+  "Para las vidas que merecen",
 ];
 
 /** El HTML sin la sección de preguntas frecuentes, que es donde sí va la garantía. */
@@ -100,8 +100,13 @@ function sinPreguntas(html: string): string {
 
 describe("la portada según el idioma", () => {
   beforeEach(() => {
-    process.env.PRECIO_ARS ??= "65000";
-    process.env.PRECIO_EUR ??= "79";
+    process.env.PRECIO_EUR = "49";
+    process.env.PRECIO_ARS = "65000";
+    process.env.PRECIO_IMPRESO_EUR = "50";
+    process.env.PRECIO_IMPRESO_ARS = "90000";
+    process.env.PRECIO_MARCO_EUR = "19";
+    delete process.env.PRECIO_MARCO_ARS;
+    delete process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO;
   });
 
   it("es estática: la página no espera nada (sin headers ni cookies)", () => {
@@ -114,19 +119,17 @@ describe("la portada según el idioma", () => {
     for (const frase of DE_VOS) expect(html, frase).not.toContain(escapar(frase));
     expect(html).toContain('lang="es-ES"');
     expect(html).toContain('href="/comprar"');
-    expect(html).toContain('href="/ejemplo"');
-    expect(html).toContain('href="/regalar"');
+    expect(html).toContain('src="/telefono-historia"');
     expect(html).toContain("€");
   });
 
-  it("en /ar, de vos como siempre, en pesos", () => {
+  it("en /ar, de vos, en pesos", () => {
     const html = portada("ar");
     for (const frase of DE_VOS) expect(html, frase).toContain(escapar(frase));
     for (const frase of DE_TU) expect(html, frase).not.toContain(escapar(frase));
     expect(html).toContain('lang="es-AR"');
     expect(html).toContain('href="/ar/comprar"');
-    expect(html).toContain('href="/ar/ejemplo"');
-    expect(html).toContain('href="/ar/regalar"');
+    expect(html).toContain('src="/ar/telefono-historia"');
     expect(html).toContain("Botón de arrepentimiento");
     expect(html).not.toContain("€");
   });
@@ -135,22 +138,89 @@ describe("la portada según el idioma", () => {
     const html = portada("ca");
     expect(html).toContain('lang="ca-ES"');
     expect(html).toContain(escapar("En cada família hi ha"));
+    expect(html).toContain(escapar("Totes les vides mereixen el seu propi llibre."));
     expect(html).toContain('href="/ca/comprar"');
-    expect(html).toContain('href="/ca/ejemplo"');
-    expect(html).toContain('href="/ca/regalar"');
     expect(html).toContain("€");
   });
 
-  it("Para quién es: el título aprobado, y la cuarta foto lleva a Kids (15/10)", () => {
-    expect(portada("es")).toContain('href="/kids"');
-    expect(portada("es")).toContain(escapar("Su mundo de ahora, guardado para cuando crezca."));
-    expect(portada("ca")).toContain('href="/ca/kids"');
-    expect(portada("ar")).toContain('href="/ar/kids"');
-    // Kids no vende sin KIDS_VENTA: la portada nunca lleva a su compra.
-    for (const idioma of ["es", "ca", "ar"] as const) expect(portada(idioma)).not.toContain("/comprar/kids");
-    expect(portada("es")).toContain(escapar("Para las vidas que merecen su propio libro."));
-    expect(portada("ar")).toContain(escapar("Para las vidas que merecen su propio libro."));
-    expect(portada("ca")).toContain(escapar("Per a les vides que mereixen el seu propi llibre."));
+  it("el orden aprobado: inicio, qué es, cómo funciona, carta, escúchalo, el libro, marcos, regalo, preguntas, duda y cierre", () => {
+    process.env.NEXT_PUBLIC_WHATSAPP_DUDAS = "+34600000000";
+    const html = portada("es");
+    const orden = [
+      "En cada familia hay",
+      "Un regalo para quien cuenta y otro para toda la familia.",
+      "Así se ve la página de su historia.",
+      'id="como-funciona"',
+      "Su familia lo lee y lo escucha",
+      "Un día vas a querer preguntarle algo y ya no va a estar para contártelo.",
+      "Su voz, guardada en su libro.",
+      "Cada vida merece su propio libro.",
+      "Un marco con su voz para cada uno.",
+      "No le regales la misma camisa de todos los años.",
+      'id="preguntas"',
+      "¿Te queda alguna duda?",
+      "Todas las vidas merecen su propio libro.",
+    ].map((s) => (s.startsWith("id=") ? s : escapar(s)));
+    const posiciones = orden.map((s) => html.indexOf(s));
+    posiciones.forEach((p, i) => expect(p, orden[i]).toBeGreaterThan(-1));
+    expect([...posiciones].sort((a, b) => a - b)).toEqual(posiciones);
+    delete process.env.NEXT_PUBLIC_WHATSAPP_DUDAS;
+  });
+
+  it("un solo precio, el del impreso, sin «desde» (ni en la barra fija del móvil)", () => {
+    const es = portada("es");
+    expect(es).toContain(`>${escapar(eur(49 + 50))}<`);
+    expect(es).not.toContain(escapar(eur(49)));
+    expect(es).not.toMatch(/[Dd]esde\s*(<!-- -->)?\s*\d/);
+    expect(es).toContain(escapar("pago único, sin suscripciones"));
+    // El marco, literal a 19 € en España.
+    expect(es).toContain(escapar("a 19 € cada uno."));
+    const ar = portada("ar");
+    expect(ar).toContain(escapar(ars(65000 + 90000)));
+    expect(ar).not.toContain(escapar(ars(65000)));
+    // Sin PRECIO_MARCO_ARS la frase del marco va sin número.
+    expect(ar).toContain(escapar("cada hijo o cada nieto."));
+    // Sin impreso en la región no hay ningún número ni barra fija.
+    delete process.env.PRECIO_IMPRESO_EUR;
+    const sinImpreso = portada("es");
+    expect(sinImpreso).not.toContain(escapar(eur(49)));
+    expect(sinImpreso).not.toContain("fixed inset-x-0 bottom-0");
+  });
+
+  it("los botones dicen «Iniciar Vitácora» y el cierre lleva el lema nuevo", () => {
+    for (const idioma of ["es", "ar", "ca"] as const) {
+      const html = portada(idioma);
+      expect(html.split(escapar("Iniciar Vitácora")).length - 1, idioma).toBeGreaterThanOrEqual(3);
+    }
+    expect(portada("es")).toContain(escapar("Todas las vidas merecen su propio libro."));
+    expect(portada("ar")).toContain(escapar("Todas las vidas merecen su propio libro."));
+  });
+
+  it("Escúchalo suena con la voz de Naza (el campo, 0:30) si no hay otro fragmento cargado", () => {
+    const html = portada("es");
+    expect(html).toContain('src="/rediseno/su-voz-campo.mp3"');
+    expect(html).toContain(escapar("El campo"));
+    expect(html).toContain("0:30");
+    expect(html).toContain(escapar("«En el campo andábamos a caballo, hacíamos vida de campo"));
+    expect(portada("ca")).toContain(escapar("«En el campo andábamos a caballo"));
+    process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO = "https://ejemplo.com/fragmento.mp3";
+    expect(portada("es")).toContain('src="https://ejemplo.com/fragmento.mp3"');
+  });
+
+  it("sin «padre» en la portada general (se dice «tu familiar»), ni en el título ni en la descripción", () => {
+    for (const idioma of ["es", "ar"] as const) {
+      const html = portada(idioma);
+      expect(html, idioma).not.toMatch(/\bpadre\b|\bpapá\b/i);
+      expect(html).toContain(escapar("¿Va a saber usarlo?"));
+    }
+    expect(portada("ca")).not.toMatch(/\bpare\b/);
+    for (const m of [metaEs, metaAr, metaCa]) {
+      const texto = JSON.stringify(m);
+      expect(texto).not.toMatch(/padre|papá|\bpare\b/);
+    }
+    expect(metaEs.description).toBe(
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+    );
   });
 
   it("nada de lo prohibido, en ningún idioma", () => {
@@ -172,31 +242,33 @@ describe("la portada según el idioma", () => {
     expect(sinPreguntas(ca)).not.toContain("tornem");
   });
 
-  it("el inicio no carga imágenes ni vídeo: el primer pintado es el titular", () => {
+  it("las preguntas: la primera cambiada, «No le gusta hablar de sí mismo» y las dos nuevas al final", () => {
     const html = portada("es");
-    const inicio = html.slice(0, html.indexOf('id="hero"'));
-    expect(inicio).not.toContain("<img");
+    const faq = html.slice(html.indexOf('id="preguntas"'));
+    const orden = [
+      "¿Va a saber usarlo?",
+      "¿Y si no quiere, o le da vergüenza?",
+      "«No le gusta hablar de sí mismo.»",
+      "¿Se puede tener el libro impreso?",
+      "¿Puedo ver el libro antes de que se imprima?",
+      "¿Y si quiero hacer mi propio libro?",
+    ].map((s) => faq.indexOf(escapar(s)));
+    orden.forEach((p) => expect(p).toBeGreaterThan(-1));
+    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
+  });
+
+  it("sin vídeo", () => {
+    const html = portada("es");
     expect(html).not.toContain("<video");
     expect(html).not.toContain(".mp4");
   });
 
-  it("el libro de ejemplo en 3D: QR real, «Historia inventada» y «Ver otra vez»", () => {
+  it("el libro de ejemplo en 3D en el inicio: QR real y el libro de Osvaldo", () => {
     const es = portada("es");
+    const inicio = es.slice(0, es.indexOf('id="hero"'));
+    expect(inicio).toContain("data-libro-3d");
     expect(es).toMatch(/<path d="M\d+ \d+h1v1h-1z/);
-    expect(es).toContain("Historia inventada");
-    expect(es).toContain("Ver otra vez");
     expect(es).toContain(escapar("Osvaldo Toroide · El libro de su vida"));
-    expect(portada("ca")).toContain("Tornar-ho a veure");
-  });
-
-  it("sin secciones repetidas (15/10): ni «Lo que se hereda» ni «Antes de decidir»; su duda propia pasó a la FAQ", () => {
-    const html = portada("es");
-    expect(html).not.toContain(escapar("Todo lo que aprendió en una vida, guardado para los que vienen."));
-    expect(html).not.toContain(escapar("Lo que nos preguntan antes de regalarlo."));
-    const faq = html.slice(html.indexOf('id="preguntas"'));
-    expect(faq).toContain(escapar("«No le gusta hablar de sí mismo.»"));
-    expect(faq).toContain(escapar("¿Mi padre va a saber usarlo?"));
-    expect(faq).toContain(escapar("¿Y si empieza y no termina?"));
   });
 
   it("una sola capa (el inicio): ninguna hoja tapa texto a medio leer", () => {

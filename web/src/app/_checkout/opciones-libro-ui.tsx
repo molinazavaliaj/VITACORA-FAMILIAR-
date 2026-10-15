@@ -10,6 +10,7 @@ import {
   opcionDe,
   opcionesDeLibro,
   precioDeOpcion,
+  reglaDeMarcos,
   sumaSinPack,
   type OpcionLibro,
 } from "./opciones-libro";
@@ -211,7 +212,7 @@ function Extras({
           titulo={tituloMarco}
           detalle={T.marcoRegaloDetalle}
           precio={`+${f(marco.primero)}`}
-          regla={marco.demas !== null && marco.demas !== marco.primero ? T.primeroYDemas(f(marco.primero), f(marco.demas)) : undefined}
+          regla={reglaDeMarcos(marco, T.primeroYDemas, f)}
           valor={marcosParaRegalar(estado)}
           max={marco.max}
           onValor={(n) => onCambio(conMarcosParaRegalar(estado, n))}

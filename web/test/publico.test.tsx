@@ -62,7 +62,7 @@ describe("el pie público", () => {
     expect(es).toContain("Desistimiento");
     expect(es).not.toContain("Botón de arrepentimiento");
     for (const html of [ar, es]) {
-      expect(html).toContain(escapar("Para las vidas que merecen su propio libro"));
+      expect(html).toContain(escapar("Todas las vidas merecen su propio libro"));
       expect(html).toContain("hola@vitacorafamiliar.com");
     }
   });

@@ -166,7 +166,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     // Aprobados por Naza el 07/10 (Task 0, tanda 1).
     mailAsunto: (como: string) => `Tu regalo para ${como} está listo`,
     mailCuerpo: (como: string) =>
-      `Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando ${como} la escanee, empieza su entrevista y lo vas a ver en tu tablero.`,
+      `Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando ${como} la escanee, empieza su entrevista y lo vas a ver en la página de su historia.`,
     mailBoton: "Ver la tarjeta",
     estadoPanel: "Esperando que abra su regalo",
     estadoCorto: "esperando que abra el regalo",
@@ -240,7 +240,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
   tu: {
     mailAsunto: (como: string) => `Tu regalo para ${como} está listo`,
     mailCuerpo: (como: string) =>
-      `Ya puedes descargar la tarjeta. Imprímela o mándala por WhatsApp. Cuando ${como} la escanee, empieza su entrevista y lo vas a ver en tu tablero.`,
+      `Ya puedes descargar la tarjeta. Imprímela o mándala por WhatsApp. Cuando ${como} la escanee, empieza su entrevista y lo vas a ver en la página de su historia.`,
     mailBoton: "Ver la tarjeta",
     estadoPanel: "Esperando que abra su regalo",
     estadoCorto: "esperando que abra el regalo",

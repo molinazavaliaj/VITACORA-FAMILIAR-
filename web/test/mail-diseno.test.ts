@@ -52,7 +52,7 @@ describe("mail de acceso con el diseño nuevo", () => {
     const { texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR" });
     expect(texto).toContain("Gracias por confiar. Ya está en marcha.");
     expect(texto).toContain("En un rato le llega un mensaje nuestro por WhatsApp a tu abuela, contándole de qué se trata. Arranca cuando quiera.");
-    expect(texto).toContain(`Entrar a mi tablero\n${URL}/entrar`);
+    expect(texto).toContain(`Entrar a la página de su historia\n${URL}/entrar`);
     expect(texto).toContain("Cuando termina de contar, el biógrafo escribe su libro.");
     expect(texto).not.toMatch(/<[a-z]/i);
   });
