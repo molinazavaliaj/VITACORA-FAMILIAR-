@@ -352,6 +352,35 @@ async function trabajoLibro(db: Db, pedido: { id: string; narrador_id: string },
   }
 }
 
+// ---------------------------------------------------------------- el interruptor
+
+/**
+ * `ESCRITOR_KIDS`: apagado por defecto. `1` = para todos los chicos; `solo:<id>,<id>` = solo esos (el piloto).
+ * Apagado (o un chico fuera de la lista), `revisarLibrosKids` no llama a ningún modelo ni sube nada.
+ */
+export function escritorKidsPrendido(narradorId: string): boolean {
+  const v = (process.env.ESCRITOR_KIDS ?? '').trim();
+  if (v === '1') return true;
+  if (!v.startsWith('solo:')) return false;
+  return v.slice(5).split(',').map((s) => s.trim()).filter(Boolean).includes(narradorId);
+}
+
+/** Chicos ya avisados en este proceso (en memoria: apagado no se sube nada a Storage, ni un candado). */
+const avisadosApagado = new Set<string>();
+
+async function avisarApagado(id: string, nombre: string | null): Promise<void> {
+  if (avisadosApagado.has(id)) return;
+  avisadosApagado.add(id);
+  console.log(`kids ${id}: terminó de contar y el escritor de Kids está apagado (ESCRITOR_KIDS)`);
+  await avisarSocios(
+    `Un chico terminó de contar y el escritor de Kids está apagado: ${nombre ?? id}`,
+    `${nombre ?? id} (${id}) terminó de contar y el escritor de Kids está apagado, así que su libro no se escribe. Para prenderlo: ESCRITOR_KIDS=1 (todos) o ESCRITOR_KIDS=solo:${id} (solo este) en Railway. Este aviso sale una vez por chico (se repite si la fábrica se reinicia).`,
+  );
+}
+
+/** Para los tests. */
+export const olvidarAvisosApagado = (): void => avisadosApagado.clear();
+
 // ---------------------------------------------------------------- el tick
 
 type ChicoFila = { narrador_id: string; ficha?: { apodo?: string; linkPanel?: string } | null; termino_at?: string | null };
@@ -386,6 +415,10 @@ export async function revisarLibrosKids(db: Db, o: { motor?: MotorKids; ahora?: 
       const narrador = narradores.get(chico.narrador_id);
       // Terminó de contar = termino_at y el narrador en `completado` (CONTRATO, «Transiciones de un chico»).
       if (narrador?.estado !== 'completado') continue;
+      if (!escritorKidsPrendido(chico.narrador_id)) {
+        await avisarApagado(chico.narrador_id, narrador.como_le_dicen);
+        continue;
+      }
       try {
         await revisarChico(db, chico, narrador, pedidos.filter((x) => x.narrador_id === chico.narrador_id), o);
       } catch (err) {

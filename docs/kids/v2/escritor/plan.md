@@ -68,8 +68,9 @@ inventado deja `libro.pdf`, `sobre.pdf` e `informe.md` para leer.
 El worker (`termino_at` → A; pedido pagado → B, C y armado; el padre aprueba en el panel antes de imprimir; aviso a
 Naza a los 14 días, decisión 9) va **después** de la prueba paga y de que Naza lea el libro.
 **16/10:** enchufado en la rama `kids-libro` (`fabrica/src/escritor-kids/produccion/`, probado solo con el modelo
-falso; CONTRATO, «El libro de Kids en la fábrica»). Al mergear a main queda prendido: no mergear antes de la prueba
-paga y de que Naza lea el libro.
+falso; CONTRATO, «El libro de Kids en la fábrica»). Tiene un interruptor, `ESCRITOR_KIDS`, **apagado por defecto**:
+sin él no se gasta nada y solo se avisa a los socios que un chico terminó. `ESCRITOR_KIDS=solo:<narrador_id>` lo
+prende solo para ese chico (el piloto real de Naza); `ESCRITOR_KIDS=1`, para todos.
 
 ## Pruebas
 

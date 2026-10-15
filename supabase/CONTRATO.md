@@ -850,6 +850,12 @@ Decisiones 6 a 9 de `docs/kids/v2/libro-decisiones-2026-10-15.md`. Código: `fab
 (la receta de `escritor-kids/` sobre la máquina del escritor de la casa: Batch, tope, checkpoints, `consumo_ia`).
 **No cambia ninguna tabla.** Corre en cada tick (`revisarLibrosKids`), en segundo plano, una cola propia.
 
+**Interruptor `ESCRITOR_KIDS` (fábrica, Railway), apagado por defecto.** Sin la variable (o con cualquier otro valor) no
+se llama a ningún modelo ni se sube nada: por cada chico terminado sale un log y un aviso a `MAIL_SOCIOS` («un chico
+terminó de contar y el escritor de Kids está apagado»), una vez por chico y por proceso (en memoria: se repite si la
+fábrica se reinicia). `ESCRITOR_KIDS=1` lo prende para todos; `ESCRITOR_KIDS=solo:<narrador_id>,<narrador_id>` solo
+para esos (el piloto real de Naza). Todo lo de abajo vale para los chicos prendidos.
+
 1. **Terminó de contar** (`kids_v2.termino_at` puesto y `narradores.estado = 'completado'`) → la Etapa A (leer todo),
    una sola vez. Si marca algo preocupante: `real/frenado.json` y mail a `MAIL_SOCIOS`; **nada más** hasta que exista
    `real/liberado.json`.
@@ -894,7 +900,7 @@ Decisiones 6 a 9 de `docs/kids/v2/libro-decisiones-2026-10-15.md`. Código: `fab
 | `libro-imprenta.pdf`, `sobre-imprenta.pdf` | fábrica | imprenta | Copias de `libro.pdf` y `sobre.pdf` al pasar la entrega a `en_produccion`. |
 
 `consumo_ia`: una fila por llamada, `servicio = 'fabrica'`, `paso` = `escritor-kids-A`, `escritor-kids-B` o
-`escritor-kids-C`. Variables: `ESCRITOR_KIDS_TOPE_USD` (8 por defecto, tope de gasto por trabajo),
+`escritor-kids-C`. Variables: `ESCRITOR_KIDS` (el interruptor, arriba), `ESCRITOR_KIDS_TOPE_USD` (8 por defecto, tope de gasto por trabajo),
 `ESCRITOR_LIBROS_EN_PARALELO` (la misma que la casa, pero los de Kids van en su propia cola), `MAIL_SOCIOS`.
 
 ## Storage — bucket privado `audios`

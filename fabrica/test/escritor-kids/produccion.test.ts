@@ -17,7 +17,7 @@ import { salidasFalsasKids } from '../../src/escritor-kids/falso.js';
 import { carpetaDeFilas, materialDe } from '../../src/escritor-kids/material/carpeta.js';
 import { dirDeFijo, filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import { TEXTOS_MAIL_KIDS } from '../../src/escritor-kids/produccion/mails.js';
-import { colaKids, contarPaginas, revisarLibrosKids, topeKids, type MotorKids } from '../../src/escritor-kids/produccion/libro-kids.js';
+import { colaKids, contarPaginas, olvidarAvisosApagado, revisarLibrosKids, topeKids, type MotorKids } from '../../src/escritor-kids/produccion/libro-kids.js';
 import { fuenteDeDisco } from '../../src/escritor-kids/salida/fotos.js';
 
 const ID = '9d2e7b40-1c5f-4a83-b6e0-2f8c3a91d057'; // chico-preocupante (Benja, inventado)
@@ -108,7 +108,9 @@ async function vuelta(db: unknown, motor: MotorKids, ahora?: number): Promise<vo
 
 beforeEach(() => {
   mails = [];
+  olvidarAvisosApagado();
   vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+  vi.stubEnv('ESCRITOR_KIDS', '1');
   vi.stubGlobal('fetch', vi.fn(async (_url: string, init: { body: string }) => { mails.push(JSON.parse(init.body)); return new Response('{}', { status: 200 }); }));
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -248,6 +250,57 @@ describe('el libro de Kids en el worker', () => {
   it('sin la tabla kids_v2 no hace nada ni tira', async () => {
     const db = { from: () => ({ select: async () => ({ data: null, error: { code: '42P01', message: 'relation "kids_v2" does not exist' } }) }) };
     await expect(revisarLibrosKids(db as never)).resolves.toBeUndefined();
+  });
+});
+
+describe('el interruptor ESCRITOR_KIDS', () => {
+  const OTRO = '3f6a2c1e-8b4d-4c7a-9e21-6d5b0a7c4e19';
+  /** Benja y otro chico, los dos terminados y con el pedido pagado. */
+  const dosChicos = () => {
+    const t = tablasDeBenja({ pedido: true });
+    t.kids_v2.push({ ...t.kids_v2[0], narrador_id: OTRO });
+    t.narradores.push({ ...t.narradores[0], id: OTRO, como_le_dicen: 'Tomi' });
+    t.pedidos.push({ id: 'p9', narrador_id: OTRO, estado: 'pagado' });
+    return baseFalsa(t);
+  };
+
+  it('apagado (sin la variable o con otro valor): ningún modelo, nada subido; un aviso a socios por chico, una vez', async () => {
+    for (const valor of [undefined, '0', 'si']) {
+      olvidarAvisosApagado();
+      mails = [];
+      if (valor === undefined) vi.stubEnv('ESCRITOR_KIDS', undefined as unknown as string); else vi.stubEnv('ESCRITOR_KIDS', valor);
+      const { db, archivos, tablas } = dosChicos();
+      const { motor, modelo } = motorFalso({});
+      await vuelta(db, motor);
+      await vuelta(db, motor);
+      expect(modelo.llamadas).toHaveLength(0);
+      expect(archivos.size).toBe(0);
+      expect(tablas.pedidos.map((p) => p.estado)).toEqual(['pagado', 'pagado']);
+      expect(aSocios().map((m) => m.subject)).toEqual([
+        '[Vitácora escritor] Un chico terminó de contar y el escritor de Kids está apagado: Benja',
+        '[Vitácora escritor] Un chico terminó de contar y el escritor de Kids está apagado: Tomi',
+      ]);
+    }
+  });
+
+  it('solo:<id> corre solo para ese chico', async () => {
+    vi.stubEnv('ESCRITOR_KIDS', `solo:${ID}`);
+    const { db, archivos } = dosChicos();
+    const { motor } = motorFalso({});
+    await vuelta(db, motor);
+    expect(archivos.has(kids('listo.json'))).toBe(true);
+    expect([...archivos.keys()].some((k) => k.startsWith(OTRO))).toBe(false);
+    expect(aSocios().map((m) => m.subject)).toEqual(['[Vitácora escritor] Un chico terminó de contar y el escritor de Kids está apagado: Tomi']);
+  });
+
+  it('1 corre para todos', async () => {
+    vi.stubEnv('ESCRITOR_KIDS', '1');
+    const { db, archivos } = dosChicos();
+    const { motor } = motorFalso({});
+    await vuelta(db, motor);
+    expect(archivos.has(kids('listo.json'))).toBe(true);
+    expect(archivos.has(`${OTRO}/escritor-kids/listo.json`)).toBe(true);
+    expect(aSocios()).toHaveLength(0);
   });
 });
 
