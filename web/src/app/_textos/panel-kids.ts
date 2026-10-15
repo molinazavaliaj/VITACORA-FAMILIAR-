@@ -12,7 +12,7 @@ import type { FallaCambioKids, FallaCorreccion } from "@/lib/kids-panel";
 //     títulos de los capítulos (banco.md, vienen de kids-banco.json) y
 //     «Leé todo, pero no le digas nada hasta el libro.» (AVISO-PADRE). Van
 //     literales; los tests los comparan.
-//   - Todo lo marcado // TEXTO PARA NAZA es nuevo y espera su aprobación.
+//   - Todo lo marcado // TEXTO PARA NAZA es nuevo y espera su aprobación; lo marcado APROBADO ya lo aprobó (tanda 2, 15/10).
 //
 // Reglas: en vos, frases simples, sin dos puntos, sin «tu hijo» ni «él» fijos
 // (se nombra con cómo le dicen), sin «amor», sin prometer tiempos.
@@ -53,23 +53,23 @@ export const TEMAS = { leyenda: COMPRA.temasLeyenda, nombres: COMPRA.temas, deba
 export const PANEL_KIDS = {
   // TEXTO PARA NAZA · KP-ETIQUETA
   etiqueta: "Vitácora Kids",
-  // TEXTO PARA NAZA · KP-TITULO
+  // APROBADO por Naza 15/10 (tanda 2) · KP-TITULO
   titulo: (apodo: string) => `El libro de ${apodo}`,
 
   estado: {
     // TEXTO PARA NAZA · KP-ESTADO-PAGO
     pago: "Estamos confirmando el pago.",
-    // TEXTO PARA NAZA · KP-ESTADO-ANTES-A (la primera parte es la del mail aprobado)
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ANTES-A (la primera parte es la del mail aprobado)
     antesA: (apodo: string) => `Todavía no empezó. Le vamos a escribir a ${apodo} a la hora que elegiste.`,
-    // TEXTO PARA NAZA · KP-ESTADO-ANTES-B
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ANTES-B
     antesB: "Todavía no empezó. El primer mensaje te llega a tu WhatsApp.",
-    // TEXTO PARA NAZA · KP-ESTADO-ESPERA-A
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ESPERA-A
     esperaA: (apodo: string) => `Ya le escribimos a ${apodo}. La primera pregunta sale cuando toque «Dale, vamos».`,
-    // TEXTO PARA NAZA · KP-ESTADO-ESPERA-B (la segunda frase es la de «Pedido confirmado»)
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ESPERA-B (la segunda frase es la de «Pedido confirmado»)
     esperaB: "Ya te escribimos. La primera pregunta sale cuando toquen el botón, juntos.",
-    // TEXTO PARA NAZA · KP-ESTADO-PARTE
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-PARTE
     parte: (n: number, titulo: string) => `Va por la parte ${n}, «${titulo}».`,
-    // TEXTO PARA NAZA · KP-ESTADO-TERMINO (sale de TERMINO-PADRE)
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-TERMINO (sale de TERMINO-PADRE)
     termino: (apodo: string) => `${apodo} terminó de contar. Ahora empieza el armado del libro.`,
   },
   /** Lo corto, en la lista de historias de la cabecera. */
@@ -86,7 +86,7 @@ export const PANEL_KIDS = {
 
   // TEXTO PARA NAZA · KP-LO-QUE-CUENTA
   loQueCuenta: "Lo que cuenta",
-  // TEXTO PARA NAZA · KP-VACIO
+  // APROBADO por Naza 15/10 (tanda 2) · KP-VACIO
   vacio: (apodo: string) => `Cuando ${apodo} conteste la primera pregunta, lo que cuente aparece acá.`,
   // TEXTO PARA NAZA · KP-PARTE
   parte: (n: number) => `Parte ${n}`,
@@ -94,7 +94,7 @@ export const PANEL_KIDS = {
   antes: "Antes de la primera pregunta",
   // TEXTO PARA NAZA · KP-SOBRE
   sobre: "Del sobre cerrado",
-  // TEXTO PARA NAZA · KP-SOBRE-TEXTO (sale de ENTRADA-5)
+  // APROBADO por Naza 15/10 (tanda 2) · KP-SOBRE-TEXTO (sale de ENTRADA-5)
   sobreTexto: (apodo: string) => `Estas van en un sobre cerrado, pegado al libro, para que ${apodo} lo abra cuando sea grande.`,
   // TEXTO PARA NAZA · KP-TU-PREGUNTA (una pregunta tuya que ya no está en la ficha)
   tuPregunta: (n: number) => `Tu pregunta ${n}`,
@@ -110,7 +110,7 @@ export const PANEL_KIDS = {
   correccion: {
     // TEXTO PARA NAZA · KP-CORR-BOTON
     boton: "Corregir un nombre",
-    // TEXTO PARA NAZA · KP-CORR-AYUDA
+    // APROBADO por Naza 15/10 (tanda 2) · KP-CORR-AYUDA
     ayuda: "Si un nombre quedó mal escrito, poné cómo dice y cómo es. Lo que contó no se toca, y en el libro sale bien.",
     // TEXTO PARA NAZA · KP-CORR-DICE
     dice: "Cómo dice",
@@ -135,7 +135,7 @@ export const PANEL_KIDS = {
     ejemplos: "Por ejemplo",
     // TEXTO PARA NAZA · KP-PREG-GUARDAR
     guardar: "Guardar mis preguntas",
-    // TEXTO PARA NAZA · KP-PREG-CERRADAS
+    // APROBADO por Naza 15/10 (tanda 2) · KP-PREG-CERRADAS
     cerradas: "Ya empezó la cuarta parte, así que tus preguntas no se cambian más.",
     // TEXTO PARA NAZA · KP-PREG-NINGUNA
     ninguna: "No escribiste preguntas.",
@@ -148,7 +148,7 @@ export const PANEL_KIDS = {
   ajustes: {
     // TEXTO PARA NAZA · KP-AJUSTES-TITULO
     titulo: "La hora y los temas",
-    // TEXTO PARA NAZA · KP-TEMAS-AYUDA
+    // APROBADO por Naza 15/10 (tanda 2) · KP-TEMAS-AYUDA
     temasAyuda: "Lo que marques no se pregunta. Si ya se preguntó, queda como lo contó.",
     // TEXTO PARA NAZA · KP-AJUSTES-GUARDAR
     guardar: "Guardar",
@@ -158,12 +158,12 @@ export const PANEL_KIDS = {
   guardando: "Guardando…",
   // TEXTO PARA NAZA · KP-GUARDADO
   guardado: "Guardado.",
-  // TEXTO PARA NAZA · KP-PENDIENTE
+  // APROBADO por Naza 15/10 (tanda 2) · KP-PENDIENTE
   pendiente: "Guardado. Se aplica antes de la próxima pregunta.",
 
   /** `kids_v2.cambios_error`: el motor no tomó el último cambio. */
   errorDelMotor: {
-    // TEXTO PARA NAZA · KP-ERROR-CERRADAS
+    // APROBADO por Naza 15/10 (tanda 2) · KP-ERROR-CERRADAS
     "preguntas-cerradas": "Tus preguntas no llegaron a tiempo. Ya había empezado la cuarta parte, así que no se las vamos a hacer.",
     // TEXTO PARA NAZA · KP-ERROR-OTRO
     otro: "No pudimos aplicar tu último cambio. Probá de nuevo, y si vuelve a pasar, escribinos.",
