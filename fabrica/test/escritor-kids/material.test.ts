@@ -1,0 +1,90 @@
+import { describe, expect, it } from 'vitest';
+import { corregir, destinoDe, lineaDelPadre, materialDeFilas, textoDeFila, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
+import { filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
+import type { FilasKids } from '../../src/escritor-kids/material/tipos.js';
+import { fichaXml, itemXml, materialXml } from '../../src/escritor-kids/llamadas.js';
+
+const m = materialDeFilas(filasDeFijo('chico-inventado'));
+const item = (clave: string) => [...m.partes.flatMap((p) => p.items), ...m.sobre.items].find((i) => i.clave === clave);
+
+describe('material de Kids', () => {
+  it('la ficha: apodo, género m/f, quién regala y las preguntas del padre con su línea', () => {
+    expect(m.ficha).toMatchObject({ nombre: 'Benjamín Sosa', llamado: 'Benja', edad: 11, genero: 'm', quienRegala: 'tu mamá' });
+    expect(m.ficha.preguntasPadre.map((p) => [p.clave, p.quien, p.linea])).toEqual([
+      ['PADRE-1', 'tu mamá', 'Esta pregunta te la manda tu mamá'],
+      ['PADRE-2', 'tu mamá', ''],
+      ['PADRE-3', 'tu papá', 'Esta pregunta te la manda tu papá'],
+    ]);
+    expect(lineaDelPadre('tus abuelos')).toBe('Esta pregunta te la mandan tus abuelos');
+    expect(lineaDelPadre('Papá y mamá')).toBe('Esta pregunta te la mandan Papá y mamá');
+  });
+
+  it('saltea null, ∅, botones y lo vacío; ids cortos R01… sin huecos', () => {
+    const rs = todasLasRespuestas(m);
+    expect(rs.map((r) => r.id)).toEqual(rs.map((_, i) => `R${String(i + 1).padStart(2, '0')}`));
+    expect(rs.some((r) => r.texto.includes('⟦'))).toBe(false);
+    expect(rs.some((r) => /holaa|cuando llega el libro/.test(r.texto))).toBe(false);
+    expect(textoDeFila({ id: 'x', pregunta_orden: 1, audio_path: null, texto_directo: '⟦botón:Paso⟧', transcripcion: null, clave_kids: 'K9' })).toBeNull();
+    expect(item('K9')).toBeUndefined(); // la pasó
+    expect(item('K19')).toBeUndefined();
+  });
+
+  it('agrupa por item del banco en su orden: principal, rama y otra puerta; extras y cierre al final; las del padre al final de la 4', () => {
+    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Lo que me pasó']);
+    expect(item('K12')?.respuestas.map((r) => r.clave)).toEqual(['K12-R1', 'K12-OP']);
+    expect(item('K12')?.respuestas[0].pregunta).toContain('Contame la última vez que te reíste mucho con un hermano');
+    expect(m.partes[1].items.map((i) => i.clave).slice(-2)).toEqual(['X2-9', 'CIERRE-2']);
+    expect(m.partes[3].items.map((i) => i.clave).slice(-3)).toEqual(['PADRE-1', 'PADRE-2', 'PADRE-3']);
+    expect(item('PADRE-3')?.padre).toEqual({ quien: 'tu papá', conLinea: true, linea: 'Esta pregunta te la manda tu papá' });
+    expect(item('K5')?.pregunta).toContain('de chico'); // {{o/a}} con su género
+  });
+
+  it('la parte 5, sus extras y el CIERRE-FINAL van al sobre', () => {
+    expect(m.sobre.titulo).toBe('Para cuando seas grande');
+    expect(m.sobre.items.map((i) => i.clave)).toEqual(['K41', 'K42', 'K43', 'K44', 'K45', 'K46', 'K47', 'X5-2', 'X5-3', 'CIERRE-FINAL']);
+    expect(item('X5-2')?.respuestas[0]).toMatchObject({ texto: 'Pancho. Para un perro. Para un hijo no se, Bautista', audio: false });
+  });
+
+  it('las fotos van al álbum con lo que mandó con ella y lo que contó después; sin foto, lo que contó va a su item', () => {
+    expect(m.fotos).toHaveLength(14);
+    const f1 = m.fotos[0];
+    expect(f1).toMatchObject({ id: 'F01', clave: 'K1-FOTO', item: 'K1', parte: 1, fotoId: 'bb89c3d4-1afb-5bcc-9067-6727111d2c4e' });
+    expect(f1.respuestas.map((r) => [r.texto.slice(0, 10), r.audio])).toEqual([['el buzz', false], ['Este es el', true]]);
+    // K4: tocó «No tengo» y contó igual: va a K4.
+    expect(item('K4')?.respuestas.map((r) => r.clave)).toEqual(['K4', 'K4-FOTO']);
+  });
+
+  it('aplica las correcciones de nombres en la copia (todas las veces, palabra entera) y sabe qué tiene audio', () => {
+    expect(m.correcciones).toEqual([{ dice: 'Oriel', es: 'Uriel', veces: 10 }, { dice: 'Mate', es: 'Maite', veces: 3 }]);
+    const rs = todasLasRespuestas(m);
+    expect(rs.some((r) => /Oriel|\bMate\b/.test(r.texto))).toBe(false);
+    expect(corregir('Mate y mate, Matea', [{ dice: 'Mate', es: 'Maite' }])).toEqual({ texto: 'Maite y mate, Matea', veces: [1] });
+    expect(rs.filter((r) => r.audio).every((r) => r.audioPath)).toBe(true);
+    const filas = filasDeFijo('chico-inventado');
+    expect(filas.respuestas.find((r) => r.id === '87d1515a-3083-5d24-8636-11ec3174df35')?.transcripcion ?? '').toContain('Oriel'); // lo guardado no cambia
+  });
+
+  it('destino de cada clave', () => {
+    expect(destinoDe('K12-R1-2')).toEqual({ item: 'K12', parte: 2 });
+    expect(destinoDe('UNA-MAS-3')).toEqual({ item: 'CIERRE-3', parte: 3 });
+    expect(destinoDe('EXTRAS')).toEqual({ item: 'CIERRE-FINAL', parte: 5 });
+    expect(destinoDe('PREG-NUEVA-CHICO')).toBeNull();
+  });
+
+  it('lo que llegó sin item propio va con lo anterior; si no hay nada antes, a sinLugar', () => {
+    const f: FilasKids = structuredClone(filasDeFijo('chico-preocupante'));
+    f.respuestas.push({ id: 'a', pregunta_orden: 0, audio_path: null, texto_directo: 'hola soy yo', transcripcion: null, clave_kids: 'BIEN-CHICO' });
+    f.respuestas.push({ id: 'b', pregunta_orden: 8.5, audio_path: null, texto_directo: 'me olvidé de algo', transcripcion: null, clave_kids: 'PREG-NUEVA-CHICO' });
+    const mm = materialDeFilas(f);
+    expect(mm.sinLugar.map((x) => x.texto)).toEqual(['hola soy yo']);
+    expect(mm.partes[0].items.find((i) => i.clave === 'K2')?.respuestas.map((r) => r.texto)).toContain('me olvidé de algo');
+  });
+
+  it('el XML que lee el modelo: ficha, items con sus respuestas y el material entero', () => {
+    expect(fichaXml(m.ficha)).toContain('<pregunta_del_padre clave="PADRE-3" quien="tu papá" conLinea="si">');
+    expect(itemXml(item('K12')!)).toMatch(/^<item clave="K12" pregunta="Vamos con hermanos.">\n<respuesta id="R26" clave="K12-R1" pregunta="[^"]+" audio="si">Delfi y Simón. Con Simón, siempre.<\/respuesta>/);
+    const x = materialXml(m);
+    expect(x).toContain('<parte n="5" titulo="Para cuando seas grande">');
+    expect(x).toContain('<foto id="F01" clave="K1-FOTO"');
+  });
+});

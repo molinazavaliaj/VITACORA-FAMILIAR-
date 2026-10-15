@@ -7,3 +7,6 @@ prueba-v3-*/
 
 # audios de la prueba E4 (vidas reales)
 prueba-e4/
+
+# Salidas locales del escritor de Kids (scripts/escritor-kids-correr.ts): PDFs de prueba y checkpoints
+salidas/
