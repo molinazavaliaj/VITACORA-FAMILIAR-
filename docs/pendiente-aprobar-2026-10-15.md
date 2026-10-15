@@ -1,6 +1,6 @@
 # Textos para aprobar, 15/10/2026
 
-Todos son PROPUESTOS. Están en el código de dos PR, pero ninguno se mergea sin el OK de Naza.
+**APROBADOS por Naza el 15/10, todos tal cual** (dudas «Para mí», prompt y `fotoFallo`). Los dos PR se pueden mergear.
 Si cambiás una palabra, se cambia en el archivo que dice cada tabla y nada más.
 
 ## 1. Dudas del libro cuando el libro es de quien lo compró («Para mí»)
