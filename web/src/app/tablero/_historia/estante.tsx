@@ -29,7 +29,7 @@ export function LibroDelEstante({ h, r, region, fotoSrc }: { h: Historia; r: Res
   const titulo = viaje ? (h.rol === "duena" ? "Tu viaje" : `El viaje de ${n.nombre}`) : tituloHistoria(n.nombre, propia);
   const contexto = (n.contexto ?? {}) as { idioma?: unknown };
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-5 border-t border-[var(--linea)] py-8 sm:gap-x-10 md:py-10">
+    <li data-producto={viaje ? "viaje" : undefined} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-5 border-t border-[var(--linea)] py-8 sm:gap-x-10 md:py-10">
       <Link href={`/tablero/${n.id}`} aria-label={titulo} className="block self-start">
         <div className="pnl-libro w-[78px] sm:w-[118px]">
           <TapaLibro

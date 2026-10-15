@@ -192,6 +192,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   return (
     <MarcoHistoria
+      producto={quien.viaje ? "viaje" : undefined}
       cabecera={
         <Suspense fallback={<CabeceraHueca />}>
           <Cabecera admin={admin} user={user} n={n} rol={rol} quien={quien} pFila={pFila} pPedido={pPedido} pTrato={pTrato} pLectura={pLectura} />

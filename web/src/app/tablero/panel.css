@@ -389,3 +389,88 @@
 /* Adentro del marco nuevo, lo contado empieza arriba de todo: el primer bloque
    de cada vista traía su margen de cuando iba debajo del título. */
 #lo-contado > div > :first-child { margin-top: 0; }
+
+/* ── Las historias de Viaje con su color (15/10) ───────────────────────────
+   La paleta de la guía (tokens --viaje-*, _direccion/tokens.css). Una historia
+   de Viaje (MarcoHistoria con data-producto="viaje") pinta la página entera:
+     oscuro → la noche #0a0a0a, texto blanco, acento #9dbdff
+     claro  → un papel gris azulado muy claro y el acento en azul tinta (el
+              #9dbdff no se lee sobre claro: 2,1:1)
+   El botón principal es el de la guía en los dos temas: #7aa7ff con texto
+   oscuro (8,3:1). En el Inicio, el libro de Viaje del estante lleva solo el
+   acento (la etiqueta y su línea de tiempo): la página es de todos. */
+.pnl.oscuro:has(.pnl-marco[data-producto="viaje"]) {
+  --fondo: var(--viaje-fondo);
+  --texto: var(--viaje-texto);
+  --texto-suave: #c9c6be;
+  --texto-menor: var(--viaje-texto-menor);   /* 5,9:1 */
+  --linea: var(--viaje-hilo);
+  --linea-fuerte: rgba(255, 255, 255, 0.3);
+  --acento: var(--viaje-acento);
+  --sobre-acento: var(--viaje-sobre-boton);
+  --relieve: var(--viaje-tarjeta);
+  --hueco: rgba(157, 189, 255, 0.1);
+  --tarjeta: var(--viaje-tarjeta);
+  --texto-oscuro: var(--viaje-texto);
+  --texto-oscuro-fuerte: var(--viaje-texto);
+  --texto-oscuro-suave: #c9c6be;
+  --texto-oscuro-menor: var(--viaje-texto-menor);
+  --borde-oscuro: var(--viaje-hilo);
+  --acento-oscuro: var(--viaje-acento);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --pnl-acento: var(--viaje-acento);
+}
+.pnl:not(.oscuro):has(.pnl-marco[data-producto="viaje"]) {
+  --dir-papel: var(--viaje-papel);           /* el borde cortado de la cabecera */
+  --fondo: var(--viaje-papel);
+  --texto: #10141d;
+  --texto-suave: #3a4252;
+  --texto-menor: #5a6274;                    /* 5,4:1 */
+  --linea: rgba(16, 20, 29, 0.13);
+  --linea-fuerte: rgba(16, 20, 29, 0.32);
+  --acento: var(--viaje-acento-papel);
+  --sobre-acento: #ffffff;
+  --relieve: #f8f9fc;
+  --hueco: rgba(43, 79, 150, 0.08);
+  --tarjeta: #f8f9fc;
+  --texto-oscuro: #1a1f2b;
+  --texto-oscuro-fuerte: #10141d;
+  --texto-oscuro-suave: #3a4252;
+  --texto-oscuro-menor: #5a6274;
+  --borde-oscuro: rgba(16, 20, 29, 0.15);
+  --acento-oscuro: var(--viaje-acento-papel);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --pnl-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -28px rgba(24, 36, 64, 0.4);
+  --pnl-sombra-libro: 0 1px 1px rgba(24, 36, 64, 0.12), 0 18px 30px -12px rgba(24, 36, 64, 0.4), 0 2px 6px rgba(24, 36, 64, 0.12);
+  --pnl-acento: var(--viaje-acento-papel);
+  /* Sin la fibra parda del papel crema: el gris azulado va liso. */
+  background-image: none;
+}
+/* El acento suelto (el libro de Viaje del estante, adentro de una página de
+   Familiar): el del tema. */
+.pnl.oscuro [data-producto="viaje"] { --pnl-acento: var(--viaje-acento); }
+.pnl:not(.oscuro) [data-producto="viaje"] { --pnl-acento: var(--viaje-acento-papel); }
+
+/* Lo que se tiñe: etiquetas, números de etapa, el hilo de la línea de tiempo
+   y el botón principal. */
+.pnl [data-producto="viaje"] .pnl-micro,
+.pnl [data-producto="viaje"] .pnl-num { color: var(--pnl-acento); }
+.pnl [data-producto="viaje"] .pnl-paso-hilo > span { background: var(--pnl-acento); }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-boton--lleno {
+  background: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-boton--lleno:hover { background: var(--viaje-boton-encima); opacity: 1; }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-play { background: var(--viaje-boton); color: var(--viaje-sobre-boton); }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-onda { color: var(--pnl-acento); }
+/* Las pantallas de adentro (etapas, temas, ajustes) pintan su botón lleno y
+   lo elegido con bg-[var(--texto)] + text-[var(--fondo)]: en Viaje, el azul
+   de la guía con texto oscuro (en el tema claro el --fondo no se leería
+   sobre el azul). */
+.pnl .pnl-marco[data-producto="viaje"] .bg-\[var\(--texto\)\] {
+  background-color: var(--viaje-boton);
+  border-color: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
