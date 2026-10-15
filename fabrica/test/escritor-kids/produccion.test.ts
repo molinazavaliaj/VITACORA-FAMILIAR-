@@ -405,4 +405,18 @@ describe('piezas del libro de Kids en producción', () => {
       expect(todo).not.toMatch(/\b(entra|revisa|apruébalo|puedes|tienes)\b/i);
     }
   });
+
+  it('los mails al padre: los textos que aprobó Naza (16/10, tanda 4), literales', () => {
+    const { revisar, libro_listo } = TEXTOS_MAIL_KIDS;
+    expect(revisar.asunto('Benja')).toBe('El libro de Benja está para que lo revises');
+    expect(revisar.parrafos('Benja')).toEqual(['Ya escribimos el libro de Benja con lo que contó. Entrá a tu panel y leelo.', 'Si está bien, aprobalo desde ahí.']);
+    expect(revisar.parrafos('Benja').join(' ')).not.toContain('no se imprime');
+    expect(revisar.boton).toBe('Ver el libro');
+    expect(libro_listo.asunto('Benja')).toBe('El libro de Benja está listo');
+    expect(libro_listo.parrafos('Benja')).toEqual([
+      'Ya está. El libro de Benja, con sus palabras y con sus audios para escuchar desde los códigos del libro.',
+      'Queda en tu panel para leerlo o descargarlo cuando quieras.',
+    ]);
+    expect(libro_listo.boton).toBe('Ver el libro');
+  });
 });

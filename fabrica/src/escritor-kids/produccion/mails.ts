@@ -18,17 +18,16 @@ export type MailKids = 'revisar' | 'libro_listo';
 type Texto = { asunto: (apodo: string) => string; parrafos: (apodo: string) => string[]; boton: string };
 
 export const TEXTOS_MAIL_KIDS: Record<MailKids, Texto> = {
-  // TEXTO PARA NAZA (provisorio: lo aprueba Naza antes de prender el libro de Kids).
+  // APROBADO por Naza 16/10 (tanda 4)
   revisar: {
     asunto: (apodo) => `El libro de ${apodo} está para que lo revises`,
     parrafos: (apodo) => [
-      `Ya escribimos el libro de ${apodo} con lo que contó.`,
-      'Entrá a tu panel y leelo. Si está bien, aprobalo desde ahí.',
-      'Hasta que lo apruebes no se imprime nada.',
+      `Ya escribimos el libro de ${apodo} con lo que contó. Entrá a tu panel y leelo.`,
+      'Si está bien, aprobalo desde ahí.',
     ],
     boton: 'Ver el libro',
   },
-  // TEXTO PARA NAZA (provisorio: lo aprueba Naza antes de prender el libro de Kids).
+  // APROBADO por Naza 16/10 (tanda 4)
   libro_listo: {
     asunto: (apodo) => `El libro de ${apodo} está listo`,
     parrafos: (apodo) => [
