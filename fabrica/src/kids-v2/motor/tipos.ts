@@ -10,14 +10,15 @@ export type Contenido = { tipo: 'audio'; seg: number; transcripcion?: string } |
 export type Evento =
   /** Pagó: arranca. */
   | { tipo: 'inicio' }
-  | { tipo: 'respuesta'; contenido: Contenido }
+  /** `id`: el wa_message_id; si viene, sale un `recibido` cuando el motor lo aplica. */
+  | { tipo: 'respuesta'; contenido: Contenido; id?: string }
   /**
    * Tocó un botón: el texto del botón, tal cual. `aMensaje`: el `envio` del mensaje
    * del bot cuyo botón tocó (quien conecta lo saca del context.id de WhatsApp). Con
    * él, un botón de un mensaje viejo o ya tocado no hace nada (decisión 22); sin él,
-   * el botón actúa sobre lo que se espera ahora.
+   * el botón actúa sobre lo que se espera ahora. `id`: el wa_message_id, como en `respuesta`.
    */
-  | { tipo: 'boton'; boton: string; aMensaje?: string }
+  | { tipo: 'boton'; boton: string; aMensaje?: string; id?: string }
   /** Pasa el tiempo: quien conecta lo llama en `proximoDespertar` (o cada minuto). */
   | { tipo: 'reloj' }
   /** El padre cambió algo en el panel (#34): la hora, los temas, sus preguntas. */
@@ -41,7 +42,12 @@ export type MotivoMarca = 'preocupante' | 'silencio-8-dias' | 'escribio-despues-
 /** Un mensaje que salió: `envio` es único por chico (1, 2, 3…) y es lo que vuelve en `aMensaje` al tocar uno de sus botones. */
 export type Enviado = Mensaje & { envio: string };
 
-export type Salida = ({ tipo: 'mensaje' } & Enviado) | { tipo: 'marca'; motivo: MotivoMarca; detalle: string };
+/**
+ * `recibido`: un evento `respuesta` o `boton` con `id` que el motor aplicó (lo de la
+ * noche, cuando se procesa a las 9), con la `clave` del item al que respondió o
+ * SIN_CLAVE_KIDS si no hizo nada (la regla, en motor/recibido.ts). Uno por evento.
+ */
+export type Salida = ({ tipo: 'mensaje' } & Enviado) | { tipo: 'marca'; motivo: MotivoMarca; detalle: string } | { tipo: 'recibido'; id: string; clave: string };
 
 /** Qué estamos esperando. */
 export type Fase =

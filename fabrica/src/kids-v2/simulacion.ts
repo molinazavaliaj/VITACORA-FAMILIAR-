@@ -18,7 +18,7 @@ export function correrUno(semilla: number): Resultado {
   try {
     corrida = correr(ficha, chico(conducta, r, ficha), { desde: DESDE_SIMULACION, dias: 365 });
   } catch (err) {
-    const vacia: Corrida = { lineas: [], estado: undefined as never, pasos: 0 };
+    const vacia: Corrida = { lineas: [], estado: undefined as never, pasos: 0, recibidos: [] };
     return { semilla, conducta, ficha, corrida: vacia, violaciones: [{ control: 'traba', detalle: (err as Error).message }], dias: 0, mensajes: 0 };
   }
   const ultima = corrida.lineas[corrida.lineas.length - 1]?.en ?? new Date(DESDE_SIMULACION);

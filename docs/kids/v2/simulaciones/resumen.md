@@ -31,3 +31,4 @@ Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semill
 | unaPorDia | la hora no empieza nada el día que ya le llegó una principal, ni dos veces el mismo día (decisión 10) | 0 |
 | ventana | nada de texto libre a un número más de 24 h después de lo último que mandó ese número (las plantillas sí) | 0 |
 | botonViejo | un botón de un mensaje que ya quedó atrás (o ya tocado) no hace nada (decisión 22) | 0 |
+| recibido | cada respuesta o botón con id saca exactamente un recibido, cuando el motor lo aplica (lo de la noche, a las 9); ninguno de más | 0 |

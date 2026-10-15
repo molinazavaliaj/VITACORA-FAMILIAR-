@@ -70,7 +70,7 @@ describe('kids v2: simulación de 240 chicos', () => {
     const v = revisar(base.ficha, trucha, { sigueContestando: true }).map((x) => x.control);
     expect(v).toContain('noche');
     expect(v).toContain('capsula');
-    expect(revisar(FICHA, { lineas: [], estado: { ...base.corrida.estado, fase: { tipo: 'seguir' } }, pasos: 0 }, { sigueContestando: true }).map((x) => x.control)).toContain('traba');
+    expect(revisar(FICHA, { lineas: [], estado: { ...base.corrida.estado, fase: { tipo: 'seguir' } }, pasos: 0, recibidos: [] }, { sigueContestando: true }).map((x) => x.control)).toContain('traba');
   });
 
   it('los controles nuevos detectan: una foto vencida que no vuelve al final (cambio A) y dos plantillas seguidas sin respuesta', () => {

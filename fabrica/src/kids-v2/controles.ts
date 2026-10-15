@@ -37,6 +37,7 @@ export const CONTROLES: Record<string, string> = {
   unaPorDia: 'la hora no empieza nada el día que ya le llegó una principal, ni dos veces el mismo día (decisión 10)',
   ventana: 'nada de texto libre a un número más de 24 h después de lo último que mandó ese número (las plantillas sí)',
   botonViejo: 'un botón de un mensaje que ya quedó atrás (o ya tocado) no hace nada (decisión 22)',
+  recibido: 'cada respuesta o botón con id saca exactamente un recibido, cuando el motor lo aplica (lo de la noche, a las 9); ninguno de más',
 };
 
 /** Lo que empieza un item (o lo anuncia): lo que manda "la hora" cuando sale sola. */
@@ -261,6 +262,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   }
 
   if (terminado) for (const x of fotosPerdidas(ficha, c.lineas, c.estado)) mal('fotoPegada', x);
+  for (const x of recibidosMal(ficha, c)) mal('recibido', x);
 
   const terminados = mensajes.filter((x) => x.mensaje.id === 'TERMINO-PADRE');
   const final = mensajes.find((x) => /^FINAL-CHICO/.test(x.mensaje.id));
@@ -286,6 +288,32 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     for (const k of principales) if (!enviadas.has(k)) mal('unaVez', `${k} nunca salió`);
   } else if (terminados.length > 0 && c.estado?.fase.tipo !== 'retenido') mal('termino', 'TERMINO-PADRE sin haber terminado');
   return v;
+}
+
+/**
+ * Un `recibido` por cada respuesta o botón con id: ninguno mientras espera en
+ * `nocturnos` (sale a las 9, cuando se aplica), ninguno de noche, ninguno de un
+ * id que no mandó el chico, ninguno repetido.
+ */
+function recibidosMal(ficha: Ficha, c: Corrida): string[] {
+  const mal: string[] = [];
+  const cuantos = new Map<string, number>();
+  for (const r of c.recibidos) {
+    cuantos.set(r.id, (cuantos.get(r.id) ?? 0) + 1);
+    if (esDeNoche(r.en, ficha.zona)) mal.push(`el recibido de ${r.id} salió de noche`);
+  }
+  const esperan = new Set((c.estado?.nocturnos ?? []).flatMap((x) => ((x.tipo === 'respuesta' || x.tipo === 'boton') && x.id !== undefined ? [x.id] : [])));
+  const delChico = new Set<string>();
+  for (const l of c.lineas) {
+    if (l.de !== 'chico' || (l.evento.tipo !== 'respuesta' && l.evento.tipo !== 'boton') || l.evento.id === undefined) continue;
+    const id = l.evento.id;
+    delChico.add(id);
+    const n = cuantos.get(id) ?? 0;
+    const debe = esperan.has(id) ? 0 : 1;
+    if (n !== debe) mal.push(`${l.dice} (${id}) sacó ${n} recibidos${debe === 0 ? ' y sigue esperando la mañana' : ''}`);
+  }
+  for (const id of cuantos.keys()) if (!delChico.has(id)) mal.push(`un recibido de ${id}, que nadie mandó`);
+  return mal;
 }
 
 /**

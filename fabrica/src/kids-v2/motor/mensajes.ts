@@ -36,11 +36,14 @@ export function preguntaMsg(e: Estado, p: Pregunta): Mensaje {
   return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, p.texto, e.ficha.temasSacados)), botones: [...p.ramas.map((r) => r.boton), p.botonPaso], plantilla: null };
 }
 
+/** El ID de la rama `ri` (0, 1…) de una principal, en su paso 0, 1…: K12-R2, K12-R2-2. */
+export const idRama = (clave: string, ri: number, paso = 0) => `${clave}-R${ri + 1}${paso > 0 ? `-${paso + 1}` : ''}`;
+
 /** El mensaje de una rama (paso 0, 1…): K12-R2, K12-R2-2. Lleva el botón para pasar. */
 export function ramaMsg(e: Estado, p: Pregunta, ri: number, paso: number): Mensaje {
   const accion = p.ramas[ri].accion;
   if (accion.tipo !== 'preguntar') throw new Error(`${p.id}: la rama ${p.ramas[ri].boton} no pregunta`);
-  const id = `${p.id}-R${ri + 1}${paso > 0 ? `-${paso + 1}` : ''}`;
+  const id = idRama(p.id, ri, paso);
   return { a: destino(e), id, texto: render(e, accion.pasos[paso]), botones: [p.botonPaso], plantilla: null };
 }
 

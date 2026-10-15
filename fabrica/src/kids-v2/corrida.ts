@@ -21,7 +21,11 @@ export type Linea =
   | { en: Date; de: 'chico'; dice: string; evento: Evento; viejo: boolean; efecto: boolean; conRafaga: boolean }
   | { en: Date; de: 'marca'; motivo: string; detalle: string };
 
-export type Corrida = { lineas: Linea[]; estado: Estado; pasos: number };
+/**
+ * `recibidos`: los `recibido` que sacó el motor, en orden. Cada respuesta o botón del
+ * chico entra con un id (`c1`, `c2`…, como el wa_message_id) para controlarlos.
+ */
+export type Corrida = { lineas: Linea[]; estado: Estado; pasos: number; recibidos: { en: Date; id: string; clave: string }[] };
 
 /** Tope de pasos por corrida: si se llega, algo da vueltas sin terminar. */
 export const MAX_PASOS = 20_000;
@@ -33,6 +37,8 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
   const todo: Enviado[] = [];
   const fin = new Date(o.desde).getTime() + o.dias * 86_400_000;
   const cola: { en: number; accion: Accion }[] = [];
+  const recibidos: Corrida['recibidos'] = [];
+  let ids = 0;
   let ahora = new Date(o.desde);
   let pasos = 0;
 
@@ -48,6 +54,7 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
     const llegaron: Enviado[] = [];
     for (const s of r.salidas as Salida[]) {
       if (s.tipo === 'marca') lineas.push({ en: t, de: 'marca', motivo: s.motivo, detalle: s.detalle });
+      else if (s.tipo === 'recibido') recibidos.push({ en: t, id: s.id, clave: s.clave });
       else {
         const { tipo: _t, ...m } = s;
         lineas.push({ en: t, de: 'bot', mensaje: m });
@@ -59,7 +66,7 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
       for (const a of conducta(llegaron, { estado, ahora: t, todo })) cola.push({ en: t.getTime() + a.trasMs, accion: a });
       cola.sort((a, b) => a.en - b.en);
     }
-    return r.salidas.length > 0 || flujo(antes) !== flujo(estado);
+    return r.salidas.some((s) => s.tipo !== 'recibido') || flujo(antes) !== flujo(estado);
   };
 
   aplicar({ tipo: 'inicio' }, ahora);
@@ -71,9 +78,11 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
     ahora = new Date(Math.max(siguiente, ahora.getTime()));
     if (cola.length && cola[0].en <= siguiente) {
       const { accion } = cola.shift()!;
-      const linea: Extract<Linea, { de: 'chico' }> = { en: ahora, de: 'chico', dice: accion.dice, evento: accion.evento, viejo: accion.viejo ?? false, efecto: false, conRafaga: estado.rafaga !== null };
+      const ev = accion.evento;
+      const evento: Evento = ev.tipo === 'respuesta' || ev.tipo === 'boton' ? { ...ev, id: `c${++ids}` } : ev;
+      const linea: Extract<Linea, { de: 'chico' }> = { en: ahora, de: 'chico', dice: accion.dice, evento, viejo: accion.viejo ?? false, efecto: false, conRafaga: estado.rafaga !== null };
       lineas.push(linea);
-      linea.efecto = aplicar(accion.evento, ahora);
+      linea.efecto = aplicar(evento, ahora);
     } else {
       const antes = JSON.stringify(estado);
       aplicar({ tipo: 'reloj' }, ahora);
@@ -82,5 +91,5 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
       }
     }
   }
-  return { lineas, estado, pasos };
+  return { lineas, estado, pasos, recibidos };
 }

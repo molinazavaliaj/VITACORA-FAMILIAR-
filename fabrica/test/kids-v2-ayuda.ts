@@ -42,7 +42,7 @@ export function ctx(e: Estado, fecha = '2026-10-10', hora = '18:05'): Ctx {
 }
 
 /** Los IDs de los mensajes que salieron, en orden. */
-export const ids = (s: Salida[]) => s.flatMap((x) => (x.tipo === 'mensaje' ? [x.id] : [`marca:${x.motivo}`]));
+export const ids = (s: Salida[]) => s.flatMap((x) => (x.tipo === 'mensaje' ? [x.id] : x.tipo === 'marca' ? [`marca:${x.motivo}`] : [`recibido:${x.id}:${x.clave}`]));
 export const mensaje = (s: Salida[], id: string) => {
   const m = s.find((x) => x.tipo === 'mensaje' && x.id === id);
   if (!m || m.tipo !== 'mensaje') throw new Error(`No salió ${id}: ${ids(s).join(', ')}`);
