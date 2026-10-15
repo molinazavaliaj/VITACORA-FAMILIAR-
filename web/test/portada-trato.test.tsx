@@ -78,7 +78,6 @@ const DE_VOS = [
 // Lo que no puede aparecer en ninguna versión (DECISIONES D1 y D4,
 // TEXTOS-Y-REGLAS §1).
 const PROHIBIDO = [
-  "Kids",
   "mientras se escribe",
   "anticipo",
   "30 días",
@@ -142,7 +141,13 @@ describe("la portada según el idioma", () => {
     expect(html).toContain("€");
   });
 
-  it("Para quién es: el título aprobado, sin Kids", () => {
+  it("Para quién es: el título aprobado, y la cuarta foto lleva a Kids (15/10)", () => {
+    expect(portada("es")).toContain('href="/kids"');
+    expect(portada("es")).toContain(escapar("Su mundo de ahora, guardado para cuando crezca."));
+    expect(portada("ca")).toContain('href="/ca/kids"');
+    expect(portada("ar")).toContain('href="/ar/kids"');
+    // Kids no vende sin KIDS_VENTA: la portada nunca lleva a su compra.
+    for (const idioma of ["es", "ca", "ar"] as const) expect(portada(idioma)).not.toContain("/comprar/kids");
     expect(portada("es")).toContain(escapar("Para las vidas que merecen su propio libro."));
     expect(portada("ar")).toContain(escapar("Para las vidas que merecen su propio libro."));
     expect(portada("ca")).toContain(escapar("Per a les vides que mereixen el seu propi llibre."));
