@@ -6,6 +6,7 @@ import {
   diceEstaEn,
   fichaVigente,
   fusionarCambioKids,
+  kidsConImpreso,
   leerListoKids,
   loQueCuenta,
   rutaArchivoKids,
@@ -98,11 +99,21 @@ async function aprobadoAt(admin: SupabaseClient, narradorId: string): Promise<{ 
   return { at: (data as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at ?? null, error: false };
 }
 
+/** Si lo comprado trae impreso (kidsConImpreso). Si la base falla, sin impreso: el texto no promete imprimir. */
+async function conImpreso(admin: SupabaseClient, narradorId: string): Promise<boolean> {
+  const { data, error } = await admin.from("pedidos").select("estado, extras").eq("narrador_id", narradorId);
+  if (error) {
+    console.error("kids: fallo leer los pedidos", error);
+    return false;
+  }
+  return kidsConImpreso((data as { estado?: string | null; extras?: unknown }[] | null) ?? []);
+}
+
 /** El libro para el panel: null mientras no haya listo.json. */
 export async function leerLibroKids(admin: SupabaseClient, narradorId: string): Promise<LibroKids | null> {
-  const [listo, aprobado] = await Promise.all([leerListo(admin, narradorId), aprobadoAt(admin, narradorId)]);
+  const [listo, aprobado, impreso] = await Promise.all([leerListo(admin, narradorId), aprobadoAt(admin, narradorId), conImpreso(admin, narradorId)]);
   if (!listo) return null;
-  return { listo, aprobadoAt: aprobado.at };
+  return { listo, aprobadoAt: aprobado.at, impreso };
 }
 
 export type FallaLibroKids = "noKids" | "noListo" | "yaAprobado" | "base";

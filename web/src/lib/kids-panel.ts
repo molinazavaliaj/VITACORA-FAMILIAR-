@@ -437,8 +437,26 @@ export function leerListoKids(texto: string): ListoKids | null {
   }
 }
 
-/** El libro para el panel: null mientras no esté escrito (no hay listo.json). */
-export type LibroKids = { listo: ListoKids; aprobadoAt: string | null };
+/**
+ * El libro para el panel: null mientras no esté escrito (no hay listo.json).
+ * `impreso` = el pedido trae libro impreso (al aprobar, se manda a imprimir).
+ */
+export type LibroKids = { listo: ListoKids; aprobadoAt: string | null; impreso: boolean };
+
+/**
+ * ¿Lo que se compró trae el libro impreso? Mira `pedidos.extras` con la forma de
+ * la biografía (`impreso`, `copias`): hoy Kids guarda `impreso: null` y
+ * `copias: 0`. Cuenta un pedido pagado (no 'pendiente') con `impreso` no null o
+ * con `copias > 0`, sea el de la compra o uno de extras de después.
+ */
+export function kidsConImpreso(pedidos: { estado?: string | null; extras?: unknown }[]): boolean {
+  return pedidos.some((p) => {
+    if (p.estado === "pendiente") return false;
+    const e = p.extras as { impreso?: unknown; copias?: unknown } | null | undefined;
+    if (!e || typeof e !== "object") return false;
+    return (e.impreso !== null && e.impreso !== undefined) || (typeof e.copias === "number" && e.copias > 0);
+  });
+}
 
 export function esArchivoLibroKids(x: unknown): x is ArchivoLibroKids {
   return x === "libro" || x === "sobre";

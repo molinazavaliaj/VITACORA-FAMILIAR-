@@ -156,14 +156,13 @@ function TuLibro({ narradorId, apodo, libro }: { narradorId: string; apodo: stri
         <a href={url("libro")} target="_blank" rel="noopener" className="pnl-boton pnl-boton--hilo">{L.ver}</a>
         <a href={url("libro", true)} className="pnl-boton pnl-boton--hilo">{L.bajar}</a>
       </div>
-      <p className="mt-5 text-[14.5px] leading-snug text-[var(--texto-suave)]">{L.sobre}</p>
       <div className="mt-3 flex flex-wrap gap-3">
         <a href={url("sobre")} target="_blank" rel="noopener" className="pnl-boton pnl-boton--hilo">{L.verSobre}</a>
         <a href={url("sobre", true)} className="pnl-boton pnl-boton--hilo">{L.bajarSobre}</a>
       </div>
       <div className="mt-6 border-t border-[var(--linea)] pt-5">
         {libro.aprobadoAt ? (
-          <p role="status" className="text-[15px] leading-relaxed text-[var(--texto)]">{L.aprobado}</p>
+          <p role="status" className="text-[15px] leading-relaxed text-[var(--texto)]">{L.aprobado(libro.impreso)}</p>
         ) : (
           <>
             <p className="mb-4 text-[14px] leading-snug text-[var(--texto-menor)]">{L.algoMal}</p>

@@ -22,7 +22,7 @@ vi.mock("@/lib/panel", async (original) => ({ ...(await original<typeof import("
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { historiaAccesible, narradorDeLaSesion } from "@/lib/panel";
-import { leerListoKids } from "@/lib/kids-panel";
+import { kidsConImpreso, leerListoKids } from "@/lib/kids-panel";
 import { PanelKids } from "../src/app/tablero/[narradorId]/kids";
 import PaginaHistoria from "../src/app/tablero/[narradorId]/page";
 import { GET, POST } from "../src/app/api/kids/libro/route";
@@ -35,8 +35,8 @@ const L = PANEL_KIDS.libro;
 const LISTO = { "n1/escritor-kids/listo.json": JSON.stringify({ at: "2026-10-20T10:00:00Z", paginas: 48, sobrePaginas: 6 }) };
 const FILA = fila({ fichaMotor: FICHA, avance: { capitulo: 5, terminado: true }, termino_at: "2026-10-19T10:00:00Z" });
 
-const conLibro = (aprobadoAt: string | null) =>
-  renderToStaticMarkup(<PanelKids n={N} fila={FILA} capitulos={[]} libro={{ listo: { at: "2026-10-20T10:00:00Z", paginas: 48, sobrePaginas: 6 }, aprobadoAt }} />);
+const conLibro = (aprobadoAt: string | null, impreso = false) =>
+  renderToStaticMarkup(<PanelKids n={N} fila={FILA} capitulos={[]} libro={{ listo: { at: "2026-10-20T10:00:00Z", paginas: 48, sobrePaginas: 6 }, aprobadoAt, impreso }} />);
 
 describe("el libro en el panel de Kids", () => {
   it("sin listo.json no se ve nada del libro", () => {
@@ -55,13 +55,49 @@ describe("el libro en el panel de Kids", () => {
     expect(html).toContain("/api/kids/libro?narrador=n1&amp;archivo=libro&amp;descargar=1");
     expect(html).toContain("/api/kids/libro?narrador=n1&amp;archivo=sobre");
     expect(html).toContain(esc(L.aprobar));
-    expect(html).not.toContain(esc(L.aprobado));
+    expect(html).not.toContain(esc(L.aprobado(false)));
   });
 
-  it("ya aprobado dice que está aprobado y no deja aprobar de nuevo", () => {
+  it("los textos aprobados del libro van literales (tanda 4, 16/10)", () => {
+    expect(L.titulo).toBe("El libro ya está escrito");
+    expect(L.texto("Tomi")).toBe("Acá está el libro de Tomi, con lo que contó. Leelo antes de aprobarlo. El sobre cerrado va aparte.");
+    expect(L.algoMal).toBe("Si algo no está bien, escribinos antes de aprobarlo.");
+    expect(L.confirmar).toBe("Cuando lo aprobás, queda así y ya no se cambia.");
+    expect(L.aprobado(false)).toBe("Aprobaste el libro.");
+    expect(L.aprobado(true)).toBe("Aprobaste el libro. Ahora lo mandamos a imprimir.");
+    expect([L.ver, L.bajar, L.verSobre, L.bajarSobre, L.aprobar, L.si, L.no]).toEqual([
+      "Ver el libro",
+      "Descargar el libro",
+      "Ver el sobre",
+      "Descargar el sobre",
+      "Aprobar el libro",
+      "Sí, aprobarlo",
+      "Todavía no",
+    ]);
+    expect("sobre" in L).toBe(false);
+  });
+
+  it("ya aprobado dice que está aprobado y no deja aprobar de nuevo; sin impreso no promete imprimir", () => {
     const html = conLibro("2026-10-21T10:00:00Z");
-    expect(html).toContain(esc(L.aprobado));
+    expect(html).toContain(esc(L.aprobado(false)));
+    expect(html).not.toContain("imprimir");
     expect(html).not.toContain(esc(L.aprobar));
+  });
+
+  it("ya aprobado y con impreso, suma que lo mandamos a imprimir", () => {
+    const html = conLibro("2026-10-21T10:00:00Z", true);
+    expect(html).toContain(esc(L.aprobado(true)));
+  });
+
+  it("cuenta como impreso si extras.impreso no es null o hay copias, en un pedido no pendiente", () => {
+    expect(kidsConImpreso([])).toBe(false);
+    expect(kidsConImpreso([{ estado: "pagado", extras: { tipo: "kids", impreso: null, copias: 0 } }])).toBe(false);
+    expect(kidsConImpreso([{ estado: "pagado", extras: { tipo: "kids", impreso: "color", copias: 1 } }])).toBe(true);
+    expect(kidsConImpreso([{ estado: "pagado", extras: { tipo: "kids", impreso: null, copias: 2 } }])).toBe(true);
+    expect(kidsConImpreso([{ estado: "entregado", extras: { impreso: "color" } }])).toBe(true);
+    expect(kidsConImpreso([{ estado: "pendiente", extras: { impreso: "color", copias: 1 } }])).toBe(false);
+    expect(kidsConImpreso([{ estado: "pagado", extras: null }])).toBe(false);
+    expect(kidsConImpreso([{ estado: "pagado", extras: { tipo: "kids", impreso: null, copias: 0 } }, { estado: "pagado", extras: { copias: 1 } }])).toBe(true);
   });
 
   it("listo.json roto o sin fecha no cuenta como listo", () => {
@@ -74,11 +110,12 @@ describe("el libro en el panel de Kids", () => {
 describe("la página lee listo.json", () => {
   const params = { params: Promise.resolve({ narradorId: "n1" }), searchParams: Promise.resolve({}) } as never;
   const narrador = { id: "n1", nombre: "Tomás", como_le_dicen: "Tomi", estado: "completado", dia_actual: 3, alerta_silencio: false, familia_id: "f1", created_at: "2026-10-01", contexto: { modo: "kids" } };
-  const guion = (aprobado: string | null) => ({
+  const guion = (aprobado: string | null, pedidos: unknown[] = [{ estado: "pagado", extras: { tipo: "kids", impreso: null, copias: 0 } }]) => ({
     kids_v2: [{ data: FILA, error: null }],
     respuestas: [{ data: [], error: null }],
     fotos: [{ data: [], error: null }],
     narradores: [{ data: { libro_aprobado_at: aprobado }, error: null }],
+    pedidos: [{ data: pedidos, error: null }],
   });
   beforeEach(() => {
     vi.mocked(usuarioDeLaSesion).mockResolvedValue({ id: "u1", email: "laura@ejemplo.com" } as never);
@@ -95,7 +132,15 @@ describe("la página lee listo.json", () => {
   it("con listo.json, el panel va con el libro y si ya se aprobó", async () => {
     vi.mocked(crearClienteServidor).mockReturnValue(baseFalsa(guion("2026-10-21T10:00:00Z"), LISTO).admin);
     const el = (await PaginaHistoria(params)) as { type: unknown; props: { libro: unknown } };
-    expect(el.props.libro).toEqual({ listo: { at: "2026-10-20T10:00:00Z", paginas: 48, sobrePaginas: 6 }, aprobadoAt: "2026-10-21T10:00:00Z" });
+    expect(el.props.libro).toEqual({ listo: { at: "2026-10-20T10:00:00Z", paginas: 48, sobrePaginas: 6 }, aprobadoAt: "2026-10-21T10:00:00Z", impreso: false });
+  });
+
+  it("lee el pedido del narrador para saber si trae impreso", async () => {
+    const base = baseFalsa(guion("2026-10-21T10:00:00Z", [{ estado: "pagado", extras: { tipo: "kids", impreso: "color", copias: 1 } }]), LISTO);
+    vi.mocked(crearClienteServidor).mockReturnValue(base.admin);
+    const el = (await PaginaHistoria(params)) as { type: unknown; props: { libro: { impreso: boolean } } };
+    expect(el.props.libro.impreso).toBe(true);
+    expect(base.llamadas).toContainEqual({ tabla: "pedidos", metodo: "eq", args: ["narrador_id", "n1"] });
   });
 });
 

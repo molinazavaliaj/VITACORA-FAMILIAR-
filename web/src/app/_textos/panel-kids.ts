@@ -12,7 +12,7 @@ import type { FallaCambioKids, FallaCorreccion } from "@/lib/kids-panel";
 //     títulos de los capítulos (banco.md, vienen de kids-banco.json) y
 //     «Leé todo, pero no le digas nada hasta el libro.» (AVISO-PADRE). Van
 //     literales; los tests los comparan.
-//   - Todo lo marcado // TEXTO PARA NAZA es nuevo y espera su aprobación; lo marcado APROBADO ya lo aprobó (tanda 2, 15/10).
+//   - Todo lo marcado // TEXTO PARA NAZA es nuevo y espera su aprobación; lo marcado APROBADO ya lo aprobó (tanda 2, 15/10; el libro, tanda 4, 16/10).
 //
 // Reglas: en vos, frases simples, sin dos puntos, sin «tu hijo» ni «él» fijos
 // (se nombra con cómo le dicen), sin «amor», sin prometer tiempos.
@@ -193,34 +193,33 @@ export const PANEL_KIDS = {
 
   /** El libro ya escrito (decisión 9): se ve solo cuando la fábrica dejó listo.json. */
   libro: {
-    // TEXTO PARA NAZA · KP-LIBRO-TITULO
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-TITULO
     titulo: "El libro ya está escrito",
-    // TEXTO PARA NAZA · KP-LIBRO-TEXTO
-    texto: (apodo: string) => `Acá está el libro de ${apodo}, con lo que contó. Leelo antes de aprobarlo.`,
-    // TEXTO PARA NAZA · KP-LIBRO-SOBRE
-    sobre: "El sobre cerrado va aparte.",
-    // TEXTO PARA NAZA · KP-LIBRO-VER
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-TEXTO
+    texto: (apodo: string) => `Acá está el libro de ${apodo}, con lo que contó. Leelo antes de aprobarlo. El sobre cerrado va aparte.`,
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-VER
     ver: "Ver el libro",
-    // TEXTO PARA NAZA · KP-LIBRO-BAJAR
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-BAJAR
     bajar: "Descargar el libro",
-    // TEXTO PARA NAZA · KP-LIBRO-VER-SOBRE
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-VER-SOBRE
     verSobre: "Ver el sobre",
-    // TEXTO PARA NAZA · KP-LIBRO-BAJAR-SOBRE
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-BAJAR-SOBRE
     bajarSobre: "Descargar el sobre",
-    // TEXTO PARA NAZA · KP-LIBRO-ALGO-MAL
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-ALGO-MAL
     algoMal: "Si algo no está bien, escribinos antes de aprobarlo.",
-    // TEXTO PARA NAZA · KP-LIBRO-APROBAR
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-APROBAR
     aprobar: "Aprobar el libro",
-    // TEXTO PARA NAZA · KP-LIBRO-CONFIRMAR
-    confirmar: "Cuando lo aprobás, lo mandamos a imprimir y ya no se cambia.",
-    // TEXTO PARA NAZA · KP-LIBRO-SI
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-CONFIRMAR
+    confirmar: "Cuando lo aprobás, queda así y ya no se cambia.",
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-SI
     si: "Sí, aprobarlo",
-    // TEXTO PARA NAZA · KP-LIBRO-NO
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-NO
     no: "Todavía no",
     // TEXTO PARA NAZA · KP-LIBRO-APROBANDO
     aprobando: "Aprobando…",
-    // TEXTO PARA NAZA · KP-LIBRO-APROBADO
-    aprobado: "Aprobaste el libro. Ahora lo mandamos a imprimir.",
+    // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-APROBADO
+    // «Ahora lo mandamos a imprimir.» va solo si el pedido trae impreso (kidsConImpreso).
+    aprobado: (impreso: boolean) => (impreso ? "Aprobaste el libro. Ahora lo mandamos a imprimir." : "Aprobaste el libro."),
     errores: {
       // TEXTO PARA NAZA · KP-LIBRO-ERR-NO-LISTO
       noListo: "El libro todavía no está listo para aprobar.",
