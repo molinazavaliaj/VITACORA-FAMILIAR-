@@ -362,3 +362,11 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     },
   },
 };
+
+/**
+ * El aviso de la compra cuando en el canal A el WhatsApp del chico es el mismo
+ * que el del padre (`mismoNumero`, lib/kids-compra.ts). Solo en vos: Kids no se
+ * vende en España. Aprobado por Naza el 15/10
+ * (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, punto 7).
+ */
+export const KIDS_MISMO_NUMERO = "El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».";

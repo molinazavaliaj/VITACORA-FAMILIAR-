@@ -286,7 +286,8 @@ describe("POST /api/compra con producto kids", () => {
     usar(admin);
     const r = await POST(peticion(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+54 9 11 5555 1234" }, "AR", "ar")));
     expect(r.status).toBe(400);
-    expect((await r.json()).error).toBe("El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.");
+    // Aprobado por Naza el 15/10 (punto 7).
+    expect((await r.json()).error).toBe("El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».");
     expect(admin.from).not.toHaveBeenCalled();
   });
 

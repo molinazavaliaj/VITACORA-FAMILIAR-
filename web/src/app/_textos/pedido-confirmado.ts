@@ -158,3 +158,25 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     ponerDireccion: "Posa-la des del teu panell",
   },
 };
+
+/**
+ * Vitácora Kids (15/10): «qué pasa ahora» cuando el pedido es de Kids. Solo
+ * es-AR, de vos (Kids no se vende en España). La primera fila depende del
+ * canal (A = su WhatsApp, B = «Lo hago yo»); en el A va con «Antes» y no con
+ * «Hoy» porque le escribimos a la hora que eligió el padre, que puede ser
+ * mañana. «Mientras cuenta» y «Al terminar» son los de la biografía en vos.
+ * Kids no lleva impreso. Aprobados por Naza el 15/10
+ * (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, puntos 5 y 6).
+ */
+export type CanalConfirmadoKids = "A" | "B";
+
+export const CONFIRMADO_KIDS = {
+  canalA: (apodo: string) => `A la hora que elegiste le llega a ${apodo} un mensaje nuestro por WhatsApp. Avisale que le va a escribir «Vitácora».`,
+  canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando toquen el botón, juntos.",
+};
+
+export function momentosKids(apodo: string, canal: CanalConfirmadoKids): Momento[] {
+  const [hoy, antes, mientras, alTerminar] = CONFIRMADO.ar.otro(apodo, false);
+  const primera: Momento = canal === "A" ? { cuando: antes.cuando, que: CONFIRMADO_KIDS.canalA(apodo) } : { cuando: hoy.cuando, que: CONFIRMADO_KIDS.canalB };
+  return [primera, mientras, alTerminar];
+}

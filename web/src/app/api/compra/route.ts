@@ -14,7 +14,7 @@ import { IDIOMA_KIDS, conLinkPanel, leerCompraKids, type CuerpoKids } from "@/li
 import { obtenerPrecioKids } from "@/lib/precios";
 import { esTablaAusente } from "@/lib/tabla-ausente";
 import { urlBaseMail } from "@/lib/mail";
-import { CHECKOUT_KIDS } from "@/app/_textos/checkout-kids";
+import { CHECKOUT_KIDS, KIDS_MISMO_NUMERO } from "@/app/_textos/checkout-kids";
 import type { Compra } from "@/lib/productos";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -457,11 +457,11 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const leida = leerCompraKids(body, region);
   if (!leida.ok) {
-    // TEXTO PARA NAZA (mismoNumero, hoy va el aviso del WhatsApp): «El WhatsApp
-    // de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te
-    // llegan a vos, elegí «Lo hago yo».»
+    // mismoNumero: el aviso aprobado el 15/10 (en vos; Kids no se vende en España).
     const error =
-      leida.falla === "telefono" || leida.falla === "mismoNumero"
+      leida.falla === "mismoNumero"
+        ? KIDS_MISMO_NUMERO
+        : leida.falla === "telefono"
         ? trato === "tu"
           ? "El WhatsApp no parece un número válido. Revísalo e intenta de nuevo."
           : "El WhatsApp no parece un número válido. Revisalo e intentá de nuevo."

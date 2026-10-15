@@ -15,7 +15,7 @@ const deTu = (region: string | null | undefined): boolean => region === "ES";
 
 import type { TratoComprador } from "./regalo-textos";
 import { langDeIdioma, type IdiomaWeb } from "./idioma-web";
-import { textosMail } from "./mail-textos";
+import { TEXTOS_MAIL_KIDS, textosMail, type CanalMailKids } from "./mail-textos";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -222,7 +222,8 @@ const textoPlano = (bloques: string[]) => `${bloques.join("\n\n")}\n`;
  * de 6 dígitos, que es el login que ya existe. `idioma` pisa a la región
  * (para el catalán, cuando la compra lo guarde).
  */
-export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb }): MailArmado {
+export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids } }): MailArmado {
+  if (opciones.kids) return armarMailAccesoKids(opciones.comoLeDicen, opciones.kids.canal);
   const idioma = opciones.idioma ?? idiomaMailDeRegion(opciones.region);
   const { comun, acceso } = textosMail(idioma);
   const como = opciones.comoLeDicen;
@@ -257,7 +258,54 @@ export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string
   return { asunto: acceso.asunto(como), html, texto };
 }
 
-export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb }): Promise<boolean> {
+/**
+ * Vitácora Kids (15/10): el mismo mail en vos (Kids es solo es-AR), con el
+ * asunto, la primera línea y «Mientras cuenta» de Kids. Sin «Arranca cuando
+ * quiera»: en el canal A le escribimos a la hora elegida y en el B la primera
+ * pregunta sale cuando estén juntos.
+ */
+function armarMailAccesoKids(apodo: string, canal: CanalMailKids): MailArmado {
+  const idioma: IdiomaWeb = "ar";
+  const { comun, acceso } = textosMail(idioma);
+  const K = TEXTOS_MAIL_KIDS;
+  const primera = K.primeraLinea[canal](apodo);
+  const entrar = `${urlBaseMail()}/entrar`;
+
+  const html = cascaron({
+    idioma,
+    vistaPrevia: primera,
+    titulo: acceso.titulo,
+    cuerpo: `
+          ${parrafo(escapar(primera))}
+          ${parrafo(escapar(acceso.paraEscuchar))}
+          <tr><td class="vt-px" style="padding:18px 36px 0;">${boton(entrar, comun.botonTablero)}</td></tr>
+          <tr><td class="vt-px" style="padding:10px 36px 0;font-family:${SERIF};font-size:14px;line-height:1.5;color:${COLOR.pie};">${escapar(comun.codigo)}</td></tr>
+          ${lineaDeTiempo(comun.quePasaAhora, [
+            { cuando: comun.mientrasCuenta, que: K.enTuPanel },
+            { cuando: comun.alTerminar, que: comun.alTerminarTexto },
+          ])}`,
+  });
+
+  const texto = textoPlano([
+    comun.etiqueta,
+    acceso.titulo,
+    primera,
+    acceso.paraEscuchar,
+    `${comun.botonTablero}
+${entrar}
+${comun.codigo}`,
+    `${comun.quePasaAhora}
+${comun.mientrasCuenta}. ${K.enTuPanel}
+${comun.alTerminar}. ${comun.alTerminarTexto}`,
+    comun.dudas,
+    `${comun.pie}
+${comun.porQue}`,
+  ]);
+
+  return { asunto: K.asunto(apodo), html, texto };
+}
+
+export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids } }): Promise<boolean> {
   const mail = armarMailAcceso(opciones);
   return enviar({ para: opciones.para, asunto: mail.asunto, html: mail.html, texto: mail.texto });
 }

@@ -23,7 +23,7 @@ export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
-type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null }) => Promise<boolean>;
+type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null; kids?: { canal: "A" | "B" } }) => Promise<boolean>;
 type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
 
 export async function confirmarPago(
@@ -57,6 +57,8 @@ export async function confirmarPago(
   // Gift card (08/10): el narrador todavía no tiene teléfono. Espera en
   // regalo_pendiente hasta que escriba con su código (supabase/CONTRATO.md).
   const esRegalo = extras?.regalo === true;
+  // Vitácora Kids (15/10): el mail de acceso de Kids, según el canal de kids_v2.
+  const esKids = extras?.tipo === "kids";
 
   // 1. El pedido. Solo si sigue pendiente: Stripe reintenta el webhook y una
   //    segunda llamada no debe volver a mandar el mail ni tocar nada.
@@ -139,6 +141,8 @@ export async function confirmarPago(
         } else {
           console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
         }
+      } else if (esKids) {
+        await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}), kids: { canal: await canalKids(admin, pedido.narrador_id) } });
       } else {
         // De vos para Argentina y de tú para España (Naza, 09/10).
         await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}) });
@@ -149,4 +153,21 @@ export async function confirmarPago(
   }
 
   return { ok: true, yaEstaba: false, email, codigoRegalo };
+}
+
+/**
+ * El canal de un pedido de Kids (A = su WhatsApp, B = «Lo hago yo»), de
+ * `kids_v2.canal`. Si no se puede leer se loguea y va el del canal A: el mail
+ * sale igual (el pago ya está hecho) y el A no le pide nada al padre.
+ */
+async function canalKids(admin: SupabaseClient, narradorId: string): Promise<"A" | "B"> {
+  try {
+    const { data, error } = await admin.from("kids_v2").select("canal").eq("narrador_id", narradorId).maybeSingle();
+    const canal = (data as { canal?: unknown } | null)?.canal;
+    if (canal === "A" || canal === "B") return canal;
+    console.error(`confirmarPago: no pude leer el canal de Kids del narrador ${narradorId}${error ? `: ${error.message}` : ""}; va el mail del canal A.`);
+  } catch (err) {
+    console.error(`confirmarPago: no pude leer el canal de Kids del narrador ${narradorId}; va el mail del canal A.`, err);
+  }
+  return "A";
 }

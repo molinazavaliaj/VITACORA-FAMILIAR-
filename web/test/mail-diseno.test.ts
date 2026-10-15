@@ -185,3 +185,54 @@ describe("textos de los mails", () => {
     expect(claves("ar")).toEqual(claves("es"));
   });
 });
+
+// Vitácora Kids (15/10): textos aprobados por Naza, literales
+// (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, puntos 1 a 4).
+describe("mail de acceso de Vitácora Kids", () => {
+  const ASUNTO = "Listo, ya está en marcha el libro de Tomi";
+  const A = "Le vamos a escribir a Tomi a la hora que elegiste. A vos te avisamos por WhatsApp.";
+  const B = "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.";
+  const PANEL = "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.";
+  const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde tu panel/;
+
+  it("canal A: asunto, vista previa y primera línea del A, y la fila del panel", () => {
+    const { asunto, html, texto } = armarMailAcceso({ comoLeDicen: "Tomi", region: "AR", kids: { canal: "A" } });
+    expect(asunto).toBe(ASUNTO);
+    expect(html).toContain(A);
+    expect(html.split(A).length - 1).toBe(2); // vista previa + cuerpo
+    expect(html).toContain(PANEL);
+    expect(html).toContain('<html lang="es-AR"');
+    expect(html).toContain(`href="${URL}/entrar"`);
+    expect(texto).toContain(A);
+    expect(texto).toContain(`Mientras cuenta. ${PANEL}`);
+    expect(texto).not.toContain(B);
+    expect(plano(html)).not.toMatch(DE_LA_BIOGRAFIA);
+    expect(texto).not.toMatch(DE_LA_BIOGRAFIA);
+    expect(texto).not.toMatch(PROHIBIDAS);
+  });
+
+  it("canal B: la vista previa y la primera línea del B", () => {
+    const { asunto, html, texto } = armarMailAcceso({ comoLeDicen: "Tomi", region: "AR", kids: { canal: "B" } });
+    expect(asunto).toBe(ASUNTO);
+    expect(html.split(B).length - 1).toBe(2);
+    expect(texto).toContain(B);
+    expect(texto).toContain(PANEL);
+    expect(texto).not.toContain(A);
+    expect(texto).not.toMatch(DE_LA_BIOGRAFIA);
+  });
+
+  it("Kids va en vos aunque la familia diga España, y escapa el apodo", () => {
+    const { html, texto } = armarMailAcceso({ comoLeDicen: "<b>Tomi</b>", region: "ES", kids: { canal: "A" } });
+    expect(html).toContain('<html lang="es-AR"');
+    expect(texto).toContain("¿Dudas? Contestá este mail.");
+    expect(html).toContain("a &lt;b&gt;Tomi&lt;/b&gt; a la hora");
+    expect(html).not.toContain("<b>Tomi</b>");
+  });
+
+  it("la biografía no cambia", () => {
+    const { asunto, texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR" });
+    expect(asunto).toBe("Listo. Hoy le escribimos a tu abuela.");
+    expect(texto).toContain("vas a poder escuchar su voz desde tu panel.");
+    expect(texto).not.toContain(PANEL);
+  });
+});

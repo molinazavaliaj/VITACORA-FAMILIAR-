@@ -231,6 +231,33 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
   },
 };
 
+/**
+ * Vitácora Kids (15/10): el mail de acceso cuando el pedido es de Kids
+ * (`extras.tipo = "kids"`). Solo es-AR, de vos: Kids no se vende en España.
+ * Cambia el asunto, la vista previa y la primera línea (según el canal: A = su
+ * WhatsApp, B = «Lo hago yo») y la fila «Mientras cuenta». Lo demás (título,
+ * botón, código, «Al terminar», dudas y pie) es el del mail de siempre en vos.
+ * Aprobados por Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md).
+ */
+export type CanalMailKids = "A" | "B";
+
+export type TextosMailKids = {
+  asunto: (apodo: string) => string;
+  /** La vista previa y la primera línea del cuerpo, por canal. */
+  primeraLinea: Record<CanalMailKids, (apodo: string) => string>;
+  /** La fila «Mientras cuenta». */
+  enTuPanel: string;
+};
+
+export const TEXTOS_MAIL_KIDS: TextosMailKids = {
+  asunto: (apodo) => `Listo, ya está en marcha el libro de ${apodo}`,
+  primeraLinea: {
+    A: (apodo) => `Le vamos a escribir a ${apodo} a la hora que elegiste. A vos te avisamos por WhatsApp.`,
+    B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.",
+  },
+  enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
+};
+
 export function textosMail(idioma: IdiomaWeb): TextosMail {
   return TEXTOS_MAIL[idioma];
 }

@@ -19,6 +19,8 @@ function construirAdmin(opciones: {
   errorExtras?: string;
   /** La región de la familia que compra. */
   region?: "ES" | "AR";
+  /** Vitácora Kids: el canal de la fila de kids_v2 (sin fila si no se pasa). */
+  canalKids?: "A" | "B";
 }) {
   const updates: { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] }[] = [];
 
@@ -43,6 +45,7 @@ function construirAdmin(opciones: {
           : { data: { extras: opciones.extras ?? {}, familia_id: "f1" }, error: null });
       }
       if (tabla === "regalos") return Promise.resolve({ data: opciones.codigoRegalo ? { codigo: opciones.codigoRegalo } : null, error: null });
+      if (tabla === "kids_v2") return Promise.resolve({ data: opciones.canalKids ? { canal: opciones.canalKids } : null, error: null });
       return Promise.resolve({ data: null, error: null });
     };
     cadena.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
@@ -235,5 +238,32 @@ describe("confirmarPago — la entrega de lo físico", () => {
     const { admin } = adminConEntrega({ extras: { pdf: true, impreso: "color", copias: 1, marcos: 0 }, region: "AR", fallaEntrega: true });
     const r = await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
     expect(r.ok).toBe(true);
+  });
+
+  // Vitácora Kids (15/10): el mail de acceso de Kids, con el canal de kids_v2.
+  for (const canal of ["A", "B"] as const) {
+    it(`Kids, canal ${canal}: el mail de acceso lleva el canal de kids_v2`, async () => {
+      const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { tipo: "kids", pdf: true }, comoLeDicen: "Tomi", region: "AR", canalKids: canal });
+      const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+      await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
+      expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "Tomi", region: "AR", kids: { canal } });
+    });
+  }
+
+  it("Kids sin fila en kids_v2: el mail sale igual, con el canal A, y se loguea", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { tipo: "kids" }, comoLeDicen: "Tomi", region: "AR" });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
+    expect(enviarMailAcceso).toHaveBeenCalledWith(expect.objectContaining({ kids: { canal: "A" } }));
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
+  });
+
+  it("la biografía no lleva nada de Kids en el mail de acceso", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, region: "AR", canalKids: "B" });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
+    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "papá", region: "AR" });
   });
 });
