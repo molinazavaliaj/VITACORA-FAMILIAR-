@@ -170,9 +170,9 @@ const ES: TextosLegal = {
     descripcion: "Qué te damos, qué te cobramos, cuándo puedes desistir y de quién es la historia.",
     enCorto: [
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
-      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso: si no acepta, te devolvemos el dinero completo.",
+      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, te devolvemos el dinero completo.",
       "Antes de cerrar el libro lo revisas tú. Lo que se imprime es lo que apruebas.",
-      "Puedes desistir: 14 días naturales en España, 10 días corridos en Argentina.",
+      "Puedes desistir en 14 días naturales en España, o en 10 días corridos en Argentina.",
       "La historia, los audios y la voz son de tu familia. Nunca los publicamos.",
     ],
     secciones: [
@@ -320,7 +320,7 @@ const ES: TextosLegal = {
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
       "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
       "Los audios originales se borran en cuanto tú o el narrador lo pidan.",
-      "Solo usamos cookies técnicas: ni de publicidad ni de analítica.",
+      "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, basta un correo a {hola}.",
     ],
     secciones: [
@@ -557,9 +557,9 @@ const AR: TextosLegal = {
     descripcion: "Qué te damos, qué te cobramos, cuándo podés arrepentirte y de quién es la historia.",
     enCorto: [
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
-      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso: si no acepta, te devolvemos el dinero completo.",
+      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, te devolvemos el dinero completo.",
       "Antes de cerrar el libro lo revisás vos. Lo que se imprime es lo que aprobás.",
-      "Podés arrepentirte: 10 días corridos en Argentina, 14 días naturales en España.",
+      "Podés arrepentirte en 10 días corridos en Argentina, o en 14 días naturales en España.",
       "La historia, los audios y la voz son de tu familia. Nunca los publicamos.",
     ],
     secciones: [
@@ -707,7 +707,7 @@ const AR: TextosLegal = {
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
       "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
       "Los audios originales se borran en cuanto vos o el narrador lo pidan.",
-      "Solo usamos cookies técnicas: ni de publicidad ni de analítica.",
+      "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, alcanza un correo a {hola}.",
     ],
     secciones: [
@@ -944,9 +944,9 @@ const CA: TextosLegal = {
     descripcion: "Què et donem, què et cobrem, quan pots desistir i de qui és la història.",
     enCorto: [
       "Pagament únic, per avançat. Sense subscripció i sense renovació automàtica.",
-      "L'entrevista és per WhatsApp, amb àudios, al ritme del narrador. No comença res sense el seu permís: si no accepta, et retornem tots els diners.",
+      "L'entrevista és per WhatsApp, amb àudios, al ritme del narrador. No comença res sense el seu permís. Si no accepta, et retornem tots els diners.",
       "Abans de tancar el llibre el revises tu. El que s'imprimeix és el que aproves.",
-      "Pots desistir: 14 dies naturals a Espanya, 10 dies seguits a l'Argentina.",
+      "Pots desistir en 14 dies naturals a Espanya, o en 10 dies seguits a l'Argentina.",
       "La història, els àudios i la veu són de la teva família. No els publiquem mai.",
     ],
     secciones: [
@@ -1094,7 +1094,7 @@ const CA: TextosLegal = {
       "Fem servir les teves dades i les de la teva família només per fer el llibre.",
       "No les venem, no les fem servir per a publicitat i no entrenem cap model d'intel·ligència artificial amb elles.",
       "Els àudios originals s'esborren tan bon punt tu o el narrador ho demaneu.",
-      "Només fem servir galetes tècniques: ni de publicitat ni d'analítica.",
+      "Només fem servir galetes tècniques, ni de publicitat ni d'analítica.",
       "Per a qualsevol cosa sobre les teves dades, n'hi ha prou amb un correu a {hola}.",
     ],
     secciones: [
