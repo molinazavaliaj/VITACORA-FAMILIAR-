@@ -16,6 +16,9 @@ import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { HistoriaViaje } from "./viaje";
 import { HistoriaV3 } from "./v3";
+import { PanelKids } from "./kids";
+import { esKids } from "@/lib/kids-panel";
+import { leerPanelKids } from "@/lib/kids-panel-base";
 import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
 import { diasDelViaje, fechaDelDia, type Viaje } from "@/lib/viaje";
 import { type CapituloRiel } from "../riel";
@@ -137,6 +140,22 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   const { narrador: n, rol } = historia;
   const propia = esPropia(n); // "para mí": el panel le habla de vos
+
+  // Vitácora Kids (K5, 15/10): si el narrador tiene fila en kids_v2, va su panel en lugar del de
+  // biografía, y solo para quien compró. Se pregunta solo cuando la compra lo marcó
+  // (contexto.modo = "kids"): una biografía no hace ninguna consulta de más. Sin la tabla
+  // (migración sin aplicar), sigue como hoy.
+  if (esKids(n)) {
+    const { vista, error: errorKids } = await leerPanelKids(admin, n.id);
+    if (errorKids) {
+      console.error("historia: fallo la carga de kids", errorKids);
+      return <EstadoError />;
+    }
+    if (vista) {
+      if (rol !== "duena") notFound();
+      return <PanelKids n={n} fila={vista.fila} capitulos={vista.capitulos} />;
+    }
+  }
 
   // El visitante (guardó el link del libro cerrado) ve la muestra, no la historia.
   if (!PUEDE.verHistoriaCompleta(rol)) {

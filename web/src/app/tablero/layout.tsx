@@ -8,6 +8,8 @@ import { Navegacion } from "./nav";
 import { BotonTema, COOKIE_TEMA, type Tema } from "./tema";
 import { estadoCorto } from "./riel";
 import { CascaronHueco } from "./esqueleto";
+import { esKids } from "@/lib/kids-panel";
+import { estadoCortoKids } from "../_textos/panel-kids";
 import "../_direccion/tokens.css";
 import "./panel.css";
 
@@ -57,7 +59,8 @@ async function Cascaron({ tema, children }: { tema: Tema; children: ReactNode })
     comoLeDicen: h.narrador.como_le_dicen,
     rol: h.rol,
     propia: esPropia(h.narrador),
-    estadoCorto: estadoCorto(h.narrador.estado, esPropia(h.narrador)),
+    // Vitácora Kids (K5): sus estados se dicen de otra forma (no hay invitación que aceptar).
+    estadoCorto: esKids(h.narrador) ? estadoCortoKids(h.narrador.estado) : estadoCorto(h.narrador.estado, esPropia(h.narrador)),
   }));
   // La letra del círculo de la cuenta: la del nombre de quien compró, o la del correo.
   const inicial = (panel.familia?.nombre?.trim() || user.email || "").charAt(0).toLocaleUpperCase("es");

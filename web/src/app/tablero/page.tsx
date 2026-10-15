@@ -14,6 +14,8 @@ import { PANEL, idiomaDelTrato } from "../_textos/panel";
 import { leerPedido } from "./_historia/pedido";
 import { LibroDelEstante, type Extra } from "./_historia/estante";
 import { primerNombre } from "./momento";
+import { arranco, capituloActual, esKids, preguntasAbiertas, terminoKids } from "@/lib/kids-panel";
+import { leerFilaKids } from "@/lib/kids-panel-base";
 import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Titulo, TOTAL_PREGUNTAS_BASE, formatearDuracion } from "./ui";
 
 // Inicio (docs/panel-usuario.md §4). Rediseño 2026-10 (fase 2): un estante.
@@ -27,6 +29,9 @@ async function resumirHistoria(
 ): Promise<Resumen & Extra> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
+  // Vitácora Kids (K5): cómo va el chico, de su fila de kids_v2. Solo si la compra lo marcó; sin la
+  // tabla o si falla, la tarjeta sale como antes. Va en la misma ronda que lo demás.
+  const pKids = esKids(h.narrador) ? leerFilaKids(admin, narradorId).then((r) => r.fila, () => null) : Promise.resolve(null);
   const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, dudasPendientes, v3, { data: fila }, pedido] = await Promise.all([
     admin
       .from("respuestas")
@@ -45,6 +50,7 @@ async function resumirHistoria(
     // Lo comprado, para la línea de tiempo (nunca rechaza).
     leerPedido(admin, h.narrador),
   ]);
+  const filaKids = await pKids;
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
   const ordenes = new Set(filas.filter((r) => !r.es_repregunta).map((r) => r.pregunta_orden));
@@ -72,6 +78,9 @@ async function resumirHistoria(
     portadaFotoId: f.edicion?.portadaFotoId ?? null,
     titulo: f.edicion?.titulo?.trim() || null,
     pedido,
+    kids: filaKids
+      ? { canal: filaKids.canal, arranco: arranco(filaKids), capitulo: capituloActual(filaKids), terminado: terminoKids(filaKids), abiertas: preguntasAbiertas(filaKids) }
+      : null,
   };
 }
 

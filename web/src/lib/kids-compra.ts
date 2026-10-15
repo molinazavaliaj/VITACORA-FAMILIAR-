@@ -217,7 +217,7 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
 /**
  * La ficha con su `linkPanel`: el tablero del narrador, con la misma base que
  * los links del mail de acceso (lib/mail.ts). Sin sesión, el tablero manda a
- * /entrar y vuelve. Cuando exista el panel de Kids (K5), cambia acá.
+ * /entrar y vuelve. Con fila en kids_v2, /tablero/<id> es el panel de Kids (K5).
  */
 export function conLinkPanel(ficha: Omit<FichaKids, "linkPanel">, narradorId: string, urlBase: string): FichaKids {
   return { ...ficha, linkPanel: `${urlBase}/tablero/${narradorId}` };
