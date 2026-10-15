@@ -66,6 +66,7 @@ export const FRENADO_AVISADO = 'frenado-avisado.txt';
 export const MAIL_REVISAR = 'mail-revisar.txt';
 export const AVISO_14_DIAS = 'aviso-14-dias.txt';
 export const MAIL_LIBRO_LISTO = 'mail-libro-listo.txt';
+export const APROBADO_SIN_LISTO = 'aviso-aprobado-sin-listo.txt';
 export const TRABAJANDO = 'trabajando.json';
 /** En `{id}/escritor-kids/real/` (los escribe el orquestador; liberado.json, Naza a mano). */
 export const CARPETA_A = 'carpeta-A.json';
@@ -159,39 +160,75 @@ async function quienEs(db: Db, id: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------- dos copias de la fábrica a la vez
-// Como el escritor de la casa (libro-v3.ts, conMarca): mientras trabaja, `{id}/escritor-kids/trabajando.json` se
-// renueva cada minuto; otra copia no toca a ese chico mientras la marca tenga menos de 10 minutos.
+// En un deploy puede haber dos copias de la fábrica prendidas a la vez. Antes de lanzar un trabajo, la copia TOMA la
+// marca `{id}/escritor-kids/trabajando.json` creándola sin pisar (upload sin upsert: Storage devuelve error si ya
+// existe), así que de dos copias en el mismo tick solo una la consigue. Mientras trabaja la renueva cada minuto; al
+// terminar la borra. Una marca de más de 10 minutos es de una copia que murió: se borra y se vuelve a crear (si dos
+// copias llegan juntas a una marca vieja, gana la que la crea primero; queda una ventana chica entre borrar y crear).
 
 const PROCESO = randomUUID();
 const MARCA_VIGENTE_MS = 10 * 60 * 1000;
+const rutaMarca = (id: string): string => `${PREFIJO_KIDS(id)}/${TRABAJANDO}`;
 
+/** Toma la marca de trabajo de este chico. False si otra copia (o este mismo proceso) la tiene fresca, o si Storage falla. */
+export async function tomarMarca(db: Db, id: string, que: string, ahora: number = Date.now()): Promise<boolean> {
+  const crear = async (): Promise<boolean> => {
+    const { error } = await db.storage.from('audios').upload(rutaMarca(id), JSON.stringify({ proceso: PROCESO, que, latido: new Date(ahora).toISOString() }), { contentType: 'application/json', upsert: false, cacheControl: '0' });
+    return !error;
+  };
+  try {
+    if (await crear()) return true;
+    const t = await almacenKids(db, id).leer(TRABAJANDO);
+    if (t === null) return false; // el error no era «ya existe»: mejor no lanzar este tick
+    const latido = Date.parse((JSON.parse(t) as { latido?: string }).latido ?? '');
+    if (ahora - latido < MARCA_VIGENTE_MS) return false;
+    await db.storage.from('audios').remove([rutaMarca(id)]);
+    return await crear();
+  } catch (err) {
+    console.error(`kids ${id}: no pude tomar la marca de trabajo:`, err instanceof Error ? err.message : err);
+    return false;
+  }
+}
+
+async function soltarMarca(db: Db, id: string): Promise<void> {
+  try {
+    await db.storage.from('audios').remove([rutaMarca(id)]);
+  } catch (err) {
+    console.error(`kids ${id}: no pude soltar la marca de trabajo (queda vieja en 10 minutos):`, err instanceof Error ? err.message : err);
+  }
+}
+
+/** Con la marca ya tomada: la renueva cada minuto mientras corre `f` y la suelta al terminar. */
 async function conMarca<T>(db: Db, id: string, que: string, f: () => Promise<T>): Promise<T> {
   const a = almacenKids(db, id);
-  const marcar = (latido: string): Promise<void> => a.escribir(TRABAJANDO, JSON.stringify({ proceso: PROCESO, que, latido })).catch((err) => {
-    console.error(`kids ${id}: no pude dejar la marca de trabajo:`, err instanceof Error ? err.message : err);
+  const marcar = (): Promise<void> => a.escribir(TRABAJANDO, JSON.stringify({ proceso: PROCESO, que, latido: new Date().toISOString() })).catch((err) => {
+    console.error(`kids ${id}: no pude renovar la marca de trabajo:`, err instanceof Error ? err.message : err);
   });
-  await marcar(new Date().toISOString());
   let enVuelo: Promise<void> = Promise.resolve();
-  const reloj = setInterval(() => { enVuelo = marcar(new Date().toISOString()); }, 60_000);
+  const reloj = setInterval(() => { enVuelo = marcar(); }, 60_000);
   reloj.unref?.();
   try {
     return await f();
   } finally {
     clearInterval(reloj);
     await enVuelo;
-    await marcar(new Date(0).toISOString());
+    await soltarMarca(db, id);
   }
 }
 
-async function trabajaOtraCopia(db: Db, id: string, ahora: number): Promise<boolean> {
+/**
+ * Toma la marca y lanza el trabajo en la cola. Con la marca en la mano vuelve a mirar si el trabajo sigue haciendo
+ * falta (otra copia pudo terminarlo entre el listado y la marca). False si no se lanzó.
+ */
+async function lanzarConMarca(db: Db, id: string, que: string, ahora: number, sigueFaltando: () => Promise<boolean>, trabajo: () => Promise<void>): Promise<boolean> {
+  if (!(await tomarMarca(db, id, que, ahora))) return false;
+  let lanzado = false;
   try {
-    const t = await almacenKids(db, id).leer(TRABAJANDO);
-    if (t === null) return false;
-    const m = JSON.parse(t) as { proceso?: string; latido?: string };
-    return m.proceso !== PROCESO && ahora - Date.parse(m.latido ?? '') < MARCA_VIGENTE_MS;
-  } catch {
-    return false;
+    if (await sigueFaltando()) lanzado = cola.lanzar(id, () => conMarca(db, id, que, trabajo));
+  } finally {
+    if (!lanzado) await soltarMarca(db, id);
   }
+  return lanzado;
 }
 
 // ---------------------------------------------------------------- la cola (propia: los libros de Kids no le quitan lugar a los de la casa)
@@ -331,7 +368,7 @@ function esDefinitivo(err: unknown): boolean {
 async function trabajoLibro(db: Db, pedido: { id: string; narrador_id: string }, motor: MotorKids): Promise<void> {
   const id = pedido.narrador_id;
   try {
-    const r = await conMarca(db, id, `libro ${pedido.id}`, () => escribirLibroKids(db, pedido, motor));
+    const r = await escribirLibroKids(db, pedido, motor);
     erroresLibro.delete(id);
     console.log(`kids ${id}: libro ${r === 'listo' ? 'listo para que lo revise el padre' : 'frenado por algo preocupante'}`);
   } catch (err) {
@@ -440,6 +477,17 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
   const listoTexto = archivos.has(LISTO) ? await a.leer(LISTO) : null;
 
   if (listoTexto === null) {
+    // Aprobado sin listo.json (alguien lo borró): el libro NO se reescribe. Un aviso a los socios y nada más.
+    if (n.libro_aprobado_at) {
+      if (!archivos.has(APROBADO_SIN_LISTO)) {
+        const salio = await avisarSocios(
+          `El libro de Kids de ${await quienEs(db, id)} está aprobado pero falta listo.json`,
+          `El padre aprobó el libro (${n.libro_aprobado_at}) pero no está ${PREFIJO_KIDS(id)}/${LISTO}. La fábrica no lo reescribe (sería otro libro distinto del que aprobó), no entrega el pedido ni lo manda a la imprenta. Si los archivos de ${id}/paquete/ están bien, volver a subir listo.json a mano ({"at": "...", "paginas": 0, "sobrePaginas": 0}). Este aviso sale una sola vez.`,
+        );
+        if (salio) await a.escribir(APROBADO_SIN_LISTO, new Date(ahora).toISOString());
+      }
+      return;
+    }
     const real = await listar(db, PREFIJO_KIDS_REAL(id));
     if (real.has(RUTA_FRENADO) && !real.has(RUTA_LIBERADO)) {
       // Frenado: nada hasta liberado.json. Solo se reintenta el aviso si no había salido.
@@ -453,18 +501,18 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
     const pagado = pedidos.find((x) => x.estado === 'pagado');
     if (pagado) {
       if (archivos.has(FALLO_LIBRO) || !cola.hayLugar(id) || ahora < (esperaLibro.get(id) ?? 0)) return;
-      if (await trabajaOtraCopia(db, id, ahora)) return;
       const m = motor();
-      cola.lanzar(id, () => trabajoLibro(db, pagado, m));
+      const sigue = async (): Promise<boolean> => !(await listar(db, PREFIJO_KIDS(id))).has(LISTO);
+      await lanzarConMarca(db, id, `libro ${pagado.id}`, ahora, sigue, () => trabajoLibro(db, pagado, m));
       return;
     }
     if (real.has(CARPETA_A) || archivos.has(FALLO_A) || !cola.hayLugar(id)) return;
     if (ahora - (ultimoErrorA.get(id) ?? -Infinity) < ESPERA_TRAS_ERROR_MS) return;
-    if (await trabajaOtraCopia(db, id, ahora)) return;
     const m = motor();
-    cola.lanzar(id, async () => {
+    const sigue = async (): Promise<boolean> => !(await listar(db, PREFIJO_KIDS_REAL(id))).has(CARPETA_A) && !(await listar(db, PREFIJO_KIDS(id))).has(FALLO_A);
+    await lanzarConMarca(db, id, 'etapa A', ahora, sigue, async () => {
       try {
-        const r = await conMarca(db, id, 'etapa A', () => correrEtapaAKids(db, id, m));
+        const r = await correrEtapaAKids(db, id, m);
         ultimoErrorA.delete(id);
         console.log(`kids ${id}: lectura ${r}`);
       } catch (err) {

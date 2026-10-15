@@ -887,8 +887,8 @@ para esos (el piloto real de Naza). Todo lo de abajo vale para los chicos prendi
 |---|---|---|---|
 | `listo.json` | fábrica | fábrica, **web (panel de Kids)** | `{at, paginas, sobrePaginas}`: el libro está escrito y los archivos de `paquete/` están. Es la señal para mostrarle al padre el libro y el botón de aprobar. |
 | `fallo-A.json`, `fallo-libro.json` | fábrica | socios | La lectura o el libro no salió (`{motivo, fecha}`). No se reintenta solo: se borra a mano para reintentar (retoma sin repagar). |
-| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). |
-| `trabajando.json` | fábrica | fábrica | Como el de la casa: otra copia de la fábrica no toca al chico mientras tenga menos de 10 minutos. |
+| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt`, `aviso-aprobado-sin-listo.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). El último: el padre aprobó y falta `listo.json` (alguien lo borró); la fábrica **no reescribe el libro**, no entrega ni imprime, y avisa a los socios una vez. |
+| `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`. La copia de la fábrica que va a lanzar un trabajo (lectura o libro) **la toma antes** creándola sin pisar (upload sin `upsert`): de dos copias en el mismo tick solo una la consigue. La renueva cada minuto y la borra al terminar. Una de más de 10 minutos es de una copia muerta: se borra y se vuelve a crear. |
 
 `{narrador_id}/paquete/` (los de siempre, con el libro de Kids):
 

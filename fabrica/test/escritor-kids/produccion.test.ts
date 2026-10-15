@@ -63,7 +63,13 @@ function baseFalsa(tablas: Record<string, Fila[]>) {
           const t = archivos.get(ruta);
           return t === undefined ? { data: null, error: { message: 'Object not found' } } : { data: new Blob([t]), error: null };
         },
-        upload: async (ruta: string, cuerpo: string | Buffer) => { archivos.set(ruta, cuerpo); return { error: null }; },
+        // Como Storage: sin upsert, un archivo que ya existe da error (409) y no se pisa.
+        upload: async (ruta: string, cuerpo: string | Buffer, o?: { upsert?: boolean }) => {
+          if (o?.upsert === false && archivos.has(ruta)) return { error: { message: 'The resource already exists', statusCode: '409' } };
+          archivos.set(ruta, cuerpo);
+          return { error: null };
+        },
+        remove: async (rutas: string[]) => { for (const r of rutas) archivos.delete(r); return { error: null }; },
         list: async (pre: string) => {
           const nombres = new Set<string>();
           for (const k of archivos.keys()) if (k.startsWith(`${pre}/`)) nombres.add(k.slice(pre.length + 1).split('/')[0]);
@@ -250,6 +256,74 @@ describe('el libro de Kids en el worker', () => {
   it('sin la tabla kids_v2 no hace nada ni tira', async () => {
     const db = { from: () => ({ select: async () => ({ data: null, error: { code: '42P01', message: 'relation "kids_v2" does not exist' } }) }) };
     await expect(revisarLibrosKids(db as never)).resolves.toBeUndefined();
+  });
+});
+
+describe('dos copias de la fábrica a la vez', () => {
+  type Modulo = typeof import('../../src/escritor-kids/produccion/libro-kids.js');
+  /** Dos copias del módulo (cada una con su proceso y su cola), como dos workers prendidos en un deploy. */
+  async function dosCopias(): Promise<[Modulo, Modulo]> {
+    vi.resetModules();
+    const uno = await import('../../src/escritor-kids/produccion/libro-kids.js');
+    vi.resetModules();
+    const otro = await import('../../src/escritor-kids/produccion/libro-kids.js');
+    return [uno, otro];
+  }
+  async function tickJuntas(db: unknown, copias: [Modulo, Modulo], motores: [MotorKids, MotorKids]): Promise<void> {
+    await Promise.all(copias.map((c, i) => c.revisarLibrosKids(db as never, { motor: motores[i] })));
+    await Promise.all(copias.map((c) => c.colaKids.esperarTodo()));
+  }
+
+  it('en el mismo tick, la Etapa A la lanza una sola', async () => {
+    const copias = await dosCopias();
+    expect(copias[0]).not.toBe(copias[1]);
+    const { db, archivos } = baseFalsa(tablasDeBenja());
+    const [a, b] = [motorFalso({}), motorFalso({})];
+    await tickJuntas(db, copias, [a.motor, b.motor]);
+    expect([...a.modelo.llamadas, ...b.modelo.llamadas].map((p) => p.clave)).toEqual(['A/kids-leer']);
+    expect(archivos.has(kids('trabajando.json'))).toBe(false); // al terminar se suelta
+  });
+
+  it('en el mismo tick, el libro lo escribe una sola', async () => {
+    const copias = await dosCopias();
+    const { db, archivos } = baseFalsa(tablasDeBenja({ pedido: true }));
+    const [a, b] = [motorFalso({}), motorFalso({})];
+    await tickJuntas(db, copias, [a.motor, b.motor]);
+    const claves = [...a.modelo.llamadas, ...b.modelo.llamadas].map((p) => p.clave);
+    expect(claves.filter((k) => k === 'A/kids-leer')).toHaveLength(1);
+    expect(claves.filter((k) => k === 'B/kids-parte-1')).toHaveLength(1);
+    expect(a.modelo.llamadas.length === 0 || b.modelo.llamadas.length === 0).toBe(true);
+    expect(archivos.has(kids('listo.json'))).toBe(true);
+    // Y en el tick siguiente ninguna hace nada: ya está listo.json.
+    await tickJuntas(db, copias, [a.motor, b.motor]);
+    expect(a.modelo.llamadas.length + b.modelo.llamadas.length).toBe(claves.length);
+  });
+
+  it('una marca fresca de otra copia frena; una vieja (copia muerta) se toma', async () => {
+    const { db, archivos } = baseFalsa(tablasDeBenja());
+    const { motor, modelo } = motorFalso({});
+    archivos.set(kids('trabajando.json'), JSON.stringify({ proceso: 'otra', que: 'etapa A', latido: new Date().toISOString() }));
+    await vuelta(db, motor);
+    expect(modelo.llamadas).toHaveLength(0);
+    archivos.set(kids('trabajando.json'), JSON.stringify({ proceso: 'otra', que: 'etapa A', latido: new Date(Date.now() - 11 * 60_000).toISOString() }));
+    await vuelta(db, motor);
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/kids-leer']);
+  });
+});
+
+describe('aprobado sin listo.json', () => {
+  it('no se reescribe el libro: un aviso a los socios, una vez, y nada más', async () => {
+    const t = tablasDeBenja({ pedido: true });
+    t.narradores[0].libro_aprobado_at = '2026-10-10T10:00:00.000Z';
+    const { db, archivos } = baseFalsa(t);
+    const { motor, modelo } = motorFalso({});
+    await vuelta(db, motor);
+    await vuelta(db, motor);
+    expect(modelo.llamadas).toHaveLength(0);
+    expect(t.pedidos[0].estado).toBe('pagado');
+    expect(aSocios()).toHaveLength(1);
+    expect(aSocios()[0].subject).toContain('está aprobado pero falta listo.json');
+    expect([...archivos.keys()]).toEqual([kids('aviso-aprobado-sin-listo.txt')]);
   });
 });
 
