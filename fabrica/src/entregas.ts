@@ -4,7 +4,8 @@
 // imprenta. Separados a propósito: uno decide CUÁNDO, el otro sabe CÓMO.
 
 import { obtenerClienteDb } from './db.js';
-import { armarLibroDeImprenta } from './libro/imprenta.js';
+import { armarLibroDeImprenta, armarLibroDeImprentaKids } from './libro/imprenta.js';
+import { libroKidsAprobado } from './escritor-kids/produccion/libro-kids.js';
 import { cargarConfig } from './config.js';
 import { enviarMailHito, type Hito } from './mail/hitos.js';
 import { productosDelPedido } from './libro/productos.js';
@@ -15,9 +16,10 @@ import { narradoresConKids } from './kids/candado.js';
 type Db = ReturnType<typeof obtenerClienteDb>;
 
 /**
- * Los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4): su impreso se diseña aparte, así
- * que ni la imprenta de siempre ni los mails de la entrega (que llevan al tablero de biografías). Sin la tabla,
- * nadie es chico. Null si no se pudo leer: ese paso no corre este tick.
+ * Los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4): su impreso va a la imprenta solo
+ * con el libro de Kids escrito y aprobado por el padre, con sus propios PDF (CONTRATO, «El libro de Kids en la
+ * fábrica»); los mails de la entrega no les salen (dicen «el libro de tu {como_le_dicen}» y llevan al tablero de
+ * biografías). Sin la tabla, nadie es chico. Null si no se pudo leer: ese paso no corre este tick.
  */
 async function chicosOFrenar(db: Db, paso: string): Promise<Set<string> | null> {
   try {
@@ -80,9 +82,11 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
   if (!kids) return;
 
   for (const entrega of (data ?? []) as { id: string; narrador_id: string }[]) {
-    if (kids.has(entrega.narrador_id)) continue;
+    const esChico = kids.has(entrega.narrador_id);
     try {
-      const armado = await armarLibroDeImprenta(db, entrega.narrador_id);
+      // Un chico de Kids: solo con su libro escrito (listo.json) y aprobado por el padre; antes, la entrega espera.
+      if (esChico && !(await libroKidsAprobado(db, entrega.narrador_id))) continue;
+      const armado = esChico ? await armarLibroDeImprentaKids(db, entrega.narrador_id) : await armarLibroDeImprenta(db, entrega.narrador_id);
       // Todavía sin confirmar: la entrega espera, y el próximo tick vuelve a mirar.
       if (!armado) continue;
 

@@ -23,6 +23,7 @@ import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { narradoresConKids } from './kids/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
+import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { avisarVariablesAlArrancar } from './variables.js';
 
 const INTERVALO_MS = 60_000;
@@ -122,6 +123,9 @@ export async function tick(): Promise<void> {
     await generarPrevisualizacionesFaltantes();
     await avisarHitosDeCierre();
     await procesarPedidosPagados();
+    // El libro de Kids (escritor-kids/produccion/libro-kids.ts): la lectura al terminar de contar, el libro con el
+    // pedido pagado, el mail al padre para revisarlo, la entrega cuando lo aprueba y el aviso de los 14 días.
+    await revisarLibrosKids(obtenerClienteDb());
     await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
