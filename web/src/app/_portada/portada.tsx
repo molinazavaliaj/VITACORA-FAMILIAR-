@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
 import { Acordeon } from "../_ui/acordeon";
@@ -59,6 +60,7 @@ const TESTIMONIOS: ReadonlyArray<{ texto: string; nombre: string; detalle: strin
 // presentan como familias reales ni junto a opiniones.
 const FOTOS = {
   guitarra: "/rediseno/osvaldo-guitarra.jpg",
+  vidriera: "/rediseno/vidriera-vitacora.jpg",
   padre: "/rediseno/para-tu-padre.jpg",
   abuelo: "/rediseno/para-tu-abuelo.jpg",
   viaje: "/rediseno/viaje-mirador-lisboa.jpg",
@@ -199,11 +201,16 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 4 · EL DOLOR Y LA CARTA de los fundadores ═══ */}
-      <section className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[4]">
+      <section className="dir-tinta dir-hoja dir-sobre-3 dir-diferido relative z-[4] overflow-hidden">
+        {/* La vidriera de Vitácora (Naza 15/10), de fondo y como ambiente de la
+            carta: oscurecida para que se lea; decorativa (alt vacío) y diferida. */}
+        <div aria-hidden className="dir-carta-fondo pointer-events-none absolute inset-0">
+          <Image src={FOTOS.vidriera} alt="" fill sizes="100vw" quality={60} className="object-cover object-[50%_40%]" />
+        </div>
         {/* data-lejos: con «Las fotos quedan» más corta, esto queda cerca del
             inicio; sin él, la cursiva de la firma y la foto bajarían antes de
             que se pinte el titular (Coreografia lo arma cuando hay tiempo). */}
-        <div data-lejos className="mx-auto max-w-[1360px] px-4 pb-28 pt-28 sm:px-8 md:pb-40 md:pt-40 lg:px-12">
+        <div data-lejos className="relative mx-auto max-w-[1360px] px-4 pb-28 pt-28 sm:px-8 md:pb-40 md:pt-40 lg:px-12">
           <h2 data-revela className="dir-titular dir-t15 max-w-[17ch]" style={conVar({ "--paso": "0.11s" })}>
             <span className="sr-only">{t.direccion.dolor.frase}</span>
             <span aria-hidden>

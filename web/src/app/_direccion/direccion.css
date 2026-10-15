@@ -227,3 +227,15 @@
 /* El titular de /viaje: dos mitades que entran enteras en su línea, del
    teléfono al escritorio (sin saltos de palabra al cambiar de letra). */
 .dir-t-viaje { font-size: clamp(2rem, 0.6rem + 5.2vw, 5.2rem); line-height: 1.04; }
+
+/* La vidriera detrás de la carta: cálida pero apagada, con la tinta encima
+   para que el titular y la hoja de la carta se lean; arriba se funde con el
+   negro de la sección anterior. */
+.dir-carta-fondo { filter: sepia(.25) saturate(.8); }
+.dir-carta-fondo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, var(--dir-tinta) 0%, rgba(7, 7, 6, .82) 22%, rgba(7, 7, 6, .7) 60%, rgba(7, 7, 6, .9) 100%);
+}
