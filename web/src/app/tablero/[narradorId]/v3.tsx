@@ -98,7 +98,7 @@ export function HistoriaV3({
 
         {dudasPendientes ? (
           <div className="mt-8">
-            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tu)}</ProximoPaso>
+            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tu)}</ProximoPaso>
           </div>
         ) : null}
 

@@ -264,3 +264,31 @@ describe("horasPlazoDudas", () => {
     expect(horasPlazoDudas("-3")).toBe(24);
   });
 });
+
+// «Para mí» (15/10): si la dueña compró el libro para sí, la pantalla le habla
+// de lo que contó ella, como el resto del panel. Los textos de primera persona
+// esperan el OK de Naza (docs/pendiente-aprobar-2026-10-15.md).
+import { textosPantallaDudas } from "../src/lib/dudas-textos";
+
+describe("textosPantallaDudas", () => {
+  it("de otra persona: los textos aprobados el 12/10, con su nombre", () => {
+    const t = textosPantallaDudas(false, "Babu");
+    expect(t.titulo).toBe("Dudas sobre lo que contó Babu");
+    expect(t.loQueDijo).toBe("Lo que dijo");
+    expect(t.sinDudas).toBe("Todavía no hay dudas sobre lo que contó Babu.");
+    expect(t.intro).toContain("queda tal como lo contó.");
+  });
+
+  it("para mí: primera persona, sin el nombre y sin dos puntos", () => {
+    const t = textosPantallaDudas(true, "Naza");
+    expect(t.titulo).toBe("Dudas sobre lo que contaste");
+    expect(t.loQueDijo).toBe("Lo que dijiste");
+    expect(t.sinDudas).toBe("Todavía no hay dudas sobre lo que contaste.");
+    expect(t.ningunaDuda).toBe("No quedó ninguna duda. El biógrafo entendió todo lo que contaste.");
+    for (const texto of Object.values(t)) {
+      expect(texto).not.toContain("Naza");
+      expect(texto).not.toMatch(/\bcontó\b|\bdijo\b/);
+      expect(texto).not.toContain(":");
+    }
+  });
+});
