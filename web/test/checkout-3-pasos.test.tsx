@@ -571,7 +571,10 @@ describe("pago fallido: lo elegido sigue guardado (Casos 2)", () => {
 });
 
 describe("/comprar/viaje con el mismo cascarón", () => {
-  it("el mismo libro (papel y tinta, sin el azul), tres pasos, y en es de vosotros sin «cada noche» (B24)", () => {
+  // 15/10 (Naza: «en Vitácora Viaje no cambian los colores a como está en el brief»): la compra de Viaje
+  // vuelve a tener su azul, pero por data-producto="viaje" (checkout.css y _direccion/viaje.css), no con la
+  // clase vieja .tema-viaje (la del violeta), que no se usa en el rediseño.
+  it("la compra de viaje con su paleta (data-producto, no .tema-viaje), tres pasos, y en es de vosotros sin «cada noche» (B24)", () => {
     const es = render(PaginaViajeEs);
     expect(es).toContain('data-producto="viaje"');
     expect(es).not.toContain("tema-viaje");

@@ -245,6 +245,7 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
       />
       <main className="relative min-w-0 flex-1 pb-24 md:pb-0">
         <MarcoHistoria
+          producto={viaje ? "viaje" : undefined}
           cabecera={
             <PortadaHistoria
               idioma={idioma}

@@ -1,0 +1,128 @@
+/* ── Vitácora de Viaje con su color (15/10) ───────────────────────────────
+   Todo lo de Viaje (/viaje, /el-libro-del-viaje, /comprar/viaje y el bloque
+   de Viaje de la portada) lleva data-producto="viaje" en su contenedor. Acá,
+   bajo ese alcance, la dirección «la web es un libro» se pasa a la paleta de
+   la guía de las maquetas: noche #0a0a0a, texto blanco, acento #9dbdff y
+   botón #7aa7ff con texto oscuro. Los colores crudos están en tokens.css
+   (--viaje-*); acá solo se reparten. Familiar no se toca: ninguna regla de
+   este archivo vale sin el atributo.
+
+   Cómo: la dirección pinta casi todo con --dir-tinta, --dir-papel y sus
+   «sobre»; bajo el alcance esas variables pasan a noche y hoja azul noche, y
+   lo que tenía un color fijo (el botón lleno, las texturas del papel) se
+   reescribe abajo. El selector lleva .dir-pagina para ganarle a la definición
+   de .dir-pagina en globals.css cuando el atributo está en el mismo elemento.
+
+   Ojo: sin capa, como globals.css: le gana a las utilidades de Tailwind (que
+   van en @layer). Por eso las etiquetas y los números se tiñen desde acá. */
+
+.dir-pagina[data-producto="viaje"],
+.dir-pagina [data-producto="viaje"] {
+  --dir-tinta: var(--viaje-fondo-pintado);
+  --dir-papel: var(--viaje-hoja);
+  --dir-sobre-tinta: var(--viaje-texto);
+  --dir-sobre-tinta-suave: var(--viaje-texto-suave);
+  --dir-sobre-papel: var(--viaje-texto);
+  --dir-sobre-papel-suave: var(--viaje-hoja-suave);
+  --dir-hilo-tinta: var(--viaje-hilo);
+  --dir-hilo-papel: var(--viaje-hilo-hoja);
+  --dir-dorado: var(--viaje-acento);
+  /* Los tokens del tema oscuro que usan las piezas de _ui (acordeón, cabecera
+     pública, reproductor) adentro de la página: los de la guía para Viaje. */
+  --fondo-oscuro: var(--viaje-fondo-pintado);
+  --tarjeta: var(--viaje-tarjeta);
+  --texto-oscuro: var(--viaje-texto);
+  --texto-oscuro-fuerte: var(--viaje-texto);
+  --texto-oscuro-suave: #c9c6be;
+  --texto-oscuro-menor: var(--viaje-texto-menor);
+  --linea-oscura: var(--viaje-hilo);
+  --borde-oscuro: var(--viaje-hilo);
+  --borde-oscuro-fuerte: rgba(255, 255, 255, 0.3);
+  --punto-vacio: rgba(255, 255, 255, 0.4);
+  --acento-oscuro: var(--viaje-acento);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --elegido-fondo: var(--viaje-hoja);
+  --sombra-boton: var(--viaje-sombra-boton);
+}
+/* La hoja azul noche: lo mismo, con los grises fríos de la hoja. */
+.dir-pagina[data-producto="viaje"] .dir-papel,
+.dir-pagina [data-producto="viaje"] .dir-papel {
+  --texto-oscuro: var(--viaje-texto);
+  --texto-oscuro-fuerte: var(--viaje-texto);
+  --texto-oscuro-suave: var(--viaje-hoja-suave);
+  --texto-oscuro-menor: var(--viaje-hoja-menor);
+  --linea-oscura: var(--viaje-hilo-hoja);
+  --borde-oscuro: var(--viaje-hilo-hoja);
+  --borde-oscuro-fuerte: rgba(201, 214, 245, 0.42);
+  --acento-oscuro: var(--viaje-acento);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+}
+
+/* La hoja azul noche es de noche: sin fibra de papel (sobre azul se veía
+   como manchas); lleva la misma tela que la tinta. */
+.dir-pagina[data-producto="viaje"] .dir-papel,
+.dir-pagina [data-producto="viaje"] .dir-papel {
+  color-scheme: dark;
+  background-image: var(--dir-tela);
+  background-size: auto;
+}
+.dir-pagina[data-producto="viaje"] .dir-deckle,
+.dir-pagina [data-producto="viaje"] .dir-deckle {
+  background-image: var(--dir-tela), linear-gradient(var(--dir-papel), var(--dir-papel));
+  background-size: auto, 100% calc(100% - 13px);
+  background-position: 0 0, 0 13px;
+  background-repeat: repeat, no-repeat;
+}
+/* El borde de la hoja que sube: sobre la noche, la sombra sola no se ve; un
+   hilo de luz azul apenas marca dónde empieza. */
+.dir-pagina[data-producto="viaje"] .dir-papel.dir-hoja {
+  box-shadow: 0 -1px 0 rgba(157, 189, 255, 0.1), 0 -28px 60px -24px rgba(0, 0, 0, 0.9);
+}
+.dir-pagina[data-producto="viaje"] .dir-foto { background: #18203a; }
+.dir-pagina[data-producto="viaje"] .dir-tinta .dir-foto { background: #151a26; }
+
+/* El botón principal: el azul de la guía con texto oscuro (8,3:1). */
+.dir-pagina[data-producto="viaje"] .dir-boton--lleno,
+.dir-pagina [data-producto="viaje"] .dir-boton--lleno {
+  background: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
+.dir-pagina[data-producto="viaje"] .dir-boton--lleno:hover,
+.dir-pagina [data-producto="viaje"] .dir-boton--lleno:hover { background: var(--viaje-boton-encima); }
+.dir-pagina[data-producto="viaje"] .dir-boton:focus-visible { outline-color: var(--viaje-acento); }
+.dir-pagina[data-producto="viaje"] .dir-boton--hilo { border-color: rgba(157, 189, 255, 0.45); }
+.dir-pagina[data-producto="viaje"] .dir-boton--hilo:hover { border-color: var(--viaje-acento); background: rgba(157, 189, 255, 0.08); }
+
+/* El azul de acento: etiquetas, números grandes y los hilos de los enlaces. */
+.dir-pagina[data-producto="viaje"] .dir-micro,
+.dir-pagina [data-producto="viaje"] .dir-micro { color: var(--viaje-acento); }
+.dir-pagina[data-producto="viaje"] .dir-numero { color: var(--viaje-acento); }
+.dir-pagina[data-producto="viaje"] .dir-enlace,
+.dir-pagina [data-producto="viaje"] .dir-enlace { text-decoration-color: rgba(157, 189, 255, 0.55); }
+.dir-pagina[data-producto="viaje"] .dir-enlace:hover,
+.dir-pagina [data-producto="viaje"] .dir-enlace:hover { text-decoration-color: var(--viaje-acento); }
+.dir-pagina[data-producto="viaje"] .dir-bajada-hero { color: #c9c6be; }
+/* La palabra destacada (la segunda mitad de una frase grande). */
+.dir-pagina[data-producto="viaje"] .dir-destaca { color: var(--viaje-acento); }
+
+/* ── Las solapas Familiar · De viaje con «De viaje» activa ──
+   La pastilla pasa a azul. El texto de las solapas va con mix-blend
+   difference (blanco sobre negro, negro sobre blanco): sobre azul daría
+   marrón, así que con Viaje activa el texto lleva su color sin mezcla: oscuro
+   sobre la pastilla, blanco fuera, y cambia junto con la pastilla al señalar
+   la otra. */
+.m-solapas[data-activa="viaje"] .m-pill { background: var(--viaje-boton); }
+.m-solapas[data-activa="viaje"] > [data-solapa] {
+  mix-blend-mode: normal;
+  color: #ffffff;
+  transition: color var(--d-base) var(--ease-io);
+}
+.m-solapas[data-activa="viaje"] > [data-solapa="viaje"] { color: var(--viaje-sobre-boton); }
+.m-solapas[data-activa="viaje"]:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) > [data-solapa="familiar"] {
+  color: var(--viaje-sobre-boton);
+}
+.m-solapas[data-activa="viaje"]:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) > [data-solapa="viaje"] {
+  color: #ffffff;
+}
