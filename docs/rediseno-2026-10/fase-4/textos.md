@@ -1,6 +1,6 @@
 # Fase 4 — textos para aprobar (/viaje y landings de anuncio)
 
-**Aprobado por Naza el 14/10:** los cuatro titulares de landing, opción A; tanda 1 (sin «Cada ciudad, un capítulo», también fuera de la landing de viaje, donde el primer punto pasó a «Os pregunta por el día»); tanda 2 (11–20); tanda 3 (20–31); tanda 4 (32–41).
+**Aprobado por Naza el 14/10:** los cuatro titulares de landing, opción A; tanda 1 (sin «Cada ciudad, un capítulo», también fuera de la landing de viaje, donde el primer punto pasó a «Os pregunta por el día»); tanda 2 (11–20); tanda 3 (20–31); tanda 4 (32–41); tanda 5 (42–53 y títulos). **Todos los textos de la fase 4 en es y ar aprobados.**
 
 Para Naza, de a 10. Cada texto lleva **una versión recomendada**; solo los titulares de las
 landings traen tres opciones (son de marca: los eliges tú). Sin dos puntos en nada nuevo. El
