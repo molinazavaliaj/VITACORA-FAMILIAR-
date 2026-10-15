@@ -408,12 +408,40 @@ describe('la abierta salió por plantilla (sin botones)', () => {
     ultimoEntranteAt: new Date(AHORA.getTime() - 48 * 3600_000).toISOString(),
   });
 
-  it('al volver a escribir, se le reenvía la pregunta con sus botones (una vez)', async () => {
+  // Handoff 07/10, «Pregunta repetida tras una plantilla»: ya la leyó en la plantilla y la contestó.
+  it('si la contesta con audio, no se le repite la pregunta', async () => {
     const { deps, n1, enviados, fila } = await preparar(porPlantilla());
     await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
     await procesarEntranteV3(deps, n1, audio('Yo era la más chica.'));
+    expect(enviados).toEqual([]);
+    const f = await fila();
+    expect(f?.estado.abiertaPorPlantilla).toBeUndefined();
+    expect(f?.estado.esperando).toBe('CA6');
+    expect(f?.estado.borrador).toBe('Éramos cuatro. Yo era la más chica.');
+  });
+
+  it('si la contesta escribiendo, no se le repite la pregunta (sale solo M22, la primera vez)', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Sí, éramos cuatro'));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
+    expect(enviados.some((e) => e.tipo === 'botones')).toBe(false);
+    const f = await fila();
+    expect(f?.estado.abiertaPorPlantilla).toBeUndefined();
+    expect(f?.estado.borrador).toBe('Sí, éramos cuatro');
+  });
+
+  it('si toca el botón de otra plantilla (no la contesta), se le manda con sus botones, una vez', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Empecemos', true));
+    await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
     expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'botones', texto: '¿Tuviste hermanos?', botones: BOTONES }]);
     expect((await fila())?.estado.abiertaPorPlantilla).toBeUndefined();
+  });
+
+  it('si solo saluda, se le manda con sus botones', async () => {
+    const { deps, n1, enviados } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'botones', texto: '¿Tuviste hermanos?', botones: BOTONES }]);
   });
 
   it('si lo que manda es un botón que coincide, no se reenvía', async () => {

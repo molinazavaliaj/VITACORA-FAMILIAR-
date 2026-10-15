@@ -100,12 +100,16 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
     return;
   }
   // Un pedido (pausa o reserva) no dispara el reenvío por plantilla: el audio se sabe recién transcripto.
-  if (!pedidoEscrito && m.tipo !== 'audio') await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  // Un texto escrito que contesta (no un saludo) ya respondió la pregunta que leyó en la plantilla: no se le
+  // repite (handoff 07/10, «Pregunta repetida tras una plantilla»).
+  const contestaEscrito = escrito && !pedidoEscrito && (m.texto ?? '').trim() !== '' && !esSaludo((m.texto ?? '').trim(), fila.idioma);
+  if (!pedidoEscrito && m.tipo !== 'audio') await reenviarSiSalioPorPlantilla(deps, n.id, m, contestaEscrito);
   let llegada: Llegada = 'mensaje';
   if (m.tipo === 'imagen') await recibirImagen(deps, n, m, fila);
   else if (m.tipo === 'audio') {
     llegada = await recibirAudioV3(deps, n, m, fila);
-    if (llegada !== 'pedido') await reenviarSiSalioPorPlantilla(deps, n.id, m);
+    // Contestó con audio la pregunta que leyó en la plantilla: no se le repite (solo se olvida la marca).
+    if (llegada !== 'pedido') await reenviarSiSalioPorPlantilla(deps, n.id, m, true);
   } else if (m.esBoton) {
     if (!(await recibirBoton(deps, n, m, fila, ahora))) await botonSuelto(deps, n, m);
   } else llegada = await recibirTexto(deps, n, m, fila.idioma);
@@ -209,15 +213,18 @@ async function anotarEntrante(deps: DepsV3, narradorId: string, ahora: Date, esA
 
 /**
  * La abierta salió por plantilla (sin botones). Al volver a escribir, la
- * ventana está abierta: si la pregunta tiene botones, se le reenvía con ellos,
- * salvo que lo que mandó sea justo un botón de la abierta.
+ * ventana está abierta: si la pregunta tiene botones y lo que mandó no la
+ * contesta (un botón de otra plantilla, un saludo, una foto suelta), se le
+ * reenvía con ellos, para que pueda tocarlos. Si ya la contestó (`contesta`:
+ * un audio o un texto escrito, que se suman a la abierta) o tocó justo un
+ * botón de la abierta, no se le repite: ya la leyó en la plantilla.
  */
-async function reenviarSiSalioPorPlantilla(deps: DepsV3, narradorId: string, m: MensajeEntrante): Promise<void> {
+async function reenviarSiSalioPorPlantilla(deps: DepsV3, narradorId: string, m: MensajeEntrante, contesta = false): Promise<void> {
   await conReintento(deps.db, narradorId, (f) => {
     const e = f.estado;
     if (!e.abiertaPorPlantilla) return null;
     const tocaLaAbierta = m.esBoton === true && tocarBoton(e, fichaTexto(f), m.texto ?? '') !== null;
-    const reenviar = !!e.esperando && (e.preguntaAbierta?.botones?.length ?? 0) > 0 && !tocaLaAbierta;
+    const reenviar = !contesta && !!e.esperando && (e.preguntaAbierta?.botones?.length ?? 0) > 0 && !tocaLaAbierta;
     return { cambio: { estado: reenviar ? reenviarAbierta(e) : { ...e, abiertaPorPlantilla: undefined } }, resultado: true };
   });
 }
