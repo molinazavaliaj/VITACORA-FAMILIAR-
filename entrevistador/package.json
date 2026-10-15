@@ -24,6 +24,7 @@
     "viaje-v2-cerrar-album": "tsx scripts/viaje-v2-cerrar-album.ts",
     "viaje-v2-cambiar-pais": "tsx scripts/viaje-v2-cambiar-pais.ts",
     "viaje-v2-simular": "tsx scripts/viaje-v2-simular.ts",
+    "kids-v2-copiar-nucleo": "tsx scripts/kids-v2-copiar-nucleo.ts",
     "v3-recazar": "tsx scripts/v3-recazar.ts"
   },
   "keywords": [],

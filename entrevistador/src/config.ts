@@ -99,6 +99,31 @@ export function plantillaViajeLista(idioma: 'es-AR' | 'es-ES' | 'ca', cual: Cual
 }
 
 /**
+ * Las 13 plantillas de Meta de Vitácora Kids V2 (docs/kids/v2/plantillas-meta-kids.md, textos aprobados por Naza
+ * el 05/10), todas en español ('es', como las de siempre: el banco de Kids es solo rioplatense). Los nombres son los
+ * que trae el motor en cada mensaje (`plantilla.nombre`, de banco.json): acá solo se dice cuáles existen. Las carga
+ * Joaquín en Meta y se marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS; hasta entonces no salen.
+ */
+export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3>> = Object.fromEntries(
+  [
+    'kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre',
+    'kids_recordatorio_padre', 'kids_recordatorio_padre_8', 'kids_recordatorio_lo_hago_yo', 'kids_recordatorio_lo_hago_yo_8',
+    'kids_pregunta_nueva', 'kids_pregunta_nueva_padre', 'kids_termino_padre', 'kids_final', 'kids_final_plural',
+  ].map((nombre) => [nombre, { nombre, idiomaMeta: 'es' }]),
+);
+
+/**
+ * ¿Está aprobada en Meta? Se lee en el momento, para poder prenderla sin deploy: WA_PLANTILLAS_KIDS_LISTAS es una
+ * lista de nombres separados por comas (`kids_bienvenida,kids_aviso_padre`) o `*` para todas. Un nombre que no está
+ * en PLANTILLAS_KIDS nunca está listo.
+ */
+export function plantillaKidsLista(nombre: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!Object.hasOwn(PLANTILLAS_KIDS, nombre)) return false;
+  const lista = (env.WA_PLANTILLAS_KIDS_LISTAS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return lista.includes('*') || lista.includes(nombre);
+}
+
+/**
  * ¿Los viajeros NUEVOS van a la Viaje V2? (VIAJE_V2_PARA_NUEVOS=1, cuando Naza lo diga y con las bienvenidas
  * aprobadas en Meta). Prendido, a un viajero nuevo sin fila en `viajes_v2` no le sale la bienvenida vieja: se
  * avisa a los socios para que le creen la fila (npm run viaje-v2-alta) hasta que exista /comprar/viaje V2.

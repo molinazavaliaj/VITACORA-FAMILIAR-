@@ -1,6 +1,6 @@
 // Base en memoria para los tests de la V3: el subconjunto de supabase-js que
 // usa `entrevistador/src/v3/` (select/insert/update/upsert/delete con eq, in,
-// is, lt, lte, gt, gte, not-is, order, limit, single, maybeSingle, count) y el
+// is, lt, lte, gt, gte, not-is, filter-eq de jsonb, order, limit, single, maybeSingle, count) y el
 // storage (upload, list, remove, download). Simula el único de
 // `respuestas.wa_message_id` (23505) y una tabla sin migrar (42P01).
 
@@ -12,11 +12,12 @@ type ErrorBase = { code: string; message: string };
 type Resultado = { data: any; error: ErrorBase | null; count?: number | null };
 
 /** La clave primaria de las tablas que no usan `id`. */
-const CLAVE: Record<string, string> = { entrevistas_v3: 'narrador_id', viajes_v2: 'narrador_id' };
+const CLAVE: Record<string, string> = { entrevistas_v3: 'narrador_id', viajes_v2: 'narrador_id', kids_v2: 'narrador_id' };
 const UNICOS: Record<string, string[]> = {
   respuestas: ['wa_message_id'],
   entrevistas_v3: ['narrador_id'],
   viajes_v2: ['narrador_id'],
+  kids_v2: ['narrador_id'],
   narradores: ['telefono_whatsapp'],
   regalos: ['codigo', 'narrador_id'],
 };
@@ -25,6 +26,10 @@ const DEFAULTS: Record<string, () => Fila> = {
   entrevistas_v3: () => ({ version: 0, tanda_cuenta: 0, ultimo_audio_at: null, tanda_dia: null, enviando_hasta: null, creada_at: new Date().toISOString(), migrada_de: null }),
   envios: () => ({ enviado_at: new Date().toISOString() }),
   viajes_v2: () => ({ version: 0, enviando_hasta: null, creada_at: new Date().toISOString() }),
+  kids_v2: () => ({
+    idioma: 'es-AR', estado: null, cambios_panel: null, cambios_error: null, avance: {}, marcas: [], version: 0, enviando_hasta: null,
+    despertar_at: null, creada_at: new Date().toISOString(), empezo_at: null, termino_at: null,
+  }),
   narradores: () => ({ estado: 'invitado', dia_actual: 0, contexto: {}, hora_preferida: '10:00:00', zona_horaria: 'America/Argentina/Buenos_Aires', ultima_respuesta_at: null, alerta_silencio: false }),
 };
 
@@ -40,6 +45,17 @@ export type BaseFalsa = {
 };
 
 const copia = <T>(x: T): T => (x === undefined ? x : (JSON.parse(JSON.stringify(x)) as T));
+
+/** Igualdad de jsonb: mismo valor, sin importar el orden de las claves de los objetos. */
+function mismoJson(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => mismoJson(x, b[i]));
+  const ka = Object.keys(a as object).sort();
+  const kb = Object.keys(b as object).sort();
+  return ka.length === kb.length && ka.every((k, i) => k === kb[i] && mismoJson((a as Fila)[k], (b as Fila)[k]));
+}
 
 class Consulta implements PromiseLike<Resultado> {
   private op: 'select' | 'insert' | 'update' | 'upsert' | 'delete' = 'select';
@@ -72,6 +88,13 @@ class Consulta implements PromiseLike<Resultado> {
   lte(c: string, v: string | number) { this.filtros.push((f) => f[c] != null && f[c] <= v); return this; }
   gt(c: string, v: string | number) { this.filtros.push((f) => f[c] != null && f[c] > v); return this; }
   gte(c: string, v: string | number) { this.filtros.push((f) => f[c] != null && f[c] >= v); return this; }
+  /** Solo `eq` sobre una columna jsonb (Kids V2: `cambios_panel`): el valor viene como texto JSON y se compara como jsonb (sin importar el orden de las claves). */
+  filter(c: string, op: string, v: string) {
+    if (op !== 'eq') throw new Error(`base falsa: filter(${c}, ${op}) no está implementado`);
+    const buscado = JSON.parse(v) as unknown;
+    this.filtros.push((f) => mismoJson(f[c] ?? null, buscado));
+    return this;
+  }
   not(c: string, op: string, v: unknown) {
     if (op !== 'is') throw new Error(`base falsa: not(${c}, ${op}) no está implementado`);
     this.filtros.push((f) => (f[c] ?? null) !== v);
