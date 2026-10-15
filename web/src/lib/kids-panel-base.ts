@@ -102,7 +102,8 @@ export async function guardarCorreccion(
   modo: "agregar" | "quitar",
   ahora: string,
 ): Promise<ResultadoGuardar<FallaCorreccion | "respuesta">> {
-  // La respuesta tiene que ser de este chico, y el nombre tiene que estar en lo que dijo.
+  // La respuesta tiene que ser de este chico, y el nombre tiene que estar en lo que dijo
+  // (lo mismo que muestra la vista: la transcripción, o lo escrito si no hay).
   const { data: r, error: errorR } = await admin
     .from("respuestas")
     .select("id, transcripcion, texto_directo")
@@ -112,7 +113,7 @@ export async function guardarCorreccion(
   if (errorR) return { ok: false, falla: "base" };
   if (!r) return { ok: false, falla: "respuesta" };
   const resp = r as { transcripcion: string | null; texto_directo: string | null };
-  if (modo === "agregar" && !diceEstaEn(resp.transcripcion ?? resp.texto_directo, c.dice)) return { ok: false, falla: "no-esta" };
+  if (modo === "agregar" && !diceEstaEn(resp.transcripcion?.trim() || resp.texto_directo, c.dice)) return { ok: false, falla: "no-esta" };
 
   for (let i = 0; i < INTENTOS_CAS; i++) {
     const { fila, error } = await leerFilaKids(admin, narradorId);

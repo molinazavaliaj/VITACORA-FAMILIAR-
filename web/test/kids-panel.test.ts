@@ -318,6 +318,14 @@ describe("guardar una corrección (compare-and-swap sobre correcciones)", () => 
     expect([...noEsta.llamadas, ...ajena.llamadas].some((l) => l.tabla === "kids_v2")).toBe(false);
   });
 
+  it("con la transcripción vacía, valida contra lo escrito (como la vista)", async () => {
+    const { admin } = baseFalsa({
+      respuestas: [{ data: { id: "r1", transcripcion: "   ", texto_directo: "Fui con Yaco" }, error: null }],
+      kids_v2: [{ data: FILA_BASE, error: null }, { data: [{ narrador_id: "n1" }], error: null }],
+    });
+    expect(await guardarCorreccion(admin, "n1", { respuestaId: "r1", dice: "Yaco", es: "Jaco" }, "agregar", "x")).toMatchObject({ ok: true });
+  });
+
   it("quitar saca la del nombre", async () => {
     const una = { respuesta_id: "r1", dice: "Yaco", es: "Jaco", at: "1" };
     const { admin, llamadas } = baseFalsa({ respuestas: [respuesta], kids_v2: [{ data: { ...FILA_BASE, correcciones: [una] }, error: null }, { data: [{ narrador_id: "n1" }], error: null }] });
