@@ -16,10 +16,11 @@ import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } fro
 // grande, papel, hilos en vez de filas de tarjetas, fotos con forma.
 //
 // ESTÁTICA: no lee headers ni cookies. Lo que vende lo deciden las variables al
-// construir: con KIDS_VENTA="1" y PRECIO_KIDS_* válido, los botones llevan a
-// /comprar/kids de su idioma y se ve el precio; si falta alguna, «Próximamente»
-// y «Escríbenos» (WhatsApp de dudas o correo). Hoy KIDS_VENTA no debe
-// prenderse: la base no sabe guardar un pedido de Kids (lib/kids.ts).
+// construir: con KIDS_VENTA="1", PRECIO_KIDS_* válido y una región que vende
+// (KIDS_REGIONES: hoy solo /ar), los botones llevan a /comprar/kids de su
+// idioma y se ve el precio; si falta alguna, «Próximamente» y «Escríbenos»
+// (WhatsApp de dudas o correo). KIDS_VENTA no se prende hasta que Joaquín
+// conecte el motor y esté aplicada la migración de kids_v2 (lib/kids.ts).
 //
 // Lo que NO dice, a propósito: tiempos (días, semanas), «9 días», marco, «Su
 // voz», reseñas, garantía (Kids no tiene texto aprobado: PENDIENTES). La

@@ -10,14 +10,16 @@ import { obtenerPrecioKids, type Region } from "./precios";
 //     apodo, genero, edad, quienRegala, canal, nombrePadre, hora, zona,
 //     temasSacados, fotosConOtrosChicos, preguntasPadre).
 //
-// La base de `main` NO sabe qué es un pedido de Kids: no hay `contexto.modo =
-// 'kids'`, ni `pedidos.extras.tipo = 'kids'`, ni dónde guardar el WhatsApp del
-// padre ni la ficha, y el motor no está conectado al entrevistador (falta
-// Joaquín). Por eso la compra no se puede crear todavía: la web arma la ficha
-// (`fichaDeCompra`) para el día que exista dónde mandarla, y /api/compra
-// rechaza cualquier cuerpo de Kids (PENDIENTES, «Apuntado: Kids»).
+// La base (CONTRATO, «Vitácora Kids V2 por WhatsApp», migración
+// 20261016000000_kids_v2, PROPUESTA para Joaquín) guarda un pedido de Kids
+// así: narrador con `contexto.modo = "kids"`, pedido con `extras.tipo =
+// "kids"` y una fila en `kids_v2` con la ficha, el canal y el WhatsApp del
+// padre. /api/compra los crea (K4, lib/kids-compra.ts). Mientras la migración
+// no esté aplicada, la compra se deshace y contesta KIDS_TODAVIA_NO. Y nada se
+// vende sin KIDS_VENTA, que no se prende hasta que Joaquín conecte el motor al
+// entrevistador (PENDIENTES, «Apuntado: Kids»).
 
-/** Lo que contesta /api/compra a un cuerpo de Kids mientras no exista del lado de la base. */
+/** Lo que contesta /api/compra a un cuerpo de Kids que no se puede vender (de tú; el de vos está en _textos/checkout-kids). */
 export const KIDS_TODAVIA_NO = "Vitácora Kids todavía no se vende. Escríbenos y te avisamos cuando abra.";
 
 /** COMPRA-3-TEMAS, en el orden de la pantalla (los mismos ids que el motor). */
@@ -41,13 +43,22 @@ export function zonaKids(region: Region): string {
 }
 
 /**
- * ¿Se vende Kids? Solo con las dos cosas: el interruptor KIDS_VENTA="1" (lo
- * prende Naza cuando Joaquín haya conectado el motor y la base sepa guardar un
- * pedido de Kids) y un precio válido para la región. Sin alguna, la página y la
- * compra dicen «Próximamente» y ofrecen escribirnos.
+ * Dónde se vende Kids. Solo Argentina: el bot de Kids hoy habla solo
+ * rioplatense (K7), así que en España (tú) y en catalán el WhatsApp le
+ * llegaría en vos. España se suma cuando estén los textos del bot en es-ES y
+ * ca (y `kids_v2.idioma` deje de ser siempre es-AR).
+ */
+export const KIDS_REGIONES: readonly Region[] = ["AR"];
+
+/**
+ * ¿Se vende Kids? Solo con todo: una región de KIDS_REGIONES, el interruptor
+ * KIDS_VENTA="1" (lo prende Naza cuando Joaquín haya conectado el motor y la
+ * migración de kids_v2 esté aplicada) y un precio válido para la región. Sin
+ * alguna, la página y la compra dicen «Próximamente» y ofrecen escribirnos, y
+ * /api/compra contesta 409.
  */
 export function kidsVende(region: Region, env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.KIDS_VENTA === "1" && obtenerPrecioKids(region) !== null;
+  return KIDS_REGIONES.includes(region) && env.KIDS_VENTA === "1" && obtenerPrecioKids(region) !== null;
 }
 
 /** Lo que se llena en las 3 pantallas de la compra. */
@@ -160,9 +171,10 @@ export function fallaKids(paso: PasoKids, e: EstadoKids): FallaKids | null {
 
 /**
  * La ficha del motor (fabrica/src/kids-v2/compra.ts, `Ficha`) con lo que se
- * llenó, sin `linkPanel` (lo pone quien la guarde: todavía no existe el panel de
- * Kids) y sin preguntas del padre (se escriben después, desde el panel). Los
- * teléfonos y el correo no van en la ficha: los guarda la base (falta dónde).
+ * llenó, sin `linkPanel` (lo pone /api/compra al crear el narrador) y sin
+ * preguntas del padre (se escriben después, desde el panel). Los teléfonos y el
+ * correo no van en la ficha: van a `narradores`, `kids_v2` y `familias`. El
+ * servidor no la cree tal cual: la vuelve a armar y validar (lib/kids-compra.ts).
  */
 export function fichaDeCompra(e: EstadoKids, region: Region) {
   return {
@@ -182,9 +194,8 @@ export function fichaDeCompra(e: EstadoKids, region: Region) {
 }
 
 /**
- * El cuerpo que iría a /api/compra. `producto: "kids"` es la marca para que la
- * API lo reconozca (y hoy lo rechace: no hay dónde guardarlo). Cuando Joaquín
- * acuerde el CONTRATO, esto se ajusta a lo que diga.
+ * El cuerpo que va a /api/compra. `producto: "kids"` es la marca para que la
+ * API lo reconozca y cree el pedido de Kids (lib/kids-compra.ts).
  */
 export function cuerpoKids(e: EstadoKids, region: Region, idiomaWeb: string) {
   return {

@@ -9,7 +9,14 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import { limpiarOrigen } from "@/lib/origen";
-import { KIDS_TODAVIA_NO } from "@/lib/kids";
+import { KIDS_TODAVIA_NO, kidsVende } from "@/lib/kids";
+import { IDIOMA_KIDS, conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra";
+import { obtenerPrecioKids } from "@/lib/precios";
+import { esTablaAusente } from "@/lib/tabla-ausente";
+import { urlBaseMail } from "@/lib/mail";
+import { CHECKOUT_KIDS } from "@/app/_textos/checkout-kids";
+import type { Compra } from "@/lib/productos";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -22,6 +29,8 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 // pendiente_pago y un pedido pendiente — inofensivos y fáciles de limpiar.
 
 const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos iniciar el pago. ${intenta(t)} de nuevo en un momento.`;
+const MENSAJE_TELEFONO_REPETIDO = (t: TratoComprador) =>
+  `Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, ${t === "tu" ? "entra" : "entrá"} con tu correo.`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
@@ -56,14 +65,14 @@ export type CompraBody = RegistroBody & {
    */
   origen?: unknown;
   /**
-   * Vitácora Kids (15/10): la compra de /comprar/kids manda `producto: "kids"`.
-   * Hoy se rechaza siempre: la base de main no sabe guardar un pedido de Kids
-   * (lib/kids.ts, PENDIENTES «Apuntado: Kids»). Sin esto, un cuerpo de Kids se
-   * cobraría como el libro de una vida y el entrevistador le escribiría a un
-   * chico con las preguntas de un adulto.
+   * Vitácora Kids (15/10): la compra de /comprar/kids manda `producto: "kids"`
+   * y va por su propio camino (`comprarKids`, abajo): precio de Kids, ficha del
+   * motor y fila de `kids_v2`. Sin esto, un cuerpo de Kids se cobraría como el
+   * libro de una vida y el entrevistador le escribiría a un chico con las
+   * preguntas de un adulto.
    */
   producto?: unknown;
-};
+} & CuerpoKids;
 
 /**
  * La prueba para retomar un regalo sin pagar, si viene y el token verifica
@@ -111,7 +120,13 @@ function columnasEntrega(e: EntregaRegalo | null) {
 /** De dónde salió la compra, si el cuerpo lo dice y coincide con la región; si no, nada (vueltas de siempre). */
 function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
   if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
+  if (body.producto === "kids") return { idioma: body.idiomaWeb, pantalla: "kids" };
   return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
+}
+
+/** ¿Es un narrador de Kids? (CONTRATO: `contexto.modo = "kids"`, con su fila en kids_v2). */
+function esDeKids(fila: unknown): boolean {
+  return (fila as { contexto?: { modo?: unknown } | null } | null)?.contexto?.modo === "kids";
 }
 
 /**
@@ -145,9 +160,7 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
   }
-  if (body.producto === "kids") {
-    return NextResponse.json({ error: KIDS_TODAVIA_NO }, { status: 409 });
-  }
+  if (body.producto === "kids") return comprarKids(body);
   // Vos o tú: el de la región que eligió en el formulario.
   const trato: TratoComprador = body.region === "ES" ? "tu" : "vos";
 
@@ -213,16 +226,17 @@ export async function POST(request: NextRequest) {
   // la pestaña), se retoma ese narrador en vez de chocar con el teléfono
   // repetido. Solo si es la misma familia: un pendiente ajeno sigue dando 409.
   // Un regalo no tiene teléfono: se retoma solo con la prueba de la compra
-  // anterior (más abajo).
+  // anterior (más abajo). Un pendiente de Kids no se retoma como biografía:
+  // tiene su fila en kids_v2 y el entrevistador lo trataría como un chico.
   const { data: pendiente } = narradorAInsertar.telefono_whatsapp
     ? await admin
         .from("narradores")
-        .select("id, familia_id, estado")
+        .select("id, familia_id, estado, contexto")
         .eq("telefono_whatsapp", narradorAInsertar.telefono_whatsapp)
         .eq("estado", "pendiente_pago")
         .maybeSingle()
     : { data: null };
-  let retomable = pendiente as { id: string; familia_id: string } | null;
+  let retomable = esDeKids(pendiente) ? null : (pendiente as { id: string; familia_id: string } | null);
 
   // Un regalo se reintenta sin teléfono (09/10, antes de vender): se retoma
   // SOLO con la prueba de la compra anterior, el tokenFotos que devolvió esta
@@ -289,9 +303,7 @@ export async function POST(request: NextRequest) {
     const esTelefonoRepetido = (errorNarrador as { code?: string } | null)?.code === "23505";
     return NextResponse.json(
       {
-        error: esTelefonoRepetido
-          ? `Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, ${trato === "tu" ? "entra" : "entrá"} con tu correo.`
-          : MENSAJE_ERROR_GENERICO(trato),
+        error: esTelefonoRepetido ? MENSAJE_TELEFONO_REPETIDO(trato) : MENSAJE_ERROR_GENERICO(trato),
       },
       { status: esTelefonoRepetido ? 409 : 500 },
     );
@@ -396,5 +408,186 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("compra: fallo crear el checkout", err);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
+  }
+}
+
+// ── Vitácora Kids (K4, 15/10) ────────────────────────────────────────────────
+//
+// Lo mismo que la compra de siempre (familia por correo, narrador en
+// pendiente_pago, pedido pendiente, pasarela), con lo de Kids del CONTRATO
+// («Vitácora Kids V2 por WhatsApp»): el precio de Kids, `contexto.modo =
+// "kids"`, `extras.tipo = "kids"` y la fila de `kids_v2` con la ficha. Si algo
+// falla después de crear el narrador, se borra lo que nació en ESTE pedido
+// (un chico a medias sin su fila en kids_v2 lo agarraría el entrevistador
+// como a un adulto). Sin la migración de kids_v2, lo mismo y 409: no se vende.
+
+/** El nombre de la línea en la pasarela (Stripe / Mercado Pago). */
+const NOMBRE_LINEA_KIDS = "Vitácora Kids";
+
+/** «Todavía no se vende», de tú o de vos (los dos ya existen: lib/kids.ts y _textos/checkout-kids). */
+const kidsTodaviaNo = (region: "ES" | "AR") => (region === "AR" ? CHECKOUT_KIDS.ar.proximamenteTexto : KIDS_TODAVIA_NO);
+
+/** Borra lo que nació en este pedido, del último al primero. Si un borrado falla, se loguea y se sigue. */
+async function deshacer(admin: SupabaseClient, creado: { familiaId?: string; narradorId?: string; kids?: boolean }) {
+  const pasos: [string, string, string | undefined][] = [
+    ["kids_v2", "narrador_id", creado.kids ? creado.narradorId : undefined],
+    ["narradores", "id", creado.narradorId],
+    ["familias", "id", creado.familiaId],
+  ];
+  for (const [tabla, columna, id] of pasos) {
+    if (!id) continue;
+    const { error } = await admin.from(tabla).delete().eq(columna, id);
+    if (error) console.error(`compra kids: no pude borrar ${tabla} ${id} al deshacer`, error);
+  }
+}
+
+async function comprarKids(body: CompraBody): Promise<NextResponse> {
+  if (body.region !== "ES" && body.region !== "AR") {
+    return NextResponse.json({ error: "La región debe ser España o Argentina." }, { status: 400 });
+  }
+  const region = body.region;
+  const trato: TratoComprador = region === "ES" ? "tu" : "vos";
+  // KIDS_VENTA, precio y región (KIDS_REGIONES: hoy solo AR, el bot habla rioplatense).
+  if (!kidsVende(region)) return NextResponse.json({ error: kidsTodaviaNo(region) }, { status: 409 });
+  const precio = obtenerPrecioKids(region) as number;
+
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: "Necesitamos un correo válido para avisarte." }, { status: 400 });
+  }
+  const leida = leerCompraKids(body, region);
+  if (!leida.ok) {
+    const error =
+      leida.falla === "telefono"
+        ? trato === "tu"
+          ? "El WhatsApp no parece un número válido. Revísalo e intenta de nuevo."
+          : "El WhatsApp no parece un número válido. Revisalo e intentá de nuevo."
+        : "El pedido llegó mal formado.";
+    return NextResponse.json({ error }, { status: 400 });
+  }
+  const { familia: familiaAInsertar, narrador: narradorAInsertar, canal, telefonoPadre, ficha } = leida.compra;
+
+  // Kids no ofrece impreso ni marco (K6): una sola línea, al precio de Kids. Va
+  // con id "pdf" para que `extras` diga lo de siempre (`pdf: true`: trae la base).
+  const compra: Compra = {
+    region,
+    moneda: region === "ES" ? "EUR" : "ARS",
+    lineas: [{ id: "pdf", nombre: NOMBRE_LINEA_KIDS, cantidad: 1, precioUnitario: precio }],
+    total: precio,
+  };
+
+  const admin = crearClienteServidor();
+  const generico = () => NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
+
+  const { data: existente, error: errorBusqueda } = await admin.from("familias").select("id").ilike("email", email).maybeSingle();
+  if (errorBusqueda) {
+    console.error("compra kids: fallo la busqueda de familia", errorBusqueda);
+    return generico();
+  }
+  let familiaId = (existente as { id: string } | null)?.id ?? null;
+  let familiaCreada: string | undefined;
+  if (!familiaId) {
+    const { data: creada, error: errorFamilia } = await admin
+      .from("familias")
+      .insert({ ...familiaAInsertar, email })
+      .select("id")
+      .single();
+    if (errorFamilia || !creada) {
+      console.error("compra kids: fallo crear la familia", errorFamilia);
+      return generico();
+    }
+    familiaId = (creada as { id: string }).id;
+    familiaCreada = familiaId;
+  }
+
+  // Un intento anterior sin pagar con el mismo número de las preguntas, de esta
+  // familia y de Kids, se retoma (como la compra de siempre). Un pendiente que
+  // no es de Kids, o de otra familia, sigue dando 409 al insertar.
+  const { data: pendiente } = await admin
+    .from("narradores")
+    .select("id, familia_id, estado, contexto")
+    .eq("telefono_whatsapp", narradorAInsertar.telefono_whatsapp)
+    .eq("estado", "pendiente_pago")
+    .maybeSingle();
+  const previo = pendiente as { id: string; familia_id: string } | null;
+  const retomable = previo && previo.familia_id === familiaId && esDeKids(previo) ? previo : null;
+
+  let narradorId: string | null = null;
+  let narradorCreado: string | undefined;
+  let errorNarrador: unknown = null;
+  if (retomable) {
+    const retomado = await admin
+      .from("narradores")
+      .update({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+      .eq("id", retomable.id)
+      .eq("estado", "pendiente_pago")
+      .select("id")
+      .maybeSingle();
+    if (retomado.error) errorNarrador = retomado.error;
+    else if (retomado.data) narradorId = (retomado.data as { id: string }).id;
+  }
+  if (!narradorId && !errorNarrador) {
+    const creado = await admin
+      .from("narradores")
+      .insert({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+      .select("id")
+      .single();
+    errorNarrador = creado.error;
+    narradorId = (creado.data as { id: string } | null)?.id ?? null;
+    narradorCreado = narradorId ?? undefined;
+  }
+  if (errorNarrador || !narradorId) {
+    console.error("compra kids: fallo crear el narrador", errorNarrador);
+    await deshacer(admin, { familiaId: familiaCreada });
+    const repetido = (errorNarrador as { code?: string } | null)?.code === "23505";
+    return repetido ? NextResponse.json({ error: MENSAJE_TELEFONO_REPETIDO(trato) }, { status: 409 }) : generico();
+  }
+
+  // La fila del chico. upsert: un reintento del mismo chico ya tiene la suya
+  // (sin arrancar: el entrevistador no mira un pendiente_pago).
+  const { error: errorKids } = await admin.from("kids_v2").upsert(
+    {
+      narrador_id: narradorId,
+      idioma: IDIOMA_KIDS,
+      canal,
+      telefono_padre: telefonoPadre,
+      ficha: conLinkPanel(ficha, narradorId, urlBaseMail()),
+    },
+    { onConflict: "narrador_id" },
+  );
+  if (errorKids) {
+    console.error("compra kids: fallo crear la fila de kids_v2", errorKids);
+    await deshacer(admin, { familiaId: familiaCreada, narradorId: narradorCreado });
+    return esTablaAusente(errorKids) ? NextResponse.json({ error: kidsTodaviaNo(region) }, { status: 409 }) : generico();
+  }
+
+  const { data: pedido, error: errorPedido } = await admin
+    .from("pedidos")
+    .insert({
+      familia_id: familiaId,
+      narrador_id: narradorId,
+      proveedor: region === "ES" ? "stripe" : "mercadopago",
+      estado: "pendiente",
+      monto: compra.total,
+      moneda: compra.moneda,
+      extras: { ...extrasDelPedido(compra, false, body.origen), tipo: "kids" },
+    })
+    .select("id")
+    .single();
+  if (errorPedido || !pedido) {
+    console.error("compra kids: fallo crear el pedido", errorPedido);
+    await deshacer(admin, { familiaId: familiaCreada, narradorId: narradorCreado, kids: true });
+    return generico();
+  }
+
+  try {
+    // Si la pasarela falla, queda todo en pendiente (como la compra de siempre): el reintento lo retoma.
+    const datosPedido = { id: (pedido as { id: string }).id, email };
+    const origen = origenDe(body, region);
+    const { urlPago } = await (origen ? crearCheckout(datosPedido, compra, origen) : crearCheckout(datosPedido, compra));
+    return NextResponse.json({ urlPago, narradorId, tokenFotos: firmarTokenFotos(narradorId) }, { status: 200 });
+  } catch (err) {
+    console.error("compra kids: fallo crear el checkout", err);
+    return generico();
   }
 }

@@ -3,9 +3,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextRequest } from "next/server";
 
 // Vitácora Kids en la web nueva (15/10): /kids, la compra (/comprar/kids) y
-// las dos landings, en los tres idiomas. Kids aparece, pero solo vende con
-// KIDS_VENTA="1" y PRECIO_KIDS_* válido; y aun así /api/compra rechaza el
-// pedido hasta que la base sepa guardarlo (lib/kids.ts, PENDIENTES).
+// las dos landings, en los tres idiomas. Kids aparece, pero solo vende en
+// Argentina (KIDS_REGIONES: el bot habla rioplatense), con KIDS_VENTA="1" y
+// PRECIO_KIDS_* válido. La compra en sí se prueba en compra-kids.test.ts.
 
 import KidsEs, { metadata as metaEs } from "../src/app/kids/page";
 import KidsCa from "../src/app/ca/kids/page";
@@ -73,13 +73,15 @@ const LLENO: EstadoKids = {
 };
 
 describe("lib/kids: cuándo se vende y qué ficha arma", () => {
-  it("se vende solo con KIDS_VENTA=1 y un precio válido", () => {
-    expect(kidsVende("ES")).toBe(false);
+  it("se vende solo en Argentina, con KIDS_VENTA=1 y un precio válido", () => {
+    expect(kidsVende("AR")).toBe(false);
+    process.env.PRECIO_KIDS_ARS = "90000";
+    expect(kidsVende("AR")).toBe(false);
+    process.env.KIDS_VENTA = "1";
+    expect(kidsVende("AR")).toBe(true);
+    // España no, aunque tenga precio: el bot de Kids todavía no habla de tú (K7).
     process.env.PRECIO_KIDS_EUR = "59";
     expect(kidsVende("ES")).toBe(false);
-    process.env.KIDS_VENTA = "1";
-    expect(kidsVende("ES")).toBe(true);
-    expect(kidsVende("AR")).toBe(false);
     process.env.PRECIO_KIDS_ARS = "85.750,00";
     expect(obtenerPrecioKids("AR")).toBeNull();
     expect(kidsVende("AR")).toBe(false);
@@ -113,7 +115,7 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+34 600 00 00 00" }, "ES", "es").whatsappChico).toBe("+34 600 00 00 00");
   });
 
-  it("/api/compra rechaza un pedido de Kids (la base todavía no sabe guardarlo)", async () => {
+  it("/api/compra no vende Kids en España aunque esté prendido (KIDS_REGIONES)", async () => {
     vender();
     const r = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "es")) }));
     expect(r.status).toBe(409);
@@ -141,12 +143,13 @@ describe("/kids por idioma", () => {
     expect(pagina(KidsAr)).toContain('href="https://wa.me/34611222333"');
   });
 
-  it("con KIDS_VENTA y precio, los botones llevan a la compra de su idioma con el precio", () => {
+  it("con KIDS_VENTA y precio, /ar lleva a su compra; España y catalán siguen en «Próximamente» (KIDS_REGIONES)", () => {
     vender();
-    expect(pagina(KidsEs)).toMatch(/href="\/comprar\/kids"[^>]*>Empezar su libro</);
-    expect(pagina(KidsEs)).toContain("59");
     expect(pagina(KidsAr)).toContain('href="/ar/comprar/kids"');
-    expect(pagina(KidsCa)).toContain('href="/ca/comprar/kids"');
+    expect(pagina(KidsAr)).toContain("90");
+    expect(pagina(KidsEs)).not.toContain('href="/comprar/kids"');
+    expect(pagina(KidsEs)).toContain("Próximamente");
+    expect(pagina(KidsCa)).not.toContain('href="/ca/comprar/kids"');
   });
 
   it("los textos aprobados de la rama de Kids, en vos, en /ar", () => {

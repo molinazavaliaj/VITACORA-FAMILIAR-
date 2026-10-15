@@ -110,7 +110,8 @@ export const RUTA_LOGO_MAIL = "/mail/vitacora-logo.png";
 
 export type MailArmado = { asunto: string; html: string; texto: string };
 
-const urlBaseMail = () => process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+/** La base de los links de los mails (también la del panel en la ficha de Kids, lib/kids-compra.ts). */
+export const urlBaseMail = () => process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
 
 /** `familias.region` → idioma del mail. Como siempre: España de tú, el resto (y sin región) de vos. */
 export function idiomaMailDeRegion(region: string | null | undefined): IdiomaWeb {

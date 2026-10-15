@@ -9,8 +9,9 @@ import { enlaceEscribir } from "../_kids/piezas";
 import { CascaronCheckout } from "./cascaron";
 
 // La compra de Vitácora Kids, la misma pantalla en /comprar/kids,
-// /ca/comprar/kids y /ar/comprar/kids. Estática: si se vende (KIDS_VENTA y
-// PRECIO_KIDS_*) se resuelve al construir. Sin las dos, «Próximamente».
+// /ca/comprar/kids y /ar/comprar/kids. Estática: si se vende (KIDS_VENTA,
+// PRECIO_KIDS_* y la región en KIDS_REGIONES: hoy solo /ar) se resuelve al
+// construir. Sin alguna, «Próximamente».
 
 export function metadataKids(idioma: IdiomaWeb): Metadata {
   const K = CHECKOUT_KIDS[idioma];

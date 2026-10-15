@@ -21,11 +21,12 @@ import { formatearPrecio } from "../productos-ui";
 // dónde llegan las preguntas, a qué hora) y 3 temas y pago (qué no preguntar,
 // fotos con otros chicos, pagar). Lo puro vive en lib/kids.ts.
 //
-// Sin `vende` (KIDS_VENTA y precio) el paso 3 no tiene botón de pagar: dice
-// «Próximamente» y ofrece escribirnos. Con `vende`, el botón manda el cuerpo a
-// /api/compra, que HOY lo rechaza (la base no sabe guardar un pedido de Kids;
-// PENDIENTES «Apuntado: Kids»): KIDS_VENTA no se prende hasta que Joaquín lo
-// conecte.
+// Sin `vende` (KIDS_VENTA, precio y región: lib/kids.ts, kidsVende) el paso 3
+// no tiene botón de pagar: dice «Próximamente» y ofrece escribirnos. Con
+// `vende`, el botón manda el cuerpo a /api/compra, que crea el narrador, el
+// pedido y la fila de kids_v2 (lib/kids-compra.ts) y va a la pasarela.
+// KIDS_VENTA no se prende hasta que Joaquín conecte el motor (PENDIENTES
+// «Apuntado: Kids»).
 
 const FORM_PAGO = "pago-kids";
 const BOTON_PRIMARIO =
