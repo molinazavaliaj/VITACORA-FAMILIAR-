@@ -76,14 +76,15 @@ describe("la página de Viaje por idioma", () => {
 
   // 15/10: Viaje con su color (noche y azul de la guía), por alcance: el contenedor lleva
   // data-producto="viaje" y _direccion/viaje.css reparte los --viaje-*. La portada de Familiar no
-  // lo lleva en la página (solo en su bloque de Viaje), así su papel y su tinta no cambian.
+  // lo lleva (el bloque de Viaje se fue de la portada el 15/10), así su papel y su tinta no cambian.
   it("lleva la paleta de Viaje por data-producto en el contenedor, y la portada no", () => {
     for (const p of [ViajeEs, ViajeCa, ViajeAr]) {
       expect(renderToStaticMarkup(p())).toMatch(/<div[^>]*data-producto="viaje"[^>]*class="dir-pagina/);
     }
     const portada = renderToStaticMarkup(Home());
     expect(portada).not.toMatch(/<div[^>]*data-producto="viaje"[^>]*class="dir-pagina/);
-    expect(portada.split('data-producto="viaje"').length - 1).toBe(1);
+    // Desde el 15/10 la portada ya no lleva el bloque de Viaje.
+    expect(portada.split('data-producto="viaje"').length - 1).toBe(0);
   });
 
   it("la garantía de Viaje va una sola vez, en las preguntas", () => {

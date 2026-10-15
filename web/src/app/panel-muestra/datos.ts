@@ -2,8 +2,8 @@ import type { BloqueHistoriaV3 } from "@/lib/v3";
 import type { Momento } from "../tablero/momento";
 
 // Los datos inventados de la muestra del panel (Antonio, contado a medias).
-// Vivían en [vista]/page.tsx; salieron tal cual para que la maqueta escondida
-// de la portada (/maqueta, el teléfono con la página de su historia) muestre
+// Vivían en [vista]/page.tsx; salieron tal cual para que el teléfono de la
+// portada (/telefono-historia, la página de su historia) muestre
 // lo mismo sin copiarlos. Nada de esto es de una persona real.
 
 export function hoyMas(dias: number): string {

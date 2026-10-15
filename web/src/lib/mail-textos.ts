@@ -77,7 +77,7 @@ const VOS = textosComprador("vos");
 const TU = textosComprador("tu");
 
 // Aprobado 06/10 (#18 y #19), igual en vos y en tú.
-const DESDE_LA_PRIMERA = "Desde la primera respuesta, en tu panel aparecen sus audios, uno por uno, con su voz y sus modos de decir.";
+const DESDE_LA_PRIMERA = "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir.";
 const AL_TERMINAR = "Cuando termina de contar, el biógrafo escribe su libro.";
 // Aprobado 06/10 (mail de acceso y de invitación).
 const CODIGO = "Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.";
@@ -91,7 +91,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       mientrasCuenta: "Mientras cuenta",
       alTerminar: "Al terminar",
       alTerminarTexto: AL_TERMINAR,
-      botonTablero: "Entrar a mi tablero",
+      botonTablero: "Entrar a la página de la historia",
       codigo: CODIGO,
       dudas: "¿Dudas? Contesta a este email.",
       pie: PIE,
@@ -103,7 +103,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde tu panel.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde la página de su historia.",
       paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo:",
     },
     regalo: {
@@ -138,7 +138,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       mientrasCuenta: "Mientras cuenta",
       alTerminar: "Al terminar",
       alTerminarTexto: AL_TERMINAR,
-      botonTablero: "Entrar a mi tablero",
+      botonTablero: "Entrar a la página de la historia",
       codigo: CODIGO,
       dudas: "¿Dudas? Contestá este mail.",
       pie: PIE,
@@ -150,7 +150,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde tu panel.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.",
       paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:",
     },
     regalo: {
@@ -189,7 +189,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       mientrasCuenta: "Mentre explica",
       alTerminar: "En acabar",
       alTerminarTexto: "Quan acaba d'explicar, el biògraf escriu el seu llibre.",
-      botonTablero: "Entrar al meu tauler",
+      botonTablero: "Entrar a la pàgina de la història",
       codigo: "Et demanem un codi de 6 números que arriba a aquest correu. Sense contrasenyes.",
       dudas: "Dubtes? Respon aquest correu.",
       pie: "Vitácora Familiar · A cada família hi ha un llibre per escriure.",
@@ -201,16 +201,16 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gràcies per confiar en nosaltres. Ja està en marxa.",
       enUnRato: (como) => `D'aquí a una estona li arriba un missatge nostre per WhatsApp a ${como}, explicant-li de què es tracta.`,
       arranca: "Que comenci quan vulgui.",
-      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí, i podràs escoltar la seva veu des del teu tauler.",
+      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí, i podràs escoltar la seva veu des de la pàgina de la seva història.",
       paraEscuchar: "Per anar escoltant el que explica, entra a la pàgina amb aquest mateix correu:",
     },
     regalo: {
       asunto: (como) => `El teu regal per a ${como} ja està llest`,
       vistaPrevia: "Ja pots descarregar la targeta.",
       cuerpo: (como) =>
-        `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, començarà la seva entrevista i ho veuràs al teu tauler.`,
+        `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, començarà la seva entrevista i ho veuràs a la pàgina de la seva història.`,
       boton: "Veure la targeta",
-      mientrasCuentaTexto: "Des de la primera resposta, al teu tauler apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses.",
+      mientrasCuentaTexto: "Des de la primera resposta, a la pàgina de la seva història apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses.",
     },
 
     invitacion: {

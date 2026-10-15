@@ -21,15 +21,4 @@ describe("la portada en el teléfono", () => {
     expect(css).toContain(".dir-portada > section + section { margin-top: -1px; }");
     expect(css).toMatch(/\.dir-portada > section\.dir-deckle \{ margin-top: calc\(var\(--dir-deckle-alto, 14px\) \* -1\); \}/);
   });
-
-  it("el bloque de Viaje lleva el botón lleno (azul con viaje.css)", () => {
-    const viaje = html.slice(html.indexOf('data-producto="viaje"'));
-    expect(viaje).toMatch(/<a [^>]*class="dir-boton dir-boton--lleno dir-boton--envuelve/);
-  });
-
-  it("el avatar del chat de WhatsApp es el toroide, no una «V»", () => {
-    const cabecera = html.slice(html.indexOf("bg-[#1f2c33]"), html.indexOf("bg-[#1f2c33]") + 3000);
-    expect(cabecera).toContain("<ellipse");
-    expect(cabecera).not.toMatch(/>\s*V\s*</);
-  });
 });
