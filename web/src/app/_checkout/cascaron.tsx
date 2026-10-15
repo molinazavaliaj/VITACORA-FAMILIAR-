@@ -26,6 +26,7 @@ export function CascaronCheckout({
   idioma,
   inicio = "/",
   viaje = false,
+  kids = false,
   children,
 }: {
   idioma: IdiomaWeb;
@@ -33,12 +34,14 @@ export function CascaronCheckout({
   inicio?: string;
   /** La compra de Viaje: hoy solo la marca en data-producto (el azul se fue: es el mismo libro). */
   viaje?: boolean;
+  /** La compra de Kids (15/10): la hoja con la paleta de Kids (_kids/kids.css, .kids-chk). */
+  kids?: boolean;
   children: ReactNode;
 }) {
   const T = CABECERA[idioma];
   const dudas = numeroDeDudas();
   return (
-    <div lang={langDeIdioma(idioma)} data-producto={viaje ? "viaje" : "familiar"} className="dir-pagina chk flex min-h-dvh flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} data-producto={kids ? "kids" : viaje ? "viaje" : "familiar"} className={`dir-pagina chk ${kids ? "kids-chk " : ""}flex min-h-dvh flex-1 flex-col`}>
       <header className="dir-tinta chk-cabecera">
         <div className="mx-auto flex w-full max-w-[1240px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 pb-4 pt-5 sm:px-8 sm:pb-6 sm:pt-6">
           <Link href={ruta(idioma, inicio)} aria-label={T.inicio} className="flex min-h-11 items-center gap-3 text-[var(--dir-sobre-tinta)]">
