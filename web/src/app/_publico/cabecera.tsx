@@ -59,7 +59,9 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
           {compacta ? null : (
             <Link prefetch={false}
               href={comprar}
-              className="m-btn hidden min-h-11 items-center rounded-full bg-white px-5 font-medium text-[#14140f] sm:inline-flex"
+              className={`m-btn hidden min-h-11 items-center rounded-full px-5 font-medium sm:inline-flex ${
+                producto === "viaje" ? "bg-[var(--viaje-boton)] text-[var(--viaje-sobre-boton)]" : "bg-white text-[#14140f]"
+              }`}
             >
               {t.comprar}
             </Link>

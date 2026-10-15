@@ -49,7 +49,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
     ) : null;
 
   return (
-    <Pagina idioma={idioma}>
+    <Pagina idioma={idioma} producto="viaje">
       {/* ═══ 1 · INICIO: el lema enorme y la foto del hotel en arco ═══ */}
       <section className="dir-tinta relative">
         <div className="absolute inset-x-0 top-0">
@@ -111,7 +111,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
             <span aria-hidden className="block">
               <Palabras texto={frase1} total={nFrase} />
             </span>
-            <span aria-hidden className="block sm:pl-[0.9em] lg:pl-[1.6em]">
+            <span aria-hidden className="dir-destaca block sm:pl-[0.9em] lg:pl-[1.6em]">
               <Palabras texto={frase2} desde={frase1.split(" ").length} total={nFrase} />
             </span>
           </h2>

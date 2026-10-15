@@ -334,7 +334,7 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
   const dudas = v.faq.preguntas.slice(idioma === "ca" ? -3 : -2);
 
   return (
-    <Pagina idioma={idioma}>
+    <Pagina idioma={idioma} producto="viaje">
       <Hero idioma={idioma} base={l} href={href} dato={dato} />
 
       <section className="dir-papel dir-hoja dir-deckle relative">
@@ -384,9 +384,9 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
 /* ═══════════════════════════════ piezas ═══════════════════════════════ */
 
 /** La hoja de la página: idioma, grano, la coreografía y el fondo de tinta. */
-export function Pagina({ idioma, children }: { idioma: IdiomaWeb; children: ReactNode }) {
+export function Pagina({ idioma, producto, children }: { idioma: IdiomaWeb; /** Viaje lleva su paleta (_direccion/viaje.css). */ producto?: "viaje"; children: ReactNode }) {
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} data-producto={producto} className="dir-pagina flex flex-1 flex-col">
       <Coreografia />
       {children}
     </div>

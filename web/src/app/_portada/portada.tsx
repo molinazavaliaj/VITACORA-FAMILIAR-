@@ -607,7 +607,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       {/* ═══ 17 · VITÁCORA DE VIAJE y ¿Y SI EL LIBRO ES EL TUYO? ═══ */}
       <section id="viaje" className="dir-tinta dir-hoja dir-diferido relative z-[17] scroll-mt-6">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-28 sm:px-8 md:grid-cols-2 md:py-36 lg:px-12">
-          <div className="aparece flex flex-col gap-5 pb-14 md:border-r md:border-[var(--dir-hilo-tinta)] md:pb-0 md:pr-12">
+          {/* Viaje con su color (etiqueta y enlace en azul): _direccion/viaje.css. */}
+          <div data-producto="viaje" className="aparece flex flex-col gap-5 pb-14 md:border-r md:border-[var(--dir-hilo-tinta)] md:pb-0 md:pr-12">
             <span className="dir-micro flex items-center gap-2.5 text-[var(--dir-sobre-tinta-suave)]">
               <IconoAvion />
               {t.viaje.etiqueta}
