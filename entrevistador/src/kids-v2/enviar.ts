@@ -8,11 +8,14 @@
 // plantilla y con botones → botones de respuesta rápida; si no, texto. El texto libre solo sale con la ventana de
 // 24 h de ESE número abierta: el del número de las preguntas por `motor.ultimaEntrada`; el padre en canal A nunca le
 // escribe al bot, así que para él siempre está cerrada. El motor no debería pedirlo nunca: si pasa, queda y se avisa.
+// Cuándo: nunca entre las 22 y las 9 (hora de la ficha). El motor no decide nada de noche, pero lo que decidió a las
+// 21:59 y no salió (Meta falló, la plantilla se aprobó a las 23) espera a las 9 en la cola (lo encontró la simulación).
 
 import { PLANTILLAS_KIDS, plantillaKidsLista } from '../config.js';
 import type { DepsKids } from './deps.js';
 import { conReintento, leerFila, soltarTurno, tomarTurno, TOMA_MS, type CambioFila } from './filas.js';
 import { completar, despertarDe } from './motor.js';
+import { esDeNoche } from './nucleo/horas.js';
 import { VENTANA_MS } from './nucleo/reglas.js';
 import { anotarEnviado, type EstadoBotKids, type FilaKids, type Saliente } from './tipos.js';
 
@@ -49,7 +52,7 @@ export function telefonoDe(fila: Pick<FilaKids, 'telefono_padre'>, telefonoChico
   return s.a === 'padre' ? fila.telefono_padre : telefonoChico;
 }
 
-export type ResultadoDrenar = 'vacio' | 'enviado' | 'ocupado' | 'fallo' | 'sin-plantilla' | 'ventana-cerrada';
+export type ResultadoDrenar = 'vacio' | 'enviado' | 'ocupado' | 'fallo' | 'sin-plantilla' | 'ventana-cerrada' | 'noche';
 
 export async function drenar(deps: DepsKids, narradorId: string): Promise<ResultadoDrenar> {
   // Con la cola vacía no se toma el turno (el reloj pasa seguido); sí se arregla el `completado` que haya fallado.
@@ -69,6 +72,7 @@ export async function drenar(deps: DepsKids, narradorId: string): Promise<Result
     let resultado: ResultadoDrenar = 'vacio';
     while (fila.estado && fila.estado.salida.length > 0) {
       if (deps.ahora().getTime() - inicio.getTime() >= TIEMPO_MAXIMO_DRENAR_MS) return resultado;
+      if (esDeNoche(deps.ahora(), fila.ficha.zona)) return resultado === 'vacio' ? 'noche' : resultado;
       const estado: EstadoBotKids = fila.estado;
       const s = estado.salida[0];
       const envio = elegirEnvio(fila, estado, s, deps.ahora());

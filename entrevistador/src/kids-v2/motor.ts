@@ -9,6 +9,7 @@
 import type { DepsKids } from './deps.js';
 import { conReintento, type CambioFila, type Paso } from './filas.js';
 import { validarFicha } from './nucleo/compra.js';
+import { esDeNoche, finDeLaNoche } from './nucleo/horas.js';
 import { avance, nuevoEstado, paso, proximoDespertar, termino, type Estado, type Evento, type Salida } from './nucleo/motor.js';
 import {
   anotarVisto, estadoBotInicial, MAX_RECIBIDOS, sumarMensajes, yaVisto,
@@ -35,9 +36,12 @@ export type ResultadoPaso = {
   arranque: boolean;
 };
 
-/** Cuándo tiene que pasar el reloj: ya, si quedó algo en la cola; si no, lo que diga el motor. */
+/**
+ * Cuándo tiene que pasar el reloj: si quedó algo en la cola, ya (de noche, a las 9: no se manda nada entre las 22 y
+ * las 9, ni siquiera lo que el motor decidió antes y no salió); si no, lo que diga el motor.
+ */
 export function despertarDe(e: EstadoBotKids, ahora: Date): string | null {
-  if (e.salida.length > 0) return ahora.toISOString();
+  if (e.salida.length > 0) return (esDeNoche(ahora, e.motor.ficha.zona) ? finDeLaNoche(ahora, e.motor.ficha.zona) : ahora).toISOString();
   return proximoDespertar(e.motor, ahora)?.toISOString() ?? null;
 }
 

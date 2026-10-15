@@ -127,7 +127,15 @@ async function guardar(deps: DepsKids, fila: FilaKids, m: MensajeEntrante, clave
       }
     }
     const transcripcion = t?.texto.trim();
-    return { tipo: 'contenido', contenido: { tipo: 'audio', seg: t?.duracionSegundos ?? 0, ...(transcripcion ? { transcripcion } : {}) } };
+    // Sin transcripción, la duración sale del archivo: con 0 s el motor trataba un audio largo como uno corto.
+    const seg = t?.duracionSegundos ?? duracionOgg(audio) ?? 0;
+    // La duración queda en la fila aunque no haya texto: si este paso no llega al motor, la reconciliación la lee de
+    // ahí (sin ella le pasaba 0 s y el motor contestaba como a un audio corto; lo encontró la simulación).
+    if (!transcripcion && seg > 0) {
+      const { error } = await deps.db.from('respuestas').update({ duracion_segundos: seg }).eq('id', g.id);
+      if (error) console.warn(`kids: no pude anotar la duración del audio ${id} de ${narradorId}: ${error.message}`);
+    }
+    return { tipo: 'contenido', contenido: { tipo: 'audio', seg, ...(transcripcion ? { transcripcion } : {}) } };
   }
   if (m.tipo === 'imagen') {
     const llegada = await numeroDeLlegada(deps.db, narradorId);
@@ -147,6 +155,24 @@ async function guardar(deps: DepsKids, fila: FilaKids, m: MensajeEntrante, clave
   const r = await guardarTexto(deps, narradorId, llegada, m.esBoton ? respuestaDeBoton(texto) : texto, id, clave, m.esBoton === true);
   if (r === 'duplicado') return r;
   return m.esBoton ? { tipo: 'boton', boton: texto } : { tipo: 'contenido', contenido: { tipo: 'texto', texto } };
+}
+
+/**
+ * Cuántos segundos dura una nota de voz de WhatsApp (Ogg Opus) sin transcribirla: la posición de la última página
+ * Ogg, en muestras de 48 kHz (Opus siempre cuenta así). Para cuando la transcripción falla las dos veces: antes el
+ * motor recibía 0 s y a un audio de dos minutos le contestaba como a uno corto. Null si no es un Ogg.
+ */
+export function duracionOgg(audio: Buffer): number | null {
+  let i = audio.lastIndexOf('OggS');
+  while (i >= 0) {
+    if (i + 14 <= audio.length) {
+      const muestras = audio.readBigUInt64LE(i + 6);
+      if (muestras !== 0xffffffffffffffffn) return Math.round(Number(muestras) / 48_000);
+    }
+    if (i === 0) break;
+    i = audio.lastIndexOf('OggS', i - 1);
+  }
+  return null;
 }
 
 async function guardarTexto(deps: DepsKids, narradorId: string, llegada: number, texto: string, waId: string, clave: string | null, esBoton: boolean): Promise<'ok' | 'duplicado'> {
