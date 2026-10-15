@@ -4,7 +4,7 @@ Todo lo que no es copia del texto legal anterior. Aprueban **Naza y el abogado**
 catalán están en `web/src/app/_textos/legal.ts` (PENDIENTE REVISIÓN NATIVA Y ABOGADO). Los cambios
 dentro del texto legal están en `para-el-abogado.md` §2.
 
-**Naza aprobó el 15/10** los diez «En corto» de términos y privacidad (sin dos puntos en «Nada empieza sin su permiso. Si no acepta…», «Puedes desistir en 14 días…» y «cookies técnicas, ni de…»). Falta el abogado.
+**Naza aprobó el 15/10** los diez «En corto» de términos y privacidad (sin dos puntos en «Nada empieza sin su permiso. Si no acepta…», «Puedes desistir en 14 días…» y «cookies técnicas, ni de…»). Tanda 2 (desistimiento, rótulos, garantía) también aprobada el 15/10, sin dos puntos. Falta el abogado.
 
 ## «En corto» (resumen nuevo de lo que ya dice el texto; ningún compromiso nuevo)
 

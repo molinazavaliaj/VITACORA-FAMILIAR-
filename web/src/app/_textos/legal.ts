@@ -137,7 +137,7 @@ function seccionGarantia(
 // ─── Castellano de España (tú) ────────────────────────────────────────────
 
 const GARANTIA_ES = (id: string, titulo: string) =>
-  seccionGarantia("es", id, titulo, "Además de lo anterior, cada libro tiene su garantía:", {
+  seccionGarantia("es", id, titulo, "Además de lo anterior, cada libro tiene su garantía.", {
     familiar: "Familiar (el libro de otra persona)",
     viaje: "De viaje",
     propia: "Para ti (tu propio libro)",
@@ -479,7 +479,7 @@ const ES: TextosLegal = {
     enCorto: [
       "Se pide con un correo. No hace falta que expliques por qué.",
       "Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en 14 días como máximo.",
-      "España: 14 días naturales desde la compra. Argentina: 10 días corridos, sin costo.",
+      "España, 14 días naturales desde la compra. Argentina, 10 días corridos, sin costo.",
     ],
     secciones: [
       {
@@ -524,7 +524,7 @@ const ES: TextosLegal = {
 // desistimiento es el «Botón de arrepentimiento» (Res. 424/2020).
 
 const GARANTIA_AR = (id: string, titulo: string) =>
-  seccionGarantia("ar", id, titulo, "Además de lo anterior, cada libro tiene su garantía:", {
+  seccionGarantia("ar", id, titulo, "Además de lo anterior, cada libro tiene su garantía.", {
     familiar: "Familiar (el libro de otra persona)",
     viaje: "De viaje",
     propia: "Para vos (tu propio libro)",
@@ -866,7 +866,7 @@ const AR: TextosLegal = {
     enCorto: [
       "Se pide con un correo. No hace falta que expliques por qué.",
       "Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en 14 días como máximo.",
-      "Argentina: 10 días corridos desde la compra, sin costo. España: 14 días naturales.",
+      "Argentina, 10 días corridos desde la compra, sin costo. España, 14 días naturales.",
     ],
     secciones: [
       {
@@ -911,7 +911,7 @@ const AR: TextosLegal = {
 // Code el 14/10. Los nombres de leyes y organismos van con su nombre oficial.
 
 const GARANTIA_CA = (id: string, titulo: string) =>
-  seccionGarantia("ca", id, titulo, "A més del que s'ha dit, cada llibre té la seva garantia:", {
+  seccionGarantia("ca", id, titulo, "A més del que s'ha dit, cada llibre té la seva garantia.", {
     familiar: "Familiar (el llibre d'una altra persona)",
     viaje: "De viatge",
     propia: "Per a tu (el teu propi llibre)",
@@ -1253,7 +1253,7 @@ const CA: TextosLegal = {
     enCorto: [
       "Es demana amb un correu. No cal que expliquis per què.",
       "Et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en 14 dies com a màxim.",
-      "Espanya: 14 dies naturals des de la compra. Argentina: 10 dies seguits, sense cost.",
+      "Espanya, 14 dies naturals des de la compra. Argentina, 10 dies seguits, sense cost.",
     ],
     secciones: [
       {
