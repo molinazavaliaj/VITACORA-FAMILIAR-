@@ -10,8 +10,23 @@ import { enviarMailHito, type Hito } from './mail/hitos.js';
 import { productosDelPedido } from './libro/productos.js';
 import { calcularBulto } from './envio/bulto.js';
 import { proveedorDe } from './envio/proveedor.js';
+import { narradoresConKids } from './kids/candado.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
+
+/**
+ * Los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4): su impreso se diseña aparte, así
+ * que ni la imprenta de siempre ni los mails de la entrega (que llevan al tablero de biografías). Sin la tabla,
+ * nadie es chico. Null si no se pudo leer: ese paso no corre este tick.
+ */
+async function chicosOFrenar(db: Db, paso: string): Promise<Set<string> | null> {
+  try {
+    return await narradoresConKids(db);
+  } catch (err) {
+    console.error(`${paso}: no pude leer kids_v2; no corre este tick:`, err);
+    return null;
+  }
+}
 
 /** Donde la familia deja la reseña cuando el libro llegó (Joaquín, 22/09). */
 export const URL_RESENA = 'https://es.trustpilot.com/evaluate/vitacorafamiliar.com';
@@ -61,7 +76,11 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
     return;
   }
 
+  const kids = await chicosOFrenar(db, 'imprenta');
+  if (!kids) return;
+
   for (const entrega of (data ?? []) as { id: string; narrador_id: string }[]) {
+    if (kids.has(entrega.narrador_id)) continue;
     try {
       const armado = await armarLibroDeImprenta(db, entrega.narrador_id);
       // Todavía sin confirmar: la entrega espera, y el próximo tick vuelve a mirar.
@@ -113,8 +132,11 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
   }
 
   const { urlBase } = cargarConfig();
+  const kids = await chicosOFrenar(db, 'entregas');
+  if (!kids) return;
 
   for (const entrega of entregas) {
+    if (kids.has(entrega.narrador_id)) continue;
     try {
       const hito = HITO_POR_ESTADO[entrega.estado];
       if (!hito) continue;
