@@ -1,0 +1,317 @@
+/* Vitácora Kids en la web nueva (15/10). La paleta de Kids de la guía
+   (maquetas/fuente-dc/Guia.dc.html: fondo #fbf8f3, tarjeta #ffffff, texto
+   #14140f, acento #c4502e, botón #ff8a6b) en el lenguaje de la dirección
+   nueva: letra grande (Playfair, Source Serif, Archivo), papel con fibra,
+   hilos en vez de tarjetas, fotos con forma. Todo con alcance propio: los
+   tokens --kids-* y las clases kids-* valen solo adentro de .kids (la página,
+   la compra y las landings de Kids). Afuera no cambia nada.
+
+   Kids es claro de punta a punta (como la guía): no hay secciones en tinta. El
+   único color fuerte es el acento terracota, en una palabra del titular, los
+   números y los hilos marcados; el botón es el coral de la guía con texto en
+   tinta (contraste 8,2:1). */
+.kids {
+  --kids-fondo: #fbf8f3;
+  --kids-fondo-hondo: #f4eee4;      /* una franja un poco más honda (precio, preguntas) */
+  --kids-tarjeta: #ffffff;
+  --kids-texto: #14140f;
+  --kids-texto-suave: #57534b;      /* 7,4:1 sobre el fondo */
+  --kids-texto-menor: #6f6a61;      /* 5,2:1: datos y notas */
+  --kids-acento: #c4502e;           /* 4,6:1 sobre el fondo: solo en texto grande o marcas */
+  --kids-acento-suave: #fde3d9;
+  --kids-boton: #ff8a6b;
+  --kids-boton-hover: #ff7a57;
+  --kids-sobre-boton: #14140f;
+  --kids-hilo: rgba(20, 20, 15, 0.14);
+  --kids-hilo-fuerte: rgba(20, 20, 15, 0.32);
+  --kids-curva: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Los componentes compartidos (cabecera, pie, acordeón) leen los tokens del
+     tema oscuro: adentro de Kids se re-visten en claro. */
+  --fondo-oscuro: var(--kids-fondo);
+  --tarjeta: var(--kids-tarjeta);
+  --texto-oscuro: var(--kids-texto);
+  --texto-oscuro-fuerte: var(--kids-texto);
+  --texto-oscuro-suave: var(--kids-texto-suave);
+  --texto-oscuro-menor: var(--kids-texto-menor);
+  --linea-oscura: var(--kids-hilo);
+  --borde-oscuro: var(--kids-hilo);
+  --borde-oscuro-fuerte: var(--kids-hilo-fuerte);
+  --acento-oscuro: var(--kids-acento);
+  --boton: var(--kids-boton);
+  --sobre-boton: var(--kids-sobre-boton);
+
+  position: relative;
+  isolation: isolate;
+  background-color: var(--kids-fondo);
+  /* La fibra del papel, la misma de la dirección nueva (mosaico de 260 px). */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+  color: var(--kids-texto);
+  color-scheme: light;
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+
+/* La cabecera pública sobre papel: las solapas en tinta (así la pastilla
+   blanca y el mix-blend se leen igual que en la portada) y «Comprar» en coral. */
+.kids .m-solapas { background: var(--kids-texto); border-color: var(--kids-texto); }
+.kids header .m-btn { background: var(--kids-boton); color: var(--kids-sobre-boton); }
+.kids header .m-btn:hover { background: var(--kids-boton-hover); }
+
+/* Una franja más honda, para separar sin tarjetas. */
+.kids-hondo { background-color: var(--kids-fondo-hondo); }
+.kids-hilo-arriba { border-top: 1px solid var(--kids-hilo); }
+
+/* ── Letra ─────────────────────────────────────────────────────────────── */
+.kids-titular {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+/* La palabra marcada: la itálica de la misma letra, en terracota. */
+.kids-titular em,
+.kids-marca {
+  font-style: italic;
+  color: var(--kids-acento);
+  padding-bottom: 0.06em;
+}
+.kids-t1 { font-size: clamp(2.5rem, 1.1rem + 5.4vw, 6.2rem); line-height: 1.04; }
+.kids-t2 { font-size: clamp(2.2rem, 1.3rem + 3.8vw, 4.6rem); line-height: 1.06; }
+.kids-t3 { font-size: clamp(1.9rem, 1.3rem + 2.4vw, 3.3rem); line-height: 1.1; }
+.kids-bajada {
+  font-size: clamp(1.15rem, 1.02rem + 0.55vw, 1.45rem);
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--kids-texto-suave);
+  text-wrap: pretty;
+}
+.kids-parrafo {
+  font-size: clamp(1.06rem, 1rem + 0.3vw, 1.2rem);
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--kids-texto-suave);
+}
+.kids-micro {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kids-acento);
+}
+.kids-dato {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  color: var(--kids-texto-menor);
+  font-variant-numeric: tabular-nums;
+}
+.kids-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(3.2rem, 2.2rem + 3.4vw, 5.2rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--kids-acento);
+}
+.kids-cita {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.6rem, 1.15rem + 1.9vw, 2.75rem);
+  line-height: 1.22;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+  padding-bottom: 0.06em;
+}
+.kids-precio {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(3.4rem, 2.4rem + 4.4vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Botones: píldora; lleno en coral, hilo en tinta ───────────────────── */
+.kids-boton {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  padding: 0 30px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background: var(--kids-boton);
+  color: var(--kids-sobre-boton);
+  transition:
+    transform 180ms var(--kids-curva),
+    background-color 180ms var(--kids-curva);
+}
+.kids-boton:hover { background: var(--kids-boton-hover); }
+.kids-boton:active { transform: scale(0.98); }
+.kids-boton:focus-visible { outline: 2px solid var(--kids-texto); outline-offset: 3px; }
+.kids-boton--hilo {
+  background: transparent;
+  border: 1px solid var(--kids-hilo-fuerte);
+  font-weight: 500;
+}
+.kids-boton--hilo:hover { background: rgba(20, 20, 15, 0.04); border-color: var(--kids-texto); }
+.kids-enlace {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  color: var(--kids-texto);
+  text-decoration: underline;
+  text-decoration-color: var(--kids-hilo-fuerte);
+  text-underline-offset: 5px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.kids-enlace:hover { text-decoration-color: var(--kids-acento); }
+
+/* ── Fotos con forma (arco, óvalo, redondeada), a color ────────────────── */
+.kids-foto { position: relative; overflow: hidden; background: #ece5d9; }
+.kids-foto--arco { border-radius: 999px 999px 24px 24px; aspect-ratio: 4 / 5; }
+.kids-foto--ovalo { border-radius: 50%; aspect-ratio: 4 / 5; }
+.kids-foto--suave { border-radius: 28px; aspect-ratio: 4 / 3; }
+.kids-foto--ancha { border-radius: 28px; aspect-ratio: 16 / 9; }
+/* El hilo de afuera que repite la forma (como los anillos del logo). */
+.kids-marco { position: relative; }
+.kids-marco::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border: 1px solid var(--kids-hilo);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── Listas e índice ───────────────────────────────────────────────────── */
+.kids-lista { display: flex; flex-direction: column; gap: 14px; }
+.kids-lista li {
+  position: relative;
+  padding-left: 28px;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+.kids-lista li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.78em;
+  width: 16px;
+  height: 1px;
+  background: var(--kids-acento);
+}
+.kids-indice li {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kids-hilo);
+}
+.kids-indice li:first-child { border-top: 1px solid var(--kids-hilo); }
+.kids-indice-num {
+  width: 1.8em;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: 19px;
+  color: var(--kids-acento);
+}
+.kids-indice-cap { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 500; font-size: clamp(19px, 1.1rem + 0.4vw, 23px); }
+
+/* ── La conversación de WhatsApp (un componente de verdad, no una captura) ─ */
+.kids-chat {
+  border-radius: 28px;
+  background: var(--kids-tarjeta);
+  box-shadow: 0 30px 60px -30px rgba(80, 50, 30, 0.28), 0 0 0 1px rgba(20, 20, 15, 0.06);
+  padding: 18px;
+}
+.kids-burbuja {
+  max-width: 88%;
+  border-radius: 18px;
+  padding: 12px 14px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.kids-burbuja--bot { background: #f3efe8; color: var(--kids-texto); border-top-left-radius: 6px; }
+.kids-burbuja--chico { margin-left: auto; background: var(--kids-acento-suave); color: var(--kids-texto); border-top-right-radius: 6px; }
+
+/* ── Movimiento: transform y opacity, solo con «sin preferencia» ───────── */
+@media (prefers-reduced-motion: no-preference) {
+  .kids-entra { animation: kids-subir 0.9s var(--kids-curva) both; animation-delay: var(--e, 0s); }
+  .kids-asienta { animation: kids-asentar 1.1s var(--kids-curva) both; }
+  @supports (animation-timeline: view()) {
+    /* Al bajar, cada bloque sube un poco mientras entra en pantalla. */
+    .kids-aparece {
+      animation: kids-subir linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+    /* Las fotos se acercan apenas mientras pasan. */
+    .kids-foto img {
+      animation: kids-acercar linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+  }
+}
+@keyframes kids-subir {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes kids-asentar {
+  from { transform: translateY(10px); }
+  to { transform: none; }
+}
+@keyframes kids-acercar {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+
+/* ── La compra de Kids (/comprar/kids): el cascarón de las compras con la
+   paleta de Kids. El cascarón lleva .chk (tokens de papel y tinta, en
+   _checkout/checkout.css); .chk.kids-chk le gana por especificidad. La
+   cabecera sigue en tinta (es el mismo cascarón); la hoja, el botón y los
+   números del paso toman los colores de Kids. ── */
+.chk.kids-chk {
+  --dir-papel: #fbf8f3;
+  --fondo-oscuro: #ffffff;            /* el fondo de los campos: la tarjeta de la guía */
+  --acento-oscuro: #c4502e;
+  --boton: #ff8a6b;
+  --sobre-boton: #14140f;
+  --elegido-fondo: #fff1eb;
+  --sombra-boton: rgba(196, 80, 46, 0.25);
+  --texto-oscuro-fuerte: #14140f;
+}
+.kids-chk .chk-paso[data-estado="actual"] .chk-paso-numero { color: #c4502e; }
+.kids-chk .chk-pasos-hilo > div { background: #c4502e; }
+.kids-chk .chk-ficha { background-color: #ffffff; border-radius: 22px; }
+.kids-chk-marca {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff8a6b;
+}
+.kids-chk-aviso {
+  border-radius: 14px;
+  background: #fde3d9;
+  color: #14140f;
+  padding: 14px 18px;
+}
+.kids-chk-proximo {
+  border-top: 1px solid rgba(20, 20, 15, 0.14);
+  padding-top: 24px;
+}
