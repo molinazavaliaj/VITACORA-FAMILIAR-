@@ -205,7 +205,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         {/* La vidriera de Vitácora (Naza 15/10), de fondo y como ambiente de la
             carta: oscurecida para que se lea; decorativa (alt vacío) y diferida. */}
         <div aria-hidden className="dir-carta-fondo pointer-events-none absolute inset-0">
-          <Image src={FOTOS.vidriera} alt="" fill sizes="100vw" quality={60} className="object-cover object-[50%_40%]" />
+          <Image src={FOTOS.vidriera} alt="" fill sizes="100vw" quality={60} className="object-cover object-[60%_45%]" />
         </div>
         {/* data-lejos: con «Las fotos quedan» más corta, esto queda cerca del
             inicio; sin él, la cursiva de la firma y la foto bajarían antes de

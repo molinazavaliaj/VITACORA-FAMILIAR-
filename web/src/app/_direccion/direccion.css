@@ -228,14 +228,22 @@
    teléfono al escritorio (sin saltos de palabra al cambiar de letra). */
 .dir-t-viaje { font-size: clamp(2rem, 0.6rem + 5.2vw, 5.2rem); line-height: 1.04; }
 
-/* La vidriera detrás de la carta: cálida pero apagada, con la tinta encima
-   para que el titular y la hoja de la carta se lean; arriba se funde con el
-   negro de la sección anterior. */
-.dir-carta-fondo { filter: sepia(.25) saturate(.8); }
+/* La vidriera detrás de la carta (Naza 15/10: «más de lejos, que se entienda»):
+   la foto entera, con su proporción, como una franja arriba de la sección; no
+   se estira a toda la altura (eso la recortaba y la empastaba). Abajo se funde
+   en la tinta, donde se apoya la carta. */
+.dir-carta-fondo {
+  inset: 0 0 auto 0 !important;
+  height: auto;
+  aspect-ratio: 1920 / 1275;
+  min-height: 62svh;
+  filter: saturate(.9);
+}
+@media (min-width: 768px) { .dir-carta-fondo { min-height: 0; } }
 .dir-carta-fondo::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, var(--dir-tinta) 0%, rgba(7, 7, 6, .82) 22%, rgba(7, 7, 6, .7) 60%, rgba(7, 7, 6, .9) 100%);
+    linear-gradient(180deg, var(--dir-tinta) 0%, rgba(7, 7, 6, .45) 14%, rgba(7, 7, 6, .38) 45%, rgba(7, 7, 6, .7) 72%, var(--dir-tinta) 100%);
 }
