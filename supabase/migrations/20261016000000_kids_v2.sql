@@ -21,6 +21,7 @@ create table if not exists kids_v2 (
   cambios_error    text,                                          -- el motor rechazó o descartó el último cambio del panel
   avance           jsonb not null default '{}'::jsonb,            -- resumen para el panel: capítulo, si se pueden escribir preguntas, si terminó
   marcas           jsonb not null default '[]'::jsonb,            -- lo que el motor marca para Naza (preocupante, silencio de 8 días…)
+  correcciones     jsonb not null default '[]'::jsonb,            -- los nombres que el padre corrige en el panel (para el libro)
   version          int not null default 0,                        -- compare-and-swap del entrevistador: UPDATE … WHERE version = n
   enviando_hasta   timestamptz,                                   -- toma corta del turno (~2 min)
   despertar_at     timestamptz,                                   -- proximoDespertar del motor: cuándo el reloj tiene que pasar por este chico
