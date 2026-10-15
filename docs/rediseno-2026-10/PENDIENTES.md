@@ -245,3 +245,6 @@ Aunque se prenda la variable, `/api/compra` **rechaza** todo cuerpo con `product
 | K10 | **Landing «para los abuelos»** (LandingKidsAbuelos). No se hizo: vende el impreso con el marco y «llega unos 9 días después». | Se hace si K6 define el marco, y cuando la imprenta confirme el plazo (B9). | Naza |
 | K11 | **Fotos generadas de Kids** (B10): `public/rediseno/kids-audio-cama.jpg`, `kids-cuarto-juguetes.jpg`, `kids-familia-sofa.jpg`, `kids-libro-abierto.jpg`, `kids-libro-tapa.jpg`. Son ilustración, no clientes. El libro de las fotos dice «Nico Rivas». | Antes del switch, decidir si se usan. | Naza |
 | K12 | **Textos para aprobar**: `docs/rediseno-2026-10/kids/textos.md`. Son 50 líneas en tandas de 10, más los 3 titulares de cada landing. El catalán necesita revisión nativa. | — | Naza |
+
+## Libro impreso: primera página con el logo (Naza, 15/10)
+- Para Joaquín (fábrica): el libro impreso empieza hoy directo con el capítulo 1. Naza quiere que la primera página de la izquierda tenga el logo Campo V·F con «VITÁCORA FAMILIAR» debajo, y a la derecha arranque el capítulo. La referencia es `docs/rediseno-2026-10/amigo/maquetas/doble-pagina.html` (imagen en `amigo/fotos/ref-doble-pagina.png`). Las fotos nuevas de la web muestran el libro así: no publicarlas en producción hasta que el libro real salga igual.
