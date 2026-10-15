@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { corregir, destinoDe, lineaDelPadre, materialDeFilas, textoDeFila, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
+import { corregir, destinoDe, lineaDelPadre, materialDeFilas, textoDeFila, textoNombres, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
 import { filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import type { FilasKids } from '../../src/escritor-kids/material/tipos.js';
-import { fichaXml, itemXml, materialXml } from '../../src/escritor-kids/llamadas.js';
+import { fichaXml, itemXml, llamadaAlbum, llamadaArreglo, llamadaLeer, llamadaParte, llamadaSobre, llamadaVeedor, materialXml } from '../../src/escritor-kids/llamadas.js';
 
 const m = materialDeFilas(filasDeFijo('chico-inventado'));
 const item = (clave: string) => [...m.partes.flatMap((p) => p.items), ...m.sobre.items].find((i) => i.clave === clave);
@@ -54,14 +54,42 @@ describe('material de Kids', () => {
     expect(item('K4')?.respuestas.map((r) => r.clave)).toEqual(['K4', 'K4-FOTO']);
   });
 
-  it('aplica las correcciones de nombres en la copia (todas las veces, palabra entera) y sabe qué tiene audio', () => {
-    expect(m.correcciones).toEqual([{ dice: 'Oriel', es: 'Uriel', veces: 10 }, { dice: 'Mate', es: 'Maite', veces: 3 }]);
+  it('aplica cada corrección de nombre SOLO en la respuesta donde la marcó el padre (en la copia) y sabe qué tiene audio', () => {
+    expect(m.correcciones).toEqual([{ dice: 'Oriel', es: 'Uriel', veces: 3 }, { dice: 'Mate', es: 'Maite', veces: 3 }]);
     const rs = todasLasRespuestas(m);
-    expect(rs.some((r) => /Oriel|\bMate\b/.test(r.texto))).toBe(false);
+    const marcada = rs.find((r) => r.respuestaId === '87d1515a-3083-5d24-8636-11ec3174df35')!;
+    expect(marcada.texto).toContain('Uriel');
+    expect(marcada.texto).not.toContain('Oriel');
+    // En las otras queda como lo dijo: lo corrige el modelo, con la lista, solo si es ese nombre.
+    expect(rs.filter((r) => r.texto.includes('Oriel')).length).toBeGreaterThan(0);
     expect(corregir('Mate y mate, Matea', [{ dice: 'Mate', es: 'Maite' }])).toEqual({ texto: 'Maite y mate, Matea', veces: [1] });
     expect(rs.filter((r) => r.audio).every((r) => r.audioPath)).toBe(true);
     const filas = filasDeFijo('chico-inventado');
     expect(filas.respuestas.find((r) => r.id === '87d1515a-3083-5d24-8636-11ec3174df35')?.transcripcion ?? '').toContain('Oriel'); // lo guardado no cambia
+  });
+
+  it('«Mate»→«Maite» no toca «tomamos mate con la abuela» en otra respuesta, ni «Mate» con mayúscula en otra', () => {
+    const f: FilasKids = structuredClone(filasDeFijo('chico-preocupante'));
+    f.respuestas.push({ id: 'otra', pregunta_orden: 17.5, audio_path: 'x.ogg', texto_directo: null, transcripcion: 'Mate. Los domingos tomamos mate con la abuela.', clave_kids: 'K13-OP' });
+    f.respuestas.push({ id: 'la-seño', pregunta_orden: 17.6, audio_path: 'y.ogg', texto_directo: null, transcripcion: 'La seño Mate es la de Naturales.', clave_kids: 'X2-1' });
+    f.kids.correcciones = [{ respuesta_id: 'la-seño', dice: 'Mate', es: 'Maite' }];
+    const mm = materialDeFilas(f);
+    const rs = todasLasRespuestas(mm);
+    expect(rs.find((r) => r.respuestaId === 'otra')?.texto).toBe('Mate. Los domingos tomamos mate con la abuela.');
+    expect(rs.find((r) => r.respuestaId === 'la-seño')?.texto).toBe('La seño Maite es la de Naturales.');
+    expect(mm.correcciones).toEqual([{ dice: 'Mate', es: 'Maite', veces: 1 }]);
+    expect(textoNombres(mm.correcciones)).toBe('Estos nombres se escriben así, «Maite» y no «Mate». Corregilos solo cuando es ese nombre, no cuando es otra palabra que se escribe igual.');
+    expect(textoNombres([])).toBe('No hay.');
+  });
+
+  it('la lista de nombres llega como dato a Leer todo, Parte, Sobre, Álbum y Arreglo; no al Veedor', () => {
+    const lista = 'Estos nombres se escriben así, «Uriel» y no «Oriel», «Maite» y no «Mate».';
+    expect(textoNombres(m.correcciones).startsWith(lista)).toBe(true);
+    for (const l of [llamadaLeer(m), llamadaParte(m, 2), llamadaSobre(m), llamadaAlbum(m), llamadaArreglo(m, 2, [], [])]) {
+      expect(l.instr, l.nombre).toContain(`Nombres que corrigió la familia. ${lista}`);
+      expect(l.instr, l.nombre).not.toContain('{{');
+    }
+    expect(llamadaVeedor(m, 2, { piezas: [], afuera: [] }).instr).not.toContain('Nombres que corrigió');
   });
 
   it('destino de cada clave', () => {

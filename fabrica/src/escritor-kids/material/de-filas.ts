@@ -12,8 +12,9 @@
 // - Una foto (⟦foto⟧ en la fila; la imagen en `fotos` por pregunta_orden) va al álbum con el texto que mandó con
 //   ella y lo que contó después con la misma clave (K12-FOTO). Si no hubo foto («No tengo»), lo que contó con
 //   esa clave va a su item, como una respuesta más.
-// - Las correcciones de nombres del padre se aplican en la copia, en todas las respuestas, con la palabra
-//   entera y respetando mayúsculas (es un nombre: si estaba mal escrito en una, lo estaba en todas).
+// - Las correcciones de nombres del padre se aplican en la copia, con la palabra entera y respetando mayúsculas,
+//   SOLO en la respuesta donde el padre la marcó (respuesta_id): en otra, «Mate» puede ser «tomamos mate». La
+//   lista entera va al modelo como dato ({{NOMBRES}}, textoNombres) para que corrija solo cuando es ese nombre.
 // - Ids cortos R01… en el orden en que llegó todo; las fotos F01…
 import { BANCO, extra, pregunta } from '../../kids-v2/banco.js';
 import { textoSegunTemas, type Tema } from '../../kids-v2/compra.js';
@@ -156,7 +157,9 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
     return e.item;
   };
   const nueva = (r: FilaRespuestaKids, texto: string, pregunta: string): RespuestaKids => {
-    const c = corregir(texto, correcciones);
+    // Solo las que el padre marcó en esta respuesta: en otra, «Mate» puede ser «tomamos mate».
+    const propias = correcciones.map((k) => (k.respuesta_id === r.id ? k : { dice: '', es: '' }));
+    const c = corregir(texto, propias);
     c.veces.forEach((v, i) => { veces[i] += v; });
     nR++;
     return { id: `R${String(nR).padStart(2, '0')}`, clave: r.clave_kids as string, pregunta, texto: c.texto, audio: !!r.audio_path, respuestaId: r.id, audioPath: r.audio_path, orden: r.pregunta_orden };
@@ -225,4 +228,11 @@ export function todasLasRespuestas(m: MaterialKids): RespuestaKids[] {
   const rs = [...m.partes.flatMap((p) => p.items), ...m.sobre.items].flatMap((i) => i.respuestas);
   rs.push(...m.fotos.flatMap((f) => f.respuestas));
   return rs.sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
+}
+
+/** El hueco {{NOMBRES}} de la receta: la lista entera de correcciones, para que el modelo corrija solo cuando es ese nombre. */
+export function textoNombres(correcciones: { dice: string; es: string }[]): string {
+  const ks = correcciones.filter((k, i, xs) => k.dice.trim() && k.dice !== k.es && xs.findIndex((y) => y.dice === k.dice && y.es === k.es) === i);
+  if (!ks.length) return 'No hay.';
+  return `Estos nombres se escriben así, ${ks.map((k) => `«${k.es}» y no «${k.dice}»`).join(', ')}. Corregilos solo cuando es ese nombre, no cuando es otra palabra que se escribe igual.`;
 }

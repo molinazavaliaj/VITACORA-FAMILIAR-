@@ -95,7 +95,7 @@ export function informeMd(d: DatosInforme): string {
   const out: string[] = [`# Informe del libro de ${m.ficha.llamado} (${m.ficha.nombre}, ${m.ficha.edad} años)`, ''];
   out.push(`Material: ${rs.length} respuestas con texto (${rs.filter((r) => r.audio).length} con audio), ${m.fotos.length} fotos, ${m.sobre.items.length} items en el sobre.`);
   out.push(`Gasto del escritor: USD ${d.gastado.toFixed(4)}.`, '');
-  out.push('## Correcciones de nombres (del panel, aplicadas en la copia)', '');
+  out.push('## Correcciones de nombres (del panel: aplicadas en su respuesta; en las demás, las corrige el modelo si es ese nombre)', '');
   out.push(...(m.correcciones.length ? m.correcciones.map((k) => `- «${k.dice}» → «${k.es}» (${k.veces} veces)`) : ['- ninguna']), '');
   if (m.sinLugar.length) out.push('## Lo que no tenía a qué item ir (no llegó al libro)', '', ...m.sinLugar.map((x) => `- ${x.clave}: «${x.texto}»`), '');
   if (lectura.preocupante.length) out.push('## Algo preocupante (Naza lo liberó)', '', ...lectura.preocupante.map((p) => `- ${p.ids.join(', ')} · «${p.cita}» · ${p.por_que}`), '');

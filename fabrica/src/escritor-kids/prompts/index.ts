@@ -4,7 +4,7 @@ import type { ClaveKids, PromptsKids } from './compilar.js';
 
 const P = compilados as unknown as PromptsKids;
 
-export type HuecosKids = Partial<Record<'NOMBRE' | 'EDAD' | 'GENERO' | 'PARTE' | 'TITULO_PARTE', string>>;
+export type HuecosKids = Partial<Record<'NOMBRE' | 'EDAD' | 'GENERO' | 'PARTE' | 'TITULO_PARTE' | 'NOMBRES', string>>;
 
 /** La línea fija que va antes de todo en cada llamada. */
 export const lineaFijaKids = (): string => P.lineaFija;

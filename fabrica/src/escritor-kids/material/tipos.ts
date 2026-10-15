@@ -57,7 +57,7 @@ export type MaterialKids = {
   /** La parte 5 (la cápsula) y sus extras, con el «¿quedó algo?» del final: va al sobre cerrado. */
   sobre: { titulo: string; items: ItemKids[] };
   fotos: FotoKids[];
-  /** Las correcciones de nombres que se aplicaron (en la copia; la base no cambia). */
+  /** Las correcciones de nombres del panel: `veces` es cuántas se reemplazaron en su respuesta (en la copia; la base no cambia). */
   correcciones: { dice: string; es: string; veces: number }[];
   /** Filas con texto que no tenían a qué item ir (se cuentan en el informe). */
   sinLugar: { respuestaId: string; clave: string; texto: string }[];

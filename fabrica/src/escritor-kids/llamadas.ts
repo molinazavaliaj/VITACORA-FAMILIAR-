@@ -4,6 +4,7 @@
 // por defecto (Opus 5.5, pensamiento medio), que es el que piden el plan y la receta para todos los pasos.
 import type { Llamada } from '../escritor/llamadas/armar.js';
 import type { FichaKids, FotoKids, ItemKids, MaterialKids, ParteKids, RespuestaKids } from './material/tipos.js';
+import { textoNombres } from './material/de-filas.js';
 import { instruccionesKids, lineaFijaKids, type HuecosKids } from './prompts/index.js';
 
 export type PiezaKids = { clave: string; titulo: string; texto: string; ids: string[]; linea?: string; pregunta?: string };
@@ -68,7 +69,7 @@ export function materialXml(m: MaterialKids): string {
 }
 
 const huecos = (m: MaterialKids, p?: ParteKids): HuecosKids => ({
-  NOMBRE: m.ficha.llamado, EDAD: String(m.ficha.edad), GENERO: m.ficha.genero,
+  NOMBRE: m.ficha.llamado, EDAD: String(m.ficha.edad), GENERO: m.ficha.genero, NOMBRES: textoNombres(m.correcciones),
   ...(p ? { PARTE: String(p.n), TITULO_PARTE: p.titulo } : {}),
 });
 const conError = (instr: string, error?: string): string => (error ? `${instr}\n\nTu respuesta anterior no pasó estos controles. Devolvé el JSON completo corregido.\n${error}` : instr);

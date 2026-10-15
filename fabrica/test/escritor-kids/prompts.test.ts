@@ -26,9 +26,10 @@ describe('prompts de Kids', () => {
   });
 
   it('llena los huecos y tira si falta uno', () => {
-    const t = instruccionesKids('### Kids · Parte', { NOMBRE: 'Benja', EDAD: '11', GENERO: 'm', PARTE: '2', TITULO_PARTE: 'Mi gente' });
+    const t = instruccionesKids('### Kids · Parte', { NOMBRE: 'Benja', EDAD: '11', GENERO: 'm', PARTE: '2', TITULO_PARTE: 'Mi gente', NOMBRES: 'No hay.' });
     expect(t).toContain('Estás armando la parte 2, «Mi gente», del libro de Benja, que tiene 11 años (género m).');
     expect(t).not.toContain('{{');
+    expect(t).toContain('Nombres que corrigió la familia. No hay.');
     expect(t).toContain('"required": ["piezas", "afuera"]');
     expect(() => instruccionesKids('### Kids · Parte', { NOMBRE: 'Benja' })).toThrow(/EDAD/);
   });

@@ -70,11 +70,15 @@ forma (los textos son de Tomi):
 Las preguntas que pasó («Paso») y los botones sin texto no llegan (el código los saca). Las respuestas de foto
 (`K12-FOTO`) no van en `<parte>`, van en `<fotos>`. Las extras y el «¿quedó algo?» de la parte (`CIERRE-N`) vienen como
 items propios, al final de la parte. Las preguntas del padre (`PADRE-n`) vienen en la parte 4, al final, con `quien` y
-`conLinea`. Las correcciones de nombres ya están aplicadas antes de que lo lea el modelo.
+`conLinea`. Las correcciones de nombres el código las aplica solo en la respuesta donde las marcó el padre (un «Mate»→«Maite»
+no puede tocar «tomamos mate» en otra respuesta); para las demás, la lista va en `{{NOMBRES}}` y el modelo corrige
+solo cuando es ese nombre.
 
 **Huecos que llena el código.** `{{NOMBRE}}` (nombre de pila o apodo con que se lo llama), `{{EDAD}}`, `{{GENERO}}`
 (`m` o `f`), `{{PARTE}}` (1 a 4) y `{{TITULO_PARTE}}` (el del banco, «De chiquito», «Mi gente», «Mi mundo ahora», «Lo que
-me pasó»).
+me pasó»), y `{{NOMBRES}}` (en Leer todo, Parte, Sobre, Álbum y Arreglo: la lista entera de correcciones de nombres
+que hizo el padre en el panel, por ejemplo «Estos nombres se escriben así, «Uriel» y no «Oriel», «Maite» y no «Mate».
+Corregilos solo cuando es ese nombre, no cuando es otra palabra que se escribe igual.»; sin correcciones, «No hay.»).
 
 **Controles por código, sin modelo** (los que fallan van como problema al arreglo, junto con los del veedor).
 - Cada respuesta con texto está en alguna pieza, en el sobre, en el álbum o en `afuera`.
@@ -120,6 +124,7 @@ Se marca. «Un chico grande del club me pasa videos y me dijo que no le diga a n
 Se marca, aunque sea una frase sola. «A veces no quiero estar más acá.» → por_que "dice que a veces no quiere estar más".
 Mal (cita cambiada) cita "mi papá me pega cuando toma" → Bien cita "Cuando mi papá toma se pone re loco y me pega con el cinto."
 
+Nombres que corrigió la familia. {{NOMBRES}}
 Devolvé solo el JSON: {"preocupante": [{"ids": [], "cita": "", "por_que": ""}], "dudas": [{"ids": [], "cita": "", "que": ""}], "su_voz": [], "notas": ""}
 Si no hay nada preocupante, "preocupante" va vacío. Si no hay dudas, "dudas" va vacío.
 ```
@@ -220,6 +225,7 @@ Títulos. Mal "Mi primer recuerdo" (es la pregunta), "Una aventura acuática" (d
 Pregunta del padre (PADRE-1, quien "Papá", conLinea "si"). Dijo "eh, lo que más me gusta es cuando, cuando vamos en el auto y ponés la radio fuerte. Eso."
 Bien {"clave": "PADRE-1", "titulo": "", "linea": "Esta pregunta te la manda Papá", "pregunta": "¿Qué es lo que más te gusta de los sábados conmigo?", "texto": "Lo que más me gusta es cuando vamos en el auto y ponés la radio fuerte.", "ids": ["R61"]}
 
+Nombres que corrigió la familia. {{NOMBRES}}
 Devolvé solo el JSON: {"piezas": [{"clave": "", "titulo": "", "texto": "", "ids": [], "linea": "", "pregunta": ""}], "afuera": [{"id": "", "por_que": ""}]}
 "linea" y "pregunta" van solo en las piezas PADRE-n. "afuera" va vacío si no hay nada.
 ```
@@ -291,6 +297,7 @@ Mal "Querido yo del futuro, nunca olvides a Rulo, que fue un gran compañero. Y 
 Mal "Que no me olvide de Rulo y que siga jugando." (resumido, y se perdió «aunque seas viejo»)
 Bien "Que no te olvides de Rulo. Y que sigas jugando a la pelota aunque seas viejo."
 
+Nombres que corrigió la familia. {{NOMBRES}}
 Devolvé solo el JSON: {"piezas": [{"clave": "", "pregunta": "", "texto": "", "ids": []}]}
 ```
 
@@ -347,6 +354,7 @@ Mal "Mi dinosaurio verde Pepe, con su pata mordida." («verde» no lo dijo y la 
 Bien "Es Pepe, un dinosaurio que me regaló mi abuela. Le falta una pata porque Rulo se la comió."
 Foto F02, dijo solo "esta". Bien epígrafe "" y ids [].
 
+Nombres que corrigió la familia. {{NOMBRES}}
 Devolvé solo el JSON: {"fotos": [{"id": "", "epigrafe": "", "ids": []}]}
 ```
 
@@ -461,6 +469,7 @@ Ejemplo (de Tomi, inventado). Dijo "Rulo se murió el año pasado. Lo enterramos
 Mal "Rulo se murió el año pasado. Lo enterramos en lo de mi tía, en un lugar lindo del jardín." (sacó lo inventado y metió otra cosa inventada)
 Bien "Rulo se murió el año pasado. Lo enterramos en lo de mi tía."
 
+Nombres que corrigió la familia. {{NOMBRES}}
 Devolvé solo el JSON: {"piezas": [{"clave": "", "titulo": "", "texto": "", "ids": [], "linea": "", "pregunta": ""}], "afuera": [{"id": "", "por_que": ""}]}
 "linea" y "pregunta" van solo en las piezas PADRE-n. En "afuera" va solo lo que cambió de lugar en este arreglo; si no hay, vacío.
 ```
