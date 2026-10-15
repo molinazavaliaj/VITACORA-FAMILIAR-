@@ -26,6 +26,7 @@ import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrad
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
 import { esViajeroV2 } from '../viaje-v2/filas.js';
+import { esChicoKids } from '../kids-v2/filas.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
@@ -131,6 +132,17 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
     if (canje !== 'sin_codigo') return;
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
+    return;
+  }
+
+  // Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico con fila en kids_v2 va entero por el motor de Kids, desde
+  // antes del arranque hasta después del final, y a nada más (ni al canje del regalo, ni a la V3, ni a la Viaje V2, ni
+  // al flujo viejo). Sin pagar, el entrevistador no toca la fila: sigue como hoy (no contesta nada). Sin fila —o sin la
+  // migración— sigue como hoy. Si la base no deja saber si es un chico, esChicoKids tira y no se manda nada.
+  if (narrador.estado !== 'pendiente_pago' && (await esChicoKids(db, narrador.id))) {
+    const { procesarEntranteKids } = await import('../kids-v2/entrante.js');
+    const { depsKidsReales } = await import('../kids-v2/deps-reales.js');
+    await procesarEntranteKids(depsKidsReales(), narrador, m);
     return;
   }
 

@@ -148,6 +148,9 @@ export function v3ParaNuevos(): boolean {
  */
 export function entraALaV3(contexto: Record<string, unknown> | null | undefined): boolean {
   if (contexto?.modo === 'viaje') return false;
+  // Un chico de Kids nunca (plan-conexion-bot.md, T4): la web le pone modo 'kids'. La marca que vale es la fila de
+  // kids_v2, que se mira donde se crea la fila V3 (v3/estado.ts crearFila, v3/pasar.ts); esto frena antes, sin base.
+  if (contexto?.modo === 'kids') return false;
   if (contexto?.regalo === true) return true;
   return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
 }
