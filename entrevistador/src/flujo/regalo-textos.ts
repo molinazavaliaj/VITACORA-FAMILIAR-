@@ -46,11 +46,11 @@ export const RECORDATORIO: Readonly<Record<TratoComprador, { asunto: (como: stri
 export const HITO_ACEPTO_VIAJE: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
   vos: {
     asunto: (quien: string) => `${quien} dijo que sí`,
-    cuerpo: (quien: string) => `${quien} dijo que sí y ya le mandamos la primera pregunta de su viaje por WhatsApp. Antes de salir le van a llegar unas pocas más, y en el viaje, dos por día.`,
+    cuerpo: (quien: string) => `${quien} dijo que sí y ya le mandamos la primera pregunta de su viaje por WhatsApp. Antes de salir le van a llegar algunas más, y otras durante el viaje.`,
   },
   tu: {
     asunto: (quien: string) => `${quien} ha dicho que sí`,
-    cuerpo: (quien: string) => `${quien} ha dicho que sí y ya le hemos mandado la primera pregunta de su viaje por WhatsApp. Antes de salir le llegarán unas pocas más, y en el viaje, dos al día.`,
+    cuerpo: (quien: string) => `${quien} ha dicho que sí y ya le hemos mandado la primera pregunta de su viaje por WhatsApp. Antes de salir le llegarán algunas más, y otras durante el viaje.`,
   },
 };
 
