@@ -12,6 +12,9 @@ const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const PAGINAS = { es: PaginaEjemplo, ca: EjemploCa, ar: EjemploAr } as const;
 const ejemplo = (idioma: keyof typeof PAGINAS) => renderToStaticMarkup(PAGINAS[idioma]());
 
+/** La cabecera pública lleva la solapa «Kids» desde el 15/10: el resto de la página no la nombra. */
+const sinSolapas = (h: string) => h.replace(/<nav[^>]*m-solapas[\s\S]*?<\/nav>/g, "");
+
 describe("el libro de ejemplo", () => {
   beforeEach(() => {
     process.env.PRECIO_ARS ??= "65000";
@@ -34,7 +37,7 @@ describe("el libro de ejemplo", () => {
 
   it("sin anticipo, sin «escribiéndose», sin garantía y sin capítulos de amor", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
-      const html = ejemplo(idioma);
+      const html = sinSolapas(ejemplo(idioma));
       for (const frase of ["anticipo", "Anticipo", "escribiéndose", "mientras se escribe", "devolvemos", "tornem", "El amor", "tercera respuesta", "Kids"]) {
         expect(html, `${idioma}: ${frase}`).not.toContain(frase);
       }

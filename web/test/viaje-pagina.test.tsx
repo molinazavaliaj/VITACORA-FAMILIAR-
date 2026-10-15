@@ -31,6 +31,8 @@ afterEach(() => {
   }
 });
 
+/** La cabecera pública lleva la solapa «Kids» desde el 15/10: el resto de la página no la nombra. */
+const sinSolapas = (h: string) => h.replace(/<nav[^>]*m-solapas[\s\S]*?<\/nav>/g, "");
 const PROHIBIDO = ["cada noche", "Cada noche", "cada nit", "9 días", "RESEÑA", "Kids", "los dos", "álbum de 20", "contigo"];
 
 describe("la página de Viaje por idioma", () => {
@@ -50,7 +52,7 @@ describe("la página de Viaje por idioma", () => {
     // El bot de Viaje V1 escribe en rioplatense: la página de España no promete trato.
     expect(html).not.toContain(escapar("¿Me trata de vos?"));
     expect(html).not.toMatch(/con vos(?!otros)/);
-    for (const p of PROHIBIDO) expect(html, p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
 
   it("en /ar/viaje: de vos, como siempre, en pesos, a /ar/comprar/viaje", () => {
@@ -61,7 +63,7 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain(escapar("Empezar mi Vitácora de viaje"));
     expect(html).toContain('href="/ar/comprar/viaje"');
     expect(html).not.toContain("€");
-    for (const p of PROHIBIDO) expect(html, p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
 
   it("en /ca/viaje: en catalán, dice que el biógrafo escribe en castellano, a /ca/comprar/viaje", () => {
@@ -69,7 +71,7 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain('lang="ca-ES"');
     expect(html).toContain(escapar("En castellà."));
     expect(html).toContain('href="/ca/comprar/viaje"');
-    for (const p of PROHIBIDO) expect(html, p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
 
   it("la garantía de Viaje va una sola vez, en las preguntas", () => {

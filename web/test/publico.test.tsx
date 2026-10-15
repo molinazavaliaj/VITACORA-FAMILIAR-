@@ -9,14 +9,28 @@ import { numeroWhatsAppDudas, urlWhatsAppDudas } from "../src/lib/whatsapp-dudas
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 
 describe("la cabecera pública", () => {
-  it("en castellano: solapas Familiar · De viaje, ES · CA, Entrar y Comprar, sin Kids", () => {
+  it("en castellano: solapas Familiar · Kids · De viaje, ES · CA, Entrar y Comprar", () => {
     const html = renderToStaticMarkup(<Cabecera idioma="es" camino="/" />);
     expect(html).toContain("Familiar");
     expect(html).toContain("De viaje");
     expect(html).toMatch(/<a[^>]*href="\/ca"[^>]*>CA<\/a>/);
     expect(html).toMatch(/<a[^>]*href="\/comprar"[^>]*>Comprar el libro<\/a>/);
     expect(html).toContain('href="/entrar"');
-    expect(html).not.toContain("Kids");
+    expect(html).toMatch(/<a[^>]*data-solapa="kids"[^>]*>Kids<\/a>/);
+    expect(html).toContain('href="/kids"');
+  });
+
+  it("en Kids, la solapa va marcada y sin KIDS_VENTA no hay botón de comprar", () => {
+    const antes = process.env.KIDS_VENTA;
+    delete process.env.KIDS_VENTA;
+    try {
+      const html = renderToStaticMarkup(<Cabecera idioma="ar" camino="/kids" producto="kids" />);
+      expect(html).toContain('data-activa="kids"');
+      expect(html).toContain('href="/ar/kids"');
+      expect(html).not.toContain("/comprar");
+    } finally {
+      if (antes !== undefined) process.env.KIDS_VENTA = antes;
+    }
   });
 
   it("en catalán, el selector vuelve a la misma pantalla en castellano", () => {

@@ -9,6 +9,8 @@ export type TextosPublico = {
   inicio: string;
   productos: string;
   familiar: string;
+  /** La solapa de Vitácora Kids (15/10). */
+  kids: string;
   viaje: string;
   entrar: string;
   comprar: string;
@@ -33,6 +35,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     inicio: "Vitácora, inicio",
     productos: "Productos",
     familiar: "Familiar",
+    kids: "Kids",
     viaje: "De viaje",
     entrar: "Entrar",
     comprar: "Comprar el libro",
@@ -54,6 +57,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     inicio: "Vitácora, inici",
     productos: "Productes",
     familiar: "Familiar",
+    kids: "Kids",
     viaje: "De viatge",
     entrar: "Entrar",
     comprar: "Comprar el llibre",
@@ -74,6 +78,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     inicio: "Vitácora, inicio",
     productos: "Productos",
     familiar: "Familiar",
+    kids: "Kids",
     viaje: "De viaje",
     entrar: "Entrar",
     comprar: "Comprar el libro",
