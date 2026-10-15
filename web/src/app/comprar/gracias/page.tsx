@@ -134,7 +134,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
           ) : (
             <div className="flex flex-col gap-3">
               <Link href="/entrar" className={clasesBoton("primario", "min-h-14 self-start px-8 text-[16px]")}>
-                {T.entrarAlPanel}
+                {T.entrarAlPanel(esViaje)}
               </Link>
               <p className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.sinContrasenas}</p>
             </div>
