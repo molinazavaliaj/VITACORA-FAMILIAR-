@@ -160,7 +160,7 @@ async function guardarAparte(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
   }
   const nueva = await conReintento(deps.db, n.id, (f) =>
     yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(f.estado, m.waMessageId) }, resultado: true });
-  if (nueva && m.tipo === 'imagen' && m.mediaId) await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
+  if (nueva && m.tipo === 'imagen' && m.mediaId) await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'suelta');
 }
 
 /** 'pedido': era «quiero parar» o «que no vaya al libro» (pedidos.ts) y no se sumó a nada. */
@@ -402,10 +402,8 @@ async function recibirImagen(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
     // La fila primero: el reintento de Meta se corta acá, antes de subir la foto otra vez.
     const guardada = await guardarTextoV3(deps.db, n.id, llegada, MARCA_FOTO, { waMessageId: m.waMessageId, clave: null, esBoton: false });
     if (!guardada) return;
-    try {
-      await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
-    } catch (err) {
-      console.error(`V3: no pude guardar la foto de FO1 de ${n.id}:`, err instanceof Error ? err.message : err);
+    if (!(await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'FO1'))) {
+      // FO1 sigue abierta: la foto que la vuelva a mandar la contesta.
       await ponerClave(deps.db, guardada.id, SIN_CLAVE_V3);
       return;
     }
@@ -416,9 +414,42 @@ async function recibirImagen(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
   const nueva = await conReintento(deps.db, n.id, (f) =>
     yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(f.estado, m.waMessageId) }, resultado: true });
   if (!nueva) return;
-  await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
+  if (!(await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'suelta'))) return;
   const acuse = textoFijo('fotoSuelta', fila.idioma);
   if (acuse) await conReintento(deps.db, n.id, (f) => ({ cambio: { estado: encolar(f.estado, { texto: acuse, tipo: 'suelto' }) }, resultado: true }));
+}
+
+/**
+ * Baja la foto de Meta y la guarda (Storage + `fotos`). Si falla, no se pierde en silencio (handoff 07/10, «Sin
+ * aviso al narrador si falla una foto»): al narrador le sale `fotoFallo` en su idioma, una sola vez por mensaje
+ * (si hay texto aprobado), y a los socios un aviso. Devuelve true si quedó guardada. Nunca tira.
+ */
+async function guardarFotoOAvisar(
+  deps: DepsV3, n: NarradorV3, mediaId: string, mimeType: string | undefined, caption: string | undefined, llegada: number,
+  waMessageId: string, cual: 'FO1' | 'suelta',
+): Promise<boolean> {
+  try {
+    await guardarFotoV3(deps, n.id, mediaId, mimeType, caption, llegada);
+    return true;
+  } catch (err) {
+    const detalle = err instanceof Error ? err.message : String(err);
+    console.error(`V3: no pude guardar la foto (${cual}) de ${n.id}: ${detalle}`);
+    // El reintento de Meta ya se cortó antes (la fila de FO1 o el wamid entre los vistos): sale una sola vez.
+    try {
+      await conReintento(deps.db, n.id, (f) => {
+        const t = textoFijo('fotoFallo', f.idioma, fichaTexto(f));
+        return t ? { cambio: { estado: encolar(f.estado, { texto: t, tipo: 'suelto' }) }, resultado: true } : null;
+      });
+    } catch (errCola) {
+      console.error(`V3: no pude encolar el pedido de la foto de ${n.id}:`, errCola instanceof Error ? errCola.message : errCola);
+    }
+    await deps.avisar(
+      `foto-fallo-${waMessageId}`,
+      'No se pudo guardar una foto de un narrador V3',
+      `${n.id} mandó una foto (${cual === 'FO1' ? 'la de la pregunta FO1, que sigue abierta' : 'suelta'}) y no se pudo bajar de Meta o subir a Storage: ${detalle}. Se le pidió que la vuelva a mandar. Si no la manda, se puede pedir a la familia que la suba desde el panel.`,
+    );
+    return false;
+  }
 }
 
 async function aplicarFoto(deps: DepsV3, narradorId: string, guardada: FilaGuardada): Promise<void> {
