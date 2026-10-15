@@ -14,6 +14,7 @@ import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { LogoTrazo } from "../_direccion/logo-trazo";
+import { Toroide } from "../marca";
 import { Coreografia } from "../_direccion/coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D, PaginaCapitulo, PaginaFoto } from "../_direccion/libro-3d";
@@ -107,7 +108,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
     ) : null;
 
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada flex flex-1 flex-col">
       <Coreografia />
 
       {/* ═══ 1 · INICIO: el logo se dibuja a lápiz sobre negro. Capa: queda
@@ -638,7 +639,10 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
                 </li>
               ))}
             </ul>
-            <Link prefetch={false} href={ruta(idioma, "/viaje")} className="dir-enlace mt-2 self-start">
+            {/* El botón azul de Viaje (amigo de Naza, 15/10: «Viaje aún no cambia a
+                colores»): con solo la etiqueta en azul, el bloque se leía como
+                Familiar. Es el mismo botón lleno de /viaje (viaje.css lo pinta). */}
+            <Link prefetch={false} href={ruta(idioma, "/viaje")} className="dir-boton dir-boton--lleno dir-boton--envuelve mt-2 self-start">
               {t.viaje.enlace}
               {precioViaje !== null ? ` · ${t.viaje.desde(formatear(precioViaje))}` : ""}
             </Link>
@@ -718,8 +722,10 @@ function TelefonoChat({ c }: { c: Chat }) {
       <div className="rounded-[34px] border border-[#2c2b28] bg-[#121210] p-2.5 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]">
         <div className="overflow-hidden rounded-[26px] bg-[#0b141a]">
           <div className="flex items-center gap-3 bg-[#1f2c33] px-4 py-3">
-            <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--dir-papel)] text-[13px] font-semibold text-[var(--dir-tinta)] [font-family:var(--fuente-micro)]">
-              V
+            {/* El avatar del contacto: el toroide de la marca (el logo para
+                tamaños chicos, como en la cabecera), no una «V». */}
+            <span aria-hidden className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--dir-papel)] text-[var(--dir-tinta)]">
+              <Toroide className="h-[15px] w-auto" />
             </span>
             <span className="flex flex-col">
               <span className="text-[14px] text-white [font-family:var(--fuente-micro)]">{c.contacto}</span>

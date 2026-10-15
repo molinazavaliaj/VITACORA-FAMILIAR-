@@ -248,3 +248,21 @@
   background:
     linear-gradient(180deg, var(--dir-tinta) 0%, rgba(7, 7, 6, .45) 14%, rgba(7, 7, 6, .38) 45%, rgba(7, 7, 6, .7) 72%, var(--dir-tinta) 100%);
 }
+
+/* ── Las hojas de la portada, solapadas (amigo de Naza, 15/10) ─────────────
+   El inicio es una capa fija ([data-capa]) que queda detrás de TODA la página.
+   Cada hoja crema empieza con una franja transparente de 14 px (el deckle) y,
+   como arrancaba justo donde terminaba la anterior, entre los dientes no se
+   veía la hoja de arriba sino el inicio (el logo, el titular, los botones):
+   al bajar, en el teléfono, aparecían por un instante pedazos de la portada
+   arriba del papel. Lo mismo, en finito, en las uniones con medio píxel (en
+   pantallas 3x las alturas no son enteras y queda una rendija). Ahora cada
+   hoja se monta sobre la anterior: 1 px las lisas y los 14 px del corte las
+   de papel, así entre los dientes se ve la hoja de arriba, como en el
+   diseño. Las secciones tienen el aire de sobra arriba y abajo. */
+.dir-portada > section + section { margin-top: -1px; }
+.dir-portada > section.dir-deckle { margin-top: calc(var(--dir-deckle-alto, 14px) * -1); }
+
+/* Un botón lleno cuyo texto puede pasar a dos líneas en el teléfono (el de
+   Viaje en la portada lleva el precio y no entra en 358 px). */
+.dir-boton--envuelve { white-space: normal; text-align: center; padding-block: 14px; line-height: 1.3; }

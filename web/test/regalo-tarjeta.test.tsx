@@ -84,6 +84,13 @@ describe("la tarjeta imprimible", () => {
     estado.tratos = [];
   });
 
+  it("en pantalla las hojas se achican al ancho de la ventana; al imprimir, no (amigo de Naza 15/10: en el celular salía blanca)", async () => {
+    const html = await render();
+    expect(html).toContain("@media screen { .hoja { zoom: var(--escala, 1); } }");
+    const impresion = html.slice(html.indexOf("@media print"));
+    expect(impresion).not.toContain("zoom");
+  });
+
   it("lleva la tapa, el mensaje, las líneas aprobadas, el QR y el código", async () => {
     const html = await render();
     expect(html).toContain(AR.tapaSlogan);
