@@ -234,12 +234,12 @@
    en la tinta, donde se apoya la carta. */
 .dir-carta-fondo {
   inset: 0 0 auto 0 !important;
-  height: auto;
-  aspect-ratio: 1920 / 1275;
-  min-height: 62svh;
+  /* En el móvil, alto fijo y la foto recortada a lo ancho (con aspect-ratio
+     el bloque se ensanchaba más allá de la pantalla y se veía solo la izquierda). */
+  height: 64svh;
   filter: saturate(.9);
 }
-@media (min-width: 768px) { .dir-carta-fondo { min-height: 0; } }
+@media (min-width: 768px) { .dir-carta-fondo { height: auto; aspect-ratio: 1920 / 1275; } }
 .dir-carta-fondo::after {
   content: "";
   position: absolute;
