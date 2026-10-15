@@ -631,7 +631,7 @@ desincronizaba) con su fixture real, y de paso mejoró 3 tramos que estaban inco
 `respuestas.tema_de_orden`/`tema_motivo`). Con eso, el 19 y el recuerdo tardío quedan cerrados de punta a
 punta.
 
-**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo`
+**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo` (**actualizado 15/10:** las tres ramas se mergearon el 21/09 a la tarde.)
 (el audiolibro fuera del catálogo y del copy, el panel `/frases`, la página pública `/voz/<token>`, el
 contexto mínimo en el alta). **Bloqueante: la aprobación de los textos** (la revisión está hecha, con los
 cambios propuestos ya pasados a Joaquín).

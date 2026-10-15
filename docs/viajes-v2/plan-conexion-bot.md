@@ -33,7 +33,7 @@ Estado al cerrar el 10/10: [`handoff-2026-10-10-bot-2.md`](handoff-2026-10-10-bo
 | 2 | Fábrica: `planificador.ts` puro (`queToca`, `alEntrar`) + `Estado` ampliado; el simulador corre encima y los 2400 viajes siguen en verde | ✅ 10/10 |
 | 3 | `reubicar` (cambio de país), agrupar respuestas, `audioMal` | ✅ 10/10 |
 | 1 | Copia del núcleo al entrevistador + test | ✅ 10/10 |
-| 4 | Migración `viajes_v2` + `respuestas.clave_viaje` + CONTRATO (la aplica Naza) | ✅ escrita; falta aplicarla |
+| 4 | Migración `viajes_v2` + `respuestas.clave_viaje` + CONTRATO (la aplica Naza) | ✅ escrita; falta aplicarla. **Actualizado 15/10:** aplicada por Naza el 10/10 |
 | 5 | Estado en la base (CAS, toma) + envío con ventana y plantillas + reacción ❤️ | ✅ 10/10 |
 | 6 | Entrante + gancho en procesar | ✅ 10/10 |
 | 7 | Reloj + avisos a los socios + script para cerrar el álbum (y cambio de país) | ✅ 10/10 |

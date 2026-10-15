@@ -17,6 +17,81 @@
 
 ---
 
+## 📍 Lo que sigue vivo al 15/10
+
+> **Empezá por acá.** Este índice manda. Todo lo que está más abajo es **historial** (se deja como
+> estaba, sin borrar): si una fila vieja dice otra cosa, vale esta. Sale del roadmap de dos días del
+> 13/10 (revisión con Fable) cruzado con `git log origin/main` y los PRs mergeados hasta el #40.
+> Dueño: **Naza**, **Joaquín** o **Claude** (un agente, siempre con el OK de Naza para mergear).
+> Ramas y carpetas viejas: `docs/limpieza-2026-10-15.md`.
+
+**El hito.** Prender la V3 para los clientes nuevos: la web vende la entrevista V3, pero quien compra
+hoy recibe la vieja (`V3_PARA_NUEVOS` no existe en Railway al 13/10).
+
+### V3 en WhatsApp (en producción desde el 07/10, con Naza, Dora, Mariano e Imma)
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| Bienvenidas V3 (`bienvenida_v3_vos`, `bienvenida_v3_es_es`) en Meta y sumarlas a `WA_PLANTILLAS_V3_LISTAS` | Joaquín | ☐ |
+| Prender `V3_PARA_NUEVOS` en Railway y mirar que al primer alta le salga la bienvenida V3 | Joaquín, con OK de Naza | ☐ |
+| Achicar el tráfico del reloj V3 | Claude | 🔄 worktree `VITACORA FAMILIAR-bot-reloj`, sin commit |
+| Aviso si falla la subida de una foto, y no repetir la pregunta con botones tras una plantilla | Claude (textos, Naza) | 🔄 worktree `VITACORA FAMILIAR-bot-arreglos`, sin commit |
+| Mirar a los 4 narradores V3 en `/admin` | Naza | todos los días |
+
+### Escritor y libros (escritor V3 en el worker desde el 08/10, `a2de061`)
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| Libro de Imma: entregado el 13/10. Pasar sus correcciones (PDF «corregido 14-10») como pendientes del escritor | Claude, con Naza | ☐ |
+| Ver que Mariano tenga pedido `pagado` para la V3 (no estaba entre los pilotos del 08/10) | Naza | ☐ sin verificar |
+| Contestar las dudas del libro en 24 h cuando llega el mail | Naza o la familia | cada libro |
+| Libro entero de prueba por producción (unos USD 7, 12 a 20 h) | Naza decide, Claude corre | ☐ decisión |
+| Dudas del libro en tercera persona también para «la mía» | Claude | 🔄 en `bot-arreglos` |
+| La clave local de Anthropic de Naza vence el 18/10 (Railway usa otras) | Naza | ☐ |
+
+### Gift card (en main desde el PR #2; el regalo el día elegido, PR #6)
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| Las 3 `regalo_entrega` en Meta, sumarlas a la lista y `REGALO_ENTREGA_WHATSAPP=1` en Vercel | Joaquín | ☐ |
+| `WHATSAPP_NUMERO_PUBLICO` en Railway | Joaquín | ☐ sin verificar |
+| Prueba real por mail con plata real, e imprimir una tarjeta y probarla con el teléfono | Naza | ☐ |
+
+### Viaje V2 (en main desde el PR #7, **apagada** para clientes nuevos)
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| Las 15 plantillas en Meta y `WA_PLANTILLAS_VIAJE_V2_LISTAS` | Joaquín | ☐ |
+| Compra nueva de Viaje (`/comprar/viaje`) y panel. Es lo que traba prenderla | Joaquín | ☐ |
+| Mail «dijo que sí» a quien regaló el viaje. Texto aprobado por Naza el 15/10, rama `viaje-v2-mail-si`, **sin PR** | Claude abre el PR, Naza mergea | 🔄 |
+| Prender `VIAJE_V2_PARA_NUEVOS` y reescribir `/viaje` ese día | Naza (OK), Joaquín, Claude | ☐ |
+
+### Web y legales
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| **Rediseño de la web**, rama `rediseno-web` (156 commits, fuera de main). Completo en la preview https://vitacora-rediseno.vercel.app. Falta el abogado, las claves de prueba de pago en el entorno Preview de Vercel, la revisión del catalán por Imma y el switch | Naza (abogado, claves, switch), Imma (catalán), Joaquín (CONTRATO) | 🔄 listo en preview |
+| `pedidos.extras.origen` (de qué anuncio vino la compra): entra con el rediseño, ya anotado en el CONTRATO | Joaquín lo revisa | 🔄 con el rediseño |
+| Tú para España en el resto de la web (portada y panel ya en main, #26 y #27); `/viaje` queda en vos hasta prender Viaje V2 | Claude, tandas de 10 para Naza | 🔄 |
+| Datos de titulares en los legales (CUIT y domicilio de Joaquín, NIF de Immaculada) | Joaquín y Naza | ☐ vacíos desde septiembre |
+| Términos revisados por el abogado (un solo brief: devolución, «Su voz» sin clonación, titulares) | Naza | ☐ |
+| Stripe real para España | Naza (trámite) | ☐ |
+| `MAIL_SOCIOS` en Vercel (en Railway ya está) | Naza | ☐ |
+
+### Kids (rama `vitacora-kids`, fuera de main; no entra en estos días)
+
+| Qué falta | Dueño | Estado al 15/10 |
+|---|---|---|
+| Conectar el motor al bot, la compra y el panel, más 13 plantillas | Joaquín | ☐ |
+| Abogado para «algo preocupante» (bloquea vender Kids) | Naza | ☐ |
+| Piloto a mano con un chico de 11 | Naza | ☐ |
+
+### Abierto en GitHub
+
+- PR #31 (`roadmap-13-10`): el estado de P1-P8 al 13/10 y el patrón de «lo que falla en silencio». Sin mergear.
+
+---
+
 ## 🎯 Qué significa "lanzado" (15 de octubre)
 
 **No** es vender a desconocidos con ads corriendo. Es tener la prueba de que el producto
@@ -66,7 +141,7 @@ record tipo Paddle/Lemon Squeezy). Decisión del 2026-09-04.
 | D27.2 | **Preguntas solo en texto.** No vuelve el audio de la pregunta. | Cierra la objeción de Naza a 3t.28. |
 | D27.3 | **Todo lo que cuenta el narrador entra tal cual al libro.** No se reserva ni se suaviza contenido sensible. | Cierra L4 del piloto de Naza. |
 | D27.4 | **El formato del libro es A5.** | Cierra L6 del piloto de Naza. La plantilla del PDF (fábrica e imprenta) sale en A5. |
-| D27.5 | **Hoy la versión vigente del biógrafo es la v2** (`esqueleto-v2`, sin mergear). **Se espera la v3 que está haciendo Naza** (rama `v3`, arrancada el 25/09: banco fijo de preguntas, ficha que el narrador corrige antes de escribir, capítulos por etapas de la vida, escritor en pasos). | Nada del biógrafo nuevo se conecta a producción hasta que Naza lo dé por listo. Nako, Ángel y Mariano siguen con el v1 hasta terminar. |
+| D27.5 | **Hoy la versión vigente del biógrafo es la v2** (`esqueleto-v2`, sin mergear). **Actualizado 15/10:** superado. La V3 (entrevista y escritor) está en producción desde el 07-09/10; `esqueleto-v2` no se mergea y queda como historial. **Se espera la v3 que está haciendo Naza** (rama `v3`, arrancada el 25/09: banco fijo de preguntas, ficha que el narrador corrige antes de escribir, capítulos por etapas de la vida, escritor en pasos). | Nada del biógrafo nuevo se conecta a producción hasta que Naza lo dé por listo. Nako, Ángel y Mariano siguen con el v1 hasta terminar. |
 | D27.6 | **Una fábrica por línea de producto.** Cada línea tiene sus preguntas con plantillas predeterminadas y su propio biógrafo, que sabe leer esas respuestas y armar el libro (o el cuento, o la historia) que le corresponde: **Familiar**, **De viaje** y **Kids**. | Es el diseño que está puliendo Naza. La v3 es la fábrica del Familiar; viaje y Kids vienen después. |
 | D27.7 | **Los pilotos se reordenan.** Corren de verdad **Ñako (viaje), Ángel y Mariano** (v1). **Imma y Dora quedan para la segunda prueba**, con el entrevistador y el biógrafo nuevos. **Imma** es la primera en probar el producto nuevo, **y lo prueba entero en catalán**. **Dora** arranca la semana del 28/09, cuando esté listo el v2: se conecta su WhatsApp y empieza con un «SÍ» o un «hola». Joaquín la graba mientras tanto, para contenido. | Reemplaza 6.1 a 6.3. El catalán es un requisito nuevo: bot, textos, transcripción y libro en catalán (hoy todo está en castellano). |
 | D27.8 | **Libro físico de prueba (Joaquín, en curso).** Un libro impreso de muestra para empezar a grabar contenido con Dora. | Destraba el Frente 7 (redes) y la foto real de la landing. |
@@ -79,7 +154,7 @@ Se mergearon a `main` las cuatro que estaban listas, con los tests de las tres p
 (web 558, fábrica 355, entrevistador 380) y `tsc` limpio:
 
 - `entregas-fase-1`: 3t.26 fase 1, la dirección de envío en la web. Sin esto, la fábrica (fase 2, ya en `main`) le pedía la dirección a la familia y no había dónde cargarla. ⚠️ Textos nuevos → **OK de Naza** (pasan igual, porque sin esto se rompía lo que ya estaba en producción).
-- `objetos-preciados`: el check de `envios.tipo` con `'objeto'` y «El amor» sin dar por hecho una pareja. Son solo los archivos de migración: **Naza tiene que aplicar** `20260923000000`, `20260923000100` y `20260923000200` (según el CONTRATO, todavía sin aplicar).
+- `objetos-preciados`: el check de `envios.tipo` con `'objeto'` y «El amor» sin dar por hecho una pareja. Son solo los archivos de migración: **Naza tiene que aplicar** `20260923000000`, `20260923000100` y `20260923000200` (según el CONTRATO, todavía sin aplicar). **Actualizado 15/10:** en git no quedó escrito si se aplicaron; ver el CONTRATO (cómo verificarlo).
 - `sacar-audiolibro`: la fábrica deja de armar el audiolibro y se borra el camino de la voz clonada (−4.400 líneas).
 - `fabrica-tipos`: `tsc` también revisa `fabrica/scripts/`.
 
