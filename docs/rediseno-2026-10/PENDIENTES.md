@@ -248,3 +248,6 @@ Aunque se prenda la variable, `/api/compra` **rechaza** todo cuerpo con `product
 
 ## Libro impreso: primera página con el logo (Naza, 15/10)
 - Para Joaquín (fábrica): el libro impreso empieza hoy directo con el capítulo 1. Naza quiere que la primera página de la izquierda tenga el logo Campo V·F con «VITÁCORA FAMILIAR» debajo, y a la derecha arranque el capítulo. La referencia es `docs/rediseno-2026-10/amigo/maquetas/doble-pagina.html` (imagen en `amigo/fotos/ref-doble-pagina.png`). Las fotos nuevas de la web muestran el libro así: no publicarlas en producción hasta que el libro real salga igual.
+
+## Marco a 19 € todos (Naza, 15/10)
+- Hoy cobra 20 € el primero (PRECIO_MARCO_EUR) y 15 € los demás (PRECIO_MARCO_ADICIONAL_EUR). Naza decidió 19 € todos: poner las dos en 19 en Vercel (Preview y Production) cuando pasemos la maqueta a la portada real, y revisar los textos del checkout que dicen «el primero / los demás». Falta decidir el equivalente en pesos (AR).
