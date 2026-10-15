@@ -370,3 +370,18 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
  * (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, punto 7).
  */
 export const KIDS_MISMO_NUMERO = "El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».";
+
+/**
+ * El libro impreso en la compra de Kids (Naza 15/10, tanda 3, punto 10). Todo
+ * lo demás es de la casa, tal cual (_textos/checkout: «¿Cómo querés su libro?»,
+ * los títulos y las frases de las opciones, las copias, la dirección de envío y
+ * sus avisos; _textos/pedido-confirmado: la línea de la imprenta). Estos dos
+ * detalles son los de la casa SIN «Su voz», que Kids no define. Solo en vos:
+ * Kids no se vende en España.
+ */
+export const KIDS_IMPRESO = {
+  // TEXTO PARA NAZA (la de la casa sin «con su voz»)
+  impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
+  // TEXTO PARA NAZA (la de la casa sin «Su voz»)
+  digitalDetalle: "PDF para leer en cualquier pantalla.",
+};

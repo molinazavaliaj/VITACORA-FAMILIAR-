@@ -18,7 +18,7 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/supabase/sesion", () => ({ usuarioDeLaSesion: vi.fn(async () => ({ id: "u1", email: "martina@ejemplo.com" })), crearClienteSesion: vi.fn() }));
 
 const NARRADOR = "11111111-2222-4333-8444-555555555555";
-const base = vi.hoisted(() => ({ canal: null as "A" | "B" | null }));
+const base = vi.hoisted(() => ({ canal: null as "A" | "B" | null, entrega: false }));
 
 vi.mock("@/lib/panel", async (original) => ({
   ...(await original<typeof import("@/lib/panel")>()),
@@ -33,7 +33,10 @@ vi.mock("@/lib/supabase/servidor", () => ({
     from: (tabla: string) => {
       const cadena: Record<string, unknown> = {};
       for (const m of ["select", "eq", "order", "limit"]) cadena[m] = () => cadena;
-      cadena.maybeSingle = async () => ({ data: tabla === "kids_v2" && base.canal ? { canal: base.canal } : null, error: null });
+      cadena.maybeSingle = async () => ({
+        data: tabla === "kids_v2" && base.canal ? { canal: base.canal } : tabla === "entregas" && base.entrega ? { id: "ent-1", estado: "sin_direccion" } : null,
+        error: null,
+      });
       return cadena;
     },
   }),
@@ -54,6 +57,7 @@ const BIOGRAFIA_ANTES = "Avisale a Tomi que le va a escribir «Vitácora» por W
 
 beforeEach(() => {
   base.canal = null;
+  base.entrega = false;
 });
 
 describe("«Pedido confirmado» de Vitácora Kids", () => {
@@ -74,6 +78,16 @@ describe("«Pedido confirmado» de Vitácora Kids", () => {
     expect(html).not.toContain(escapar(A));
     expect(html).not.toContain(escapar(BIOGRAFIA_HOY));
     expect(html).not.toContain(escapar(BIOGRAFIA_ANTES));
+  });
+
+  it("con el libro impreso (tanda 3, punto 10): «Al terminar» suma la línea de la imprenta de la casa", async () => {
+    const IMPRENTA = "Te avisamos cuando salga de imprenta y te mandamos el seguimiento.";
+    base.canal = "B";
+    expect(await pagina()).not.toContain(escapar(IMPRENTA));
+    base.entrega = true;
+    const html = await pagina();
+    expect(html).toContain(escapar(B));
+    expect(html).toContain(escapar(IMPRENTA));
   });
 
   it("sin fila en kids_v2 (la biografía): la lista de siempre", async () => {

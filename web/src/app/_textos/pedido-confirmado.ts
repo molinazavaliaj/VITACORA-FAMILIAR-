@@ -165,8 +165,9 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
  * canal (A = su WhatsApp, B = «Lo hago yo»); en el A va con «Antes» y no con
  * «Hoy» porque le escribimos a la hora que eligió el padre, que puede ser
  * mañana. «Mientras cuenta» y «Al terminar» son los de la biografía en vos.
- * Kids no lleva impreso. Aprobados por Naza el 15/10
- * (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, puntos 5 y 6).
+ * Aprobados por Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md,
+ * puntos 5 y 6). Con el libro impreso (tanda 3, punto 10), «Al terminar» suma
+ * la línea de la imprenta de la casa, como en la biografía.
  */
 export type CanalConfirmadoKids = "A" | "B";
 
@@ -175,8 +176,8 @@ export const CONFIRMADO_KIDS = {
   canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando toquen el botón, juntos.",
 };
 
-export function momentosKids(apodo: string, canal: CanalConfirmadoKids): Momento[] {
-  const [hoy, antes, mientras, alTerminar] = CONFIRMADO.ar.otro(apodo, false);
+export function momentosKids(apodo: string, canal: CanalConfirmadoKids, impreso = false): Momento[] {
+  const [hoy, antes, mientras, alTerminar] = CONFIRMADO.ar.otro(apodo, impreso);
   const primera: Momento = canal === "A" ? { cuando: antes.cuando, que: CONFIRMADO_KIDS.canalA(apodo) } : { cuando: hoy.cuando, que: CONFIRMADO_KIDS.canalB };
   return [primera, mientras, alTerminar];
 }

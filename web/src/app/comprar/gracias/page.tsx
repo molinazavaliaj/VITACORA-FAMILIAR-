@@ -90,7 +90,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
       ? confirmado.propia
         ? T.propio(confirmado.impreso)
         : confirmado.kids
-          ? momentosKids(confirmado.nombre, confirmado.kids)
+          ? momentosKids(confirmado.nombre, confirmado.kids, confirmado.impreso)
           : confirmado.regalo
           ? T.regalo(confirmado.nombre, confirmado.impreso)
           : T.otro(confirmado.nombre, confirmado.impreso)

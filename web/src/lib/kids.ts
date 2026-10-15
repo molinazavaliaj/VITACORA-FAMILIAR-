@@ -1,4 +1,6 @@
 import { obtenerPrecioKids, type Region } from "./precios";
+import { armarCompra, type Catalogo, type Compra } from "./productos";
+import { validarDireccion, type Direccion } from "./entregas";
 
 // Vitácora Kids («Mi Primer Capítulo») en la web nueva (15/10). Lo que la web
 // sabe de Kids, sin red, para probarlo sin mocks.
@@ -82,9 +84,25 @@ export type EstadoKids = {
   // 3 · Temas y pago
   temas: TemaKids[];
   fotosConOtrosChicos: boolean;
+  // El libro impreso (Naza 15/10, tanda 3, punto 10): las opciones de la casa,
+  // sin marco. `marcos` queda siempre en 0 (Kids no tiene marco); está porque
+  // las opciones de la casa (_checkout/opciones-libro) lo leen.
+  formato: "digital" | "impreso";
+  marcos: number;
+  opcion?: "digital" | "impreso" | "marco";
+  /** Copias impresas además de la primera. */
+  copias: number;
+  recibe: string;
+  telefonoRecibe: string;
+  direccion: Partial<Direccion>;
 };
 
-export function estadoKidsInicial(): EstadoKids {
+/**
+ * Con qué arranca. Con el catálogo de Kids (`catalogoKids`) y un impreso con
+ * precio, arranca con el impreso elegido, como la casa; sin catálogo, digital.
+ */
+export function estadoKidsInicial(cat?: Pick<Catalogo, "impreso">, region: Region = "AR"): EstadoKids {
+  const impreso = Boolean(cat?.impreso);
   return {
     tuNombre: "",
     tuWhatsapp: "",
@@ -101,7 +119,56 @@ export function estadoKidsInicial(): EstadoKids {
     temas: [],
     // COMPRA-3-FOTOS: la casilla arranca apagada.
     fotosConOtrosChicos: false,
+    formato: impreso ? "impreso" : "digital",
+    marcos: 0,
+    opcion: impreso ? "impreso" : "digital",
+    copias: 0,
+    recibe: "",
+    telefonoRecibe: "",
+    direccion: { pais: region === "AR" ? "Argentina" : "España" },
   };
+}
+
+// ── El libro impreso de Kids (Naza 15/10, tanda 3, punto 10) ──────────────
+//
+// «El mismo precio de la casa, con el impreso arriba como en la casa»: el
+// impreso y sus copias valen lo de la casa (PRECIO_IMPRESO_* y PRECIO_COPIA_*,
+// el catálogo de lib/productos) y se suman al precio de Kids. Sin marco ni pack
+// (Kids no los define). La misma cuenta en el navegador y en el servidor:
+// `compraKids` es `armarCompra` con la base de Kids.
+
+/** El nombre de la línea de Kids en la pasarela (Stripe / Mercado Pago). */
+export const NOMBRE_LINEA_KIDS = "Vitácora Kids";
+
+/** El catálogo de Kids: su precio de base y el impreso de la casa; sin viaje, marco ni pack. */
+export function catalogoKids(casa: Catalogo, precio: number): Catalogo {
+  return { ...casa, base: { nombre: NOMBRE_LINEA_KIDS, detalle: "", precio }, viaje: null, marco: null, pack: null };
+}
+
+/** Cuántos impresos lleva lo elegido: el primero y sus copias, o ninguno. */
+export function impresosKids(e: Pick<EstadoKids, "formato" | "copias">): number {
+  return e.formato === "impreso" ? 1 + Math.max(0, Math.floor(e.copias || 0)) : 0;
+}
+
+/** El ticket de Kids: la base (id "pdf", para que `extras` diga `pdf: true`), el impreso y las copias. Nunca marcos. */
+export function compraKids(cat: Catalogo, region: Region, impresos: number): Compra {
+  const c = armarCompra(cat, region, { base: "pdf", impresos, marcos: 0 });
+  return { ...c, lineas: c.lineas.map((l) => (l.id === "pdf" ? { ...l, nombre: NOMBRE_LINEA_KIDS } : l)) };
+}
+
+/** Los textos de la casa que pide el envío (_textos/checkout). */
+type TextosEnvio = { faltaRecibe: string; faltaTelefonoRecibe: string };
+
+/**
+ * Lo que falta del envío en el paso 3, con los mismos textos y reglas que la
+ * casa (comprar/compra.ts, `fallaDelPaso`); null si no lleva impreso o está todo.
+ */
+export function fallaEnvioKids(e: Pick<EstadoKids, "formato" | "recibe" | "telefonoRecibe" | "direccion">, T: TextosEnvio): { texto: string; campo: string } | null {
+  if (e.formato !== "impreso") return null;
+  if (!e.recibe.trim()) return { texto: T.faltaRecibe, campo: "recibe" };
+  if (!e.telefonoRecibe.trim()) return { texto: T.faltaTelefonoRecibe, campo: "telefono-recibe" };
+  const d = validarDireccion(e.direccion);
+  return d.ok ? null : { texto: d.mensaje, campo: "direccion" };
 }
 
 /**
@@ -207,5 +274,7 @@ export function cuerpoKids(e: EstadoKids, region: Region, idiomaWeb: string) {
     whatsappComprador: e.tuWhatsapp.trim(),
     whatsappChico: e.canal === "A" ? e.suWhatsapp.trim() : null,
     kids: fichaDeCompra(e, region),
+    // Como la casa: solo cuántos impresos. El precio lo calcula el servidor.
+    productos: { impresos: impresosKids(e) },
   };
 }
