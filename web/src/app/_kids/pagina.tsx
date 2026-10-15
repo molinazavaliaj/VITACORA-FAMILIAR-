@@ -81,7 +81,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
       <section className="relative">
         <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero />
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-8 sm:px-8 md:grid-cols-12 md:gap-8 md:pb-28 md:pt-14 lg:px-12">
-          <div className="flex flex-col items-start gap-7 md:col-span-7">
+          <div className="flex flex-col items-start gap-7 md:col-span-8">
             <span className="kids-micro kids-entra" style={conVar({ "--e": "0.2s" })}>
               {t.etiqueta}
             </span>
@@ -218,8 +218,8 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
       {/* ═══ 8 · EL PRECIO, o «Próximamente» ═══ */}
       <section className="kids-hondo">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-32 lg:px-12">
-          <FotoKids src={FOTOS_KIDS.libroTapa.src} alt="" forma="ancha" sizes="(min-width: 768px) 46vw, 92vw" className="w-full md:col-span-6" />
-          <div className="flex flex-col items-start gap-6 md:col-span-5 md:col-start-8">
+          <FotoKids src={FOTOS_KIDS.libroTapa.src} alt="" forma="ancha" sizes="(min-width: 768px) 46vw, 92vw" className="w-full md:col-span-6 md:col-start-7 md:row-start-1" />
+          <div className="flex flex-col items-start gap-6 md:col-span-5 md:col-start-1 md:row-start-1">
             {vende && precio !== null ? (
               <>
                 <h2 className="kids-titular kids-t3">{t.precio.titulo}</h2>
@@ -289,7 +289,7 @@ export function PasosKids({ pasos, etiqueta }: { pasos: readonly PasoKids[]; eti
     <ol className="mt-12 flex flex-col md:mt-0">
       {pasos.map((paso, i) => (
         <li key={paso.titulo} className="kids-aparece grid grid-cols-[auto_1fr] items-start gap-x-6 border-t border-[var(--kids-hilo)] py-8 sm:gap-x-10">
-          <span aria-hidden className="kids-numero">
+          <span aria-hidden className="kids-numero w-[0.8em] text-center">
             {i + 1}
           </span>
           <div className="flex flex-col gap-3 pt-2">

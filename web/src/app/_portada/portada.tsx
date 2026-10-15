@@ -336,7 +336,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               forma="arco"
               href={ruta(idioma, "/kids")}
               sizes="(min-width: 768px) 24vw, 62vw"
-              className="w-[62%] justify-self-end md:col-span-3 md:col-start-9 md:-mt-40 md:w-full"
+              className="w-[62%] justify-self-end md:col-span-3 md:col-start-9 md:mt-20 md:w-full"
             >
               <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{kids.etiqueta}</span>
               <span className="dir-pie">{kids.texto}</span>

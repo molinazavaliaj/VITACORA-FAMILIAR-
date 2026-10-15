@@ -86,11 +86,14 @@ export function LandingKidsPagina({ idioma, landing }: { idioma: IdiomaWeb; land
               ))}
             </ul>
           ) : (
-            <ul className="kids-lista kids-aparece mt-12 max-w-[46ch]">
-              {t.seccion.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+            <div className="mt-12 grid grid-cols-1 items-center gap-12 md:grid-cols-12 md:gap-8">
+              <ul className="kids-lista kids-aparece max-w-[46ch] md:col-span-5">
+                {t.seccion.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <FotoKids src={FOTOS_KIDS.libroAbierto.src} alt={k.libro.altFoto} forma="suave" sizes="(min-width: 768px) 50vw, 92vw" className="w-full md:col-span-7" />
+            </div>
           )}
           {t.seccion.pie ? <p className="kids-dato kids-aparece border-t border-[var(--kids-hilo)] pt-6">{t.seccion.pie}</p> : null}
         </div>
