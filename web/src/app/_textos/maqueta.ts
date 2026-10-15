@@ -1,7 +1,8 @@
 // Los textos de la maqueta escondida /maqueta (y /ar/maqueta): la parte de
 // arriba de la portada nueva, con las correcciones del amigo de Naza y el
 // brief de Remento (15/10). Salen de docs/rediseno-2026-10/amigo/textos.md,
-// tanda 1, líneas 1 a 10, con su estado de ahí. Cuando Naza apruebe la
+// tanda 1 (textos 1 a 10, la parte 1) y tanda 2 (textos 11 a 20, la parte 2),
+// con su estado de ahí. Cuando Naza apruebe la
 // maqueta, estos textos pasan a portada.ts y este archivo se borra.
 //
 // Reglas de esa tanda: sin dos puntos, ninguna oración empieza con «Y»
@@ -13,7 +14,7 @@
 export type TextosMaqueta = {
   /** 1 · APROBADO (el de siempre), partido en dos líneas como en la portada. */
   titulo: [string, string];
-  /** 2 · PROPUESTA, falta OK de Naza. */
+  /** 2 · APROBADO (Naza 15/10). */
   bajada: string;
   /** 3 · APROBADO. */
   iniciar: string;
@@ -35,9 +36,34 @@ export type TextosMaqueta = {
   siguiendo: { titulo: string; pasos: [string, string, string] };
   /** 10 · APROBADO: el pie del teléfono. */
   pieTelefono: string;
+  /** Parte 2 · Cómo funciona. */
+  como: {
+    /** Título ya aprobado («Cómo funciona», el de la portada). */
+    titulo: string;
+    /** 11 · PROPUESTA (idea del amigo). */
+    bajada: string;
+    /** 12 a 15 · PROPUESTA. El 4 es el paso emocional. */
+    pasos: [PasoMaqueta, PasoMaqueta, PasoMaqueta, PasoMaqueta];
+  };
+  /** Parte 2 · La carta. 18, la carta, APROBADA el 14/10: sale de portada.ts sin cambios. */
+  carta: {
+    /** 16 · PROPUESTA (la de siempre sin «punto y Y»). */
+    frase: string;
+    /** 17 · PROPUESTA (sin nombres). */
+    firma: string;
+  };
+  /** Parte 2 · Escúchalo. La cita, su capítulo y el reproductor salen de portada.ts. */
+  escuchalo: {
+    /** 19 · PROPUESTA. */
+    titulo: string;
+    /** 20 · PROPUESTA. */
+    texto: string;
+  };
   /** Texto de servicio de la maqueta (no se aprueba ni pasa a la portada). */
   sigue: string;
 };
+
+export type PasoMaqueta = { titulo: string; texto: string };
 
 export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
   es: {
@@ -63,7 +89,39 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
       ],
     },
     pieTelefono: "Así se ve la página de su historia.",
-    sigue: "Sigue · Cómo funciona en 4 pasos, la carta, escúchalo, el libro y los marcos, regalo, preguntas.",
+    como: {
+      titulo: "Cómo funciona",
+      bajada:
+        "Entrevistamos a tu familiar por WhatsApp, a su ritmo, y con lo que nos cuenta escribimos el libro de su vida. Si sabe mandar un audio, ya sabe hacerlo.",
+      pasos: [
+        {
+          titulo: "Nos dices quién es",
+          texto: "Nos dejas su nombre, su WhatsApp y el día en que quieres que empiece. Si es un regalo, te damos una tarjeta para entregárselo.",
+        },
+        {
+          titulo: "Solo manda audios",
+          texto: "Le llega una pregunta por WhatsApp y la contesta con un audio cuando quiere, como hace todos los días. Sin apps ni nada que aprender.",
+        },
+        {
+          titulo: "Escribimos su libro",
+          texto: "Con todo lo que cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras.",
+        },
+        {
+          titulo: "Su familia lo lee y lo escucha",
+          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contratapa vuelven a escuchar su voz.",
+        },
+      ],
+    },
+    carta: {
+      frase: "Un día vas a querer preguntarle algo y ya no va a estar para contártelo.",
+      firma: "Los fundadores de Vitácora",
+    },
+    escuchalo: {
+      titulo: "Su voz, guardada en su libro.",
+      texto:
+        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contratapa o desde el móvil, cuando quieras.",
+    },
+    sigue: "Sigue · El libro y los marcos, regalo, preguntas.",
   },
   ar: {
     titulo: ["En cada familia hay", "un libro sin escribir."],
@@ -88,6 +146,38 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
       ],
     },
     pieTelefono: "Así se ve la página de su historia.",
-    sigue: "Sigue · Cómo funciona en 4 pasos, la carta, escuchalo, el libro y los marcos, regalo, preguntas.",
+    como: {
+      titulo: "Cómo funciona",
+      bajada:
+        "Entrevistamos a tu familiar por WhatsApp, a su ritmo, y con lo que nos cuenta escribimos el libro de su vida. Si sabe mandar un audio, ya sabe hacerlo.",
+      pasos: [
+        {
+          titulo: "Nos decís quién es",
+          texto: "Nos dejás su nombre, su WhatsApp y el día en que querés que empiece. Si es un regalo, te damos una tarjeta para entregárselo.",
+        },
+        {
+          titulo: "Solo manda audios",
+          texto: "Le llega una pregunta por WhatsApp y la contesta con un audio cuando quiere, como hace todos los días. Sin apps ni nada que aprender.",
+        },
+        {
+          titulo: "Escribimos su libro",
+          texto: "Con todo lo que cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras.",
+        },
+        {
+          titulo: "Su familia lo lee y lo escucha",
+          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contratapa vuelven a escuchar su voz.",
+        },
+      ],
+    },
+    carta: {
+      frase: "Un día vas a querer preguntarle algo y ya no va a estar para contártelo.",
+      firma: "Los fundadores de Vitácora",
+    },
+    escuchalo: {
+      titulo: "Su voz, guardada en su libro.",
+      texto:
+        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
+    },
+    sigue: "Sigue · El libro y los marcos, regalo, preguntas.",
   },
 };

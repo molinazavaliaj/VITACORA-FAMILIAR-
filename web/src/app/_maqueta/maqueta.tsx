@@ -8,10 +8,12 @@ import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Coreografia } from "../_direccion/coreografia";
 import { Libro3D } from "../_direccion/libro-3d";
 import { conVar } from "../_direccion/piezas";
+import { MaquetaParte2 } from "./parte-2";
 import "../_direccion/direccion.css";
 import "./maqueta.css";
 
-// La maqueta escondida de la parte de ARRIBA de la portada nueva (15/10):
+// La maqueta escondida de la portada nueva (15/10), por partes. Parte 1, la de
+// ARRIBA (acá); parte 2 (Cómo funciona, la carta, Escúchalo) en parte-2.tsx:
 // /maqueta y /ar/maqueta, sin enlaces ni sitemap, noindex. Es para que Naza
 // decida en el celular cómo queda el orden de docs/rediseno-2026-10/amigo/
 // maquetas/1-arriba.html con la estética real. No toca la portada: usa las
@@ -119,12 +121,11 @@ export function MaquetaArriba({ idioma }: { idioma: "es" | "ar" }) {
             </figure>
           </div>
         </div>
-
-        {/* Texto de servicio: qué sigue en la maqueta. «Cómo funciona ↓» baja acá. */}
-        <p id="como-funciona" className="mq-sigue scroll-mt-6">
-          {t.sigue}
-        </p>
       </section>
+
+      {/* ═══ PARTE 2 · Cómo funciona («Cómo funciona ↓» baja ahí), la carta y
+          Escúchalo, con la franja de servicio al final ═══ */}
+      <MaquetaParte2 idioma={idioma} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { MaquetaArriba } from "../../_maqueta/maqueta";
 // No se enlaza desde ningún lado ni va al sitemap.
 
 export const metadata: Metadata = {
-  title: { absolute: "Maqueta · arriba de la portada" },
+  title: { absolute: "Maqueta · portada nueva" },
   robots: { index: false, follow: false },
 };
 

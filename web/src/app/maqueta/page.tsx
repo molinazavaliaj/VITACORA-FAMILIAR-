@@ -6,7 +6,7 @@ import { MaquetaArriba } from "../_maqueta/maqueta";
 // sitemap. La versión de vos: /ar/maqueta.
 
 export const metadata: Metadata = {
-  title: { absolute: "Maqueta · arriba de la portada" },
+  title: { absolute: "Maqueta · portada nueva" },
   robots: { index: false, follow: false },
 };
 
