@@ -171,9 +171,6 @@ export function MaquetaParte2({ idioma }: { idioma: "es" | "ar" }) {
             </div>
           </div>
         </div>
-
-        {/* Texto de servicio: qué sigue en la maqueta. */}
-        <p className="mq-sigue">{t.sigue}</p>
       </section>
     </>
   );

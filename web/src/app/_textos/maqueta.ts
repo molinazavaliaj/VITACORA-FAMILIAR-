@@ -1,8 +1,8 @@
 // Los textos de la maqueta escondida /maqueta (y /ar/maqueta): la parte de
 // arriba de la portada nueva, con las correcciones del amigo de Naza y el
 // brief de Remento (15/10). Salen de docs/rediseno-2026-10/amigo/textos.md,
-// tanda 1 (textos 1 a 10, la parte 1) y tanda 2 (textos 11 a 20, la parte 2),
-// con su estado de ahí. Cuando Naza apruebe la
+// tanda 1 (textos 1 a 10, la parte 1), tanda 2 (textos 11 a 20, la parte 2) y
+// tanda 3 (textos 21 a 30, la parte 3), con su estado de ahí. Cuando Naza apruebe la
 // maqueta, estos textos pasan a portada.ts y este archivo se borra.
 //
 // Reglas de esa tanda: sin dos puntos, ninguna oración empieza con «Y»
@@ -59,8 +59,35 @@ export type TextosMaqueta = {
     /** 20 · PROPUESTA. */
     texto: string;
   };
-  /** Texto de servicio de la maqueta (no se aprueba ni pasa a la portada). */
-  sigue: string;
+  /** Parte 3 · El libro. El ÚNICO precio de la maqueta: el del impreso con el PDF. */
+  libro: {
+    /** 21 · PROPUESTA. */
+    titulo: string;
+    /** 22 · PROPUESTA: tres titulares cortos con su texto. */
+    beneficios: [PasoMaqueta, PasoMaqueta, PasoMaqueta];
+    /** 23 · PROPUESTA: qué incluye. */
+    incluye: [string, string, string, string];
+    /** 24 · PROPUESTA: lo que acompaña al precio ({precio} · esto). */
+    pagoUnico: string;
+  };
+  /** Parte 3 · Marcos. 25 · PROPUESTA. */
+  marcos: {
+    titulo: string;
+    /** El precio del marco: en es va literal (19 €); en ar, el de PRECIO_MARCO_ARS o, sin él, la frase sin número. */
+    texto: (precioMarco: string | null) => string;
+  };
+  /** Parte 3 · Regalo. 26 · PROPUESTA. */
+  regalo: { titulo: string; texto: string };
+  /** Parte 3 · Preguntas. El título y las demás preguntas, aprobados (portada.ts). */
+  preguntas: {
+    titulo: string;
+    /** 29 · PROPUESTA: reemplaza «¿Mi padre va a saber usarlo?»; la respuesta sigue igual. */
+    usarlo: string;
+    /** 27 y 28 · PROPUESTA: las preguntas nuevas. */
+    nuevas: [{ pregunta: string; respuesta: string }, { pregunta: string; respuesta: string }];
+  };
+  /** Parte 3 · Cierre. 30 · PROPUESTA (lema del amigo). */
+  cierre: string;
 };
 
 export type PasoMaqueta = { titulo: string; texto: string };
@@ -121,7 +148,43 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
       texto:
         "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contratapa o desde el móvil, cuando quieras.",
     },
-    sigue: "Sigue · El libro y los marcos, regalo, preguntas.",
+    libro: {
+      titulo: "Cada vida merece su propio libro.",
+      beneficios: [
+        { titulo: "Léelo", texto: "Su vida contada con sus palabras, capítulo a capítulo, con sus fotos." },
+        { titulo: "Escúchalo", texto: "Sus mejores frases suenan con su voz desde el código de la contratapa." },
+        { titulo: "Para siempre", texto: "Tapa dura y su foto en la portada, para que pase de mano en mano en tu familia." },
+      ],
+      incluye: [
+        "La entrevista entera por WhatsApp, hasta completar su historia",
+        "La página de su historia, para escuchar cada audio",
+        "El libro impreso en tapa dura, con el envío incluido",
+        "El libro en PDF, con sus mejores frases en su voz",
+      ],
+      pagoUnico: "pago único, sin suscripciones",
+    },
+    marcos: {
+      titulo: "Un marco con su voz para cada uno.",
+      // Naza: el marco a 19 € todos, literal en España.
+      texto: () =>
+        "Un marco con su foto y un chip por dentro. Acercas el móvil y suena su voz. Puedes pedir uno para cada hermano, cada hijo o cada nieto, a 19 € cada uno.",
+    },
+    regalo: {
+      titulo: "No le regales la misma camisa de todos los años.",
+      texto: "Regálale algo que va a quedar para toda la vida. Eliges el día en que empieza y te damos una tarjeta para entregárselo.",
+    },
+    preguntas: {
+      titulo: "Lo que suelen preguntarnos.",
+      usarlo: "¿Va a saber usarlo?",
+      nuevas: [
+        {
+          pregunta: "¿Puedo ver el libro antes de que se imprima?",
+          respuesta: "Sí. Cuando está terminado lo ves en la página de su historia, eliges la tapa y recién ahí se imprime.",
+        },
+        { pregunta: "¿Y si quiero hacer mi propio libro?", respuesta: "Funciona igual. Las preguntas te llegan a ti y el libro es el de tu vida." },
+      ],
+    },
+    cierre: "Todas las vidas merecen su propio libro.",
   },
   ar: {
     titulo: ["En cada familia hay", "un libro sin escribir."],
@@ -178,6 +241,42 @@ export const TEXTOS_MAQUETA: Record<"es" | "ar", TextosMaqueta> = {
       texto:
         "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
     },
-    sigue: "Sigue · El libro y los marcos, regalo, preguntas.",
+    libro: {
+      titulo: "Cada vida merece su propio libro.",
+      beneficios: [
+        { titulo: "Leelo", texto: "Su vida contada con sus palabras, capítulo a capítulo, con sus fotos." },
+        { titulo: "Escuchalo", texto: "Sus mejores frases suenan con su voz desde el código de la contratapa." },
+        { titulo: "Para siempre", texto: "Tapa dura y su foto en la portada, para que pase de mano en mano en tu familia." },
+      ],
+      incluye: [
+        "La entrevista entera por WhatsApp, hasta completar su historia",
+        "La página de su historia, para escuchar cada audio",
+        "El libro impreso en tapa dura, con el envío incluido",
+        "El libro en PDF, con sus mejores frases en su voz",
+      ],
+      pagoUnico: "pago único, sin suscripciones",
+    },
+    marcos: {
+      titulo: "Un marco con su voz para cada uno.",
+      // En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
+      texto: (p) =>
+        `Un marco con su foto y un chip por dentro. Acercás el celular y suena su voz. Podés pedir uno para cada hermano, cada hijo o cada nieto${p ? `, a ${p} cada uno` : ""}.`,
+    },
+    regalo: {
+      titulo: "No le regales la misma camisa de todos los años.",
+      texto: "Regalale algo que va a quedar para toda la vida. Elegís el día en que empieza y te damos una tarjeta para entregárselo.",
+    },
+    preguntas: {
+      titulo: "Lo que suelen preguntarnos.",
+      usarlo: "¿Va a saber usarlo?",
+      nuevas: [
+        {
+          pregunta: "¿Puedo ver el libro antes de que se imprima?",
+          respuesta: "Sí. Cuando está terminado lo ves en la página de su historia, elegís la tapa y recién ahí se imprime.",
+        },
+        { pregunta: "¿Y si quiero hacer mi propio libro?", respuesta: "Funciona igual. Las preguntas te llegan a vos y el libro es el de tu vida." },
+      ],
+    },
+    cierre: "Todas las vidas merecen su propio libro.",
   },
 };

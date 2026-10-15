@@ -115,17 +115,6 @@
   pointer-events: none;
 }
 
-/* ── La franja de servicio del final (no es de la portada) ─────────────── */
-.mq-sigue {
-  border-top: 1px dashed var(--dir-hilo-papel);
-  padding: 26px 16px 34px;
-  text-align: center;
-  font-family: var(--fuente-micro), sans-serif;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--dir-sobre-papel-suave);
-}
-
 /* ── Parte 2 · Cómo funciona sobre tinta ───────────────────────────────────
    Los dibujos a lápiz de la portada son tinta sobre papel; acá van claros. */
 .mq-como .dir-dibujo { color: var(--dir-sobre-tinta); }
@@ -149,3 +138,21 @@
   transform: rotate(1.6deg);
   box-shadow: 0 40px 70px -30px rgba(52, 40, 24, 0.6), 0 12px 24px -16px rgba(0, 0, 0, 0.35);
 }
+
+/* ── Parte 3 · El libro: la tapa y la contratapa de Osvaldo, una montada
+   sobre la otra, torcidas a lados opuestos. Los titulares de los beneficios,
+   en el dorado de la marca. */
+.mq-dorado { color: #b59a68; }
+.mq-par { position: relative; padding: 12px 0 24px; }
+.mq-par-tapa, .mq-par-contra { width: min(44vw, 220px); }
+.mq-par-tapa {
+  position: relative;
+  z-index: 1;
+  transform: rotate(-3deg) translateX(14px);
+  box-shadow: 0 40px 70px -24px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(238, 234, 225, 0.06);
+}
+.mq-par-contra {
+  transform: rotate(3deg) translate(-14px, 22px);
+  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(238, 234, 225, 0.06);
+}
+.mq-par img { display: block; width: 100%; height: auto; }
