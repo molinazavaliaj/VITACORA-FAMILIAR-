@@ -21,16 +21,17 @@ const UNICOS: Record<string, string[]> = {
   narradores: ['telefono_whatsapp'],
   regalos: ['codigo', 'narrador_id'],
 };
-const DEFAULTS: Record<string, () => Fila> = {
-  respuestas: () => ({ recibido_at: new Date().toISOString(), es_repregunta: false, clave_v3: null, wa_message_id: null, transcripcion: null, texto_directo: null }),
-  entrevistas_v3: () => ({ version: 0, tanda_cuenta: 0, ultimo_audio_at: null, tanda_dia: null, enviando_hasta: null, creada_at: new Date().toISOString(), migrada_de: null }),
-  envios: () => ({ enviado_at: new Date().toISOString() }),
-  viajes_v2: () => ({ version: 0, enviando_hasta: null, creada_at: new Date().toISOString() }),
-  kids_v2: () => ({
+/** Los defaults de cada tabla (`now()` de Postgres = `ahora`, el reloj de la base: el de verdad, o el de una simulación). */
+const DEFAULTS: Record<string, (ahora: string) => Fila> = {
+  respuestas: (ahora) => ({ recibido_at: ahora, es_repregunta: false, clave_v3: null, wa_message_id: null, transcripcion: null, texto_directo: null }),
+  entrevistas_v3: (ahora) => ({ version: 0, tanda_cuenta: 0, ultimo_audio_at: null, tanda_dia: null, enviando_hasta: null, creada_at: ahora, migrada_de: null }),
+  envios: (ahora) => ({ enviado_at: ahora }),
+  viajes_v2: (ahora) => ({ version: 0, enviando_hasta: null, creada_at: ahora }),
+  kids_v2: (ahora) => ({
     idioma: 'es-AR', estado: null, cambios_panel: null, cambios_error: null, avance: {}, marcas: [], version: 0, enviando_hasta: null,
-    despertar_at: null, creada_at: new Date().toISOString(), empezo_at: null, termino_at: null,
+    despertar_at: null, creada_at: ahora, empezo_at: null, termino_at: null,
   }),
-  narradores: () => ({ estado: 'invitado', dia_actual: 0, contexto: {}, hora_preferida: '10:00:00', zona_horaria: 'America/Argentina/Buenos_Aires', ultima_respuesta_at: null, alerta_silencio: false }),
+  narradores: (_ahora) => ({ estado: 'invitado', dia_actual: 0, contexto: {}, hora_preferida: '10:00:00', zona_horaria: 'America/Argentina/Buenos_Aires', ultima_respuesta_at: null, alerta_silencio: false }),
 };
 
 export type BaseFalsa = {
@@ -42,6 +43,8 @@ export type BaseFalsa = {
   /** La próxima escritura a esa tabla devuelve este error (una sola vez). */
   fallarProxima: Map<string, ErrorBase>;
   cliente: SupabaseClient;
+  /** El reloj de la base (los defaults `now()`): el de verdad, salvo que una simulación pase el suyo. */
+  ahora: () => Date;
 };
 
 const copia = <T>(x: T): T => (x === undefined ? x : (JSON.parse(JSON.stringify(x)) as T));
@@ -67,11 +70,15 @@ class Consulta implements PromiseLike<Resultado> {
   private devolver = false;
   private contar = false;
   private soloCuenta = false;
+  /** Las columnas pedidas (`a,b,c`); undefined = todas (`*`, o algo que no es una lista simple). */
+  private columnas: string[] | undefined;
 
   constructor(private base: BaseFalsa, private tabla: string) {}
 
-  select(_columnas?: string, o?: { count?: 'exact'; head?: boolean }) {
+  select(columnas?: string, o?: { count?: 'exact'; head?: boolean }) {
     if (this.op !== 'select') this.devolver = true;
+    const cs = (columnas ?? '*').split(',').map((c) => c.trim());
+    this.columnas = cs.every((c) => /^[a-z_][a-z0-9_]*$/i.test(c)) ? cs : undefined;
     if (o?.count) this.contar = true;
     if (o?.head) this.soloCuenta = true;
     return this;
@@ -133,7 +140,7 @@ class Consulta implements PromiseLike<Resultado> {
           afectadas.push(existente);
           continue;
         }
-        const nueva: Fila = { ...(clave === 'id' ? { id: randomUUID() } : {}), ...(DEFAULTS[this.tabla]?.() ?? {}), ...copia(v) };
+        const nueva: Fila = { ...(clave === 'id' ? { id: randomUUID() } : {}), ...(DEFAULTS[this.tabla]?.(this.base.ahora().toISOString()) ?? {}), ...copia(v) };
         for (const col of UNICOS[this.tabla] ?? []) {
           if (nueva[col] != null && filas.some((f) => f[col] === nueva[col])) {
             return { data: null, error: { code: '23505', message: `duplicate key value violates unique constraint "${this.tabla}_${col}"` } };
@@ -158,7 +165,9 @@ class Consulta implements PromiseLike<Resultado> {
     if (this.limite !== undefined) afectadas = afectadas.slice(0, this.limite);
     const count = this.contar ? afectadas.length : null;
     if ((this.op !== 'select' && !this.devolver) || this.soloCuenta) return { data: null, error: null, count };
-    const data = afectadas.map((f) => copia(f));
+    // Solo las columnas pedidas (como PostgREST); así tampoco se copia el jsonb grande de una fila para leer su id.
+    const cs = this.columnas;
+    const data = afectadas.map((f) => copia(cs ? Object.fromEntries(cs.filter((c) => c in f).map((c) => [c, f[c]])) : f));
     if (this.unica === 'single') {
       return data.length === 1 ? { data: data[0], error: null } : { data: null, error: { code: 'PGRST116', message: `se esperaba 1 fila y hay ${data.length}` } };
     }
@@ -192,13 +201,14 @@ function almacen(base: BaseFalsa, bucket: string) {
   };
 }
 
-export function crearBaseFalsa(inicial: Record<string, Fila[]> = {}): BaseFalsa {
+export function crearBaseFalsa(inicial: Record<string, Fila[]> = {}, o: { ahora?: () => Date } = {}): BaseFalsa {
   const base: BaseFalsa = {
     tablas: Object.fromEntries(Object.entries(inicial).map(([t, filas]) => [t, filas.map((f) => copia(f))])),
     archivos: new Map(),
     ausentes: new Set(),
     fallarProxima: new Map(),
     cliente: undefined as unknown as SupabaseClient,
+    ahora: o.ahora ?? (() => new Date()),
   };
   base.cliente = {
     from: (tabla: string) => new Consulta(base, tabla),
