@@ -21,7 +21,7 @@ const TEXTOS_CTA: TextosCta = {
   desde: "desde",
   conImpreso: "Pago único · Libro impreso + PDF con «Su voz»",
   sinImpreso: "Pago único · PDF con «Su voz»",
-  boton: "Comprar el libro",
+  boton: "Iniciar Vitácora",
 };
 
 export function CtaSticky({

@@ -14,7 +14,7 @@ describe("la cabecera pública", () => {
     expect(html).toContain("Familiar");
     expect(html).toContain("De viaje");
     expect(html).toMatch(/<a[^>]*href="\/ca"[^>]*>CA<\/a>/);
-    expect(html).toMatch(/<a[^>]*href="\/comprar"[^>]*>Comprar el libro<\/a>/);
+    expect(html).toMatch(/<a[^>]*href="\/comprar"[^>]*>Iniciar Vitácora<\/a>/);
     expect(html).toContain('href="/entrar"');
     expect(html).toMatch(/<a[^>]*data-solapa="kids"[^>]*>Kids<\/a>/);
     expect(html).toContain('href="/kids"');
@@ -36,7 +36,7 @@ describe("la cabecera pública", () => {
   it("en catalán, el selector vuelve a la misma pantalla en castellano", () => {
     const html = renderToStaticMarkup(<Cabecera idioma="ca" camino="/ejemplo" />);
     expect(html).toMatch(/<a[^>]*href="\/ejemplo"[^>]*>ES<\/a>/);
-    expect(html).toMatch(/<a[^>]*href="\/ca\/comprar"[^>]*>Comprar el llibre<\/a>/);
+    expect(html).toMatch(/<a[^>]*href="\/ca\/comprar"[^>]*>Iniciar Vitácora<\/a>/);
     expect(html).toContain('href="/ca"');
   });
 
