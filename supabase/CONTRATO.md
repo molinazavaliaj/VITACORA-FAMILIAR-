@@ -820,7 +820,8 @@ y el candado de la V3) y, si la hay, no hace nada:
   después de `completado`); estructura, previsualización, pedidos pagados (paquete, escritor V3, entrega con los
   mismos archivos), «el libro está listo» y el recordatorio de frases. En `entregas.ts`: la imprenta y los mails de la
   entrega. **Mientras no exista el libro de Kids, un impreso de Kids no avanza**: el libro y su entrega se programan
-  aparte y arrancan con `termino_at`.
+  aparte y arrancan con `termino_at`. **16/10:** el libro ya existe («El libro de Kids en la fábrica», abajo); la
+  imprenta toma a un chico solo con el libro escrito y aprobado por el padre. Los mails de la entrega siguen sin salir.
 - **Web:** el tablero de biografías (`tablero/[narradorId]`, `proximo-paso.ts`) no es el panel de Kids, ni
   `/api/sugeridas` (sugerencias con modelo); y `confirmarPago` manda el mail de acceso al tablero (para Kids, el mismo
   mail con el link al panel de Kids: COMPRA-3-DESPUES dice «igual que el resto de la casa») y crea la fila de la
@@ -842,6 +843,59 @@ mientras no estén, el chico no arranca (el primer mensaje siempre es plantilla)
    y fotos»). Con dos chicos de canal A en el mismo número, no se contesta (no hay texto aprobado) y se avisa.
 3. **Dónde vive el motor.** Como la Viaje V2: copia byte a byte en `entrevistador/src/kids-v2/nucleo/` con un test que
    compara contra `fabrica/src/kids-v2/`, y la web usa una copia de `validarFicha`.
+
+### El libro de Kids en la fábrica (16/10 — rama `kids-libro`)
+
+Decisiones 6 a 9 de `docs/kids/v2/libro-decisiones-2026-10-15.md`. Código: `fabrica/src/escritor-kids/produccion/`
+(la receta de `escritor-kids/` sobre la máquina del escritor de la casa: Batch, tope, checkpoints, `consumo_ia`).
+**No cambia ninguna tabla.** Corre en cada tick (`revisarLibrosKids`), en segundo plano, una cola propia.
+
+1. **Terminó de contar** (`kids_v2.termino_at` puesto y `narradores.estado = 'completado'`) → la Etapa A (leer todo),
+   una sola vez. Si marca algo preocupante: `real/frenado.json` y mail a `MAIL_SOCIOS`; **nada más** hasta que exista
+   `real/liberado.json`.
+2. **Sin freno (o liberado) y un pedido del chico `pagado`** → B, C y el armado. Sube a `paquete/` el libro, el sobre,
+   el HTML y `frases.json`, y escribe `listo.json`: **el libro está para que lo revise el padre**. El pedido **sigue
+   `pagado`**. Si no sale: `fallo-libro.json` y aviso (un error pasajero se reintenta solo, 3 veces cada 15 minutos).
+3. **Con `listo.json` y sin aprobar** → mail a la dueña (`familias.email`) con el link `kids_v2.ficha.linkPanel`, una vez.
+4. **El padre aprueba** → la web pone `narradores.libro_aprobado_at`. Para un chico de Kids quiere decir **«el padre
+   aprobó el libro ya escrito»** (no «cerró el libro» como en la casa) y **solo la pone la web desde el panel de Kids, y
+   solo con `listo.json`**. La fábrica pasa cada pedido `pagado` del chico a `entregado` (CAS `estado = 'pagado'`,
+   `libro_pdf_path = {id}/paquete/libro.pdf`) y manda el mail «libro listo» de Kids, una vez. Una entrega `lista` del
+   chico va a la imprenta (`entregas.ts`): copia `libro.pdf` → `libro-imprenta.pdf` y `sobre.pdf` → `sobre-imprenta.pdf`.
+5. **14 días después de `listo.json` sin `libro_aprobado_at`** → un aviso a `MAIL_SOCIOS`, una vez. La fábrica nunca
+   pone `libro_aprobado_at` a un chico (el cierre solo de los 30 días de la casa ya lo saltea).
+
+`{narrador_id}/escritor-kids/real/` (bucket `audios`; el almacén del escritor de Kids):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `pasos/`, `lotes/`, `fallas.json`, `costos.json` | fábrica | fábrica | Cada respuesta del modelo (retomar sin repagar), los lotes de Batch y el gasto. No se borran. |
+| `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **lectura hecha** (candado). |
+| `frenado.json` | fábrica | fábrica, socios | `{at, preocupante: [{ids, cita, por_que}], texto}`: el escritor encontró algo preocupante. |
+| `liberado.json` | **Naza a mano** | fábrica | Cualquier JSON, p. ej. `{"por": "Naza", "at": "2026-10-16", "nota": "…"}`. Con él, el libro sigue (lo marcado no va a «Su voz» y queda en el informe). Se sube desde el panel de Supabase, Storage → `audios` → `{id}/escritor-kids/real/`. |
+| `libro.md`, `sobre.md`, `informe.md` | fábrica | socios | El libro y el sobre en texto, y el informe interno (correcciones, dudas, veedor, fotos para mirar). La familia no ve el informe. |
+
+`{narrador_id}/escritor-kids/`:
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `listo.json` | fábrica | fábrica, **web (panel de Kids)** | `{at, paginas, sobrePaginas}`: el libro está escrito y los archivos de `paquete/` están. Es la señal para mostrarle al padre el libro y el botón de aprobar. |
+| `fallo-A.json`, `fallo-libro.json` | fábrica | socios | La lectura o el libro no salió (`{motivo, fecha}`). No se reintenta solo: se borra a mano para reintentar (retoma sin repagar). |
+| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). |
+| `trabajando.json` | fábrica | fábrica | Como el de la casa: otra copia de la fábrica no toca al chico mientras tenga menos de 10 minutos. |
+
+`{narrador_id}/paquete/` (los de siempre, con el libro de Kids):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `libro.pdf`, `libro.html` | fábrica | web (panel de Kids, descarga, `/voz/<token>`) | El libro A5 con «Su voz» y sus QR. **Sin** el sobre. |
+| `sobre.pdf` | fábrica | web (panel de Kids), imprenta | El sobre cerrado, aparte (decisión 6). Nunca lleva QR. |
+| `frases.json` | fábrica | web (`/voz/<token>`) | «Su voz» de Kids en el formato de siempre: una candidata por respuesta elegida, `estado = 'cortada'`, `audio_path` = el audio **entero** de la respuesta (`{id}/dia_NN.ogg`), `elegida = true`, `confirmado_at` puesto. **No** hay `frases_pedido.txt`: el worker de audio no corta nada. Cada QR del libro abre `/voz/<token>#f-<R..>`. |
+| `libro-imprenta.pdf`, `sobre-imprenta.pdf` | fábrica | imprenta | Copias de `libro.pdf` y `sobre.pdf` al pasar la entrega a `en_produccion`. |
+
+`consumo_ia`: una fila por llamada, `servicio = 'fabrica'`, `paso` = `escritor-kids-A`, `escritor-kids-B` o
+`escritor-kids-C`. Variables: `ESCRITOR_KIDS_TOPE_USD` (8 por defecto, tope de gasto por trabajo),
+`ESCRITOR_LIBROS_EN_PARALELO` (la misma que la casa, pero los de Kids van en su propia cola), `MAIL_SOCIOS`.
 
 ## Storage — bucket privado `audios`
 
