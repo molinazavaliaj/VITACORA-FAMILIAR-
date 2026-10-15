@@ -281,6 +281,52 @@ describe("POST /api/compra con producto kids", () => {
     }
   });
 
+  it("canal A con el mismo WhatsApp que el padre responde 400 sin tocar la base", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+54 9 11 5555 1234" }, "AR", "ar")));
+    expect(r.status).toBe(400);
+    expect((await r.json()).error).toBe("El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("nombre, apodo, quién se lo regala y tu nombre de más de 60 caracteres: 400 mal formado", async () => {
+    const largo = "a".repeat(61);
+    for (const e of [{ nombre: largo }, { apodo: largo }, { quien: "otra" as const, quienOtra: largo }, { tuNombre: largo }]) {
+      const admin = compraNueva();
+      usar(admin);
+      const r = await POST(peticion(cuerpoKids({ ...LLENO, ...e }, "AR", "ar")));
+      expect(r.status, JSON.stringify(e)).toBe(400);
+      expect((await r.json()).error).toBe("El pedido llegó mal formado.");
+      expect(admin.from).not.toHaveBeenCalled();
+    }
+    // 60 justos entran.
+    const admin = compraNueva();
+    usar(admin);
+    expect((await POST(peticion(cuerpoKids({ ...LLENO, nombre: "a".repeat(60) }, "AR", "ar")))).status).toBe(200);
+  });
+
+  it("busca la familia por el correo exacto en minúsculas (eq, no ilike)", async () => {
+    const admin = compraNueva();
+    const eqs: [string, unknown][] = [];
+    const original = admin.from.getMockImplementation()!;
+    admin.from.mockImplementation((tabla: string) => {
+      const b = original(tabla) as Record<string, unknown>;
+      const eq = b.eq as (c: string, v: unknown) => unknown;
+      b.ilike = () => {
+        throw new Error("ilike en Kids");
+      };
+      b.eq = (c: string, v: unknown) => {
+        if (tabla === "familias") eqs.push([c, v]);
+        return eq(c, v);
+      };
+      return b;
+    });
+    usar(admin);
+    expect((await POST(peticion(cuerpoKids(LLENO, "AR", "ar")))).status).toBe(200);
+    expect(eqs[0]).toEqual(["email", "laura@ejemplo.com"]);
+  });
+
   it("sin la tabla kids_v2 (migración sin aplicar): borra narrador y familia y responde 409", async () => {
     const admin = compraNueva({ kids_v2: [{ data: null, error: { code: "PGRST205", message: "Could not find the table 'public.kids_v2'" } }] });
     usar(admin);

@@ -457,8 +457,11 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const leida = leerCompraKids(body, region);
   if (!leida.ok) {
+    // TEXTO PARA NAZA (mismoNumero, hoy va el aviso del WhatsApp): «El WhatsApp
+    // de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te
+    // llegan a vos, elegí «Lo hago yo».»
     const error =
-      leida.falla === "telefono"
+      leida.falla === "telefono" || leida.falla === "mismoNumero"
         ? trato === "tu"
           ? "El WhatsApp no parece un número válido. Revísalo e intenta de nuevo."
           : "El WhatsApp no parece un número válido. Revisalo e intentá de nuevo."
@@ -479,7 +482,9 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   const admin = crearClienteServidor();
   const generico = () => NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
 
-  const { data: existente, error: errorBusqueda } = await admin.from("familias").select("id").ilike("email", email).maybeSingle();
+  // eq y no ilike: el correo ya va en minúsculas, y en ilike un «_» o un «%»
+  // del correo son comodines (la biografía, arriba, tiene el mismo problema).
+  const { data: existente, error: errorBusqueda } = await admin.from("familias").select("id").eq("email", email).maybeSingle();
   if (errorBusqueda) {
     console.error("compra kids: fallo la busqueda de familia", errorBusqueda);
     return generico();

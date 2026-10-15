@@ -123,9 +123,12 @@ export type CompraKidsLeida = {
   ficha: Omit<FichaKids, "linkPanel">;
 };
 
-export type FallaCompraKids = "malFormado" | "telefono";
+export type FallaCompraKids = "malFormado" | "telefono" | "mismoNumero";
 
 const texto = (v: unknown): string => (typeof v === "string" ? v : "");
+
+/** Largo máximo de nombre, apodo, quién se lo regala y el nombre de quien compra. */
+export const LARGO_MAXIMO = 60;
 
 function telefono(crudo: unknown, region: Region): string | null {
   if (typeof crudo !== "string" || !crudo.trim()) return null;
@@ -151,6 +154,13 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
   // La edad no la mira el motor, pero va en la tapa: la misma regla que la pantalla (edadValida).
   const edad = typeof c.edad === "number" ? edadValida(String(c.edad)) : null;
   if (edad === null) return { ok: false, falla: "malFormado" };
+
+  // Tope de largo (van en la tapa y en los mensajes): lo que la pantalla no
+  // deja escribir tampoco entra por el servidor. quienRegala trae también
+  // «Otra persona» (quienOtra) y nombrePadre es «Tu nombre» (tuNombre).
+  for (const v of [c.nombre, c.apodo, c.quienRegala, body.nombreComprador]) {
+    if (texto(v).trim().length > LARGO_MAXIMO) return { ok: false, falla: "malFormado" };
+  }
 
   let ficha: FichaKids;
   try {
@@ -180,6 +190,9 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
   // y entonces los dos números son el mismo (CONTRATO: lo cuida la web).
   const telefonoPreguntas = ficha.canal === "A" ? telefono(body.whatsappChico, region) : telefonoPadre;
   if (!telefonoPreguntas) return { ok: false, falla: "telefono" };
+  // Canal A con el mismo número que el padre: el motor tomaría al padre por el
+  // chico (lo que manda ese número entra como respuesta). Eso es el canal B.
+  if (ficha.canal === "A" && telefonoPreguntas === telefonoPadre) return { ok: false, falla: "mismoNumero" };
 
   const { linkPanel: _provisorio, ...sinLink } = ficha;
   return {
