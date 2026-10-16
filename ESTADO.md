@@ -1,5 +1,7 @@
 # Estado del proyecto — actualizado 2026-10-09 (arriba lo nuevo; lo de abajo es del 20/09 y puede estar viejo)
 
+> **16/10/2026:** se sacó del worker de voz (`voz/`) el camino de la narración con voz clonada: ya no sondea `narraciones` ni pide `MOTOR`; solo corta las frases de «Su voz» y late. Lo de abajo sobre el audiolibro clonado es historia.
+
 ## 09/10: el libro V3 ya se escribe solo en producción
 
 - **Entrevista V3 por WhatsApp** en producción desde el 07/10. Narradores en V3: Naza (prueba), Dora, Imma

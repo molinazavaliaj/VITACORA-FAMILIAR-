@@ -19,7 +19,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
-| `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
+| `narraciones` | **Sin uso desde el 16/10/2026** (ni fábrica ni worker; ver "Narraciones"). Antes: fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
 
@@ -167,6 +167,10 @@ pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla.
 > **Histórico (23/09):** todo lo de esta sección describe un camino que la fábrica ya no
 > tiene (ver la nota de arriba). Queda para leer las filas viejas de `narraciones` y el
 > worker de la PC de música, que todavía sondea la tabla.
+>
+> **16/10/2026:** el worker de la PC de música tampoco sondea más `narraciones` (se sacó el
+> camino de la narración de `voz/`; solo corta frases de «Su voz» y late). Nadie escribe ni
+> lee la tabla salvo el panel de admin, que muestra las filas viejas; se puede borrar más adelante.
 
 ⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
 Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
