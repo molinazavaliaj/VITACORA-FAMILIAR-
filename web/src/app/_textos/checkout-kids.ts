@@ -440,11 +440,11 @@ export const KIDS_ERRORES_API_CA = {
   correo: "Revisa el correu, sembla que hi falta alguna cosa.",
   // El de la compra de la casa en catalán (CHECKOUT.ca.errorPago).
   generico: "No hem pogut iniciar el pagament. Torna-ho a provar.",
-  // TEXTO PARA NAZA · el WhatsApp no es un número (es-ES: «El WhatsApp no parece un número válido. Revísalo e intenta de nuevo.»)
+  // APROBADO por Naza 16/10 (tanda 11) · el WhatsApp no es un número (es-ES: «El WhatsApp no parece un número válido. Revísalo e intenta de nuevo.»)
   telefono: "El WhatsApp no sembla un número vàlid. Revisa'l i torna-ho a provar.",
-  // TEXTO PARA NAZA · el pedido llegó roto (es-ES: «El pedido llegó mal formado.»)
+  // APROBADO por Naza 16/10 (tanda 11) · el pedido llegó roto (es-ES: «El pedido llegó mal formado.»)
   malFormado: "La comanda no ha arribat bé. Torna-ho a provar.",
-  // TEXTO PARA NAZA · ese WhatsApp ya tiene un libro (es-ES: «Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, entra con tu correo.»)
+  // APROBADO por Naza 16/10 (tanda 11) · ese WhatsApp ya tiene un libro (es-ES: «Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, entra con tu correo.»)
   repetido: "Aquest WhatsApp ja té un llibre en marxa. Si és teu, entra amb el teu correu.",
 };
 /** El de vos (Argentina). */
