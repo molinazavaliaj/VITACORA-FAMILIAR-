@@ -86,9 +86,9 @@ Las frases que disparan la pausa y la reserva están en `fabrica/src/v3/entrevis
 
 ## A vigilar en el piloto (anotado, no bloquea)
 - **Audio en la pregunta equivocada.** Si Railway se reinicia entre dos audios de la misma respuesta, el segundo puede caer en la pregunta siguiente. Igual es mejor que perderlo.
-- **Pregunta repetida tras una plantilla.** Si el narrador contesta con audio una pregunta que salió por plantilla, le vuelve a llegar la pregunta con botones.
+- **Pregunta repetida tras una plantilla.** Si el narrador contesta con audio una pregunta que salió por plantilla, le vuelve a llegar la pregunta con botones. **Arreglado 15/10 (rama `bot-arreglos`):** si la contesta (audio o texto escrito), no se repite; se reenvía con botones solo si lo que mandó no la contesta (un botón de otra plantilla, un saludo).
 - **Tráfico del reloj.** Cada minuto lee todas las filas V3 con el estado completo. Hay que achicarlo antes de prender `V3_PARA_NUEVOS`.
-- **Sin aviso al narrador si falla una foto.** Si falla la subida de FO1 o de una foto suelta, el narrador no recibe nada: el banco no tiene texto para eso.
+- **Sin aviso al narrador si falla una foto.** Si falla la subida de FO1 o de una foto suelta, el narrador no recibe nada: el banco no tiene texto para eso. **Arreglado 15/10 (rama `bot-arreglos`):** se le pide de nuevo (`fotoFallo` en textos-fijos.json, propuesto, falta OK de Naza) y se avisa a los socios.
 - **Aviso del candado.** El mail «no arma el libro viejo» les llega a los socios apenas hay un narrador V3 activo.
 
 ## Qué NO hacer
