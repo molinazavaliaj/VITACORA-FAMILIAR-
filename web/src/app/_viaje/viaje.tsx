@@ -14,8 +14,9 @@ import "../_direccion/direccion.css";
 // página en vos con la paleta vieja (violeta); ahora es la misma pantalla en
 // los tres idiomas, ESTÁTICA, con los textos de _textos/viaje.ts.
 //
-// Dice lo que recibe hoy quien compra (el Viaje V1, aprobados.md, tanda del
-// 11/10): nada del V2, nada de «cada noche os escribimos» (B24), sin reseñas.
+// 16/10: dice lo que hace la Vitácora de Viaje V2, la única que se vende
+// (antes de salir, durante, la vuelta, el libro). Nada del viaje viejo, nada de
+// «cada noche» (B24), sin reseñas.
 // El precio es el de la región del idioma (obtenerPrecioViaje vía catalogo):
 // sin PRECIO_VIAJE_* cargado, la página no vende (sin botones, «Próximamente»).
 //
