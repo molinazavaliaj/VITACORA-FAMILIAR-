@@ -4,8 +4,9 @@
 // lo que les llega por WhatsApp: audio, foto, texto y botones (con el `context.id` del mensaje de verdad que tocaron).
 // Por arriba, lo que sale mal en la vida real: Meta que reintenta un webhook, envíos que fallan, transcripciones que
 // fallan, audios que no se bajan, el padre que cambia cosas en el panel, mensajes antes del arranque, plantillas que
-// se aprueban tarde. Nada contra la base real; no gasta nada. La mitad de los chicos en castellano de España (es-ES:
-// las semillas 2, 3, 6, 7…; un tercio de ellos con el idioma solo en la columna kids_v2.idioma, sin ficha.idioma).
+// se aprueban tarde. Nada contra la base real; no gasta nada. Un tercio de los chicos en castellano de España (es-ES:
+// las semillas 2, 3, 8, 9…) y un tercio en catalán (ca: 4, 5, 10, 11…); uno de cada cinco de ellos con el idioma
+// solo en la columna kids_v2.idioma, sin ficha.idioma.
 //
 //   npm run kids-v2-simular                     # 200 chicos (semillas 1 a 200: canal A y B, todas las conductas)
 //   npm run kids-v2-simular -- 50               # otra cantidad
@@ -20,7 +21,7 @@ import type { DepsKids } from '../src/kids-v2/deps.js';
 import { procesarEntranteKids } from '../src/kids-v2/entrante.js';
 import { esChicoKids } from '../src/kids-v2/filas.js';
 import { PREGUNTA_DEL_TEMA, TEMAS, type Ficha, type Tema } from '../src/kids-v2/nucleo/compra.js';
-import { azar, chico, fichaAlAzar, FRASE_PREOCUPANTE, TIPOS_DE_CONDUCTA, type Azar, type TipoConducta } from '../src/kids-v2/nucleo/conductas.js';
+import { azar, chico, fichaAlAzar, frasePreocupanteDe, TIPOS_DE_CONDUCTA, type Azar, type TipoConducta } from '../src/kids-v2/nucleo/conductas.js';
 import { revisar } from '../src/kids-v2/nucleo/controles.js';
 import type { Accion, Corrida, Linea as LineaMotor } from '../src/kids-v2/nucleo/corrida.js';
 import { aLocal, esDeNoche } from '../src/kids-v2/nucleo/horas.js';
@@ -43,8 +44,8 @@ const despuesDelArranque = (idioma: IdiomaKids) => {
   const arranque = ['kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre'].map((x) => `${x}${sufijo}`);
   return TODAS.filter((p) => PLANTILLAS_KIDS[p].idioma === idioma && !arranque.includes(p));
 };
-/** En qué idioma va cada semilla si el plan no lo dice: 1 es-AR, 2 y 3 es-ES, 4 y 5 es-AR… (no va con el canal, que es par/impar). */
-export const idiomaDeSemilla = (semilla: number): IdiomaKids => (Math.floor(semilla / 2) % 2 === 1 ? 'es-ES' : 'es-AR');
+/** En qué idioma va cada semilla si el plan no lo dice: 1 es-AR, 2 y 3 es-ES, 4 y 5 ca, 6 y 7 es-AR… (no va con el canal, que es par/impar). */
+export const idiomaDeSemilla = (semilla: number): IdiomaKids => (['es-AR', 'es-ES', 'ca'] as const)[Math.floor(semilla / 2) % 3];
 const HORAS = ['09:00', '13:30', '18:00', '19:15', '21:30'];
 /** Cuántos ticks seguidos sin que cambie nada se corren minuto a minuto antes de saltar al próximo evento. */
 const TICKS_QUIETOS = 30;
@@ -124,8 +125,8 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
   const tipo = plan.conducta ?? TIPOS_DE_CONDUCTA[semilla % TIPOS_DE_CONDUCTA.length];
   const idioma = plan.idioma ?? idiomaDeSemilla(semilla);
   const ficha = fichaAlAzar(r, canal, idioma === 'es-AR' ? undefined : idioma);
-  // Un tercio de los de España llega con el idioma solo en la columna (la ficha sin el campo): lo completa el arranque.
-  const fichaCompra: Ficha = idioma !== 'es-AR' && semilla % 3 === 0 ? (({ idioma: _i, ...resto }) => resto)(ficha) : ficha;
+  // Uno de cada cinco de España o de Catalunya llega con el idioma solo en la columna (la ficha sin el campo): lo completa el arranque.
+  const fichaCompra: Ficha = idioma !== 'es-AR' && semilla % 5 === 0 ? (({ idioma: _i, ...resto }) => resto)(ficha) : ficha;
   const conducta = chico(tipo, r, ficha);
   const pFallo = plan.pFalloEnvio ?? 0.02;
   const pReintento = plan.pReintento ?? 0.08;
@@ -275,7 +276,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
           agendar(reloj.getTime() + p.entre(5, 30) * MIN, hacer({ ...a, reenviado: true }));
           return;
         }
-        if (modo === 'ok' && c.transcripcion?.includes(FRASE_PREOCUPANTE)) dichoPreocupante.add(wamid);
+        if (modo === 'ok' && c.transcripcion?.includes(frasePreocupanteDe(idioma))) dichoPreocupante.add(wamid);
         cuerpo = { type: 'audio', audio: { id: mediaAudio(c.seg, modo, c.transcripcion), mime_type: 'audio/ogg; codecs=opus' } };
       } else if (c.tipo === 'foto') {
         cuerpo = { type: 'image', image: { id: `foto-${wamid}`, mime_type: 'image/jpeg', sha256: `sha-${wamid}` } };
@@ -591,7 +592,7 @@ async function main() {
     const suma = (k: keyof ResultadoSim) => rs.reduce((a, r) => a + (r[k] as number), 0);
     const marcas = new Map<string, number>();
     for (const r of rs) for (const m of r.marcas) marcas.set(m, (marcas.get(m) ?? 0) + 1);
-    console.log(`Kids V2 · simulación del bot: ${n} chicos (canal A ${rs.filter((r) => r.canal === 'A').length}, B ${rs.filter((r) => r.canal === 'B').length}; es-AR ${rs.filter((r) => r.idioma === 'es-AR').length}, es-ES ${rs.filter((r) => r.idioma === 'es-ES').length}; ${TIPOS_DE_CONDUCTA.length} conductas)`);
+    console.log(`Kids V2 · simulación del bot: ${n} chicos (canal A ${rs.filter((r) => r.canal === 'A').length}, B ${rs.filter((r) => r.canal === 'B').length}; es-AR ${rs.filter((r) => r.idioma === 'es-AR').length}, es-ES ${rs.filter((r) => r.idioma === 'es-ES').length}, ca ${rs.filter((r) => r.idioma === 'ca').length}; ${TIPOS_DE_CONDUCTA.length} conductas)`);
     console.log(`- Terminaron: ${rs.filter((r) => r.termino).length} de ${n}. Días de punta a punta: mediana ${dias[Math.floor(n / 2)]}, máximo ${dias[n - 1]}.`);
     console.log(`- Mensajes del bot: ${suma('enviados')}; mensajes de los chicos: ${suma('entradas')} (Meta reintentó ${suma('reintentos')}); envíos que fallaron: ${suma('fallosEnvio')}; la base falló ${suma('fallasBase')} (lo retomó el reloj); cambios del panel: ${suma('panel')} (preguntas del padre tarde: ${suma('preguntasTarde')}).`);
     console.log(`- Marcas: ${[...marcas].map(([k, x]) => `${k} ${x}`).join(', ') || 'ninguna'}.`);

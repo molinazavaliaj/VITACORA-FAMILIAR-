@@ -18,7 +18,7 @@ export type WhatsAppKids = {
 export type DepsKids = {
   db: SupabaseClient;
   wa: WhatsAppKids;
-  /** Transcripción en el castellano del chico: rioplatense (es-AR) o de España (es-ES). */
+  /** Transcripción en el idioma del chico: rioplatense (es-AR), de España (es-ES) o catalán (ca, con el vocabulario de Catalunya de la V3). */
   transcribir(audio: Buffer, o: { nombre: string; idioma: IdiomaKids; narradorId: string }): Promise<{ texto: string; duracionSegundos: number }>;
   /** Aviso a los socios (consola + mail). Nunca tira. */
   avisar(clave: string, asunto: string, detalle: string): Promise<void>;

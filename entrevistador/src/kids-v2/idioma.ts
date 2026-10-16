@@ -1,10 +1,11 @@
 // El idioma de un chico de Kids en el bot (CONTRATO, «Vitácora Kids V2 por WhatsApp», `kids_v2.idioma` y
-// `ficha.idioma`). El motor habla en el idioma de su ficha (nucleo/idioma.ts): es-AR (vos) o es-ES (tú). Acá se
+// `ficha.idioma`). El motor habla en el idioma de su ficha (nucleo/idioma.ts): es-AR (vos), es-ES (tú) o ca (catalán,
+// de tu). Acá se
 // decide qué ficha recibe el motor al arrancar y en qué idioma se transcribe.
 //
 // - Después del arranque, la verdad es `estado.motor.ficha` (como el resto de la ficha).
 // - Al arrancar: `ficha.idioma` si la web lo puso; si no, la columna `kids_v2.idioma`. Si están las dos y no
-//   coinciden, o es `ca` (Kids no tiene catalán), tira: mejor no arrancar que mandarle el libro entero en el idioma
+//   coinciden, o es un idioma que Kids no tiene, tira: mejor no arrancar que mandarle el libro entero en el idioma
 //   equivocado (arrancar() avisa a los socios con el error, como con cualquier ficha que el motor rechaza).
 
 import type { Ficha } from './nucleo/compra.js';
@@ -17,7 +18,7 @@ export function fichaParaArrancar(fila: Pick<FilaKids, 'idioma' | 'ficha'>): Fic
   if (enFicha !== undefined && enFicha !== columna) {
     throw new Error(`kids_v2.idioma es ${columna} y ficha.idioma es ${enFicha}: no coinciden`);
   }
-  if (!esIdiomaKids(columna)) throw new Error(`Kids no tiene textos en ${columna} (hay es-AR y es-ES)`);
+  if (!esIdiomaKids(columna)) throw new Error(`Kids no tiene textos en ${columna} (hay es-AR, es-ES y ca)`);
   // es-AR sin el campo: la ficha de siempre, tal cual.
   return columna === 'es-AR' && enFicha === undefined ? fila.ficha : { ...fila.ficha, idioma: columna };
 }

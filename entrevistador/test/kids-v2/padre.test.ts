@@ -32,6 +32,22 @@ describe('kids: el padre de canal A le escribe al bot', () => {
     expect(textoAlPadre('Bruno')).toBe('Este número es para las preguntas de Bruno. Lo que cuenta lo ves en tu panel.');
   });
 
+  it('el padre de un chico en catalán: no hay texto aprobado en catalán, no se le contesta (nunca en castellano) y se avisa', async () => {
+    expect(textoAlPadre('Jana', 'ca')).toBeNull();
+    expect(textoAlPadre('Lucía', 'es-ES')).toBe('Este número es para las preguntas de Lucía. Lo que cuenta lo ves en tu panel.');
+    const b = baseConChico({ ficha: { idioma: 'ca', quienRegala: 'la teva mare', apodo: 'Jana' } });
+    b.tablas.kids_v2[0].idioma = 'ca';
+    const t = depsKidsDePrueba(b);
+    await tickKids(t.deps);
+    t.enviados.length = 0;
+    t.avisos.length = 0;
+    expect(await procesarPadreKids(t.deps, delPadre())).toBe('sin-texto');
+    expect(t.enviados).toEqual([]);
+    expect(fila(b).estado!.respondioAlPadre).toBeFalsy();
+    expect(t.avisos).toHaveLength(1);
+    expect(t.avisos[0].detalle).toContain('no hay texto aprobado');
+  });
+
   it('se le contesta una vez, como texto, y los socios se enteran de lo que escribió', async () => {
     const { b, t } = await arrancado();
     expect(await procesarPadreKids(t.deps, delPadre())).toBe('contestado');

@@ -107,21 +107,23 @@ export const PLANTILLAS_KIDS_BASE = [
 
 /**
  * Cada idioma de Kids: el sufijo de sus plantillas en Meta y su idioma en Meta (el mismo que `PLANTILLA_KIDS_IDIOMA`
- * del motor, nucleo/idioma.ts). es-ES: docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md, Spanish (Spain).
+ * del motor, nucleo/idioma.ts). es-ES: docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md, Spanish (Spain). ca:
+ * docs/kids/v2/idiomas/plantillas-meta-kids-ca.md, Catalan.
  */
-export const IDIOMAS_PLANTILLAS_KIDS: Readonly<Record<'es-AR' | 'es-ES', { sufijo: string; idiomaMeta: string }>> = {
+export const IDIOMAS_PLANTILLAS_KIDS: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { sufijo: string; idiomaMeta: string }>> = {
   'es-AR': { sufijo: '', idiomaMeta: 'es' },
   'es-ES': { sufijo: '_es_es', idiomaMeta: 'es_ES' },
+  ca: { sufijo: '_ca', idiomaMeta: 'ca' },
 };
 
 /**
- * Las plantillas de Meta de Vitácora Kids V2, por idioma: las 13 rioplatenses ('es') y las mismas 13 con `_es_es`
- * ('es_ES'). Los nombres son los que trae el motor en cada mensaje (`plantilla.nombre`: el motor ya le pone el sufijo
+ * Las plantillas de Meta de Vitácora Kids V2, por idioma (39): las 13 rioplatenses ('es'), las mismas 13 con `_es_es`
+ * ('es_ES') y las mismas 13 con `_ca` ('ca'). Los nombres son los que trae el motor en cada mensaje (`plantilla.nombre`: el motor ya le pone el sufijo
  * del idioma de la ficha); acá se dice cuáles existen y en qué idioma de Meta van. Las carga Joaquín en Meta y se
- * marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS (los nombres `_es_es` van con su sufijo); hasta entonces no salen.
+ * marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS (los nombres `_es_es` y `_ca` van con su sufijo); hasta entonces no salen.
  */
-export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3 & { idioma: 'es-AR' | 'es-ES' }>> = Object.fromEntries(
-  (['es-AR', 'es-ES'] as const).flatMap((idioma) => {
+export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3 & { idioma: 'es-AR' | 'es-ES' | 'ca' }>> = Object.fromEntries(
+  (['es-AR', 'es-ES', 'ca'] as const).flatMap((idioma) => {
     const { sufijo, idiomaMeta } = IDIOMAS_PLANTILLAS_KIDS[idioma];
     return PLANTILLAS_KIDS_BASE.map((base) => [`${base}${sufijo}`, { nombre: `${base}${sufijo}`, idiomaMeta, idioma }]);
   }),

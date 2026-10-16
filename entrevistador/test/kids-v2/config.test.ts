@@ -4,15 +4,19 @@ import { fileURLToPath } from 'node:url';
 import { PLANTILLAS_KIDS, plantillaKidsLista } from '../../src/config.js';
 import { BANCO, bancoDe } from '../../src/kids-v2/nucleo/banco.js';
 
-// Las 13 plantillas de Meta de Kids (y sus 13 de España, `_es_es`) y WA_PLANTILLAS_KIDS_LISTAS.
+// Las 13 plantillas de Meta de Kids (y sus 13 de España, `_es_es`, y sus 13 en catalán, `_ca`) y WA_PLANTILLAS_KIDS_LISTAS.
 const MD = fileURLToPath(new URL('../../../docs/kids/v2/plantillas-meta-kids.md', import.meta.url));
 const MD_ES = fileURLToPath(new URL('../../../docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md', import.meta.url));
+const MD_CA = fileURLToPath(new URL('../../../docs/kids/v2/idiomas/plantillas-meta-kids-ca.md', import.meta.url));
 const rioplatenses = () => Object.keys(PLANTILLAS_KIDS).filter((n) => PLANTILLAS_KIDS[n].idioma === 'es-AR');
 const deEspana = () => Object.keys(PLANTILLAS_KIDS).filter((n) => PLANTILLAS_KIDS[n].idioma === 'es-ES');
+const enCatalan = () => Object.keys(PLANTILLAS_KIDS).filter((n) => PLANTILLAS_KIDS[n].idioma === 'ca');
 
 describe('las plantillas de Kids', () => {
-  it('son 13 en español (es) y las mismas 13 con _es_es en español de España (es_ES)', () => {
-    expect(Object.keys(PLANTILLAS_KIDS)).toHaveLength(26);
+  it('son 13 en español (es), las mismas 13 con _es_es en español de España (es_ES) y con _ca en catalán (ca): 39', () => {
+    expect(Object.keys(PLANTILLAS_KIDS)).toHaveLength(39);
+    expect(enCatalan()).toEqual(rioplatenses().map((n) => `${n}_ca`));
+    for (const n of enCatalan()) expect(PLANTILLAS_KIDS[n].idiomaMeta).toBe('ca');
     expect(rioplatenses()).toHaveLength(13);
     for (const n of rioplatenses()) expect(PLANTILLAS_KIDS[n].idiomaMeta).toBe('es');
     expect(deEspana()).toEqual(rioplatenses().map((n) => `${n}_es_es`));
@@ -22,6 +26,16 @@ describe('las plantillas de Kids', () => {
   it('cada plantilla que pide el motor en es-ES existe y es de España', () => {
     const delBanco = bancoDe('es-ES').mensajes.flatMap((m) => (m.plantilla ? [m.plantilla] : []));
     for (const nombre of [...delBanco, 'kids_final_es_es', 'kids_final_plural_es_es']) expect(PLANTILLAS_KIDS[nombre]?.idioma, nombre).toBe('es-ES');
+  });
+
+  it('cada plantilla que pide el motor en catalán existe y es catalana', () => {
+    const delBanco = bancoDe('ca').mensajes.flatMap((m) => (m.plantilla ? [m.plantilla] : []));
+    for (const nombre of [...delBanco, 'kids_final_ca', 'kids_final_plural_ca']) expect(PLANTILLAS_KIDS[nombre]?.idioma, nombre).toBe('ca');
+  });
+
+  it.skipIf(!existsSync(MD_CA))('las catalanas son las de plantillas-meta-kids-ca.md', () => {
+    const delMd = [...readFileSync(MD_CA, 'utf8').matchAll(/`(kids_[a-z0-9_]+_ca)`/g)].map((m) => m[1]);
+    expect([...new Set(delMd)].sort()).toEqual(enCatalan().sort());
   });
 
   it.skipIf(!existsSync(MD_ES))('las de España son las de plantillas-meta-kids-es-ES.md', () => {
@@ -52,5 +66,7 @@ describe('las plantillas de Kids', () => {
     expect(plantillaKidsLista('kids_bienvenida_es_es', { WA_PLANTILLAS_KIDS_LISTAS: 'kids_bienvenida' })).toBe(false);
     expect(plantillaKidsLista('kids_bienvenida_es_es', { WA_PLANTILLAS_KIDS_LISTAS: 'kids_bienvenida,kids_bienvenida_es_es' })).toBe(true);
     expect(plantillaKidsLista('kids_final_plural_es_es', { WA_PLANTILLAS_KIDS_LISTAS: '*' })).toBe(true);
+    expect(plantillaKidsLista('kids_bienvenida_ca', { WA_PLANTILLAS_KIDS_LISTAS: 'kids_bienvenida,kids_bienvenida_es_es' })).toBe(false);
+    expect(plantillaKidsLista('kids_bienvenida_ca', { WA_PLANTILLAS_KIDS_LISTAS: 'kids_bienvenida_ca' })).toBe(true);
   });
 });

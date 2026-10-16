@@ -4,7 +4,7 @@
 // se arma acá: todo sale del motor (banco aprobado) o de las plantillas de Meta (docs/kids/v2/plantillas-meta-kids.md).
 //
 // A dónde: `chico` → narradores.telefono_whatsapp (el número de las preguntas); `padre` → kids_v2.telefono_padre.
-// Cómo: con `plantilla` → plantilla de Meta, en el idioma de Meta de la suya (PLANTILLAS_KIDS: 'es' o, las `_es_es`,
+// Cómo: con `plantilla` → plantilla de Meta, en el idioma de Meta de la suya (PLANTILLAS_KIDS: 'es', las `_ca` 'ca' o, las `_es_es`,
 // 'es_ES'; si no está en WA_PLANTILLAS_KIDS_LISTAS, o no es del idioma del chico, queda y se avisa); sin
 // plantilla y con botones → botones de respuesta rápida; si no, texto. El texto libre solo sale con la ventana de
 // 24 h de ESE número abierta: el del número de las preguntas por `motor.ultimaEntrada`; para el padre en canal A

@@ -13,7 +13,7 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 | [`lectura-corrida.md`](lectura-corrida.md) | Una chica inventada, mensaje por mensaje: 376 globos del 6/10 al 5/11 (se genera, no editar a mano). |
 | [`simulaciones/resumen.md`](simulaciones/resumen.md) | 800 chicos inventados (9 conductas) contra 23 controles: 800 terminan, cero violaciones, mediana 30 días, máximo 152 (se genera). También se corrieron las semillas 1 a 2000: cero violaciones. |
 | [`banco-descartadas.md`](banco-descartadas.md) | Lo que salió y por qué. |
-| [`idiomas/`](idiomas/) | Kids en castellano de España (tú): `banco-es-ES.md` (los 271 textos por ID) y `plantillas-meta-kids-es-ES.md` (las 13 con `_es_es`). Sin aprobar todavía. El motor ya los usa (16/10, ver «Idiomas» abajo). |
+| [`idiomas/`](idiomas/) | Kids en castellano de España (tú) y en catalán (de tu): `banco-es-ES.md` y `banco-ca.md` (los 271 textos por ID), `plantillas-meta-kids-es-ES.md` (las 13 con `_es_es`) y `plantillas-meta-kids-ca.md` (las 13 con `_ca`). Sin aprobar todavía (el catalán, además, sin revisar). El motor ya los usa (16/10, ver «Idiomas» abajo). |
 
 ## Cómo se llegó
 `paso-1-*` (método) → `paso-2-*` (el banco, capítulo por capítulo, con Fable) → `paso-3-*` (mensajes fijos) → `paso-4-*` (revisión de Fable leída como el chico y huecos decididos) → el motor (plan en `docs/superpowers/plans/2026-10-05-kids-v2-motor.md`, con las decisiones que el diseño no definía).
@@ -25,28 +25,39 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 - `compra.ts` (la ficha y el guion efectivo: temas sacados, fotos que se mudan, preguntas del padre), `extras.ts`.
 - `motor.ts`: `paso(estado, evento, ahora) → { estado, salidas }`, partido en `motor/` (`flujo`, `rafaga`, `botones`, `reloj`, `sobrio`, `mensajes`, `estado`, `tipos`). `preocupante.ts`: la lista de palabras (borrador para Naza).
 - `corrida.ts`, `lectura.ts`, `conductas.ts`, `controles.ts`, `simulacion.ts`: la lectura corrida y la simulación.
-- `idioma.ts` y `banco-idioma-md.ts` → `banco-es-ES.json` (generado): los idiomas (abajo).
+- `idioma.ts` y `banco-idioma-md.ts` → `banco-es-ES.json` y `banco-ca.json` (generados): los idiomas (abajo).
 
 Tests en `fabrica/test/kids-v2-*.test.ts`: 283 en 15 archivos, todos en verde (incluye una simulación de 240 chicos).
 
 ```bash
 cd fabrica
-npx tsx scripts/kids-v2-json.ts       # regenera src/kids-v2/banco.json (banco.md y mensajes.md) y banco-es-ES.json (idiomas/banco-es-ES.md)
+npx tsx scripts/kids-v2-json.ts       # regenera src/kids-v2/banco.json (banco.md y mensajes.md), banco-es-ES.json y banco-ca.json (idiomas/banco-<idioma>.md)
 npx vitest run test/kids-v2           # tests
 npx tsc --noEmit -p .                 # tipos
 npx tsx scripts/kids-v2-lectura.ts    # regenera docs/kids/v2/lectura-corrida.md
 npx tsx scripts/kids-v2-simular.ts    # 800 chicos + docs/kids/v2/simulaciones/resumen.md
 npx tsx scripts/kids-v2-simular.ts 20 # una tanda chica (no escribe nada)
 npx tsx scripts/kids-v2-simular.ts --semilla 7   # un chico, mensaje por mensaje
-npx tsx scripts/kids-v2-simular.ts 800 --idioma es-ES   # todos en castellano de España (es-AR, es-ES o mitad; por defecto mitad)
+npx tsx scripts/kids-v2-simular.ts 800 --idioma ca      # todos en catalán (es-AR, es-ES, ca, mitad o tercios; por defecto tercios)
 ```
 
 ## Idiomas (16/10)
-- `Ficha.idioma`: `'es-AR'` (vos, el de siempre) o `'es-ES'` (tú). Sin el campo, es-AR: las fichas de antes no cambian. `validarFicha` rechaza otro.
+- `Ficha.idioma`: `'es-AR'` (vos, el de siempre), `'es-ES'` (tú) o `'ca'` (catalán, de tu). Sin el campo, es-AR: las fichas de antes no cambian. `validarFicha` rechaza otro.
 - **La estructura sale siempre de `banco.md` y `mensajes.md`**; `idiomas/banco-es-ES.md` solo trae textos por ID (`ID | texto`, notación en su cabecera). `bancoDe('es-ES')` es el mismo banco con esos textos; si falta un ID, tira. El motor arma todo lo que sale (preguntas, ramas, otras puertas, fotos, extras, mensajes, botones, títulos de capítulo) desde el banco del idioma de la ficha, y las plantillas con `_es_es` (`kids_final_es_es`…).
 - **Botones**: las reglas del motor siguen comparando los botones de `banco.md`. Lo que toca un chico de España se pasa a ese botón por ID al entrar (`botonCanonico`: «Vale, otra» es `B-SEGUIR-B1` = «Dale, otra»; «No me ha pasado» es `K20-B2` = «No me pasó»). Si dos botones de un idioma valieran por el mismo de acá (o al revés), el banco no se arma.
 - Tests en `test/kids-v2-idiomas.test.ts`: el json al día, los 271 IDs sin que falte ni sobre ninguno, las mismas marcas, botones de hasta 20 letras, sin dos puntos, y chicos enteros en es-ES (canal A y B, y 60 de la simulación) sin un solo texto rioplatense. La simulación corre la mitad de los chicos en es-ES.
-- En el bot: el idioma de `ficha.idioma` o `kids_v2.idioma` (CONTRATO); la transcripción en es-ES para España. El texto al padre de canal A (`TEXTO_AL_PADRE`, `padre.ts`) no tiene versión de España: va el mismo (no tiene voseo).
+- En el bot: el idioma de `ficha.idioma` o `kids_v2.idioma` (CONTRATO); la transcripción en es-ES para España y en `ca` para Catalunya. El texto al padre de canal A (`TEXTO_AL_PADRE`, `padre.ts`) no tiene versión de España: va el mismo (no tiene voseo).
+
+### Catalán (16/10)
+- `banco-ca.json` sale de `idiomas/banco-ca.md` con el mismo script; si la revisión cambia un texto, se cambia el md y se corre `npx tsx scripts/kids-v2-json.ts` (el test `kids-v2-catala` avisa si quedó viejo). Las plantillas son las mismas 13 con `_ca`, idioma de Meta `ca` (39 en `PLANTILLAS_KIDS` del entrevistador).
+- **Género por palabra entera.** La marca de género es `{{de chico/de chica}}`: lo de antes de la barra para un chico, lo de después para una chica (`conGenero`, `texto.ts`). En castellano es la terminación (`pequeñ{{o/a}}`), en catalán la palabra entera (`{{petit/petita}}`, `{{sol/sola}}`); K40 lleva dos (`{{trist/trista}} o {{enfadat/enfadada}}`). Las marcas sin barra (`{{1}}`, `{{nombre}}`) no se tocan.
+- **Quien regala**: «la teva mare», «el teu pare», «els teus pares», «les teves àvies». `esPlural` reconoce «els teus / les teves» (y «tus»), y `normalizarQuienRegala` baja la mayúscula del posesivo catalán.
+- **K18** se recorta con su propia frase catalana (`BORRADOS_POR_TEMA`, solo borrando palabras: «com la parella de la teva mare o del teu pare, o algú»).
+- **Botones** por ID, como España («No en tinc» es `K1-FOTO-B1` = «No tengo»; «Tinc germans» es `K12-B1`).
+- **«Algo preocupante» y «dice que no»**: BORRADOR en catalán (`FRASES_PREOCUPANTES_CA`, `FRASES_EXCLUIDAS_CA` en `preocupante.ts`; `PALABRAS_NO_CA` en `reglas.ts`), para Naza y el abogado igual que el castellano. Un chico en catalán se busca en las dos listas, la catalana y la castellana (quien habla catalán mezcla). Quedaron afuera a propósito «em fa mal», «em toca» y «em tanca» a secas, y «cap» como «no» («cap al vespre»). Tests de que salta y de falsos avisos («em moro de riure», «em tallo els cabells»…) en `test/kids-v2-catala.test.ts`.
+- **Lo que no tiene texto aprobado en catalán no sale en castellano**: el libro (los dos mails, «Su voz» y los números del PDF, la tapa y el álbum, la línea de la pregunta del padre) tira `SinTextosKids` y la fábrica no arranca el libro de un chico en catalán (avisa a los socios una vez); el texto al padre de canal A no se manda (se avisa). Para prenderlo: aprobar esos textos y sumarlos a sus tablas (`TEXTOS_MAIL_KIDS_DE`, `TEXTOS_KIDS_DE`, `TAPA_KIDS_DE`, `LINEA_PADRE_DE`, `TEXTOS_AL_PADRE`).
+- **El escritor del libro** no tiene instrucción de idioma: escribe desde lo que contó el chico, y sus prompts están en castellano. Antes de prender el libro en catalán hay que probar que escriba en catalán (o decírselo en el prompt): es para Naza.
+- Simulación: por defecto un tercio en cada idioma (`tercios`).
 
 ## Cómo se conecta (para Joaquín)
 - Por chico se guarda el `Estado` (JSON). Se arranca con `nuevoEstado(ficha)` y el evento `inicio` cuando paga.

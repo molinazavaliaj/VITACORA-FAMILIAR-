@@ -33,10 +33,11 @@ describe('kids: el idioma de la ficha al arrancar', () => {
     expect(idiomaDeFila(fila(deEspana({ enFicha: false })))).toBe('es-ES');
   });
 
-  it('si no coinciden, o es catalán, frena (y no arranca: aviso a los socios)', async () => {
+  it('si no coinciden, o es un idioma que Kids no tiene, frena (y no arranca: aviso a los socios)', async () => {
     expect(() => fichaParaArrancar(fila(deEspana({ columna: 'es-AR' })))).toThrow(/no coinciden/);
-    const b = deEspana({ enFicha: false, columna: 'ca' });
-    expect(() => fichaParaArrancar(fila(b))).toThrow(/ca/);
+    expect(() => fichaParaArrancar(fila(deEspana({ columna: 'ca' })))).toThrow(/no coinciden/);
+    const b = deEspana({ enFicha: false, columna: 'pt' });
+    expect(() => fichaParaArrancar(fila(b))).toThrow(/pt/);
     const t = depsKidsDePrueba(b);
     await tickKids(t.deps);
     expect(fila(b).estado).toBeNull();
@@ -74,5 +75,36 @@ describe('kids: un chico de España por el bot', () => {
     expect(elegirEnvio({ canal: 'A' }, e, s, new Date('2026-11-02T15:00:00Z'))).toEqual({ tipo: 'otro-idioma', nombre: 'kids_final', idioma: 'es-ES' });
     const bien = { ...s, plantilla: { ...s.plantilla, nombre: 'kids_final_es_es' } };
     expect(elegirEnvio({ canal: 'A' }, e, bien, new Date('2026-11-02T15:00:00Z'))).toMatchObject({ tipo: 'plantilla', nombre: 'kids_final_es_es', idiomaMeta: 'es_ES' });
+  });
+});
+
+// Kids en catalán en el bot (16/10, textos de banco-ca.md sin revisar todavía): plantillas _ca (Catalan), botones en
+// catalán, el género por palabra entera y la transcripción en ca.
+const deCatalunya = (o: { enFicha?: boolean } = {}) => {
+  const b = baseConChico({ ficha: { ...(o.enFicha === false ? {} : { idioma: 'ca' as const }), quienRegala: 'els teus pares', apodo: 'Jana', genero: 'chica' } });
+  b.tablas.kids_v2[0].idioma = 'ca';
+  return b;
+};
+
+describe('kids: un chico de Catalunya por el bot', () => {
+  it("arranca con las plantillas _ca (ca), [D'acord, som-hi] le manda K1 en catalán y el audio se transcribe en ca", async () => {
+    for (const enFicha of [true, false]) {
+      const b = deCatalunya({ enFicha });
+      expect(fichaParaArrancar(fila(b)).idioma).toBe('ca');
+      const t = depsKidsDePrueba(b);
+      const idiomas: string[] = [];
+      const transcribir = t.deps.transcribir;
+      t.deps.transcribir = async (a, o) => { idiomas.push(o.idioma); return transcribir(a, o); };
+      await tickKids(t.deps);
+      expect(t.enviados.map((e) => [e.plantilla, e.idiomaMeta])).toEqual([['kids_bienvenida_plural_ca', 'ca'], ['kids_aviso_padre_ca', 'ca']]);
+      expect(fila(b).estado!.motor.ficha.idioma).toBe('ca');
+      await procesarEntranteKids(t.deps, CHICO, boton("D'acord, som-hi", 'wamid.salida.1'));
+      const k1 = t.enviados.at(-1)!;
+      expect(k1.texto).toBe(preguntaEn('K1', 'ca').texto);
+      expect(k1.botones).toEqual(['Passo']);
+      expect(t.enviados.some((e) => e.texto === fijoEn('ENTRADA-1', 'ca').texto.replace('{{petit/petita}}', 'petita'))).toBe(true);
+      await procesarEntranteKids(t.deps, CHICO, audio("recordo la platja de petita amb els avis i un gos que es deia Rufus"));
+      expect(idiomas).toEqual(['ca']);
+    }
   });
 });

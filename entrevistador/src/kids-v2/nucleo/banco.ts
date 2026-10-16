@@ -2,8 +2,8 @@
 // desde docs/kids/v2/banco.md y mensajes.md (la fuente); un test chequea que
 // esté al día.
 //
-// Otros idiomas: `banco-es-ES.json` sale de docs/kids/v2/idiomas/banco-es-ES.md
-// y trae solo los textos, por ID. `bancoDe(idioma)` es el mismo banco (mismas
+// Otros idiomas: `banco-es-ES.json` y `banco-ca.json` salen de
+// docs/kids/v2/idiomas/banco-<idioma>.md y traen solo los textos, por ID. `bancoDe(idioma)` es el mismo banco (mismas
 // preguntas, ramas, fotos, marcas y orden) con los textos de ese idioma.
 //
 // El motor razona siempre sobre BANCO (es-AR): sus reglas comparan los botones
@@ -13,6 +13,7 @@
 
 import bancoJson from './banco.json' with { type: 'json' };
 import bancoEsEsJson from './banco-es-ES.json' with { type: 'json' };
+import bancoCaJson from './banco-ca.json' with { type: 'json' };
 import type { IdMensaje } from './banco-md.js';
 import { IDIOMA_POR_DEFECTO, nombrePlantilla, type IdiomaKids } from './idioma.js';
 import type { BancoKids, Extra, MensajeFijo, Pregunta } from './tipos.js';
@@ -91,6 +92,7 @@ export function entradasDelBanco(b: BancoKids = BANCO): Entrada[] {
 
 const TEXTOS_IDIOMA: Readonly<Record<Exclude<IdiomaKids, 'es-AR'>, Record<string, string>>> = {
   'es-ES': bancoEsEsJson as Record<string, string>,
+  ca: bancoCaJson as Record<string, string>,
 };
 
 /** El banco de banco.md con los textos de otro idioma. Si falta un ID, tira (nunca un texto en el idioma equivocado). */

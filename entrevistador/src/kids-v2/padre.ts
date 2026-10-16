@@ -19,6 +19,7 @@ import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import type { DepsKids } from './deps.js';
 import { conReintento, filasDelPadre } from './filas.js';
 import { idiomaDeFila } from './idioma.js';
+import type { IdiomaKids } from './nucleo/idioma.js';
 import type { FilaKids } from './tipos.js';
 
 /**
@@ -26,14 +27,20 @@ import type { FilaKids } from './tipos.js';
  * `{apodo}` = cómo le dicen al chico (`ficha.apodo`). No está en el banco del motor porque el banco sale de los md
  * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A. Tampoco tiene versión en
  * banco-es-ES.md: va el mismo a España (no tiene voseo: «ves» es igual con tú), hasta que Naza apruebe otro.
+ * En catalán no hay texto aprobado (no está en banco-ca.md: es un texto para Naza): al padre de un chico en catalán
+ * no se le contesta nada, nunca en castellano, y se avisa a los socios.
  */
 export const TEXTO_AL_PADRE = 'Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en tu panel.';
 
-export function textoAlPadre(apodo: string): string {
-  return TEXTO_AL_PADRE.replace('{apodo}', apodo);
+/** Por idioma del chico. Falta ca (Naza). */
+export const TEXTOS_AL_PADRE: Readonly<Partial<Record<IdiomaKids, string>>> = { 'es-AR': TEXTO_AL_PADRE, 'es-ES': TEXTO_AL_PADRE };
+
+/** El texto en el idioma del chico, o null si ese idioma todavía no tiene el suyo aprobado. */
+export function textoAlPadre(apodo: string, idioma: IdiomaKids = 'es-AR'): string | null {
+  return TEXTOS_AL_PADRE[idioma]?.replace('{apodo}', apodo) ?? null;
 }
 
-export type ResultadoPadre = 'no-es-padre' | 'contestado' | 'ya-contestado' | 'varios' | 'sin-arrancar' | 'fallo-envio';
+export type ResultadoPadre = 'no-es-padre' | 'contestado' | 'ya-contestado' | 'varios' | 'sin-arrancar' | 'sin-texto' | 'fallo-envio';
 
 /** ¿Es el padre de un chico de canal A? Si lo es, se ocupa de todo y devuelve true; si no (o la base falla), false: sigue como hoy. */
 export async function atenderPadreKids(deps: DepsKids, m: MensajeEntrante): Promise<boolean> {
@@ -64,6 +71,11 @@ export async function procesarPadreKids(deps: DepsKids, m: MensajeEntrante): Pro
     await aviso('Su Kids todavía no arrancó (no hay dónde recordar que se le contestó): no se le contestó nada.');
     return 'sin-arrancar';
   }
+  const texto = textoAlPadre(fila.ficha.apodo, idiomaDeFila(fila));
+  if (texto === null) {
+    await aviso(`El chico está en ${idiomaDeFila(fila)} y no hay texto aprobado para contestarle al padre en ese idioma (falta el de Naza): no se le contestó nada.`);
+    return 'sin-texto';
+  }
   if (fila.estado.respondioAlPadre) {
     await aviso('Ya se le había contestado una vez: esta vez no se le contestó.');
     return 'ya-contestado';
@@ -74,7 +86,6 @@ export async function procesarPadreKids(deps: DepsKids, m: MensajeEntrante): Pro
     await aviso('Ya se le había contestado una vez: esta vez no se le contestó.');
     return 'ya-contestado';
   }
-  const texto = textoAlPadre(fila.ficha.apodo);
   let waId: string;
   try {
     waId = await deps.wa.texto(fila.telefono_padre, texto);
