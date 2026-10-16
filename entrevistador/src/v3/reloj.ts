@@ -5,11 +5,17 @@
 // la pendiente) y M8 a los 2 días sin respuesta. Al abrir la tanda se suman
 // las preguntas que la familia cargó después del alta (sumarFamilia): una
 // lectura de `preguntas` por narrador y por día, no una por tick.
+//
+// Consultas por vuelta (roadmap 13/10): narradores activos (1), sus filas V3 (1) y las respuestas sin sumar de
+// todos juntos (1 cada TROZO_RECONCILIAR narradores). Con nada que hacer, eso es todo: 3 consultas por minuto con
+// hasta 100 narradores, en vez de 2 + N. Lo demás (leer y escribir la fila, drenar) es solo de quien tiene trabajo.
 
 import { fechaLocal } from '../flujo/tiempo.js';
 import { lanzarCazador } from './cazador.js';
 import type { DepsV3 } from './deps.js';
-import { reconciliarV3 } from './entrante.js';
+import { conSinClave, reconciliarV3 } from './entrante.js';
+
+export { LIMITE_SIN_CLAVE, TROZO_RECONCILIAR } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
 import { avisarFamiliaTarde, leerFamilia } from './filas.js';
@@ -59,12 +65,16 @@ export function tocaM8(f: FilaV3, ahora: Date): boolean {
 
 export type Trabajo = 'nada' | 'reconciliar' | 'drenar' | 'cierre' | 'tanda' | 'm8';
 
-export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3): Promise<Trabajo> {
+/**
+ * `buscarSinClave` en false = el tick ya sabe (por la búsqueda junta, conSinClave) que este narrador no tiene
+ * respuestas sin sumar: se ahorra la consulta. Sin el dato (o en true) busca como siempre.
+ */
+export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3, buscarSinClave = true): Promise<Trabajo> {
   if (n.estado !== 'activo') return 'nada';
   const ahora = deps.ahora();
   if (tomaVigente(fila, ahora)) return 'nada';
   // Lo que llegó y no se sumó (el proceso se cayó después del 200 a Meta, que no reintenta).
-  if ((await reconciliarV3(deps, fila, n)) > 0) {
+  if (buscarSinClave && (await reconciliarV3(deps, fila, n)) > 0) {
     await drenar(deps, n.id);
     return 'reconciliar';
   }
@@ -135,14 +145,20 @@ export async function tickV3(deps: DepsV3): Promise<void> {
   if (error) throw new Error(`reloj V3: no pude leer los narradores: ${error.message}`);
   const porId = new Map(((data as NarradorV3[] | null) ?? []).map((n) => [n.id, n]));
   const filas = await listarFilas(deps.db, [...porId.keys()]);
-  if (filas.length === 0) return;
-  for (const fila of filas) {
-    const n = porId.get(fila.narrador_id);
-    if (!n) continue;
-    // Los narradores de la simulación (`npm run v3-simular -- --real`) los maneja el script, no el reloj de producción.
-    if (n.contexto?.simulacion === true) continue;
+  // Los narradores de la simulación (`npm run v3-simular -- --real`) los maneja el script, no el reloj de producción.
+  const deProduccion = filas.filter((f) => porId.has(f.narrador_id) && porId.get(f.narrador_id)!.contexto?.simulacion !== true);
+  if (deProduccion.length === 0) return;
+  // Las respuestas sin sumar, de todos juntos (antes: una consulta por narrador por minuto, casi siempre vacía).
+  let sinClave: Set<string> | null = null;
+  try {
+    sinClave = await conSinClave(deps, deProduccion);
+  } catch (err) {
+    console.error('reloj V3: la búsqueda junta de respuestas sin clave tiró; cada narrador busca la suya:', err);
+  }
+  for (const fila of deProduccion) {
+    const n = porId.get(fila.narrador_id)!;
     try {
-      await trabajarNarrador(deps, fila, n);
+      await trabajarNarrador(deps, fila, n, sinClave === null || sinClave.has(n.id));
     } catch (err) {
       // Un narrador que falla no frena a los demás (como `aislado` del scheduler viejo).
       console.error(`reloj V3: falló el narrador ${fila.narrador_id}:`, err);
