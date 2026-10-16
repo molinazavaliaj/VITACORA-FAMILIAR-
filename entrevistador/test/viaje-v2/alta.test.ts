@@ -111,6 +111,16 @@ describe('asegurarAltaViajeV2', () => {
     expect(r.avisos[0].detalle).toMatch(/no le escribe nada/);
   });
 
+  it('sin la migración de viajes_v2: faltan-datos, sin tirar; con otro error de base, tira (procesar lo ataja)', async () => {
+    const n = narrador({ viaje: V2 });
+    const r = preparar(n);
+    r.base.ausentes.add('viajes_v2');
+    expect(await asegurarAltaViajeV2(r.deps, n)).toBe('faltan-datos');
+    r.base.ausentes.delete('viajes_v2');
+    r.base.fallarProxima.set('viajes_v2', { code: '57014', message: 'canceling statement due to statement timeout' });
+    await expect(asegurarAltaViajeV2(r.deps, n)).rejects.toThrow(/No pude crear el Viaje V2/);
+  });
+
   it('idempotente: dos ticks a la vez crean una sola fila, y la segunda vez no se pisa nada', async () => {
     const n = narrador({ viaje: V2 });
     const r = preparar(n);

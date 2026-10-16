@@ -12,7 +12,7 @@
 // Dos ticks a la vez no crean dos filas: la clave primaria de `viajes_v2` es el narrador (crearFila).
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { crearFila } from './filas.js';
+import { crearFila, esTablaAusente } from './filas.js';
 import { NOCHE_DESDE, NOCHE_HASTA, validarCompra } from './nucleo/calendario.js';
 import { esIdioma, idiomaDe } from './nucleo/idioma.js';
 import { HORA_NOCHE_POR_DEFECTO, type Compra, type Formato, type FotosAlbum } from './nucleo/tipos.js';
@@ -170,7 +170,17 @@ export async function asegurarAltaViajeV2(deps: DepsAlta, n: NarradorParaAlta): 
         + 'en el próximo tick (15 minutos) el bot le da el alta solo. También sirve npm run viaje-v2-alta con un compra.json.');
     return 'faltan-datos';
   }
-  const r = await crearAlta(deps.db, n.id, armada.compra);
+  let r: 'creada' | 'ya-existia';
+  try {
+    r = await crearAlta(deps.db, n.id, armada.compra);
+  } catch (err) {
+    // Sin la migración de viajes_v2 no hay dónde darle el alta: como si faltaran datos (el narrador queda quieto).
+    if (esTablaAusente(err as { code?: string; message?: string })) {
+      console.error(`viaje V2: no existe la tabla viajes_v2; ${n.id} queda sin alta`);
+      return 'faltan-datos';
+    }
+    throw err;
+  }
   if (r === 'creada') {
     console.log(`viaje V2: alta automática de ${n.id} (formulario ${armada.forma})`);
     if (armada.supuestos.length > 0) {

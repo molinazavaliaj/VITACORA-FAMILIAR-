@@ -157,9 +157,16 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   if (narrador.estado !== 'pendiente_pago') {
     let viajeV2 = await esViajeroV2(db, narrador.id);
     if (!viajeV2 && esModoViaje(narrador.contexto)) {
-      const alta = await asegurarAltaViajeV2({
-        db, avisarUnaVez: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle, { unaVez: true }); },
-      }, narrador);
+      let alta: Awaited<ReturnType<typeof asegurarAltaViajeV2>> | 'error';
+      try {
+        alta = await asegurarAltaViajeV2({
+          db, avisarUnaVez: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle, { unaVez: true }); },
+        }, narrador);
+      } catch (err) {
+        // La base no respondió: no se le contesta ahora; el tick reintenta el alta.
+        console.error(`viaje: no pude darle el alta V2 a ${narrador.id}:`, err instanceof Error ? err.message : err);
+        alta = 'error';
+      }
       viajeV2 = alta === 'creada' || alta === 'ya-existia';
       if (!viajeV2) {
         console.warn(`viaje: ${narrador.id} ('${narrador.estado}') no tiene Viaje V2: no se le contesta`);

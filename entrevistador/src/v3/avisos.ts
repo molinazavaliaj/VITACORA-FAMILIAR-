@@ -13,7 +13,10 @@ const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafam
 const YA_AVISADO = new Set<string>();
 
 /** 'nueva': esta es la primera vez hoy; 'ya': otro proceso (o antes de un reinicio) ya avisó; 'no-se': no se pudo saber. */
-export type Marca = (dia: string, clave: string) => Promise<'nueva' | 'ya' | 'no-se'>;
+export type Marca = ((dia: string, clave: string) => Promise<'nueva' | 'ya' | 'no-se'>) & {
+  /** Borra la marca: un aviso `unaVez` que no salió por mail se vuelve a intentar. Nunca tira. */
+  quitar?: (dia: string, clave: string) => Promise<void>;
+};
 let marcaPersistente: Marca | null = null;
 
 /** La configura el servidor al arrancar. Sin ella (tests, scripts), solo memoria. */
@@ -27,9 +30,10 @@ export function usarMarcaPersistente(m: Marca | null): void {
  * pisar es atómico: si ya existe, Storage contesta 409 y ya se avisó.
  */
 export function marcaEnStorage(db: Pick<SupabaseClient, 'storage'>, esperaMs = 6_000): Marca {
-  return async (dia, clave) => {
+  const pathDe = (dia: string, clave: string) => `avisos/${dia}/${createHash('sha1').update(clave).digest('hex')}.txt`;
+  const marca: Marca = async (dia, clave) => {
     try {
-      const path = `avisos/${dia}/${createHash('sha1').update(clave).digest('hex')}.txt`;
+      const path = pathDe(dia, clave);
       // Con tope: el aviso se espera en el camino del mensaje entrante y un Storage colgado no puede trabarlo.
       let reloj: ReturnType<typeof setTimeout> | undefined;
       const tarde = new Promise<'tarde'>((r) => { reloj = setTimeout(() => r('tarde'), esperaMs); });
@@ -50,6 +54,15 @@ export function marcaEnStorage(db: Pick<SupabaseClient, 'storage'>, esperaMs = 6
       return 'no-se';
     }
   };
+  marca.quitar = async (dia, clave) => {
+    try {
+      const { error } = await db.storage.from('audios').remove([pathDe(dia, clave)]);
+      if (error) console.warn(`avisos: no pude borrar la marca del aviso (${error.message}).`);
+    } catch (err) {
+      console.warn('avisos: no pude borrar la marca del aviso.', err instanceof Error ? err.message : err);
+    }
+  };
+  return marca;
 }
 
 export function olvidarAvisos(): void {
@@ -70,8 +83,17 @@ export async function avisarSocios(
   console.error(`AVISO A LOS SOCIOS [${clave}]: ${asunto} — ${detalle}`);
   const claveResend = process.env.RESEND_API_KEY;
   const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  // Un aviso `unaVez` que no salió por mail no puede quedar marcado para siempre (el de «sin datos» deja a un
+  // viajero que pagó sin mensajes): se borra la marca. Sin Resend o sin destinatarios, solo la de Storage (sale
+  // cuando se carguen, sin repetir el log en cada tick); si Resend falla, también la de memoria (se reintenta).
+  const deshacer = async (tambienMemoria: boolean) => {
+    if (!o.unaVez) return;
+    if (tambienMemoria) YA_AVISADO.delete(llave);
+    await marcaPersistente?.quitar?.(dia, clave);
+  };
   if (!claveResend || para.length === 0) {
     console.warn('avisos: falta RESEND_API_KEY o MAIL_SOCIOS; el aviso quedó solo en la consola.');
+    await deshacer(false);
     return true;
   }
   try {
@@ -81,9 +103,13 @@ export async function avisarSocios(
       body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora V3] ${asunto}`, text: detalle }),
       signal: AbortSignal.timeout(15_000), // un Resend colgado no cuelga el aviso: tira y se atrapa abajo
     });
-    if (!r.ok) console.error(`avisos: Resend rechazó el aviso «${asunto}» (${r.status}).`);
+    if (!r.ok) {
+      console.error(`avisos: Resend rechazó el aviso «${asunto}» (${r.status}).`);
+      await deshacer(true);
+    }
   } catch (err) {
     console.error(`avisos: no pude mandar el aviso «${asunto}» por mail:`, err instanceof Error ? err.message : err);
+    await deshacer(true);
   }
   return true;
 }

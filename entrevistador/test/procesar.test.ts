@@ -538,6 +538,15 @@ describe('procesarEntrante', () => {
     expect(update('narradores')).toBeUndefined(); // sigue invitado
   });
 
+  it('(v2b) si la base falla al darle el alta, procesar no se cae y no le contesta (el tick reintenta)', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
+    mocks.asegurarAltaViajeV2.mockRejectedValue(new Error('No pude leer el pedido de n1: base caída'));
+    await expect(procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' })).resolves.toBeUndefined();
+    expect(mocks.procesarEntranteViajeV2).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
+  });
+
   it('(v3) un viajero que quedó en el viaje viejo (activo, sin fila V2) no recibe nada: ni audio procesado, ni foto, ni Familiar', async () => {
     mocks.estado.narrador = narradorEn('activo', 3, VIAJE);
     mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y qué más?' });
