@@ -6,7 +6,7 @@ import type { ClaveFallaKids, IdiomaKids, QuienRegala, TemaKids } from "@/lib/ki
 // Las 3 pantallas son las APROBADAS por Naza el 05/10 en la rama vitacora-kids
 // (docs/kids/v2/mensajes.md §8, COMPRA-1 a COMPRA-3; paso-3-ronda6-compra.md:
 // «Aprobado por Naza (05/10): los textos de arriba, con los tres ✎»). Están
-// en vos: /ar las usa TAL CUAL. España (tú) y catalán son adaptaciones, PARA
+// en vos: /ar las usa TAL CUAL. España (tú) la aprobó Naza el 16/10 (tanda 9); el catalán es una adaptación, PARA
 // APROBAR (docs/rediseno-2026-10/kids/textos.md). También para aprobar: lo que
 // no estaba en la rama (los avisos de error, «Próximamente», el resumen).
 //
@@ -93,6 +93,7 @@ export type TextosCheckoutKids = {
 
 export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
   /* ─────────────────────────── España, de tú ─────────────────────────── */
+  // APROBADO por Naza 16/10 (tanda 9): las 3 pantallas de compra en España, con «se hace» en lugar de «se arma».
   es: {
     tituloPagina: "Vitácora Kids · Empezar su libro",
     descripcion: "Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad.",
@@ -139,7 +140,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     hora: "A qué hora le escribimos",
     horaAyuda: "Mejor a la vuelta del cole, o cuando podáis sentaros juntos.",
     temasTitulo: "Temas y pago.",
-    temasBajada: "Hay cosas que solo tú sabes si conviene tocar. Lo que marques aquí no se pregunta, y el libro se arma igual con el resto.",
+    temasBajada: "Hay cosas que solo tú sabes si conviene tocar. Lo que marques aquí no se pregunta, y el libro se hace igual con el resto.",
     temasLeyenda: "No preguntar sobre",
     // APROBADO por Naza 16/10 (tanda 8) · COMPRA-3-TEMAS en España (Su madre / Su padre, Su nueva familia)
     temas: {
