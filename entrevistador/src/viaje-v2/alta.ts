@@ -14,6 +14,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { crearFila, esTablaAusente } from './filas.js';
 import { NOCHE_DESDE, NOCHE_HASTA, validarCompra } from './nucleo/calendario.js';
+import { aLocal } from './nucleo/horas.js';
 import { esIdioma, idiomaDe } from './nucleo/idioma.js';
 import { HORA_NOCHE_POR_DEFECTO, type Compra, type Formato, type FotosAlbum } from './nucleo/tipos.js';
 import { estadoInicial } from './tipos.js';
@@ -108,10 +109,10 @@ function deFormaVieja(n: NarradorParaAlta, v: Record<string, unknown>, pedido: P
 }
 
 /**
- * La `Compra` de un viajero a partir de su `contexto.viaje`. Pura. No adivina fechas: sin una compra válida
- * (validarCompra y un idioma conocido) devuelve el motivo.
+ * La `Compra` de un viajero a partir de su `contexto.viaje`. Pura (`ahora` llega por parámetro). No adivina fechas:
+ * sin una compra válida (validarCompra, un idioma conocido y un viaje que no terminó) devuelve el motivo.
  */
-export function compraDeContexto(n: NarradorParaAlta, pedido: PedidoDelViaje): CompraArmada {
+export function compraDeContexto(n: NarradorParaAlta, pedido: PedidoDelViaje, ahora: Date = new Date()): CompraArmada {
   const v = n.contexto?.viaje;
   if (!v || typeof v !== 'object') return { ok: false, motivo: 'no tiene los datos del viaje (contexto.viaje)' };
   const viaje = v as Record<string, unknown>;
@@ -125,6 +126,8 @@ export function compraDeContexto(n: NarradorParaAlta, pedido: PedidoDelViaje): C
   } catch (err) {
     return { ok: false, motivo: err instanceof Error ? err.message : String(err) };
   }
+  // validarCompra no mira el calendario: un viaje que ya volvió no recibe bienvenida ni alta.
+  if (compra.vuelta < aLocal(ahora, compra.zonaCasa).fecha) return { ok: false, motivo: `el viaje ya terminó (la vuelta era el ${compra.vuelta})` };
   return { ok: true, compra, forma, supuestos };
 }
 
@@ -150,6 +153,8 @@ export type DepsAlta = {
   db: SupabaseClient;
   /** Aviso a los socios, una sola vez por clave (no por día). Nunca tira. */
   avisarUnaVez(clave: string, asunto: string, detalle: string): Promise<void>;
+  /** El reloj (los tests lo fijan). Sin él, ahora. */
+  ahora?: () => Date;
 };
 
 export type ResultadoAlta = 'creada' | 'ya-existia' | 'faltan-datos' | 'no-corresponde';
@@ -162,7 +167,7 @@ export async function asegurarAltaViajeV2(deps: DepsAlta, n: NarradorParaAlta): 
   // La simulación con --real (scripts/viaje-v2-simular.ts) crea su propia fila: el alta no la toca.
   if (n.estado !== 'invitado' || !esModoViaje(n.contexto) || n.contexto?.simulacion === true) return 'no-corresponde';
   const forma = (n.contexto?.viaje as { v?: unknown } | undefined)?.v === 2 ? 'v2' : 'vieja';
-  const armada = compraDeContexto(n, forma === 'vieja' ? await pedidoDelViaje(deps.db, n.id) : null);
+  const armada = compraDeContexto(n, forma === 'vieja' ? await pedidoDelViaje(deps.db, n.id) : null, deps.ahora?.() ?? new Date());
   if (!armada.ok) {
     await deps.avisarUnaVez(`viaje-v2-alta-sin-datos:${n.id}:${armada.motivo}`, `Un viajero nuevo no pudo entrar a la Viaje V2`,
       `${n.como_le_dicen} (${n.id}) compró la Vitácora de Viaje, pero con sus datos no se arma la compra: ${armada.motivo}. `

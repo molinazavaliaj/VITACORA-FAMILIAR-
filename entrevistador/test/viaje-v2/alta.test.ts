@@ -10,6 +10,8 @@ import type { MensajeEntrante } from '../../src/whatsapp/webhook.js';
 
 // Viajeros y viajes INVENTADOS.
 const BA = 'America/Argentina/Buenos_Aires';
+/** El reloj fijo: los viajes de prueba (noviembre de 2026) todavía no empezaron. */
+const HOY = new Date('2026-10-16T15:00:00Z');
 const V2 = {
   v: 2, salida: '2026-11-10', vuelta: '2026-11-20', zonaCasa: BA, zonaViaje: 'Europe/Rome', horaNoche: '22:00',
   regalo: { quienRegala: 'Tomás' }, preguntasPropias: ['¿Qué comiste en Nápoles?'], formato: 'impreso', fotosAlbum: 40, idioma: 'es-AR',
@@ -26,7 +28,7 @@ const narrador = (contexto: Record<string, unknown>, extra: Partial<NarradorPara
 
 describe('compraDeContexto: la compra sale de contexto.viaje', () => {
   it('la forma nueva (v: 2) va tal cual, con el nombre de cómo le dicen', () => {
-    const r = compraDeContexto(narrador({ viaje: V2 }), null);
+    const r = compraDeContexto(narrador({ viaje: V2 }), null, HOY);
     expect(r).toEqual({
       ok: true, forma: 'v2', supuestos: [],
       compra: {
@@ -38,12 +40,12 @@ describe('compraDeContexto: la compra sale de contexto.viaje', () => {
 
   it('acepta los nombres del primer borrador del contrato (preguntas, album, quienRegala)', () => {
     const { regalo: _r, preguntasPropias: _p, fotosAlbum: _f, ...resto } = V2;
-    const r = compraDeContexto(narrador({ viaje: { ...resto, quienRegala: 'Tomás', preguntas: ['una'], album: 20 } }), null);
+    const r = compraDeContexto(narrador({ viaje: { ...resto, quienRegala: 'Tomás', preguntas: ['una'], album: 20 } }), null, HOY);
     expect(r.ok && r.compra).toMatchObject({ regalo: { quienRegala: 'Tomás' }, preguntasPropias: ['una'], fotosAlbum: 20 });
   });
 
   it('el formulario viejo: fechas tal cual, zonas de su casa, formato del pedido, álbum de 20, y dice qué supuso', () => {
-    const r = compraDeContexto(narrador({ viaje: VIEJO }), { impreso: true });
+    const r = compraDeContexto(narrador({ viaje: VIEJO }), { impreso: true }, HOY);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.forma).toBe('vieja');
@@ -56,19 +58,19 @@ describe('compraDeContexto: la compra sale de contexto.viaje', () => {
   });
 
   it('el formulario viejo sin pedido queda en pdf, y una hora fuera de la noche queda en la de siempre', () => {
-    const r = compraDeContexto(narrador({ viaje: VIEJO }, { hora_preferida: '10:00:00' }), null);
+    const r = compraDeContexto(narrador({ viaje: VIEJO }, { hora_preferida: '10:00:00' }), null, HOY);
     expect(r.ok && r.compra.formato).toBe('pdf');
     expect(r.ok && r.compra.horaNoche).toBeUndefined();
     expect(r.ok && r.supuestos.join(' | ')).toMatch(/no encontré su pedido.*\| .*21:30 \(eligió 10:00/);
   });
 
   it('sin datos suficientes no adivina: sin fechas, un viaje de 2 días, una zona rara o un idioma desconocido', () => {
-    expect(compraDeContexto(narrador({}), null)).toMatchObject({ ok: false, motivo: expect.stringMatching(/contexto\.viaje/) });
-    expect(compraDeContexto(narrador({ viaje: { etapas: [] } }), null)).toMatchObject({ ok: false, motivo: expect.stringMatching(/salida/) });
-    expect(compraDeContexto(narrador({ viaje: { ...VIEJO, vuelta: '2026-11-11' } }), null)).toMatchObject({ ok: false, motivo: expect.stringMatching(/al menos 3 días/) });
-    expect(compraDeContexto(narrador({ viaje: { ...V2, zonaViaje: 'Marte/Olympus' } }), null)).toMatchObject({ ok: false, motivo: expect.stringMatching(/zonaViaje/) });
-    expect(compraDeContexto(narrador({ viaje: { ...V2, idioma: 'pt-BR' } }), null)).toMatchObject({ ok: false, motivo: expect.stringMatching(/Idioma/) });
-    expect(compraDeContexto(narrador({ viaje: { ...V2, formato: undefined } }), null)).toMatchObject({ ok: false });
+    expect(compraDeContexto(narrador({}), null, HOY)).toMatchObject({ ok: false, motivo: expect.stringMatching(/contexto\.viaje/) });
+    expect(compraDeContexto(narrador({ viaje: { etapas: [] } }), null, HOY)).toMatchObject({ ok: false, motivo: expect.stringMatching(/salida/) });
+    expect(compraDeContexto(narrador({ viaje: { ...VIEJO, vuelta: '2026-11-11' } }), null, HOY)).toMatchObject({ ok: false, motivo: expect.stringMatching(/al menos 3 días/) });
+    expect(compraDeContexto(narrador({ viaje: { ...V2, zonaViaje: 'Marte/Olympus' } }), null, HOY)).toMatchObject({ ok: false, motivo: expect.stringMatching(/zonaViaje/) });
+    expect(compraDeContexto(narrador({ viaje: { ...V2, idioma: 'pt-BR' } }), null, HOY)).toMatchObject({ ok: false, motivo: expect.stringMatching(/Idioma/) });
+    expect(compraDeContexto(narrador({ viaje: { ...V2, formato: undefined } }), null, HOY)).toMatchObject({ ok: false });
   });
 });
 
@@ -76,7 +78,7 @@ describe('asegurarAltaViajeV2', () => {
   function preparar(n: NarradorParaAlta, pedidos: Record<string, unknown>[] = []) {
     const base = crearBaseFalsa({ narradores: [{ ...n, telefono_whatsapp: '+5491100000000' }], viajes_v2: [], pedidos, respuestas: [], envios: [], fotos: [] });
     const avisos: { clave: string; asunto: string; detalle: string }[] = [];
-    const deps: DepsAlta = { db: base.cliente, avisarUnaVez: async (clave, asunto, detalle) => { avisos.push({ clave, asunto, detalle }); } };
+    const deps: DepsAlta = { db: base.cliente, ahora: () => HOY, avisarUnaVez: async (clave, asunto, detalle) => { avisos.push({ clave, asunto, detalle }); } };
     const fila = () => leerFila<Compra, EstadoBotViaje>(base.cliente, n.id);
     return { base, deps, avisos, fila };
   }
@@ -121,6 +123,18 @@ describe('asegurarAltaViajeV2', () => {
     await expect(asegurarAltaViajeV2(r.deps, n)).rejects.toThrow(/No pude crear el Viaje V2/);
   });
 
+  it('un viaje que ya terminó (la vuelta pasó en su casa) no recibe alta: faltan-datos y un aviso', async () => {
+    const n = narrador({ viaje: V2 });
+    const r = preparar(n);
+    r.deps.ahora = () => new Date('2026-11-21T12:00:00Z'); // 21/11 en Buenos Aires: volvió el 20
+    expect(await asegurarAltaViajeV2(r.deps, n)).toBe('faltan-datos');
+    expect(r.base.tablas.viajes_v2).toEqual([]);
+    expect(r.avisos).toHaveLength(1);
+    expect(r.avisos[0].detalle).toMatch(/el viaje ya terminó/);
+    // El día de la vuelta todavía vale (emprende la vuelta ese día); 02:00 UTC del 21/11 es el 20/11 en Buenos Aires.
+    expect(compraDeContexto(n, null, new Date('2026-11-21T02:00:00Z')).ok).toBe(true);
+  });
+
   it('idempotente: dos ticks a la vez crean una sola fila, y la segunda vez no se pisa nada', async () => {
     const n = narrador({ viaje: V2 });
     const r = preparar(n);
@@ -158,7 +172,7 @@ describe('escribe primero: alta y bienvenida V2 como texto', () => {
     const n = { ...narrador({ viaje: VIEJO }), telefono_whatsapp: '+5491100000000' };
     const base = crearBaseFalsa({ narradores: [{ ...n }], viajes_v2: [], pedidos: [], respuestas: [], envios: [], fotos: [] });
     const p = depsViajeDePrueba(base, { ahora: new Date('2026-11-01T13:00:00Z') });
-    expect(await asegurarAltaViajeV2({ db: base.cliente, avisarUnaVez: async () => {} }, n)).toBe('creada');
+    expect(await asegurarAltaViajeV2({ db: base.cliente, ahora: () => HOY, avisarUnaVez: async () => {} }, n)).toBe('creada');
     await procesarEntranteViajeV2(p.deps, base.tablas.narradores[0] as never, { telefono: n.telefono_whatsapp, tipo: 'texto', texto: 'hola', waMessageId: 'w1' } as MensajeEntrante);
     expect(p.enviados).toHaveLength(1);
     expect(p.enviados[0].tipo).toBe('texto');

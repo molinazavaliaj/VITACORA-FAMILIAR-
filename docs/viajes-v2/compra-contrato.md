@@ -58,7 +58,7 @@ nueva tiene que mandar los nombres de la tabla.
   pedía), formato según el pedido pagado (`pedidos.extras.impreso` o `copias`), álbum de 20 fotos, la hora de la
   noche si la que eligió cae entre 19:00 y 22:30. Los socios reciben un mail con lo que se supuso. Si viaja a otro
   país, se corrige con `npm run viaje-v2-cambiar-pais`.
-- **Datos que no alcanzan.** Sin fechas, con un viaje de menos de 3 días, una zona o un idioma que no existen,
+- **Datos que no alcanzan.** Sin fechas, con un viaje de menos de 3 días, uno que ya terminó (la vuelta pasó en su casa), una zona o un idioma que no existen,
   no se adivina: un mail a los socios (una sola vez por motivo) y el narrador queda como está, sin mensajes. Con
   `contexto.viaje` corregido, el tick siguiente le da el alta. También sirve `npm run viaje-v2-alta -- <id>`
   (arma la compra de su contexto) o con `--compra compra.json`.
