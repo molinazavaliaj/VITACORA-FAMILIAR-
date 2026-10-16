@@ -55,7 +55,7 @@ export function PanelKids({
   const abiertas = preguntasAbiertas(fila);
   const valores = valoresDelPanel(fila);
   const pendiente = fila.cambios_panel;
-  const estado = estadoKids({ estado: n.estado, canal: fila.canal, apodo, arranco: arranco(fila), capitulo, titulo: tituloCapitulo(capitulo), termino, idioma });
+  const estado = estadoKids({ estado: n.estado, canal: fila.canal, apodo, arranco: arranco(fila), capitulo, titulo: tituloCapitulo(capitulo, idioma), termino, idioma });
 
   return (
     <div data-producto="kids" className="pnl-marco mx-auto w-full max-w-[1240px] px-4 pb-20 pt-8 sm:px-8 md:pt-12">
@@ -63,7 +63,7 @@ export function PanelKids({
         <p className="pnl-micro">{T.etiqueta}</p>
         <h1 className="pnl-titular">{T.titulo(apodo)}</h1>
         <p className="pnl-parrafo">{estado}</p>
-        <Partes actual={termino ? 6 : capitulo} />
+        <Partes actual={termino ? 6 : capitulo} idioma={idioma} />
         <p className="pnl-dato mt-1">{X.leeTodo}</p>
       </header>
 
@@ -180,7 +180,7 @@ function TuLibro({ narradorId, apodo, libro, idioma }: { narradorId: string; apo
 }
 
 /** Las cinco partes como hilos: las que pasaron llenas, la actual a medias. */
-function Partes({ actual }: { actual: number }) {
+function Partes({ actual, idioma }: { actual: number; idioma: IdiomaKids }) {
   return (
     <ol className="pnl-linea mt-2 max-w-[640px]" style={{ ["--n" as string]: 5 }}>
       {[1, 2, 3, 4, 5].map((p, i) => (
@@ -188,7 +188,7 @@ function Partes({ actual }: { actual: number }) {
           <span className="pnl-paso-hilo" aria-hidden>
             <span />
           </span>
-          <span className="pnl-paso-nombre">{tituloCapitulo(p)}</span>
+          <span className="pnl-paso-nombre">{tituloCapitulo(p, idioma)}</span>
         </li>
       ))}
     </ol>

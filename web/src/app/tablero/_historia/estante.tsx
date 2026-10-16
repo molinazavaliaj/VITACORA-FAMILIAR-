@@ -100,7 +100,7 @@ function LibroKids({ h, r, kids, fotoSrc }: { h: Historia; r: Resumen & Extra; k
   const apodo = n.como_le_dicen?.trim() || n.nombre;
   const PANEL_KIDS = textosPanelKids(kids.idioma).panel;
   const titulo = PANEL_KIDS.titulo(apodo);
-  const estado = estadoKids({ estado: n.estado, canal: kids.canal, apodo, arranco: kids.arranco, capitulo: kids.capitulo, titulo: tituloCapitulo(kids.capitulo), termino: kids.terminado, idioma: kids.idioma });
+  const estado = estadoKids({ estado: n.estado, canal: kids.canal, apodo, arranco: kids.arranco, capitulo: kids.capitulo, titulo: tituloCapitulo(kids.capitulo, kids.idioma), termino: kids.terminado, idioma: kids.idioma });
   const paso = kids.abiertas
     ? { href: `/tablero/${n.id}#tus-preguntas`, texto: PANEL_KIDS.inicio.preguntas }
     : { href: `/tablero/${n.id}#lo-contado`, texto: PANEL_KIDS.inicio.ver };

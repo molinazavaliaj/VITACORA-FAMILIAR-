@@ -1,9 +1,14 @@
 import { describe, it, expect } from "vitest";
 import bancoJson from "../src/lib/kids-banco.json";
+import bancoEsEsJson from "../src/lib/kids-banco-es-ES.json";
 import { HORAS_KIDS } from "../src/lib/kids";
 import { validarFichaKids, type FichaKids } from "../src/lib/kids-compra";
 import {
   BANCO_KIDS,
+  armarBancoIdioma,
+  bancoKidsDe,
+  botonArranque,
+  idiomaDeFila,
   MENSAJES_DEL_PANEL,
   conCorreccion,
   diceEstaEn,
@@ -50,6 +55,63 @@ describe("la copia del banco del motor", () => {
   it("los títulos de los capítulos son los aprobados", () => {
     expect(tituloCapitulo(2)).toBe("Mi gente");
     expect(tituloCapitulo(5)).toBe("Para cuando seas grande (la cápsula)");
+  });
+});
+
+describe("el banco de España (tú)", () => {
+  const es = bancoKidsDe("es-ES");
+
+  it("es copia del banco del motor de España (rama, commit) y no se edita a mano", () => {
+    const origen = (bancoEsEsJson as { _origen?: string })._origen ?? "";
+    expect(origen).toContain("fabrica/src/kids-v2/banco-es-ES.json");
+    expect(origen).toMatch(/commit [0-9a-f]{40}/);
+  });
+
+  it("tiene los mismos ids que usa el panel, con los textos de España", () => {
+    expect(es.capitulos.map((c) => c.n)).toEqual([1, 2, 3, 4, 5]);
+    for (let i = 1; i <= 47; i++) expect(es.preguntas.some((p) => p.id === `K${i}`), `K${i}`).toBe(true);
+    for (const id of MENSAJES_DEL_PANEL) expect(es.mensajes.some((m) => m.id === id), id).toBe(true);
+    expect(es.preguntas.filter((p) => p.cap === 5).map((p) => p.id)).toEqual(["K41", "K42", "K43", "K44", "K45", "K46", "K47"]);
+    expect(es.extras.map((x) => x.id)).toEqual(banco.extras.map((x) => x.id));
+    expect(es.preguntas.find((p) => p.id === "K12")!.ramas.length).toBe(2);
+    expect(es.preguntas.find((p) => p.id === "K18")!.texto).toContain("como la pareja de tu madre o de tu padre, o alguien");
+    // Ningún texto quedó en vos: cada pregunta, rama, foto, extra y mensaje es el de España.
+    const todo = JSON.stringify(es);
+    expect(todo).not.toMatch(/Contame|Mostrame|tenés|querés/);
+  });
+
+  it("si al banco de España le falta un id, no arma nada (nunca un texto en vos para un chico de España)", () => {
+    const { K10: _sin, ...falta } = bancoEsEsJson as unknown as Record<string, string>;
+    expect(() => armarBancoIdioma(falta, "es-ES")).toThrow(/K10/);
+  });
+
+  it("un chico de España ve K10 con «tu madre» y la parte 1 con su título", () => {
+    const f = { ...FICHA, genero: "chica" as const, idioma: "es-ES" as const, zona: "Europe/Madrid" };
+    expect(itemDeClave("K10", f)).toEqual({ cap: 2, texto: "Tu madre. Cuéntame cómo es, y una vez que te cuidó cuando estabas enferma." });
+    expect(tituloCapitulo(1, "es-ES")).toBe("De pequeño");
+    const caps = loQueCuenta([resp("K1"), resp("K10")], [], f);
+    expect(caps.map((c) => c.titulo)).toEqual(["De pequeño", "Mi gente"]);
+    expect(caps[1].preguntas[0].texto).toMatch(/^Tu madre\. Cuéntame/);
+    const sinPadre = itemDeClave("K18", { ...f, temasSacados: ["papa"] })!.texto!;
+    expect(sinPadre).toContain("como la pareja de tu madre, o alguien");
+    expect(sinPadre).not.toContain("tu padre");
+    expect(botonArranque("es-ES")).toBe("Vale, vamos");
+  });
+
+  it("un chico de Argentina, igual que hoy", () => {
+    expect(itemDeClave("K10", FICHA)?.texto).toBe("Tu mamá. Contame cómo es, y una vez que te cuidó cuando estabas enfermo.");
+    expect(itemDeClave("K10", { ...FICHA, idioma: "es-AR" })?.texto).toBe("Tu mamá. Contame cómo es, y una vez que te cuidó cuando estabas enfermo.");
+    expect(tituloCapitulo(1)).toBe("De chiquito");
+    expect(tituloCapitulo(1, "es-AR")).toBe("De chiquito");
+    expect(botonArranque("es-AR")).toBe("Dale, vamos");
+  });
+
+  it("el idioma del banco es el de la ficha, si no el de kids_v2, si no es-AR", () => {
+    expect(idiomaDeFila(fila())).toBe("es-AR");
+    expect(idiomaDeFila(fila({ idioma: "es-ES" }))).toBe("es-ES");
+    expect(idiomaDeFila(fila({ ficha: { ...FICHA, idioma: "es-ES" } }))).toBe("es-ES");
+    expect(idiomaDeFila(fila({ ficha: { ...FICHA, idioma: "es-ES" }, idioma: "es-AR" }))).toBe("es-ES");
+    expect(idiomaDeFila(fila({ fichaMotor: { ...FICHA, idioma: "es-ES" } }))).toBe("es-ES");
   });
 });
 

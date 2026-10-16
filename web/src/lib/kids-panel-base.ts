@@ -5,6 +5,7 @@ import {
   conCorreccion,
   diceEstaEn,
   fichaVigente,
+  idiomaDeFila,
   fusionarCambioKids,
   kidsConImpreso,
   leerListoKids,
@@ -75,6 +76,7 @@ export async function leerPanelKids(admin: SupabaseClient, narradorId: string): 
     fotos.error ? [] : ((fotos.data as FotoKids[] | null) ?? []),
     fichaVigente(fila),
     fila.correcciones ?? [],
+    idiomaDeFila(fila),
   );
   return { vista: { fila, capitulos, libro }, error: null };
 }

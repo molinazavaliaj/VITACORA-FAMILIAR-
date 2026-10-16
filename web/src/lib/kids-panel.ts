@@ -16,9 +16,12 @@
 //   - `kids_v2.correcciones` = `[{ respuesta_id, dice, es, at }]`.
 //
 // Los textos de las preguntas salen de una copia del banco del motor
-// (kids-banco.json, ver su `_origen`): nada de redacción nueva.
+// (kids-banco.json, ver su `_origen`): nada de redacción nueva. Para un chico
+// de España, los textos van de kids-banco-es-ES.json (solo textos por ID, que
+// pisan los de kids-banco.json: es `bancoDe("es-ES")` del motor, banco.ts).
 
 import bancoJson from "./kids-banco.json";
+import bancoEsEsJson from "./kids-banco-es-ES.json";
 import { HORAS_KIDS, TEMAS_KIDS, idiomaKidsDe, type IdiomaKids, type TemaKids } from "./kids";
 import { LARGO_MAXIMO, normalizarQuienRegala, validarFichaKids, type FichaKids, type PreguntaPadre } from "./kids-compra";
 
@@ -30,31 +33,97 @@ type PreguntaBanco = {
   cap: number;
   texto: string;
   ramas: { boton: string; accion: AccionRama }[];
-  op: { texto: string } | null;
-  foto: { de: string; texto: string } | null;
+  botonPaso: string;
+  op: ({ texto: string } & Record<string, unknown>) | null;
+  foto: { de: string; texto: string; botones: string[]; noTengo: string | null } | null;
 };
 type BancoKids = {
   capitulos: { n: number; titulo: string }[];
   preguntas: PreguntaBanco[];
   extras: { id: string; cap: number; texto: string }[];
-  mensajes: { id: string; texto: string }[];
+  mensajes: { id: string; texto: string; botones: string[] }[];
 };
 
+/** El banco de banco.md, rioplatense (vos). */
 export const BANCO_KIDS = bancoJson as unknown as BancoKids;
 
-const PREGUNTAS = new Map(BANCO_KIDS.preguntas.map((p) => [p.id, p]));
-const EXTRAS = new Map(BANCO_KIDS.extras.map((x) => [x.id, x]));
-const MENSAJES = new Map(BANCO_KIDS.mensajes.map((m) => [m.id, m]));
+/** El botón genérico de pasar en banco.md (el de K1); las que tienen otro van con Kn-BPASO. */
+const BOTON_PASO_AR = BANCO_KIDS.preguntas.find((p) => p.id === "K1")?.botonPaso ?? "Paso";
+
+const idRamaPaso = (p: string, i: number, k: number) => `${p}-R${i + 1}${k > 0 ? `-${k + 1}` : ""}`;
+
+/**
+ * El mismo banco con los textos de otro idioma, por ID (la notación de
+ * banco-es-ES.md; copia de armarBancoIdioma del motor). Si falta un ID, tira:
+ * nunca un texto en el idioma equivocado (un test chequea que estén todos).
+ */
+export function armarBancoIdioma(textos: Readonly<Record<string, string>>, idioma: IdiomaKids): BancoKids {
+  const de = (id: string): string => {
+    const x = textos[id];
+    if (typeof x !== "string") throw new Error(`Banco de kids ${idioma}: falta el texto de ${id}`);
+    return x;
+  };
+  return {
+    capitulos: BANCO_KIDS.capitulos.map((c) => ({ ...c, titulo: de(`CAP-${c.n}`) })),
+    preguntas: BANCO_KIDS.preguntas.map((p) => {
+      const ramas = p.ramas.map((r, i) => ({
+        boton: de(`${p.id}-B${i + 1}`),
+        accion: r.accion.tipo === "preguntar" ? { tipo: "preguntar" as const, pasos: r.accion.pasos.map((_, k) => de(idRamaPaso(p.id, i, k))) } : r.accion,
+      }));
+      const soloRama = typeof p.op?.soloRama === "string" ? p.ramas.findIndex((r) => r.boton === p.op!.soloRama) : -1;
+      return {
+        ...p,
+        texto: de(p.id),
+        ramas,
+        botonPaso: p.botonPaso === BOTON_PASO_AR ? de("BOTON-PASO") : de(`${p.id}-BPASO`),
+        op: p.op ? { ...p.op, texto: de(`${p.id}-OP`), ...(p.op.soloRama !== undefined ? { soloRama: soloRama < 0 ? null : ramas[soloRama].boton } : {}) } : null,
+        foto: p.foto
+          ? { ...p.foto, texto: de(`${p.id}-FOTO`), botones: p.foto.botones.map((_, i) => de(`${p.id}-FOTO-B${i + 1}`)), noTengo: p.foto.noTengo ? de(`${p.id}-FOTO-NOTENGO`) : null }
+          : null,
+      };
+    }),
+    extras: BANCO_KIDS.extras.map((x) => ({ ...x, texto: de(x.id) })),
+    mensajes: BANCO_KIDS.mensajes.map((m) => ({ ...m, texto: de(m.id), botones: m.botones.map((_, i) => de(`${m.id}-B${i + 1}`)) })),
+  };
+}
+
+type Armado = { banco: BancoKids; preguntas: Map<string, PreguntaBanco>; extras: Map<string, BancoKids["extras"][number]>; mensajes: Map<string, BancoKids["mensajes"][number]> };
+
+function armado(banco: BancoKids): Armado {
+  return {
+    banco,
+    preguntas: new Map(banco.preguntas.map((p) => [p.id, p])),
+    extras: new Map(banco.extras.map((x) => [x.id, x])),
+    mensajes: new Map(banco.mensajes.map((m) => [m.id, m])),
+  };
+}
+
+const BANCOS: Record<IdiomaKids, Armado> = {
+  "es-AR": armado(BANCO_KIDS),
+  "es-ES": armado(armarBancoIdioma(bancoEsEsJson as unknown as Record<string, string>, "es-ES")),
+};
+
+/** El banco en el castellano del chico (sin idioma, o uno raro, el rioplatense). */
+export function bancoKidsDe(idioma: IdiomaKids = "es-AR"): BancoKids {
+  return (BANCOS[idioma] ?? BANCOS["es-AR"]).banco;
+}
+
+const bancoDel = (idioma: IdiomaKids | undefined): Armado => BANCOS[idioma ?? "es-AR"] ?? BANCOS["es-AR"];
 
 /** Los ids del banco que usa el panel por fuera de las preguntas y las extras (un test los chequea). */
-export const MENSAJES_DEL_PANEL = ["B-UNA-MAS", "CIERRE-1", "CIERRE-2", "CIERRE-3", "CIERRE-4", "CIERRE-FINAL", "EXTRAS-OFERTA"] as const;
+export const MENSAJES_DEL_PANEL = ["B-UNA-MAS", "CIERRE-1", "CIERRE-2", "CIERRE-3", "CIERRE-4", "CIERRE-FINAL", "EXTRAS-OFERTA", "BIEN-CHICO"] as const;
 
 /** El capítulo de la cápsula (flujo §9): sus respuestas van en el sobre cerrado. */
 export const CAPITULO_CAPSULA = 5;
 
-/** El título de un capítulo del banco («Mi gente»), o null. */
-export function tituloCapitulo(n: number): string | null {
-  return BANCO_KIDS.capitulos.find((c) => c.n === n)?.titulo ?? null;
+/** El título de un capítulo del banco del chico («Mi gente»), o null. */
+export function tituloCapitulo(n: number, idioma: IdiomaKids = "es-AR"): string | null {
+  return bancoDel(idioma).banco.capitulos.find((c) => c.n === n)?.titulo ?? null;
+}
+
+/** El botón con que el chico arranca («Dale, vamos» / «Vale, vamos»): BIEN-CHICO-B1 del banco de su idioma. */
+export function botonArranque(idioma: IdiomaKids = "es-AR"): string {
+  return bancoDel(idioma).mensajes.get("BIEN-CHICO")?.botones[0] ?? "";
 }
 
 /** «Tu mamá. Contame…»: {{o/a}} según sea chico o chica y {{1}}, {{2}} = cómo le dicen y quién se lo regala (motor/mensajes.ts). */
@@ -65,20 +134,28 @@ function render(texto: string, ficha: Pick<FichaKids, "genero" | "apodo" | "quie
 }
 
 /**
- * K18 nombra a mamá y papá y queda aunque se saque uno de los dos temas: el
- * motor borra palabras de la frase aprobada (compra.ts, BORRADOS_POR_TEMA).
- * Copia de esa regla, para mostrar la pregunta como le llegó.
+ * K18 nombra a mamá y papá (madre y padre en España) y queda aunque se saque
+ * uno de los dos temas: el motor borra palabras de la frase aprobada
+ * (compra.ts, BORRADOS_POR_TEMA). Copia de esa regla, para mostrar la pregunta
+ * como le llegó.
  */
-const BORRADOS_POR_TEMA = [
+const BORRADOS_POR_TEMA: { pregunta: string; idioma: IdiomaKids; frase: string; borrar: { mama: string; papa: string; ambos: string } }[] = [
   {
     pregunta: "K18",
+    idioma: "es-AR",
     frase: "como la pareja de tu mamá o de tu papá, o alguien",
     borrar: { papa: " o de tu papá", mama: "de tu mamá o ", ambos: "la pareja de tu mamá o de tu papá, o " },
   },
+  {
+    pregunta: "K18",
+    idioma: "es-ES",
+    frase: "como la pareja de tu madre o de tu padre, o alguien",
+    borrar: { papa: " o de tu padre", mama: "de tu madre o ", ambos: "la pareja de tu madre o de tu padre, o " },
+  },
 ];
 
-function textoSegunTemas(id: string, texto: string, temasSacados: readonly string[]): string {
-  const b = BORRADOS_POR_TEMA.find((x) => x.pregunta === id);
+function textoSegunTemas(id: string, texto: string, temasSacados: readonly string[], idioma: IdiomaKids): string {
+  const b = BORRADOS_POR_TEMA.find((x) => x.pregunta === id && x.idioma === idioma);
   if (!b || !texto.includes(b.frase)) return texto;
   const sinMama = temasSacados.includes("mama");
   const sinPapa = temasSacados.includes("papa");
@@ -101,31 +178,36 @@ export type ItemDeClave = {
  * es la que vale (la del motor si ya arrancó). Null para ∅, null o una clave
  * que no se conoce (no se muestran).
  */
-export function itemDeClave(clave: string | null | undefined, ficha: FichaKids): ItemDeClave | null {
+export function itemDeClave(clave: string | null | undefined, ficha: FichaKids, idioma: IdiomaKids = idiomaKidsDe(ficha.idioma)): ItemDeClave | null {
   if (!clave || clave === SIN_CLAVE_KIDS) return null;
+  const { preguntas: PREGUNTAS, extras: EXTRAS, mensajes: MENSAJES } = bancoDel(idioma);
+  const textoMensaje = (id: string): string | null => {
+    const x = MENSAJES.get(id);
+    return x ? render(x.texto, ficha) : null;
+  };
   let m: RegExpMatchArray | null;
 
   if ((m = clave.match(/^(K\d+)(?:-(R(\d+)(?:-(\d+))?|OP|FOTO))?$/))) {
     const p = PREGUNTAS.get(m[1]);
     if (!p) return null;
     const sufijo = m[2];
-    if (!sufijo) return { cap: p.cap, texto: render(textoSegunTemas(p.id, p.texto, ficha.temasSacados), ficha) };
+    if (!sufijo) return { cap: p.cap, texto: render(textoSegunTemas(p.id, p.texto, ficha.temasSacados, idioma), ficha) };
     if (sufijo === "OP") return { cap: p.cap, texto: p.op ? render(p.op.texto, ficha) : null };
     if (sufijo === "FOTO") return { cap: p.cap, texto: p.foto ? render(p.foto.texto, ficha) : null };
     const accion = p.ramas[Number(m[3]) - 1]?.accion;
     const paso = m[4] ? Number(m[4]) - 1 : 0;
     // El botón propio de una rama que no pregunta («Dale, esa la salteamos»): va con la principal.
     const texto = accion?.tipo === "preguntar" ? accion.pasos[paso] : undefined;
-    return { cap: p.cap, texto: render(texto ?? textoSegunTemas(p.id, p.texto, ficha.temasSacados), ficha) };
+    return { cap: p.cap, texto: render(texto ?? textoSegunTemas(p.id, p.texto, ficha.temasSacados, idioma), ficha) };
   }
   if ((m = clave.match(/^X\d+-\d+$/))) {
     const x = EXTRAS.get(clave);
     return x ? { cap: x.cap, texto: render(x.texto, ficha) } : null;
   }
-  if ((m = clave.match(/^UNA-MAS-(\d)$/))) return { cap: Number(m[1]), texto: textoMensaje("B-UNA-MAS", ficha) };
-  if ((m = clave.match(/^CIERRE-(\d)$/))) return { cap: Number(m[1]), texto: textoMensaje(clave, ficha) };
-  if (clave === "CIERRE-FINAL") return { cap: CAPITULO_CAPSULA, texto: textoMensaje(clave, ficha) };
-  if (clave === "EXTRAS") return { cap: CAPITULO_CAPSULA, texto: textoMensaje("EXTRAS-OFERTA", ficha) };
+  if ((m = clave.match(/^UNA-MAS-(\d)$/))) return { cap: Number(m[1]), texto: textoMensaje("B-UNA-MAS") };
+  if ((m = clave.match(/^CIERRE-(\d)$/))) return { cap: Number(m[1]), texto: textoMensaje(clave) };
+  if (clave === "CIERRE-FINAL") return { cap: CAPITULO_CAPSULA, texto: textoMensaje(clave) };
+  if (clave === "EXTRAS") return { cap: CAPITULO_CAPSULA, texto: textoMensaje("EXTRAS-OFERTA") };
   if ((m = clave.match(/^PADRE-(\d)$/))) {
     const n = Number(m[1]);
     return { cap: 4, texto: ficha.preguntasPadre[n - 1]?.texto ?? null, padre: n };
@@ -133,11 +215,6 @@ export function itemDeClave(clave: string | null | undefined, ficha: FichaKids):
   // La bienvenida, el aviso de pregunta nueva y los demás mensajes fijos: antes de la primera pregunta.
   if (MENSAJES.has(clave)) return { cap: 0, texto: null };
   return null;
-}
-
-function textoMensaje(id: string, ficha: FichaKids): string | null {
-  const m = MENSAJES.get(id);
-  return m ? render(m.texto, ficha) : null;
 }
 
 // ── Lo que cuenta ────────────────────────────────────────────────────────
@@ -187,7 +264,13 @@ const MARCA_FOTO = "⟦foto⟧";
  * Todo lo que contó, por capítulo y por pregunta, en el orden en que llegó.
  * Las del capítulo 5 (la cápsula) van marcadas: el padre las ve todas (flujo §9 y §12).
  */
-export function loQueCuenta(respuestas: RespuestaKids[], fotos: FotoKids[], ficha: FichaKids, correcciones: CorreccionKids[] = []): CapituloKids[] {
+export function loQueCuenta(
+  respuestas: RespuestaKids[],
+  fotos: FotoKids[],
+  ficha: FichaKids,
+  correcciones: CorreccionKids[] = [],
+  idioma: IdiomaKids = idiomaKidsDe(ficha.idioma),
+): CapituloKids[] {
   const fotosDe = new Map<number, string[]>();
   for (const f of fotos) {
     if (f.pregunta_orden === null) continue;
@@ -199,7 +282,7 @@ export function loQueCuenta(respuestas: RespuestaKids[], fotos: FotoKids[], fich
   const fotosUsadas = new Set<number>();
 
   for (const r of ordenadas) {
-    const item = itemDeClave(r.clave_kids, ficha);
+    const item = itemDeClave(r.clave_kids, ficha, idioma);
     if (!item) continue;
     const directo = r.texto_directo?.trim() ?? "";
     const boton = directo.match(MARCA_BOTON)?.[1]?.trim() ?? null;
@@ -213,7 +296,7 @@ export function loQueCuenta(respuestas: RespuestaKids[], fotos: FotoKids[], fich
     const clave = r.clave_kids as string;
     let cap = capitulos.get(item.cap);
     if (!cap) {
-      cap = { n: item.cap, titulo: item.cap > 0 ? tituloCapitulo(item.cap) : null, capsula: item.cap === CAPITULO_CAPSULA, preguntas: [] };
+      cap = { n: item.cap, titulo: item.cap > 0 ? tituloCapitulo(item.cap, idioma) : null, capsula: item.cap === CAPITULO_CAPSULA, preguntas: [] };
       capitulos.set(item.cap, cap);
     }
     let p = preguntas.get(clave);
@@ -260,11 +343,12 @@ export type FilaKids = {
 };
 
 /**
- * En qué castellano se le habla al padre de este chico: `kids_v2.idioma`, o el
- * de la ficha; sin ninguno, es-AR (como el motor sin el campo).
+ * En qué castellano se le habla al padre de este chico y de qué banco salen
+ * sus preguntas: el de la ficha (`kids_v2.ficha.idioma`, la del motor si ya
+ * arrancó), si no `kids_v2.idioma`; sin ninguno, es-AR (como el motor sin el campo).
  */
 export function idiomaDeFila(fila: Pick<FilaKids, "ficha" | "fichaMotor"> & { idioma?: string | null }): IdiomaKids {
-  return idiomaKidsDe(fila.idioma ?? fichaVigente(fila).idioma);
+  return idiomaKidsDe(fichaVigente(fila).idioma ?? fila.idioma);
 }
 
 /** La ficha que vale: la del motor si ya arrancó; si no, la de la compra. */

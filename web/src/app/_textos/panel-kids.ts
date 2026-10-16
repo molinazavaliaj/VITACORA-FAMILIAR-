@@ -1,13 +1,13 @@
 import { CHECKOUT_KIDS } from "./checkout-kids";
 import type { IdiomaKids } from "@/lib/kids";
-import type { FallaCambioKids, FallaCorreccion } from "@/lib/kids-panel";
+import { botonArranque, type FallaCambioKids, type FallaCorreccion } from "@/lib/kids-panel";
 
 // El panel de Vitácora Kids para los padres (/tablero/<id> de un chico, K5, 15/10).
 // En vos para Argentina (es-AR) y en tú para España (es-ES, Naza 16/10, tanda 8:
 // docs/rediseno-2026-10/kids/textos-es-ES-2026-10-16.md). Cada chico lleva el
 // suyo: `ficha.idioma` / `kids_v2.idioma` (sin el campo, es-AR). Lo que el
-// chico recibió (sus preguntas, los títulos de las partes) sale del banco de la
-// web (kids-banco.json), en vos.
+// chico recibió (sus preguntas, los títulos de las partes, el botón de arranque)
+// sale del banco de su idioma (kids-banco.json en vos, kids-banco-es-ES.json en tú).
 //
 // De dónde sale cada texto:
 //   - APROBADOS por Naza (rama vitacora-kids, docs/kids/v2/mensajes.md):
@@ -89,7 +89,7 @@ const PANEL_KIDS_AR = {
     // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ANTES-B
     antesB: "Todavía no empezó. El primer mensaje te llega a tu WhatsApp.",
     // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ESPERA-A
-    esperaA: (apodo: string) => `Ya le escribimos a ${apodo}. La primera pregunta sale cuando toque «Dale, vamos».`,
+    esperaA: (apodo: string) => `Ya le escribimos a ${apodo}. La primera pregunta sale cuando toque «${botonArranque("es-AR")}».`,
     // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-ESPERA-B (la segunda frase es la de «Pedido confirmado»)
     esperaB: "Ya te escribimos. La primera pregunta sale cuando toquen el botón, juntos.",
     // APROBADO por Naza 15/10 (tanda 2) · KP-ESTADO-PARTE
@@ -285,7 +285,7 @@ const PANEL_KIDS_ES: TextosPanel = {
     // APROBADO por Naza 16/10 (tanda 8)
     antesB: "Todavía no ha empezado. El primer mensaje te llega a tu WhatsApp.",
     // APROBADO por Naza 16/10 (tanda 8)
-    esperaA: (apodo: string) => `Ya le hemos escrito a ${apodo}. La primera pregunta sale cuando pulse «Vale, vamos».`,
+    esperaA: (apodo: string) => `Ya le hemos escrito a ${apodo}. La primera pregunta sale cuando pulse «${botonArranque("es-ES")}».`,
     // APROBADO por Naza 16/10 (tanda 8)
     esperaB: "Ya te hemos escrito. La primera pregunta sale cuando pulséis el botón, juntos.",
     // APROBADO por Naza 16/10 (tanda 8)
