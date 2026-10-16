@@ -10,13 +10,13 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `familias` | web | entrevistador | |
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`, y **una vez** `telefono_whatsapp` + `estado` + `zona_horaria` al canjear un regalo (de null a su número; de `regalo_pendiente` a `invitado`; la zona según el prefijo del teléfono, ver "Gift card")) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
-| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. **07/10 (propuesta, sin aplicar):** `clave_v3` / `wa_message_id` — entrevista V3, ver la sección propia. |
+| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. **07/10 (propuesta, sin aplicar):** `clave_v3` / `wa_message_id` — entrevista V3, ver la sección propia. **Actualizado 15/10:** las tres están aplicadas (`reservada` y `tema_de_orden` el 21/09, verificadas con HTTP 200; `clave_v3` / `wa_message_id` el 07/10, con la V3 en producción). |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`; el audiolibro, que se borró el 23/09, ya no tenía bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
-| `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
+| `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
@@ -60,6 +60,19 @@ existen con impreso. Un pedido posterior desde el panel (más copias, marcos) ll
  "impreso": "bn" | "color" | null, "copias": 0..N, "marcos": 0..N, "regalo": true}
 ```
 `regalo: true` (08/10, propuesta): el pedido es una gift card (ver "Gift card"); sin la clave no lo es.
+**Actualizado 15/10:** ya no es propuesta: la gift card está en main (PR #2, 09/10) y su migración se aplicó el 09/10.
+
+`origen` (**entra con el rediseño de la web, rama `rediseno-web`; al 15/10 todavía NO está en main**, texto
+de `docs/rediseno-2026-10/PENDIENTES.md`, F4-5, en esa rama): `pedidos.extras.origen` (opcional; lo escribe
+la web en `/api/compra`, en la rama desde el 14/10): de qué anuncio vino la compra. Forma: `{ primero: Toque, ultimo?:
+Toque }`, con `Toque = { utm_source?, utm_medium?, utm_campaign?, utm_content?, utm_term?, fbclid?, gclid?:
+string; pagina: string; fecha: string }`. `primero` es la primera visita con parámetros de campaña de los
+últimos 30 días; `ultimo`, la más reciente si hubo otra. Cada toque trae al menos un parámetro; los textos
+van recortados a 200 caracteres y sin `<`, `>`, comillas ni barras invertidas; `pagina` es la ruta donde
+cayó, sin query (empieza con `/`); `fecha` es ISO 8601 en UTC. Sin origen válido, la clave no está. Solo
+informativo: la fábrica y el entrevistador no la leen (leen `extras` por claves puntuales, vía
+`productosDelPedido`). Siempre va junto a las claves de `productosParaPedido` (con `pdf`), nunca sola. Sin
+migración (es una clave más del jsonb). Falta que el abogado confirme si hace falta consentimiento.
 Lo escribe la web al crear el pedido; la fábrica lo lee cuando produce. El
 entrevistador sigue sin mirar `pedidos`. `copias`: cuántos libros impresos van en ese
 pedido. Un pedido posterior puede ser de un invitado (su propia `familia`, mismo
@@ -308,6 +321,8 @@ La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **
 
 ## Dónde va y cómo se encuadra la foto del capítulo (migración 20260918 — PROPUESTA de Joaquín, 18/09)
 
+> **Actualizado 15/10:** aplicada por Naza el 21/09 (ROADMAP 3b.6); la fábrica respeta `posicion` y `foco` desde `04ed212`.
+
 ✅ **Acordada el 18/09** (Naza la aplica en el SQL Editor). La escribe la web, la lee la fábrica. Sale del piloto: la familia quiere decidir dónde queda la foto del
 capítulo y que no se corte la cara al ajustarla al marco. Recorte libre queda para
 después; esto cubre lo que hace falta con dos campos chicos en `fotos`:
@@ -390,6 +405,8 @@ Reglas:
 
 ## Respuestas reservadas — "esto que no vaya al libro" (PROPUESTA del 20/09, pendiente del OK de Joaquín)
 
+> **Actualizado 15/10:** aplicada por Naza el 21/09 y verificada (HTTP 200 en `respuestas.reservada` / `reservado_tramo`; ESTADO.md y ROADMAP-AGENTE T2.3). Los avisos de abajo («No está aplicada todavía», «Falta aplicar») quedaron viejos.
+
 ⚠️ **No está aplicada todavía.** La migración es `20260920000100_respuestas_reservadas.sql` y
 la aplica Naza en el SQL Editor de Supabase **cuando Joaquín dé el OK** (toca una tabla del
 entrevistador). Mientras tanto el código ya funciona sin las columnas: `select *` no las trae
@@ -440,6 +457,8 @@ Reglas:
   que la familia ya leyó impreso, no.
 
 ## Respuestas de otra parte — "esto es de otra parte" (PROPUESTA del 21/09, acordada entre los dos, pendiente de aplicar)
+
+> **Actualizado 15/10:** aplicada por Naza el 21/09 y verificada (HTTP 200 en `respuestas.tema_de_orden` / `tema_motivo`). El «No está aplicada todavía» de abajo quedó viejo.
 
 ⚠️ **No está aplicada todavía.** La migración es `20260921000000_tema_de_otra_parte.sql` y la
 aplica Naza en el SQL Editor de Supabase. Mientras tanto el código funciona sin las columnas:
@@ -511,6 +530,8 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
   cuando la PC corta. Si nadie confirma la selección, a los 15 días va la del biógrafo.
 
 ## Entrevista V3 por WhatsApp (migración 20261007000000 — PROPUESTA del 07/10, la aplica Naza)
+
+> **Actualizado 15/10:** aplicada por Naza el 07/10; la rama `v3-produccion` está en main desde el 07/10 a la noche (`08d91f4`) y la V3 corre en producción (Naza, Dora, Mariano, Imma). Ya no es propuesta.
 
 Spec: `docs/superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md`. **Una fila en
 `entrevistas_v3` prende la V3 para ese narrador**; sin fila, el entrevistador sigue como siempre.
@@ -616,6 +637,8 @@ cada uno, porque el libro lo escribe el escritor V3, abajo) (candado
 fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
 
 ### Escritor V3 en la fábrica (08/10 — rama `escritor-worker`)
+
+> **Actualizado 15/10:** la rama `escritor-worker` está en main desde el 08/10 (`a2de061`).
 
 El libro de un narrador V3 lo escribe el escritor nuevo (`fabrica/src/escritor/produccion/libro-v3.ts`,
 etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generarPaquete) no lo toca.
@@ -731,6 +754,8 @@ migración no está aplicada, el producto sigue andando: los servicios avisan po
 
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
+> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09). En git no quedó escrito si la migración `20260922000000_entregas.sql` se aplicó: verificarlo en el SQL Editor (`select to_regclass('public.entregas');` devuelve `entregas` si existe) y anotarlo acá.
+
 Diseño: `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`. Migración:
 `20260922000000_entregas.sql`. Una fila por pedido que lleva **libro impreso y/o marcos**
 (`pedidos.extras.impreso` o `marcos > 0`); un pedido de solo PDF no tiene fila. **Qué va
@@ -762,6 +787,8 @@ se corrige.
 para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
 
 ## «Sus objetos preciados» — el pedido de una foto concreta (PROPUESTA del 22/09, la aplica Naza)
+
+> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09). En git no quedó escrito si se aplicaron `20260923000000` y `20260923000100`: verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'fotos' and column_name = 'pregunta_orden';`) y anotarlo acá.
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000000_preguntas_de_objeto.sql` y la aplica
 Naza en el SQL Editor. Mientras tanto el código funciona sin la columna: `fotos.pregunta_orden` se lee
@@ -798,6 +825,8 @@ Reglas:
   objeto se saltean. Es para el narrador que no puede sacar ni mandar fotos.
 
 ## Saber si el mensaje llegó — `envios.entrega` (PROPUESTA del 23/09, la aplica Naza)
+
+> **Actualizado 15/10:** el código está en main desde el 27/09. En git no quedó escrito si se aplicó `20260923000200_envios_entrega.sql` (el ROADMAP del 29/09 ya manda a mirar `envios.entrega`, lo que sugiere que sí): verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'envios' and column_name = 'entrega';`) y anotarlo acá.
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000200_envios_entrega.sql`. Mientras tanto
 el código funciona sin las columnas: avisa por consola (los logs de Railway ya sirven para saber qué

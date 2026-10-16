@@ -2,6 +2,8 @@
 
 Rama **`v3-produccion`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-produccion`). Sale de `v3`, que ya tiene `main` adentro (merge `01329bb`, subido a `origin/v3`). Está pusheada y **sin mergear a `main`**.
 
+> **Actualizado 15/10:** `v3-produccion` está en main desde el 07/10 a la noche (`08d91f4`) y la migración `20261007000000` se aplicó el 07/10. La V3 corre en producción.
+
 - Diseño: [`docs/superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md`](../superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md).
 - Plan: [`docs/superpowers/plans/2026-10-07-entrevista-v3-whatsapp.md`](../superpowers/plans/2026-10-07-entrevista-v3-whatsapp.md), 15 tareas.
 
