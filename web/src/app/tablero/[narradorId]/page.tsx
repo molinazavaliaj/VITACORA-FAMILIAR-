@@ -17,7 +17,7 @@ import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { HistoriaViaje } from "./viaje";
 import { HistoriaV3 } from "./v3";
 import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
-import { diasDelViaje, fechaDelDia, type Viaje } from "@/lib/viaje";
+import { viajeDelContexto } from "@/lib/viaje";
 import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -458,40 +458,35 @@ async function armarLectura({
   const cierre = (contadas: number) =>
     rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO ? <CierreAnticipado narradorId={n.id} trato={tratoPanel} /> : null;
 
-  // Vitácora de viaje (3t.19): otra pantalla. Los capítulos son las etapas y no
-  // hay guion que mostrar ni editar: la plantilla global del Familiar (30
-  // preguntas) no se mezcla acá — era lo que veía el viajero antes.
-  if (contexto.modo === "viaje" && contexto.viaje) {
-    const viaje = contexto.viaje as Viaje;
-    const noches = diasDelViaje(viaje);
+  // Vitácora de Viaje V2 (16/10): otra pantalla, mínima (viaje.tsx). Sin
+  // guion ni etapas: lo contado en orden de llegada y las fotos. Las fechas se
+  // corren desde acá solo mientras el bot no creó su fila en `viajes_v2`.
+  const viaje = viajeDelContexto(contexto);
+  if (viaje) {
     const lista = (respuestas as RespuestaVista[] | null) ?? [];
-    const voz = vozViaje(lista, noches, (o) => (o >= 1 && o <= noches ? `Noche ${o} · ${fechaLarga(fechaDelDia(viaje, o))}` : "Al volver"));
+    const voz = vozViaje(lista, (r) => fechaLarga(r.recibido_at.slice(0, 10)));
+    let puedeCambiarFechas = false;
+    if (rol === "duena" && !cerrado) {
+      const { data: filaV2, error: errorV2 } = await admin.from("viajes_v2").select("narrador_id").eq("narrador_id", n.id).maybeSingle();
+      puedeCambiarFechas = !filaV2 && (!errorV2 || errorV2.code === "42P01" || errorV2.code === "PGRST205");
+    }
     return {
       cuerpo: (
         <HistoriaViaje
-          enMarco
           n={n}
           rol={rol}
           viaje={viaje}
-          zonaHoraria={fila.zona_horaria ?? "UTC"}
           respuestas={lista}
           fotos={fotosData}
-          preguntasEnviadas={preguntasEnviadas}
-          repreguntasEnviadas={repreguntasEnviadas}
           usuarioId={user.id}
-          historiasRiel={historiasRiel}
           aprobado={aprobado}
           historiaCerrada={historiaCerrada}
-          linkPublico={linkPublico}
-          invitados={soloInvitados}
-          dudasAbiertas={dudasAbiertas}
-          ritmo={ritmo}
-          evitar={evitar}
-          horario={horario}
+          puedeCambiarFechas={puedeCambiarFechas}
+          trato={tratoPanel}
         />
       ),
       voz,
-      subirFoto: subir(viaje.etapas.map((e) => e.nombre)),
+      subirFoto: subir([]),
       familia,
       cierre: cierre(voz.respuestas),
     };
