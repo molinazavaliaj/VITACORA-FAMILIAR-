@@ -8,6 +8,8 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 **(05/10)** Aplicada la revisión de Fable leída como el chico ([`paso-4-revision-fable.md`](paso-4-revision-fable.md), aprobada por Naza salvo la 18) y las decisiones de los huecos ([`paso-4-huecos-decisiones.md`](paso-4-huecos-decisiones.md)). Cada cambio lleva "(05/10)"; los textos viejos están en `banco-descartadas.md` → "Cambios del 05/10 (revisión de Fable leída como el chico)".
 
+**(16/10)** Aprobado por Naza el 16/10/2026 (tanda 10, al revisar el catalán): K14-OP «acá venía yo cuando tenía tu edad» (la frase la dice el adulto: ya no marca el género del chico), K44-OP «¿Y un lugar de ahora que quieras recordar cuando lo leas?» y el título del capítulo 5 «Para cuando seas grande (el sobre cerrado)». Cada cambio lleva "(16/10)"; los textos viejos están en `banco-descartadas.md` → "Cambios del 16/10 (tanda 10)".
+
 ## Notación
 
 | Marca | Qué es |
@@ -49,7 +51,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 | K11 (b11) | Ahora tu papá. Contame cómo es, y la última vez que hicieron algo los dos solos. | [Esta la paso] → Dale, esa la salteamos. | ¿Y algo que tu papá dice siempre y que vos ya sabés de memoria? | ¿Hacés algún deporte? Sacale una foto a la ropa o a lo que usás para jugar. [No hago] [No tengo] | ★ · sacable |
 | K12 (b12) | Vamos con hermanos. | [Tengo hermanos] → Contame la última vez que te reíste mucho con un hermano o una hermana. Y decime cómo se llaman tus hermanos, aunque sea uno solo.<br>[No tengo hermanos] → ¿Te hubiera gustado tener un hermano o una hermana? Y después, siempre: ¿Y alguien que sea casi como un hermano o hermana para vos? Contame una vez juntos, y decime cómo se llama. | Solo en la rama "Tengo": ¿Y algo tuyo que un hermano o hermana te saca sin pedir? Contame la última vez. | La ropa o las zapatillas que te ponés siempre, las que en tu casa ya quieren tirar. Mostrámelas. [No tengo] | ★ |
 | K13 (b13) | Abuelos. ¿Ves seguido a alguno? *(05/10)* | [Sí] → Contame la última vez que estuviste con alguno de tus abuelos o de tus abuelas, y decime cómo se llaman.<br>[No mucho] → Contame una vez con alguien mayor que sea como un abuelo o una abuela para vos, y decime cómo se llama. | ¿Y algo que un abuelo o abuela te enseñó a hacer? Contame ese día. | Buscá la foto o la cosa más vieja que haya en tu casa y sacale una foto. ¿Qué sabés de eso? [No tengo] | ★ |
-| K14 (b14) | ¿Alguna vez te contaron cómo era la vida cuando tus abuelos eran chicos? Contame la historia que te quedó. | — | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo de chic{{o/a}}"? Contame ese día. | ¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha. [De ninguno] [No tengo] | |
+| K14 (b14) | ¿Alguna vez te contaron cómo era la vida cuando tus abuelos eran chicos? Contame la historia que te quedó. | — | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo cuando tenía tu edad"? Contame ese día. *(16/10)* | ¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha. [De ninguno] [No tengo] | |
 | K15 (b15) | Contame una tarde con un amigo o una amiga en la que no te querías ir a tu casa, y decime cómo se llama. | — | ¿Y cómo te hiciste amig{{o/a}} de la persona con la que mejor te llevás? Contame ese día, y decime cómo se llama. | ¿Tenés un ídolo, o varios, del deporte o de lo que sea? Mandame una foto y contame qué tienen. [No tengo] | ★ |
 | K16 (b17) | ¿Tenés primos o primas? *(05/10)* | [Tengo primos] → Contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale.<br>[No tengo] → Dale, no pasa nada. | ¿Y qué hacen cuando se juntan? Contame la última. | — | |
 | K17 (b18) | ¿Hay un tío o una tía con quien te llevás mejor, si es que tenés? Contame algo que hace ese tío o esa tía que nadie más de la familia hace, y decime cómo se llama. | — | ¿Y qué te dice siempre cuando te ve? Contame la última vez. | — | |
@@ -99,7 +101,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 **Cierre:** Eso fue lo que te pasó. ¿Quedó alguna historia tuya que no te pregunté y querés en el libro? — [No, eso fue todo] [Sí, hay algo] *(botones, 05/10; ver Mensajes ya aprobados → Cierres de capítulo)*
 
-## Capítulo 5 · Para cuando seas grande (la cápsula)
+## Capítulo 5 · Para cuando seas grande (el sobre cerrado)
 
 **Entrada:** Última parte, y es distinta. Estas últimas van en un sobre cerrado, pegado al libro, para que lo abras cuando seas grande.
 
@@ -110,7 +112,7 @@ Van en un sobre pegado al impreso y en un PDF aparte, no en el cuerpo del libro.
 | K41 (b41) | ¿Ya te pasó que te guste alguien? Sin decirme quién, contame cómo te diste cuenta. Y si todavía no, cómo te lo imaginás. | [Esta no, gracias] → Dale, esa la salteamos. | ¿Y qué es lo que te pone nervios{{o/a}} de otra persona, aunque no sepas por qué? | — | con paso |
 | K42 (b42) | Si algún día tenés un hijo o una hija, ¿qué vas a hacer igual a como te criaron a vos, y qué cambiarías? | — | ¿Y qué cosa de tu casa te gustaría que siga existiendo cuando seas grande? | — | ★ · un solo mensaje |
 | K43 (b43) | Hacele una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras. | — | ¿Y qué le preguntarías que hoy no te animás a preguntarle a nadie? | — | |
-| K44 (b44) | ¿Qué es lo que no querés olvidarte nunca de tu vida de ahora? | — | ¿Y un lugar de ahora que querés que vuelva cuando lo leas? | — | |
+| K44 (b44) | ¿Qué es lo que no querés olvidarte nunca de tu vida de ahora? | — | ¿Y un lugar de ahora que quieras recordar cuando lo leas? *(16/10)* | — | |
 | K45 (b45) | Cerrá los ojos un segundo. Un día cualquiera de tu vida de grande. Contámelo como te lo imaginás. | — | ¿Y qué es lo primero que hacés a la mañana en esa vida? | — | |
 | K46 (b46) | Esta no es una pregunta, es un mensaje. El día que abras el sobre, ¿qué querés que lea de vos de ahora? Tomate el tiempo que quieras. *(05/10)* | — | ¿Y qué creés que va a pensar cuando lea esto? | — | ★ |
 | K47 (b47) | La última. Imaginate que alguien no te conoce nada y tenés dos minutos para que sepa quién sos. Contame. | — | ¿Y qué diría de vos un amigo o una amiga si le preguntan cómo sos? | — | ★ |

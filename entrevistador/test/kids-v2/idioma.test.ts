@@ -87,7 +87,7 @@ const deCatalunya = (o: { enFicha?: boolean } = {}) => {
 };
 
 describe('kids: un chico de Catalunya por el bot', () => {
-  it("arranca con las plantillas _ca (ca), [D'acord, som-hi] le manda K1 en catalán y el audio se transcribe en ca", async () => {
+  it("arranca con las plantillas _ca (ca), [Vinga, som-hi] le manda K1 en catalán y el audio se transcribe en ca", async () => {
     for (const enFicha of [true, false]) {
       const b = deCatalunya({ enFicha });
       expect(fichaParaArrancar(fila(b)).idioma).toBe('ca');
@@ -98,7 +98,7 @@ describe('kids: un chico de Catalunya por el bot', () => {
       await tickKids(t.deps);
       expect(t.enviados.map((e) => [e.plantilla, e.idiomaMeta])).toEqual([['kids_bienvenida_plural_ca', 'ca'], ['kids_aviso_padre_ca', 'ca']]);
       expect(fila(b).estado!.motor.ficha.idioma).toBe('ca');
-      await procesarEntranteKids(t.deps, CHICO, boton("D'acord, som-hi", 'wamid.salida.1'));
+      await procesarEntranteKids(t.deps, CHICO, boton("Vinga, som-hi", 'wamid.salida.1'));
       const k1 = t.enviados.at(-1)!;
       expect(k1.texto).toBe(preguntaEn('K1', 'ca').texto);
       expect(k1.botones).toEqual(['Passo']);

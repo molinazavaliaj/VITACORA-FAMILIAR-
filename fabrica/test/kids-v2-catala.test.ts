@@ -74,8 +74,8 @@ describe('kids v2 catalán: banco-ca.md atado a banco.md', () => {
     expect(forma(b)).toEqual(forma(BANCO));
     expect(entradasDelBanco(b).map((e) => [e.id, e.texto])).toEqual(ENTRADAS.map((e) => [e.id, TEXTOS[e.id]]));
     expect(preguntaEn('K12', 'ca').ramas.map((r) => r.boton)).toEqual(['Tinc germans', 'No tinc germans']);
-    expect(fijoEn('B-SEGUIR', 'ca').botones).toEqual(["D'acord, una altra", 'Demà segueixo']);
-    expect(bancoDe('ca').capitulos.map((c) => c.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat", 'Per quan siguis gran (la càpsula)']);
+    expect(fijoEn('B-SEGUIR', 'ca').botones).toEqual(["Vinga, una altra", 'Demà segueixo']);
+    expect(bancoDe('ca').capitulos.map((c) => c.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat", 'Per a quan siguis gran (el sobre tancat)']);
   });
 
   it('las plantillas: mismo nombre con _ca, idioma de Meta «ca», y son las 13 de plantillas-meta-kids-ca.md', () => {
@@ -143,7 +143,7 @@ describe('kids v2 catalán: quien regala', () => {
     const ms = k.salidas.filter((x): x is Extract<Salida, { tipo: 'mensaje' }> => x.tipo === 'mensaje');
     expect(ms.map((m) => m.plantilla?.nombre)).toEqual(['kids_bienvenida_plural_ca', 'kids_aviso_padre_ca']);
     expect(ms[0].texto).toContain("perquè els teus pares t'han fet un regal");
-    expect(ms[0].botones).toEqual(["D'acord, som-hi"]);
+    expect(ms[0].botones).toEqual(["Vinga, som-hi"]);
   });
 });
 
@@ -165,9 +165,9 @@ describe('kids v2 catalán: K18 se recorta con su propia frase, solo borrando pa
     const k18 = (temasSacados: Tema[]) => preguntaMsg(nuevoEstado({ ...FICHA_CA, temasSacados }), pregunta('K18')).texto;
     const aprobado = preguntaEn('K18', 'ca').texto;
     expect(k18([])).toBe(aprobado);
-    expect(k18(['papa'])).toBe("Hi ha algú que ara és de la teva família però abans no, com la parella de la teva mare, o algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
-    expect(k18(['mama'])).toBe("Hi ha algú que ara és de la teva família però abans no, com la parella del teu pare, o algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
-    expect(k18(['mama', 'papa'])).toBe("Hi ha algú que ara és de la teva família però abans no, com algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
+    expect(k18(['papa'])).toBe("Hi ha algú que ara és de la teva família, però abans no, com la parella de la teva mare, o algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
+    expect(k18(['mama'])).toBe("Hi ha algú que ara és de la teva família, però abans no, com la parella del teu pare, o algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
+    expect(k18(['mama', 'papa'])).toBe("Hi ha algú que ara és de la teva família, però abans no, com algú que ha vingut a viure amb vosaltres? Explica'm el dia que us vau conèixer.");
     const palabras = (t: string) => t.split(/\s+/).map((w) => w.replace(/[,.?¿]/g, ''));
     for (const temas of [['papa'], ['mama'], ['mama', 'papa']] as Tema[][]) {
       const ap = palabras(aprobado);
@@ -201,7 +201,7 @@ describe('kids v2 catalán: los botones que toca un chico de Catalunya', () => {
 
   it('hacen lo mismo que en rioplatense (K12 empieza por «Tinc», no por «Tengo»)', () => {
     const igual: [string, Fase, string, string][] = [
-      ['K5', { tipo: 'seguir' }, "D'acord, una altra", 'Dale, otra'],
+      ['K5', { tipo: 'seguir' }, "Vinga, una altra", 'Dale, otra'],
       ['K39', { tipo: 'tranquila' }, 'Sí, una tranquil·la', 'Dale, una tranquila'],
       ['CIERRE-1', { tipo: 'cierre' }, 'No, ja està tot', 'No, eso fue todo'],
       ['EXTRAS', { tipo: 'extras-otra' }, 'Ho deixem aquí', 'Lo dejamos acá'],

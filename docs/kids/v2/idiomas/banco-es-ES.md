@@ -36,7 +36,7 @@ CAP-1 | De pequeño
 CAP-2 | Mi gente
 CAP-3 | Mi mundo ahora
 CAP-4 | Lo que me ha pasado
-CAP-5 | Para cuando seas mayor (la cápsula)
+CAP-5 | Para cuando seas mayor (el sobre cerrado)
 BOTON-PASO | Paso
 ENTRADA-1 | Empezamos por cuando eras más pequeñ{{o/a}}. Tú cuenta como te salga.
 K1 | ¿Cuál es el primer recuerdo de tu vida? Lo más antiguo que tengas, aunque sea borroso.
@@ -100,7 +100,7 @@ K13-OP | ¿Y algo que un abuelo o abuela te enseñó a hacer? Cuéntame ese día
 K13-FOTO | Busca la foto o la cosa más antigua que haya en tu casa y hazle una foto. ¿Qué sabes de eso?
 K13-FOTO-B1 | No tengo
 K14 | ¿Alguna vez te han contado cómo era la vida cuando tus abuelos eran pequeños? Cuéntame la historia que se te quedó.
-K14-OP | ¿Y un sitio al que te llevaron y te dijeron "aquí venía yo de pequeñ{{o/a}}"? Cuéntame ese día.
+K14-OP | ¿Y un sitio al que te llevaron y te dijeron "aquí venía yo cuando tenía tu edad"? Cuéntame ese día.
 K14-FOTO | ¿Eres de algún equipo? Hazle una foto a algo que tengas de ese equipo y cuéntame cómo te hiciste de ese equipo.
 K14-FOTO-B1 | De ninguno
 K14-FOTO-B2 | No tengo
@@ -202,7 +202,7 @@ K42-OP | ¿Y qué cosa de tu casa te gustaría que siga existiendo cuando seas m
 K43 | Hazle una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras.
 K43-OP | ¿Y qué le preguntarías que hoy no te atreves a preguntarle a nadie?
 K44 | ¿Qué es lo que no quieres olvidar nunca de tu vida de ahora?
-K44-OP | ¿Y un sitio de ahora que quieres que vuelva cuando lo leas?
+K44-OP | ¿Y un sitio de ahora que quieras recordar cuando lo leas?
 K45 | Cierra los ojos un segundo. Un día cualquiera de tu vida de mayor. Cuéntamelo como te lo imaginas.
 K45-OP | ¿Y qué es lo primero que haces por la mañana en esa vida?
 K46 | Esta no es una pregunta, es un mensaje. El día que abras el sobre, ¿qué quieres que lea de ti de ahora? Tómate el tiempo que quieras.
@@ -311,7 +311,7 @@ Solo las filas donde cambió algo más que la conjugación y el vocabulario obvi
 
 | ID | rioplatense | España | por qué |
 |---|---|---|---|
-| CAP-1, ENTRADA-1, K3, K5, K9, K14, K14-OP, CIERRE-1 | chiquito / chic{{o/a}} / eran chicos | pequeño / pequeñ{{o/a}} / eran pequeños | En España «chico» es un adolescente o un joven, no un niño pequeño; «de pequeño» es lo que se dice. |
+| CAP-1, ENTRADA-1, K3, K5, K9, K14, CIERRE-1 | chiquito / chic{{o/a}} / eran chicos | pequeño / pequeñ{{o/a}} / eran pequeños | En España «chico» es un adolescente o un joven, no un niño pequeño; «de pequeño» es lo que se dice. |
 | CAP-5, ENTRADA-5, K22, K42-OP, K45, X5-1, BIEN-CHICO, BIEN-CHICO-PL, FINAL-CHICO, FINAL-CHICO-PL | grande (de edad): «cuando seas grande», «de grande» | mayor: «cuando seas mayor», «de mayor» | «De grande» no se dice en España; es «de mayor». |
 | K19, K22-OP | un grande que no es de tu familia / los grandes que conocés | un adulto / los adultos que conoces | «Un mayor» suelto en España se lee como una persona anciana; «adulto» es claro para un chico de 11. |
 | K19, ENTRADA-3, X3-2, COMPRA-2-HORA, COMPRA-3-TEMAS | la escuela | el cole | A los 11 en España se va «al cole» (6.º de Primaria); «la escuela» suena a documento. |
@@ -411,3 +411,13 @@ Leyó la lectura a ciegas de Marta (madre de Zaragoza, [`lectura-espana-2026-10-
 7. **El botón citado al padre es el de España.** AVISO-PADRE (y su plantilla `kids_aviso_padre_es_es`) ya decía «Vale, vamos». KP-ESTADO-ESPERA-A del panel es de la web: va a la otra rama.
 
 Lo de la lectura que no entró en esta tanda (decisión de Naza, sin tocar): PANEL-GUIA-EJ «mazorca» → «manzana», la hora por defecto de COMPRA-2-HORA y «familia reconstituida» en `checkout-kids.ts` (este archivo ya dice «Su nueva familia»).
+
+## Aprobado por Naza el 16/10/2026 (tanda 10)
+
+Al revisar el catalán salieron tres textos que estaban mal también acá y en rioplatense. Naza aprobó el cambio en los tres idiomas:
+
+1. **K14-OP** «aquí venía yo cuando tenía tu edad» (antes «de pequeñ{{o/a}}»: la marca tomaba el género del chico, pero la frase la dice el adulto).
+2. **K44-OP** «¿Y un sitio de ahora que quieras recordar cuando lo leas?» (antes «que quieres que vuelva», que se entendía mal).
+3. **CAP-5** «Para cuando seas mayor (el sobre cerrado)» (antes «(la cápsula)»: todos los demás mensajes dicen «el sobre cerrado»).
+
+K46 sigue igual.

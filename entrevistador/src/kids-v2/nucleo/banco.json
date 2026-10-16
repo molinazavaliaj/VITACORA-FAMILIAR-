@@ -18,7 +18,7 @@
     },
     {
       "n": 5,
-      "titulo": "Para cuando seas grande (la cápsula)"
+      "titulo": "Para cuando seas grande (el sobre cerrado)"
     }
   ],
   "preguntas": [
@@ -340,7 +340,7 @@
       "ramas": [],
       "botonPaso": "Paso",
       "op": {
-        "texto": "¿Y un lugar al que te llevaron y te dijeron \"acá venía yo de chic{{o/a}}\"? Contame ese día.",
+        "texto": "¿Y un lugar al que te llevaron y te dijeron \"acá venía yo cuando tenía tu edad\"? Contame ese día.",
         "soloRama": null
       },
       "foto": {
@@ -933,7 +933,7 @@
       "ramas": [],
       "botonPaso": "Paso",
       "op": {
-        "texto": "¿Y un lugar de ahora que querés que vuelva cuando lo leas?",
+        "texto": "¿Y un lugar de ahora que quieras recordar cuando lo leas?",
         "soloRama": null
       },
       "foto": null,
