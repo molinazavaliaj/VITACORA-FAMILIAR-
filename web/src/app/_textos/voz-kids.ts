@@ -15,14 +15,14 @@ export const VOZ_KIDS = {
   // APROBADO por Naza 16/10 (tanda 5, libro de Kids) · «Escuchala» del QR, tal cual
   escuchala: "Escuchala",
 
-  // TEXTO PARA NAZA · KV-BAJADA (debajo de «Su voz»)
+  // APROBADO por Naza 16/10 (tanda 7) · KV-BAJADA (debajo de «Su voz»)
   bajada: "Acá están sus respuestas, tal como las dijo. Tocá una para escucharla.",
-  // TEXTO PARA NAZA · KV-SIN-AUDIOS (si todavía no hay ningún audio para escuchar)
+  // APROBADO por Naza 16/10 (tanda 7) · KV-SIN-AUDIOS (si todavía no hay ningún audio para escuchar)
   sinAudios: "Sus respuestas en audio todavía se están preparando.",
-  // TEXTO PARA NAZA · KV-PESTANA-LIBRO (la pestaña y el título de la sección del libro online)
+  // APROBADO por Naza 16/10 (tanda 7) · KV-PESTANA-LIBRO (la pestaña y el título de la sección del libro online)
   libro: "El libro",
-  // TEXTO PARA NAZA · KV-LIBRO-NO-ESTA (si el libro online todavía no está)
+  // APROBADO por Naza 16/10 (tanda 7) · KV-LIBRO-NO-ESTA (si el libro online todavía no está)
   libroNoEsta: "El libro todavía se está preparando.",
-  // TEXTO PARA NAZA · KV-ETIQUETA-AUDIO (no se ve, lo lee el lector de pantalla después de «Escuchar»)
+  // APROBADO por Naza 16/10 (tanda 7) · KV-ETIQUETA-AUDIO (no se ve, lo lee el lector de pantalla después de «Escuchar»)
   etiquetaAudio: (texto: string) => `la respuesta «${texto.slice(0, 40)}»`,
 } as const;
