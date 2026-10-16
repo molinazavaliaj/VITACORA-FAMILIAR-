@@ -81,6 +81,10 @@ pedido. Un pedido posterior puede ser de un invitado (su propia `familia`, mismo
 web usa `productosDelPedido()` para eso; la fábrica debe hacer lo mismo.
 
 **Vitácora de viaje (18/09, Joaquín — `docs/vitacora-de-viaje.md`):** un producto aparte.
+**16/10/2026: el viaje viejo (V1) se borró del entrevistador; la Viaje es solo V2.** `contexto.viaje` de una
+compra nueva lleva `v: 2` y los campos de la `Compra` V2 (ver "Viaje V2 por WhatsApp" abajo y
+`docs/viajes-v2/compra-contrato.md`). Lo de este párrafo describe el formulario viejo, que el bot todavía entiende
+para dar el alta V2.
 `pedidos.extras` lleva `tipo: "viaje"` (además de `pdf: true`); sin la clave es biografía.
 El narrador tiene `contexto.modo = "viaje"`, `contexto.trato = "vos"` y `contexto.viaje`
 (`salida`, `vuelta`, `etapas: [{nombre, desde?, hasta?}]`, `compania`, `proposito`,
@@ -685,14 +689,26 @@ Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: espera 
 
 ## Viaje V2 por WhatsApp (migración 20261011000000 — **aplicada por Naza el 10/10**)
 
-Plan: `docs/viajes-v2/plan-conexion-bot.md`. Una fila en `viajes_v2` prende la Viaje V2 para ese viajero; sin fila,
-el entrevistador sigue como siempre (el viaje viejo, `contexto.modo = 'viaje'`). Ñako no se pasa.
+Plan: `docs/viajes-v2/plan-conexion-bot.md`. Una fila en `viajes_v2` prende la Viaje V2 para ese viajero.
+**Desde el 16/10/2026 la Viaje es solo V2:** el entrevistador crea la fila solo a todo narrador `invitado` con
+`contexto.modo = 'viaje'` (el tick, o al escribir primero), armando `compra` desde `contexto.viaje`. Sin datos
+suficientes no crea nada y avisa a los socios. Un viajero sin fila que ya había dicho SÍ (el viaje viejo, Ñako) no
+recibe nada más del bot. La fábrica no le arma el anticipo de biografía a ningún narrador con `modo = 'viaje'`.
+
+`contexto.viaje` de la compra nueva (lo escribe la web; contrato completo en `docs/viajes-v2/compra-contrato.md`):
+```
+{ "v": 2, "salida": "YYYY-MM-DD", "vuelta": "YYYY-MM-DD", "zonaCasa"?: IANA, "zonaViaje": IANA,
+  "horaNoche"?: "HH:MM" (19:00–22:30), "regalo"?: { "quienRegala": string }, "preguntasPropias"?: string[] (≤ 5),
+  "formato": "pdf" | "impreso", "fotosAlbum": 20 | 40, "idioma"?: "es-AR" | "es-ES" | "ca" }
+```
+El nombre sale de `como_le_dicen`. Sin `v: 2` (el formulario viejo: `salida`, `vuelta`, `etapas`…) el bot igual da
+el alta: zonas = la de su casa, formato según `pedidos.extras`, álbum de 20, y avisa a los socios lo que supuso.
 
 | Columna | Qué guarda |
 |---|---|
 | `narrador_id` | Clave primaria y referencia a `narradores`. |
 | `idioma` | `es-AR`, `es-ES` o `ca`. |
-| `compra` (jsonb) | La `Compra` de `fabrica/src/viaje-v2/tipos.ts`: fechas de salida y vuelta, zona de la casa y del viaje, hora de la noche, formato (pdf/impreso), fotos del álbum, regalo (quién regala) y preguntas propias. La escribe quien crea la fila (hoy un script; después `/comprar/viaje` V2). Si cambia el país durante el viaje, la corrige un script de los socios y el planificador reubica lo que falta (`reubicar`). |
+| `compra` (jsonb) | La `Compra` de `fabrica/src/viaje-v2/tipos.ts`: fechas de salida y vuelta, zona de la casa y del viaje, hora de la noche, formato (pdf/impreso), fotos del álbum, regalo (quién regala) y preguntas propias. La escribe el entrevistador al dar el alta (desde `contexto.viaje`, 16/10) o el script `viaje-v2-alta`. Si cambia el país durante el viaje, la corrige un script de los socios y el planificador reubica lo que falta (`reubicar`). |
 | `estado` (jsonb) | El planificador (`entrevistador/src/viaje-v2/nucleo/planificador.ts`, copia byte a byte de la fábrica): el calendario congelado, lo que se mandó y lo que contestó, la cola de salida, el álbum y los avisos. Serializable; **es la verdad del viaje**. |
 | `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
 | `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
@@ -710,8 +726,8 @@ pregunta enviada** (Naza, 10/10). `envios.tipo` suma `'viaje_v2'`.
 
 Plantillas (ventana de 24 h cerrada): `mensaje_viaje_v2`, `recordatorio_viaje_v2`, `recordatorio_viaje_ultima_v2`
 y las bienvenidas `bienvenida_viaje_v2` / `bienvenida_viaje_regalo_v2`, en los tres idiomas
-(`docs/viajes-v2/plantillas-meta.md`). Se marcan como aprobadas en `WA_PLANTILLAS_VIAJE_V2_LISTAS`; los viajeros
-nuevos entran a la V2 con `VIAJE_V2_PARA_NUEVOS=1`.
+(`docs/viajes-v2/plantillas-meta.md`). Se marcan como aprobadas en `WA_PLANTILLAS_VIAJE_V2_LISTAS`.
+`VIAJE_V2_PARA_NUEVOS` ya no existe (16/10): todo viajero nuevo entra a la V2.
 
 Álbum con cero fotos (Naza, 10/10): aviso a los socios, se repite a las 48 h y se cierra solo a los 7 días.
 
