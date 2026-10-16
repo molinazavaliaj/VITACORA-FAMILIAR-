@@ -380,8 +380,8 @@ export const KIDS_MISMO_NUMERO = "El WhatsApp de quien lo cuenta tiene que ser d
  * Kids no se vende en España.
  */
 export const KIDS_IMPRESO = {
-  // TEXTO PARA NAZA (la de la casa sin «con su voz»)
+  // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «con su voz»
   impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
-  // TEXTO PARA NAZA (la de la casa sin «Su voz»)
+  // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «Su voz»
   digitalDetalle: "PDF para leer en cualquier pantalla.",
 };
