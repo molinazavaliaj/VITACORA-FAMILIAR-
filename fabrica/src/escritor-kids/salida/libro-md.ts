@@ -10,6 +10,7 @@ import { salidaKids } from '../material/carpeta.js';
 import type { FotoKids, MaterialKids, RespuestaKids } from '../material/tipos.js';
 import { todasLasRespuestas } from '../material/de-filas.js';
 import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
+import { deIdioma } from '../idioma-textos.js';
 
 export type PiezaLibro = { clave: string; titulo: string; texto: string; ids: string[]; linea?: string; pregunta?: string; padre: boolean };
 export type FotoLibroKids = { id: string; foto: FotoKids; epigrafe: string };
@@ -26,11 +27,17 @@ export type LibroKids = {
   idioma?: IdiomaKids;
 };
 
-/** «Capítulo Uno: 11 años» y «Mis cosas a los 11» (decisiones de Naza del 15/10). */
-export const subtituloTapa = (edad: number): string => `Capítulo Uno: ${edad} años`;
-export const tituloAlbum = (edad: number): string => `Mis cosas a los ${edad}`;
+/** «Capítulo Uno: 11 años» y «Mis cosas a los 11» (decisiones de Naza del 15/10; en España van igual). En catalán, sin aprobar: tira. */
+export const TAPA_KIDS_DE: Readonly<Partial<Record<IdiomaKids, { subtitulo: (edad: number) => string; album: (edad: number) => string }>>> = {
+  'es-AR': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
+  'es-ES': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
+};
+const tapa = (idioma: IdiomaKids) => deIdioma(TAPA_KIDS_DE, idioma, 'la tapa y el álbum («Capítulo Uno», «Mis cosas a los»)');
+export const subtituloTapa = (edad: number, idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string => tapa(idioma).subtitulo(edad);
+export const tituloAlbum = (edad: number, idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string => tapa(idioma).album(edad);
 
 export function armarLibro(m: MaterialKids, s: Salidas, voz: { ids: string[] }): LibroKids {
+  const idioma: IdiomaKids = esIdiomaKids(m.ficha.idioma) ? m.ficha.idioma : IDIOMA_POR_DEFECTO;
   const partes = m.partes.map((p) => ({
     n: p.n,
     titulo: p.titulo,
@@ -47,15 +54,15 @@ export function armarLibro(m: MaterialKids, s: Salidas, voz: { ids: string[] }):
     const pieza = parte?.piezas.find((pz) => pz.ids.includes(id));
     if (parte && pieza) { suVoz.push({ id, respuesta: r, titulo: pieza.titulo || pieza.pregunta || '', parte: parte.titulo }); continue; }
     const foto = fotos.find((f) => f.foto.respuestas.some((x) => x.id === id));
-    if (foto) suVoz.push({ id, respuesta: r, titulo: foto.epigrafe || tituloAlbum(m.ficha.edad), parte: tituloAlbum(m.ficha.edad) });
+    if (foto) suVoz.push({ id, respuesta: r, titulo: foto.epigrafe || tituloAlbum(m.ficha.edad, idioma), parte: tituloAlbum(m.ficha.edad, idioma) });
   }
   return {
     nombre: m.ficha.nombre,
-    idioma: esIdiomaKids(m.ficha.idioma) ? m.ficha.idioma : IDIOMA_POR_DEFECTO,
+    idioma,
     llamado: m.ficha.llamado,
-    subtitulo: subtituloTapa(m.ficha.edad),
+    subtitulo: subtituloTapa(m.ficha.edad, idioma),
     partes,
-    album: { titulo: tituloAlbum(m.ficha.edad), fotos },
+    album: { titulo: tituloAlbum(m.ficha.edad, idioma), fotos },
     suVoz,
     sobre: { titulo: m.sobre.titulo, nombre: m.ficha.nombre, piezas: (s.sobre?.piezas ?? []).map((p) => ({ clave: p.clave, pregunta: p.pregunta, texto: p.texto })) },
   };

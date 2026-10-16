@@ -40,12 +40,14 @@ import { Cola } from '../../escritor/produccion/cola.js';
 import { suVozValida } from '../controles.js';
 import type { SalidaLectura } from '../llamadas.js';
 import { carpetaDeFilas, materialDe, salidaKids } from '../material/carpeta.js';
+import { LINEA_PADRE_DE } from '../material/de-filas.js';
 import { leerFilasKids } from '../material/de-base-kids.js';
 import { correrKids, etapaAKids, RUTA_FRENADO, RUTA_LIBERADO, salidasDe, type ContextoKids } from '../orquestador.js';
 import { fuenteDeStorage, type FuenteFotos } from '../salida/fotos.js';
-import { armarLibro, type LibroKids } from '../salida/libro-md.js';
+import { armarLibro, TAPA_KIDS_DE, type LibroKids } from '../salida/libro-md.js';
+import { TEXTOS_KIDS_DE } from '../salida/html.js';
 import { pdfsKids } from '../salida/pdf.js';
-import { enviarMailKids } from './mails.js';
+import { enviarMailKids, TEXTOS_MAIL_KIDS_DE } from './mails.js';
 import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 
 type Db = SupabaseClient;
@@ -69,6 +71,7 @@ export const AVISO_14_DIAS = 'aviso-14-dias.txt';
 export const MAIL_LIBRO_LISTO = 'mail-libro-listo.txt';
 export const APROBADO_SIN_LISTO = 'aviso-aprobado-sin-listo.txt';
 export const TRABAJANDO = 'trabajando.json';
+export const AVISO_SIN_TEXTOS = 'aviso-sin-textos-del-idioma.txt';
 /** En `{id}/escritor-kids/real/` (los escribe el orquestador; liberado.json, Naza a mano). */
 export const CARPETA_A = 'carpeta-A.json';
 export { RUTA_FRENADO as FRENADO, RUTA_LIBERADO as LIBERADO };
@@ -81,6 +84,19 @@ export const DIAS_SIN_APROBAR = 14;
 const ESPERA_TRAS_ERROR_MS = 30 * 60 * 1000;
 const ESPERA_LIBRO_MS = 15 * 60 * 1000;
 const REINTENTOS_LIBRO = 3;
+
+/**
+ * Lo que le falta a un idioma para hacer su libro entero sin una palabra de otro (los textos fijos que no salen del
+ * banco). Vacío: se puede. Hoy al catalán le falta todo (Naza no aprobó todavía sus textos): ver idioma-textos.ts.
+ */
+export function faltanTextosKids(idioma: IdiomaKids): string[] {
+  const falta: string[] = [];
+  if (!TEXTOS_MAIL_KIDS_DE[idioma]) falta.push('los mails al padre (mails.ts)');
+  if (!TEXTOS_KIDS_DE[idioma]) falta.push('los textos fijos del PDF (salida/html.ts)');
+  if (!TAPA_KIDS_DE[idioma]) falta.push('la tapa y el álbum (salida/libro-md.ts)');
+  if (!LINEA_PADRE_DE[idioma]) falta.push('la línea de la pregunta del padre en el libro (material/de-filas.ts)');
+  return falta;
+}
 
 // ---------------------------------------------------------------- el motor (los tests ponen el modelo falso)
 
@@ -478,6 +494,22 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
   if (cola.ocupada(id)) return;
   const archivos = await listar(db, PREFIJO_KIDS(id));
   const a = almacenKids(db, id);
+  // El idioma del chico: el mismo orden que el libro (material/de-filas.ts, idiomaDelChico).
+  const enFicha = chico.ficha?.idioma;
+  const idioma: IdiomaKids = esIdiomaKids(enFicha) ? enFicha : esIdiomaKids(chico.idioma) ? chico.idioma : IDIOMA_POR_DEFECTO;
+  // Un idioma sin sus textos aprobados (hoy, catalán): ni la lectura, ni el libro, ni los mails. Nunca en castellano.
+  // Un aviso a los socios, una vez; cuando estén los textos, sigue solo.
+  const falta = faltanTextosKids(idioma);
+  if (falta.length) {
+    if (!archivos.has(AVISO_SIN_TEXTOS)) {
+      const salio = await avisarSocios(
+        `El libro de Kids de ${await quienEs(db, id)} está frenado: no hay textos en ${idioma}`,
+        `El chico habla ${idioma} y faltan textos aprobados de ${falta.join(', ')}. La fábrica no lee, no escribe el libro ni manda mails en otro idioma. Cuando Naza apruebe esos textos y se suban al código, sigue solo. Este aviso sale una sola vez.`,
+      );
+      if (salio) await a.escribir(AVISO_SIN_TEXTOS, new Date(ahora).toISOString());
+    }
+    return;
+  }
   const listoTexto = archivos.has(LISTO) ? await a.leer(LISTO) : null;
 
   if (listoTexto === null) {
@@ -531,9 +563,6 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
   const listo = JSON.parse(listoTexto) as Listo;
   const enlace = chico.ficha?.linkPanel?.trim() || cargarConfig().urlBase;
   const apodo = chico.ficha?.apodo?.trim() || n.como_le_dicen?.trim() || 'tu hijo';
-  // El idioma de los mails: el mismo orden que el libro (material/de-filas.ts, idiomaDelChico).
-  const enFicha = chico.ficha?.idioma;
-  const idioma: IdiomaKids = esIdiomaKids(enFicha) ? enFicha : esIdiomaKids(chico.idioma) ? chico.idioma : IDIOMA_POR_DEFECTO;
 
   if (!n.libro_aprobado_at) {
     if (!archivos.has(MAIL_REVISAR)) {

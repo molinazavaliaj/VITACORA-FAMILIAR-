@@ -146,13 +146,13 @@ describe('kids v2 idiomas: es-ES atado a banco.md y mensajes.md', () => {
 // ── La ficha y los botones ───────────────────────────────────────────────────
 
 describe('kids v2 idiomas: la ficha', () => {
-  it('sin idioma es es-AR (y la ficha queda sin el campo); es-ES se acepta; otro frena', () => {
-    expect(IDIOMAS_KIDS).toEqual(['es-AR', 'es-ES']);
+  it('sin idioma es es-AR (y la ficha queda sin el campo); es-ES se acepta; otro frena (ca: kids-v2-catala.test.ts)', () => {
+    expect(IDIOMAS_KIDS).toEqual(['es-AR', 'es-ES', 'ca']);
     expect(idiomaDe(FICHA)).toBe('es-AR');
     expect('idioma' in validarFicha(FICHA)).toBe(false);
     expect(validarFicha(FICHA_ES).idioma).toBe('es-ES');
     expect(idiomaDe({ idioma: '' })).toBe('es-AR');
-    expect(() => validarFicha({ ...FICHA, idioma: 'ca' as never })).toThrow(/idioma/);
+    expect(() => validarFicha({ ...FICHA, idioma: 'pt' as never })).toThrow(/idioma/);
     expect(() => idiomaDe({ idioma: 'pt' })).toThrow(/pt/);
   });
 });

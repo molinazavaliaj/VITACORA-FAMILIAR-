@@ -9,12 +9,14 @@
 // hoja (box-decoration-break: clone). htmlAPdf espera `window.__libroPaginado`: se pone cuando cargan las letras.
 //
 // Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5); los de España
-// (tú), el 16/10 (tanda 8). Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR).
+// (tú), el 16/10 (tanda 8). Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR). En catalán todavía
+// no hay textos aprobados: textosKids('ca') tira (idioma-textos.ts), nunca un PDF en castellano.
 import { escaparHtml } from '../../libro/comun.js';
 import { qrDataUri } from '../../libro/qr.js';
 import type { LibroKids, VozLibro } from './libro-md.js';
 import type { FuenteFotos } from './fotos.js';
 import { IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
+import { deIdioma } from '../idioma-textos.js';
 
 export const TEXTOS_KIDS = {
   suVoz: 'Su voz',
@@ -39,7 +41,12 @@ export const TEXTOS_KIDS_ES_ES: TextosKids = {
   numeros: ['', 'Uno', 'Dos', 'Tres', 'Cuatro'],
 };
 
-export const textosKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): TextosKids => (idioma === 'es-ES' ? TEXTOS_KIDS_ES_ES : TEXTOS_KIDS);
+/** Los idiomas con sus textos aprobados (falta ca: Naza). */
+export const TEXTOS_KIDS_DE: Readonly<Partial<Record<IdiomaKids, TextosKids>>> = { 'es-AR': TEXTOS_KIDS, 'es-ES': TEXTOS_KIDS_ES_ES };
+
+export const textosKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): TextosKids => deIdioma(TEXTOS_KIDS_DE, idioma, 'los textos fijos del PDF (Su voz, Parte, números)');
+
+const LANG: Readonly<Record<IdiomaKids, string>> = { 'es-AR': 'es', 'es-ES': 'es', ca: 'ca' };
 
 export type OpcionesHtml = {
   /** El link del audio de una respuesta (el QR). En producción lo arma quien conoce el narrador y el token. */
@@ -95,8 +102,8 @@ const ESTILOS = `
   .sobre-pieza .pregunta { font-family: Archivo, Arial, sans-serif; font-size: 10.5px; letter-spacing: 0.08em; color: var(--gris3); margin: 0 0 8px; break-after: avoid; }
 `;
 
-const documento = (titulo: string, cuerpo: string, o: { conFuentes?: boolean }): string => `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>${e(titulo)}</title>${o.conFuentes === false ? '' : FUENTES}<style>${ESTILOS}</style></head>
+const documento = (titulo: string, cuerpo: string, o: { conFuentes?: boolean }, idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string => `<!doctype html>
+<html lang="${LANG[idioma]}"><head><meta charset="utf-8"><title>${e(titulo)}</title>${o.conFuentes === false ? '' : FUENTES}<style>${ESTILOS}</style></head>
 <body>${cuerpo}
 <script>(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { window.__libroPaginado = true; });</script>
 </body></html>`;

@@ -5,12 +5,14 @@
 //   revisar      el libro ya está escrito y espera que el padre lo lea y lo apruebe en su panel (decisión 9).
 //   libro_listo  el padre lo aprobó: el libro quedó entregado.
 //
-// Van en el idioma del chico (`ficha.idioma`, si no `kids_v2.idioma`): es-AR en vos, es-ES en tú. Mismo camino
+// Van en el idioma del chico (`ficha.idioma`, si no `kids_v2.idioma`): es-AR en vos, es-ES en tú. En catalán no hay
+// textos aprobados todavía: textosMailKids('ca') tira SinTextosKids (nunca un mail en castellano). Mismo camino
 // que los hitos de la casa (Resend directo, mail/hitos.ts); sin clave de Resend devuelven false y el próximo tick reintenta.
 import { cargarConfig } from '../../config.js';
 import { escaparHtml } from '../../libro/comun.js';
 import { TIMEOUT_RESEND_MS } from '../../mail/resend.js';
 import { IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
+import { deIdioma } from '../idioma-textos.js';
 
 const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 
@@ -62,8 +64,10 @@ export const TEXTOS_MAIL_KIDS_ES_ES: Record<MailKids, Texto> = {
   },
 };
 
-export const textosMailKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): Record<MailKids, Texto> =>
-  idioma === 'es-ES' ? TEXTOS_MAIL_KIDS_ES_ES : TEXTOS_MAIL_KIDS;
+/** Los idiomas con sus mails aprobados (falta ca: Naza). */
+export const TEXTOS_MAIL_KIDS_DE: Readonly<Partial<Record<IdiomaKids, Record<MailKids, Texto>>>> = { 'es-AR': TEXTOS_MAIL_KIDS, 'es-ES': TEXTOS_MAIL_KIDS_ES_ES };
+
+export const textosMailKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): Record<MailKids, Texto> => deIdioma(TEXTOS_MAIL_KIDS_DE, idioma, 'los mails al padre (revisar y libro listo)');
 
 export function cuerpoMailKids(mail: MailKids, o: { apodo: string; enlace: string; idioma?: IdiomaKids }): string {
   const t = textosMailKids(o.idioma)[mail];
@@ -72,7 +76,7 @@ export function cuerpoMailKids(mail: MailKids, o: { apodo: string; enlace: strin
     .map((p) => `        <tr><td style="padding-bottom:24px;">${p}</td></tr>`)
     .join('\n');
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${o.idioma === 'ca' ? 'ca' : 'es'}">
 <head><meta charset="utf-8" /></head>
 <body style="margin:0;padding:0;background:#ffffff;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
@@ -92,8 +96,12 @@ ${filas}
 </html>`;
 }
 
-/** Devuelve true si Resend lo aceptó. Sin clave, o si falla, false (el próximo tick reintenta). Nunca tira. */
+/**
+ * Devuelve true si Resend lo aceptó. Sin clave, o si falla, false (el próximo tick reintenta). Solo tira si no hay
+ * textos en el idioma del chico (SinTextosKids): eso no lo arregla reintentar.
+ */
 export async function enviarMailKids(mail: MailKids, o: { para: string; apodo: string; enlace: string; idioma?: IdiomaKids }): Promise<boolean> {
+  textosMailKids(o.idioma);
   try {
     const { resendApiKey } = cargarConfig();
     if (!resendApiKey) return false;

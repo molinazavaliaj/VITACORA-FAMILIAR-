@@ -20,6 +20,7 @@ import { BANCO, bancoDe, extra, extraEn, pregunta, preguntaEn } from '../../kids
 import { textoSegunTemas, type Tema } from '../../kids-v2/compra.js';
 import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 import { conGenero, esPlural, normalizarQuienRegala, primerNombre, type Genero } from '../../kids-v2/texto.js';
+import { deIdioma } from '../idioma-textos.js';
 import type { FichaKids, FilasKids, FilaRespuestaKids, FotoKids, ItemKids, MaterialKids, ParteKids, PreguntaPadreKids, RespuestaKids } from './tipos.js';
 
 export const MARCA_BOTON = '⟦botón:';
@@ -27,13 +28,13 @@ export const MARCA_FOTO = '⟦foto⟧';
 export const SIN_CLAVE = '∅';
 
 // Los títulos de las partes y las preguntas salen del banco del idioma del chico (bancoDe: es-ES, de
-// banco-es-ES.md), con el mismo ID: a un chico de España el libro le muestra lo que le preguntamos a él.
+// banco-es-ES.md; ca, de banco-ca.md), con el mismo ID: el libro le muestra lo que le preguntamos a él.
 const mensaje = (id: string, idioma: IdiomaKids): string => bancoDe(idioma).mensajes.find((m) => m.id === id)?.texto ?? '';
 const tituloParte = (n: number, idioma: IdiomaKids): string => bancoDe(idioma).capitulos.find((c) => c.n === n)?.titulo ?? '';
 
 /**
  * En qué idioma le hablamos al chico: `ficha.idioma` si la web lo puso; si no, la columna `kids_v2.idioma`; si
- * ninguno es de Kids (es-AR o es-ES), el de siempre. Mismo orden que el bot (entrevistador, kids-v2/idioma.ts).
+ * ninguno es de Kids (es-AR, es-ES o ca), el de siempre. Mismo orden que el bot (entrevistador, kids-v2/idioma.ts).
  */
 export function idiomaDelChico(f: Pick<FilasKids, 'kids'>): IdiomaKids {
   const enFicha = f.kids.ficha.idioma;
@@ -43,8 +44,11 @@ export function idiomaDelChico(f: Pick<FilasKids, 'kids'>): IdiomaKids {
 }
 
 /** Dos personas («tus abuelos», «Papá y mamá») → «te la mandan». */
-export const quienEsPlural = (quien: string): boolean => esPlural(quien) || /\s(y|e)\s/i.test(quien.trim());
-export const lineaDelPadre = (quien: string): string => `Esta pregunta te ${quienEsPlural(quien) ? 'la mandan' : 'la manda'} ${quien}`;
+export const quienEsPlural = (quien: string): boolean => esPlural(quien) || /\s(y|e|i)\s/i.test(quien.trim());
+const LINEA_CASTELLANO = (quien: string): string => `Esta pregunta te ${quienEsPlural(quien) ? 'la mandan' : 'la manda'} ${quien}`;
+/** La línea del libro arriba de una pregunta del padre, por idioma (en España va igual). En catalán, sin aprobar: tira SinTextosKids. */
+export const LINEA_PADRE_DE: Readonly<Partial<Record<IdiomaKids, (quien: string) => string>>> = { 'es-AR': LINEA_CASTELLANO, 'es-ES': LINEA_CASTELLANO };
+export const lineaDelPadre = (quien: string, idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string => deIdioma(LINEA_PADRE_DE, idioma, 'la línea de la pregunta del padre en el libro')(quien);
 
 type Destino = { item: string; parte: number } | null;
 
@@ -128,6 +132,7 @@ export function fichaDe(f: FilasKids): FichaKids {
   const fi = f.kids.ficha;
   const quienRegala = normalizarQuienRegala(fi.quienRegala);
   const llamado = fi.apodo?.trim() || f.narrador.como_le_dicen?.trim() || primerNombre(fi.nombre);
+  const idioma = idiomaDelChico(f);
   return {
     narradorId: f.kids.narrador_id,
     nombre: fi.nombre.trim(),
@@ -135,12 +140,12 @@ export function fichaDe(f: FilasKids): FichaKids {
     edad: fi.edad,
     genero: fi.genero === 'chica' ? 'f' : 'm',
     quienRegala,
-    idioma: idiomaDelChico(f),
+    idioma,
     preguntasPadre: (fi.preguntasPadre ?? [])
       .filter((p) => p.texto?.trim())
       .map((p, i) => {
         const quien = p.quien?.trim() ? normalizarQuienRegala(p.quien) : quienRegala;
-        return { clave: `PADRE-${i + 1}`, texto: p.texto.trim(), conLinea: p.conLinea, quien, linea: p.conLinea ? lineaDelPadre(quien) : '' };
+        return { clave: `PADRE-${i + 1}`, texto: p.texto.trim(), conLinea: p.conLinea, quien, linea: p.conLinea ? lineaDelPadre(quien, idioma) : '' };
       }),
   };
 }

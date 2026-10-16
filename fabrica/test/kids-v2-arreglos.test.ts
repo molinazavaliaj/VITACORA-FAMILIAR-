@@ -40,7 +40,7 @@ describe('kids v2, arreglo 1: K18 sin la mamá o el papá sacados', () => {
       expect(preguntaEn(b.pregunta, b.idioma).texto).toContain(b.frase);
       for (const x of Object.values(b.borrar)) expect(b.frase).toContain(x);
     }
-    expect(BORRADOS_POR_TEMA.map((b) => [b.pregunta, b.idioma])).toEqual([['K18', 'es-AR'], ['K18', 'es-ES']]);
+    expect(BORRADOS_POR_TEMA.map((b) => [b.pregunta, b.idioma])).toEqual([['K18', 'es-AR'], ['K18', 'es-ES'], ['K18', 'ca']]);
   });
 
   it('con los dos temas, el texto aprobado tal cual', () => {

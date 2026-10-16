@@ -3,8 +3,9 @@ import { suVozValida } from '../../src/escritor-kids/controles.js';
 import { dirDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import { correrKids, salidasDe } from '../../src/escritor-kids/orquestador.js';
 import { fuenteDeDisco } from '../../src/escritor-kids/salida/fotos.js';
-import { htmlLibroKids, htmlSobreKids, TEXTOS_KIDS_ES_ES } from '../../src/escritor-kids/salida/html.js';
-import { armarLibro, libroMd, sobreMd } from '../../src/escritor-kids/salida/libro-md.js';
+import { htmlLibroKids, htmlSobreKids, textosKids, TEXTOS_KIDS_ES_ES } from '../../src/escritor-kids/salida/html.js';
+import { SinTextosKids } from '../../src/escritor-kids/idioma-textos.js';
+import { armarLibro, libroMd, sobreMd, subtituloTapa, tituloAlbum } from '../../src/escritor-kids/salida/libro-md.js';
 import { pdfsKids } from '../../src/escritor-kids/salida/pdf.js';
 import { armarKids } from './ayuda.js';
 
@@ -75,6 +76,17 @@ describe('armado del libro de Kids', () => {
     const sobre = htmlSobreKids(libro, opciones);
     expect(sobre).toContain('VITÁCORA');
     expect(sobre).not.toMatch(/Apuntá el teléfono|>Escuchala</);
+  });
+
+  it('un chico en catalán: sin textos fijos aprobados, el libro y el PDF tiran (nunca salen en castellano)', async () => {
+    const { a, libro: deAr } = await libroDelChico();
+    const m = { ...a.m, ficha: { ...a.m.ficha, idioma: 'ca' } };
+    expect(() => armarLibro(m, salidasDe(a.x, a.m), { ids: deAr.suVoz.map((v) => v.id) })).toThrow(SinTextosKids);
+    expect(() => subtituloTapa(11, 'ca')).toThrow(/ca/);
+    expect(() => tituloAlbum(11, 'ca')).toThrow(/ca/);
+    expect(() => textosKids('ca')).toThrow(SinTextosKids);
+    await expect(htmlLibroKids({ ...deAr, idioma: 'ca' }, opciones)).rejects.toThrow(SinTextosKids);
+    expect(() => htmlSobreKids({ ...deAr, idioma: 'ca' }, opciones)).toThrow(SinTextosKids);
   });
 
   it('genera los dos PDF A5 con Chromium', async () => {

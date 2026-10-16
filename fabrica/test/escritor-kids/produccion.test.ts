@@ -17,7 +17,8 @@ import { salidasFalsasKids } from '../../src/escritor-kids/falso.js';
 import { carpetaDeFilas, materialDe } from '../../src/escritor-kids/material/carpeta.js';
 import { dirDeFijo, filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import { cuerpoMailKids, TEXTOS_MAIL_KIDS, textosMailKids } from '../../src/escritor-kids/produccion/mails.js';
-import { colaKids, contarPaginas, olvidarAvisosApagado, revisarLibrosKids, topeKids, type MotorKids } from '../../src/escritor-kids/produccion/libro-kids.js';
+import { colaKids, contarPaginas, faltanTextosKids, olvidarAvisosApagado, revisarLibrosKids, topeKids, type MotorKids } from '../../src/escritor-kids/produccion/libro-kids.js';
+import { SinTextosKids } from '../../src/escritor-kids/idioma-textos.js';
 import { fuenteDeDisco } from '../../src/escritor-kids/salida/fotos.js';
 
 const ID = '9d2e7b40-1c5f-4a83-b6e0-2f8c3a91d057'; // chico-preocupante (Benja, inventado)
@@ -457,6 +458,36 @@ describe('piezas del libro de Kids en producción', () => {
       await vuelta(db, motor);
       expect(alPadre()[1].subject).toBe('El libro de Benja está listo');
       expect(alPadre()[1].html).toContain('Se queda en tu panel');
+    }
+  });
+
+  it('en catalán todavía no hay textos aprobados: tira SinTextosKids, nunca un mail en castellano', async () => {
+    expect(faltanTextosKids('es-AR')).toEqual([]);
+    expect(faltanTextosKids('es-ES')).toEqual([]);
+    expect(faltanTextosKids('ca')).toHaveLength(4);
+    expect(() => textosMailKids('ca')).toThrow(SinTextosKids);
+    expect(() => cuerpoMailKids('revisar', { apodo: 'Jana', enlace: 'https://x.test', idioma: 'ca' })).toThrow(/ca/);
+  });
+
+  it('un chico en catalán: ni lectura, ni libro, ni mails; un aviso a los socios, una vez, y sigue frenado', async () => {
+    for (const fila of [{ ficha: { idioma: 'ca' } }, { idioma: 'ca', ficha: {} }]) {
+      mails = [];
+      const t = tablasDeBenja({ pedido: true });
+      t.kids_v2[0] = { ...t.kids_v2[0], ...(fila.idioma ? { idioma: fila.idioma } : {}), ficha: { ...(t.kids_v2[0].ficha as Fila), ...fila.ficha } };
+      const { db, archivos } = baseFalsa(t);
+      const { motor, modelo } = motorFalso();
+      await vuelta(db, motor);
+      await vuelta(db, motor);
+      expect(modelo.llamadas).toHaveLength(0);
+      expect([...archivos.keys()].filter((k) => k.includes('/real/') || k.includes('/paquete/'))).toEqual([]);
+      expect(alPadre()).toEqual([]);
+      expect(aSocios()).toHaveLength(1);
+      expect(aSocios()[0].subject).toContain('no hay textos en ca');
+      expect(archivos.has(kids('aviso-sin-textos-del-idioma.txt'))).toBe(true);
+      // Con el libro ya escrito (listo.json) tampoco sale el mail en castellano.
+      archivos.set(kids('listo.json'), JSON.stringify({ at: new Date().toISOString(), paginas: 2, sobrePaginas: 2 }));
+      await vuelta(db, motor);
+      expect(alPadre()).toEqual([]);
     }
   });
 });

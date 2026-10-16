@@ -41,7 +41,7 @@ export function temaDeExtra(x: Extra): Tema | null {
 /**
  * Una principal que nombra a mamá y papá y queda aunque se saque uno de los dos
  * temas (K18, Naza 05/10). Cada variante sale SOLO borrando palabras de la frase
- * aprobada en el banco de su idioma (banco.md; en es-ES, banco-es-ES.md): nada de
+ * aprobada en el banco de su idioma (banco.md; en es-ES, banco-es-ES.md; en ca, banco-ca.md): nada de
  * redacción nueva. Si la frase cambia en el banco, un test avisa y textoSegunTemas
  * tira error. Un idioma sin su frase también tira: nunca un K18 que nombra a quien sacaron.
  */
@@ -59,6 +59,13 @@ export const BORRADOS_POR_TEMA: readonly { pregunta: string; idioma: IdiomaKids;
     frase: 'como la pareja de tu madre o de tu padre, o alguien',
     // Igual que en es-AR, con la frase aprobada de España (tanda 8, 16/10): sin padre → "la pareja de tu madre, o alguien"; sin madre → "la pareja de tu padre, o alguien"; sin los dos → "como alguien".
     borrar: { papa: ' o de tu padre', mama: 'de tu madre o ', ambos: 'la pareja de tu madre o de tu padre, o ' },
+  },
+  {
+    pregunta: 'K18',
+    idioma: 'ca',
+    frase: 'com la parella de la teva mare o del teu pare, o algú',
+    // La frase de banco-ca.md (16/10, sin revisar todavía): sin pare → "la parella de la teva mare, o algú"; sin mare → "la parella del teu pare, o algú"; sin els dos → "com algú".
+    borrar: { papa: ' o del teu pare', mama: 'de la teva mare o ', ambos: 'la parella de la teva mare o del teu pare, o ' },
   },
 ];
 
@@ -105,7 +112,7 @@ export type Ficha = {
   /** Hasta 3. conLinea = false si marcó "sin decir que es mía". */
   preguntasPadre: PreguntaPadre[];
   /**
-   * En qué castellano le hablan (idioma.ts): 'es-AR' (vos, el de siempre) o 'es-ES' (tú). Sin el campo, es-AR:
+   * En qué idioma le hablan (idioma.ts): 'es-AR' (vos, el de siempre), 'es-ES' (tú) o 'ca' (catalán, de tu). Sin el campo, es-AR:
    * las fichas de antes del 16/10 siguen igual. Todo lo que sale (preguntas, botones, mensajes, plantillas) sale
    * del banco de ese idioma.
    */

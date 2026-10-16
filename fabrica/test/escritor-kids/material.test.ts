@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SinTextosKids } from '../../src/escritor-kids/idioma-textos.js';
 import { corregir, destinoDe, idiomaDelChico, lineaDelPadre, materialDeFilas, preguntaDe, textoDeFila, textoNombres, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
 import { bancoDe, preguntaEn } from '../../src/kids-v2/banco.js';
 import { filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
@@ -124,11 +125,12 @@ describe('material de Kids en el idioma del chico (ficha.idioma)', () => {
   const es = materialDeFilas(enEs({ idioma: 'es-ES' }, { idioma: 'es-ES', temasSacados: ['papa'] }));
   const itemEs = (clave: string) => [...es.partes.flatMap((p) => p.items), ...es.sobre.items].find((i) => i.clave === clave);
 
-  it('el idioma: ficha.idioma si la web lo puso; si no, la columna; si no es de Kids, es-AR', () => {
+  it('el idioma: ficha.idioma si la web lo puso; si no, la columna; si no es de Kids, es-AR (desde el 16/10, ca es de Kids)', () => {
     expect(idiomaDelChico(base)).toBe('es-AR');
     expect(idiomaDelChico(enEs({}, { idioma: 'es-ES' }))).toBe('es-ES');
     expect(idiomaDelChico(enEs({ idioma: 'es-ES' }))).toBe('es-ES');
-    expect(idiomaDelChico(enEs({ idioma: 'ca' }))).toBe('es-AR');
+    expect(idiomaDelChico(enEs({ idioma: 'ca' }))).toBe('ca');
+    expect(idiomaDelChico(enEs({ idioma: 'pt' }))).toBe('es-AR');
     expect(es.ficha.idioma).toBe('es-ES');
   });
 
@@ -157,5 +159,34 @@ describe('material de Kids en el idioma del chico (ficha.idioma)', () => {
 
   it('es-AR queda igual que antes', () => {
     expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Lo que me pasó']);
+  });
+});
+
+describe('material de Kids en catalán (ficha.idioma = ca)', () => {
+  const base = filasDeFijo('chico-inventado');
+  const enCa = (ficha: Record<string, unknown> = {}): FilasKids => ({ ...base, kids: { ...base.kids, idioma: 'ca', ficha: { ...base.kids.ficha, idioma: 'ca', quienRegala: 'La teva mare', ...ficha } } });
+  const sinLinea = (base.kids.ficha.preguntasPadre ?? []).map((p) => ({ ...p, conLinea: false }));
+  const ca = materialDeFilas(enCa({ preguntasPadre: sinLinea, temasSacados: ['papa'] }));
+  const itemCa = (clave: string) => [...ca.partes.flatMap((p) => p.items), ...ca.sobre.items].find((i) => i.clave === clave);
+
+  it('los títulos de las partes y del sobre salen de banco-ca.md', () => {
+    expect(ca.ficha.idioma).toBe('ca');
+    expect(ca.ficha.quienRegala).toBe('la teva mare');
+    expect(ca.partes.map((p) => p.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat"]);
+    expect(ca.sobre.titulo).toBe('Per quan siguis gran');
+  });
+
+  it('las preguntas son las que le llegaron, en catalán, con el género por palabra entera', () => {
+    expect(itemCa('K5')?.pregunta).toContain('de petit');
+    expect(preguntaDe('K5', 'chica', [], [], 'ca')).toContain('de petita');
+    expect(itemCa('K41')?.pregunta).toBe(preguntaEn('K41', 'ca').texto);
+    expect(itemCa('CIERRE-2')?.pregunta).toBe(bancoDe('ca').mensajes.find((x) => x.id === 'CIERRE-2')?.texto);
+    expect(preguntaDe('K18', 'chico', ['papa'], [], 'ca')).toContain('com la parella de la teva mare, o algú');
+    for (const i of [...ca.partes.flatMap((p) => p.items), ...ca.sobre.items]) if (!i.clave.startsWith('PADRE-')) expect(i.pregunta, i.clave).not.toMatch(/Contame|Cuéntame|\{\{/);
+  });
+
+  it('la línea de la pregunta del padre en el libro no tiene texto aprobado en catalán: tira, no sale en castellano', () => {
+    expect(() => lineaDelPadre('la teva mare', 'ca')).toThrow(SinTextosKids);
+    expect(() => materialDeFilas(enCa())).toThrow(SinTextosKids);
   });
 });

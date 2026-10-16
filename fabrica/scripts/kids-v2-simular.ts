@@ -5,7 +5,7 @@
 //   npx tsx scripts/kids-v2-simular.ts            # 800 chicos + docs/kids/v2/simulaciones/resumen.md
 //   npx tsx scripts/kids-v2-simular.ts 200        # otra cantidad (no escribe nada)
 //   npx tsx scripts/kids-v2-simular.ts --semilla 7  # un chico, mensaje por mensaje, y sus violaciones
-//   ... --idioma es-AR | es-ES | mitad            # en qué idioma (por defecto, mitad: las semillas pares en es-ES)
+//   ... --idioma es-AR | es-ES | ca | mitad | tercios  # en qué idioma (por defecto, tercios: un tercio en cada uno)
 //
 // Chicos INVENTADOS. Nunca usar acá la vida de un narrador real.
 
@@ -14,15 +14,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CONTROLES } from '../src/kids-v2/controles.js';
 import { aLocal } from '../src/kids-v2/horas.js';
-import { correrMuchos, correrUno, idiomaDeResultado, idiomaDeSemilla, type IdiomasSimulacion } from '../src/kids-v2/simulacion.js';
+import { correrMuchos, correrUno, idiomaDeResultado, idiomaDeSemilla, IDIOMAS_SIMULACION, type IdiomasSimulacion } from '../src/kids-v2/simulacion.js';
 
 const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CARPETA = path.join(FABRICA, '..', 'docs', 'kids', 'v2', 'simulaciones');
 
 const todos = process.argv.slice(2);
 const iIdioma = todos.indexOf('--idioma');
-const idiomas = (iIdioma >= 0 ? todos[iIdioma + 1] : 'mitad') as IdiomasSimulacion;
-if (!['es-AR', 'es-ES', 'mitad'].includes(idiomas)) throw new Error(`--idioma ${idiomas}: va es-AR, es-ES o mitad`);
+const idiomas = (iIdioma >= 0 ? todos[iIdioma + 1] : 'tercios') as IdiomasSimulacion;
+if (!IDIOMAS_SIMULACION.includes(idiomas)) throw new Error(`--idioma ${idiomas}: va ${IDIOMAS_SIMULACION.join(', ')}`);
 const arg = iIdioma >= 0 ? todos.filter((_, i) => i !== iIdioma && i !== iIdioma + 1) : todos;
 if (arg[0] === '--semilla') {
   const semilla = Number(arg[1]);
@@ -40,7 +40,7 @@ if (arg[0] === '--semilla') {
   const rs = correrMuchos(n, idiomas);
   const porControl = new Map<string, string[]>();
   for (const r of rs) for (const v of r.violaciones) porControl.set(v.control, [...(porControl.get(v.control) ?? []), `semilla ${r.semilla} (${r.conducta}, ${idiomaDeResultado(r)}): ${v.detalle}`]);
-  const porIdioma = (['es-AR', 'es-ES'] as const).map((i) => {
+  const porIdioma = (['es-AR', 'es-ES', 'ca'] as const).map((i) => {
     const de = rs.filter((r) => idiomaDeResultado(r) === i);
     return { i, n: de.length, terminaron: de.filter((r) => r.corrida.estado?.fase.tipo === 'terminado').length, violaciones: de.reduce((a, r) => a + r.violaciones.length, 0) };
   }).filter((x) => x.n > 0);
@@ -48,7 +48,7 @@ if (arg[0] === '--semilla') {
   const md = [
     '# Kids V2 · Simulaciones · Resumen',
     '',
-    `Generado por \`fabrica/scripts/kids-v2-simular.ts\`: ${n} chicos inventados, semillas 1 a ${n}${idiomas === 'mitad' ? ', las pares en castellano de España (es-ES) y las impares en rioplatense (es-AR)' : `, todos en ${idiomas}`}. No editar a mano.`,
+    `Generado por \`fabrica/scripts/kids-v2-simular.ts\`: ${n} chicos inventados, semillas 1 a ${n}${idiomas === 'mitad' ? ', las pares en castellano de España (es-ES) y las impares en rioplatense (es-AR)' : idiomas === 'tercios' ? ', un tercio en rioplatense (es-AR), uno en castellano de España (es-ES) y uno en catalán (ca)' : `, todos en ${idiomas}`}. No editar a mano.`,
     '',
     `- Terminaron: ${rs.filter((r) => r.corrida.estado?.fase.tipo === 'terminado').length} de ${n}.`,
     ...porIdioma.map((x) => `- ${x.i}: ${x.n} chicos, terminaron ${x.terminaron}, ${x.violaciones} violaciones.`),

@@ -3,7 +3,7 @@
 //   npx tsx scripts/kids-v2-json.ts
 //
 // banco.json sale de docs/kids/v2/banco.md y mensajes.md (la estructura y los textos es-AR);
-// banco-es-ES.json, de docs/kids/v2/idiomas/banco-es-ES.md (solo los textos, por ID).
+// banco-es-ES.json y banco-ca.json, de docs/kids/v2/idiomas/banco-<idioma>.md (solo los textos, por ID).
 // Correrlo cada vez que cambia uno de los md (los tests kids-v2-banco y kids-v2-idiomas avisan si quedó viejo).
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -21,7 +21,7 @@ const banco = parsearBancoKids(readFileSync(path.join(DOCS, 'banco.md'), 'utf8')
 escribir(path.join(SRC, 'banco.json'), banco);
 console.log(`banco.json: ${banco.preguntas.length} preguntas, ${banco.extras.length} extras, ${banco.mensajes.length} mensajes`);
 
-for (const idioma of ['es-ES']) {
+for (const idioma of ['es-ES', 'ca']) {
   const textos = parsearTextosIdiomaKidsMd(readFileSync(path.join(DOCS, 'idiomas', `banco-${idioma}.md`), 'utf8'));
   escribir(path.join(SRC, `banco-${idioma}.json`), textos);
   console.log(`banco-${idioma}.json: ${Object.keys(textos).length} textos`);
