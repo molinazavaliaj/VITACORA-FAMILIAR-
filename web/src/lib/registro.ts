@@ -319,6 +319,9 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
     else contextoFinal.idioma = v.viaje.idioma;
     contextoFinal.viaje = v.viaje;
   }
+  // En un viaje, la hora y la zona del narrador son las del viaje validado (no las que
+  // mande el navegador): la noche y la casa del contrato.
+  const viajeFinal = contextoFinal.viaje as { horaNoche?: string; zonaCasa?: string } | undefined;
 
   return {
     ok: true,
@@ -330,8 +333,8 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
       nombre: narrador.nombre.trim(),
       como_le_dicen: narrador.comoLeDicen.trim(),
       telefono_whatsapp: telefono,
-      hora_preferida: horaPreferida,
-      zona_horaria: zonaHoraria,
+      hora_preferida: viajeFinal ? viajeFinal.horaNoche ?? '21:30' : horaPreferida,
+      zona_horaria: viajeFinal?.zonaCasa ?? zonaHoraria,
       contexto: contextoFinal,
       estado: 'invitado',
     },

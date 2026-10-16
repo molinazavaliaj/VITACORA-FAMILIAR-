@@ -86,6 +86,12 @@ describe("registro y carrito de un viaje", () => {
     expect(ar.ok && ar.narrador.contexto).toMatchObject({ modo: "viaje", trato: "vos" });
     expect(ar.ok && ar.narrador.contexto.idioma).toBeUndefined();
   });
+  it("la hora y la zona del narrador salen del viaje validado, no del navegador", () => {
+    const c = cuerpo({ ...futuro, horaNoche: "20:30" });
+    const r = validarYConstruir({ ...c, narrador: { ...c.narrador, horaPreferida: "03:00", zonaHoraria: "Asia/Tokyo" } });
+    expect(r.ok && [r.narrador.hora_preferida, r.narrador.zona_horaria]).toEqual(["20:30", "Europe/Madrid"]);
+    expect(validarViaje({ ...futuro, zonaCasa: "+01:00" }, { nombre: "Sara" }).ok).toBe(false);
+  });
   it("un viaje con fechas malas no se registra", () => {
     expect(validarYConstruir(cuerpo({ ...futuro, vuelta: "2099-06-03" })).ok).toBe(false);
   });

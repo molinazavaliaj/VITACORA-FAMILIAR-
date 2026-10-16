@@ -69,6 +69,11 @@ describe("PATCH /api/viaje — las fechas (V2)", () => {
     expect((await PATCH(peticion({ vuelta: "2099-06-20" }))).status).toBe(400);
     expect(escrituras).toEqual([]);
   });
+  it("con la salida ya pasada (y el bot sin tomar el viaje), se puede correr la vuelta sin tocar la salida", async () => {
+    usar({ contexto: { modo: "viaje", viaje: { ...viaje, salida: "2020-01-01", vuelta: "2020-01-05" } }, estado: "invitado" });
+    expect((await PATCH(peticion({ vuelta: "2020-01-10" }))).status).toBe(200);
+    expect((await PATCH(peticion({ salida: "2020-01-02", vuelta: "2020-01-10" }))).status).toBe(400);
+  });
   it("ya no hay etapas ni ángulos: se ignoran (no llegan al contexto)", async () => {
     await PATCH(peticion({ etapas: [{ nombre: "Lisboa" }], angulos: ["comida"], vuelta: "2099-06-12" }));
     expect(JSON.stringify(escrituras)).not.toMatch(/Lisboa|angulos|etapas/);

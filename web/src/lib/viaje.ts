@@ -132,8 +132,18 @@ export function esFecha(v: unknown): v is string {
   return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v;
 }
 
+/** Las zonas IANA que conoce el sistema (sin desfases sueltos como "+01:00"). */
+const ZONAS_IANA: ReadonlySet<string> | null = (() => {
+  try {
+    return new Set([...Intl.supportedValuesOf("timeZone"), "UTC"]);
+  } catch {
+    return null;
+  }
+})();
+
 export function esZona(zona: unknown): zona is string {
   if (typeof zona !== "string" || !zona) return false;
+  if (ZONAS_IANA && !ZONAS_IANA.has(zona) && !PAISES.some((p) => p.zona === zona)) return false;
   try {
     new Intl.DateTimeFormat("es", { timeZone: zona });
     return true;

@@ -38,7 +38,9 @@ export async function PATCH(request: NextRequest) {
   // TEXTO PARA NAZA: los errores de las fechas en la página del viaje.
   if (["completado", "cerrado_anticipado"].includes(f.estado)) return NextResponse.json({ error: "El viaje ya terminó. Las fechas no se cambian más." }, { status: 400 });
 
-  // El bot ya tomó el viaje: las fechas son suyas.
+  // El bot ya tomó el viaje: las fechas son suyas. (Si el bot crea su fila justo entre
+  // esta lectura y la escritura de abajo, el cambio queda solo en el contexto y el bot
+  // no lo ve: la ventana es de milisegundos y el equipo lo corrige a mano.)
   const { data: filaV2, error: errorV2 } = await admin.from("viajes_v2").select("narrador_id").eq("narrador_id", narrador.id).maybeSingle();
   const tablaAusente = errorV2 && (errorV2.code === "42P01" || errorV2.code === "PGRST205");
   if (filaV2 || (errorV2 && !tablaAusente)) {
@@ -46,7 +48,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   const zonaCasa = typeof viaje.zonaCasa === "string" ? viaje.zonaCasa : "UTC";
-  const fechas = validarFechas(body.salida ?? viaje.salida, body.vuelta ?? viaje.vuelta, hoyEn(zonaCasa), mensajesDeFechas(tu));
+  // «La salida ya pasó» solo cuenta si la cambia: con la salida de siempre (aunque ya
+  // haya pasado), se puede correr la vuelta.
+  const salida = body.salida ?? viaje.salida;
+  const hoy = salida === viaje.salida ? "" : hoyEn(zonaCasa);
+  const fechas = validarFechas(salida, body.vuelta ?? viaje.vuelta, hoy, mensajesDeFechas(tu));
   if (!fechas.ok) return NextResponse.json({ error: fechas.mensaje }, { status: 400 });
 
   const contexto = { ...(f.contexto ?? {}), viaje: { ...viaje, salida: fechas.salida, vuelta: fechas.vuelta } };
