@@ -495,6 +495,8 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
 - **El worker de la PC de audio** (`voz/voz/procesar_frases.py`) corta y completa: `audio_path`,
   `segundos`, `inicio`, `fin` y `estado` (`cortada` | `fallida`, con `error` cuando falla). Nunca
   toca `texto`, `elegida` ni `confirmado_at`.
+  Una candidata con `entera: true` (solo Kids, ver «El libro de Kids en la fábrica») no se ubica con
+  Whisper: se pasa la respuesta entera, de 0 al final del audio. Sin la clave, todo sigue igual.
 - **La web** (`web/src/lib/frases.ts` y `POST /api/frases`, solo la dueña) escribe la selección de la
   familia: `elegida`, `elegida_por` (`familia`) y `confirmado_at` al darla por buena. Nunca toca
   `audio_path`, `segundos`, `inicio`, `fin` ni `estado`.
@@ -896,7 +898,7 @@ para esos (el piloto real de Naza). Todo lo de abajo vale para los chicos prendi
 |---|---|---|---|
 | `libro.pdf`, `libro.html` | fábrica | web (panel de Kids, descarga, `/voz/<token>`) | El libro A5 con «Su voz» y sus QR. **Sin** el sobre. |
 | `sobre.pdf` | fábrica | web (panel de Kids), imprenta | El sobre cerrado, aparte (decisión 6). Nunca lleva QR. |
-| `frases.json` | fábrica | web (`/voz/<token>`) | «Su voz» de Kids en el formato de siempre: una candidata por respuesta elegida, `estado = 'cortada'`, `audio_path` = el audio **entero** de la respuesta (`{id}/dia_NN.ogg`), `elegida = true`, `confirmado_at` puesto. **No** hay `frases_pedido.txt`: el worker de audio no corta nada. Cada QR del libro abre `/voz/<token>#f-<R..>`. |
+| `frases.json` | fábrica (crea), worker de audio (completa) | web (`/voz/<token>`) | «Su voz» de Kids en el formato de siempre: una candidata por respuesta elegida, `elegida = true`, `confirmado_at` puesto, `estado = 'pendiente'`, **`entera: true`**, `inicio = 0`, `fin` y `audio_path` en null. Se publica con `publicarFrases` (el mismo camino que la casa), así que va con `frases_pedido.txt`. El worker (`voz/voz/procesar_frases.py`) ve `entera` y pasa la respuesta **de 0 al final** a `{id}/voz/frases/{R..}.mp3`, con la misma cadena de sonido que la casa pero **sin Whisper** (no ubica nada, no gasta); anota `estado = 'cortada'`, `audio_path`, `inicio`, `fin` y `segundos`. Mientras no estén, la web muestra que se están preparando. Cada QR del libro abre `/voz/<token>#f-<R..>`. |
 | `libro-imprenta.pdf`, `sobre-imprenta.pdf` | fábrica | imprenta | Copias de `libro.pdf` y `sobre.pdf` al pasar la entrega a `en_produccion`. |
 
 `consumo_ia`: una fila por llamada, `servicio = 'fabrica'`, `paso` = `escritor-kids-A`, `escritor-kids-B` o

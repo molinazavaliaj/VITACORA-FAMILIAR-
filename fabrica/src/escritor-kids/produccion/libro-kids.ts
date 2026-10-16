@@ -25,7 +25,7 @@ import { cargarConfig } from '../../config.js';
 import { anotarUsoEscritorKids } from '../../costos.js';
 import type { FrasesJson } from '../../libro/frases.js';
 import { htmlAPdf } from '../../libro/pdf.js';
-import { RUTA_FRASES_JSON } from '../../libro/publicar-frases.js';
+import { publicarFrases } from '../../libro/publicar-frases.js';
 import { urlFraseDeVoz, urlVozDeNarrador } from '../../libro/token-voz.js';
 import { AlmacenSupabase } from '../../escritor/almacen/supabase.js';
 import type { Almacen } from '../../escritor/almacen/tipos.js';
@@ -288,7 +288,7 @@ export async function correrEtapaAKids(db: Db, id: string, motor: MotorKids = mo
 
 // ---------------------------------------------------------------- el libro
 
-/** «Su voz» de Kids en el frases.json de siempre: cada respuesta elegida, entera, con su audio real (sin corte). */
+/** «Su voz» de Kids en el frases.json de siempre: cada respuesta elegida, entera (`entera: true`), para que el worker la pase a mp3. */
 export function frasesKids(libro: LibroKids, narradorId: string, pedidoId: string, ahora: string): FrasesJson {
   const porParte = new Map<string, LibroKids['suVoz']>();
   for (const v of libro.suVoz) {
@@ -314,12 +314,14 @@ export function frasesKids(libro: LibroKids, narradorId: string, pedidoId: strin
         por_que: 'la eligió el escritor del libro de Kids',
         elegida: true,
         elegida_por: 'modelo' as const,
-        // El audio entero de la respuesta, tal cual lo mandó: no hay nada que cortar (sin frases_pedido.txt).
-        estado: 'cortada' as const,
-        audio_path: v.respuesta.audioPath,
+        // La respuesta entera, tal cual la mandó: el worker de audio la pasa a mp3 (como las de la casa)
+        // de 0 al final, sin ubicar nada ni gastar en Whisper. Hasta entonces la web dice que se prepara.
+        estado: 'pendiente' as const,
+        audio_path: null,
         segundos: null,
-        inicio: null,
+        inicio: 0,
         fin: null,
+        entera: true,
       })),
     })),
   };
@@ -353,7 +355,8 @@ export async function escribirLibroKids(db: Db, pedido: { id: string; narrador_i
   await subir(db, RUTA_LIBRO_PDF_KIDS(id), p.libro, 'application/pdf');
   await subir(db, RUTA_SOBRE_PDF_KIDS(id), p.sobre, 'application/pdf');
   const ahora = new Date().toISOString();
-  await subir(db, RUTA_FRASES_JSON(id), JSON.stringify(frasesKids(libro, id, pedido.id, ahora), null, 2), 'application/json');
+  // El mismo camino que la casa: frases.json y frases_pedido.txt, y el worker de audio deja los .mp3.
+  await publicarFrases(db, frasesKids(libro, id, pedido.id, ahora));
   // Último: listo.json es la señal de que todo lo de arriba está.
   const listo: Listo = { at: ahora, paginas: contarPaginas(p.libro), sobrePaginas: contarPaginas(p.sobre) };
   await almacenKids(db, id).escribir(LISTO, JSON.stringify(listo, null, 1));

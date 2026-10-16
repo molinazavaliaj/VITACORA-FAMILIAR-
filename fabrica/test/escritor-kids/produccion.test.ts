@@ -165,22 +165,22 @@ describe('el libro de Kids en el worker', () => {
     expect(claves).toContain('B/kids-parte-1');
     expect(claves.some((k) => k.startsWith('C/kids-veedor'))).toBe(true);
     for (const a of ['libro.pdf', 'sobre.pdf', 'libro.html', 'frases.json']) expect(archivos.has(paquete(a)), a).toBe(true);
-    expect(archivos.has(paquete('frases_pedido.txt'))).toBe(false); // nada que cortar: el audio va entero
+    expect(archivos.has(paquete('frases_pedido.txt'))).toBe(true); // el worker de audio pasa cada respuesta a mp3
     const listo = JSON.parse(String(archivos.get(kids('listo.json'))));
     expect(listo).toMatchObject({ paginas: 2, sobrePaginas: 2 });
     expect(Number.isFinite(Date.parse(listo.at))).toBe(true);
     expect(tablas.pedidos[0].estado).toBe('pagado'); // todavía no: falta que lo apruebe el padre
     expect(String(archivos.get(real('informe.md')))).toContain('## Algo preocupante (Naza lo liberó)');
 
-    // «Su voz»: el frases.json de siempre, con el audio entero de cada respuesta elegida (sin la preocupante).
+    // «Su voz»: el frases.json de siempre, una candidata entera por respuesta elegida (sin la preocupante), para cortar.
     const frases = JSON.parse(String(archivos.get(paquete('frases.json'))));
     const candidatas = frases.capitulos.flatMap((c: { candidatas: Fila[] }) => c.candidatas);
     expect(candidatas.map((c: Fila) => c.id).sort()).toEqual(['R02', 'R04']);
     expect(frases).toMatchObject({ version: 1, narrador_id: ID, pedido_id: 'p1' });
     expect(frases.confirmado_at).not.toBeNull();
     for (const c of candidatas) {
-      expect(c).toMatchObject({ estado: 'cortada', elegida: true });
-      expect(String(c.audio_path)).toMatch(new RegExp(`^${ID}/dia_\\d+\\.ogg$`));
+      expect(c).toMatchObject({ estado: 'pendiente', elegida: true, entera: true, inicio: 0, fin: null, audio_path: null });
+      expect(typeof c.respuesta_id).toBe('string');
     }
 
     // 4. Mail al padre: el libro está en su panel para revisar. Una sola vez.

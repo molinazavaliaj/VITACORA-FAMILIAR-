@@ -13,6 +13,9 @@ El contrato con la fábrica (`fabrica/src/libro/publicar-frases.ts`):
 `{narrador}/paquete/frases.json` con `capitulos[].candidatas[]`, cada candidata
 con `id`, `texto`, `respuesta_id` y `estado` ('pendiente' → 'cortada'); y
 `{narrador}/paquete/frases_pedido.txt` que el worker borra al terminar.
+
+Una candidata con `entera: true` (las de Vitácora Kids) no es un tramo: es la
+respuesta entera. Se pasa al mp3 de punta a punta, sin escucharla con Whisper.
 """
 
 from dataclasses import dataclass
@@ -38,6 +41,8 @@ class Pendiente:
     id: str
     texto: str
     respuesta_id: str
+    # La respuesta entera (Kids): sin ubicar la frase, de 0 al final del audio.
+    entera: bool = False
 
 
 def narradores_con_pedido(sb) -> list[str]:
@@ -83,6 +88,7 @@ def pendientes(frases: dict) -> list[Pendiente]:
                     id=str(candidata.get("id") or ""),
                     texto=str(candidata.get("texto") or ""),
                     respuesta_id=str(respuesta_id),
+                    entera=candidata.get("entera") is True,
                 )
             )
     return [f for f in faltan if f.id and f.texto]
