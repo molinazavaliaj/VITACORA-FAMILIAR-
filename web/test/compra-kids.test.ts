@@ -261,14 +261,55 @@ describe("POST /api/compra con producto kids", () => {
     expect((admin.upserts.kids_v2[0] as { ficha: FichaKids }).ficha.idioma).toBe("es-ES");
   });
 
-  it("catalán no vende Kids (no hay Kids en catalán), aunque KIDS_VENTA y el precio estén", async () => {
+  it("catalán vende Kids (tanda 10): idioma ca en kids_v2 y en la ficha, «els teus pares», Madrid, 20:00 y el precio de España", async () => {
     const admin = compraNueva();
     usar(admin);
+    const CA: EstadoKids = { ...estadoKidsInicial(undefined, "ES"), ...LLENO, hora: estadoKidsInicial(undefined, "ES").hora, tuWhatsapp: "+34 612 34 56 78" };
+    expect(CA.hora).toBe("20:00");
 
-    const r = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca")));
+    const r = await POST(peticion(cuerpoKids(CA, "ES", "ca")));
 
+    expect(r.status).toBe(200);
+    expect(admin.inserts.familias[0]).toEqual({ nombre: "Laura Gómez", region: "ES", email: "laura@ejemplo.com" });
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: "+34612345678", hora_preferida: "20:00", zona_horaria: "Europe/Madrid" });
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    // Los dos iguales: si no, el bot no arranca.
+    expect(fila.idioma).toBe("ca");
+    expect(fila.ficha.idioma).toBe("ca");
+    expect(fila.ficha).toMatchObject({ hora: "20:00", zona: "Europe/Madrid", quienRegala: "els teus pares" });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ proveedor: "stripe", monto: 59, moneda: "EUR" });
+    const [, , origen] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(origen).toEqual({ idioma: "ca", pantalla: "kids" });
+  });
+
+  it("en catalán el idioma también lo decide la web: un idioma de otra región en la ficha no pasa", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const cuerpo = cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca");
+    const r = await POST(peticion({ ...cuerpo, kids: { ...cuerpo.kids, idioma: "es-ES" } }));
+    expect(r.status).toBe(200);
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    expect([fila.idioma, fila.ficha.idioma]).toEqual(["ca", "ca"]);
+  });
+
+  it("en catalán, los avisos del servidor en catalán (mismo número, correo, WhatsApp)", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const mismo = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78", canal: "A", suWhatsapp: "612 34 56 78" }, "ES", "ca")));
+    expect(mismo.status).toBe(400);
+    expect((await mismo.json()).error).toBe("El WhatsApp de qui ho explica ha de ser diferent del teu. Si les preguntes t'arriben a tu, tria «Ho faig jo».");
+    const correo = await POST(peticion({ ...cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca"), email: "laura@" }));
+    expect((await correo.json()).error).toBe(CHECKOUT_KIDS.ca.errores.correoMal);
+    const tel = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "abc" }, "ES", "ca")));
+    expect((await tel.json()).error).toBe("El WhatsApp no sembla un número vàlid. Revisa'l i torna-ho a provar.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("/ca con la región de Argentina no vende", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ca")));
     expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe(CHECKOUT_KIDS.ca.proximamenteTexto);
     expect(admin.from).not.toHaveBeenCalled();
   });
 

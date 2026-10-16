@@ -327,8 +327,8 @@ export function CheckoutKids({
                       estado={e}
                       onElegir={(o) => cambiar(eleccionDe(o, e))}
                       onCambio={(c) => cambiar({ ...c, marcos: 0 })}
-                      textos={{ ...T, ...KIDS_IMPRESO_TEXTOS[idiomaKidsDeRegion(region)], titulo: T.libroTitulo }}
-                      tapa={{ titulo: e.nombre.trim(), idioma: "es", foto: null }}
+                      textos={{ ...T, ...KIDS_IMPRESO_TEXTOS[idiomaKidsDeRegion(region, idioma)], titulo: T.libroTitulo }}
+                      tapa={{ titulo: e.nombre.trim(), idioma: idioma === "ca" ? "ca" : "es", foto: null }}
                       formatear={f}
                     />
                   </div>

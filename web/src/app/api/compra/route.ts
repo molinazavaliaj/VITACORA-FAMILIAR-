@@ -14,7 +14,7 @@ import { conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra
 import { obtenerPrecioKids } from "@/lib/precios";
 import { esTablaAusente } from "@/lib/tabla-ausente";
 import { urlBaseMail } from "@/lib/mail";
-import { CHECKOUT_KIDS, KIDS_MISMO_NUMERO_TEXTOS } from "@/app/_textos/checkout-kids";
+import { CHECKOUT_KIDS, KIDS_ERRORES_API_CA, KIDS_MISMO_NUMERO_TEXTOS } from "@/app/_textos/checkout-kids";
 import type { Compra } from "@/lib/productos";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -445,27 +445,34 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const region = body.region;
   const trato: TratoComprador = region === "ES" ? "tu" : "vos";
-  // KIDS_VENTA, precio y región (KIDS_REGIONES: AR y ES). Nunca desde la web en
-  // catalán: no hay Kids en catalán. Sin idiomaWeb, el de la región.
+  // KIDS_VENTA, precio y región (KIDS_REGIONES: AR y ES). /ar es Argentina; la
+  // web de España en castellano y /ca son España (mismo precio, zona y hora; la
+  // de /ca en catalán, Naza 16/10, tanda 10). Sin idiomaWeb, el de la región.
   const idiomaWeb = body.idiomaWeb === undefined ? (region === "AR" ? "ar" : "es") : body.idiomaWeb;
-  const idiomaDeLaRegion = region === "AR" ? idiomaWeb === "ar" : idiomaWeb === "es";
-  if (!idiomaDeLaRegion || !kidsVendeEn(idiomaWeb as "ar" | "es")) return NextResponse.json({ error: kidsTodaviaNo(region, body.idiomaWeb) }, { status: 409 });
+  const idiomaDeLaRegion = region === "AR" ? idiomaWeb === "ar" : idiomaWeb === "es" || idiomaWeb === "ca";
+  if (!idiomaDeLaRegion || !kidsVendeEn(idiomaWeb as "ar" | "es" | "ca")) return NextResponse.json({ error: kidsTodaviaNo(region, body.idiomaWeb) }, { status: 409 });
   const precio = obtenerPrecioKids(region) as number;
+  // En catalán, los avisos del servidor también (KIDS_ERRORES_API_CA).
+  const ca = idiomaWeb === "ca";
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   if (!EMAIL_RE.test(email)) {
-    return NextResponse.json({ error: "Necesitamos un correo válido para avisarte." }, { status: 400 });
+    return NextResponse.json({ error: ca ? KIDS_ERRORES_API_CA.correo : "Necesitamos un correo válido para avisarte." }, { status: 400 });
   }
-  const leida = leerCompraKids(body, region);
+  const leida = leerCompraKids({ ...body, idiomaWeb }, region);
   if (!leida.ok) {
-    // mismoNumero: el aviso aprobado (en vos el 15/10, en tú el 16/10, tanda 8).
+    // mismoNumero: el aviso aprobado (en vos el 15/10, en tú el 16/10, tanda 8; en catalán, tanda 10).
     const error =
       leida.falla === "mismoNumero"
-        ? KIDS_MISMO_NUMERO_TEXTOS[idiomaKidsDeRegion(region)]
+        ? KIDS_MISMO_NUMERO_TEXTOS[idiomaKidsDeRegion(region, idiomaWeb)]
         : leida.falla === "telefono"
-        ? trato === "tu"
+        ? ca
+          ? KIDS_ERRORES_API_CA.telefono
+          : trato === "tu"
           ? "El WhatsApp no parece un número válido. Revísalo e intenta de nuevo."
           : "El WhatsApp no parece un número válido. Revisalo e intentá de nuevo."
+        : ca
+        ? KIDS_ERRORES_API_CA.malFormado
         : "El pedido llegó mal formado.";
     return NextResponse.json({ error }, { status: 400 });
   }
@@ -482,7 +489,7 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   const compra: Compra = compraKids(catalogoKids(catalogo(region), precio), region, carrito.impresos);
 
   const admin = crearClienteServidor();
-  const generico = () => NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
+  const generico = () => NextResponse.json({ error: ca ? KIDS_ERRORES_API_CA.generico : MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
 
   // eq y no ilike: el correo ya va en minúsculas, y en ilike un «_» o un «%»
   // del correo son comodines (la biografía, arriba, tiene el mismo problema).
@@ -547,7 +554,7 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
     console.error("compra kids: fallo crear el narrador", errorNarrador);
     await deshacer(admin, { familiaId: familiaCreada });
     const repetido = (errorNarrador as { code?: string } | null)?.code === "23505";
-    return repetido ? NextResponse.json({ error: MENSAJE_TELEFONO_REPETIDO(trato) }, { status: 409 }) : generico();
+    return repetido ? NextResponse.json({ error: ca ? KIDS_ERRORES_API_CA.repetido : MENSAJE_TELEFONO_REPETIDO(trato) }, { status: 409 }) : generico();
   }
 
   // La fila del chico. upsert: un reintento del mismo chico ya tiene la suya
@@ -566,7 +573,7 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   if (errorKids) {
     console.error("compra kids: fallo crear la fila de kids_v2", errorKids);
     await deshacer(admin, { familiaId: familiaCreada, narradorId: narradorCreado });
-    return esTablaAusente(errorKids) ? NextResponse.json({ error: kidsTodaviaNo(region) }, { status: 409 }) : generico();
+    return esTablaAusente(errorKids) ? NextResponse.json({ error: kidsTodaviaNo(region, idiomaWeb) }, { status: 409 }) : generico();
   }
 
   const { data: pedido, error: errorPedido } = await admin

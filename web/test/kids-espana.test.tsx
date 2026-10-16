@@ -40,11 +40,13 @@ describe("el idioma del chico", () => {
     expect(idiomaDeFila(fila({ idioma: "fr" }))).toBe("es-AR");
   });
 
-  it("validarFichaKids acepta idioma como el motor: es-AR, es-ES o sin el campo", () => {
+  it("validarFichaKids acepta idioma como el motor: es-AR, es-ES, ca o sin el campo", () => {
     expect(validarFichaKids({ ...FICHA, idioma: "es-ES" }).idioma).toBe("es-ES");
     expect(validarFichaKids({ ...FICHA, idioma: "es-AR" }).idioma).toBe("es-AR");
+    expect(validarFichaKids({ ...FICHA, idioma: "ca" }).idioma).toBe("ca");
+    expect(validarFichaKids({ ...FICHA, quienRegala: "La teva mare" }).quienRegala).toBe("la teva mare");
     expect(validarFichaKids(FICHA).idioma).toBeUndefined();
-    expect(() => validarFichaKids({ ...FICHA, idioma: "ca" as never })).toThrow(/idioma/);
+    expect(() => validarFichaKids({ ...FICHA, idioma: "fr" as never })).toThrow(/idioma/);
   });
 });
 

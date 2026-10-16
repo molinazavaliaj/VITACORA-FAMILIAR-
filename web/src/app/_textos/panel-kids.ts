@@ -3,11 +3,13 @@ import type { IdiomaKids } from "@/lib/kids";
 import { botonArranque, type FallaCambioKids, type FallaCorreccion } from "@/lib/kids-panel";
 
 // El panel de Vitácora Kids para los padres (/tablero/<id> de un chico, K5, 15/10).
-// En vos para Argentina (es-AR) y en tú para España (es-ES, Naza 16/10, tanda 8:
-// docs/rediseno-2026-10/kids/textos-es-ES-2026-10-16.md). Cada chico lleva el
+// En vos para Argentina (es-AR), en tú para España (es-ES, Naza 16/10, tanda 8:
+// docs/rediseno-2026-10/kids/textos-es-ES-2026-10-16.md) y en catalán (ca, tanda
+// 10: textos-ca-2026-10-16.md). Cada chico lleva el
 // suyo: `ficha.idioma` / `kids_v2.idioma` (sin el campo, es-AR). Lo que el
 // chico recibió (sus preguntas, los títulos de las partes, el botón de arranque)
-// sale del banco de su idioma (kids-banco.json en vos, kids-banco-es-ES.json en tú).
+// sale del banco de su idioma (kids-banco.json en vos, kids-banco-es-ES.json en tú,
+// kids-banco-ca.json en catalán).
 //
 // De dónde sale cada texto:
 //   - APROBADOS por Naza (rama vitacora-kids, docs/kids/v2/mensajes.md):
@@ -63,6 +65,30 @@ const PANEL_GUIA_ES: TextosGuia = {
   ],
   // APROBADO por Naza 16/10 (tanda 8)
   p5: "Las puedes escribir o cambiar hasta que empiece la cuarta parte. Después ya no se añaden.",
+};
+
+// APROBADO por Naza 16/10 (tanda 10) · PANEL-GUIA en catalán (el ejemplo 2 con
+// «poma»; p3 con «dona molt més», A28 de la revisión)
+const PANEL_GUIA_CA: TextosGuia = {
+  // APROBADO por Naza 16/10 (tanda 10)
+  titulo: "Les teves preguntes per al llibre",
+  // APROBADO por Naza 16/10 (tanda 10)
+  p1: (nombre: string) =>
+    `Pots afegir fins a tres preguntes teves. Li arriben a ${nombre} cap al final, entre la quarta part i el sobre tancat. Abans de cadascuna li diem que ve de tu, tret que prefereixis que li arribi com una pregunta més.`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  p2: "Que cada pregunta demani una sola cosa. Si vols saber dues coses, escriu dues preguntes.",
+  // APROBADO por Naza 16/10 (tanda 10) · A28, «dona molt més»
+  p3: "Funciona millor demanar-li una vegada concreta que una opinió. \"Explica'm la vegada que…\" dona molt més que \"Què sents?\" o \"Què penses de…?\".",
+  // APROBADO por Naza 16/10 (tanda 10)
+  p4: (nombre: string) => `Com totes les altres, ${nombre} la pot passar si no vol contestar-la.`,
+  // APROBADO por Naza 16/10 (tanda 10) · el ejemplo 2 con «poma»
+  ejemplos: [
+    "Explica'm el dia que vas aprendre a anar en bici sense rodetes.",
+    "Explica'm el dia que et va caure la primera dent, que va ser menjant una poma.",
+    "Explica'm la primera nit que vas dormir a casa d'un amic i ens vas trucar a les dues de la matinada.",
+  ],
+  // APROBADO por Naza 16/10 (tanda 10)
+  p5: "Les pots escriure o canviar fins que comenci la quarta part. Després ja no se n'afegeixen.",
 };
 
 /** COMPRA-2-HORA y COMPRA-3-TEMAS, como en la compra de su región. */
@@ -456,7 +482,197 @@ const PANEL_KIDS_ES: TextosPanel = {
   },
 };
 
-/** Todo lo que ve el padre en el panel, en su castellano. */
+// APROBADO por Naza 16/10 (tanda 10) · todo PANEL_KIDS en catalán, de tu
+// (textos-ca-2026-10-16.md, con las «A» de la revisión: «Què hi diu» / «Com ha
+// de ser», «En aquell moment», «Quan l'aprovis»; y «Vinga, som-hi», el botón
+// del bot en catalán, que sale del banco).
+const PANEL_KIDS_CA: TextosPanel = {
+  // APROBADO por Naza 16/10 (tanda 10)
+  etiqueta: "Vitácora Kids",
+  // APROBADO por Naza 16/10 (tanda 10)
+  titulo: (apodo: string) => `El llibre de ${apodo}`,
+
+  estado: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    pago: "Estem confirmant el pagament.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    antesA: (apodo: string) => `Encara no ha començat. Escriurem a ${apodo} a l'hora que has triat.`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    antesB: "Encara no ha començat. El primer missatge t'arriba al teu WhatsApp.",
+    // APROBADO por Naza 16/10 (tanda 10) · «Vinga, som-hi» (BIEN-CHICO-B1 del banco en catalán)
+    esperaA: (apodo: string) => `Ja hem escrit a ${apodo}. La primera pregunta surt quan premi «${botonArranque("ca")}».`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    esperaB: "Ja t'hem escrit. La primera pregunta surt quan premeu el botó, junts.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    parte: (n: number, titulo: string) => `Va per la part ${n}, «${titulo}».`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    termino: (apodo: string) => `${apodo} ha acabat d'explicar. Ara comencem a preparar el llibre.`,
+  },
+  estadoCorto: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    pago: "confirmant el pagament",
+    // APROBADO por Naza 16/10 (tanda 10)
+    antes: "encara no ha començat",
+    // APROBADO por Naza 16/10 (tanda 10)
+    contando: "explicant",
+    // APROBADO por Naza 16/10 (tanda 10)
+    termino: "ha acabat d'explicar",
+  },
+
+  // APROBADO por Naza 16/10 (tanda 10)
+  loQueCuenta: "El que explica",
+  // APROBADO por Naza 16/10 (tanda 10)
+  vacio: (apodo: string) => `Quan ${apodo} contesti la primera pregunta, el que expliqui apareix aquí.`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  parte: (n: number) => `Part ${n}`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  antes: "Abans de la primera pregunta",
+  // APROBADO por Naza 16/10 (tanda 10)
+  sobre: "Del sobre tancat",
+  // APROBADO por Naza 16/10 (tanda 10)
+  sobreTexto: (apodo: string) => `Aquestes van en un sobre tancat, enganxat al llibre, perquè ${apodo} l'obri quan sigui gran.`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  tuPregunta: (n: number) => `La teva pregunta ${n}`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  toco: (boton: string) => `Ha premut «${boton}»`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  transcribiendo: "Estem passant l'àudio a text.",
+  // APROBADO por Naza 16/10 (tanda 10)
+  fotoAlt: (apodo: string) => `Una foto que ha enviat ${apodo}`,
+  // APROBADO por Naza 16/10 (tanda 10)
+  escuchar: "la seva resposta",
+
+  correccion: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    boton: "Corregir un nom",
+    // APROBADO por Naza 16/10 (tanda 10) · A29, «què hi diu i com ha de ser»
+    ayuda: "Si un nom ha quedat mal escrit, posa què hi diu i com ha de ser. El que ha explicat no es toca, i al llibre surt bé.",
+    // APROBADO por Naza 16/10 (tanda 10) · A29
+    dice: "Què hi diu",
+    // APROBADO por Naza 16/10 (tanda 10) · A29
+    es: "Com ha de ser",
+    // APROBADO por Naza 16/10 (tanda 10)
+    guardar: "Desar",
+    // APROBADO por Naza 16/10 (tanda 10)
+    cancelar: "Cancel·lar",
+    // APROBADO por Naza 16/10 (tanda 10)
+    linea: (dice: string, es: string) => `«${dice}» va com «${es}»`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    quitar: "Treure",
+  },
+
+  preguntas: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    n: (n: number) => `Pregunta ${n}`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    pista: "Explica'm la vegada que…",
+    // APROBADO por Naza 16/10 (tanda 10)
+    ejemplos: "Per exemple",
+    // APROBADO por Naza 16/10 (tanda 10)
+    guardar: "Desar les meves preguntes",
+    // APROBADO por Naza 16/10 (tanda 10)
+    cerradas: "Ja ha començat la quarta part, així que les teves preguntes ja no es canvien.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    ninguna: "No has escrit preguntes.",
+    // APROBADO por Naza 16/10 (tanda 10) · adentro va PADRE-PREG-LINEA del banco en catalán
+    // («envien» si quien regala empieza por «els teus» o «les teves», como esPlural del motor)
+    conLinea: (quien: string) => `Abans li arriba «Aquesta pregunta te ${/^(els teus|les teves)\s/i.test(quien) ? "l'envien" : "l'envia"} ${quien}, amb les seves paraules.»`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    sinLinea: "Li arriba com una pregunta més.",
+  },
+
+  ajustes: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    titulo: "L'hora i els temes",
+    // APROBADO por Naza 16/10 (tanda 10)
+    temasAyuda: "El que marquis no es pregunta. Si ja s'ha preguntat, es queda com ho ha explicat.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    guardar: "Desar",
+  },
+
+  // APROBADO por Naza 16/10 (tanda 10)
+  guardando: "Desant…",
+  // APROBADO por Naza 16/10 (tanda 10)
+  guardado: "Desat.",
+  // APROBADO por Naza 16/10 (tanda 10)
+  pendiente: "Desat. S'aplica abans de la pregunta següent.",
+
+  errorDelMotor: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    "preguntas-cerradas": "Les teves preguntes no han arribat a temps. Ja havia començat la quarta part, així que no les hi farem.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    otro: "No hem pogut aplicar el teu últim canvi. Torna-ho a provar, i si torna a passar, escriu-nos.",
+  },
+
+  errores: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    generico: "No hem pogut desar. Torna-ho a provar.",
+    // APROBADO por Naza 16/10 (tanda 10) · A30, «En aquell moment»
+    ocupado: "En aquell moment s'estava desant un altre canvi. Torna-ho a provar.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    noKids: "Aquesta història no és de Vitácora Kids.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    hora: "Tria una hora de la llista.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    temas: "Tria els temes de la llista.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    preguntas: "Revisa les teves preguntes. Són fins a tres, i cadascuna amb el seu text.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    terminado: "Ja ha acabat d'explicar, així que això ja no es canvia.",
+    // APROBADO por Naza 16/10 (tanda 10) · A29
+    vacio: "Omple què hi diu i com ha de ser.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    noEsta: "Aquest nom no apareix en aquesta resposta. Copia'l tal com està escrit.",
+  },
+
+  libro: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    titulo: "El llibre ja està escrit",
+    // APROBADO por Naza 16/10 (tanda 10)
+    texto: (apodo: string) => `Aquí tens el llibre de ${apodo}, amb el que ha explicat. Llegeix-lo abans d'aprovar-lo. El sobre tancat va a part.`,
+    // APROBADO por Naza 16/10 (tanda 10)
+    ver: "Veure el llibre",
+    // APROBADO por Naza 16/10 (tanda 10)
+    bajar: "Descarregar el llibre",
+    // APROBADO por Naza 16/10 (tanda 10)
+    verSobre: "Veure el sobre",
+    // APROBADO por Naza 16/10 (tanda 10)
+    bajarSobre: "Descarregar el sobre",
+    // APROBADO por Naza 16/10 (tanda 10)
+    algoMal: "Si alguna cosa no està bé, escriu-nos abans d'aprovar-lo.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    aprobar: "Aprovar el llibre",
+    // APROBADO por Naza 16/10 (tanda 10) · «Quan l'aprovis» (opcional de la revisión, subjuntivo)
+    confirmar: "Quan l'aprovis, es queda així i ja no es canvia.",
+    // APROBADO por Naza 16/10 (tanda 10)
+    si: "Sí, aprovar-lo",
+    // APROBADO por Naza 16/10 (tanda 10)
+    no: "Encara no",
+    // APROBADO por Naza 16/10 (tanda 10)
+    aprobando: "Aprovant…",
+    // APROBADO por Naza 16/10 (tanda 10)
+    aprobado: (impreso: boolean) => (impreso ? "Has aprovat el llibre. Ara l'enviem a imprimir." : "Has aprovat el llibre."),
+    errores: {
+      // APROBADO por Naza 16/10 (tanda 10)
+      noListo: "El llibre encara no està llest per aprovar.",
+      // APROBADO por Naza 16/10 (tanda 10)
+      yaAprobado: "Aquest llibre ja està aprovat.",
+      // APROBADO por Naza 16/10 (tanda 10)
+      confirmar: "Falta confirmar que vols aprovar-lo.",
+      // APROBADO por Naza 16/10 (tanda 10)
+      archivo: "No hem trobat aquest fitxer.",
+    },
+  },
+
+  inicio: {
+    // APROBADO por Naza 16/10 (tanda 10)
+    preguntas: "Escriu les teves preguntes per al llibre",
+    // APROBADO por Naza 16/10 (tanda 10)
+    ver: "Veure tot el que explica",
+  },
+};
+
+/** Todo lo que ve el padre en el panel, en su idioma. */
 export type TextosPanelKids = {
   guia: TextosGuia;
   casilla: string;
@@ -489,6 +705,18 @@ export const TEXTOS_PANEL_KIDS: Record<IdiomaKids, TextosPanelKids> = {
     // APROBADO por Naza 16/10 (tanda 8) · HORA y TEMAS, los de la compra de España
     ...deLaCompra(CHECKOUT_KIDS.es),
     panel: PANEL_KIDS_ES,
+  },
+  ca: {
+    guia: PANEL_GUIA_CA,
+    // APROBADO por Naza 16/10 (tanda 10) · PANEL-CASILLA
+    casilla: "Que li arribi com una pregunta més, sense dir que és meva",
+    // APROBADO por Naza 16/10 (tanda 10) · QUIEN_LA_MANDA
+    quienLaManda: "Qui l'envia?",
+    // APROBADO por Naza 16/10 (tanda 10) · LEE_TODO (AVISO-PADRE del banco en catalán)
+    leeTodo: "Llegeix-ho tot, però no li diguis res fins al llibre.",
+    // APROBADO por Naza 16/10 (tanda 10) · HORA y TEMAS, los de la compra en catalán
+    ...deLaCompra(CHECKOUT_KIDS.ca),
+    panel: PANEL_KIDS_CA,
   },
 };
 

@@ -238,7 +238,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
  * en Argentina, tú en España (Naza 16/10, tanda 8). Cambia el asunto, la vista
  * previa y la primera línea (según el canal: A = su WhatsApp, B = «Lo hago yo»)
  * y la fila «Mientras cuenta». Lo demás (título, botón, código, «Al terminar»,
- * dudas y pie) es el del mail de siempre en ese idioma (`ar` o `es`).
+ * dudas y pie) es el del mail de siempre en ese idioma (`ar`, `es` o `ca`).
  * En vos aprobados por Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md).
  */
 export type CanalMailKids = "A" | "B";
@@ -271,6 +271,18 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
     },
     // APROBADO por Naza 16/10 (tanda 8) · enTuPanel
     enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
+  },
+  ca: {
+    // APROBADO por Naza 16/10 (tanda 10) · asunto
+    asunto: (apodo) => `Ja està en marxa el llibre de ${apodo}`,
+    primeraLinea: {
+      // APROBADO por Naza 16/10 (tanda 10) · primeraLinea.A
+      A: (apodo) => `Escriurem a ${apodo} a l'hora que has triat. A tu t'avisem per WhatsApp.`,
+      // APROBADO por Naza 16/10 (tanda 10) · primeraLinea.B
+      B: () => "El primer missatge t'arriba al teu WhatsApp. La primera pregunta surt quan estigueu junts.",
+    },
+    // APROBADO por Naza 16/10 (tanda 10) · enTuPanel
+    enTuPanel: "Al teu panell veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
   },
 };
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import bancoJson from "../src/lib/kids-banco.json";
 import bancoEsEsJson from "../src/lib/kids-banco-es-ES.json";
+import bancoCaJson from "../src/lib/kids-banco-ca.json";
 import { HORAS_KIDS } from "../src/lib/kids";
 import { validarFichaKids, type FichaKids } from "../src/lib/kids-compra";
 import {
@@ -54,7 +55,10 @@ describe("la copia del banco del motor", () => {
 
   it("los títulos de los capítulos son los aprobados", () => {
     expect(tituloCapitulo(2)).toBe("Mi gente");
-    expect(tituloCapitulo(5)).toBe("Para cuando seas grande (la cápsula)");
+    // Tanda 10 (16/10): «(el sobre cerrado)» en vez de «(la cápsula)», en los tres idiomas.
+    expect(tituloCapitulo(5)).toBe("Para cuando seas grande (el sobre cerrado)");
+    expect(tituloCapitulo(5, "es-ES")).toBe("Para cuando seas mayor (el sobre cerrado)");
+    expect(tituloCapitulo(5, "ca")).toBe("Per a quan siguis gran (el sobre tancat)");
   });
 });
 
@@ -115,6 +119,62 @@ describe("el banco de España (tú)", () => {
   });
 });
 
+describe("la tanda 10 (16/10) en los tres bancos: K14-OP, K44-OP y el título de la parte 5", () => {
+  it("K14-OP «cuando tenía tu edad» y K44-OP «que quieras recordar», sin marca de género", () => {
+    const chica = { ...FICHA, genero: "chica" as const };
+    expect(itemDeClave("K14-OP", chica, "es-AR")?.texto).toBe("¿Y un lugar al que te llevaron y te dijeron \"acá venía yo cuando tenía tu edad\"? Contame ese día.");
+    expect(itemDeClave("K14-OP", chica, "es-ES")?.texto).toBe("¿Y un sitio al que te llevaron y te dijeron \"aquí venía yo cuando tenía tu edad\"? Cuéntame ese día.");
+    expect(itemDeClave("K14-OP", chica, "ca")?.texto).toBe("I un lloc on et van portar i et van dir \"aquí hi venia jo quan tenia la teva edat\"? Explica'm aquell dia.");
+    expect(itemDeClave("K44-OP", chica, "es-AR")?.texto).toBe("¿Y un lugar de ahora que quieras recordar cuando lo leas?");
+    expect(itemDeClave("K44-OP", chica, "es-ES")?.texto).toBe("¿Y un sitio de ahora que quieras recordar cuando lo leas?");
+    expect(itemDeClave("K44-OP", chica, "ca")?.texto).toBe("I un lloc d'ara que vulguis recordar quan ho llegeixis?");
+  });
+
+  it("las tres copias dicen el mismo commit de kids-libro", () => {
+    for (const j of [bancoJson, bancoEsEsJson, bancoCaJson]) expect((j as { _origen?: string })._origen).toContain("460c0b805f17a7c22d3120cfeaf92d1e6f97ab41");
+  });
+});
+
+describe("el banco en catalán (tanda 10)", () => {
+  const ca = bancoKidsDe("ca");
+
+  it("es copia del banco del motor en catalán (rama, commit) y no se edita a mano", () => {
+    const origen = (bancoCaJson as { _origen?: string })._origen ?? "";
+    expect(origen).toContain("fabrica/src/kids-v2/banco-ca.json");
+    expect(origen).toMatch(/commit [0-9a-f]{40}/);
+  });
+
+  it("tiene los mismos ids que usa el panel, con los textos en catalán", () => {
+    expect(ca.capitulos.map((c) => c.titulo)).toEqual(["Els primers anys", "La meva gent", "El meu món ara", "El que m'ha passat", "Per a quan siguis gran (el sobre tancat)"]);
+    for (let i = 1; i <= 47; i++) expect(ca.preguntas.some((p) => p.id === `K${i}`), `K${i}`).toBe(true);
+    for (const id of MENSAJES_DEL_PANEL) expect(ca.mensajes.some((m) => m.id === id), id).toBe(true);
+    expect(ca.extras.map((x) => x.id)).toEqual(banco.extras.map((x) => x.id));
+    const todo = JSON.stringify(ca);
+    expect(todo).not.toMatch(/Contame|Cuéntame|Mostrame|tenés|querés/);
+  });
+
+  it("si al banco en catalán le falta un id, no arma nada", () => {
+    const { K10: _sin, ...falta } = bancoCaJson as unknown as Record<string, string>;
+    expect(() => armarBancoIdioma(falta, "ca")).toThrow(/K10/);
+  });
+
+  it("un chico en catalán ve sus preguntas con el género de la palabra entera, K18 recortado y «Vinga, som-hi»", () => {
+    const f = { ...FICHA, genero: "chica" as const, idioma: "ca" as const, zona: "Europe/Madrid", quienRegala: "la teva mare" };
+    expect(idiomaDeFila(fila({ ficha: f }))).toBe("ca");
+    expect(idiomaDeFila(fila({ idioma: "ca" }))).toBe("ca");
+    expect(itemDeClave("K10", f)?.texto).toBe("La teva mare. Explica'm com és, i una vegada que et va cuidar quan estaves malalta.");
+    expect(itemDeClave("K10", { ...f, genero: "chico" })?.texto).toBe("La teva mare. Explica'm com és, i una vegada que et va cuidar quan estaves malalt.");
+    expect(itemDeClave("K40", f)?.texto).toContain("estaves trista o enfadada");
+    expect(JSON.stringify(loQueCuenta([resp("K1"), resp("K10")], [], f))).not.toMatch(/\{\{/);
+    expect(tituloCapitulo(1, "ca")).toBe("Els primers anys");
+    const sinPare = itemDeClave("K18", { ...f, temasSacados: ["papa"] })!.texto!;
+    expect(sinPare).toContain("com la parella de la teva mare, o algú");
+    expect(sinPare).not.toContain("del teu pare");
+    expect(itemDeClave("K18", { ...f, temasSacados: ["papa", "mama"] })!.texto).toContain("com algú que ha vingut");
+    expect(botonArranque("ca")).toBe("Vinga, som-hi");
+  });
+});
+
 describe("a qué pregunta responde cada clave", () => {
   it("principal, rama, otra puerta, foto, extra, una más, cierre, pregunta del padre", () => {
     const f = { ...FICHA, genero: "chica" as const, preguntasPadre: [{ texto: "Contame el día de la bici.", conLinea: true }] };
@@ -170,7 +230,7 @@ describe("lo que cuenta", () => {
     expect(uno.preguntas[1].entradas[0]).toMatchObject({ texto: "lo escribí", audio: false });
     expect(dos.preguntas.map((p) => p.clave)).toEqual(["K12-R1", "K10-FOTO"]);
     expect(dos.preguntas[1].entradas[0]).toMatchObject({ fotos: ["foto1"], texto: null });
-    expect(cinco).toMatchObject({ capsula: true, titulo: "Para cuando seas grande (la cápsula)" });
+    expect(cinco).toMatchObject({ capsula: true, titulo: "Para cuando seas grande (el sobre cerrado)" });
     expect(cinco.preguntas[0].entradas[0].texto).toBe("para cuando sea grande");
     const todo = JSON.stringify(caps);
     expect(todo).not.toContain("de noche, sin procesar");

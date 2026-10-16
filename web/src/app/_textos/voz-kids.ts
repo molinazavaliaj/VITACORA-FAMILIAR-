@@ -4,11 +4,12 @@ import { TEXTOS_PANEL_KIDS } from "./panel-kids";
 // «Su voz» de Vitácora Kids: la página que abre cada QR del libro de un chico
 // (`/voz/<token>`). Es la misma página de la casa con sus textos de Kids: sin
 // «La historia de…» ni «El libro de una vida». En vos para Argentina y en tú
-// para España (Naza 16/10, tanda 8), según el idioma del chico. Frases simples,
+// para España (Naza 16/10, tanda 8) y en catalán (tanda 10), según el idioma del chico. Frases simples,
 // sin dos puntos, sin «tu hijo» ni «él» y sin tiempos.
 
 const AR = TEXTOS_PANEL_KIDS["es-AR"].panel;
 const ES = TEXTOS_PANEL_KIDS["es-ES"].panel;
+const CA = TEXTOS_PANEL_KIDS.ca.panel;
 
 const VOZ_KIDS_AR = {
   // APROBADO por Naza 16/10 (tanda 6) · KP-ETIQUETA (el del panel, tal cual)
@@ -55,7 +56,29 @@ const VOZ_KIDS_ES: TextosVozKids = {
   etiquetaAudio: (texto: string) => `la respuesta «${texto.slice(0, 40)}»`,
 };
 
-export const TEXTOS_VOZ_KIDS: Record<IdiomaKids, TextosVozKids> = { "es-AR": VOZ_KIDS_AR, "es-ES": VOZ_KIDS_ES };
+// APROBADO por Naza 16/10 (tanda 10) · «La seva veu» en catalán
+const VOZ_KIDS_CA: TextosVozKids = {
+  // APROBADO por Naza 16/10 (tanda 10) · KP-ETIQUETA
+  etiqueta: CA.etiqueta,
+  // APROBADO por Naza 16/10 (tanda 10) · KP-TITULO
+  titulo: CA.titulo,
+  // APROBADO por Naza 16/10 (tanda 10) · suVoz
+  suVoz: "La seva veu",
+  // APROBADO por Naza 16/10 (tanda 10) · escuchala
+  escuchala: "Escolta-la",
+  // APROBADO por Naza 16/10 (tanda 10) · KV-BAJADA
+  bajada: "Aquí hi ha les seves respostes, tal com les va dir. Toca'n una per escoltar-la.",
+  // APROBADO por Naza 16/10 (tanda 10) · KV-SIN-AUDIOS
+  sinAudios: "Les seves respostes en àudio encara s'estan preparant.",
+  // APROBADO por Naza 16/10 (tanda 10) · KV-PESTANA-LIBRO
+  libro: "El llibre",
+  // APROBADO por Naza 16/10 (tanda 10) · KV-LIBRO-NO-ESTA
+  libroNoEsta: "El llibre encara s'està preparant.",
+  // APROBADO por Naza 16/10 (tanda 10) · KV-ETIQUETA-AUDIO
+  etiquetaAudio: (texto: string) => `la resposta «${texto.slice(0, 40)}»`,
+};
+
+export const TEXTOS_VOZ_KIDS: Record<IdiomaKids, TextosVozKids> = { "es-AR": VOZ_KIDS_AR, "es-ES": VOZ_KIDS_ES, ca: VOZ_KIDS_CA };
 
 /** Los de vos (Argentina), con su nombre de siempre. */
 export const VOZ_KIDS = VOZ_KIDS_AR;

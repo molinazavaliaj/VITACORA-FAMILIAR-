@@ -19,9 +19,11 @@
 // (kids-banco.json, ver su `_origen`): nada de redacción nueva. Para un chico
 // de España, los textos van de kids-banco-es-ES.json (solo textos por ID, que
 // pisan los de kids-banco.json: es `bancoDe("es-ES")` del motor, banco.ts).
+// Para uno en catalán, igual con kids-banco-ca.json (Naza 16/10, tanda 10).
 
 import bancoJson from "./kids-banco.json";
 import bancoEsEsJson from "./kids-banco-es-ES.json";
+import bancoCaJson from "./kids-banco-ca.json";
 import { HORAS_KIDS, TEMAS_KIDS, idiomaKidsDe, type IdiomaKids, type TemaKids } from "./kids";
 import { LARGO_MAXIMO, normalizarQuienRegala, validarFichaKids, type FichaKids, type PreguntaPadre } from "./kids-compra";
 
@@ -101,6 +103,8 @@ function armado(banco: BancoKids): Armado {
 const BANCOS: Record<IdiomaKids, Armado> = {
   "es-AR": armado(BANCO_KIDS),
   "es-ES": armado(armarBancoIdioma(bancoEsEsJson as unknown as Record<string, string>, "es-ES")),
+  // APROBADO por Naza 16/10 (tanda 10) · el banco en catalán
+  ca: armado(armarBancoIdioma(bancoCaJson as unknown as Record<string, string>, "ca")),
 };
 
 /** El banco en el castellano del chico (sin idioma, o uno raro, el rioplatense). */
@@ -121,15 +125,20 @@ export function tituloCapitulo(n: number, idioma: IdiomaKids = "es-AR"): string 
   return bancoDel(idioma).banco.capitulos.find((c) => c.n === n)?.titulo ?? null;
 }
 
-/** El botón con que el chico arranca («Dale, vamos» / «Vale, vamos»): BIEN-CHICO-B1 del banco de su idioma. */
+/** El botón con que el chico arranca («Dale, vamos» / «Vale, vamos» / «Vinga, som-hi»): BIEN-CHICO-B1 del banco de su idioma. */
 export function botonArranque(idioma: IdiomaKids = "es-AR"): string {
   return bancoDel(idioma).mensajes.get("BIEN-CHICO")?.botones[0] ?? "";
 }
 
-/** «Tu mamá. Contame…»: {{o/a}} según sea chico o chica y {{1}}, {{2}} = cómo le dicen y quién se lo regala (motor/mensajes.ts). */
+/**
+ * «Tu mamá. Contame…»: el género según sea chico o chica ({{o/a}} en
+ * castellano, la palabra entera en catalán, {{petit/petita}}: lo de antes de la
+ * barra para un chico; texto.ts, conGenero) y {{1}}, {{2}} = cómo le dicen y
+ * quién se lo regala (motor/mensajes.ts).
+ */
 function render(texto: string, ficha: Pick<FichaKids, "genero" | "apodo" | "quienRegala">): string {
   return texto
-    .replace(/\{\{o\/a\}\}/g, ficha.genero === "chica" ? "a" : "o")
+    .replace(/\{\{([^{}/]+)\/([^{}/]+)\}\}/g, (_m, deChico: string, deChica: string) => (ficha.genero === "chica" ? deChica : deChico))
     .replace(/\{\{(\d+)\}\}/g, (_m, n: string) => [ficha.apodo, ficha.quienRegala][Number(n) - 1] ?? "");
 }
 
@@ -151,6 +160,12 @@ const BORRADOS_POR_TEMA: { pregunta: string; idioma: IdiomaKids; frase: string; 
     idioma: "es-ES",
     frase: "como la pareja de tu madre o de tu padre, o alguien",
     borrar: { papa: " o de tu padre", mama: "de tu madre o ", ambos: "la pareja de tu madre o de tu padre, o " },
+  },
+  {
+    pregunta: "K18",
+    idioma: "ca",
+    frase: "com la parella de la teva mare o del teu pare, o algú",
+    borrar: { papa: " o del teu pare", mama: "de la teva mare o ", ambos: "la parella de la teva mare o del teu pare, o " },
   },
 ];
 
@@ -331,7 +346,7 @@ export type CambiosPanel = { hora?: string; temasSacados?: TemaKids[]; preguntas
 export type FilaKids = {
   narrador_id: string;
   canal: "A" | "B";
-  /** `kids_v2.idioma` ('es-AR' | 'es-ES'); el mismo que `ficha.idioma`. */
+  /** `kids_v2.idioma` ('es-AR' | 'es-ES' | 'ca'); el mismo que `ficha.idioma`. */
   idioma?: string | null;
   ficha: FichaKids;
   fichaMotor: FichaKids | null;

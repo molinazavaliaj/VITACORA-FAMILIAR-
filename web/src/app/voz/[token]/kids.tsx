@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { CapituloConFrases, FraseCandidata } from "@/lib/frases";
 import { Toroide } from "../../marca";
 import { ReproductorRespuesta } from "../../tablero/reproductor";
-import type { IdiomaKids } from "@/lib/kids";
+import { idiomaWebDeKids, type IdiomaKids } from "@/lib/kids";
+import { ruta } from "@/lib/idioma-web";
 import { TEXTOS_VOZ_KIDS } from "../../_textos/voz-kids";
 
 // «Su voz» de un chico de Vitácora Kids: lo que abre cada QR del libro. La
@@ -36,7 +37,7 @@ export function PaginaVozKids({
 }: {
   token: string;
   apodo: string;
-  /** El castellano del chico (`kids_v2.idioma`): vos en Argentina, tú en España. */
+  /** El idioma del chico (`kids_v2.idioma`): vos en Argentina, tú en España, catalán desde /ca. */
   idioma?: IdiomaKids;
   publicables: { capitulo: CapituloConFrases; frases: FraseCandidata[] }[];
   libroListo: boolean;
@@ -48,7 +49,7 @@ export function PaginaVozKids({
   return (
     <div data-producto="kids" style={PALETA_KIDS} className="min-h-full bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
       <header className="flex items-center justify-between px-6 py-5">
-        <Link href={idioma === "es-ES" ? "/kids" : "/ar/kids"} className="flex items-center gap-3">
+        <Link href={ruta(idiomaWebDeKids(idioma), "/kids")} className="flex items-center gap-3">
           <span aria-hidden>
             {/* La marca de siempre; el nombre que se lee es el de Kids, al lado. */}
             <Toroide className="h-8 w-8" />

@@ -87,13 +87,13 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(kidsVende("AR")).toBe(false);
     process.env.KIDS_VENTA = "1";
     expect(kidsVende("AR")).toBe(true);
-    // España sin precio no; con precio sí (Naza 16/10, tanda 8). Catalán nunca.
+    // España sin precio no; con precio sí (Naza 16/10, tanda 8). Catalán, con el precio de España (tanda 10).
     expect(kidsVende("ES")).toBe(false);
     process.env.PRECIO_KIDS_EUR = "59";
     expect(kidsVende("ES")).toBe(true);
     expect(kidsVendeEn("es")).toBe(true);
     expect(kidsVendeEn("ar")).toBe(true);
-    expect(kidsVendeEn("ca")).toBe(false);
+    expect(kidsVendeEn("ca")).toBe(true);
     process.env.PRECIO_KIDS_ARS = "85.750,00";
     expect(obtenerPrecioKids("AR")).toBeNull();
     expect(kidsVende("AR")).toBe(false);
@@ -118,6 +118,12 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(quienRegalaTexto({ quien: "papa", quienOtra: "" }, "ES")).toBe("tu padre");
     expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ES")).toBe("tus padres");
     expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "AR")).toBe("tu mamá");
+    // En catalán, «la teva mare», «els teus pares» (Naza 16/10, tanda 10), y «Otra persona» con el posesivo en minúscula.
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "ca")).toBe("la teva mare");
+    expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ca")).toBe("els teus pares");
+    expect(quienRegalaTexto({ quien: "abuela", quienOtra: "" }, "ca")).toBe("la teva àvia");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "El teu padrí" }, "ca")).toBe("el teu padrí");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "Les teves ties" }, "ca")).toBe("les teves ties");
   });
 
   it("la ficha es la del motor: temas en el orden de la pantalla, zona e idioma del país, hora por defecto 18:00 en Argentina y 20:00 en España", () => {
@@ -128,6 +134,9 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(estadoKidsInicial().hora).toBe("18:00");
     expect(estadoKidsInicial(undefined, "AR").hora).toBe("18:00");
     expect(estadoKidsInicial(undefined, "ES").hora).toBe("20:00");
+    // Desde /ca: región ES (zona de Madrid, 20:00 por defecto), idioma ca (tanda 10).
+    expect(fichaDeCompra(LLENO, "ES", "ca")).toMatchObject({ zona: "Europe/Madrid", idioma: "ca", quienRegala: "els teus pares" });
+    expect(cuerpoKids(LLENO, "ES", "ca").kids).toMatchObject({ idioma: "ca", quienRegala: "els teus pares" });
   });
 
   it("el cuerpo lleva producto kids y el WhatsApp del chico solo con el canal A", () => {
@@ -135,12 +144,8 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+34 600 00 00 00" }, "ES", "es").whatsappChico).toBe("+34 600 00 00 00");
   });
 
-  it("/api/compra no vende Kids desde la web en catalán aunque esté prendido (no hay Kids en catalán)", async () => {
+  it("/api/compra no vende Kids con un idioma de web que no es el de la región", async () => {
     vender();
-    const r = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "ca")) }));
-    expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe(CHECKOUT_KIDS.ca.proximamenteTexto);
-    // Y un idioma que no es el de la región, tampoco.
     const r2 = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "ar")) }));
     expect(r2.status).toBe(409);
     expect((await r2.json()).error).toBe(KIDS_TODAVIA_NO);
@@ -167,14 +172,14 @@ describe("/kids por idioma", () => {
     expect(pagina(KidsAr)).toContain('href="https://wa.me/34611222333"');
   });
 
-  it("con KIDS_VENTA y precio, /ar y España llevan a su compra; catalán sigue en «Properament» (KIDS_IDIOMAS_WEB)", () => {
+  it("con KIDS_VENTA y precio, /ar, España y /ca llevan a su compra (KIDS_IDIOMAS_WEB, tanda 10)", () => {
     vender();
     expect(pagina(KidsAr)).toContain('href="/ar/comprar/kids"');
     expect(pagina(KidsAr)).toContain("90");
     expect(pagina(KidsEs)).toContain('href="/comprar/kids"');
     expect(pagina(KidsEs)).toContain("59");
-    expect(pagina(KidsCa)).not.toContain('href="/ca/comprar/kids"');
-    expect(pagina(KidsCa)).not.toContain("59");
+    expect(pagina(KidsCa)).toContain('href="/ca/comprar/kids"');
+    expect(pagina(KidsCa)).toContain("59");
   });
 
   it("los textos aprobados de la rama de Kids, en vos, en /ar", () => {

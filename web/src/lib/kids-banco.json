@@ -1,5 +1,5 @@
 {
-  "_origen": "Copia de fabrica/src/kids-v2/banco.json (rama kids-conexion, commit bcaefd4abd74ae206e73b59e7ebde91880be3be6, 15/10). La fuente son docs/kids/v2/banco.md y mensajes.md: no se edita a mano. Si el banco cambia, se vuelve a copiar.",
+  "_origen": "Copia de fabrica/src/kids-v2/banco.json (rama kids-libro, commit 460c0b805f17a7c22d3120cfeaf92d1e6f97ab41, 16/10, tanda 10). La fuente son docs/kids/v2/banco.md y mensajes.md: no se edita a mano. Si el banco cambia, se vuelve a copiar.",
   "capitulos": [
     {
       "n": 1,
@@ -19,7 +19,7 @@
     },
     {
       "n": 5,
-      "titulo": "Para cuando seas grande (la cápsula)"
+      "titulo": "Para cuando seas grande (el sobre cerrado)"
     }
   ],
   "preguntas": [
@@ -341,7 +341,7 @@
       "ramas": [],
       "botonPaso": "Paso",
       "op": {
-        "texto": "¿Y un lugar al que te llevaron y te dijeron \"acá venía yo de chic{{o/a}}\"? Contame ese día.",
+        "texto": "¿Y un lugar al que te llevaron y te dijeron \"acá venía yo cuando tenía tu edad\"? Contame ese día.",
         "soloRama": null
       },
       "foto": {
@@ -934,7 +934,7 @@
       "ramas": [],
       "botonPaso": "Paso",
       "op": {
-        "texto": "¿Y un lugar de ahora que querés que vuelva cuando lo leas?",
+        "texto": "¿Y un lugar de ahora que quieras recordar cuando lo leas?",
         "soloRama": null
       },
       "foto": null,

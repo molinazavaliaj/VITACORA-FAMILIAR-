@@ -1,5 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
-import type { IdiomaKids } from "@/lib/kids";
+import { idiomaWebDeKids, type IdiomaKids } from "@/lib/kids";
 
 // «Pedido confirmado» (paso 4 de la maqueta Checkout): /comprar/gracias, adonde
 // vuelve la pasarela después de cobrar. Lista de qué pasa ahora sin promesas
@@ -166,7 +166,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
  * 16/10, tanda 8). La primera fila depende del canal (A = su WhatsApp, B = «Lo
  * hago yo»); en el A va con «Antes» y no con «Hoy» porque le escribimos a la
  * hora que eligió el padre, que puede ser mañana. «Mientras cuenta» y «Al
- * terminar» son los de la biografía en ese idioma (`ar` o `es`). En vos
+ * terminar» son los de la biografía en ese idioma (`ar`, `es` o `ca`; en catalán, tanda 10). En vos
  * aprobados por Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md,
  * puntos 5 y 6). Con el libro impreso (tanda 3, punto 10), «Al terminar» suma
  * la línea de la imprenta de la casa, como en la biografía.
@@ -184,6 +184,12 @@ export const CONFIRMADO_KIDS_IDIOMA: Record<IdiomaKids, { canalA: (apodo: string
     // APROBADO por Naza 16/10 (tanda 8) · canalB («pulséis»)
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando pulséis el botón, juntos.",
   },
+  ca: {
+    // APROBADO por Naza 16/10 (tanda 10) · canalA («Digues-li», sin masculino fijo)
+    canalA: (apodo: string) => `A l'hora que has triat, a ${apodo} li arriba un missatge nostre per WhatsApp. Digues-li que li escriurà «Vitácora».`,
+    // APROBADO por Naza 16/10 (tanda 10) · canalB («premeu»)
+    canalB: "T'arriba un missatge nostre al teu WhatsApp. La primera pregunta surt quan premeu el botó, junts.",
+  },
 };
 
 /** Los de vos (Argentina), con su nombre de siempre. */
@@ -191,7 +197,7 @@ export const CONFIRMADO_KIDS = CONFIRMADO_KIDS_IDIOMA["es-AR"];
 
 export function momentosKids(apodo: string, canal: CanalConfirmadoKids, impreso = false, idioma: IdiomaKids = "es-AR"): Momento[] {
   const K = CONFIRMADO_KIDS_IDIOMA[idioma] ?? CONFIRMADO_KIDS;
-  const [hoy, antes, mientras, alTerminar] = CONFIRMADO[idioma === "es-ES" ? "es" : "ar"].otro(apodo, impreso);
+  const [hoy, antes, mientras, alTerminar] = CONFIRMADO[idiomaWebDeKids(idioma)].otro(apodo, impreso);
   const primera: Momento = canal === "A" ? { cuando: antes.cuando, que: K.canalA(apodo) } : { cuando: hoy.cuando, que: K.canalB };
   return [primera, mientras, alTerminar];
 }

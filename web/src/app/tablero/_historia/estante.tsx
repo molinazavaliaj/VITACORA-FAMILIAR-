@@ -108,7 +108,7 @@ function LibroKids({ h, r, kids, fotoSrc }: { h: Historia; r: Resumen & Extra; k
     <li data-producto="kids" className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-5 border-t border-[var(--linea)] py-8 sm:gap-x-10 md:py-10">
       <Link href={`/tablero/${n.id}`} aria-label={titulo} className="block self-start">
         <div className="pnl-libro w-[78px] sm:w-[118px]">
-          <TapaLibro titulo={r.titulo ?? n.nombre} fotoSrc={fotoSrc ?? (r.portadaFotoId ? `/api/fotos/${r.portadaFotoId}` : null)} idioma={idiomaDelLibro(null)} />
+          <TapaLibro titulo={r.titulo ?? n.nombre} fotoSrc={fotoSrc ?? (r.portadaFotoId ? `/api/fotos/${r.portadaFotoId}` : null)} idioma={idiomaDelLibro(kids.idioma)} />
         </div>
       </Link>
       <div className="flex min-w-0 flex-col">

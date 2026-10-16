@@ -55,21 +55,25 @@ export function zonaKids(region: Region): string {
 }
 
 /**
- * El castellano en que le habla el bot de Kids (fabrica/src/kids-v2/idioma.ts):
- * 'es-AR' (vos, el de siempre) o 'es-ES' (tú). Sin el campo, es-AR. No hay Kids
- * en catalán. Es también el idioma de todo lo que ve el padre (panel, «Su voz»,
- * mails, «Pedido confirmado»).
+ * El idioma en que le habla el bot de Kids (fabrica/src/kids-v2/idioma.ts):
+ * 'es-AR' (vos, el de siempre), 'es-ES' (tú) o 'ca' (catalán, de tu; Naza
+ * 16/10, tanda 10). Sin el campo, es-AR. Es también el idioma de todo lo que
+ * ve el padre (panel, «Su voz», mails, «Pedido confirmado»).
  */
-export type IdiomaKids = "es-AR" | "es-ES";
-export const IDIOMAS_KIDS: readonly IdiomaKids[] = ["es-AR", "es-ES"];
+export type IdiomaKids = "es-AR" | "es-ES" | "ca";
+export const IDIOMAS_KIDS: readonly IdiomaKids[] = ["es-AR", "es-ES", "ca"];
 
 export function esIdiomaKids(x: unknown): x is IdiomaKids {
-  return x === "es-AR" || x === "es-ES";
+  return x === "es-AR" || x === "es-ES" || x === "ca";
 }
 
-/** El de la región de la compra: España de tú, Argentina de vos. */
-export function idiomaKidsDeRegion(region: Region): IdiomaKids {
-  return region === "ES" ? "es-ES" : "es-AR";
+/**
+ * El de la compra: Argentina de vos; España de tú, o en catalán si se compró
+ * desde la web en catalán (/ca, misma región ES, mismo precio y zona).
+ */
+export function idiomaKidsDeRegion(region: Region, idiomaWeb?: unknown): IdiomaKids {
+  if (region !== "ES") return "es-AR";
+  return idiomaWeb === "ca" ? "ca" : "es-ES";
 }
 
 /** El idioma guardado (kids_v2.idioma o ficha.idioma); sin él o uno raro, es-AR (como el motor sin el campo). */
@@ -79,18 +83,19 @@ export function idiomaKidsDe(x: unknown): IdiomaKids {
 
 /** El idioma de la web de la casa que le corresponde (los textos compartidos: mail, «Pedido confirmado»). */
 export function idiomaWebDeKids(idioma: IdiomaKids): IdiomaWeb {
-  return idioma === "es-ES" ? "es" : "ar";
+  return idioma === "es-ES" ? "es" : idioma === "ca" ? "ca" : "ar";
 }
 
 /**
- * Dónde se vende Kids: Argentina (vos) y España (tú), desde el 16/10 (Naza,
- * tanda 8; el bot ya habla es-ES). En catalán no: no hay Kids en catalán
- * (KIDS_IDIOMAS_WEB).
+ * Dónde se vende Kids: Argentina (vos) y España, en tú y en catalán (Naza 16/10,
+ * tanda 8 y tanda 10; el bot ya habla es-ES y ca). /ca es la región ES.
  */
+// APROBADO por Naza 16/10 (tanda 10) · Kids se vende también en catalán
 export const KIDS_REGIONES: readonly Region[] = ["AR", "ES"];
 
-/** Las webs que venden Kids: /ar y la de España en castellano. /ca no. */
-export const KIDS_IDIOMAS_WEB: readonly IdiomaWeb[] = ["ar", "es"];
+/** Las webs que venden Kids: /ar, la de España en castellano y /ca. */
+// APROBADO por Naza 16/10 (tanda 10)
+export const KIDS_IDIOMAS_WEB: readonly IdiomaWeb[] = ["ar", "es", "ca"];
 
 /**
  * ¿Se vende Kids? Solo con todo: una región de KIDS_REGIONES, el interruptor
@@ -103,7 +108,7 @@ export function kidsVende(region: Region, env: NodeJS.ProcessEnv = process.env):
   return KIDS_REGIONES.includes(region) && env.KIDS_VENTA === "1" && obtenerPrecioKids(region) !== null;
 }
 
-/** ¿Se vende Kids en esta web? Como `kidsVende`, y además nunca en catalán. */
+/** ¿Se vende Kids en esta web? Como `kidsVende`, con la región de la web (/ca es España). */
 export function kidsVendeEn(idioma: IdiomaWeb, env: NodeJS.ProcessEnv = process.env): boolean {
   return KIDS_IDIOMAS_WEB.includes(idioma) && kidsVende(idioma === "ar" ? "AR" : "ES", env);
 }
@@ -219,12 +224,13 @@ export function fallaEnvioKids(e: Pick<EstadoKids, "formato" | "recibe" | "telef
 /**
  * «Quién se lo regala» como lo guarda el motor: «tu mamá», «tus abuelos»…, en
  * minúscula (fabrica/src/kids-v2/texto.ts, normalizarQuienRegala), en el
- * castellano de la región: en España «tu madre», «tu padre», «tus padres»
- * (Naza 16/10, tanda 8), porque el bot le habla en es-ES. «Otra persona» va
- * como la escribieron, con «tu»/«tus» en minúscula.
+ * idioma del chico: en España «tu madre», «tu padre», «tus padres» (Naza
+ * 16/10, tanda 8), en catalán «la teva mare», «els teus pares» (tanda 10),
+ * porque el bot le habla así. «Otra persona» va como la escribieron, con el
+ * posesivo («tu», «tus», «la teva», «el teu», «els teus», «les teves») en minúscula.
  */
-const QUIEN_TEXTO: Record<Region, Record<Exclude<QuienRegala, "otra">, string>> = {
-  AR: {
+const QUIEN_TEXTO: Record<IdiomaKids, Record<Exclude<QuienRegala, "otra">, string>> = {
+  "es-AR": {
     mama: "tu mamá",
     papa: "tu papá",
     papas: "tus papás",
@@ -233,7 +239,7 @@ const QUIEN_TEXTO: Record<Region, Record<Exclude<QuienRegala, "otra">, string>> 
     abuelos: "tus abuelos",
   },
   // APROBADO por Naza 16/10 (tanda 8) · quién se lo regala en España
-  ES: {
+  "es-ES": {
     mama: "tu madre",
     papa: "tu padre",
     papas: "tus padres",
@@ -241,12 +247,27 @@ const QUIEN_TEXTO: Record<Region, Record<Exclude<QuienRegala, "otra">, string>> 
     abuelo: "tu abuelo",
     abuelos: "tus abuelos",
   },
+  // APROBADO por Naza 16/10 (tanda 10) · quién li ho regala en catalán
+  ca: {
+    mama: "la teva mare",
+    papa: "el teu pare",
+    papas: "els teus pares",
+    abuela: "la teva àvia",
+    abuelo: "el teu avi",
+    abuelos: "els teus avis",
+  },
 };
 
-export function quienRegalaTexto(e: Pick<EstadoKids, "quien" | "quienOtra">, region: Region = "AR"): string {
+/** Los posesivos con que empieza quien regala (texto.ts del motor, POSESIVO). */
+const POSESIVO = /^(tus?|la teva|el teu|els teus|les teves)(?=\s)/i;
+
+/** La región ("AR", "ES") vale por su castellano; el catalán se pide con "ca". */
+const idiomaDeQuien = (x: Region | IdiomaKids): IdiomaKids => (x === "AR" ? "es-AR" : x === "ES" ? "es-ES" : x);
+
+export function quienRegalaTexto(e: Pick<EstadoKids, "quien" | "quienOtra">, idioma: Region | IdiomaKids = "AR"): string {
   if (e.quien === "") return "";
-  if (e.quien !== "otra") return QUIEN_TEXTO[region][e.quien];
-  return e.quienOtra.trim().replace(/^(tus?)\b/i, (m) => m.toLowerCase());
+  if (e.quien !== "otra") return QUIEN_TEXTO[idiomaDeQuien(idioma)][e.quien];
+  return e.quienOtra.trim().replace(POSESIVO, (m) => m.toLowerCase());
 }
 
 /** Edad entera razonable (va en la tapa), o null. */
@@ -300,13 +321,14 @@ export function fallaKids(paso: PasoKids, e: EstadoKids): FallaKids | null {
  * correo no van en la ficha: van a `narradores`, `kids_v2` y `familias`. El
  * servidor no la cree tal cual: la vuelve a armar y validar (lib/kids-compra.ts).
  */
-export function fichaDeCompra(e: EstadoKids, region: Region) {
+export function fichaDeCompra(e: EstadoKids, region: Region, idiomaWeb?: unknown) {
+  const idioma = idiomaKidsDeRegion(region, idiomaWeb);
   return {
     nombre: e.nombre.trim(),
     apodo: e.apodo.trim(),
     genero: e.genero,
     edad: edadValida(e.edad),
-    quienRegala: quienRegalaTexto(e, region),
+    quienRegala: quienRegalaTexto(e, idioma),
     canal: e.canal,
     nombrePadre: e.tuNombre.trim(),
     hora: e.hora,
@@ -314,8 +336,8 @@ export function fichaDeCompra(e: EstadoKids, region: Region) {
     temasSacados: TEMAS_KIDS.filter((t) => e.temas.includes(t)),
     fotosConOtrosChicos: e.fotosConOtrosChicos,
     preguntasPadre: [] as never[],
-    // El servidor no se fía de esto: el idioma sale de la región (lib/kids-compra.ts).
-    idioma: idiomaKidsDeRegion(region),
+    // El servidor no se fía de esto: el idioma sale de la región y de la web (lib/kids-compra.ts).
+    idioma,
   };
 }
 
@@ -332,7 +354,7 @@ export function cuerpoKids(e: EstadoKids, region: Region, idiomaWeb: string) {
     nombreComprador: e.tuNombre.trim(),
     whatsappComprador: e.tuWhatsapp.trim(),
     whatsappChico: e.canal === "A" ? e.suWhatsapp.trim() : null,
-    kids: fichaDeCompra(e, region),
+    kids: fichaDeCompra(e, region, idiomaWeb),
     // Como la casa: solo cuántos impresos. El precio lo calcula el servidor.
     productos: { impresos: impresosKids(e) },
   };
