@@ -1,6 +1,8 @@
 """Configuración del worker: un `.env` en la carpeta `voz/` que carga Naza a mano.
 
-Claude no maneja las claves. Si falta una variable, el error dice cuál.
+Claude no maneja las claves. Si falta una variable, el error dice cuál. Las
+variables de más que haya en un `.env` viejo (MOTOR, PAUSAS_MS, TRAMOS, RITMO, de
+cuando había audiolibro) se ignoran: no frenan el arranque.
 """
 
 import os
@@ -16,10 +18,9 @@ RAIZ = Path(__file__).resolve().parent.parent  # la carpeta voz/ del repo
 class Config:
     supabase_url: str
     supabase_key: str
-    carpeta_modelos: Path  # pesos de los modelos (en D:\vitacora-modelos)
-    carpeta_trabajo: Path  # temporales, muestras, salidas de la prueba
-    motor: str = ""  # el motor elegido en la prueba de oído; solo el worker lo exige
-    intervalo_segundos: int = 30  # cada cuánto sondea el buzón cuando no hay trabajo
+    carpeta_modelos: Path  # pesos del modelo de restauración (en D:\vitacora-modelos)
+    carpeta_trabajo: Path  # temporales: los wav intermedios de cada frase
+    intervalo_segundos: int = 30  # cada cuánto sondea los pedidos cuando no hay trabajo
 
 
 def cargar_config() -> Config:
@@ -34,6 +35,5 @@ def cargar_config() -> Config:
         supabase_key=os.environ["SUPABASE_SERVICE_ROLE_KEY"].strip(),
         carpeta_modelos=Path(os.environ.get("CARPETA_MODELOS", str(RAIZ / "modelos"))),
         carpeta_trabajo=Path(os.environ.get("CARPETA_TRABAJO", str(RAIZ / "prueba"))),
-        motor=os.environ.get("MOTOR", "").strip(),
         intervalo_segundos=int(os.environ.get("INTERVALO_SEGUNDOS") or "30"),
     )

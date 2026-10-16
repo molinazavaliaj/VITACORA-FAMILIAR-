@@ -62,7 +62,7 @@ from .masterizar import (
     nivelar,
 )
 from .muestras import Respuesta
-from .narrar import subir_con_reintentos
+from .subir import subir_con_reintentos
 from .restaurar import restaurar
 from .supabase_cliente import BUCKET, descargar_audio, respuestas_de
 from .transcribir import palabras_con_tiempos
