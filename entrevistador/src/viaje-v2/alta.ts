@@ -159,7 +159,8 @@ export type ResultadoAlta = 'creada' | 'ya-existia' | 'faltan-datos' | 'no-corre
  * toca. Sin datos suficientes, avisa a los socios (una vez) y no cambia nada del narrador.
  */
 export async function asegurarAltaViajeV2(deps: DepsAlta, n: NarradorParaAlta): Promise<ResultadoAlta> {
-  if (n.estado !== 'invitado' || !esModoViaje(n.contexto)) return 'no-corresponde';
+  // La simulación con --real (scripts/viaje-v2-simular.ts) crea su propia fila: el alta no la toca.
+  if (n.estado !== 'invitado' || !esModoViaje(n.contexto) || n.contexto?.simulacion === true) return 'no-corresponde';
   const forma = (n.contexto?.viaje as { v?: unknown } | undefined)?.v === 2 ? 'v2' : 'vieja';
   const armada = compraDeContexto(n, forma === 'vieja' ? await pedidoDelViaje(deps.db, n.id) : null);
   if (!armada.ok) {

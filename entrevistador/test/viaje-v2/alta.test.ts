@@ -128,6 +128,8 @@ describe('asegurarAltaViajeV2', () => {
     const r = preparar(familiar);
     expect(await asegurarAltaViajeV2(r.deps, familiar)).toBe('no-corresponde');
     expect(await asegurarAltaViajeV2(r.deps, viejo)).toBe('no-corresponde');
+    const simulacion = narrador({ viaje: V2, simulacion: true });
+    expect(await asegurarAltaViajeV2(r.deps, simulacion)).toBe('no-corresponde');
     expect(r.base.tablas.viajes_v2).toEqual([]);
     expect(quedoEnElViajeViejo(viejo, false)).toBe(true);
     expect(quedoEnElViajeViejo(viejo, true)).toBe(false);

@@ -144,7 +144,8 @@ const depsAlta: DepsAlta = {
 async function atenderViajeros(): Promise<void> {
   const { data, error } = await db.from('narradores').select('*').in('estado', ['invitado', ...ESTADOS_VIAJE_VIEJO]);
   if (error) throw new Error(`No pude leer los viajeros: ${error.message}`);
-  const viajeros = ((data as Narrador[] | null) ?? []).filter((n) => esModoViaje(n.contexto));
+  // Los de la simulación (contexto.simulacion) tienen su fila y su reloj aparte: acá no cuentan.
+  const viajeros = ((data as Narrador[] | null) ?? []).filter((n) => esModoViaje(n.contexto) && n.contexto?.simulacion !== true);
   if (viajeros.length === 0) return;
   const v2 = await viajerosV2(db);
   const viejos: Narrador[] = [];
