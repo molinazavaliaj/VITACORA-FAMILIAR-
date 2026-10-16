@@ -15,7 +15,9 @@
 // se aplica (lo de la noche, a las 9): con eso se anota a qué item respondió
 // (motor/recibido.ts). `termino` y `avance` son para guardar al lado del estado.
 
+import { botonCanonico } from './banco.js';
 import { armarGuion, PREGUNTA_DEL_TEMA, TEMAS, validarFicha, type Tema } from './compra.js';
+import { idiomaDe } from './idioma.js';
 import { aInstante, aLocal, esDeNoche } from './horas.js';
 import { emitir, hoy, type Ctx } from './motor/flujo.js';
 import { alBoton } from './motor/botones.js';
@@ -113,9 +115,12 @@ function aplicar(c: Ctx, ev: Evento): void {
       e.reenviar = false; // ya contestó: un [Estamos listos] viejo no repite lo que está arriba
       recibido(c, ev, claveDe(e));
       return sumarARafaga(c, ev.contenido);
-    case 'boton':
+    case 'boton': {
       if (!c.replay) entro(c);
       if (noche) return void e.nocturnos.push(ev);
+      // Lo que tocó, como botón de banco.md: las reglas del motor comparan esos (el «Vale, otra» de España es el «Dale, otra»).
+      // Se traduce acá, al aplicarlo (lo de la noche se guarda como llegó y se traduce a las 9, una sola vez).
+      const tocado = { ...ev, boton: botonCanonico(idiomaDe(e.ficha), ev.boton) };
       if (e.rafaga) {
         procesarRafaga(c);
         anotarBotones(c);
@@ -123,8 +128,9 @@ function aplicar(c: Ctx, ev: Evento): void {
       // Decisión 22: el botón de un mensaje viejo (o ya tocado) no hace nada. Sin `aMensaje`, vale.
       if (ev.aMensaje !== undefined && !e.esperanBoton.includes(ev.aMensaje)) return recibido(c, ev, SIN_CLAVE_KIDS);
       // Cualquier otro botón del número de las preguntas también es contestar; [Estamos listos] lo lee y lo apaga él.
-      if (!esEstamosListos(e, ev.boton)) e.reenviar = false;
-      return botonConRecibido(c, ev);
+      if (!esEstamosListos(e, tocado.boton)) e.reenviar = false;
+      return botonConRecibido(c, tocado);
+    }
     case 'reloj':
       if (noche) return;
       if (e.nocturnos.length) {

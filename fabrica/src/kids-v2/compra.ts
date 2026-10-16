@@ -5,6 +5,7 @@
 
 import { BANCO, pregunta as preguntaDelBanco } from './banco.js';
 import { esHora, NOCHE_DESDE, NOCHE_HASTA, zonaValida } from './horas.js';
+import { esIdiomaKids, IDIOMAS_KIDS, type IdiomaKids } from './idioma.js';
 import { MAX_PREGUNTAS_PADRE } from './reglas.js';
 import { normalizarQuienRegala, type Genero } from './texto.js';
 import type { Cap, Extra, Foto, Pregunta } from './tipos.js';
@@ -87,6 +88,12 @@ export type Ficha = {
   fotosConOtrosChicos: boolean;
   /** Hasta 3. conLinea = false si marcó "sin decir que es mía". */
   preguntasPadre: PreguntaPadre[];
+  /**
+   * En qué castellano le hablan (idioma.ts): 'es-AR' (vos, el de siempre) o 'es-ES' (tú). Sin el campo, es-AR:
+   * las fichas de antes del 16/10 siguen igual. Todo lo que sale (preguntas, botones, mensajes, plantillas) sale
+   * del banco de ese idioma.
+   */
+  idioma?: IdiomaKids;
 };
 
 /** Valida y normaliza. Tira error con el nombre del campo. */
@@ -99,6 +106,7 @@ export function validarFicha(f: Ficha): Ficha {
   if (!esHora(f.hora) || f.hora < NOCHE_HASTA || f.hora >= NOCHE_DESDE) throw new Error(`Ficha: hora ${f.hora} fuera de 09:00–21:59`);
   if (!zonaValida(f.zona)) throw new Error(`Ficha: zona desconocida ${f.zona}`);
   for (const t of f.temasSacados) if (!(TEMAS as readonly string[]).includes(t)) throw new Error(`Ficha: tema desconocido ${t}`);
+  if (f.idioma !== undefined && !esIdiomaKids(f.idioma)) throw new Error(`Ficha: idioma ${JSON.stringify(f.idioma)} (va ${IDIOMAS_KIDS.join(' o ')}, o sin el campo)`);
   const preguntasPadre = f.preguntasPadre
     .map((p): PreguntaPadre => ({ texto: p.texto.trim(), conLinea: p.conLinea, ...(p.quien?.trim() ? { quien: normalizarQuienRegala(p.quien) } : {}) }))
     .filter((p) => p.texto !== '');

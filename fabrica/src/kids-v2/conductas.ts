@@ -10,6 +10,7 @@ import type { Canal, Ficha, Tema } from './compra.js';
 import { TEMAS } from './compra.js';
 import type { Accion, Conducta } from './corrida.js';
 import { aLocal, aInstante, sumarDias } from './horas.js';
+import type { IdiomaKids } from './idioma.js';
 import type { Contenido, Enviado, Mensaje } from './motor.js';
 
 export type Azar = { (): number; entre(a: number, b: number): number; uno<T>(xs: readonly T[]): T; si(p: number): boolean };
@@ -42,7 +43,13 @@ export const esFoto = (m: Mensaje) => m.id.endsWith('-FOTO') || (/^X\d-\d+$/.tes
 
 export const FRASE_PREOCUPANTE = 'y mi primo me pega cuando nadie mira';
 
-export function fichaAlAzar(r: Azar, canal?: Canal): Ficha {
+/**
+ * `idioma`: es-ES le pone el campo a la ficha y lo que escribe el padre en castellano de España («Tus padres»,
+ * «Cuéntame…»). Sin idioma, la ficha de siempre (sin el campo). El azar se usa igual en los dos: con la misma
+ * semilla sale el mismo chico.
+ */
+export function fichaAlAzar(r: Azar, canal?: Canal, idioma?: IdiomaKids): Ficha {
+  const espana = idioma === 'es-ES';
   const genero = r.uno(['chico', 'chica'] as const);
   const temas = r.si(0.1) ? [...TEMAS] : TEMAS.filter(() => r.si(0.2));
   const n = r.entre(0, 3);
@@ -51,7 +58,7 @@ export function fichaAlAzar(r: Azar, canal?: Canal): Ficha {
     apodo: genero === 'chico' ? 'Bruno' : 'Tini',
     genero,
     edad: r.entre(10, 12),
-    quienRegala: r.uno(['Tu mamá', 'Tu papá', 'Tus papás', 'Tu abuela', 'Tus abuelos', 'tu madrina']),
+    quienRegala: r.uno(['Tu mamá', 'Tu papá', espana ? 'Tus padres' : 'Tus papás', 'Tu abuela', 'Tus abuelos', 'tu madrina']),
     canal: canal ?? r.uno(['A', 'B'] as const),
     nombrePadre: 'Laura Sosa',
     linkPanel: 'vitacora.com/panel/abc123',
@@ -59,7 +66,8 @@ export function fichaAlAzar(r: Azar, canal?: Canal): Ficha {
     zona: r.uno(['America/Argentina/Buenos_Aires', 'Europe/Madrid', 'America/Mexico_City']),
     temasSacados: temas as Tema[],
     fotosConOtrosChicos: r.si(0.5),
-    preguntasPadre: Array.from({ length: n }, (_, i) => ({ texto: `Contame la vez número ${i + 1} que nos reímos juntos`, conLinea: r.si(0.7) })),
+    preguntasPadre: Array.from({ length: n }, (_, i) => ({ texto: `${espana ? 'Cuéntame' : 'Contame'} la vez número ${i + 1} que nos reímos juntos`, conLinea: r.si(0.7) })),
+    ...(idioma ? { idioma } : {}),
   };
 }
 
@@ -166,20 +174,22 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
       }
       return [...acciones, ...contestar(t)];
     }
+    // Los botones por su lugar en el mensaje (el que le llegó, en su idioma): [Dale, otra] es el primero de B-SEGUIR.
+    const boton = (i: number) => u.botones[i];
     switch (u.id) {
-      case 'B-SEGUIR':
-        return [...acciones, ...tocar(r.entre(1, 10) * MIN, r.si(0.5) ? 'Dale, otra' : 'Mañana sigo')];
-      case 'B-AVISO-SERIA':
-        return [...acciones, ...tocar(t, r.si(0.7) ? 'Voy ahora' : 'Mañana mejor')];
-      case 'B-TRANQUILA':
-        return [...acciones, ...tocar(t, r.si(0.5) ? 'Dale, una tranquila' : 'Mañana sigo')];
-      case 'B-UNA-MAS':
-        return [...acciones, ...tocar(t, r.si(0.5) ? 'Dale, otra' : 'No, cerramos')];
-      case 'EXTRAS-OFERTA':
+      case 'B-SEGUIR': // [Dale, otra] [Mañana sigo]
+        return [...acciones, ...tocar(r.entre(1, 10) * MIN, boton(r.si(0.5) ? 0 : 1))];
+      case 'B-AVISO-SERIA': // [Voy ahora] [Mañana mejor]
+        return [...acciones, ...tocar(t, boton(r.si(0.7) ? 0 : 1))];
+      case 'B-TRANQUILA': // [Dale, una tranquila] [Mañana sigo]
+        return [...acciones, ...tocar(t, boton(r.si(0.5) ? 0 : 1))];
+      case 'B-UNA-MAS': // [Dale, otra] [No, cerramos]
+        return [...acciones, ...tocar(t, boton(r.si(0.5) ? 0 : 1))];
+      case 'EXTRAS-OFERTA': // [Dale, otra] [No, ya está]
         if (r.si(0.2)) return acciones; // no contesta: a los 2 días cierra solo
-        return [...acciones, ...tocar(t, r.si(0.6) ? 'Dale, otra' : 'No, ya está')];
-      case 'EXTRAS-OTRA':
-        return [...acciones, ...tocar(t, r.si(0.6) ? 'Dale, otra' : 'Lo dejamos acá')];
+        return [...acciones, ...tocar(t, boton(r.si(0.6) ? 0 : 1))];
+      case 'EXTRAS-OTRA': // [Dale, otra] [Lo dejamos acá]
+        return [...acciones, ...tocar(t, boton(r.si(0.6) ? 0 : 1))];
       case 'B-FOTO-NOTENGO':
       case 'B-FOTO-PLATA':
         // En las extras del final, a veces cuenta algo preocupante después de [No tengo]: ese día la espera
@@ -192,8 +202,9 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
     if (/^CIERRE-/.test(u.id)) {
       // Se calla en el cierre final: a la hora del día siguiente vence y la oferta de extras sale sola (en canal B, detrás de un PREG-NUEVA).
       if (tipo === 'se-calla' && u.id === 'CIERRE-FINAL' && r.si(0.5)) return acciones;
-      if (r.si(0.25)) return [...acciones, ...tocar(t, 'Sí, hay algo'), ...contestar(t + 3 * MIN)];
-      return [...acciones, ...tocar(t, 'No, eso fue todo')];
+      // [No, eso fue todo] [Sí, hay algo]
+      if (r.si(0.25)) return [...acciones, ...tocar(t, u.botones[1]), ...contestar(t + 3 * MIN)];
+      return [...acciones, ...tocar(t, u.botones[0])];
     }
     return acciones;
   };

@@ -4,7 +4,9 @@
 // Naza el 05/10 (A: la foto que vence vuelve al final; B: el final por
 // plantilla propia). Puro.
 
+import { botonCanonico } from './banco.js';
 import { armarGuion, type Ficha } from './compra.js';
+import { idiomaDe } from './idioma.js';
 import type { Corrida, Linea } from './corrida.js';
 import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from './horas.js';
 import type { Mensaje } from './motor.js';
@@ -54,6 +56,8 @@ const esPlantillaQueEspera = (m: Mensaje) => /^(BIEN-CHICO|BIEN-CHICO-PL|BIEN-PA
 export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean }): Violacion[] {
   const v: Violacion[] = [];
   const mal = (control: string, detalle: string) => v.push({ control, detalle });
+  /** Lo que tocó, como botón de banco.md (en es-ES, «Vale, otra» es «Dale, otra»): las reglas hablan de esos. */
+  const tocoBoton = (l: Linea, boton: string) => l.de === 'chico' && l.evento.tipo === 'boton' && botonCanonico(idiomaDe(ficha), l.evento.boton) === boton;
   const mensajes = bot(c.lineas);
   const hora = (d: Date) => aLocal(d, ficha.zona);
   const cuando = (d: Date) => `${hora(d).fecha} ${hora(d).hora}`;
@@ -105,7 +109,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   for (const l of c.lineas) {
     if (l.de === 'chico') {
       ultimaDelNumero = l.en;
-      if (l.evento.tipo === 'boton' && l.evento.boton === 'Estamos listos') tocoListos = true;
+      if (tocoBoton(l, 'Estamos listos')) tocoListos = true;
       if (l.viejo && l.efecto && !l.conRafaga) mal('botonViejo', `${l.dice} a las ${cuando(l.en)} hizo algo`);
       plantillasSinRespuesta = [];
       recordatorios = 0;
@@ -119,7 +123,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
         else if (k.tipo === 'texto') desdeOp.palabras += k.texto.trim().split(/\s+/).filter(Boolean).length;
         else desdeOp.fotos += 1;
       }
-      if (enExtras && l.evento.tipo === 'boton' && l.evento.boton === 'Dale, otra') pidioOtra = true;
+      if (enExtras && tocoBoton(l, 'Dale, otra')) pidioOtra = true;
       previo = l;
       continue;
     }
@@ -223,7 +227,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
       if (enCapsula && (id === 'ACUSE-3' || id === 'ACUSE-6')) mal('capsula', `${id} después de ${ultimaPregunta}`);
       // Sin nada registrado no se juzga: pasa solo cuando lo de la noche llega mezclado a las 9 y no se puede saber qué ráfaga fue.
       if (contenidos.size > 0 && !contenidos.has('audio') && DICEN_ESCUCHE.includes(id)) mal('escrito', `${id} sin audio (${[...contenidos].join(', ')}; ${ultimaPregunta})`);
-      if (!contoDesdeCierre && previo?.de === 'chico' && previo.evento.tipo === 'boton' && previo.evento.boton === 'No, eso fue todo') mal('despuesDeNo', `${id} después de [No, eso fue todo]`);
+      if (!contoDesdeCierre && previo !== null && tocoBoton(previo, 'No, eso fue todo')) mal('despuesDeNo', `${id} después de [No, eso fue todo]`);
     }
     // Solo fotos: acuse de foto (lo sensible, K39 y la extra sensible, lleva los del día feo).
     if (contenidos.size === 1 && contenidos.has('foto') && ACUSE.test(id)) mal('escrito', `${id} después de solo fotos (${ultimaPregunta})`);
@@ -333,7 +337,8 @@ function fotosPerdidas(ficha: Ficha, lineas: Linea[], estado: Estado): string[] 
   // Las fotos vencidas salen primero: si ya salió una extra del banco (X1-1…), no quedaba ninguna pendiente.
   const iPrimeraX = lineas.findIndex((l, i) => enExtras(i) && l.de === 'bot' && /^X\d-\d+$/.test(l.mensaje.id));
   const antesDeX = (i: number) => i >= 0 && (iPrimeraX < 0 || i < iPrimeraX);
-  const chicoCerro = antesDeX(lineas.findIndex((l, i) => enExtras(i) && l.de === 'chico' && l.evento.tipo === 'boton' && (l.evento.boton === 'No, ya está' || l.evento.boton === 'Lo dejamos acá')));
+  const canonico = (b: string) => botonCanonico(idiomaDe(ficha), b);
+  const chicoCerro = antesDeX(lineas.findIndex((l, i) => enExtras(i) && l.de === 'chico' && l.evento.tipo === 'boton' && (canonico(l.evento.boton) === 'No, ya está' || canonico(l.evento.boton) === 'Lo dejamos acá')));
   const cerroSolo = antesDeX(lineas.findIndex((l) => (l.de === 'marca' && l.motivo === 'cerro-sin-respuesta') || (l.de === 'bot' && /^FINAL-CHICO/.test(l.mensaje.id) && l.mensaje.plantilla !== null)));
   const perdidas: string[] = [];
 
