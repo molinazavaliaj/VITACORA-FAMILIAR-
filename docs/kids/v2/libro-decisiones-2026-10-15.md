@@ -1,6 +1,6 @@
 # Kids V2 · El libro: decisiones de Naza (15/10/2026)
 
-Aprobadas enteras (tanda 3 del chat del 15/10). Parten del diseño del 22/09 (`docs/kids/mi-primer-capitulo-design.md`,
+Aprobadas enteras (tanda 3 del chat del 15/10). Parten del diseño del 22/09 (`docs/archivo/kids/mi-primer-capitulo-design.md`,
 «El libro y la parte cerrada» y «Lo que se entrega») y de la decisión del 15/10: **la misma máquina del escritor de
 Familiar, con una receta de Kids escrita de cero** (carpeta aparte, no se toca la receta de Familiar).
 

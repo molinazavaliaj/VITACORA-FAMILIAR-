@@ -1,4 +1,4 @@
-// Los 6 arreglos que pidió Naza el 05/10 (handoff-2026-10-05.md, "Para Naza").
+// Los 6 arreglos que pidió Naza el 05/10 (docs/archivo/kids/v2-handoff-2026-10-05.md, "Para Naza").
 // Chicos INVENTADOS.
 
 import { describe, it, expect } from 'vitest';

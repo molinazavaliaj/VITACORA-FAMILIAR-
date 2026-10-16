@@ -1,6 +1,6 @@
 # Vitácora Kids V2 · «Mi Primer Capítulo»
 
-Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del banco de V3. Rama `vitacora-kids`, worktree `VITACORA KIDS`. **Main no se tocó.**
+Carpeta de Kids V2 (desde el 30/09/2026), hecho con el método del banco de V3. Vive en las ramas `kids-*` (PR 46 a 50). Lo vigente para Joaquín: [`traspaso-joaquin-2026-10-16.md`](traspaso-joaquin-2026-10-16.md). Lo viejo está en `docs/archivo/kids/`.
 
 ## Empezar por acá
 | Archivo | Qué es |
@@ -85,7 +85,7 @@ npx tsx scripts/kids-v2-simular.ts 800 --idioma ca      # todos en catalán (es-
 3. **El panel**: ver todo (también la cápsula), corregir nombres, escribir hasta 3 preguntas con la casilla "sin decir que es mía" y "¿Quién se la manda?" (de entrada, quién se lo regala) hasta que empieza la cuarta parte, cambiar la hora y los temas; en el de Naza, las marcas.
 4. **Meta**: cargar las 13 plantillas de `plantillas-meta-kids.md`.
 5. **El libro**: el escritor arma los capítulos desde los audios (las preguntas del padre al final del cap. 4), la cápsula en un sobre pegado al impreso y en un PDF aparte, la revisión de algo preocupante antes de armar, y Naza mira el álbum (fotos con otros chicos) antes de imprimir.
-6. `pendientes.md`: sacar "tres semanas" de la landing.
+6. ~~`pendientes.md`: sacar "tres semanas" de la landing.~~ La landing vieja ya no existe (archivado 16/10).
 
 ## Para Naza
 Resueltos el 05/10 (lo que pidió Naza; detalle en `docs/superpowers/plans/2026-10-05-kids-v2-arreglos-report.md`):

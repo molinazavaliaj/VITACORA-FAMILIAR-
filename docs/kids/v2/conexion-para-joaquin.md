@@ -4,7 +4,7 @@ Rama `kids-conexion`, encadenada sobre `kids-datos` (PR #46, la propuesta de la 
 [`plan-conexion-bot.md`](plan-conexion-bot.md). Esquema: `supabase/CONTRATO.md`, «Vitácora Kids V2 por WhatsApp».
 
 ## Qué hace
-- **El motor** (`fabrica/src/kids-v2/`, puro) viene de la rama `vitacora-kids` con tres agregados: la salida
+- **El motor** (`fabrica/src/kids-v2/`, puro) viene de la rama `vitacora-kids` (ya borrada, marca `archivo/vitacora-kids`) con tres agregados: la salida
   `recibido` (a qué pregunta fue cada mensaje, también lo que llega de noche y se procesa a las 9), `termino()` y
   `avance()`. Copia byte a byte en `entrevistador/src/kids-v2/nucleo/` (`npm run kids-v2-copiar-nucleo`; un test
   cuida que sean iguales).
