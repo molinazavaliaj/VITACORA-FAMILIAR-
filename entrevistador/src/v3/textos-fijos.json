@@ -4,6 +4,11 @@
     "es-ES": "📷 Guardada.",
     "ca": "📷 Desada."
   },
+  "fotoFallo": {
+    "es-AR": "La foto no me llegó bien, {{nombre}}. ¿Me la mandás de nuevo cuando puedas? Sin apuro.",
+    "es-ES": "La foto no me ha llegado bien, {{nombre}}. ¿Me la mandas de nuevo cuando puedas? Sin prisa.",
+    "ca": "La foto no m'ha arribat bé, {{nombre}}. Me la tornes a enviar quan puguis? Sense pressa."
+  },
   "pausa": {
     "es-AR": "Listo, {{nombre}}, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.",
     "es-ES": "Vale, {{nombre}}, paramos aquí. Lo que has contado queda guardado. Cuando quieras seguir, mándame un mensaje y seguimos donde lo dejamos.",

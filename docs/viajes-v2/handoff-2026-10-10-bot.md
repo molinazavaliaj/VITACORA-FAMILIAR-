@@ -1,6 +1,8 @@
 # Pase de manos: Viaje V2 al bot (10/10/2026)
 
 Rama **`viaje-v2-bot`** (subida, sin mergear; base = main del 10/10). Worktree del chat anterior:
+
+> **Actualizado 15/10:** en main por el PR #7 (10/10), junto con `viaje-v2-envio`. La migración se aplicó el 10/10.
 `Desktop/VITACORA FAMILIAR-revision` (en el chat nuevo, hacé un worktree propio desde `origin/viaje-v2-bot`).
 Plan y decisiones: [`plan-conexion-bot.md`](plan-conexion-bot.md). **Ñako no pasa a la V2** (Naza: ya fue).
 

@@ -2,6 +2,8 @@
 
 Sale de [`aprobados.md`](aprobados.md) (Naza, 06/10/2026). Los textos que eran solo texto ya están aplicados en la rama `web-textos-v3`. Acá queda lo que es código (sacar un bloque, cambiar una regla) o un texto que depende de ese código: si se pone antes, miente.
 
+> **Actualizado 15/10:** lo que sirve de acá entró a main por `web-textos-v3-sin-mails` y los PR #20 y #21 (11/10). La rama `web-textos-v3` (con los mails viejos) no se mergea: queda como historial (`docs/limpieza-2026-10-15.md`).
+
 Las líneas son las de la rama `web-textos-v3` después de aplicar los textos.
 
 ## Antes de publicar: los legales pasan por el abogado

@@ -6,7 +6,8 @@ import textos from './textos-fijos.json' with { type: 'json' };
 import type { Idioma } from './nucleo/entrevista/idioma.js';
 import { renderizar, type FichaTexto } from './nucleo/entrevista/texto.js';
 
-export type ClaveTextoFijo = 'fotoSuelta' | 'pausa' | 'reserva';
+/** `fotoFallo` (15/10, PROPUESTO, falta el OK de Naza): la foto no se pudo guardar y se le pide de nuevo. */
+export type ClaveTextoFijo = 'fotoSuelta' | 'fotoFallo' | 'pausa' | 'reserva';
 
 const TEXTOS = textos as unknown as Record<ClaveTextoFijo, Partial<Record<Idioma, string>>>;
 
