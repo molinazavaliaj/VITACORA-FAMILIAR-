@@ -84,7 +84,7 @@ const DEFINICIONES: Definicion[] = [
   },
   {
     carril: "entrevista", nombre: "Escribe la pregunta", modelo: "claude-haiku-4-5",
-    pasos: ["personalizar", "personalizar_viaje", "resumenes", "sugeridas", "trato"],
+    pasos: ["personalizar", "resumenes", "sugeridas", "trato"],
     queHace: "Redacta la pregunta del día con las palabras de esa familia",
   },
   {

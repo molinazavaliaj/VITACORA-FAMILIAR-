@@ -176,7 +176,7 @@ async function generarAnticiposFaltantes(): Promise<void> {
 
   const { data: narradores, error } = await db
     .from('narradores')
-    .select('id, como_le_dicen, familia_id')
+    .select('id, como_le_dicen, familia_id, contexto')
     .in('estado', ['activo', 'pausado']);
 
   if (error) {
@@ -191,10 +191,12 @@ async function generarAnticiposFaltantes(): Promise<void> {
     id: string;
     como_le_dicen: string;
     familia_id: string;
+    contexto?: { modo?: string } | null;
   }[]) {
     try {
-      // La V3 no tiene anticipo.
-      if (v3.has(narrador.id)) continue;
+      // La V3 no tiene anticipo. La Vitácora de Viaje tampoco (16/10: solo V2; el que quedó en el viaje viejo no
+      // es un Familiar): el mail del anticipo cita la primera pregunta de una biografía.
+      if (v3.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
