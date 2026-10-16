@@ -5,15 +5,23 @@ import { azar, chico, fichaAlAzar, TIPOS_DE_CONDUCTA, type TipoConducta } from '
 import type { Ficha } from './compra.js';
 import { revisar, type Violacion } from './controles.js';
 import { correr, type Corrida } from './corrida.js';
+import { idiomaDe, type IdiomaKids } from './idioma.js';
 
 export const DESDE_SIMULACION = '2026-10-06T15:00:00.000Z';
 
 export type Resultado = { semilla: number; conducta: TipoConducta; ficha: Ficha; corrida: Corrida; violaciones: Violacion[]; dias: number; mensajes: number };
 
-export function correrUno(semilla: number): Resultado {
+/** En qué idioma corren: todos en uno, o `mitad` (las semillas pares en es-ES, las impares en es-AR). */
+export type IdiomasSimulacion = IdiomaKids | 'mitad';
+
+export const idiomaDeSemilla = (semilla: number, idiomas: IdiomasSimulacion): IdiomaKids =>
+  idiomas === 'mitad' ? (semilla % 2 === 0 ? 'es-ES' : 'es-AR') : idiomas;
+
+/** Un chico. En es-AR la ficha va sin el campo `idioma` (como las de antes del 16/10). */
+export function correrUno(semilla: number, idioma: IdiomaKids = 'es-AR'): Resultado {
   const r = azar(semilla);
   const conducta = TIPOS_DE_CONDUCTA[semilla % TIPOS_DE_CONDUCTA.length];
-  const ficha = fichaAlAzar(r);
+  const ficha = fichaAlAzar(r, undefined, idioma === 'es-AR' ? undefined : idioma);
   let corrida: Corrida;
   try {
     corrida = correr(ficha, chico(conducta, r, ficha), { desde: DESDE_SIMULACION, dias: 365 });
@@ -33,6 +41,8 @@ export function correrUno(semilla: number): Resultado {
   };
 }
 
-export function correrMuchos(n: number): Resultado[] {
-  return Array.from({ length: n }, (_, i) => correrUno(i + 1));
+export function correrMuchos(n: number, idiomas: IdiomasSimulacion = 'es-AR'): Resultado[] {
+  return Array.from({ length: n }, (_, i) => correrUno(i + 1, idiomaDeSemilla(i + 1, idiomas)));
 }
+
+export const idiomaDeResultado = (r: Resultado): IdiomaKids => idiomaDe(r.ficha);

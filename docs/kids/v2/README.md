@@ -13,6 +13,7 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 | [`lectura-corrida.md`](lectura-corrida.md) | Una chica inventada, mensaje por mensaje: 376 globos del 6/10 al 5/11 (se genera, no editar a mano). |
 | [`simulaciones/resumen.md`](simulaciones/resumen.md) | 800 chicos inventados (9 conductas) contra 23 controles: 800 terminan, cero violaciones, mediana 30 días, máximo 152 (se genera). También se corrieron las semillas 1 a 2000: cero violaciones. |
 | [`banco-descartadas.md`](banco-descartadas.md) | Lo que salió y por qué. |
+| [`idiomas/`](idiomas/) | Kids en castellano de España (tú): `banco-es-ES.md` (los 271 textos por ID) y `plantillas-meta-kids-es-ES.md` (las 13 con `_es_es`). Sin aprobar todavía. El motor ya los usa (16/10, ver «Idiomas» abajo). |
 
 ## Cómo se llegó
 `paso-1-*` (método) → `paso-2-*` (el banco, capítulo por capítulo, con Fable) → `paso-3-*` (mensajes fijos) → `paso-4-*` (revisión de Fable leída como el chico y huecos decididos) → el motor (plan en `docs/superpowers/plans/2026-10-05-kids-v2-motor.md`, con las decisiones que el diseño no definía).
@@ -24,23 +25,32 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 - `compra.ts` (la ficha y el guion efectivo: temas sacados, fotos que se mudan, preguntas del padre), `extras.ts`.
 - `motor.ts`: `paso(estado, evento, ahora) → { estado, salidas }`, partido en `motor/` (`flujo`, `rafaga`, `botones`, `reloj`, `sobrio`, `mensajes`, `estado`, `tipos`). `preocupante.ts`: la lista de palabras (borrador para Naza).
 - `corrida.ts`, `lectura.ts`, `conductas.ts`, `controles.ts`, `simulacion.ts`: la lectura corrida y la simulación.
+- `idioma.ts` y `banco-idioma-md.ts` → `banco-es-ES.json` (generado): los idiomas (abajo).
 
 Tests en `fabrica/test/kids-v2-*.test.ts`: 283 en 15 archivos, todos en verde (incluye una simulación de 240 chicos).
 
 ```bash
 cd fabrica
-npx tsx scripts/kids-v2-json.ts       # regenera src/kids-v2/banco.json desde banco.md y mensajes.md
+npx tsx scripts/kids-v2-json.ts       # regenera src/kids-v2/banco.json (banco.md y mensajes.md) y banco-es-ES.json (idiomas/banco-es-ES.md)
 npx vitest run test/kids-v2           # tests
 npx tsc --noEmit -p .                 # tipos
 npx tsx scripts/kids-v2-lectura.ts    # regenera docs/kids/v2/lectura-corrida.md
 npx tsx scripts/kids-v2-simular.ts    # 800 chicos + docs/kids/v2/simulaciones/resumen.md
 npx tsx scripts/kids-v2-simular.ts 20 # una tanda chica (no escribe nada)
 npx tsx scripts/kids-v2-simular.ts --semilla 7   # un chico, mensaje por mensaje
+npx tsx scripts/kids-v2-simular.ts 800 --idioma es-ES   # todos en castellano de España (es-AR, es-ES o mitad; por defecto mitad)
 ```
+
+## Idiomas (16/10)
+- `Ficha.idioma`: `'es-AR'` (vos, el de siempre) o `'es-ES'` (tú). Sin el campo, es-AR: las fichas de antes no cambian. `validarFicha` rechaza otro.
+- **La estructura sale siempre de `banco.md` y `mensajes.md`**; `idiomas/banco-es-ES.md` solo trae textos por ID (`ID | texto`, notación en su cabecera). `bancoDe('es-ES')` es el mismo banco con esos textos; si falta un ID, tira. El motor arma todo lo que sale (preguntas, ramas, otras puertas, fotos, extras, mensajes, botones, títulos de capítulo) desde el banco del idioma de la ficha, y las plantillas con `_es_es` (`kids_final_es_es`…).
+- **Botones**: las reglas del motor siguen comparando los botones de `banco.md`. Lo que toca un chico de España se pasa a ese botón por ID al entrar (`botonCanonico`: «Vale, otra» es `B-SEGUIR-B1` = «Dale, otra»; «No me ha pasado» es `K20-B2` = «No me pasó»). Si dos botones de un idioma valieran por el mismo de acá (o al revés), el banco no se arma.
+- Tests en `test/kids-v2-idiomas.test.ts`: el json al día, los 271 IDs sin que falte ni sobre ninguno, las mismas marcas, botones de hasta 20 letras, sin dos puntos, y chicos enteros en es-ES (canal A y B, y 60 de la simulación) sin un solo texto rioplatense. La simulación corre la mitad de los chicos en es-ES.
+- En el bot: el idioma de `ficha.idioma` o `kids_v2.idioma` (CONTRATO); la transcripción en es-ES para España. El texto al padre de canal A (`TEXTO_AL_PADRE`, `padre.ts`) no tiene versión de España: va el mismo (no tiene voseo).
 
 ## Cómo se conecta (para Joaquín)
 - Por chico se guarda el `Estado` (JSON). Se arranca con `nuevoEstado(ficha)` y el evento `inicio` cuando paga.
-- Cada cosa que llega del número de las preguntas es un evento: `respuesta` (audio con sus segundos y la transcripción; texto; foto) o `boton` (el texto del botón, tal cual). `paso()` devuelve el estado nuevo y las salidas.
+- Cada cosa que llega del número de las preguntas es un evento: `respuesta` (audio con sus segundos y la transcripción; texto; foto) o `boton` (el texto del botón, tal cual, en el idioma del chico: el motor lo reconoce). `paso()` devuelve el estado nuevo y las salidas.
 - **Solo el número de las preguntas.** En canal A, solo lo que manda el número del chico entra como `respuesta` o `boton` (el evento no dice quién lo mandó). Lo que escriba el padre a su número **no** se pasa: se acusaría como si fuera del chico y cortaría los recordatorios. En canal B, el número de las preguntas es el del padre.
 - **Botones viejos (decisión 22).** Cada `mensaje` que sale trae `envio`, un ID único por chico ("1", "2", "3"…). Al mandarlo, guardar `envio` ↔ el ID que devuelve WhatsApp (wamid). Cuando tocan un botón, WhatsApp manda el `context.id` del mensaje tocado: pasarlo traducido como `aMensaje` en el evento `{ tipo: 'boton', boton, aMensaje }`. Así, un botón de un mensaje que ya quedó atrás (el [Paso] de la pregunta de ayer, el mismo botón tocado dos veces, un [Estamos listos] viejo) no hace nada. Siguen valiendo los botones de lo que se espera ahora, aunque haya llegado un recordatorio o un reenvío después. Sin `aMensaje`, el botón actúa sobre lo que se espera ahora (como antes).
 - **Un "no" escrito en una foto** (o un audio corto, sin foto) vale como tocar [No tengo] solo si dice no, nada, ninguno/a, tampoco o nunca: sale su respuesta (B-FOTO-NOTENGO, o B-FOTO-PLATA en K29) y espera el audio, sin acuse. En la foto de K24 vale como [Hoy no la como] (espera el audio, sin decir nada). Algo corto que no dice que no ("ya te la mando", "ahí va"): sin acuse, sigue esperando la foto. Para los audios hace falta la transcripción. A la otra puerta contestada corta tampoco le va acuse.

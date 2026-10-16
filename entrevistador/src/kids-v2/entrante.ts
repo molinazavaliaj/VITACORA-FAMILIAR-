@@ -21,6 +21,7 @@ import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import type { DepsKids } from './deps.js';
 import { drenar } from './enviar.js';
 import { leerFila } from './filas.js';
+import { idiomaDeFila } from './idioma.js';
 import { alMotor, ponerClaveKids } from './motor.js';
 import { SIN_CLAVE_KIDS, type Contenido, type Evento } from './nucleo/motor.js';
 import { envioDe, yaVisto, type FilaKids } from './tipos.js';
@@ -120,7 +121,7 @@ async function guardar(deps: DepsKids, fila: FilaKids, m: MensajeEntrante, clave
     // Dos intentos: un error pasajero de OpenAI no deja al motor sin la transcripción («algo preocupante» la lee).
     for (let intento = 1; intento <= 2 && t === null; intento++) {
       try {
-        t = await deps.transcribir(audio, { nombre: fila.ficha.apodo, narradorId });
+        t = await deps.transcribir(audio, { nombre: fila.ficha.apodo, idioma: idiomaDeFila(fila), narradorId });
         if (t.texto.trim()) await anotarTranscripcion(deps.db, g.id, t);
       } catch (err) {
         console.error(`kids: no pude transcribir el audio ${id} de ${narradorId} (intento ${intento}):`, err instanceof Error ? err.message : err);

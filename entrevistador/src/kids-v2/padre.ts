@@ -18,12 +18,14 @@ import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import type { DepsKids } from './deps.js';
 import { conReintento, filasDelPadre } from './filas.js';
+import { idiomaDeFila } from './idioma.js';
 import type { FilaKids } from './tipos.js';
 
 /**
  * Lo que se le contesta al padre, una sola vez por chico. Texto aprobado por Naza 15/10: no se cambia sin su OK.
  * `{apodo}` = cómo le dicen al chico (`ficha.apodo`). No está en el banco del motor porque el banco sale de los md
- * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A.
+ * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A. Tampoco tiene versión en
+ * banco-es-ES.md: va el mismo a España (no tiene voseo: «ves» es igual con tú), hasta que Naza apruebe otro.
  */
 export const TEXTO_AL_PADRE = 'Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en tu panel.';
 
@@ -117,7 +119,7 @@ async function queMando(deps: DepsKids, m: MensajeEntrante, fila: FilaKids): Pro
     if (!m.mediaId) return 'un audio (vino sin media id)';
     try {
       const audio = await deps.wa.descargar(m.mediaId);
-      const t = await deps.transcribir(audio, { nombre: fila.ficha.nombrePadre, narradorId: fila.narrador_id });
+      const t = await deps.transcribir(audio, { nombre: fila.ficha.nombrePadre, idioma: idiomaDeFila(fila), narradorId: fila.narrador_id });
       return t.texto.trim() ? `un audio que dice «${t.texto.trim()}»` : 'un audio (la transcripción vino vacía)';
     } catch (err) {
       return `un audio que no se pudo transcribir (${err instanceof Error ? err.message : err}; media ${m.mediaId})`;

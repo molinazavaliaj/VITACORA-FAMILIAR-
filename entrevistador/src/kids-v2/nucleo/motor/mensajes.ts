@@ -1,7 +1,10 @@
 // Arma los mensajes que salen: textos del banco con género y variables, a qué
 // número van, con qué botones y si son plantilla. Nunca escribe un texto.
+// Todo sale del banco del idioma de la ficha (bancoDe: mismo ID, textos y
+// botones del idioma); las reglas que llaman acá pasan lo de banco.md.
 
-import { fijo, type IdMensaje } from '../banco.js';
+import { botonEn, BOTON_PASO, extraEn, fijoEn, preguntaEn, type IdMensaje } from '../banco.js';
+import { idiomaDe } from '../idioma.js';
 import { textoSegunTemas, type Ficha, type ItemGuion } from '../compra.js';
 import { conGenero, esPlural, llenar, primerNombre, quedanMarcas } from '../texto.js';
 import type { Extra, Foto, Pregunta } from '../tipos.js';
@@ -26,14 +29,20 @@ export const variables = {
   apodo: (f: Ficha) => [f.apodo],
 };
 
+const idioma = (e: Estado) => idiomaDe(e.ficha);
+
+/** Los botones fijos que no tienen ID propio en el banco (el de pasar, el [No tengo] de las extras con foto), en el idioma del chico. */
+const boton = (e: Estado, canonico: string) => botonEn(idioma(e), canonico);
+
 export function fijoA(e: Estado, id: IdMensaje, o: { variables?: string[]; paraPadre?: boolean } = {}): Mensaje {
-  const m = fijo(id);
+  const m = fijoEn(id, idioma(e));
   const vars = o.variables ?? [];
   return { a: destino(e, o.paraPadre), id, texto: render(e, m.texto, vars), botones: [...m.botones], plantilla: m.plantilla ? { nombre: m.plantilla, variables: vars } : null };
 }
 
 export function preguntaMsg(e: Estado, p: Pregunta): Mensaje {
-  return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, p.texto, e.ficha.temasSacados)), botones: [...p.ramas.map((r) => r.boton), p.botonPaso], plantilla: null };
+  const q = preguntaEn(p.id, idioma(e));
+  return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, q.texto, e.ficha.temasSacados)), botones: [...q.ramas.map((r) => r.boton), q.botonPaso], plantilla: null };
 }
 
 /** El ID de la rama `ri` (0, 1…) de una principal, en su paso 0, 1…: K12-R2, K12-R2-2. */
@@ -41,23 +50,28 @@ export const idRama = (clave: string, ri: number, paso = 0) => `${clave}-R${ri +
 
 /** El mensaje de una rama (paso 0, 1…): K12-R2, K12-R2-2. Lleva el botón para pasar. */
 export function ramaMsg(e: Estado, p: Pregunta, ri: number, paso: number): Mensaje {
-  const accion = p.ramas[ri].accion;
+  const q = preguntaEn(p.id, idioma(e));
+  const accion = q.ramas[ri].accion;
   if (accion.tipo !== 'preguntar') throw new Error(`${p.id}: la rama ${p.ramas[ri].boton} no pregunta`);
   const id = idRama(p.id, ri, paso);
-  return { a: destino(e), id, texto: render(e, accion.pasos[paso]), botones: [p.botonPaso], plantilla: null };
+  return { a: destino(e), id, texto: render(e, accion.pasos[paso]), botones: [q.botonPaso], plantilla: null };
 }
 
 export function opMsg(e: Estado, p: Pregunta): Mensaje {
-  if (!p.op) throw new Error(`${p.id} no tiene otra puerta`);
-  return { a: destino(e), id: `${p.id}-OP`, texto: render(e, p.op.texto), botones: ['Paso'], plantilla: null };
+  const op = preguntaEn(p.id, idioma(e)).op;
+  if (!op) throw new Error(`${p.id} no tiene otra puerta`);
+  return { a: destino(e), id: `${p.id}-OP`, texto: render(e, op.texto), botones: [boton(e, BOTON_PASO)], plantilla: null };
 }
 
+/** La foto pegada de `f.de` (aunque salga mudada en otra principal): su texto y sus botones, en el idioma del chico. */
 export function fotoMsg(e: Estado, f: Foto): Mensaje {
-  return { a: destino(e), id: `${f.de}-FOTO`, texto: render(e, f.texto), botones: [...f.botones], plantilla: null };
+  const g = preguntaEn(f.de, idioma(e)).foto;
+  if (!g) throw new Error(`${f.de} no tiene foto pegada`);
+  return { a: destino(e), id: `${f.de}-FOTO`, texto: render(e, g.texto), botones: [...g.botones], plantilla: null };
 }
 
 export function extraMsg(e: Estado, x: Extra): Mensaje {
-  return { a: destino(e), id: x.id, texto: render(e, x.texto), botones: x.foto ? ['No tengo'] : ['Paso'], plantilla: null };
+  return { a: destino(e), id: x.id, texto: render(e, extraEn(x.id, idioma(e)).texto), botones: [boton(e, x.foto ? 'No tengo' : BOTON_PASO)], plantilla: null };
 }
 
 /**
@@ -68,7 +82,7 @@ export function padreMsgs(e: Estado, item: Extract<ItemGuion, { tipo: 'padre' }>
   const ms: Mensaje[] = [];
   const quien = item.quien ?? e.ficha.quienRegala;
   if (conLinea) ms.push(fijoA(e, esPlural(quien) ? 'PADRE-PREG-LINEA-PL' : 'PADRE-PREG-LINEA', { variables: [quien] }));
-  ms.push({ a: destino(e), id: item.clave, texto: item.texto, botones: ['Esta la paso'], plantilla: null });
+  ms.push({ a: destino(e), id: item.clave, texto: item.texto, botones: [boton(e, 'Esta la paso')], plantilla: null });
   return ms;
 }
 
