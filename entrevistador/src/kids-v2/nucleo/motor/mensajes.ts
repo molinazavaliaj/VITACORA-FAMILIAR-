@@ -42,7 +42,7 @@ export function fijoA(e: Estado, id: IdMensaje, o: { variables?: string[]; paraP
 
 export function preguntaMsg(e: Estado, p: Pregunta): Mensaje {
   const q = preguntaEn(p.id, idioma(e));
-  return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, q.texto, e.ficha.temasSacados)), botones: [...q.ramas.map((r) => r.boton), q.botonPaso], plantilla: null };
+  return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, q.texto, e.ficha.temasSacados, idioma(e))), botones: [...q.ramas.map((r) => r.boton), q.botonPaso], plantilla: null };
 }
 
 /** El ID de la rama `ri` (0, 1…) de una principal, en su paso 0, 1…: K12-R2, K12-R2-2. */

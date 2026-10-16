@@ -58,7 +58,7 @@ export function fichaAlAzar(r: Azar, canal?: Canal, idioma?: IdiomaKids): Ficha 
     apodo: genero === 'chico' ? 'Bruno' : 'Tini',
     genero,
     edad: r.entre(10, 12),
-    quienRegala: r.uno(['Tu mamá', 'Tu papá', espana ? 'Tus padres' : 'Tus papás', 'Tu abuela', 'Tus abuelos', 'tu madrina']),
+    quienRegala: r.uno([espana ? 'Tu madre' : 'Tu mamá', espana ? 'Tu padre' : 'Tu papá', espana ? 'Tus padres' : 'Tus papás', 'Tu abuela', 'Tus abuelos', 'tu madrina']),
     canal: canal ?? r.uno(['A', 'B'] as const),
     nombrePadre: 'Laura Sosa',
     linkPanel: 'vitacora.com/panel/abc123',
