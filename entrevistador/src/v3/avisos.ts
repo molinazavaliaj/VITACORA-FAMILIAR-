@@ -1,7 +1,7 @@
 // Aviso a los socios (spec 2026-10-07: plantilla que falta, 3 fallos de envío,
 // alta frenada sin género). No existía un canal: va a la consola de Railway y,
 // si están RESEND_API_KEY y MAIL_SOCIOS (separados por coma), por mail. Una vez
-// por clave y por día: en memoria y, en producción, también con una marca en
+// por clave y por día (o una sola vez, con `unaVez`): en memoria y, en producción, también con una marca en
 // Storage (11/10: el «ya avisé» solo en memoria se olvidaba en cada deploy y
 // llegaban 5 mails iguales el mismo día). Nunca tira: un aviso no puede frenar
 // la entrevista. Es un mail interno, no un texto para el narrador.
@@ -58,9 +58,10 @@ export function olvidarAvisos(): void {
 
 export async function avisarSocios(
   clave: string, asunto: string, detalle: string,
-  o: { ahora?: Date; fetch?: typeof fetch } = {},
+  o: { ahora?: Date; fetch?: typeof fetch; unaVez?: boolean } = {},
 ): Promise<boolean> {
-  const dia = (o.ahora ?? new Date()).toISOString().slice(0, 10);
+  // `unaVez`: el aviso sale una sola vez por clave, no una por día (la marca va en avisos/siempre/).
+  const dia = o.unaVez ? 'siempre' : (o.ahora ?? new Date()).toISOString().slice(0, 10);
   const llave = `${clave}|${dia}`;
   if (YA_AVISADO.has(llave)) return false;
   YA_AVISADO.add(llave);
