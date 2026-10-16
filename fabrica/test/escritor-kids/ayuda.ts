@@ -6,10 +6,11 @@ import { extrasFalsosDe } from '../../src/escritor-kids/cli.js';
 import { salidasFalsasKids } from '../../src/escritor-kids/falso.js';
 import { carpetaDeFilas, materialDe } from '../../src/escritor-kids/material/carpeta.js';
 import { dirDeFijo, filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
+import type { FilasKids } from '../../src/escritor-kids/material/tipos.js';
 import type { ContextoKids } from '../../src/escritor-kids/orquestador.js';
 
-export function armarKids(fijo = 'chico-inventado', o: { salidas?: Record<string, string>; almacen?: AlmacenMemoria; lote?: boolean; topeUsd?: number } = {}) {
-  const c = carpetaDeFilas(filasDeFijo(fijo));
+export function armarKids(fijo = 'chico-inventado', o: { salidas?: Record<string, string>; almacen?: AlmacenMemoria; lote?: boolean; topeUsd?: number; filas?: (f: FilasKids) => FilasKids } = {}) {
+  const c = carpetaDeFilas((o.filas ?? ((f) => f))(filasDeFijo(fijo)));
   const m = materialDe(c);
   const modelo = new ModeloFalso({ ...salidasFalsasKids(m, extrasFalsosDe(dirDeFijo(fijo))), ...(o.salidas ?? {}) });
   const almacen = o.almacen ?? new AlmacenMemoria();

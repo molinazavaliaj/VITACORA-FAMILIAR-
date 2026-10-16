@@ -5,6 +5,10 @@
 ([`../libro-decisiones-2026-10-15.md`](../libro-decisiones-2026-10-15.md)); las etapas y lo que hace el código entre
 llamada y llamada están en el [plan](plan.md).
 
+**16/10 (tanda 10, Naza: libro de Kids en catalán).** Cada paso recibe el idioma del chico en `{{IDIOMA}}` y escribe el
+libro en ese idioma, con sus palabras. La línea de la pregunta del padre llega armada en el item (atributo `linea`), en
+el idioma del chico. Lo demás, igual.
+
 Son los textos EXACTOS que recibe el modelo. Cada paso es un encabezado de nivel 3; su primer bloque de código sin
 lenguaje es el prompt (las instrucciones del paso) y su bloque `json` es el esquema de salida, que el código pega al
 final del prompt con la línea que viene después del bloque. El resto del texto es para quien edita, el modelo no lo ve.
@@ -76,7 +80,7 @@ solo cuando es ese nombre.
 
 **Huecos que llena el código.** `{{NOMBRE}}` (nombre de pila o apodo con que se lo llama), `{{EDAD}}`, `{{GENERO}}`
 (`m` o `f`), `{{PARTE}}` (1 a 4) y `{{TITULO_PARTE}}` (el del banco, «De chiquito», «Mi gente», «Mi mundo ahora», «Lo que
-me pasó»), y `{{NOMBRES}}` (en Leer todo, Parte, Sobre, Álbum y Arreglo: la lista entera de correcciones de nombres
+me pasó», o los de su idioma), `{{IDIOMA}}` (en todos los pasos: el idioma del chico, `ficha.idioma`, como «castellano rioplatense», «castellano de España» o «catalán»; el libro se escribe en ese idioma, con sus palabras) y `{{NOMBRES}}` (en Leer todo, Parte, Sobre, Álbum y Arreglo: la lista entera de correcciones de nombres
 que hizo el padre en el panel, por ejemplo «Estos nombres se escriben así, «Uriel» y no «Oriel», «Maite» y no «Mate».
 Corregilos solo cuando es ese nombre, no cuando es otra palabra que se escribe igual.»; sin correcciones, «No hay.»).
 
@@ -86,7 +90,8 @@ Corregilos solo cuando es ese nombre, no cuando es otra palabra que se escribe i
 - Ningún «:» en títulos, textos ni epígrafes (salvo el de la hora, «10:30»).
 - El texto de cada pieza no es más largo que 1,5 veces lo que dijo en sus ids (no se estira).
 - En las piezas `PADRE-n`, `pregunta` es igual a la de la ficha y `linea` es «Esta pregunta te la manda {quien}» (o
-  «te la mandan» si son dos) cuando `conLinea`, y vacía si no.
+  «te la mandan» si son dos; en catalán «Aquesta pregunta te l'envia / te l'envien {quien}») cuando `conLinea`, y vacía
+  si no. El código la manda armada en el atributo `linea` del item, en el idioma del chico.
 - En el sobre, cada `pregunta` es igual a la del material y cada respuesta del sobre está en una pieza.
 - `su_voz` solo tiene ids con audio, que no son de la parte 5 ni de lo marcado como preocupante.
 
@@ -103,6 +108,8 @@ ponga `liberado.json`.
 
 ```
 Sos un adulto con experiencia con chicos que lee, antes que nadie, todo lo que contó {{NOMBRE}}, de {{EDAD}} años, para su libro. Tenés la <ficha> y el <material>, que son sus respuestas grabadas en audio y pasadas a texto, cada una con su id (R01, R02…). No escribís nada del libro. Hacés tres cosas y las devolvés en un JSON.
+
+Lo que contó está en {{IDIOMA}}. Las citas van copiadas tal cual, en su idioma. Lo que escribís vos (por_que, que y notas) va en castellano, porque lo lee un adulto de Vitácora.
 
 1. Algo preocupante. Buscá si en lo que contó hay algo que tiene que ver un adulto antes de que el libro siga. Es preocupante, por ejemplo,
    - que alguien le pega, lo lastima, lo encierra o lo deja sin comer;
@@ -180,6 +187,8 @@ acuerdo» o «no sé» y no tienen nada más (el control de código pide que cad
 ```
 Estás armando la parte {{PARTE}}, «{{TITULO_PARTE}}», del libro de {{NOMBRE}}, que tiene {{EDAD}} años (género {{GENERO}}). El libro es suyo y lo cuenta él o ella, en primera persona, con sus palabras. Tenés la <ficha> y la <parte>, con las preguntas que le hicimos y lo que contestó en audio, pasado a texto. Tu trabajo es el de alguien que pasa en limpio lo que dijo un chico. No sos un escritor que lo mejora.
 
+El libro va en {{IDIOMA}}, que es el idioma en que le preguntamos y en que contestó. Los textos y los títulos van en {{IDIOMA}}, con sus palabras y su forma de hablar. No traducís nada ni lo pasás a otra forma de hablar. Si en una frase mezcla otro idioma, queda como lo dijo. Los ejemplos de abajo están en castellano rioplatense; las reglas valen igual en {{IDIOMA}}, con las muletillas y las palabras de grande de ese idioma.
+
 Qué devolvés. Una pieza por cada pregunta principal que contestó, en el mismo orden en que vienen. Cada pieza tiene una clave (la del item), un título chico y el texto.
 
 Reglas.
@@ -197,7 +206,7 @@ Reglas.
 12. El texto no repite la pregunta y no le habla a nadie. No arranca con «Mi primer recuerdo es…» si eso solo repite la pregunta y lo que dijo arranca de otra forma; arranca con lo que dijo.
 13. El título. De 2 a 6 palabras, con palabras suyas que están en la pieza, sobre algo que se ve o algo que dijo. Sin dos puntos, sin comillas, sin signos de exclamación, sin punto final, sin emojis. No es la pregunta («Mi primer recuerdo») ni un resumen de grande («Una aventura en la pileta»).
 14. Los ids. Cada pieza lleva los ids de todas las respuestas que usó. Cada respuesta de la parte va en una pieza. Si una respuesta entera es solo «no sé», «no me acuerdo» o «no tengo» y no dice nada más, no va en ninguna pieza y va en "afuera" con su id y por qué. Si un item no tiene nada más que eso, no tiene pieza.
-15. Solo en la parte 4, al final, las preguntas del padre (items PADRE-n), en su orden, una pieza cada una. Su "pregunta" es el texto de la pregunta tal cual viene, sin cambiar una letra. Si conLinea es "si", su "linea" es «Esta pregunta te la manda» y quien, tal cual viene en la ficha (si quien son dos personas, «Esta pregunta te la mandan»); si conLinea es "no", "linea" va vacía. El "titulo" va vacío. El "texto" es su respuesta, con las mismas reglas de arriba. En las demás partes no hay piezas PADRE.
+15. Solo en la parte 4, al final, las preguntas del padre (items PADRE-n), en su orden, una pieza cada una. Su "pregunta" es el texto de la pregunta tal cual viene, sin cambiar una letra. Si conLinea es "si", su "linea" es la que viene en el atributo linea del item, tal cual, sin cambiar una letra; si conLinea es "no", "linea" va vacía. El "titulo" va vacío. El "texto" es su respuesta, con las mismas reglas de arriba. En las demás partes no hay piezas PADRE.
 
 Ejemplos (de Tomi, inventados).
 Dijo "eh, el primer recuerdo es que estaba en la pileta de mi abuela Coca con unos flotadores naranjas, y, o sea, me tiré y me tragué un montón de agua. Nada, eso."
@@ -281,6 +290,8 @@ Estás pasando en limpio lo que {{NOMBRE}}, de {{EDAD}} años, le contestó a la
 
 Lo que hacés es muy poco, y tiene que ser poco. El que abra el sobre tiene que leer lo que dijo a los {{EDAD}}, no lo que alguien escribió por él.
 
+El sobre va en {{IDIOMA}}, el idioma en que contestó, con sus palabras. No traducís nada. Los ejemplos de abajo están en castellano rioplatense; las reglas valen igual en {{IDIOMA}}, con las muletillas y las palabras de grande de ese idioma.
+
 Reglas.
 1. Una pieza por respuesta, en el orden en que vienen. La clave es la de la respuesta. La pregunta va tal cual viene, sin cambiar una letra.
 2. Solo limpiás. Salen las muletillas («eh», «o sea», «nada», «tipo», «bueno» cuando no dicen nada), las palabras repetidas por el habla («que, que»), los arranques en falso y las risas pasadas a texto («jaja», «[risas]»). Nada más.
@@ -336,7 +347,7 @@ otros chicos las mira Naza aparte, no es cosa de este paso.
 ```
 Estás armando el álbum de fotos del libro de {{NOMBRE}}, que tiene {{EDAD}} años (género {{GENERO}}). Tenés la <ficha> y las <fotos>. Cada foto tiene un id, la pregunta con que se la pedimos y lo que dijo de ella, con sus ids. Vos no ves las fotos.
 
-Para cada foto escribís el epígrafe, lo que va abajo.
+Para cada foto escribís el epígrafe, lo que va abajo. Los epígrafes van en {{IDIOMA}}, el idioma en que contestó, con sus palabras. Los ejemplos de abajo están en castellano rioplatense; las reglas valen igual en {{IDIOMA}}, con las muletillas y las palabras de grande de ese idioma.
 
 Reglas.
 1. Una o dos líneas con sus palabras, en primera persona. Elegí lo que dice qué es y lo que lo hace suyo (de dónde salió, por qué esa, qué le pasó). Si dijo más, quedate con lo más suyo; no lo resumas con palabras tuyas.
@@ -392,6 +403,8 @@ inventado es lo más grave: si duda, lo marca. Si todo está bien, `problemas` v
 Sos quien revisa el libro de {{NOMBRE}}, de {{EDAD}} años, antes de que lo lea su familia. No lo escribiste. Tenés la <ficha>, la <parte> {{PARTE}} («{{TITULO_PARTE}}»), con lo que dijo en cada respuesta, y las <piezas> que se escribieron con eso, cada una con los ids que usó.
 
 Para cada pieza, leé la pieza y después las respuestas de sus ids, una por una, y marcá lo que está mal. La regla del libro es que va lo que dijo, con sus palabras, limpio de muletillas y en orden, y nada más.
+
+El libro está en {{IDIOMA}}, el idioma en que contestó. Una pieza o un título que no está en {{IDIOMA}}, o donde se cambió su forma de hablar, es un problema de tipo otro. La cita va tal cual; el arreglo, en castellano. Los ejemplos de abajo están en castellano rioplatense; las reglas valen igual en {{IDIOMA}}, con las muletillas y las palabras de grande de ese idioma.
 
 Tipos de problema.
 - inventado. Algo que está en la pieza y no está en lo que dijo. Un hecho, un nombre, una fecha, una edad, un lugar, quién estaba, un porqué, una emoción («me puse re triste» si no lo dijo), un detalle (el sol, un color), una conclusión o una moraleja al final. Sé estricto. Si no lo encontrás dicho en sus ids, es inventado, aunque sea chiquito y suene bien.
@@ -451,7 +464,7 @@ clave. Lo que no se arregló queda en el informe para los socios.
 ```
 Estás corrigiendo piezas de la parte {{PARTE}}, «{{TITULO_PARTE}}», del libro de {{NOMBRE}}, que tiene {{EDAD}} años (género {{GENERO}}). Tenés la <ficha>, la <parte> con lo que dijo en cada respuesta, las <piezas_con_problemas> y los <problemas> de cada una, por clave.
 
-Para cada pieza con problemas, escribila de nuevo entera, desde lo que dijo en sus respuestas y no desde la pieza vieja, arreglando todos sus problemas. Solo esas piezas. Las demás no se tocan y no van en la respuesta.
+Para cada pieza con problemas, escribila de nuevo entera, desde lo que dijo en sus respuestas y no desde la pieza vieja, arreglando todos sus problemas. Solo esas piezas. Las demás no se tocan y no van en la respuesta. Las piezas van en {{IDIOMA}}, el idioma en que contestó, con sus palabras, como el resto del libro.
 
 Cómo se arregla cada problema.
 - inventado. Sale. No lo cambiás por otra cosa que tampoco dijo.

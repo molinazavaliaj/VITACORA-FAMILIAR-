@@ -721,7 +721,7 @@ narrador esté en `pendiente_pago`, el entrevistador no toca la fila.
 | Columna | Escribe | Qué guarda |
 |---|---|---|
 | `narrador_id` | web | Clave primaria y referencia a `narradores`. |
-| `idioma` | web | `es-AR` (rioplatense, vos), `es-ES` (castellano de España, tú; **16/10**, rama `kids-libro`) o `ca` (catalán, de tu; **16/10**, mismo camino; sus textos todavía sin revisar ni aprobar: no venderlo hasta el OK de Naza). La web escribe el mismo valor acá y en `ficha.idioma` (abajo). |
+| `idioma` | web | `es-AR` (rioplatense, vos), `es-ES` (castellano de España, tú; **16/10**, rama `kids-libro`) o `ca` (catalán, de tu; **16/10**, mismo camino; textos revisados y aprobados por Naza el 16/10, tanda 10, salvo los marcados `TEXTO PARA NAZA` en el libro). La web escribe el mismo valor acá y en `ficha.idioma` (abajo). |
 | `canal` | web | `A` (su WhatsApp) o `B` («lo hago yo»). Elegir A es la autorización del adulto a cargo. Un `check` cuida que sea el mismo que `ficha.canal`. |
 | `telefono_padre` | web | WhatsApp del padre, E.164 (con `check` de formato). En canal A le llegan AVISO-PADRE, los recordatorios y TERMINO-PADRE; en canal B tiene que ser el mismo número que `narradores.telefono_whatsapp` (lo cuida la web: un `check` no puede mirar otra tabla). |
 | `ficha` (jsonb) | web (al comprar) | La `Ficha` de `fabrica/src/kids-v2/compra.ts`, **ya pasada por `validarFicha`**: `nombre`, `apodo`, `genero` (`chico`/`chica`), `edad`, `quienRegala` («tu mamá», en minúscula), `canal`, `nombrePadre`, `linkPanel`, `hora` (`HH:MM` entre 09:00 y 21:59), `zona` (IANA, la del país del número), `temasSacados`, `fotosConOtrosChicos`, `preguntasPadre` (vacía al comprar) e `idioma` (**16/10**, opcional: `es-AR`, `es-ES` o `ca`; sin el campo, `es-AR`, como las fichas de antes). En catalán `quienRegala` va como lo elige el padre («la teva mare», «els teus pares», en minúscula; «els teus / les teves» es plural). Después de arrancar, la ficha que vale es la de `estado.motor.ficha`; esta columna queda como lo que se compró. |
@@ -748,8 +748,8 @@ motor como su texto de España y el motor los reconoce por ID. La transcripción
 V3). **La compra de España y la de Catalunya no están hechas** (otra rama). **Catalán (16/10):** el género va con la
 palabra entera (`{{petit/petita}}`), los botones se reconocen por ID igual que los de España, y «algo preocupante» y
 «dice que no» buscan las listas catalanas (BORRADOR para Naza y el abogado) y también las castellanas. Lo que no
-tiene texto aprobado en catalán no sale en castellano: el texto al padre de canal A no se manda (se avisa), y el
-libro no arranca (abajo).
+tiene texto aprobado en catalán no sale en castellano. Desde el 16/10 (tanda 10) el texto al padre de canal A tiene
+su versión catalana y el libro también (abajo).
 
 ### Cuándo «terminó de contar»
 
@@ -850,8 +850,8 @@ y el candado de la V3) y, si la hay, no hace nada:
 `docs/kids/v2/plantillas-meta-kids.md` (rama `vitacora-kids`), en español (`es`). **16/10:** las mismas 13 en
 castellano de España, con el sufijo `_es_es` (`kids_bienvenida_es_es`…, `kids_final_plural_es_es`), en Spanish
 (Spain) `es_ES` (`docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md`; sin aprobar todavía), y las mismas 13 en
-catalán con `_ca` (`kids_bienvenida_ca`…), en Catalan `ca` (`docs/kids/v2/idiomas/plantillas-meta-kids-ca.md`; sin
-revisar ni aprobar). Son 39 en `PLANTILLAS_KIDS`. El motor ya pide el
+catalán con `_ca` (`kids_bienvenida_ca`…), en Catalan `ca` (`docs/kids/v2/idiomas/plantillas-meta-kids-ca.md`;
+revisadas y aprobadas por Naza el 16/10, tanda 10). Son 39 en `PLANTILLAS_KIDS`. El motor ya pide el
 nombre con el sufijo del idioma del chico (`PLANTILLAS_KIDS` en `entrevistador/src/config.ts` dice en qué idioma de
 Meta va cada una; una plantilla que no es del idioma del chico no sale y se avisa). Se marcan como aprobadas en
 `WA_PLANTILLAS_KIDS_LISTAS` con el nombre entero (las `_es_es` y las `_ca` aparte de las rioplatenses, o `*`);
@@ -897,10 +897,12 @@ para esos (el piloto real de Naza). Todo lo de abajo vale para los chicos prendi
 
 **El idioma del libro (16/10).** El de `ficha.idioma` o, si no, `kids_v2.idioma`. Los títulos de las partes y las
 preguntas salen del banco de ese idioma; los textos fijos que no están en el banco (los dos mails, «Su voz» y los
-números del PDF, la tapa y el álbum, la línea de la pregunta del padre) solo existen en es-AR y es-ES. **Un chico en
-`ca` no tiene todavía esos textos aprobados**: la fábrica no lee, no escribe el libro ni manda mails (nunca en
-castellano) y avisa a `MAIL_SOCIOS` una vez (candado `aviso-sin-textos-del-idioma.txt`). Cuando Naza los apruebe y se
-sumen al código (`faltanTextosKids` en `libro-kids.ts`), sigue solo.
+números del PDF, la tapa y el álbum, la línea de la pregunta del padre) existen en es-AR, es-ES y ca (**16/10, tanda
+10**: los mails, «La seva veu» y el texto al padre, aprobados por Naza; los números de las partes, la tapa, el álbum y la
+línea del padre en catalán, propuesta marcada `TEXTO PARA NAZA` en el código). Cada paso del escritor recibe el idioma
+(`{{IDIOMA}}`: «castellano rioplatense», «castellano de España», «catalán») y escribe el libro en ese idioma. Si un
+idioma no tuviera esos textos, la fábrica no lee, no escribe el libro ni manda mails (nunca en castellano) y avisa a
+`MAIL_SOCIOS` una vez (candado `aviso-sin-textos-del-idioma.txt`; `faltanTextosKids` en `libro-kids.ts`).
 
 `{narrador_id}/escritor-kids/real/` (bucket `audios`; el almacén del escritor de Kids):
 
@@ -918,7 +920,7 @@ sumen al código (`faltanTextosKids` en `libro-kids.ts`), sigue solo.
 |---|---|---|---|
 | `listo.json` | fábrica | fábrica, **web (panel de Kids)** | `{at, paginas, sobrePaginas}`: el libro está escrito y los archivos de `paquete/` están. Es la señal para mostrarle al padre el libro y el botón de aprobar. |
 | `fallo-A.json`, `fallo-libro.json` | fábrica | socios | La lectura o el libro no salió (`{motivo, fecha}`). No se reintenta solo: se borra a mano para reintentar (retoma sin repagar). |
-| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt`, `aviso-aprobado-sin-listo.txt`, `aviso-sin-textos-del-idioma.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). `aviso-sin-textos-del-idioma.txt`: el chico es de un idioma sin los textos fijos del libro aprobados (hoy, catalán). El último: el padre aprobó y falta `listo.json` (alguien lo borró); la fábrica **no reescribe el libro**, no entrega ni imprime, y avisa a los socios una vez. |
+| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt`, `aviso-aprobado-sin-listo.txt`, `aviso-sin-textos-del-idioma.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). `aviso-sin-textos-del-idioma.txt`: el chico es de un idioma sin los textos fijos del libro aprobados (hoy ninguno: desde el 16/10 los tres idiomas los tienen). El último: el padre aprobó y falta `listo.json` (alguien lo borró); la fábrica **no reescribe el libro**, no entrega ni imprime, y avisa a los socios una vez. |
 | `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`. La copia de la fábrica que va a lanzar un trabajo (lectura o libro) **la toma antes** creándola sin pisar (upload sin `upsert`): de dos copias en el mismo tick solo una la consigue. La renueva cada minuto y la borra al terminar. Una de más de 10 minutos es de una copia muerta: se borra y se vuelve a crear. |
 
 `{narrador_id}/paquete/` (los de siempre, con el libro de Kids):

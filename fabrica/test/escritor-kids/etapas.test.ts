@@ -5,6 +5,7 @@ import { TopeDeGasto } from '../../src/escritor/ejecutor.js';
 import { parteFalsa } from '../../src/escritor-kids/falso.js';
 import { correrKids, etapaAKids, etapaBKids, etapaCKids, RUTA_FRENADO, RUTA_LIBERADO } from '../../src/escritor-kids/orquestador.js';
 import { armarKids } from './ayuda.js';
+import type { FilasKids } from '../../src/escritor-kids/material/tipos.js';
 
 const LECTURA_PREOCUPANTE = JSON.stringify({
   preocupante: [{ ids: ['R07'], cita: 'Pero cuando se enoja mucho me pega.', por_que: 'dice que su papá le pega cuando se enoja' }],
@@ -119,5 +120,31 @@ describe('libro de Kids: las etapas con el modelo falso', () => {
   it('el tope de gasto corta antes de pagar de más', async () => {
     const a = armarKids('chico-inventado', { topeUsd: 0.000001 });
     await expect(correrKids(a.x)).rejects.toBeInstanceOf(TopeDeGasto);
+  });
+
+  it('un chico en catalán: cada paso recibe «catalán» y la línea del padre en catalán (modelo falso)', async () => {
+    const enCa = (f: FilasKids): FilasKids => ({ ...f, kids: { ...f.kids, idioma: 'ca', ficha: { ...f.kids.ficha, idioma: 'ca', quienRegala: 'La teva mare' } } });
+    const { x, modelo } = armarKids('chico-inventado', { lote: true, filas: enCa });
+    const r = await correrKids(x);
+    expect(r.estado).toBe('listo');
+    expect(modelo.llamadas.length).toBeGreaterThan(8);
+    for (const ll of modelo.llamadas) {
+      const instr = ll.bloques.at(-1)!;
+      expect(instr, ll.clave).toMatch(/(va|van|está) en catalán/);
+      expect(instr, ll.clave).not.toMatch(/(va|van|está) en castellano (rioplatense|de España)|\{\{IDIOMA\}\}/);
+    }
+    const parte4 = modelo.llamadas.find((ll) => ll.clave === 'B/kids-parte-4')!;
+    expect(parte4.bloques[2]).toMatch(/conLinea="si" linea="Aquesta pregunta te l'envia /);
+    expect(parte4.bloques[2]).not.toContain('Esta pregunta te la');
+  });
+
+  it('un chico de España recibe «castellano de España» y uno de acá «castellano rioplatense»', async () => {
+    const enEs = (f: FilasKids): FilasKids => ({ ...f, kids: { ...f.kids, idioma: 'es-ES', ficha: { ...f.kids.ficha, idioma: 'es-ES' } } });
+    const es = armarKids('chico-inventado', { lote: true, filas: enEs });
+    await correrKids(es.x);
+    for (const ll of es.modelo.llamadas) expect(ll.bloques.at(-1), ll.clave).toMatch(/(va|van|está) en castellano de España/);
+    const ar = armarKids('chico-inventado', { lote: true });
+    await correrKids(ar.x);
+    for (const ll of ar.modelo.llamadas) expect(ll.bloques.at(-1), ll.clave).toMatch(/(va|van|está) en castellano rioplatense/);
   });
 });

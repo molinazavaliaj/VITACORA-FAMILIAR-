@@ -461,33 +461,43 @@ describe('piezas del libro de Kids en producción', () => {
     }
   });
 
-  it('en catalán todavía no hay textos aprobados: tira SinTextosKids, nunca un mail en castellano', async () => {
+  it('los mails al padre en catalán: los textos aprobados (16/10, tanda 10), literales, sin dos puntos y con su pie', () => {
     expect(faltanTextosKids('es-AR')).toEqual([]);
     expect(faltanTextosKids('es-ES')).toEqual([]);
-    expect(faltanTextosKids('ca')).toHaveLength(4);
-    expect(() => textosMailKids('ca')).toThrow(SinTextosKids);
-    expect(() => cuerpoMailKids('revisar', { apodo: 'Jana', enlace: 'https://x.test', idioma: 'ca' })).toThrow(/ca/);
+    expect(faltanTextosKids('ca')).toEqual([]);
+    const { revisar, libro_listo } = textosMailKids('ca');
+    expect(revisar.asunto('Jana')).toBe("El llibre de Jana ja es pot llegir. Revisa'l abans d'aprovar-lo");
+    expect(revisar.parrafos('Jana')).toEqual(['Ja hem escrit el llibre de Jana amb el que ha explicat. Entra al teu panell i llegeix-lo.', "Si està bé, aprova'l des d'allà."]);
+    expect(revisar.boton).toBe('Veure el llibre');
+    expect(libro_listo.asunto('Jana')).toBe('El llibre de Jana està llest');
+    expect(libro_listo.parrafos('Jana')).toEqual([
+      'Ja està. El llibre de Jana, amb les seves paraules i amb els seus àudios per escoltar des dels codis del llibre.',
+      'Es queda al teu panell per llegir-lo o descarregar-lo quan vulguis.',
+    ]);
+    for (const t of Object.values(textosMailKids('ca'))) expect([t.asunto('Jana'), ...t.parrafos('Jana'), t.boton].join(' ')).not.toContain(':');
+    const html = cuerpoMailKids('revisar', { apodo: 'Jana', enlace: 'https://x.test', idioma: 'ca' });
+    expect(html).toContain('<html lang="ca">');
+    expect(html).toContain('A cada família hi ha un llibre per escriure.');
+    expect(html).not.toContain('En cada familia');
+    expect(cuerpoMailKids('revisar', { apodo: 'Jana', enlace: 'https://x.test' })).toContain('En cada familia hay un libro sin escribir.');
   });
 
-  it('un chico en catalán: ni lectura, ni libro, ni mails; un aviso a los socios, una vez, y sigue frenado', async () => {
+  it('un chico en catalán: los dos mails al padre salen en catalán (ficha.idioma, si no kids_v2.idioma)', async () => {
     for (const fila of [{ ficha: { idioma: 'ca' } }, { idioma: 'ca', ficha: {} }]) {
       mails = [];
       const t = tablasDeBenja({ pedido: true });
       t.kids_v2[0] = { ...t.kids_v2[0], ...(fila.idioma ? { idioma: fila.idioma } : {}), ficha: { ...(t.kids_v2[0].ficha as Fila), ...fila.ficha } };
-      const { db, archivos } = baseFalsa(t);
-      const { motor, modelo } = motorFalso();
-      await vuelta(db, motor);
-      await vuelta(db, motor);
-      expect(modelo.llamadas).toHaveLength(0);
-      expect([...archivos.keys()].filter((k) => k.includes('/real/') || k.includes('/paquete/'))).toEqual([]);
-      expect(alPadre()).toEqual([]);
-      expect(aSocios()).toHaveLength(1);
-      expect(aSocios()[0].subject).toContain('no hay textos en ca');
-      expect(archivos.has(kids('aviso-sin-textos-del-idioma.txt'))).toBe(true);
-      // Con el libro ya escrito (listo.json) tampoco sale el mail en castellano.
+      const { db, archivos, tablas } = baseFalsa(t);
       archivos.set(kids('listo.json'), JSON.stringify({ at: new Date().toISOString(), paginas: 2, sobrePaginas: 2 }));
+      const { motor } = motorFalso();
       await vuelta(db, motor);
-      expect(alPadre()).toEqual([]);
+      expect(alPadre().map((m) => m.subject)).toEqual(["El llibre de Benja ja es pot llegir. Revisa'l abans d'aprovar-lo"]);
+      expect(alPadre()[0].html).toContain('Entra al teu panell i llegeix-lo.');
+      expect(archivos.has(kids('aviso-sin-textos-del-idioma.txt'))).toBe(false);
+      tablas.narradores[0].libro_aprobado_at = new Date().toISOString();
+      await vuelta(db, motor);
+      expect(alPadre()[1].subject).toBe('El llibre de Benja està llest');
+      expect(alPadre()[1].html).toContain('Es queda al teu panell');
     }
   });
 });

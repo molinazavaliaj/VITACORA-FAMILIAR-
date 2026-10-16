@@ -9,8 +9,9 @@
 // hoja (box-decoration-break: clone). htmlAPdf espera `window.__libroPaginado`: se pone cuando cargan las letras.
 //
 // Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5); los de España
-// (tú), el 16/10 (tanda 8). Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR). En catalán todavía
-// no hay textos aprobados: textosKids('ca') tira (idioma-textos.ts), nunca un PDF en castellano.
+// (tú), el 16/10 (tanda 8); los de catalán, el 16/10 (tanda 10), salvo los números de las partes (TEXTO PARA NAZA).
+// Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR). Un idioma sin textos tiraría (idioma-textos.ts),
+// nunca un PDF en castellano.
 import { escaparHtml } from '../../libro/comun.js';
 import { qrDataUri } from '../../libro/qr.js';
 import type { LibroKids, VozLibro } from './libro-md.js';
@@ -41,8 +42,21 @@ export const TEXTOS_KIDS_ES_ES: TextosKids = {
   numeros: ['', 'Uno', 'Dos', 'Tres', 'Cuatro'],
 };
 
-/** Los idiomas con sus textos aprobados (falta ca: Naza). */
-export const TEXTOS_KIDS_DE: Readonly<Partial<Record<IdiomaKids, TextosKids>>> = { 'es-AR': TEXTOS_KIDS, 'es-ES': TEXTOS_KIDS_ES_ES };
+// Aprobado por Naza el 16/10/2026 (tanda 10), de docs/rediseno-2026-10/kids/textos-ca-2026-10-16.md (columna Català).
+export const TEXTOS_KIDS_CA: TextosKids = {
+  suVoz: 'La seva veu',
+  suVozBajada: "Aquestes respostes també són en àudio, tal com les va dir. Apunta el mòbil al codi i l'escoltes.",
+  escuchala: 'Escolta-la',
+  altQr: 'Codi per escoltar aquesta resposta',
+  marca: 'VITÁCORA',
+  // TEXTO PARA NAZA: la apertura de cada parte. En catalán «part» es femenino y «Part Un» no suena a libro: va el
+  // ordinal entero («Primera part»), sin la palabra suelta. Alternativa sin ordinal: parte 'Part' y 'una', 'dues'…
+  parte: '',
+  numeros: ['', 'Primera part', 'Segona part', 'Tercera part', 'Quarta part'],
+};
+
+/** Los idiomas con sus textos aprobados. */
+export const TEXTOS_KIDS_DE: Readonly<Partial<Record<IdiomaKids, TextosKids>>> = { 'es-AR': TEXTOS_KIDS, 'es-ES': TEXTOS_KIDS_ES_ES, ca: TEXTOS_KIDS_CA };
 
 export const textosKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): TextosKids => deIdioma(TEXTOS_KIDS_DE, idioma, 'los textos fijos del PDF (Su voz, Parte, números)');
 
@@ -114,7 +128,7 @@ export async function htmlLibroKids(l: LibroKids, o: OpcionesHtml): Promise<stri
   b.push(`<section class="hoja tapa"><div class="franja"></div><h1>${e(l.nombre)}</h1><div class="sub">${e(l.subtitulo)}</div><div class="marca">${T.marca}</div></section>`);
   for (const p of l.partes) {
     if (!p.piezas.length) continue;
-    b.push(`<section class="hoja apertura"><div class="num">${T.parte} ${T.numeros[p.n] ?? p.n}</div><h2>${e(p.titulo)}</h2><div class="regla"></div></section>`);
+    b.push(`<section class="hoja apertura"><div class="num">${[T.parte, T.numeros[p.n] ?? String(p.n)].filter(Boolean).join(' ')}</div><h2>${e(p.titulo)}</h2><div class="regla"></div></section>`);
     const piezas = p.piezas.map((pz) => {
       if (pz.padre) return `<div class="padre">${pz.linea ? `<p class="linea">${e(pz.linea)}</p>` : ''}<p class="pregunta">${e(pz.pregunta ?? '')}</p>${parrafos(pz.texto)}</div>`;
       return `<div class="pieza${pz.texto.length < 700 ? ' corta' : ''}"><h3>${e(pz.titulo)}</h3>${parrafos(pz.texto)}</div>`;
@@ -136,7 +150,7 @@ export async function htmlLibroKids(l: LibroKids, o: OpcionesHtml): Promise<stri
     }
     b.push(`<section class="flujo su-voz"><h2>${T.suVoz}</h2><div class="regla"></div><p class="bajada">${T.suVozBajada}</p>${voces.join('')}</section>`);
   }
-  return documento(l.nombre, b.join('\n'), o);
+  return documento(l.nombre, b.join('\n'), o, l.idioma);
 }
 
 /** El sobre cerrado: nunca lleva QR (nadie lo escucha antes de abrirlo). */
@@ -146,5 +160,5 @@ export function htmlSobreKids(l: LibroKids, o: { conFuentes?: boolean } = {}): s
     `<section class="hoja tapa"><div class="franja"></div><h1>${e(l.sobre.titulo)}</h1><div class="sub">${e(l.sobre.nombre)}<br>${e(l.subtitulo)}</div><div class="marca">${T.marca}</div></section>`,
     `<section class="flujo">${l.sobre.piezas.map((p) => `<div class="sobre-pieza"><p class="pregunta">${e(p.pregunta)}</p>${parrafos(p.texto)}</div>`).join('')}</section>`,
   ];
-  return documento(l.sobre.titulo, b.join('\n'), o);
+  return documento(l.sobre.titulo, b.join('\n'), o, l.idioma);
 }

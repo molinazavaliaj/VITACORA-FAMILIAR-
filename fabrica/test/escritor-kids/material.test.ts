@@ -173,7 +173,7 @@ describe('material de Kids en catalán (ficha.idioma = ca)', () => {
     expect(ca.ficha.idioma).toBe('ca');
     expect(ca.ficha.quienRegala).toBe('la teva mare');
     expect(ca.partes.map((p) => p.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat"]);
-    expect(ca.sobre.titulo).toBe('Per quan siguis gran');
+    expect(ca.sobre.titulo).toBe('Per a quan siguis gran');
   });
 
   it('las preguntas son las que le llegaron, en catalán, con el género por palabra entera', () => {
@@ -185,8 +185,10 @@ describe('material de Kids en catalán (ficha.idioma = ca)', () => {
     for (const i of [...ca.partes.flatMap((p) => p.items), ...ca.sobre.items]) if (!i.clave.startsWith('PADRE-')) expect(i.pregunta, i.clave).not.toMatch(/Contame|Cuéntame|\{\{/);
   });
 
-  it('la línea de la pregunta del padre en el libro no tiene texto aprobado en catalán: tira, no sale en castellano', () => {
-    expect(() => lineaDelPadre('la teva mare', 'ca')).toThrow(SinTextosKids);
-    expect(() => materialDeFilas(enCa())).toThrow(SinTextosKids);
+  it('la línea de la pregunta del padre en el libro, en catalán (TEXTO PARA NAZA), con su plural', () => {
+    expect(lineaDelPadre('la teva mare', 'ca')).toBe("Aquesta pregunta te l'envia la teva mare");
+    expect(lineaDelPadre('els teus avis', 'ca')).toBe("Aquesta pregunta te l'envien els teus avis");
+    expect(lineaDelPadre('la mare i el pare', 'ca')).toBe("Aquesta pregunta te l'envien la mare i el pare");
+    expect(() => materialDeFilas(enCa())).not.toThrow(SinTextosKids);
   });
 });

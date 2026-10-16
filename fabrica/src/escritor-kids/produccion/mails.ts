@@ -5,8 +5,8 @@
 //   revisar      el libro ya está escrito y espera que el padre lo lea y lo apruebe en su panel (decisión 9).
 //   libro_listo  el padre lo aprobó: el libro quedó entregado.
 //
-// Van en el idioma del chico (`ficha.idioma`, si no `kids_v2.idioma`): es-AR en vos, es-ES en tú. En catalán no hay
-// textos aprobados todavía: textosMailKids('ca') tira SinTextosKids (nunca un mail en castellano). Mismo camino
+// Van en el idioma del chico (`ficha.idioma`, si no `kids_v2.idioma`): es-AR en vos, es-ES en tú, ca de tu. Un idioma
+// sin textos aprobados tiraría SinTextosKids (nunca un mail en castellano). Mismo camino
 // que los hitos de la casa (Resend directo, mail/hitos.ts); sin clave de Resend devuelven false y el próximo tick reintenta.
 import { cargarConfig } from '../../config.js';
 import { escaparHtml } from '../../libro/comun.js';
@@ -64,8 +64,37 @@ export const TEXTOS_MAIL_KIDS_ES_ES: Record<MailKids, Texto> = {
   },
 };
 
-/** Los idiomas con sus mails aprobados (falta ca: Naza). */
-export const TEXTOS_MAIL_KIDS_DE: Readonly<Partial<Record<IdiomaKids, Record<MailKids, Texto>>>> = { 'es-AR': TEXTOS_MAIL_KIDS, 'es-ES': TEXTOS_MAIL_KIDS_ES_ES };
+/** Los de catalán (de tu), de docs/rediseno-2026-10/kids/textos-ca-2026-10-16.md (columna Català, rama de la web). */
+export const TEXTOS_MAIL_KIDS_CA: Record<MailKids, Texto> = {
+  // Aprobado por Naza el 16/10/2026 (tanda 10)
+  revisar: {
+    asunto: (apodo) => `El llibre de ${apodo} ja es pot llegir. Revisa'l abans d'aprovar-lo`,
+    parrafos: (apodo) => [
+      `Ja hem escrit el llibre de ${apodo} amb el que ha explicat. Entra al teu panell i llegeix-lo.`,
+      "Si està bé, aprova'l des d'allà.",
+    ],
+    boton: 'Veure el llibre',
+  },
+  // Aprobado por Naza el 16/10/2026 (tanda 10)
+  libro_listo: {
+    asunto: (apodo) => `El llibre de ${apodo} està llest`,
+    parrafos: (apodo) => [
+      `Ja està. El llibre de ${apodo}, amb les seves paraules i amb els seus àudios per escoltar des dels codis del llibre.`,
+      'Es queda al teu panell per llegir-lo o descarregar-lo quan vulguis.',
+    ],
+    boton: 'Veure el llibre',
+  },
+};
+
+/** Los idiomas con sus mails aprobados. */
+export const TEXTOS_MAIL_KIDS_DE: Readonly<Partial<Record<IdiomaKids, Record<MailKids, Texto>>>> = { 'es-AR': TEXTOS_MAIL_KIDS, 'es-ES': TEXTOS_MAIL_KIDS_ES_ES, ca: TEXTOS_MAIL_KIDS_CA };
+
+/** El pie de los dos mails. En catalán, el que ya usa la web de la casa (Aprobado por Naza el 16/10/2026, tanda 10). */
+export const PIE_MAIL_KIDS: Readonly<Record<IdiomaKids, string>> = {
+  'es-AR': 'En cada familia hay un libro sin escribir.',
+  'es-ES': 'En cada familia hay un libro sin escribir.',
+  ca: 'A cada família hi ha un llibre per escriure.',
+};
 
 export const textosMailKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): Record<MailKids, Texto> => deIdioma(TEXTOS_MAIL_KIDS_DE, idioma, 'los mails al padre (revisar y libro listo)');
 
@@ -87,7 +116,7 @@ ${filas}
           <a href="${escaparHtml(o.enlace)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.02em;">${t.boton}</a>
         </td></tr>
         <tr><td style="border-top:1px solid #e7e5e4;padding-top:20px;font-size:14px;color:#78716c;font-style:italic;">
-          En cada familia hay un libro sin escribir.
+          ${PIE_MAIL_KIDS[o.idioma ?? IDIOMA_POR_DEFECTO]}
         </td></tr>
       </table>
     </td></tr>

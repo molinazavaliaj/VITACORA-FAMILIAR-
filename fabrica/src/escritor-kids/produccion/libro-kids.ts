@@ -87,7 +87,7 @@ const REINTENTOS_LIBRO = 3;
 
 /**
  * Lo que le falta a un idioma para hacer su libro entero sin una palabra de otro (los textos fijos que no salen del
- * banco). Vacío: se puede. Hoy al catalán le falta todo (Naza no aprobó todavía sus textos): ver idioma-textos.ts.
+ * banco). Vacío: se puede. Desde la tanda 10 (16/10) los tres idiomas tienen los suyos: ver idioma-textos.ts.
  */
 export function faltanTextosKids(idioma: IdiomaKids): string[] {
   const falta: string[] = [];

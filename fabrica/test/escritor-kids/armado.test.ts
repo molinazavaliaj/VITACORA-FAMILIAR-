@@ -78,15 +78,27 @@ describe('armado del libro de Kids', () => {
     expect(sobre).not.toMatch(/Apuntá el teléfono|>Escuchala</);
   });
 
-  it('un chico en catalán: sin textos fijos aprobados, el libro y el PDF tiran (nunca salen en castellano)', async () => {
+  it('un chico en catalán: los textos fijos del libro y del sobre en catalán (tanda 10), nada en castellano', async () => {
     const { a, libro: deAr } = await libroDelChico();
     const m = { ...a.m, ficha: { ...a.m.ficha, idioma: 'ca' } };
-    expect(() => armarLibro(m, salidasDe(a.x, a.m), { ids: deAr.suVoz.map((v) => v.id) })).toThrow(SinTextosKids);
-    expect(() => subtituloTapa(11, 'ca')).toThrow(/ca/);
-    expect(() => tituloAlbum(11, 'ca')).toThrow(/ca/);
-    expect(() => textosKids('ca')).toThrow(SinTextosKids);
-    await expect(htmlLibroKids({ ...deAr, idioma: 'ca' }, opciones)).rejects.toThrow(SinTextosKids);
-    expect(() => htmlSobreKids({ ...deAr, idioma: 'ca' }, opciones)).toThrow(SinTextosKids);
+    const libro = armarLibro(m, salidasDe(a.x, a.m), { ids: deAr.suVoz.map((v) => v.id) });
+    expect(libro.idioma).toBe('ca');
+    expect(libro.subtitulo).toBe('Capítol primer: 11 anys');
+    expect(subtituloTapa(11, 'ca')).toBe('Capítol primer: 11 anys');
+    expect(tituloAlbum(11, 'ca')).toBe('Les meves coses als 11');
+    expect(textosKids('ca').suVoz).toBe('La seva veu');
+    const html = await htmlLibroKids(libro, opciones);
+    expect(html).toContain('<html lang="ca"');
+    expect(html).toContain('<h2>La seva veu</h2>');
+    expect(html).toContain("<p class=\"bajada\">Aquestes respostes també són en àudio, tal com les va dir. Apunta el mòbil al codi i l'escoltes.</p>");
+    expect(html.match(/>Escolta-la</g)).toHaveLength(7);
+    expect(html.match(/alt="Codi per escoltar aquesta resposta"/g)).toHaveLength(7);
+    for (const n of ['Primera part', 'Segona part', 'Tercera part', 'Quarta part']) expect(html).toContain(`<div class="num">${n}</div>`);
+    expect(html).not.toMatch(/Su voz|Escuch|teléfono|móvil|Parte Uno|Capítulo Uno|Mis cosas/);
+    const sobre = htmlSobreKids(libro, opciones);
+    expect(sobre).toContain('Capítol primer: 11 anys');
+    expect(sobre).not.toMatch(/Capítulo Uno|Su voz/);
+    expect(() => textosKids('es-ES')).not.toThrow(SinTextosKids);
   });
 
   it('genera los dos PDF A5 con Chromium', async () => {

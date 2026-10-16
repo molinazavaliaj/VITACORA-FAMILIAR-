@@ -6,6 +6,11 @@ import type { Llamada } from '../escritor/llamadas/armar.js';
 import type { FichaKids, FotoKids, ItemKids, MaterialKids, ParteKids, RespuestaKids } from './material/tipos.js';
 import { textoNombres } from './material/de-filas.js';
 import { instruccionesKids, lineaFijaKids, type HuecosKids } from './prompts/index.js';
+import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../kids-v2/idioma.js';
+
+/** {{IDIOMA}}: en qué idioma se escribe el libro (el del chico, ficha.idioma). */
+export const NOMBRE_IDIOMA: Readonly<Record<IdiomaKids, string>> = { 'es-AR': 'castellano rioplatense', 'es-ES': 'castellano de España', ca: 'catalán' };
+export const idiomaDelLibro = (f: Pick<FichaKids, 'idioma'>): string => NOMBRE_IDIOMA[esIdiomaKids(f.idioma) ? f.idioma : IDIOMA_POR_DEFECTO];
 
 export type PiezaKids = { clave: string; titulo: string; texto: string; ids: string[]; linea?: string; pregunta?: string };
 export type AfueraKids = { id: string; por_que: string };
@@ -51,7 +56,7 @@ export function fichaXml(f: FichaKids): string {
 export const respuestaXml = (r: RespuestaKids): string => `<respuesta id="${r.id}" clave="${attr(r.clave)}" pregunta="${attr(r.pregunta)}" audio="${siNo(r.audio)}">${cuerpo(r.texto)}</respuesta>`;
 
 export function itemXml(i: ItemKids): string {
-  const padre = i.padre ? ` quien="${attr(i.padre.quien)}" conLinea="${siNo(i.padre.conLinea)}"` : '';
+  const padre = i.padre ? ` quien="${attr(i.padre.quien)}" conLinea="${siNo(i.padre.conLinea)}"${i.padre.conLinea ? ` linea="${attr(i.padre.linea)}"` : ''}` : '';
   return [`<item clave="${attr(i.clave)}" pregunta="${attr(i.pregunta)}"${padre}>`, ...i.respuestas.map(respuestaXml), '</item>'].join('\n');
 }
 
@@ -69,7 +74,7 @@ export function materialXml(m: MaterialKids): string {
 }
 
 const huecos = (m: MaterialKids, p?: ParteKids): HuecosKids => ({
-  NOMBRE: m.ficha.llamado, EDAD: String(m.ficha.edad), GENERO: m.ficha.genero, NOMBRES: textoNombres(m.correcciones),
+  NOMBRE: m.ficha.llamado, EDAD: String(m.ficha.edad), GENERO: m.ficha.genero, IDIOMA: idiomaDelLibro(m.ficha), NOMBRES: textoNombres(m.correcciones),
   ...(p ? { PARTE: String(p.n), TITULO_PARTE: p.titulo } : {}),
 });
 const conError = (instr: string, error?: string): string => (error ? `${instr}\n\nTu respuesta anterior no pasó estos controles. Devolvé el JSON completo corregido.\n${error}` : instr);

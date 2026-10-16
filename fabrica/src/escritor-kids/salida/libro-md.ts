@@ -11,6 +11,7 @@ import type { FotoKids, MaterialKids, RespuestaKids } from '../material/tipos.js
 import { todasLasRespuestas } from '../material/de-filas.js';
 import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 import { deIdioma } from '../idioma-textos.js';
+import { textosKids } from './html.js';
 
 export type PiezaLibro = { clave: string; titulo: string; texto: string; ids: string[]; linea?: string; pregunta?: string; padre: boolean };
 export type FotoLibroKids = { id: string; foto: FotoKids; epigrafe: string };
@@ -27,10 +28,13 @@ export type LibroKids = {
   idioma?: IdiomaKids;
 };
 
-/** «Capítulo Uno: 11 años» y «Mis cosas a los 11» (decisiones de Naza del 15/10; en España van igual). En catalán, sin aprobar: tira. */
+/** «Capítulo Uno: 11 años» y «Mis cosas a los 11» (decisiones de Naza del 15/10; en España van igual). */
 export const TAPA_KIDS_DE: Readonly<Partial<Record<IdiomaKids, { subtitulo: (edad: number) => string; album: (edad: number) => string }>>> = {
   'es-AR': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
   'es-ES': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
+  // TEXTO PARA NAZA: no está en textos-ca-2026-10-16.md. «Capítol primer» es como se numera un capítulo en un libro
+  // en catalán («Capítol u» también se dice, pero suena a lista); «als 11» es «a los 11».
+  ca: { subtitulo: (edad) => `Capítol primer: ${edad} anys`, album: (edad) => `Les meves coses als ${edad}` },
 };
 const tapa = (idioma: IdiomaKids) => deIdioma(TAPA_KIDS_DE, idioma, 'la tapa y el álbum («Capítulo Uno», «Mis cosas a los»)');
 export const subtituloTapa = (edad: number, idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string => tapa(idioma).subtitulo(edad);
@@ -85,7 +89,7 @@ export function libroMd(l: LibroKids): string {
     for (const f of l.album.fotos) out.push(`![${f.id}](${f.foto.storagePath})`, ...(f.epigrafe ? [`*${f.epigrafe}*`] : []), '');
   }
   if (l.suVoz.length) {
-    out.push('## Su voz', '');
+    out.push(`## ${textosKids(l.idioma).suVoz}`, '');
     for (const v of l.suVoz) out.push(`- ${v.parte} · ${v.titulo} · QR al audio de ${v.id}`);
     out.push('');
   }
