@@ -594,11 +594,10 @@ describe("pago fallido: lo elegido sigue guardado (Casos 2)", () => {
   });
 });
 
-describe("/comprar/viaje con el mismo cascarón", () => {
-  // 15/10 (Naza: «en Vitácora Viaje no cambian los colores a como está en el brief»): la compra de Viaje
-  // vuelve a tener su azul, pero por data-producto="viaje" (checkout.css y _direccion/viaje.css), no con la
-  // clase vieja .tema-viaje (la del violeta), que no se usa en el rediseño.
-  it("la compra de viaje con su paleta (data-producto, no .tema-viaje), tres pasos, y en es de vosotros sin «cada noche» (B24)", () => {
+describe("/comprar/viaje: la Vitácora de Viaje V2 (16/10)", () => {
+  // La compra de Viaje con su azul por data-producto="viaje" (checkout.css y _direccion/viaje.css), sin la
+  // clase vieja .tema-viaje. Solo lo de la V2: nada de etapas, ciudades, «con quién viajás» ni ángulos.
+  it("su paleta, tres pasos, y ni rastro del viaje viejo ni de «cada noche»", () => {
     const es = render(PaginaViajeEs);
     expect(es).toContain('data-producto="viaje"');
     expect(es).not.toContain("tema-viaje");
@@ -606,36 +605,58 @@ describe("/comprar/viaje con el mismo cascarón", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       for (const paso of [1, 2, 3] as const) {
         const html = renderToStaticMarkup(<CheckoutViaje idioma={idioma} catalogo={catalogo(idioma === "ar" ? "AR" : "ES")} pasoInicial={paso} />);
-        expect(html).not.toMatch(/cada noche|una pregunta por noche|cada nit/i);
+        expect(html).not.toMatch(/cada noche|una pregunta por noche|cada nit|etapa|Lisboa|con quién viaj|amb qui viatg|ángulo/i);
       }
     }
-    expect(Object.values(CHECKOUT_VIAJE.es).join(" ")).toContain("os escribe");
+    // España de tú, no de vosotros.
+    expect(Object.values(CHECKOUT_VIAJE.es).join(" ")).not.toMatch(/os escribe|vuestr/i);
     expect(render(PaginaViajeCa)).toContain('lang="ca-ES"');
   });
 
-  it("paso 1 de viaje: las mismas tres opciones y en el mismo orden, arrancando con el libro completo", () => {
+  it("paso 1: impreso (elegido) o PDF, y el álbum de 40 solo con su precio cargado", () => {
     const html = renderToStaticMarkup(<CheckoutViaje idioma="es" catalogo={catalogo("ES")} />);
-    const orden = ['value="marco"', 'value="impreso"', 'value="digital"'].map((v) => html.indexOf(v));
-    expect(orden.every((i) => i > 0)).toBe(true);
-    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
-    expect(html).toMatch(/<input(?=[^>]*value="marco")(?=[^>]*checked="")[^>]*>/);
-    expect(html).toContain(escapar(CHECKOUT_VIAJE.es.marcoOpcionTitulo));
-    expect(html).not.toContain('type="checkbox"');
-    expect(html.indexOf("data-barra-paso")).toBeGreaterThan(html.indexOf(`aria-label="${escapar(RESUMEN.es.etiqueta)}"`));
-    // Sin catálogo (lo puro, como antes): digital.
-    expect(estadoViajeInicial("es").formato).toBe("digital");
+    expect(html).toMatch(/<input(?=[^>]*value="impreso")(?=[^>]*checked="")[^>]*>/);
+    expect(html).toContain('value="pdf"');
+    expect(html).toContain('value="20"');
+    expect(html).not.toContain('value="40"');
+    process.env.PRECIO_VIAJE_ALBUM40_EUR = "59";
+    try {
+      expect(renderToStaticMarkup(<CheckoutViaje idioma="es" catalogo={catalogo("ES")} />)).toContain('value="40"');
+    } finally {
+      delete process.env.PRECIO_VIAJE_ALBUM40_EUR;
+    }
+    expect(estadoViajeInicial("es", false).formato).toBe("pdf");
   });
 
-  it("hace lo de antes: un POST con el viaje en el contexto, y el impreso con su dirección", () => {
+  it("paso 2: pide fechas válidas, mínimo 3 días, país; y el regalo pide quién regala", () => {
     const V = CHECKOUT_VIAJE.es;
-    const e = { ...estadoViajeInicial("es"), nombre: "Sara Ruiz", telefono: "+34 600 000 000", email: "sara@ejemplo.com", salida: "2027-06-02", vuelta: "2027-06-09", etapas: [{ nombre: "Lisboa" }, { nombre: " " }] };
-    expect(fallaViaje(2, e, V, CHECKOUT.es)).toBeNull();
-    expect(fallaViaje(2, { ...e, vuelta: "2027-06-01" }, V, CHECKOUT.es)?.texto).toBe(V.vueltaAntes);
-    expect(fallaViaje(3, { ...e, formato: "impreso" }, V, CHECKOUT.es)?.campo).toBe("recibe");
+    const hoy = "2027-06-01";
+    const e = { ...estadoViajeInicial("es"), nombre: "Sara Ruiz", telefono: "+34 600 000 000", email: "sara@ejemplo.com", salida: "2027-06-02", vuelta: "2027-06-09", paisViaje: "portugal" };
+    expect(fallaViaje(2, e, V, CHECKOUT.es, hoy)).toBeNull();
+    expect(fallaViaje(2, { ...e, vuelta: "2027-06-01" }, V, CHECKOUT.es, hoy)?.texto).toBe(V.fechas.vueltaAntes);
+    expect(fallaViaje(2, { ...e, vuelta: "2027-06-03" }, V, CHECKOUT.es, hoy)?.texto).toBe(V.fechas.muyCorto);
+    expect(fallaViaje(2, { ...e, salida: "2027-05-30" }, V, CHECKOUT.es, hoy)?.texto).toBe(V.fechas.salidaPasada);
+    expect(fallaViaje(2, { ...e, paisViaje: "" }, V, CHECKOUT.es, hoy)?.campo).toBe("pais-viaje");
+    expect(fallaViaje(2, { ...e, paraMi: false }, V, CHECKOUT.es, hoy)?.campo).toBe("tu-nombre");
+    expect(fallaViaje(2, { ...e, paraMi: false, tuNombre: "Ana" }, V, CHECKOUT.es, hoy)?.campo).toBe("quien-regala");
+    expect(fallaViaje(2, { ...e, preguntas: ["a", "b", "c", "d", "e", "f"] }, V, CHECKOUT.es, hoy)?.texto).toBe(V.muchasPreguntas);
+    expect(fallaViaje(3, { ...e, formato: "impreso" }, V, CHECKOUT.es, hoy)?.campo).toBe("recibe");
+  });
+
+  it("el cuerpo: contexto.viaje con los nombres del contrato del bot, sin ciudades", () => {
+    const e = {
+      ...estadoViajeInicial("es"), formato: "pdf" as const, album: 40 as const, paraMi: false, tuNombre: "Ana Ruiz", quienRegala: "mamá",
+      nombre: "Sara Ruiz", telefono: "+34 600 000 000", email: "ana@ejemplo.com", salida: "2027-06-02", vuelta: "2027-06-09",
+      paisViaje: "japon", preguntas: ["¿Qué comiste?", " "],
+    };
     const c = cuerpoViaje(e, "es");
-    expect(c).toMatchObject({ vinculoComprador: "yo mismo", region: "ES", idiomaWeb: "es", productos: { viaje: true, impresos: 0, marcos: 0 } });
-    expect(c.narrador.comoLeDicen).toBe("Sara");
-    expect(c.narrador.contexto.viaje.etapas).toEqual([{ nombre: "Lisboa" }]);
+    expect(c).toMatchObject({ nombreComprador: "Ana Ruiz", region: "ES", idiomaWeb: "es", productos: { viaje: true, impresos: 0, marcos: 0 } });
+    expect(c.vinculoComprador).not.toBe("yo mismo");
+    expect(c.narrador).toMatchObject({ nombre: "Sara Ruiz", comoLeDicen: "Sara", horaPreferida: "21:30", zonaHoraria: "Europe/Madrid" });
+    expect(c.narrador.contexto.viaje).toEqual({
+      salida: "2027-06-02", vuelta: "2027-06-09", zonaCasa: "Europe/Madrid", zonaViaje: "Asia/Tokyo", horaNoche: "21:30",
+      regalo: { quienRegala: "mamá" }, preguntasPropias: ["¿Qué comiste?"], formato: "pdf", fotosAlbum: 40, idioma: "es-ES",
+    });
   });
 });
 
@@ -669,7 +690,7 @@ describe("«Pedido confirmado»", () => {
 
   it("viaje: el texto del biógrafo de viaje", async () => {
     const html = await pagina({ viaje: "1", idioma: "es" });
-    expect(html).toContain("Vuestro biógrafo de viaje");
+    expect(html).toContain("El biógrafo de viaje");
     expect(html).toContain('data-producto="viaje"');
   });
 });
