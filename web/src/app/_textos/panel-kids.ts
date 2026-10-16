@@ -51,7 +51,7 @@ export const TEMAS = { leyenda: COMPRA.temasLeyenda, nombres: COMPRA.temas, deba
 // ── Nuevos, para que los apruebe Naza ────────────────────────────────────
 
 export const PANEL_KIDS = {
-  // TEXTO PARA NAZA · KP-ETIQUETA
+  // APROBADO por Naza 16/10 (tanda 6) · KP-ETIQUETA
   etiqueta: "Vitácora Kids",
   // APROBADO por Naza 15/10 (tanda 2) · KP-TITULO
   titulo: (apodo: string) => `El libro de ${apodo}`,
@@ -74,13 +74,13 @@ export const PANEL_KIDS = {
   },
   /** Lo corto, en la lista de historias de la cabecera. */
   estadoCorto: {
-    // TEXTO PARA NAZA · KP-CORTO-PAGO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-CORTO-PAGO
     pago: "confirmando el pago",
-    // TEXTO PARA NAZA · KP-CORTO-ANTES
+    // APROBADO por Naza 16/10 (tanda 6) · KP-CORTO-ANTES
     antes: "todavía no empezó",
-    // TEXTO PARA NAZA · KP-CORTO-CONTANDO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-CORTO-CONTANDO
     contando: "contando",
-    // TEXTO PARA NAZA · KP-CORTO-TERMINO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-CORTO-TERMINO
     termino: "terminó de contar",
   },
 
@@ -96,15 +96,15 @@ export const PANEL_KIDS = {
   sobre: "Del sobre cerrado",
   // APROBADO por Naza 15/10 (tanda 2) · KP-SOBRE-TEXTO (sale de ENTRADA-5)
   sobreTexto: (apodo: string) => `Estas van en un sobre cerrado, pegado al libro, para que ${apodo} lo abra cuando sea grande.`,
-  // TEXTO PARA NAZA · KP-TU-PREGUNTA (una pregunta tuya que ya no está en la ficha)
+  // APROBADO por Naza 16/10 (tanda 6) · KP-TU-PREGUNTA (una pregunta tuya que ya no está en la ficha)
   tuPregunta: (n: number) => `Tu pregunta ${n}`,
-  // TEXTO PARA NAZA · KP-TOCO
+  // APROBADO por Naza 16/10 (tanda 6) · KP-TOCO
   toco: (boton: string) => `Tocó «${boton}»`,
   // APROBADO por Naza 16/10 (tanda 5) · KP-TRANSCRIBIENDO
   transcribiendo: "Estamos pasando el audio a texto.",
-  // TEXTO PARA NAZA · KP-FOTO-ALT
+  // APROBADO por Naza 16/10 (tanda 6) · KP-FOTO-ALT
   fotoAlt: (apodo: string) => `Una foto que mandó ${apodo}`,
-  // TEXTO PARA NAZA · KP-ESCUCHAR (lo lee el lector de pantalla en el botón de play)
+  // APROBADO por Naza 16/10 (tanda 6) · KP-ESCUCHAR (lo lee el lector de pantalla en el botón de play)
   escuchar: "su respuesta",
 
   correccion: {
@@ -127,11 +127,11 @@ export const PANEL_KIDS = {
   },
 
   preguntas: {
-    // TEXTO PARA NAZA · KP-PREG-N
+    // APROBADO por Naza 16/10 (tanda 6) · KP-PREG-N
     n: (n: number) => `Pregunta ${n}`,
-    // TEXTO PARA NAZA · KP-PREG-PISTA (sale de PANEL-GUIA-3)
+    // APROBADO por Naza 16/10 (tanda 6) · KP-PREG-PISTA (sale de PANEL-GUIA-3)
     pista: "Contame la vez que…",
-    // TEXTO PARA NAZA · KP-PREG-EJEMPLOS
+    // APROBADO por Naza 16/10 (tanda 6) · KP-PREG-EJEMPLOS
     ejemplos: "Por ejemplo",
     // APROBADO por Naza 16/10 (tanda 5) · KP-PREG-GUARDAR
     guardar: "Guardar mis preguntas",
@@ -146,17 +146,17 @@ export const PANEL_KIDS = {
   },
 
   ajustes: {
-    // TEXTO PARA NAZA · KP-AJUSTES-TITULO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-AJUSTES-TITULO
     titulo: "La hora y los temas",
     // APROBADO por Naza 15/10 (tanda 2) · KP-TEMAS-AYUDA
     temasAyuda: "Lo que marques no se pregunta. Si ya se preguntó, queda como lo contó.",
-    // TEXTO PARA NAZA · KP-AJUSTES-GUARDAR
+    // APROBADO por Naza 16/10 (tanda 6) · KP-AJUSTES-GUARDAR
     guardar: "Guardar",
   },
 
-  // TEXTO PARA NAZA · KP-GUARDANDO
+  // APROBADO por Naza 16/10 (tanda 6) · KP-GUARDANDO
   guardando: "Guardando…",
-  // TEXTO PARA NAZA · KP-GUARDADO
+  // APROBADO por Naza 16/10 (tanda 6) · KP-GUARDADO
   guardado: "Guardado.",
   // APROBADO por Naza 15/10 (tanda 2) · KP-PENDIENTE
   pendiente: "Guardado. Se aplica antes de la próxima pregunta.",
@@ -175,19 +175,19 @@ export const PANEL_KIDS = {
     generico: "No pudimos guardar. Probá de nuevo.",
     // APROBADO por Naza 16/10 (tanda 5) · KP-ERR-OCUPADO
     ocupado: "Justo se estaba guardando otro cambio. Probá de nuevo.",
-    // TEXTO PARA NAZA · KP-ERR-NO-KIDS
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-NO-KIDS
     noKids: "Esta historia no es de Vitácora Kids.",
-    // TEXTO PARA NAZA · KP-ERR-HORA
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-HORA
     hora: "Elegí una hora de la lista.",
-    // TEXTO PARA NAZA · KP-ERR-TEMAS
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-TEMAS
     temas: "Elegí los temas de la lista.",
-    // TEXTO PARA NAZA · KP-ERR-PREGUNTAS
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-PREGUNTAS
     preguntas: "Revisá tus preguntas. Son hasta tres, y cada una con su texto.",
-    // TEXTO PARA NAZA · KP-ERR-TERMINADO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-TERMINADO
     terminado: "Ya terminó de contar, así que esto no se cambia más.",
-    // TEXTO PARA NAZA · KP-ERR-CORR-VACIO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-CORR-VACIO
     vacio: "Completá cómo dice y cómo es.",
-    // TEXTO PARA NAZA · KP-ERR-CORR-NO-ESTA
+    // APROBADO por Naza 16/10 (tanda 6) · KP-ERR-CORR-NO-ESTA
     noEsta: "Ese nombre no aparece en esta respuesta. Copialo como está escrito.",
   },
 
@@ -215,19 +215,19 @@ export const PANEL_KIDS = {
     si: "Sí, aprobarlo",
     // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-NO
     no: "Todavía no",
-    // TEXTO PARA NAZA · KP-LIBRO-APROBANDO
+    // APROBADO por Naza 16/10 (tanda 6) · KP-LIBRO-APROBANDO
     aprobando: "Aprobando…",
     // APROBADO por Naza 16/10 (tanda 4) · KP-LIBRO-APROBADO
     // «Ahora lo mandamos a imprimir.» va solo si el pedido trae impreso (kidsConImpreso).
     aprobado: (impreso: boolean) => (impreso ? "Aprobaste el libro. Ahora lo mandamos a imprimir." : "Aprobaste el libro."),
     errores: {
-      // TEXTO PARA NAZA · KP-LIBRO-ERR-NO-LISTO
+      // APROBADO por Naza 16/10 (tanda 6) · KP-LIBRO-ERR-NO-LISTO
       noListo: "El libro todavía no está listo para aprobar.",
-      // TEXTO PARA NAZA · KP-LIBRO-ERR-YA-APROBADO
+      // APROBADO por Naza 16/10 (tanda 6) · KP-LIBRO-ERR-YA-APROBADO
       yaAprobado: "Este libro ya está aprobado.",
-      // TEXTO PARA NAZA · KP-LIBRO-ERR-CONFIRMAR
+      // APROBADO por Naza 16/10 (tanda 6) · KP-LIBRO-ERR-CONFIRMAR
       confirmar: "Falta confirmar que lo querés aprobar.",
-      // TEXTO PARA NAZA · KP-LIBRO-ERR-ARCHIVO
+      // APROBADO por Naza 16/10 (tanda 6) · KP-LIBRO-ERR-ARCHIVO
       archivo: "No encontramos ese archivo.",
     },
   },
