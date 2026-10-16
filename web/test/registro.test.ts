@@ -247,10 +247,16 @@ describe('validarYConstruir', () => {
     if (!malo.ok) expect(malo.status).toBe(400);
   });
 
-  it('en viaje el trato es siempre vos, aunque manden usted', () => {
-    const r = validarYConstruir(cuerpoValido({ contexto: { trato: 'usted', viaje: { salida: '2026-10-01', vuelta: '2026-10-05', etapas: [{ nombre: 'Lisboa' }] } } }) as never);
+  it('en viaje (V2) el idioma del viaje manda el trato, aunque manden usted', () => {
+    const viaje = { salida: '2099-10-01', vuelta: '2099-10-05', zonaCasa: 'America/Argentina/Buenos_Aires', zonaViaje: 'Europe/Lisbon', formato: 'pdf', fotosAlbum: 20, idioma: 'es-AR' };
+    const r = validarYConstruir(cuerpoValido({ contexto: { trato: 'usted', viaje } }) as never);
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.narrador.contexto.trato).toBe('vos');
+    if (r.ok) expect(r.narrador.contexto).toMatchObject({ modo: 'viaje', trato: 'vos', viaje: { v: 2, idioma: 'es-AR' } });
+  });
+
+  it('un viaje viejo (etapas, sin país ni formato) ya no se registra', () => {
+    const r = validarYConstruir(cuerpoValido({ contexto: { viaje: { salida: '2099-10-01', vuelta: '2099-10-05', etapas: [{ nombre: 'Lisboa' }] } } }) as never);
+    expect(r.ok).toBe(false);
   });
 
   it('"no tuvo hijos" se guarda como arbol.hijos = "no tuvo"', () => {

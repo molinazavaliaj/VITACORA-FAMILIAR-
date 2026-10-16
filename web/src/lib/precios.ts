@@ -70,6 +70,16 @@ export function obtenerPrecioViaje(region: Region): number | null {
 }
 
 /**
+ * Viaje V2 (16/10): el mismo viaje con el álbum de 40 fotos en vez de 20 tiene
+ * otro precio (flujo-vigente.md §1, «dos precios del mismo producto»). Es el
+ * precio ENTERO del viaje con 40 fotos, no un adicional. Sin variable válida,
+ * la opción de 40 no se muestra ni se cobra (PENDIENTE: Naza define el precio).
+ */
+export function obtenerPrecioViajeAlbum40(region: Region): number | null {
+  return precioValido(process.env[region === "ES" ? "PRECIO_VIAJE_ALBUM40_EUR" : "PRECIO_VIAJE_ALBUM40_ARS"]);
+}
+
+/**
  * Vitácora Kids («Mi Primer Capítulo», 15/10): precio propio, como Viaje. Sin
  * precio válido no se vende (la página y la compra dicen «Próximamente»). Los
  * mismos nombres que en la rama `vitacora-kids` (PRECIO_KIDS_EUR / _ARS). Tener
