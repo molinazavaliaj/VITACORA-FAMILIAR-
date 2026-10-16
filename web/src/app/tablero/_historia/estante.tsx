@@ -11,7 +11,8 @@ import { estadoEnHumano, formatearDuracion, ProximoPaso, tituloHistoria } from "
 import { LineaDeTiempo } from "./portada";
 import type { DatosPedido } from "./pedido";
 import { tituloCapitulo } from "@/lib/kids-panel";
-import { estadoKids, PANEL_KIDS } from "../../_textos/panel-kids";
+import { estadoKids, textosPanelKids } from "../../_textos/panel-kids";
+import type { IdiomaKids } from "@/lib/kids";
 
 // Un libro del estante del Inicio (rediseño 2026-10, fase 2): la tapa de
 // verdad a la izquierda y, al lado, el título, cómo va, su línea de tiempo y
@@ -19,7 +20,7 @@ import { estadoKids, PANEL_KIDS } from "../../_textos/panel-kids";
 // muestra del panel, datos de prueba).
 
 /** Vitácora Kids (K5): cómo va el chico, de su fila de kids_v2. */
-export type ResumenKids = { canal: "A" | "B"; arranco: boolean; capitulo: number; terminado: boolean; abiertas: boolean };
+export type ResumenKids = { canal: "A" | "B"; arranco: boolean; capitulo: number; terminado: boolean; abiertas: boolean; /** El castellano del chico (kids_v2.idioma); sin él, es-AR. */ idioma?: IdiomaKids };
 
 export type Extra = { aprobado: boolean; portadaFotoId: string | null; titulo: string | null; pedido: DatosPedido; kids?: ResumenKids | null };
 
@@ -97,8 +98,9 @@ export function LibroDelEstante({ h, r, region, fotoSrc }: { h: Historia; r: Res
 function LibroKids({ h, r, kids, fotoSrc }: { h: Historia; r: Resumen & Extra; kids: ResumenKids; fotoSrc?: string }) {
   const n = h.narrador;
   const apodo = n.como_le_dicen?.trim() || n.nombre;
+  const PANEL_KIDS = textosPanelKids(kids.idioma).panel;
   const titulo = PANEL_KIDS.titulo(apodo);
-  const estado = estadoKids({ estado: n.estado, canal: kids.canal, apodo, arranco: kids.arranco, capitulo: kids.capitulo, titulo: tituloCapitulo(kids.capitulo), termino: kids.terminado });
+  const estado = estadoKids({ estado: n.estado, canal: kids.canal, apodo, arranco: kids.arranco, capitulo: kids.capitulo, titulo: tituloCapitulo(kids.capitulo), termino: kids.terminado, idioma: kids.idioma });
   const paso = kids.abiertas
     ? { href: `/tablero/${n.id}#tus-preguntas`, texto: PANEL_KIDS.inicio.preguntas }
     : { href: `/tablero/${n.id}#lo-contado`, texto: PANEL_KIDS.inicio.ver };

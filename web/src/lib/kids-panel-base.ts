@@ -39,7 +39,7 @@ import {
 // se comporta como hoy.
 
 /** `fichaMotor` = la ficha del motor (null hasta el arranque): el JSON del estado entero no hace falta. */
-const COLUMNAS = "narrador_id, canal, ficha, fichaMotor:estado->motor->ficha, cambios_panel, cambios_error, avance, correcciones, termino_at";
+const COLUMNAS = "narrador_id, canal, idioma, ficha, fichaMotor:estado->motor->ficha, cambios_panel, cambios_error, avance, correcciones, termino_at";
 
 /** Cuántas veces se relee y reintenta un compare-and-swap que perdió. */
 export const INTENTOS_CAS = 4;

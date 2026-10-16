@@ -13,10 +13,10 @@
 //   - fila de `kids_v2`: `canal`, `telefono_padre` (E.164), `idioma` y `ficha`.
 
 import { normalizarTelefono, type Region } from "./registro";
-import { edadValida, zonaKids } from "./kids";
+import { edadValida, esIdiomaKids, idiomaKidsDeRegion, zonaKids, type IdiomaKids } from "./kids";
 
-/** Así lo guarda `kids_v2.idioma`: el banco de Kids está solo en rioplatense (CONTRATO). */
-export const IDIOMA_KIDS = "es-AR";
+/** Así lo guarda `kids_v2.idioma` sin región: el de siempre, rioplatense. */
+export const IDIOMA_KIDS: IdiomaKids = "es-AR";
 
 // ── La Ficha del motor, copiada ─────────────────────────────────────────────
 //
@@ -67,6 +67,8 @@ export type FichaKids = {
   temasSacados: Tema[];
   fotosConOtrosChicos: boolean;
   preguntasPadre: PreguntaPadre[];
+  /** 'es-AR' (vos) o 'es-ES' (tú), como el motor (idioma.ts). Sin el campo, es-AR. Va igual que `kids_v2.idioma`. */
+  idioma?: IdiomaKids;
 };
 
 /** `validarFicha` del motor: valida y normaliza; tira error con el nombre del campo. */
@@ -79,6 +81,7 @@ export function validarFichaKids(f: FichaKids): FichaKids {
   if (!esHora(f.hora) || f.hora < NOCHE_HASTA || f.hora >= NOCHE_DESDE) throw new Error(`Ficha: hora ${f.hora} fuera de 09:00–21:59`);
   if (!zonaValida(f.zona)) throw new Error(`Ficha: zona desconocida ${f.zona}`);
   for (const t of f.temasSacados) if (!(TEMAS as readonly string[]).includes(t)) throw new Error(`Ficha: tema desconocido ${t}`);
+  if (f.idioma !== undefined && !esIdiomaKids(f.idioma)) throw new Error(`Ficha: idioma ${JSON.stringify(f.idioma)} (va es-AR o es-ES, o sin el campo)`);
   const preguntasPadre = f.preguntasPadre
     .map((p): PreguntaPadre => ({ texto: p.texto.trim(), conLinea: p.conLinea, ...(p.quien?.trim() ? { quien: normalizarQuienRegala(p.quien) } : {}) }))
     .filter((p) => p.texto !== "");
@@ -119,6 +122,8 @@ export type CompraKidsLeida = {
   };
   canal: "A" | "B";
   telefonoPadre: string;
+  /** El de `kids_v2.idioma`: el mismo que `ficha.idioma`. */
+  idioma: IdiomaKids;
   /** Ya validada, sin `linkPanel`: el link lleva el id del narrador y se pone al crearlo (`conLinkPanel`). */
   ficha: Omit<FichaKids, "linkPanel">;
 };
@@ -179,6 +184,9 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
       temasSacados: temas as Tema[],
       fotosConOtrosChicos: c.fotosConOtrosChicos,
       preguntasPadre: [],
+      // De la región, no del cliente: España de tú, Argentina de vos. Es el
+      // mismo que va a `kids_v2.idioma` (si no son iguales, el bot no arranca).
+      idioma: idiomaKidsDeRegion(region),
     });
   } catch {
     return { ok: false, falla: "malFormado" };
@@ -209,6 +217,7 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
       },
       canal: ficha.canal,
       telefonoPadre,
+      idioma: idiomaKidsDeRegion(region),
       ficha: sinLink,
     },
   };

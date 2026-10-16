@@ -11,7 +11,7 @@ import { CascaronCheckout } from "./cascaron";
 
 // La compra de Vitácora Kids, la misma pantalla en /comprar/kids,
 // /ca/comprar/kids y /ar/comprar/kids. Estática: si se vende (KIDS_VENTA,
-// PRECIO_KIDS_* y la región en KIDS_REGIONES: hoy solo /ar) se resuelve al
+// PRECIO_KIDS_* y la región en KIDS_REGIONES: /ar y España, nunca /ca) se resuelve al
 // construir. Sin alguna, «Próximamente». El libro impreso (Naza 15/10) es el de
 // la casa: si PRECIO_IMPRESO_* tiene precio, el paso 3 lo ofrece.
 

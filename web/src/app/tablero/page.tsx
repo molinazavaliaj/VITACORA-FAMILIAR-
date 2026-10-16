@@ -14,7 +14,7 @@ import { PANEL, idiomaDelTrato } from "../_textos/panel";
 import { leerPedido } from "./_historia/pedido";
 import { LibroDelEstante, type Extra } from "./_historia/estante";
 import { primerNombre } from "./momento";
-import { arranco, capituloActual, esKids, preguntasAbiertas, terminoKids } from "@/lib/kids-panel";
+import { arranco, capituloActual, esKids, idiomaDeFila, preguntasAbiertas, terminoKids } from "@/lib/kids-panel";
 import { leerFilaKids } from "@/lib/kids-panel-base";
 import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Titulo, TOTAL_PREGUNTAS_BASE, formatearDuracion } from "./ui";
 
@@ -79,7 +79,7 @@ async function resumirHistoria(
     titulo: f.edicion?.titulo?.trim() || null,
     pedido,
     kids: filaKids
-      ? { canal: filaKids.canal, arranco: arranco(filaKids), capitulo: capituloActual(filaKids), terminado: terminoKids(filaKids), abiertas: preguntasAbiertas(filaKids) }
+      ? { canal: filaKids.canal, arranco: arranco(filaKids), capitulo: capituloActual(filaKids), terminado: terminoKids(filaKids), abiertas: preguntasAbiertas(filaKids), idioma: idiomaDeFila(filaKids) }
       : null,
   };
 }

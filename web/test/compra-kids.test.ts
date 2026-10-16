@@ -136,6 +136,7 @@ describe("POST /api/compra con producto kids", () => {
         temasSacados: ["mama", "escuela"],
         fotosConOtrosChicos: false,
         preguntasPadre: [],
+        idioma: "es-AR",
       },
     });
     expect(admin.inserts.pedidos[0]).toMatchObject({
@@ -228,15 +229,55 @@ describe("POST /api/compra con producto kids", () => {
     expect(deBiografia.borrados.familias).toBeUndefined();
   });
 
-  it("España no vende Kids (KIDS_REGIONES), aunque KIDS_VENTA y el precio estén", async () => {
-    expect(KIDS_REGIONES).toEqual(["AR"]);
+  it("España vende Kids (KIDS_REGIONES): idioma es-ES en kids_v2 y en la ficha, hora 20:00 por defecto, «tus padres», Madrid y precio en euros", async () => {
+    expect(KIDS_REGIONES).toEqual(["AR", "ES"]);
+    const admin = compraNueva();
+    usar(admin);
+    const ES: EstadoKids = { ...estadoKidsInicial(undefined, "ES"), ...LLENO, hora: estadoKidsInicial(undefined, "ES").hora, tuWhatsapp: "+34 612 34 56 78" };
+    expect(ES.hora).toBe("20:00");
+
+    const r = await POST(peticion(cuerpoKids(ES, "ES", "es")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.familias[0]).toEqual({ nombre: "Laura Gómez", region: "ES", email: "laura@ejemplo.com" });
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: "+34612345678", hora_preferida: "20:00", zona_horaria: "Europe/Madrid" });
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    // Los dos iguales: si no, el bot no arranca.
+    expect(fila.idioma).toBe("es-ES");
+    expect(fila.ficha.idioma).toBe("es-ES");
+    expect(fila.ficha).toMatchObject({ hora: "20:00", zona: "Europe/Madrid", quienRegala: "tus padres" });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ proveedor: "stripe", monto: 59, moneda: "EUR" });
+    const [, compra, origen] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra).toMatchObject({ total: 59, moneda: "EUR" });
+    expect(origen).toEqual({ idioma: "es", pantalla: "kids" });
+  });
+
+  it("el idioma lo decide la región, no el cliente: un idioma raro en la ficha no pasa", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const cuerpo = cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "es");
+    const r = await POST(peticion({ ...cuerpo, kids: { ...cuerpo.kids, idioma: "es-AR" } }));
+    expect(r.status).toBe(200);
+    expect((admin.upserts.kids_v2[0] as { ficha: FichaKids }).ficha.idioma).toBe("es-ES");
+  });
+
+  it("catalán no vende Kids (no hay Kids en catalán), aunque KIDS_VENTA y el precio estén", async () => {
     const admin = compraNueva();
     usar(admin);
 
-    const r = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "es")));
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca")));
 
     expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe(KIDS_TODAVIA_NO);
+    expect((await r.json()).error).toBe(CHECKOUT_KIDS.ca.proximamenteTexto);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("España con el mismo WhatsApp en el canal A: el aviso en tú", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78", canal: "A", suWhatsapp: "612 34 56 78" }, "ES", "es")));
+    expect(r.status).toBe(400);
+    expect((await r.json()).error).toBe("El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a ti, elige «Lo hago yo».");
     expect(admin.from).not.toHaveBeenCalled();
   });
 

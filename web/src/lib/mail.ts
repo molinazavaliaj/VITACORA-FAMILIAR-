@@ -15,7 +15,8 @@ const deTu = (region: string | null | undefined): boolean => region === "ES";
 
 import type { TratoComprador } from "./regalo-textos";
 import { langDeIdioma, type IdiomaWeb } from "./idioma-web";
-import { TEXTOS_MAIL_KIDS, textosMail, type CanalMailKids } from "./mail-textos";
+import { TEXTOS_MAIL_KIDS_IDIOMA, textosMail, type CanalMailKids } from "./mail-textos";
+import { idiomaWebDeKids, type IdiomaKids } from "./kids";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -222,8 +223,8 @@ const textoPlano = (bloques: string[]) => `${bloques.join("\n\n")}\n`;
  * de 6 dígitos, que es el login que ya existe. `idioma` pisa a la región
  * (para el catalán, cuando la compra lo guarde).
  */
-export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids } }): MailArmado {
-  if (opciones.kids) return armarMailAccesoKids(opciones.comoLeDicen, opciones.kids.canal);
+export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids } }): MailArmado {
+  if (opciones.kids) return armarMailAccesoKids(opciones.comoLeDicen, opciones.kids.canal, opciones.kids.idioma ?? "es-AR");
   const idioma = opciones.idioma ?? idiomaMailDeRegion(opciones.region);
   const { comun, acceso } = textosMail(idioma);
   const como = opciones.comoLeDicen;
@@ -259,15 +260,16 @@ export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string
 }
 
 /**
- * Vitácora Kids (15/10): el mismo mail en vos (Kids es solo es-AR), con el
- * asunto, la primera línea y «Mientras cuenta» de Kids. Sin «Arranca cuando
- * quiera»: en el canal A le escribimos a la hora elegida y en el B la primera
- * pregunta sale cuando estén juntos.
+ * Vitácora Kids (15/10): el mismo mail en el castellano del chico (vos en
+ * Argentina, tú en España: `kids_v2.idioma`), con el asunto, la primera línea
+ * y «Mientras cuenta» de Kids. Sin «Arranca cuando quiera»: en el canal A le
+ * escribimos a la hora elegida y en el B la primera pregunta sale cuando estén
+ * juntos.
  */
-function armarMailAccesoKids(apodo: string, canal: CanalMailKids): MailArmado {
-  const idioma: IdiomaWeb = "ar";
+function armarMailAccesoKids(apodo: string, canal: CanalMailKids, idiomaKids: IdiomaKids): MailArmado {
+  const idioma: IdiomaWeb = idiomaWebDeKids(idiomaKids);
   const { comun, acceso } = textosMail(idioma);
-  const K = TEXTOS_MAIL_KIDS;
+  const K = TEXTOS_MAIL_KIDS_IDIOMA[idiomaKids] ?? TEXTOS_MAIL_KIDS_IDIOMA["es-AR"];
   const primera = K.primeraLinea[canal](apodo);
   const entrar = `${urlBaseMail()}/entrar`;
 
@@ -305,7 +307,7 @@ ${comun.porQue}`,
   return { asunto: K.asunto(apodo), html, texto };
 }
 
-export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids } }): Promise<boolean> {
+export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids } }): Promise<boolean> {
   const mail = armarMailAcceso(opciones);
   return enviar({ para: opciones.para, asunto: mail.asunto, html: mail.html, texto: mail.texto });
 }

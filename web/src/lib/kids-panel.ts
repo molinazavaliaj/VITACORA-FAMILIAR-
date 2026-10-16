@@ -19,7 +19,7 @@
 // (kids-banco.json, ver su `_origen`): nada de redacción nueva.
 
 import bancoJson from "./kids-banco.json";
-import { HORAS_KIDS, TEMAS_KIDS, type TemaKids } from "./kids";
+import { HORAS_KIDS, TEMAS_KIDS, idiomaKidsDe, type IdiomaKids, type TemaKids } from "./kids";
 import { LARGO_MAXIMO, normalizarQuienRegala, validarFichaKids, type FichaKids, type PreguntaPadre } from "./kids-compra";
 
 // ── El banco ─────────────────────────────────────────────────────────────
@@ -248,6 +248,8 @@ export type CambiosPanel = { hora?: string; temasSacados?: TemaKids[]; preguntas
 export type FilaKids = {
   narrador_id: string;
   canal: "A" | "B";
+  /** `kids_v2.idioma` ('es-AR' | 'es-ES'); el mismo que `ficha.idioma`. */
+  idioma?: string | null;
   ficha: FichaKids;
   fichaMotor: FichaKids | null;
   cambios_panel: CambiosPanel | null;
@@ -256,6 +258,14 @@ export type FilaKids = {
   correcciones: CorreccionKids[] | null;
   termino_at: string | null;
 };
+
+/**
+ * En qué castellano se le habla al padre de este chico: `kids_v2.idioma`, o el
+ * de la ficha; sin ninguno, es-AR (como el motor sin el campo).
+ */
+export function idiomaDeFila(fila: Pick<FilaKids, "ficha" | "fichaMotor"> & { idioma?: string | null }): IdiomaKids {
+  return idiomaKidsDe(fila.idioma ?? fichaVigente(fila).idioma);
+}
 
 /** La ficha que vale: la del motor si ya arrancó; si no, la de la compra. */
 export function fichaVigente(fila: Pick<FilaKids, "ficha" | "fichaMotor">): FichaKids {

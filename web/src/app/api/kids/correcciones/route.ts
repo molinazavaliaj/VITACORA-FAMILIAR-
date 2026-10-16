@@ -4,7 +4,8 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { leerCorreccion } from "@/lib/kids-panel";
 import { guardarCorreccion } from "@/lib/kids-panel-base";
-import { errorCambioKids, PANEL_KIDS } from "../../../_textos/panel-kids";
+import { idiomaKidsDe } from "@/lib/kids";
+import { errorCambioKids, textosPanelKids } from "../../../_textos/panel-kids";
 
 // Cómo se escribe un nombre (K5, banco.md: «cómo los escribe no importa: se
 // corrigen en el panel»). Va a `kids_v2.correcciones` como
@@ -19,9 +20,12 @@ const STATUS: Record<string, number> = { noKids: 404, respuesta: 404, ocupado: 4
 
 async function manejar(request: NextRequest, modo: "agregar" | "quitar") {
   const admin = crearClienteServidor();
+  // El castellano de los textos (lo manda el panel, que lo lee de kids_v2.idioma): solo cambia las palabras.
+  const idioma = idiomaKidsDe(request.nextUrl.searchParams.get("idioma"));
+  const generico = textosPanelKids(idioma).panel.errores.generico;
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
     soloDuena: true,
-    mensajeError: PANEL_KIDS.errores.generico,
+    mensajeError: generico,
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
 
@@ -29,13 +33,13 @@ async function manejar(request: NextRequest, modo: "agregar" | "quitar") {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: PANEL_KIDS.errores.generico }, { status: 400 });
+    return NextResponse.json({ error: generico }, { status: 400 });
   }
   const leida = leerCorreccion(body, modo === "quitar");
-  if (!leida.ok) return NextResponse.json({ error: errorCambioKids(leida.falla), falla: leida.falla }, { status: 400 });
+  if (!leida.ok) return NextResponse.json({ error: errorCambioKids(leida.falla, idioma), falla: leida.falla }, { status: 400 });
 
   const r = await guardarCorreccion(admin, acceso.narrador.id, leida, modo, new Date().toISOString());
-  if (!r.ok) return NextResponse.json({ error: errorCambioKids(r.falla), falla: r.falla }, { status: STATUS[r.falla] ?? 400 });
+  if (!r.ok) return NextResponse.json({ error: errorCambioKids(r.falla, idioma), falla: r.falla }, { status: STATUS[r.falla] ?? 400 });
   return NextResponse.json({ ok: true, correcciones: r.correcciones });
 }
 

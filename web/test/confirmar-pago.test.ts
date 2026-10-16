@@ -21,6 +21,8 @@ function construirAdmin(opciones: {
   region?: "ES" | "AR";
   /** Vitácora Kids: el canal de la fila de kids_v2 (sin fila si no se pasa). */
   canalKids?: "A" | "B";
+  /** Vitácora Kids: el idioma de la fila de kids_v2 (es-AR / es-ES). */
+  idiomaKids?: string;
 }) {
   const updates: { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] }[] = [];
 
@@ -45,7 +47,7 @@ function construirAdmin(opciones: {
           : { data: { extras: opciones.extras ?? {}, familia_id: "f1" }, error: null });
       }
       if (tabla === "regalos") return Promise.resolve({ data: opciones.codigoRegalo ? { codigo: opciones.codigoRegalo } : null, error: null });
-      if (tabla === "kids_v2") return Promise.resolve({ data: opciones.canalKids ? { canal: opciones.canalKids } : null, error: null });
+      if (tabla === "kids_v2") return Promise.resolve({ data: opciones.canalKids ? { canal: opciones.canalKids, ...(opciones.idiomaKids ? { idioma: opciones.idiomaKids } : {}) } : null, error: null });
       return Promise.resolve({ data: null, error: null });
     };
     cadena.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
@@ -253,16 +255,23 @@ describe("confirmarPago — la entrega de lo físico", () => {
       const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { tipo: "kids", pdf: true }, comoLeDicen: "Tomi", region: "AR", canalKids: canal });
       const enviarMailAcceso = vi.fn().mockResolvedValue(true);
       await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
-      expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "Tomi", region: "AR", kids: { canal } });
+      expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "Tomi", region: "AR", kids: { canal, idioma: "es-AR" } });
     });
   }
+
+  it("Kids en España: el mail de acceso lleva el idioma de kids_v2 (es-ES)", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { tipo: "kids", pdf: true }, comoLeDicen: "Nico", region: "ES", canalKids: "B", idiomaKids: "es-ES" });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
+    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "Nico", region: "ES", kids: { canal: "B", idioma: "es-ES" } });
+  });
 
   it("Kids sin fila en kids_v2: el mail sale igual, con el canal A, y se loguea", async () => {
     const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { tipo: "kids" }, comoLeDicen: "Tomi", region: "AR" });
     const enviarMailAcceso = vi.fn().mockResolvedValue(true);
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
-    expect(enviarMailAcceso).toHaveBeenCalledWith(expect.objectContaining({ kids: { canal: "A" } }));
+    expect(enviarMailAcceso).toHaveBeenCalledWith(expect.objectContaining({ kids: { canal: "A", idioma: "es-AR" } }));
     expect(error).toHaveBeenCalled();
     error.mockRestore();
   });

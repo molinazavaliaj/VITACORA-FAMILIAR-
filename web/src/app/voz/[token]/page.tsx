@@ -35,7 +35,7 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
   // La casa: libro cerrado. Kids: desde listo.json, para que el padre la pruebe al revisar.
   if (!acceso.abre) notFound();
   if (acceso.producto === "kids") {
-    return <PaginaVozKids token={token} apodo={acceso.apodo} publicables={frases ? frasesPublicables(frases) : []} libroListo={libroListo} />;
+    return <PaginaVozKids token={token} apodo={acceso.apodo} idioma={acceso.idioma} publicables={frases ? frasesPublicables(frases) : []} libroListo={libroListo} />;
   }
   const n = { nombre: acceso.nombre, como_le_dicen: acceso.comoLeDicen };
 

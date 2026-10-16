@@ -9,12 +9,12 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import { limpiarOrigen } from "@/lib/origen";
-import { KIDS_TODAVIA_NO, catalogoKids, compraKids, kidsVende } from "@/lib/kids";
-import { IDIOMA_KIDS, conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra";
+import { KIDS_TODAVIA_NO, catalogoKids, compraKids, idiomaKidsDeRegion, kidsVendeEn } from "@/lib/kids";
+import { conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra";
 import { obtenerPrecioKids } from "@/lib/precios";
 import { esTablaAusente } from "@/lib/tabla-ausente";
 import { urlBaseMail } from "@/lib/mail";
-import { CHECKOUT_KIDS, KIDS_MISMO_NUMERO } from "@/app/_textos/checkout-kids";
+import { CHECKOUT_KIDS, KIDS_MISMO_NUMERO_TEXTOS } from "@/app/_textos/checkout-kids";
 import type { Compra } from "@/lib/productos";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -421,8 +421,9 @@ export async function POST(request: NextRequest) {
 // (un chico a medias sin su fila en kids_v2 lo agarraría el entrevistador
 // como a un adulto). Sin la migración de kids_v2, lo mismo y 409: no se vende.
 
-/** «Todavía no se vende», de tú o de vos (los dos ya existen: lib/kids.ts y _textos/checkout-kids). */
-const kidsTodaviaNo = (region: "ES" | "AR") => (region === "AR" ? CHECKOUT_KIDS.ar.proximamenteTexto : KIDS_TODAVIA_NO);
+/** «Todavía no se vende», de tú, de vos o en catalán (lib/kids.ts y _textos/checkout-kids). */
+const kidsTodaviaNo = (region: "ES" | "AR", idiomaWeb?: unknown) =>
+  region === "AR" ? CHECKOUT_KIDS.ar.proximamenteTexto : idiomaWeb === "ca" ? CHECKOUT_KIDS.ca.proximamenteTexto : KIDS_TODAVIA_NO;
 
 /** Borra lo que nació en este pedido, del último al primero. Si un borrado falla, se loguea y se sigue. */
 async function deshacer(admin: SupabaseClient, creado: { familiaId?: string; narradorId?: string; kids?: boolean }) {
@@ -444,8 +445,11 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const region = body.region;
   const trato: TratoComprador = region === "ES" ? "tu" : "vos";
-  // KIDS_VENTA, precio y región (KIDS_REGIONES: hoy solo AR, el bot habla rioplatense).
-  if (!kidsVende(region)) return NextResponse.json({ error: kidsTodaviaNo(region) }, { status: 409 });
+  // KIDS_VENTA, precio y región (KIDS_REGIONES: AR y ES). Nunca desde la web en
+  // catalán: no hay Kids en catalán. Sin idiomaWeb, el de la región.
+  const idiomaWeb = body.idiomaWeb === undefined ? (region === "AR" ? "ar" : "es") : body.idiomaWeb;
+  const idiomaDeLaRegion = region === "AR" ? idiomaWeb === "ar" : idiomaWeb === "es";
+  if (!idiomaDeLaRegion || !kidsVendeEn(idiomaWeb as "ar" | "es")) return NextResponse.json({ error: kidsTodaviaNo(region, body.idiomaWeb) }, { status: 409 });
   const precio = obtenerPrecioKids(region) as number;
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -454,10 +458,10 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   }
   const leida = leerCompraKids(body, region);
   if (!leida.ok) {
-    // mismoNumero: el aviso aprobado el 15/10 (en vos; Kids no se vende en España).
+    // mismoNumero: el aviso aprobado (en vos el 15/10, en tú el 16/10, tanda 8).
     const error =
       leida.falla === "mismoNumero"
-        ? KIDS_MISMO_NUMERO
+        ? KIDS_MISMO_NUMERO_TEXTOS[idiomaKidsDeRegion(region)]
         : leida.falla === "telefono"
         ? trato === "tu"
           ? "El WhatsApp no parece un número válido. Revísalo e intenta de nuevo."
@@ -465,7 +469,7 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
         : "El pedido llegó mal formado.";
     return NextResponse.json({ error }, { status: 400 });
   }
-  const { familia: familiaAInsertar, narrador: narradorAInsertar, canal, telefonoPadre, ficha } = leida.compra;
+  const { familia: familiaAInsertar, narrador: narradorAInsertar, canal, telefonoPadre, ficha, idioma } = leida.compra;
 
   // El libro impreso (Naza 15/10, tanda 3, punto 10): como la casa, el cliente
   // manda solo cuántos impresos; el precio sale del catálogo de la casa
@@ -551,7 +555,8 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
   const { error: errorKids } = await admin.from("kids_v2").upsert(
     {
       narrador_id: narradorId,
-      idioma: IDIOMA_KIDS,
+      // El mismo que ficha.idioma (lib/kids-compra.ts): si no son iguales, el bot no arranca.
+      idioma,
       canal,
       telefono_padre: telefonoPadre,
       ficha: conLinkPanel(ficha, narradorId, urlBaseMail()),

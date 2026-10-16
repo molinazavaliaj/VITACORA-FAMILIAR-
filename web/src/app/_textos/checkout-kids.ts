@@ -1,5 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
-import type { ClaveFallaKids, QuienRegala, TemaKids } from "@/lib/kids";
+import type { ClaveFallaKids, IdiomaKids, QuienRegala, TemaKids } from "@/lib/kids";
 
 // La compra de Vitácora Kids (/comprar/kids, /ca/comprar/kids, /ar/comprar/kids).
 //
@@ -10,9 +10,10 @@ import type { ClaveFallaKids, QuienRegala, TemaKids } from "@/lib/kids";
 // APROBAR (docs/rediseno-2026-10/kids/textos.md). También para aprobar: lo que
 // no estaba en la rama (los avisos de error, «Próximamente», el resumen).
 //
-// Ojo: el motor de Kids (fabrica/src/kids-v2) solo habla rioplatense. Lo que
-// se elige en «Quién se lo regala» se guarda como lo lee el motor («tu mamá»,
-// lib/kids.ts) aunque la pantalla esté en castellano de España o en catalán.
+// Desde el 16/10 (Naza, tanda 8) Kids se vende también en España: el motor
+// habla es-ES y lo que se elige en «Quién se lo regala» se guarda en el
+// castellano de la región («tu madre» en España, «tu mamá» en Argentina,
+// lib/kids.ts). En catalán Kids no se vende (KIDS_IDIOMAS_WEB).
 // ca: PENDIENTE REVISIÓN NATIVA
 
 export type TextosCheckoutKids = {
@@ -125,24 +126,27 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     edadPista: "11",
     edadAyuda: "Va en la tapa, al lado del nombre.",
     regala: "Quién se lo regala",
+    // APROBADO por Naza 16/10 (tanda 8) · COMPRA-2-REGALA en España (tu madre, tu padre, tus padres)
     quienes: { mama: "Tu madre", papa: "Tu padre", papas: "Tus padres", abuela: "Tu abuela", abuelo: "Tu abuelo", abuelos: "Tus abuelos", otra: "Otra persona" },
     regalaOtraPista: "Tu tía, tus padrinos, tu madrina",
     regalaAyuda: "Así lo nombra el primer mensaje. Escríbelo como se lo dirías a quien lo recibe.",
     canal: "Por dónde llegan las preguntas",
     canalA: { titulo: "A su WhatsApp", detalle: "Le escribimos directo y responde cuando le apetece. Tú ves todo lo que cuenta desde tu panel." },
     suWhatsapp: "Su WhatsApp",
-    canalAutoriza: "Al elegir esto, eres tú, como adulto a cargo, quien autoriza que le escribamos a ese número.",
+    // APROBADO por Naza 16/10 (tanda 8) · COMPRA-2-CANAL-A en España («adulto responsable», lectura de Marta)
+    canalAutoriza: "Al elegir esto, eres tú, como adulto responsable, quien autoriza que le escribamos a ese número.",
     canalB: { titulo: "Lo hago yo", detalle: "Las preguntas llegan a tu WhatsApp. Te sientas a su lado, se las lees y responde con sus palabras." },
     hora: "A qué hora le escribimos",
     horaAyuda: "Mejor a la vuelta del cole, o cuando podáis sentaros juntos.",
     temasTitulo: "Temas y pago.",
     temasBajada: "Hay cosas que solo tú sabes si conviene tocar. Lo que marques aquí no se pregunta, y el libro se arma igual con el resto.",
     temasLeyenda: "No preguntar sobre",
+    // APROBADO por Naza 16/10 (tanda 8) · COMPRA-3-TEMAS en España (Su madre / Su padre, Su nueva familia)
     temas: {
       mama: "Su madre",
       papa: "Su padre",
       "abuelo-murio": "Un abuelo o abuela que murió",
-      ensamblada: "Su familia reconstituida (la pareja de su madre o de su padre, sus hijos)",
+      ensamblada: "Su nueva familia (la pareja de su madre o de su padre, sus hijos)",
       mudanza: "Una mudanza o un cambio grande",
       escuela: "Un mal momento en el cole",
     },
@@ -365,23 +369,38 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
 
 /**
  * El aviso de la compra cuando en el canal A el WhatsApp del chico es el mismo
- * que el del padre (`mismoNumero`, lib/kids-compra.ts). Solo en vos: Kids no se
- * vende en España. Aprobado por Naza el 15/10
- * (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md, punto 7).
+ * que el del padre (`mismoNumero`, lib/kids-compra.ts). En vos aprobado por
+ * Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md,
+ * punto 7); en tú, el 16/10 (tanda 8, textos-es-ES-2026-10-16.md).
  */
-export const KIDS_MISMO_NUMERO = "El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».";
+export const KIDS_MISMO_NUMERO_TEXTOS: Record<IdiomaKids, string> = {
+  "es-AR": "El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».",
+  // APROBADO por Naza 16/10 (tanda 8)
+  "es-ES": "El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a ti, elige «Lo hago yo».",
+};
+/** El de vos (Argentina). */
+export const KIDS_MISMO_NUMERO = KIDS_MISMO_NUMERO_TEXTOS["es-AR"];
 
 /**
  * El libro impreso en la compra de Kids (Naza 15/10, tanda 3, punto 10). Todo
  * lo demás es de la casa, tal cual (_textos/checkout: «¿Cómo querés su libro?»,
  * los títulos y las frases de las opciones, las copias, la dirección de envío y
  * sus avisos; _textos/pedido-confirmado: la línea de la imprenta). Estos dos
- * detalles son los de la casa SIN «Su voz», que Kids no define. Solo en vos:
- * Kids no se vende en España.
+ * detalles son los de la casa SIN «Su voz», que Kids no define.
  */
-export const KIDS_IMPRESO = {
-  // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «con su voz»
-  impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
-  // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «Su voz»
-  digitalDetalle: "PDF para leer en cualquier pantalla.",
+export const KIDS_IMPRESO_TEXTOS: Record<IdiomaKids, { impresoDetalle: string; digitalDetalle: string }> = {
+  "es-AR": {
+    // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «con su voz»
+    impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
+    // APROBADO por Naza 16/10 (tanda 5) · la de la casa sin «Su voz»
+    digitalDetalle: "PDF para leer en cualquier pantalla.",
+  },
+  "es-ES": {
+    // APROBADO por Naza 16/10 (tanda 8) · «el seguimiento del envío» (lectura de Marta)
+    impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento del envío.",
+    // APROBADO por Naza 16/10 (tanda 8)
+    digitalDetalle: "PDF para leer en cualquier pantalla.",
+  },
 };
+/** El de vos (Argentina). */
+export const KIDS_IMPRESO = KIDS_IMPRESO_TEXTOS["es-AR"];

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { esKids, fichaVigente } from "./kids-panel";
+import { esKids, fichaVigente, idiomaDeFila } from "./kids-panel";
+import type { IdiomaKids } from "./kids";
 import { leerFilaKids, leerListo } from "./kids-panel-base";
 
 // Quién abre «Su voz» (`/voz/<token>`, su audio y su libro online). El token
@@ -18,7 +19,7 @@ import { leerFilaKids, leerListo } from "./kids-panel-base";
 export type AccesoVoz =
   | { abre: false }
   | { abre: true; producto: "casa"; nombre: string; comoLeDicen: string }
-  | { abre: true; producto: "kids"; nombre: string; apodo: string };
+  | { abre: true; producto: "kids"; nombre: string; apodo: string; idioma: IdiomaKids };
 
 type NarradorVoz = { nombre: string; como_le_dicen: string | null; libro_aprobado_at: string | null; contexto: Record<string, unknown> | null };
 
@@ -32,7 +33,7 @@ export async function accesoVoz(admin: SupabaseClient, narradorId: string): Prom
     if (errorKids) return { abre: false };
     if (fila) {
       if (!n.libro_aprobado_at && !(await leerListo(admin, narradorId))) return { abre: false };
-      return { abre: true, producto: "kids", nombre: n.nombre, apodo: n.como_le_dicen?.trim() || fichaVigente(fila).apodo };
+      return { abre: true, producto: "kids", nombre: n.nombre, apodo: n.como_le_dicen?.trim() || fichaVigente(fila).apodo, idioma: idiomaDeFila(fila) };
     }
   }
 

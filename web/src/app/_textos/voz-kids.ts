@@ -1,15 +1,20 @@
-import { PANEL_KIDS } from "./panel-kids";
+import type { IdiomaKids } from "@/lib/kids";
+import { TEXTOS_PANEL_KIDS } from "./panel-kids";
 
 // «Su voz» de Vitácora Kids: la página que abre cada QR del libro de un chico
 // (`/voz/<token>`). Es la misma página de la casa con sus textos de Kids: sin
-// «La historia de…» ni «El libro de una vida». En vos (Kids es de Argentina),
-// frases simples, sin dos puntos, sin «tu hijo» ni «él» y sin tiempos.
+// «La historia de…» ni «El libro de una vida». En vos para Argentina y en tú
+// para España (Naza 16/10, tanda 8), según el idioma del chico. Frases simples,
+// sin dos puntos, sin «tu hijo» ni «él» y sin tiempos.
 
-export const VOZ_KIDS = {
+const AR = TEXTOS_PANEL_KIDS["es-AR"].panel;
+const ES = TEXTOS_PANEL_KIDS["es-ES"].panel;
+
+const VOZ_KIDS_AR = {
   // APROBADO por Naza 16/10 (tanda 6) · KP-ETIQUETA (el del panel, tal cual)
-  etiqueta: PANEL_KIDS.etiqueta,
+  etiqueta: AR.etiqueta,
   // APROBADO por Naza 15/10 (tanda 2) · KP-TITULO (el del panel, tal cual)
-  titulo: PANEL_KIDS.titulo,
+  titulo: AR.titulo,
   // APROBADO por Naza 16/10 (tanda 5, libro de Kids) · «Su voz» del libro, tal cual
   suVoz: "Su voz",
   // APROBADO por Naza 16/10 (tanda 5, libro de Kids) · «Escuchala» del QR, tal cual
@@ -25,4 +30,32 @@ export const VOZ_KIDS = {
   libroNoEsta: "El libro todavía se está preparando.",
   // APROBADO por Naza 16/10 (tanda 7) · KV-ETIQUETA-AUDIO (no se ve, lo lee el lector de pantalla después de «Escuchar»)
   etiquetaAudio: (texto: string) => `la respuesta «${texto.slice(0, 40)}»`,
-} as const;
+};
+
+export type TextosVozKids = typeof VOZ_KIDS_AR;
+
+const VOZ_KIDS_ES: TextosVozKids = {
+  // APROBADO por Naza 16/10 (tanda 8) · KP-ETIQUETA
+  etiqueta: ES.etiqueta,
+  // APROBADO por Naza 16/10 (tanda 8) · KP-TITULO
+  titulo: ES.titulo,
+  // APROBADO por Naza 16/10 (tanda 8) · suVoz
+  suVoz: "Su voz",
+  // APROBADO por Naza 16/10 (tanda 8) · escuchala (en España con tilde)
+  escuchala: "Escúchala",
+  // APROBADO por Naza 16/10 (tanda 8) · KV-BAJADA
+  bajada: "Aquí están sus respuestas, tal como las dijo. Toca una para escucharla.",
+  // APROBADO por Naza 16/10 (tanda 8) · KV-SIN-AUDIOS
+  sinAudios: "Sus respuestas en audio todavía se están preparando.",
+  // APROBADO por Naza 16/10 (tanda 8) · KV-PESTANA-LIBRO
+  libro: "El libro",
+  // APROBADO por Naza 16/10 (tanda 8) · KV-LIBRO-NO-ESTA
+  libroNoEsta: "El libro todavía se está preparando.",
+  // APROBADO por Naza 16/10 (tanda 8) · KV-ETIQUETA-AUDIO
+  etiquetaAudio: (texto: string) => `la respuesta «${texto.slice(0, 40)}»`,
+};
+
+export const TEXTOS_VOZ_KIDS: Record<IdiomaKids, TextosVozKids> = { "es-AR": VOZ_KIDS_AR, "es-ES": VOZ_KIDS_ES };
+
+/** Los de vos (Argentina), con su nombre de siempre. */
+export const VOZ_KIDS = VOZ_KIDS_AR;

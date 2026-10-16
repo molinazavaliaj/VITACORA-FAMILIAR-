@@ -3,6 +3,7 @@ import {
   arranco,
   capituloActual,
   fichaVigente,
+  idiomaDeFila,
   preguntasAbiertas,
   terminoKids,
   tituloCapitulo,
@@ -13,7 +14,8 @@ import {
 } from "@/lib/kids-panel";
 import { ReproductorRespuesta } from "../reproductor";
 import { fechaCorta } from "../ui";
-import { estadoKids, errorDelMotor, LEE_TODO, PANEL_GUIA, PANEL_KIDS } from "../../_textos/panel-kids";
+import type { IdiomaKids } from "@/lib/kids";
+import { estadoKids, errorDelMotor, textosPanelKids } from "../../_textos/panel-kids";
 import { AprobarLibro, CorregirNombre, HoraYTemas, PreguntasDelPadre } from "./kids-acciones";
 
 // El panel de Vitácora Kids para los padres (K5, 15/10). Lo ve solo quien
@@ -28,8 +30,7 @@ import { AprobarLibro, CorregirNombre, HoraYTemas, PreguntasDelPadre } from "./k
 //     y aprobar (decisión 9). Antes, esa parte no aparece.
 // Con la paleta de Kids (panel.css, data-producto="kids"). En el celular, una
 // columna: lo que se cambia arriba, después lo que cuenta.
-
-const T = PANEL_KIDS;
+// En el castellano del chico (`kids_v2.idioma`): vos en Argentina, tú en España.
 
 export function PanelKids({
   n,
@@ -44,13 +45,17 @@ export function PanelKids({
   libro?: LibroKids | null;
 }) {
   const ficha = fichaVigente(fila);
+  const idioma = idiomaDeFila(fila);
+  const X = textosPanelKids(idioma);
+  const T = X.panel;
+  const PANEL_GUIA = X.guia;
   const apodo = n.como_le_dicen?.trim() || ficha.apodo;
   const capitulo = capituloActual(fila);
   const termino = terminoKids(fila);
   const abiertas = preguntasAbiertas(fila);
   const valores = valoresDelPanel(fila);
   const pendiente = fila.cambios_panel;
-  const estado = estadoKids({ estado: n.estado, canal: fila.canal, apodo, arranco: arranco(fila), capitulo, titulo: tituloCapitulo(capitulo), termino });
+  const estado = estadoKids({ estado: n.estado, canal: fila.canal, apodo, arranco: arranco(fila), capitulo, titulo: tituloCapitulo(capitulo), termino, idioma });
 
   return (
     <div data-producto="kids" className="pnl-marco mx-auto w-full max-w-[1240px] px-4 pb-20 pt-8 sm:px-8 md:pt-12">
@@ -59,16 +64,16 @@ export function PanelKids({
         <h1 className="pnl-titular">{T.titulo(apodo)}</h1>
         <p className="pnl-parrafo">{estado}</p>
         <Partes actual={termino ? 6 : capitulo} />
-        <p className="pnl-dato mt-1">{LEE_TODO}</p>
+        <p className="pnl-dato mt-1">{X.leeTodo}</p>
       </header>
 
       {fila.cambios_error ? (
         <p role="alert" className="mt-8 rounded-md border border-[var(--alerta)] bg-[var(--alerta-fondo)] px-4 py-3 text-[15px] leading-snug text-[var(--alerta)]">
-          {errorDelMotor(fila.cambios_error)}
+          {errorDelMotor(fila.cambios_error, idioma)}
         </p>
       ) : null}
 
-      {libro ? <TuLibro narradorId={n.id} apodo={apodo} libro={libro} /> : null}
+      {libro ? <TuLibro narradorId={n.id} apodo={apodo} libro={libro} idioma={idioma} /> : null}
 
       <div className="mt-10 grid grid-cols-1 gap-x-14 gap-y-10 md:mt-14 lg:grid-cols-[minmax(0,1fr)_380px]">
         <aside className="flex min-w-0 flex-col gap-8 lg:col-start-2 lg:row-start-1">
@@ -92,7 +97,7 @@ export function PanelKids({
                 </div>
                 <p className="mt-4 text-[14px] leading-snug text-[var(--texto-menor)]">{PANEL_GUIA.p5}</p>
                 <div className="mt-6">
-                  <PreguntasDelPadre narradorId={n.id} preguntas={valores.preguntasPadre} quienRegala={ficha.quienRegala} />
+                  <PreguntasDelPadre narradorId={n.id} preguntas={valores.preguntasPadre} quienRegala={ficha.quienRegala} idioma={idioma} />
                 </div>
                 {pendiente?.preguntasPadre ? <p className="mt-3 text-[13.5px] text-[var(--texto-menor)]">{T.pendiente}</p> : null}
               </>
@@ -120,7 +125,7 @@ export function PanelKids({
             <section aria-labelledby="titulo-ajustes" className="pnl-hoja p-5 sm:p-6">
               <h2 id="titulo-ajustes" className="pnl-h3">{T.ajustes.titulo}</h2>
               <div className="mt-5">
-                <HoraYTemas narradorId={n.id} hora={valores.hora} temasSacados={valores.temasSacados} />
+                <HoraYTemas narradorId={n.id} hora={valores.hora} temasSacados={valores.temasSacados} idioma={idioma} />
               </div>
               {pendiente && (pendiente.hora !== undefined || pendiente.temasSacados !== undefined) ? (
                 <p className="mt-3 text-[13.5px] text-[var(--texto-menor)]">{T.pendiente}</p>
@@ -134,7 +139,7 @@ export function PanelKids({
           {capitulos.length === 0 ? <p className="pnl-parrafo mt-4">{T.vacio(apodo)}</p> : null}
           <div className="mt-8 flex flex-col gap-14">
             {capitulos.map((c) => (
-              <Capitulo key={c.n} c={c} narradorId={n.id} apodo={apodo} />
+              <Capitulo key={c.n} c={c} narradorId={n.id} apodo={apodo} idioma={idioma} />
             ))}
           </div>
         </section>
@@ -144,8 +149,8 @@ export function PanelKids({
 }
 
 /** El libro ya escrito: verlo, bajarlo y aprobarlo (una sola vez). */
-function TuLibro({ narradorId, apodo, libro }: { narradorId: string; apodo: string; libro: LibroKids }) {
-  const L = T.libro;
+function TuLibro({ narradorId, apodo, libro, idioma }: { narradorId: string; apodo: string; libro: LibroKids; idioma: IdiomaKids }) {
+  const L = textosPanelKids(idioma).panel.libro;
   const url = (archivo: "libro" | "sobre", descargar = false) =>
     `/api/kids/libro?narrador=${encodeURIComponent(narradorId)}&archivo=${archivo}${descargar ? "&descargar=1" : ""}`;
   return (
@@ -166,7 +171,7 @@ function TuLibro({ narradorId, apodo, libro }: { narradorId: string; apodo: stri
         ) : (
           <>
             <p className="mb-4 text-[14px] leading-snug text-[var(--texto-menor)]">{L.algoMal}</p>
-            <AprobarLibro narradorId={narradorId} />
+            <AprobarLibro narradorId={narradorId} idioma={idioma} />
           </>
         )}
       </div>
@@ -190,7 +195,8 @@ function Partes({ actual }: { actual: number }) {
   );
 }
 
-function Capitulo({ c, narradorId, apodo }: { c: CapituloKids; narradorId: string; apodo: string }) {
+function Capitulo({ c, narradorId, apodo, idioma }: { c: CapituloKids; narradorId: string; apodo: string; idioma: IdiomaKids }) {
+  const T = textosPanelKids(idioma).panel;
   const id = `parte-${c.n}`;
   return (
     <section aria-labelledby={id}>
@@ -227,7 +233,7 @@ function Capitulo({ c, narradorId, apodo }: { c: CapituloKids; narradorId: strin
                   <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{fechaCorta(e.recibidoAt)}</span>
                   {e.audio ? <ReproductorRespuesta src={`/api/audio/${e.id}`} duracion={e.duracion} etiqueta={T.escuchar} /> : null}
                 </div>
-                {e.texto ? <CorregirNombre narradorId={narradorId} respuestaId={e.id} correcciones={e.correcciones} /> : null}
+                {e.texto ? <CorregirNombre narradorId={narradorId} respuestaId={e.id} correcciones={e.correcciones} idioma={idioma} /> : null}
               </div>
             ))}
           </article>

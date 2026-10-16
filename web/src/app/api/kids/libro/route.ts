@@ -4,7 +4,8 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { esArchivoLibroKids, esKids } from "@/lib/kids-panel";
 import { aprobarLibroKids, urlArchivoKids } from "@/lib/kids-panel-base";
-import { errorLibroKids, PANEL_KIDS } from "../../../_textos/panel-kids";
+import { idiomaKidsDe, type IdiomaKids } from "@/lib/kids";
+import { errorLibroKids, textosPanelKids } from "../../../_textos/panel-kids";
 
 // El libro de Kids ya escrito (decisión 9 de Naza, 15/10): el padre lo ve y lo
 // aprueba desde su panel. Solo quien compró, solo un chico de Kids, solo cuando
@@ -15,19 +16,20 @@ import { errorLibroKids, PANEL_KIDS } from "../../../_textos/panel-kids";
 
 const STATUS: Record<string, number> = { noKids: 404, noListo: 409, yaAprobado: 409, confirmar: 400, archivo: 400, base: 500 };
 
+/** El castellano de los textos (lo manda el panel, que lo lee de kids_v2.idioma): solo cambia las palabras. */
+const idiomaDe = (request: NextRequest): IdiomaKids => idiomaKidsDe(request.nextUrl.searchParams.get("idioma"));
+
 async function acceso(request: NextRequest) {
   const admin = crearClienteServidor();
   const a = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
     soloDuena: true,
-    mensajeError: PANEL_KIDS.errores.generico,
+    mensajeError: textosPanelKids(idiomaDe(request)).panel.errores.generico,
   });
-  return { admin, a };
+  return { admin, a, fallo: (falla: keyof typeof STATUS) => NextResponse.json({ error: errorLibroKids(falla as never, idiomaDe(request)), falla }, { status: STATUS[falla] }) };
 }
 
-const fallo = (falla: keyof typeof STATUS) => NextResponse.json({ error: errorLibroKids(falla as never), falla }, { status: STATUS[falla] });
-
 export async function GET(request: NextRequest) {
-  const { admin, a } = await acceso(request);
+  const { admin, a, fallo } = await acceso(request);
   if (!a.ok) return NextResponse.json({ error: a.error }, { status: a.status });
   if (!esKids(a.narrador)) return fallo("noKids");
   const archivo = request.nextUrl.searchParams.get("archivo");
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { admin, a } = await acceso(request);
+  const { admin, a, fallo } = await acceso(request);
   if (!a.ok) return NextResponse.json({ error: a.error }, { status: a.status });
   if (!esKids(a.narrador)) return fallo("noKids");
   let body: { confirmo?: unknown } | null = null;

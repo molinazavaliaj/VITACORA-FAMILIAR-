@@ -2,27 +2,32 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HORAS_KIDS, TEMAS_KIDS, type TemaKids } from "@/lib/kids";
+import { HORAS_KIDS, TEMAS_KIDS, type IdiomaKids, type TemaKids } from "@/lib/kids";
 import type { PreguntaPadre } from "@/lib/kids-compra";
 import type { CorreccionKids } from "@/lib/kids-panel";
-import { HORA, PANEL_CASILLA, PANEL_KIDS, QUIEN_LA_MANDA, TEMAS } from "../../_textos/panel-kids";
+import { textosPanelKids } from "../../_textos/panel-kids";
 
 // Lo que el padre toca en el panel de Kids (K5): corregir un nombre, sus
 // preguntas para el libro, y la hora y los temas. Todo va por /api/kids/*; la
 // página se refresca y muestra lo guardado (o lo pendiente) desde la base.
-
-const T = PANEL_KIDS;
+// En el castellano del chico (`idioma`): las rutas lo reciben en la URL para
+// contestar los errores igual.
 const campo =
   "w-full rounded-md border border-[var(--linea-fuerte)] bg-[var(--relieve)] px-3 text-[15px] text-[var(--texto)] focus:border-[var(--texto)] focus:outline-none";
 
-async function enviar(url: string, metodo: "PATCH" | "POST" | "DELETE", cuerpo: unknown): Promise<string | null> {
+/** La ruta de /api/kids/* con el narrador y el idioma de los textos. */
+export function urlKids(ruta: "panel" | "correcciones" | "libro", narradorId: string, idioma: IdiomaKids): string {
+  return `/api/kids/${ruta}?narrador=${encodeURIComponent(narradorId)}&idioma=${idioma}`;
+}
+
+async function enviar(url: string, metodo: "PATCH" | "POST" | "DELETE", cuerpo: unknown, generico: string): Promise<string | null> {
   try {
     const r = await fetch(url, { method: metodo, headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
     if (r.ok) return null;
     const datos = (await r.json().catch(() => null)) as { error?: string } | null;
-    return datos?.error ?? T.errores.generico;
+    return datos?.error ?? generico;
   } catch {
-    return T.errores.generico;
+    return generico;
   }
 }
 
@@ -34,20 +39,21 @@ function Aviso({ error, listo }: { error: string | null; listo: string | null })
 
 // ── Corregir un nombre ───────────────────────────────────────────────────
 
-export function CorregirNombre({ narradorId, respuestaId, correcciones }: { narradorId: string; respuestaId: string; correcciones: CorreccionKids[] }) {
+export function CorregirNombre({ narradorId, respuestaId, correcciones, idioma = "es-AR" }: { narradorId: string; respuestaId: string; correcciones: CorreccionKids[]; idioma?: IdiomaKids }) {
+  const T = textosPanelKids(idioma).panel;
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [dice, setDice] = useState("");
   const [es, setEs] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const url = `/api/kids/correcciones?narrador=${encodeURIComponent(narradorId)}`;
+  const url = urlKids("correcciones", narradorId, idioma);
 
   async function guardar() {
     if (!dice.trim() || !es.trim()) return setError(T.errores.vacio);
     setGuardando(true);
     setError(null);
-    const e = await enviar(url, "POST", { respuestaId, dice, es });
+    const e = await enviar(url, "POST", { respuestaId, dice, es }, T.errores.generico);
     setGuardando(false);
     if (e) return setError(e);
     setAbierto(false);
@@ -58,7 +64,7 @@ export function CorregirNombre({ narradorId, respuestaId, correcciones }: { narr
 
   async function quitar(c: CorreccionKids) {
     setError(null);
-    const e = await enviar(url, "DELETE", { respuestaId, dice: c.dice });
+    const e = await enviar(url, "DELETE", { respuestaId, dice: c.dice }, T.errores.generico);
     if (e) return setError(e);
     router.refresh();
   }
@@ -139,12 +145,16 @@ export function PreguntasDelPadre({
   narradorId,
   preguntas,
   quienRegala,
+  idioma = "es-AR",
 }: {
   narradorId: string;
   /** Lo pendiente si hay, si no las de la ficha. */
   preguntas: PreguntaPadre[];
   quienRegala: string;
+  idioma?: IdiomaKids;
 }) {
+  const X = textosPanelKids(idioma);
+  const T = X.panel;
   const router = useRouter();
   const [filas, setFilas] = useState<FilaPregunta[]>(() => filasIniciales(preguntas, quienRegala));
   const [guardando, setGuardando] = useState(false);
@@ -160,7 +170,7 @@ export function PreguntasDelPadre({
     setGuardando(true);
     setError(null);
     setListo(null);
-    const e = await enviar(`/api/kids/panel?narrador=${encodeURIComponent(narradorId)}`, "PATCH", { preguntasPadre: preguntasParaGuardar(filas) });
+    const e = await enviar(urlKids("panel", narradorId, idioma), "PATCH", { preguntasPadre: preguntasParaGuardar(filas) }, T.errores.generico);
     setGuardando(false);
     if (e) return setError(e);
     setListo(T.pendiente);
@@ -182,12 +192,12 @@ export function PreguntasDelPadre({
             className={`${campo} py-2.5 leading-relaxed`}
           />
           <label className="flex flex-col gap-1 text-[13px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]">
-            {QUIEN_LA_MANDA}
+            {X.quienLaManda}
             <input value={f.quien} onChange={(e) => cambiar(i, { quien: e.target.value })} maxLength={60} disabled={f.sinLinea} className={`${campo} h-11 disabled:opacity-50`} />
           </label>
           <label className="flex min-h-11 items-start gap-3 text-[14px] leading-snug text-[var(--texto-suave)] [touch-action:manipulation]">
             <input type="checkbox" checked={f.sinLinea} onChange={(e) => cambiar(i, { sinLinea: e.target.checked })} className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--acento)]" />
-            <span>{PANEL_CASILLA}</span>
+            <span>{X.casilla}</span>
           </label>
         </fieldset>
       ))}
@@ -203,7 +213,10 @@ export function PreguntasDelPadre({
 
 // ── La hora y los temas ──────────────────────────────────────────────────
 
-export function HoraYTemas({ narradorId, hora, temasSacados }: { narradorId: string; hora: string; temasSacados: TemaKids[] }) {
+export function HoraYTemas({ narradorId, hora, temasSacados, idioma = "es-AR" }: { narradorId: string; hora: string; temasSacados: TemaKids[]; idioma?: IdiomaKids }) {
+  const X = textosPanelKids(idioma);
+  const T = X.panel;
+  const { hora: HORA, temas: TEMAS } = X;
   const router = useRouter();
   const [h, setH] = useState(hora);
   const [temas, setTemas] = useState<TemaKids[]>(temasSacados);
@@ -215,7 +228,7 @@ export function HoraYTemas({ narradorId, hora, temasSacados }: { narradorId: str
     setGuardando(true);
     setError(null);
     setListo(null);
-    const e = await enviar(`/api/kids/panel?narrador=${encodeURIComponent(narradorId)}`, "PATCH", { hora: h, temasSacados: temas });
+    const e = await enviar(urlKids("panel", narradorId, idioma), "PATCH", { hora: h, temasSacados: temas }, T.errores.generico);
     setGuardando(false);
     if (e) return setError(e);
     setListo(T.pendiente);
@@ -265,7 +278,8 @@ export function HoraYTemas({ narradorId, hora, temasSacados }: { narradorId: str
 
 // ── Aprobar el libro escrito (decisión 9) ───────────────────────────────
 
-export function AprobarLibro({ narradorId }: { narradorId: string }) {
+export function AprobarLibro({ narradorId, idioma = "es-AR" }: { narradorId: string; idioma?: IdiomaKids }) {
+  const T = textosPanelKids(idioma).panel;
   const router = useRouter();
   const [confirmando, setConfirmando] = useState(false);
   const [aprobando, setAprobando] = useState(false);
@@ -275,7 +289,7 @@ export function AprobarLibro({ narradorId }: { narradorId: string }) {
   async function aprobar() {
     setAprobando(true);
     setError(null);
-    const e = await enviar(`/api/kids/libro?narrador=${encodeURIComponent(narradorId)}`, "POST", { confirmo: true });
+    const e = await enviar(urlKids("libro", narradorId, idioma), "POST", { confirmo: true }, T.errores.generico);
     setAprobando(false);
     if (e) return setError(e);
     setConfirmando(false);

@@ -6,12 +6,12 @@ import { origenDelNavegador } from "@/lib/origen";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import type { Catalogo, Moneda } from "@/lib/productos";
 import {
-  HORAS_KIDS, QUIENES_REGALAN, TEMAS_KIDS, compraKids, cuerpoKids, estadoKidsInicial, fallaEnvioKids, fallaKids, impresosKids,
+  HORAS_KIDS, QUIENES_REGALAN, TEMAS_KIDS, compraKids, cuerpoKids, estadoKidsInicial, fallaEnvioKids, fallaKids, idiomaKidsDeRegion, impresosKids,
   type EstadoKids, type FallaKids, type PasoKids,
 } from "@/lib/kids";
 import { ContenidoPaso, Opcion, Pastilla } from "../../_ui";
 import { CHECKOUT, RESUMEN } from "../../_textos/checkout";
-import { CHECKOUT_KIDS, KIDS_IMPRESO } from "../../_textos/checkout-kids";
+import { CHECKOUT_KIDS, KIDS_IMPRESO_TEXTOS } from "../../_textos/checkout-kids";
 import { AYUDA, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, TituloPaso, arriba } from "../../_checkout/piezas";
 import { PasosLibro } from "../../_checkout/pasos-libro";
 import { crearPagador } from "../../_checkout/pagador";
@@ -327,7 +327,7 @@ export function CheckoutKids({
                       estado={e}
                       onElegir={(o) => cambiar(eleccionDe(o, e))}
                       onCambio={(c) => cambiar({ ...c, marcos: 0 })}
-                      textos={{ ...T, ...KIDS_IMPRESO, titulo: T.libroTitulo }}
+                      textos={{ ...T, ...KIDS_IMPRESO_TEXTOS[idiomaKidsDeRegion(region)], titulo: T.libroTitulo }}
                       tapa={{ titulo: e.nombre.trim(), idioma: "es", foto: null }}
                       formatear={f}
                     />
