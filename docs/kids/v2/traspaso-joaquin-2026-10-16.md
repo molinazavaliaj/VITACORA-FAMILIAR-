@@ -32,8 +32,9 @@ marcas `// APROBADO por Naza` en el código).
 
 1. Revisar y mergear #46 → #47 → #50 (base, bot, libro) y #48 → #49 (web). Naza aplica la migración
    `20261016000000_kids_v2.sql`.
-2. Cargar las 13 plantillas de `docs/kids/v2/plantillas-meta-kids.md` (español, Utilidad) y las 13 de
-   `docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md` (sufijo `_es_es`, idioma es_ES), y ponerlas en
+2. Cargar las 13 plantillas de `docs/kids/v2/plantillas-meta-kids.md` (español, Utilidad) las 13 de
+   `docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md` (sufijo `_es_es`, idioma es_ES) y las 13 de
+   `docs/kids/v2/idiomas/plantillas-meta-kids-ca.md` (sufijo `_ca`, idioma ca), 39 en total, y ponerlas en
    `WA_PLANTILLAS_KIDS_LISTAS` (Railway, entrevistador).
 3. Actualizar el worker de voz en la PC de Naza (el cambio de `cortar_frases.py`).
 4. Piloto con un chico real: compra de prueba, `ESCRITOR_KIDS=solo:<narrador_id>` en Railway (fábrica).
@@ -43,5 +44,5 @@ marcas `// APROBADO por Naza` en el código).
 
 - Abogado: el aviso de algo preocupante, el permiso del adulto para escribirle al chico (WhatsApp pide 13 años),
   términos y privacidad de Kids.
-- España: hecho el 16/10 (tanda 8). El bot, el libro y la web hablan en tú para España (`ficha.idioma = "es-ES"`), `KIDS_REGIONES = ["AR", "ES"]`, hora por defecto 20:00. Catalán todavía no vende.
+- España: hecho el 16/10 (tanda 8). El bot, el libro y la web hablan en tú para España (`ficha.idioma = "es-ES"`), `KIDS_REGIONES = ["AR", "ES"]`, hora por defecto 20:00. Catalán: hecho el 16/10 (tanda 10), mismo camino (`ficha.idioma = "ca"`, `/ca` vende, 20:00 por defecto).
 - La imprenta tiene que pegar el sobre (`sobre-imprenta.pdf`) a la contratapa.
