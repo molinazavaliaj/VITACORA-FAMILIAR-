@@ -1,260 +1,292 @@
-// Vitácora de viaje (docs/vitacora-de-viaje.md, 18/09). Lo puro, espejo de
-// entrevistador/src/flujo/viaje.ts: fechas, etapas y el capítulo de cada día.
-// La web lo usa para validar la compra y para reasignar capítulos cuando el
-// viajero agrega o fecha etapas desde el panel.
+// Vitácora de Viaje V2 (16/10: la web vende SOLO la V2; nada del viaje viejo
+// de etapas, ciudades, ángulos o «con quién viajás»). Lo puro de la compra y
+// del panel: validar lo que llega del formulario, las fechas, el país y el
+// carrito.
+//
+// Fuente de verdad: docs/viajes-v2/flujo-vigente.md §1 (la compra) y el tipo
+// `Compra` de entrevistador/src/viaje-v2/nucleo/tipos.ts. CONTRATO con el bot
+// (PR #52, compra-contrato.md): `contexto.modo = 'viaje'` y `contexto.viaje`
+// con los nombres de `Compra` más `v: 2`, sin `nombre` (sale de como_le_dicen). La web no crea la fila de
+// `viajes_v2`: la crea el bot con lo que lee de acá. El código no sabe de
+// ciudades: solo fechas y zonas horarias (salen de lo que cuenta el viajero).
 
-export type Etapa = { nombre: string; desde?: string; hasta?: string };
-export const COMPANIAS = ["solo", "pareja", "amigos", "familia"] as const;
-export const PROPOSITOS = ["recuerdo", "compartir", "publico"] as const;
-export const ANGULOS = ["mejor", "persona", "comida", "plan", "lugar", "vos"] as const;
-export type Viaje = {
+import type { Carrito } from "./productos";
+
+/** `es-AR`: de vos. `es-ES`: de tú. `ca`: en catalán. Los mismos del bot (nucleo/idioma.ts). */
+export type IdiomaViaje = "es-AR" | "es-ES" | "ca";
+export const IDIOMAS_VIAJE: readonly IdiomaViaje[] = ["es-AR", "es-ES", "ca"];
+export type FormatoViaje = "impreso" | "pdf";
+export type FotosAlbum = 20 | 40;
+
+/**
+ * Lo que va a `narradores.contexto.viaje` (contrato del bot, docs/viajes-v2/compra-contrato.md
+ * en la rama viaje-v2-solo). El nombre del viajero NO va acá: el bot lo toma de `como_le_dicen`.
+ */
+export type CompraViaje = {
+  v: 2;
+  /** Día de salida, YYYY-MM-DD (hora de casa). */
   salida: string;
+  /** El día que emprende la vuelta, YYYY-MM-DD. */
   vuelta: string;
-  etapas: Etapa[];
-  compania?: (typeof COMPANIAS)[number];
-  proposito?: (typeof PROPOSITOS)[number];
-  angulos?: string[];
+  zonaCasa: string;
+  /** La del país principal del viaje. */
+  zonaViaje: string;
+  /** La hora de la noche; sin ella, 21:30. */
+  horaNoche?: string;
+  /** Solo si es un regalo: {{quien_regala}}. */
+  regalo?: { quienRegala: string };
+  /** Hasta 5, tal cual las escribieron. */
+  preguntasPropias: string[];
+  formato: FormatoViaje;
+  fotosAlbum: FotosAlbum;
+  idioma: IdiomaViaje;
 };
 
-export const NOMBRE_COMPANIA: Record<(typeof COMPANIAS)[number], string> = { solo: "Solo", pareja: "En pareja", amigos: "Con amigos", familia: "En familia" };
-export const NOMBRE_PROPOSITO: Record<(typeof PROPOSITOS)[number], { titulo: string; detalle: string }> = {
-  recuerdo: { titulo: "Para mí, como recuerdo", detalle: "Íntimo. Lo que quieras contar, sin filtro." },
-  compartir: { titulo: "Para compartir con mi gente", detalle: "Contable: para leerlo con quienes te quieren." },
-  publico: { titulo: "Para mi público", detalle: "Publicable: con lo que te gustaría que otros lean." },
-};
-export const NOMBRE_ANGULO: Record<(typeof ANGULOS)[number], string> = {
-  mejor: "Lo mejor del día", persona: "La gente que conozco", comida: "Lo que como", plan: "Lo que sale distinto del plan", lugar: "Los lugares inesperados", vos: "Lo que pienso de mí",
-};
-
-export const SIN_ETAPA = "Por definir";
+/** Mínimo de días (salida y vuelta incluidas): MINIMO_DIAS del bot (nucleo/calendario.ts). */
+export const MINIMO_DIAS = 3;
+/** Un viaje más largo se arma aparte (el mismo tope de siempre). */
 export const DIAS_MAXIMO = 120;
-export const ETAPAS_MAXIMO = 30;
-export const ETAPA_NOMBRE_MAXIMO = 60;
+export const MAX_PREGUNTAS_PROPIAS = 5;
+export const PREGUNTA_PROPIA_MAXIMO = 300;
+export const QUIEN_REGALA_MAXIMO = 60;
+export const HORA_NOCHE_POR_DEFECTO = "21:30";
+/** La noche que acepta el bot: entre NOCHE_DESDE y NOCHE_HASTA (nucleo/calendario.ts). */
+export const NOCHE_DESDE = "19:00";
+export const NOCHE_HASTA = "22:30";
+/** Las horas que se ofrecen en la compra (todas dentro de la franja del bot). */
+export const HORAS_NOCHE = ["19:30", "20:30", "21:30", "22:30"] as const;
 
-const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
-export function esFecha(v: unknown): v is string {
-  return typeof v === "string" && FECHA_RE.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
+/**
+ * Los países que se ofrecen, con la zona horaria de cada uno (la hora de los
+ * mensajes). Los que tienen varias zonas van partidos. Si el país no está, se
+ * elige el de la misma hora; el nombre solo se muestra, lo que se guarda es la zona.
+ */
+export type Pais = { id: string; zona: string; es: string; ca: string };
+export const PAISES: readonly Pais[] = [
+  { id: "alemania", zona: "Europe/Berlin", es: "Alemania", ca: "Alemanya" },
+  { id: "andorra", zona: "Europe/Andorra", es: "Andorra", ca: "Andorra" },
+  { id: "argentina", zona: "America/Argentina/Buenos_Aires", es: "Argentina", ca: "Argentina" },
+  { id: "australia", zona: "Australia/Sydney", es: "Australia (Sídney)", ca: "Austràlia (Sydney)" },
+  { id: "austria", zona: "Europe/Vienna", es: "Austria", ca: "Àustria" },
+  { id: "belgica", zona: "Europe/Brussels", es: "Bélgica", ca: "Bèlgica" },
+  { id: "bolivia", zona: "America/La_Paz", es: "Bolivia", ca: "Bolívia" },
+  { id: "brasil", zona: "America/Sao_Paulo", es: "Brasil", ca: "Brasil" },
+  { id: "canada-este", zona: "America/Toronto", es: "Canadá (este)", ca: "Canadà (est)" },
+  { id: "canarias", zona: "Atlantic/Canary", es: "Canarias", ca: "Canàries" },
+  { id: "chile", zona: "America/Santiago", es: "Chile", ca: "Xile" },
+  { id: "china", zona: "Asia/Shanghai", es: "China", ca: "Xina" },
+  { id: "colombia", zona: "America/Bogota", es: "Colombia", ca: "Colòmbia" },
+  { id: "croacia", zona: "Europe/Zagreb", es: "Croacia", ca: "Croàcia" },
+  { id: "cuba", zona: "America/Havana", es: "Cuba", ca: "Cuba" },
+  { id: "dinamarca", zona: "Europe/Copenhagen", es: "Dinamarca", ca: "Dinamarca" },
+  { id: "egipto", zona: "Africa/Cairo", es: "Egipto", ca: "Egipte" },
+  { id: "emiratos", zona: "Asia/Dubai", es: "Emiratos Árabes", ca: "Emirats Àrabs" },
+  { id: "espana", zona: "Europe/Madrid", es: "España", ca: "Espanya" },
+  { id: "eeuu-este", zona: "America/New_York", es: "Estados Unidos (este)", ca: "Estats Units (est)" },
+  { id: "eeuu-oeste", zona: "America/Los_Angeles", es: "Estados Unidos (oeste)", ca: "Estats Units (oest)" },
+  { id: "francia", zona: "Europe/Paris", es: "Francia", ca: "França" },
+  { id: "grecia", zona: "Europe/Athens", es: "Grecia", ca: "Grècia" },
+  { id: "india", zona: "Asia/Kolkata", es: "India", ca: "Índia" },
+  { id: "indonesia", zona: "Asia/Makassar", es: "Indonesia (Bali)", ca: "Indonèsia (Bali)" },
+  { id: "irlanda", zona: "Europe/Dublin", es: "Irlanda", ca: "Irlanda" },
+  { id: "islandia", zona: "Atlantic/Reykjavik", es: "Islandia", ca: "Islàndia" },
+  { id: "italia", zona: "Europe/Rome", es: "Italia", ca: "Itàlia" },
+  { id: "japon", zona: "Asia/Tokyo", es: "Japón", ca: "Japó" },
+  { id: "marruecos", zona: "Africa/Casablanca", es: "Marruecos", ca: "Marroc" },
+  { id: "mexico", zona: "America/Mexico_City", es: "México", ca: "Mèxic" },
+  { id: "noruega", zona: "Europe/Oslo", es: "Noruega", ca: "Noruega" },
+  { id: "nueva-zelanda", zona: "Pacific/Auckland", es: "Nueva Zelanda", ca: "Nova Zelanda" },
+  { id: "paises-bajos", zona: "Europe/Amsterdam", es: "Países Bajos", ca: "Països Baixos" },
+  { id: "paraguay", zona: "America/Asuncion", es: "Paraguay", ca: "Paraguai" },
+  { id: "peru", zona: "America/Lima", es: "Perú", ca: "Perú" },
+  { id: "polonia", zona: "Europe/Warsaw", es: "Polonia", ca: "Polònia" },
+  { id: "portugal", zona: "Europe/Lisbon", es: "Portugal", ca: "Portugal" },
+  { id: "reino-unido", zona: "Europe/London", es: "Reino Unido", ca: "Regne Unit" },
+  { id: "republica-checa", zona: "Europe/Prague", es: "República Checa", ca: "República Txeca" },
+  { id: "republica-dominicana", zona: "America/Santo_Domingo", es: "República Dominicana", ca: "República Dominicana" },
+  { id: "suecia", zona: "Europe/Stockholm", es: "Suecia", ca: "Suècia" },
+  { id: "suiza", zona: "Europe/Zurich", es: "Suiza", ca: "Suïssa" },
+  { id: "tailandia", zona: "Asia/Bangkok", es: "Tailandia", ca: "Tailàndia" },
+  { id: "turquia", zona: "Europe/Istanbul", es: "Turquía", ca: "Turquia" },
+  { id: "uruguay", zona: "America/Montevideo", es: "Uruguay", ca: "Uruguai" },
+  { id: "vietnam", zona: "Asia/Ho_Chi_Minh", es: "Vietnam", ca: "Vietnam" },
+];
+
+export function paisDeId(id: string): Pais | undefined {
+  return PAISES.find((p) => p.id === id);
 }
 
-export function diasDelViaje(viaje: Pick<Viaje, "salida" | "vuelta">): number {
+/** El nombre del país de una zona (el primero que la usa), para mostrarla; si no está en la lista, la zona tal cual. */
+export function nombreDePais(zona: string, lengua: "es" | "ca" = "es"): string {
+  const p = PAISES.find((x) => x.zona === zona);
+  return p ? p[lengua] : zona;
+}
+
+const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
+const HORA_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** YYYY-MM-DD de un día que existe (2026-02-30 no). */
+export function esFecha(v: unknown): v is string {
+  if (typeof v !== "string" || !FECHA_RE.test(v)) return false;
+  const t = Date.parse(`${v}T00:00:00Z`);
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v;
+}
+
+export function esZona(zona: unknown): zona is string {
+  if (typeof zona !== "string" || !zona) return false;
+  try {
+    new Intl.DateTimeFormat("es", { timeZone: zona });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function esIdiomaViaje(x: unknown): x is IdiomaViaje {
+  return typeof x === "string" && (IDIOMAS_VIAJE as readonly string[]).includes(x);
+}
+
+/** Los días del viaje, salida y vuelta incluidas (1 si faltan o están al revés). */
+export function diasDelViaje(viaje: { salida: string; vuelta: string }): number {
   const a = Date.parse(`${viaje.salida}T00:00:00Z`);
   const b = Date.parse(`${viaje.vuelta}T00:00:00Z`);
   if (!Number.isFinite(a) || !Number.isFinite(b) || b < a) return 1;
   return Math.round((b - a) / 86_400_000) + 1;
 }
 
-export function fechaDelDia(viaje: Pick<Viaje, "salida">, dia: number): string {
-  const d = new Date(`${viaje.salida}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + (dia - 1));
-  return d.toISOString().slice(0, 10);
-}
-
-/** La última etapa que ya empezó manda; sin `hasta`, dura hasta que empieza la siguiente. */
-export function etapaDeFecha(viaje: Viaje, fecha: string): string {
-  const empezadas = viaje.etapas.filter((e) => e.desde && e.desde <= fecha).sort((x, y) => (x.desde! < y.desde! ? 1 : -1));
-  const actual = empezadas[0];
-  if (actual && (!actual.hasta || fecha <= actual.hasta)) return actual.nombre;
-  if (!viaje.etapas.some((e) => e.desde) && viaje.etapas.length === 1) return viaje.etapas[0].nombre;
-  return SIN_ETAPA;
-}
-
-/** Valida y limpia lo que llega del formulario o del panel. */
-export function validarViaje(entrada: unknown): { ok: true; viaje: Viaje } | { ok: false; mensaje: string } {
-  if (!entrada || typeof entrada !== "object") return { ok: false, mensaje: "Faltan los datos del viaje." };
-  const e = entrada as Record<string, unknown>;
-  if (!esFecha(e.salida) || !esFecha(e.vuelta)) return { ok: false, mensaje: "Necesitamos la fecha de salida y la de vuelta." };
-  if (e.vuelta < e.salida) return { ok: false, mensaje: "La vuelta no puede ser antes de la salida." };
-  if (diasDelViaje({ salida: e.salida, vuelta: e.vuelta }) > DIAS_MAXIMO) return { ok: false, mensaje: `Un viaje de más de ${DIAS_MAXIMO} días: escribinos y lo armamos aparte.` };
-  const r = validarEtapas(e.etapas, { salida: e.salida, vuelta: e.vuelta });
-  if (!r.ok) return r;
-  const viaje: Viaje = { salida: e.salida, vuelta: e.vuelta, etapas: r.etapas };
-  if (e.compania !== undefined) {
-    if (!(COMPANIAS as readonly unknown[]).includes(e.compania)) return { ok: false, mensaje: "¿Con quién viajás? no es válido." };
-    viaje.compania = e.compania as Viaje["compania"];
-  }
-  if (e.proposito !== undefined) {
-    if (!(PROPOSITOS as readonly unknown[]).includes(e.proposito)) return { ok: false, mensaje: "¿Para qué es el libro? no es válido." };
-    viaje.proposito = e.proposito as Viaje["proposito"];
-  }
-  if (e.angulos !== undefined) {
-    const a = validarAngulos(e.angulos);
-    if (!a.ok) return a;
-    viaje.angulos = a.angulos;
-  }
-  return { ok: true, viaje };
-}
-
-export function validarEtapas(entrada: unknown, viaje: Pick<Viaje, "salida" | "vuelta">): { ok: true; etapas: Etapa[] } | { ok: false; mensaje: string } {
-  const lista = entrada === undefined ? [] : entrada;
-  if (!Array.isArray(lista)) return { ok: false, mensaje: "Las etapas tienen que ser una lista." };
-  if (lista.length > ETAPAS_MAXIMO) return { ok: false, mensaje: `Como mucho ${ETAPAS_MAXIMO} etapas.` };
-  const etapas: Etapa[] = [];
-  const nombres = new Set<string>();
-  for (const cruda of lista) {
-    if (!cruda || typeof cruda !== "object") return { ok: false, mensaje: "Una etapa no es válida." };
-    const { nombre, desde, hasta } = cruda as Record<string, unknown>;
-    if (typeof nombre !== "string" || !nombre.trim()) continue; // una fila vacía del formulario, se ignora
-    const limpio = nombre.trim().replace(/\s+/g, " ").slice(0, ETAPA_NOMBRE_MAXIMO);
-    if (limpio === SIN_ETAPA) return { ok: false, mensaje: `"${SIN_ETAPA}" es un nombre reservado.` };
-    if (nombres.has(limpio.toLowerCase())) return { ok: false, mensaje: `La etapa "${limpio}" está dos veces.` };
-    nombres.add(limpio.toLowerCase());
-    const etapa: Etapa = { nombre: limpio };
-    if (desde !== undefined && desde !== null && desde !== "") {
-      if (!esFecha(desde)) return { ok: false, mensaje: `La fecha de "${limpio}" no es válida.` };
-      if (desde < viaje.salida || desde > viaje.vuelta) return { ok: false, mensaje: `"${limpio}" empieza fuera del viaje.` };
-      etapa.desde = desde;
-    }
-    if (hasta !== undefined && hasta !== null && hasta !== "") {
-      if (!esFecha(hasta)) return { ok: false, mensaje: `La fecha de "${limpio}" no es válida.` };
-      if (etapa.desde && hasta < etapa.desde) return { ok: false, mensaje: `"${limpio}" termina antes de empezar.` };
-      if (hasta > viaje.vuelta) return { ok: false, mensaje: `"${limpio}" termina después de la vuelta.` };
-      etapa.hasta = hasta;
-    }
-    etapas.push(etapa);
-  }
-  return { ok: true, etapas };
-}
-
-// ── El panel de viaje (3t.19) ────────────────────────────────────────────────
-
-export type CapituloDelViaje = Etapa & { dias: number[] };
-
-/**
- * Las etapas como capítulos, en el orden en que las declaró el viajero, cada una
- * con las noches (día 1..N) que le tocan por fecha. Si alguna noche no cae en
- * ninguna etapa, va a "Por definir", al final. Se calcula desde `contexto.viaje`,
- * así el panel se ve bien aunque el bot todavía no haya creado el guion.
- */
-export function capitulosDelViaje(viaje: Viaje): CapituloDelViaje[] {
-  const capitulos: CapituloDelViaje[] = viaje.etapas.map((e) => ({ ...e, dias: [] }));
-  const sinEtapa: number[] = [];
-  for (let dia = 1; dia <= diasDelViaje(viaje); dia++) {
-    const nombre = etapaDeFecha(viaje, fechaDelDia(viaje, dia));
-    const cap = capitulos.find((c) => c.nombre === nombre);
-    if (cap) cap.dias.push(dia);
-    else sinEtapa.push(dia);
-  }
-  if (sinEtapa.length > 0) capitulos.push({ nombre: SIN_ETAPA, dias: sinEtapa });
-  return capitulos;
-}
-
-/** Qué día del viaje es hoy en su zona horaria (1..N); fuera del viaje, null. Espejo del bot. */
-export function diaDeHoy(viaje: Pick<Viaje, "salida" | "vuelta">, ahora: Date, zonaHoraria: string): number | null {
-  let hoy: string;
+/** El día de hoy (YYYY-MM-DD) en una zona; con una zona rota, el de UTC. */
+export function hoyEn(zona: string, ahora: Date = new Date()): string {
   try {
-    hoy = new Intl.DateTimeFormat("en-CA", { timeZone: zonaHoraria, year: "numeric", month: "2-digit", day: "2-digit" }).format(ahora);
+    return new Intl.DateTimeFormat("en-CA", { timeZone: zona, year: "numeric", month: "2-digit", day: "2-digit" }).format(ahora);
   } catch {
-    hoy = ahora.toISOString().slice(0, 10); // zona inválida: UTC antes que romper el panel
+    return ahora.toISOString().slice(0, 10);
   }
-  const dia = Math.round((Date.parse(`${hoy}T00:00:00Z`) - Date.parse(`${viaje.salida}T00:00:00Z`)) / 86_400_000) + 1;
-  return dia >= 1 && dia <= diasDelViaje(viaje) ? dia : null;
 }
 
-// ── Las fechas, vivas (12/10) ────────────────────────────────────────────────
-// El viajero puede correr la salida y la vuelta desde el panel. Antes de que
-// salga la primera pregunta, las dos; con el viaje en marcha, solo la vuelta:
-// cada noche contada es "salida + N", y mover la salida le cambiaría la fecha
-// a lo que ya contó. El bot manda la noche N recién en su fecha (scheduler),
-// así que correr la salida también corre la primera pregunta.
+export type MensajesFechas = {
+  faltanFechas: string;
+  vueltaAntes: string;
+  salidaPasada: string;
+  muyCorto: string;
+  muyLargo: string;
+};
 
-/**
- * Valida las fechas nuevas contra lo que ya pasó. `diaActual` es la última
- * noche que el bot mandó (0 = todavía ninguna). La regla de "esa noche ya la
- * contó" (acortar justo hasta la última mandada) necesita la base: va en la ruta.
- */
+// TEXTO PARA NAZA: los errores de las fechas.
+/** Los errores de las fechas, de tú (España) o de vos; los usa la compra (servidor) y el panel. */
+export function mensajesDeFechas(tu: boolean): MensajesFechas {
+  return {
+    faltanFechas: "Necesitamos la fecha de salida y la de vuelta.",
+    vueltaAntes: "La vuelta no puede ser antes de la salida.",
+    salidaPasada: "La salida no puede ser un día que ya pasó.",
+    muyCorto: `El viaje tiene que durar al menos ${MINIMO_DIAS} días, contando la salida y la vuelta.`,
+    muyLargo: tu
+      ? `Para un viaje de más de ${DIAS_MAXIMO} días, escríbenos y lo armamos aparte.`
+      : `Para un viaje de más de ${DIAS_MAXIMO} días, escribinos y lo armamos aparte.`,
+  };
+}
+
+/** Las fechas solas: la compra y el panel las validan igual. `hoy` en la zona de casa. */
 export function validarFechas(
-  actual: Pick<Viaje, "salida" | "vuelta">,
   salida: unknown,
   vuelta: unknown,
-  diaActual: number,
+  hoy: string,
+  m: MensajesFechas = mensajesDeFechas(false),
 ): { ok: true; salida: string; vuelta: string } | { ok: false; mensaje: string } {
-  if (!esFecha(salida) || !esFecha(vuelta)) return { ok: false, mensaje: "Necesitamos la fecha de salida y la de vuelta." };
-  if (vuelta < salida) return { ok: false, mensaje: "La vuelta no puede ser antes de la salida." };
-  if (diasDelViaje({ salida, vuelta }) > DIAS_MAXIMO) return { ok: false, mensaje: `Un viaje de más de ${DIAS_MAXIMO} días: escribinos y lo armamos aparte.` };
-  if (diaActual >= 1 && salida !== actual.salida) return { ok: false, mensaje: "El viaje ya arrancó: la salida queda fija. La vuelta sí se puede cambiar." };
-  if (diaActual >= 1 && diasDelViaje({ salida, vuelta }) < diaActual) {
-    const ultima = new Date(`${fechaDelDia({ salida }, diaActual)}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" });
-    return { ok: false, mensaje: `Ya te mandamos la pregunta del ${ultima}: la vuelta no puede ser antes.` };
-  }
+  if (!esFecha(salida) || !esFecha(vuelta)) return { ok: false, mensaje: m.faltanFechas };
+  if (vuelta < salida) return { ok: false, mensaje: m.vueltaAntes };
+  if (salida < hoy) return { ok: false, mensaje: m.salidaPasada };
+  const dias = diasDelViaje({ salida, vuelta });
+  if (dias < MINIMO_DIAS) return { ok: false, mensaje: m.muyCorto };
+  if (dias > DIAS_MAXIMO) return { ok: false, mensaje: m.muyLargo };
   return { ok: true, salida, vuelta };
 }
 
-// El guion del viaje: espejo EXACTO de entrevistador/src/flujo/viaje.ts (el bot
-// lo crea al decir SÍ). La web lo necesita para rearmar las noches que todavía
-// no salieron cuando cambian las fechas o las etapas. web/test/viaje.test.ts
-// compara los dos: si uno cambia y el otro no, el test falla.
-
-const TEXTO_ANGULO: Record<string, string> = {
-  mejor: "lo mejor del día: el momento que te gustaría volver a vivir",
-  persona: "una persona con la que hablaste hoy: quién era, qué te dijo, qué te quedó",
-  comida: "algo que comiste o tomaste hoy que no vas a olvidar, y dónde",
-  plan: "lo que salió distinto de lo planeado: qué pasó y cómo lo resolviste",
-  lugar: "un lugar que no esperabas y te frenó: cómo era, qué sentiste",
-  vos: "qué pensaste de vos mismo hoy, lejos de casa",
-  llegada: "el momento en que sentiste que habías llegado a esta etapa",
-  despedida: "te vas de esta etapa: con qué te quedás, qué dejás",
-};
-const ROTACION = ["mejor", "persona", "comida", "plan", "lugar", "vos"];
-
-/** El ángulo del día: llegada el primer día de una etapa, despedida el último, y rotación en el medio. */
-export function anguloDelDia(viaje: Viaje, dia: number): string {
-  const fecha = fechaDelDia(viaje, dia);
-  const etapa = etapaDeFecha(viaje, fecha);
-  const e = viaje.etapas.find((x) => x.nombre === etapa);
-  if (dia === 1 || (e?.desde && e.desde === fecha)) return "llegada";
-  if (dia === diasDelViaje(viaje) || (e?.hasta && e.hasta === fecha)) return "despedida";
-  const preferidos = (viaje.angulos ?? []).filter((a) => ROTACION.includes(a));
-  const lista = preferidos.length >= 2 ? [...preferidos, ...ROTACION.filter((a) => !preferidos.includes(a))] : ROTACION;
-  return lista[(dia - 2) % lista.length];
+/** Las preguntas propias: sin vacías, hasta 5, cada una de un largo razonable. */
+export function limpiarPreguntas(entrada: unknown): { ok: true; preguntas: string[] } | { ok: false; mensaje: string } {
+  if (entrada === undefined || entrada === null) return { ok: true, preguntas: [] };
+  if (!Array.isArray(entrada) || !entrada.every((p) => typeof p === "string")) return { ok: false, mensaje: "Las preguntas no son válidas." };
+  const preguntas = (entrada as string[]).map((p) => p.trim().replace(/\s+/g, " ")).filter(Boolean);
+  if (preguntas.length > MAX_PREGUNTAS_PROPIAS) return { ok: false, mensaje: `Van hasta ${MAX_PREGUNTAS_PROPIAS} preguntas propias.` };
+  if (preguntas.some((p) => p.length > PREGUNTA_PROPIA_MAXIMO)) return { ok: false, mensaje: `Cada pregunta puede tener hasta ${PREGUNTA_PROPIA_MAXIMO} letras.` };
+  return { ok: true, preguntas };
 }
-
-/** El texto base de la pregunta del día (el bot la reescribe al mandar). */
-export function textoBaseDelDia(viaje: Viaje, dia: number): string {
-  const etapa = etapaDeFecha(viaje, fechaDelDia(viaje, dia));
-  const donde = etapa === SIN_ETAPA ? "" : ` en ${etapa}`;
-  const angulo = anguloDelDia(viaje, dia);
-  if (angulo === "llegada") return `Día ${dia}${donde}: contame el momento en que sentiste que habías llegado.`;
-  if (angulo === "despedida") return `Día ${dia}${donde}: te vas. ¿Con qué te quedás? ¿Qué dejás?`;
-  return `Día ${dia}${donde}: contame ${TEXTO_ANGULO[angulo]}, y mandame la foto de hoy con lo que estaba pasando.`;
-}
-
-/** El guion entero: una pregunta por día. */
-export function guionDelViaje(viaje: Viaje): { orden: number; texto: string; capitulo: string }[] {
-  const dias = diasDelViaje(viaje);
-  return Array.from({ length: dias }, (_, i) => {
-    const dia = i + 1;
-    return { orden: dia, texto: textoBaseDelDia(viaje, dia), capitulo: etapaDeFecha(viaje, fechaDelDia(viaje, dia)) };
-  });
-}
-
-type PreguntaGuardada = { id: string; orden: number; tipo: string; texto: string; capitulo: string };
 
 /**
- * Qué hay que tocar en `preguntas` para que las noches que todavía no salieron
- * (orden > diaActual) coincidan con el viaje nuevo: actualizar texto y capítulo,
- * agregar las noches nuevas (estiró la vuelta) y borrar las que sobran (la
- * acortó). Lo ya mandado no se toca nunca. Solo las fijas del guion: si hay
- * otra cosa por venir (la pregunta de cierre), no se toca.
+ * Valida y limpia `contexto.viaje` de la compra. `nombre` (cómo le dicen, del
+ * narrador) solo se exige: el bot lo lee de `como_le_dicen`. Sin `hoy`, el de
+ * la zona de casa.
  */
-export function planDeGuion(viaje: Viaje, diaActual: number, porVenir: PreguntaGuardada[]) {
-  const guion = guionDelViaje(viaje).filter((p) => p.orden > diaActual);
-  const fijas = porVenir.filter((p) => p.tipo === "fija" && p.orden > diaActual);
-  const porOrden = new Map(fijas.map((p) => [p.orden, p]));
-  const actualizar: { id: string; texto: string; capitulo: string; cambiaCapitulo: boolean }[] = [];
-  const agregar: { orden: number; texto: string; capitulo: string }[] = [];
-  for (const p of guion) {
-    const guardada = porOrden.get(p.orden);
-    if (!guardada) agregar.push(p);
-    else if (guardada.texto !== p.texto || guardada.capitulo !== p.capitulo) {
-      actualizar.push({ id: guardada.id, texto: p.texto, capitulo: p.capitulo, cambiaCapitulo: guardada.capitulo !== p.capitulo });
+export function validarViaje(
+  entrada: unknown,
+  { nombre, hoy, tu = false }: { nombre: string; hoy?: string; tu?: boolean },
+): { ok: true; viaje: CompraViaje } | { ok: false; mensaje: string } {
+  // TEXTO PARA NAZA: los errores de la compra que devuelve el servidor.
+  if (!entrada || typeof entrada !== "object") return { ok: false, mensaje: "Faltan los datos del viaje." };
+  const e = entrada as Record<string, unknown>;
+  if (!esZona(e.zonaCasa)) return { ok: false, mensaje: "Falta dónde vive quien viaja." };
+  if (!esZona(e.zonaViaje)) return { ok: false, mensaje: "Falta el país principal del viaje." };
+  const f = validarFechas(e.salida, e.vuelta, hoy ?? hoyEn(e.zonaCasa), mensajesDeFechas(tu));
+  if (!f.ok) return f;
+  let horaNoche: string | undefined;
+  if (e.horaNoche !== undefined && e.horaNoche !== null && e.horaNoche !== "") {
+    if (typeof e.horaNoche !== "string" || !HORA_RE.test(e.horaNoche) || e.horaNoche < NOCHE_DESDE || e.horaNoche > NOCHE_HASTA) {
+      return { ok: false, mensaje: `La hora de la noche va entre las ${NOCHE_DESDE} y las ${NOCHE_HASTA}.` };
     }
+    horaNoche = e.horaNoche;
   }
-  const borrar = fijas.filter((p) => p.orden > diasDelViaje(viaje)).map((p) => p.id);
-  return { actualizar, agregar, borrar };
+  const p = limpiarPreguntas(e.preguntasPropias);
+  if (!p.ok) return p;
+  if (e.formato !== "impreso" && e.formato !== "pdf") return { ok: false, mensaje: "Falta elegir el libro, impreso o en PDF." };
+  if (e.fotosAlbum !== 20 && e.fotosAlbum !== 40) return { ok: false, mensaje: "El álbum es de 20 o de 40 fotos." };
+  if (!esIdiomaViaje(e.idioma)) return { ok: false, mensaje: "Falta el idioma en que le escribimos." };
+  let regalo: CompraViaje["regalo"];
+  if (e.regalo !== undefined && e.regalo !== null) {
+    const quien = (e.regalo as { quienRegala?: unknown }).quienRegala;
+    if (typeof quien !== "string" || !quien.trim()) return { ok: false, mensaje: "Falta quién regala el viaje." };
+    regalo = { quienRegala: quien.trim().replace(/\s+/g, " ").slice(0, QUIEN_REGALA_MAXIMO) };
+  }
+  if (!nombre.trim()) return { ok: false, mensaje: "Falta cómo le dicen a quien viaja." };
+  const viaje: CompraViaje = {
+    v: 2,
+    salida: f.salida,
+    vuelta: f.vuelta,
+    zonaCasa: e.zonaCasa,
+    zonaViaje: e.zonaViaje,
+    ...(horaNoche ? { horaNoche } : {}),
+    ...(regalo ? { regalo } : {}),
+    preguntasPropias: p.preguntas,
+    formato: e.formato,
+    fotosAlbum: e.fotosAlbum,
+    idioma: e.idioma,
+  };
+  return { ok: true, viaje };
 }
 
-/** Valida los ángulos elegidos desde el panel: solo los conocidos, sin repetir. */
-export function validarAngulos(entrada: unknown): { ok: true; angulos: string[] } | { ok: false; mensaje: string } {
-  if (!Array.isArray(entrada) || !entrada.every((a) => (ANGULOS as readonly unknown[]).includes(a))) return { ok: false, mensaje: "Los temas elegidos no son válidos." };
-  return { ok: true, angulos: [...new Set(entrada as string[])] };
+/**
+ * El viaje de un `contexto` de narrador (modo viaje, con salida y vuelta). Un
+ * viaje de antes de la V2 ya no se vende; si aparece en la base, se lee igual
+ * con lo que tiene en común (salida y vuelta), sin etapas.
+ */
+export function viajeDelContexto(contexto: unknown): (Partial<CompraViaje> & { salida: string; vuelta: string }) | null {
+  const c = contexto as { modo?: unknown; viaje?: { salida?: unknown; vuelta?: unknown } } | null | undefined;
+  if (c?.modo !== "viaje" || !c.viaje || !esFecha(c.viaje.salida) || !esFecha(c.viaje.vuelta)) return null;
+  return c.viaje as Partial<CompraViaje> & { salida: string; vuelta: string };
+}
+
+/**
+ * El carrito de una compra de viaje, desde el contexto YA validado: el formato
+ * decide el impreso y el álbum el precio. Así el cobro no depende de lo que
+ * diga el navegador en `productos`. Sin viaje V2, null (el carrito de siempre).
+ */
+export function carritoDeViaje(contexto: unknown): Carrito | null {
+  const c = contexto as { modo?: unknown; viaje?: Partial<CompraViaje> } | null | undefined;
+  if (c?.modo !== "viaje" || c.viaje?.v !== 2) return null;
+  return { base: "viaje", impresos: c.viaje.formato === "impreso" ? 1 : 0, marcos: 0, album: c.viaje.fotosAlbum === 40 ? 40 : 20 };
+}
+
+/** En qué momento está el viaje en un día dado: antes de salir, de viaje (salida a vuelta) o ya de vuelta. */
+export function momentoDelViaje(viaje: { salida: string; vuelta: string }, hoy: string): "antes" | "viaje" | "vuelta" {
+  if (hoy < viaje.salida) return "antes";
+  if (hoy <= viaje.vuelta) return "viaje";
+  return "vuelta";
 }
