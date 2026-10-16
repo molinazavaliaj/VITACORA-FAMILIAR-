@@ -8,7 +8,7 @@
 // Sin paginador propio: el papel llega al borde (@page sin margen) y cada bloque de texto repite su margen en cada
 // hoja (box-decoration-break: clone). htmlAPdf espera `window.__libroPaginado`: se pone cuando cargan las letras.
 //
-// Los textos fijos de acá (la bajada de «Su voz», «Escuchala») son provisorios: los aprueba Naza.
+// Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5).
 import { escaparHtml } from '../../libro/comun.js';
 import { qrDataUri } from '../../libro/qr.js';
 import type { LibroKids, VozLibro } from './libro-md.js';
