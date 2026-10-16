@@ -4,9 +4,11 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenVoz } from "@/lib/token-libro";
 import { frasesPublicables, leerFrases } from "@/lib/frases";
 import { hayLibroOnline } from "@/lib/libro-online";
+import { accesoVoz } from "@/lib/voz-acceso";
 import { Toroide } from "../../marca";
 import { ReproductorRespuesta } from "../../tablero/reproductor";
 import { CompartirFrase } from "./compartir";
+import { PaginaVozKids } from "./kids";
 import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { tratoDeRegion } from "@/lib/regalo-textos";
@@ -25,13 +27,17 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
   if (!datos) notFound();
 
   const admin = crearClienteServidor();
-  const [{ data: narrador }, frases, libroListo] = await Promise.all([
-    admin.from("narradores").select("nombre, como_le_dicen, libro_aprobado_at").eq("id", datos.narradorId).maybeSingle(),
+  const [acceso, frases, libroListo] = await Promise.all([
+    accesoVoz(admin, datos.narradorId),
     leerFrases(admin, datos.narradorId),
     hayLibroOnline(admin, datos.narradorId),
   ]);
-  const n = narrador as { nombre: string; como_le_dicen: string; libro_aprobado_at: string | null } | null;
-  if (!n?.libro_aprobado_at) notFound();
+  // La casa: libro cerrado. Kids: desde listo.json, para que el padre la pruebe al revisar.
+  if (!acceso.abre) notFound();
+  if (acceso.producto === "kids") {
+    return <PaginaVozKids token={token} apodo={acceso.apodo} publicables={frases ? frasesPublicables(frases) : []} libroListo={libroListo} />;
+  }
+  const n = { nombre: acceso.nombre, como_le_dicen: acceso.comoLeDicen };
 
   // Página pública, sin cuenta: el trato sale del país de quien la abre.
   const trato = tratoDeRegion(regionDelRequest(await headers()));
