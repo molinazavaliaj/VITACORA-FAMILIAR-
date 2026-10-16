@@ -5,11 +5,12 @@
 //   revisar      el libro ya está escrito y espera que el padre lo lea y lo apruebe en su panel (decisión 9).
 //   libro_listo  el padre lo aprobó: el libro quedó entregado.
 //
-// Kids hoy es solo es-AR (CONTRATO, kids_v2.idioma): van en vos. Mismo camino que los hitos de la casa (Resend
-// directo, mail/hitos.ts); sin clave de Resend devuelven false y el próximo tick reintenta.
+// Van en el idioma del chico (`ficha.idioma`, si no `kids_v2.idioma`): es-AR en vos, es-ES en tú. Mismo camino
+// que los hitos de la casa (Resend directo, mail/hitos.ts); sin clave de Resend devuelven false y el próximo tick reintenta.
 import { cargarConfig } from '../../config.js';
 import { escaparHtml } from '../../libro/comun.js';
 import { TIMEOUT_RESEND_MS } from '../../mail/resend.js';
+import { IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 
 const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 
@@ -17,6 +18,7 @@ export type MailKids = 'revisar' | 'libro_listo';
 
 type Texto = { asunto: (apodo: string) => string; parrafos: (apodo: string) => string[]; boton: string };
 
+/** Los de es-AR (vos). */
 export const TEXTOS_MAIL_KIDS: Record<MailKids, Texto> = {
   // APROBADO por Naza 16/10 (tanda 4)
   revisar: {
@@ -38,8 +40,33 @@ export const TEXTOS_MAIL_KIDS: Record<MailKids, Texto> = {
   },
 };
 
-export function cuerpoMailKids(mail: MailKids, o: { apodo: string; enlace: string }): string {
-  const t = TEXTOS_MAIL_KIDS[mail];
+/** Los de es-ES (tú). El asunto de «revisar», con la propuesta A de docs/kids/v2/idiomas/lectura-espana-2026-10-16.md. */
+export const TEXTOS_MAIL_KIDS_ES_ES: Record<MailKids, Texto> = {
+  // APROBADO por Naza 16/10 (tanda 8)
+  revisar: {
+    asunto: (apodo) => `El libro de ${apodo} ya se puede leer. Revísalo antes de aprobarlo`,
+    parrafos: (apodo) => [
+      `Ya hemos escrito el libro de ${apodo} con lo que contó. Entra en tu panel y léelo.`,
+      'Si está bien, apruébalo desde ahí.',
+    ],
+    boton: 'Ver el libro',
+  },
+  // APROBADO por Naza 16/10 (tanda 8)
+  libro_listo: {
+    asunto: (apodo) => `El libro de ${apodo} está listo`,
+    parrafos: (apodo) => [
+      `Ya está. El libro de ${apodo}, con sus palabras y con sus audios para escuchar desde los códigos del libro.`,
+      'Se queda en tu panel para leerlo o descargarlo cuando quieras.',
+    ],
+    boton: 'Ver el libro',
+  },
+};
+
+export const textosMailKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): Record<MailKids, Texto> =>
+  idioma === 'es-ES' ? TEXTOS_MAIL_KIDS_ES_ES : TEXTOS_MAIL_KIDS;
+
+export function cuerpoMailKids(mail: MailKids, o: { apodo: string; enlace: string; idioma?: IdiomaKids }): string {
+  const t = textosMailKids(o.idioma)[mail];
   const filas = t
     .parrafos(escaparHtml(o.apodo))
     .map((p) => `        <tr><td style="padding-bottom:24px;">${p}</td></tr>`)
@@ -66,7 +93,7 @@ ${filas}
 }
 
 /** Devuelve true si Resend lo aceptó. Sin clave, o si falla, false (el próximo tick reintenta). Nunca tira. */
-export async function enviarMailKids(mail: MailKids, o: { para: string; apodo: string; enlace: string }): Promise<boolean> {
+export async function enviarMailKids(mail: MailKids, o: { para: string; apodo: string; enlace: string; idioma?: IdiomaKids }): Promise<boolean> {
   try {
     const { resendApiKey } = cargarConfig();
     if (!resendApiKey) return false;
@@ -74,7 +101,7 @@ export async function enviarMailKids(mail: MailKids, o: { para: string; apodo: s
       method: 'POST',
       signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
       headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: REMITENTE, to: [o.para], subject: TEXTOS_MAIL_KIDS[mail].asunto(o.apodo), html: cuerpoMailKids(mail, o) }),
+      body: JSON.stringify({ from: REMITENTE, to: [o.para], subject: textosMailKids(o.idioma)[mail].asunto(o.apodo), html: cuerpoMailKids(mail, o) }),
     });
     if (!r.ok) console.error(`kids: Resend rechazó el mail «${mail}» (${r.status}).`);
     return r.ok;

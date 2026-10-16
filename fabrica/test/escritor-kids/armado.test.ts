@@ -3,7 +3,7 @@ import { suVozValida } from '../../src/escritor-kids/controles.js';
 import { dirDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import { correrKids, salidasDe } from '../../src/escritor-kids/orquestador.js';
 import { fuenteDeDisco } from '../../src/escritor-kids/salida/fotos.js';
-import { htmlLibroKids, htmlSobreKids } from '../../src/escritor-kids/salida/html.js';
+import { htmlLibroKids, htmlSobreKids, TEXTOS_KIDS_ES_ES } from '../../src/escritor-kids/salida/html.js';
 import { armarLibro, libroMd, sobreMd } from '../../src/escritor-kids/salida/libro-md.js';
 import { pdfsKids } from '../../src/escritor-kids/salida/pdf.js';
 import { armarKids } from './ayuda.js';
@@ -45,6 +45,36 @@ describe('armado del libro de Kids', () => {
     expect(html).toContain('Capítulo Uno: 11 años');
     expect(html).toContain('window.__libroPaginado = true');
     expect(htmlSobreKids(libro, opciones)).not.toContain('Código para escuchar');
+  });
+
+  it('es-AR (sin idioma o es-AR): los textos fijos en vos, como siempre', async () => {
+    const { libro } = await libroDelChico();
+    expect(libro.idioma).toBe('es-AR');
+    const html = await htmlLibroKids(libro, opciones);
+    expect(html).toContain('Apuntá el teléfono al código y la escuchás.');
+    expect(html).toContain('>Escuchala<');
+    expect(html).toContain('<h2>Su voz</h2>');
+    expect(html).toContain('Parte Uno');
+    expect(await htmlLibroKids({ ...libro, idioma: undefined }, opciones)).toBe(html);
+  });
+
+  it('un chico de España: los textos fijos del libro y del sobre en tú (aprobados 16/10, tanda 8)', async () => {
+    const { a, libro: deAr } = await libroDelChico();
+    const m = { ...a.m, ficha: { ...a.m.ficha, idioma: 'es-ES' } };
+    const libro = armarLibro(m, salidasDe(a.x, a.m), { ids: deAr.suVoz.map((v) => v.id) });
+    expect(libro.idioma).toBe('es-ES');
+    const html = await htmlLibroKids(libro, opciones);
+    expect(TEXTOS_KIDS_ES_ES.suVozBajada).toBe('Estas respuestas están también en audio, tal como las dijo. Apunta el móvil al código y la escuchas.');
+    expect(html).toContain('<p class="bajada">Estas respuestas están también en audio, tal como las dijo. Apunta el móvil al código y la escuchas.</p>');
+    expect(html.match(/>Escúchala</g)).toHaveLength(7);
+    expect(html.match(/alt="Código para escuchar esta respuesta"/g)).toHaveLength(7);
+    expect(html).toContain('<h2>Su voz</h2>');
+    expect(html).toContain('Parte Uno');
+    expect(html).toContain('VITÁCORA');
+    expect(html).not.toMatch(/Apuntá el teléfono|>Escuchala</);
+    const sobre = htmlSobreKids(libro, opciones);
+    expect(sobre).toContain('VITÁCORA');
+    expect(sobre).not.toMatch(/Apuntá el teléfono|>Escuchala</);
   });
 
   it('genera los dos PDF A5 con Chromium', async () => {

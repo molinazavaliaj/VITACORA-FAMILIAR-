@@ -16,7 +16,7 @@ import { extrasFalsosDe } from '../../src/escritor-kids/cli.js';
 import { salidasFalsasKids } from '../../src/escritor-kids/falso.js';
 import { carpetaDeFilas, materialDe } from '../../src/escritor-kids/material/carpeta.js';
 import { dirDeFijo, filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
-import { TEXTOS_MAIL_KIDS } from '../../src/escritor-kids/produccion/mails.js';
+import { cuerpoMailKids, TEXTOS_MAIL_KIDS, textosMailKids } from '../../src/escritor-kids/produccion/mails.js';
 import { colaKids, contarPaginas, olvidarAvisosApagado, revisarLibrosKids, topeKids, type MotorKids } from '../../src/escritor-kids/produccion/libro-kids.js';
 import { fuenteDeDisco } from '../../src/escritor-kids/salida/fotos.js';
 
@@ -418,5 +418,45 @@ describe('piezas del libro de Kids en producción', () => {
       'Queda en tu panel para leerlo o descargarlo cuando quieras.',
     ]);
     expect(libro_listo.boton).toBe('Ver el libro');
+  });
+
+  it('los mails al padre de España: los textos que aprobó Naza (16/10, tanda 8), en tú, literales', () => {
+    const { revisar, libro_listo } = textosMailKids('es-ES');
+    expect(revisar.asunto('Benja')).toBe('El libro de Benja ya se puede leer. Revísalo antes de aprobarlo');
+    expect(revisar.parrafos('Benja')).toEqual(['Ya hemos escrito el libro de Benja con lo que contó. Entra en tu panel y léelo.', 'Si está bien, apruébalo desde ahí.']);
+    expect(revisar.boton).toBe('Ver el libro');
+    expect(libro_listo.asunto('Benja')).toBe('El libro de Benja está listo');
+    expect(libro_listo.parrafos('Benja')).toEqual([
+      'Ya está. El libro de Benja, con sus palabras y con sus audios para escuchar desde los códigos del libro.',
+      'Se queda en tu panel para leerlo o descargarlo cuando quieras.',
+    ]);
+    expect(libro_listo.boton).toBe('Ver el libro');
+    for (const t of Object.values(textosMailKids('es-ES'))) {
+      const todo = [t.asunto('Benja'), ...t.parrafos('Benja'), t.boton].join(' ');
+      expect(todo).not.toContain(':');
+      expect(todo).not.toMatch(/(entrá|leelo|aprobalo|podés|tenés|escribimos)/i);
+    }
+    expect(textosMailKids('es-AR')).toBe(TEXTOS_MAIL_KIDS);
+    expect(textosMailKids()).toBe(TEXTOS_MAIL_KIDS);
+    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test', idioma: 'es-ES' })).toContain('Entra en tu panel y léelo.');
+    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test' })).toContain('Entrá a tu panel y leelo.');
+  });
+
+  it('un chico de España: los dos mails al padre salen en tú (ficha.idioma, si no kids_v2.idioma)', async () => {
+    for (const fila of [{ ficha: { idioma: 'es-ES' } }, { idioma: 'es-ES', ficha: {} }]) {
+      mails = [];
+      const t = tablasDeBenja({ pedido: true });
+      t.kids_v2[0] = { ...t.kids_v2[0], ...(fila.idioma ? { idioma: fila.idioma } : {}), ficha: { ...(t.kids_v2[0].ficha as Fila), ...fila.ficha } };
+      const { db, archivos, tablas } = baseFalsa(t);
+      archivos.set(kids('listo.json'), JSON.stringify({ at: new Date().toISOString(), paginas: 2, sobrePaginas: 2 }));
+      const { motor } = motorFalso();
+      await vuelta(db, motor);
+      expect(alPadre().map((m) => m.subject)).toEqual(['El libro de Benja ya se puede leer. Revísalo antes de aprobarlo']);
+      expect(alPadre()[0].html).toContain('Entra en tu panel y léelo.');
+      tablas.narradores[0].libro_aprobado_at = new Date().toISOString();
+      await vuelta(db, motor);
+      expect(alPadre()[1].subject).toBe('El libro de Benja está listo');
+      expect(alPadre()[1].html).toContain('Se queda en tu panel');
+    }
   });
 });

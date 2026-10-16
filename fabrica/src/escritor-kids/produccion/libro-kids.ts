@@ -46,6 +46,7 @@ import { fuenteDeStorage, type FuenteFotos } from '../salida/fotos.js';
 import { armarLibro, type LibroKids } from '../salida/libro-md.js';
 import { pdfsKids } from '../salida/pdf.js';
 import { enviarMailKids } from './mails.js';
+import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 
 type Db = SupabaseClient;
 
@@ -423,7 +424,7 @@ export const olvidarAvisosApagado = (): void => avisadosApagado.clear();
 
 // ---------------------------------------------------------------- el tick
 
-type ChicoFila = { narrador_id: string; ficha?: { apodo?: string; linkPanel?: string } | null; termino_at?: string | null };
+type ChicoFila = { narrador_id: string; idioma?: string | null; ficha?: { apodo?: string; linkPanel?: string; idioma?: unknown } | null; termino_at?: string | null };
 type NarradorFila = { id: string; estado: string; familia_id: string | null; como_le_dicen: string | null; libro_aprobado_at: string | null };
 type PedidoFila = { id: string; narrador_id: string; estado: string };
 
@@ -437,7 +438,7 @@ function esTablaAusente(error: { code?: string; message?: string }): boolean {
  */
 export async function revisarLibrosKids(db: Db, o: { motor?: MotorKids; ahora?: number } = {}): Promise<void> {
   try {
-    const k = await db.from('kids_v2').select('narrador_id, ficha, termino_at');
+    const k = await db.from('kids_v2').select('narrador_id, idioma, ficha, termino_at');
     if (k.error) {
       if (esTablaAusente(k.error)) return;
       throw new Error(`no pude leer kids_v2: ${k.error.message}`);
@@ -530,11 +531,14 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
   const listo = JSON.parse(listoTexto) as Listo;
   const enlace = chico.ficha?.linkPanel?.trim() || cargarConfig().urlBase;
   const apodo = chico.ficha?.apodo?.trim() || n.como_le_dicen?.trim() || 'tu hijo';
+  // El idioma de los mails: el mismo orden que el libro (material/de-filas.ts, idiomaDelChico).
+  const enFicha = chico.ficha?.idioma;
+  const idioma: IdiomaKids = esIdiomaKids(enFicha) ? enFicha : esIdiomaKids(chico.idioma) ? chico.idioma : IDIOMA_POR_DEFECTO;
 
   if (!n.libro_aprobado_at) {
     if (!archivos.has(MAIL_REVISAR)) {
       const para = await mailDeLaDuena(db, n);
-      if (para && (await enviarMailKids('revisar', { para, apodo, enlace }))) await a.escribir(MAIL_REVISAR, new Date(ahora).toISOString());
+      if (para && (await enviarMailKids('revisar', { para, apodo, enlace, idioma }))) await a.escribir(MAIL_REVISAR, new Date(ahora).toISOString());
     }
     const desde = Date.parse(listo.at);
     if (Number.isFinite(desde) && ahora - desde >= DIAS_SIN_APROBAR * MS_DIA && !archivos.has(AVISO_14_DIAS)) {
@@ -561,7 +565,7 @@ async function revisarChico(db: Db, chico: ChicoFila, n: NarradorFila, pedidos: 
   }
   if (entregados > 0 && !archivos.has(MAIL_LIBRO_LISTO)) {
     const para = await mailDeLaDuena(db, n);
-    if (para && (await enviarMailKids('libro_listo', { para, apodo, enlace }))) await a.escribir(MAIL_LIBRO_LISTO, new Date(ahora).toISOString());
+    if (para && (await enviarMailKids('libro_listo', { para, apodo, enlace, idioma }))) await a.escribir(MAIL_LIBRO_LISTO, new Date(ahora).toISOString());
   }
 }
 

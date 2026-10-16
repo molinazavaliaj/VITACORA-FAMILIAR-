@@ -8,11 +8,13 @@
 // Sin paginador propio: el papel llega al borde (@page sin margen) y cada bloque de texto repite su margen en cada
 // hoja (box-decoration-break: clone). htmlAPdf espera `window.__libroPaginado`: se pone cuando cargan las letras.
 //
-// Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5).
+// Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5); los de España
+// (tú), el 16/10 (tanda 8). Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR).
 import { escaparHtml } from '../../libro/comun.js';
 import { qrDataUri } from '../../libro/qr.js';
 import type { LibroKids, VozLibro } from './libro-md.js';
 import type { FuenteFotos } from './fotos.js';
+import { IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 
 export const TEXTOS_KIDS = {
   suVoz: 'Su voz',
@@ -20,7 +22,24 @@ export const TEXTOS_KIDS = {
   escuchala: 'Escuchala',
   altQr: 'Código para escuchar esta respuesta',
   marca: 'VITÁCORA',
-} as const;
+  parte: 'Parte',
+  numeros: ['', 'Uno', 'Dos', 'Tres', 'Cuatro'],
+};
+
+export type TextosKids = typeof TEXTOS_KIDS;
+
+// APROBADO por Naza 16/10 (tanda 8)
+export const TEXTOS_KIDS_ES_ES: TextosKids = {
+  suVoz: 'Su voz',
+  suVozBajada: 'Estas respuestas están también en audio, tal como las dijo. Apunta el móvil al código y la escuchas.',
+  escuchala: 'Escúchala',
+  altQr: 'Código para escuchar esta respuesta',
+  marca: 'VITÁCORA',
+  parte: 'Parte',
+  numeros: ['', 'Uno', 'Dos', 'Tres', 'Cuatro'],
+};
+
+export const textosKids = (idioma: IdiomaKids = IDIOMA_POR_DEFECTO): TextosKids => (idioma === 'es-ES' ? TEXTOS_KIDS_ES_ES : TEXTOS_KIDS);
 
 export type OpcionesHtml = {
   /** El link del audio de una respuesta (el QR). En producción lo arma quien conoce el narrador y el token. */
@@ -82,14 +101,13 @@ const documento = (titulo: string, cuerpo: string, o: { conFuentes?: boolean }):
 <script>(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { window.__libroPaginado = true; });</script>
 </body></html>`;
 
-const NUMEROS = ['', 'Uno', 'Dos', 'Tres', 'Cuatro'];
-
 export async function htmlLibroKids(l: LibroKids, o: OpcionesHtml): Promise<string> {
+  const T = textosKids(l.idioma);
   const b: string[] = [];
-  b.push(`<section class="hoja tapa"><div class="franja"></div><h1>${e(l.nombre)}</h1><div class="sub">${e(l.subtitulo)}</div><div class="marca">${TEXTOS_KIDS.marca}</div></section>`);
+  b.push(`<section class="hoja tapa"><div class="franja"></div><h1>${e(l.nombre)}</h1><div class="sub">${e(l.subtitulo)}</div><div class="marca">${T.marca}</div></section>`);
   for (const p of l.partes) {
     if (!p.piezas.length) continue;
-    b.push(`<section class="hoja apertura"><div class="num">Parte ${NUMEROS[p.n] ?? p.n}</div><h2>${e(p.titulo)}</h2><div class="regla"></div></section>`);
+    b.push(`<section class="hoja apertura"><div class="num">${T.parte} ${T.numeros[p.n] ?? p.n}</div><h2>${e(p.titulo)}</h2><div class="regla"></div></section>`);
     const piezas = p.piezas.map((pz) => {
       if (pz.padre) return `<div class="padre">${pz.linea ? `<p class="linea">${e(pz.linea)}</p>` : ''}<p class="pregunta">${e(pz.pregunta ?? '')}</p>${parrafos(pz.texto)}</div>`;
       return `<div class="pieza${pz.texto.length < 700 ? ' corta' : ''}"><h3>${e(pz.titulo)}</h3>${parrafos(pz.texto)}</div>`;
@@ -107,17 +125,18 @@ export async function htmlLibroKids(l: LibroKids, o: OpcionesHtml): Promise<stri
     const voces: string[] = [];
     for (const v of l.suVoz) {
       const qr = await qrDataUri(o.urlDeAudio(v));
-      voces.push(`<div class="voz"><div class="texto"><div class="parte">${e(v.parte)}</div><div class="titulo">${e(v.titulo)}</div></div><div class="qr"><img src="${qr}" width="96" height="96" alt="${TEXTOS_KIDS.altQr}"><div class="rotulo">${TEXTOS_KIDS.escuchala}</div></div></div>`);
+      voces.push(`<div class="voz"><div class="texto"><div class="parte">${e(v.parte)}</div><div class="titulo">${e(v.titulo)}</div></div><div class="qr"><img src="${qr}" width="96" height="96" alt="${T.altQr}"><div class="rotulo">${T.escuchala}</div></div></div>`);
     }
-    b.push(`<section class="flujo su-voz"><h2>${TEXTOS_KIDS.suVoz}</h2><div class="regla"></div><p class="bajada">${TEXTOS_KIDS.suVozBajada}</p>${voces.join('')}</section>`);
+    b.push(`<section class="flujo su-voz"><h2>${T.suVoz}</h2><div class="regla"></div><p class="bajada">${T.suVozBajada}</p>${voces.join('')}</section>`);
   }
   return documento(l.nombre, b.join('\n'), o);
 }
 
 /** El sobre cerrado: nunca lleva QR (nadie lo escucha antes de abrirlo). */
 export function htmlSobreKids(l: LibroKids, o: { conFuentes?: boolean } = {}): string {
+  const T = textosKids(l.idioma);
   const b = [
-    `<section class="hoja tapa"><div class="franja"></div><h1>${e(l.sobre.titulo)}</h1><div class="sub">${e(l.sobre.nombre)}<br>${e(l.subtitulo)}</div><div class="marca">${TEXTOS_KIDS.marca}</div></section>`,
+    `<section class="hoja tapa"><div class="franja"></div><h1>${e(l.sobre.titulo)}</h1><div class="sub">${e(l.sobre.nombre)}<br>${e(l.subtitulo)}</div><div class="marca">${T.marca}</div></section>`,
     `<section class="flujo">${l.sobre.piezas.map((p) => `<div class="sobre-pieza"><p class="pregunta">${e(p.pregunta)}</p>${parrafos(p.texto)}</div>`).join('')}</section>`,
   ];
   return documento(l.sobre.titulo, b.join('\n'), o);

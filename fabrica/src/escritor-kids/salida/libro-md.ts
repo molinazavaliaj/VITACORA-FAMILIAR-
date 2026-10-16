@@ -9,6 +9,7 @@ import type { SalidaLectura } from '../llamadas.js';
 import { salidaKids } from '../material/carpeta.js';
 import type { FotoKids, MaterialKids, RespuestaKids } from '../material/tipos.js';
 import { todasLasRespuestas } from '../material/de-filas.js';
+import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 
 export type PiezaLibro = { clave: string; titulo: string; texto: string; ids: string[]; linea?: string; pregunta?: string; padre: boolean };
 export type FotoLibroKids = { id: string; foto: FotoKids; epigrafe: string };
@@ -21,6 +22,8 @@ export type LibroKids = {
   album: { titulo: string; fotos: FotoLibroKids[] };
   suVoz: VozLibro[];
   sobre: { titulo: string; nombre: string; piezas: { clave: string; pregunta: string; texto: string }[] };
+  /** El idioma del chico (los textos fijos del PDF). Sin él, es-AR. */
+  idioma?: IdiomaKids;
 };
 
 /** «Capítulo Uno: 11 años» y «Mis cosas a los 11» (decisiones de Naza del 15/10). */
@@ -48,6 +51,7 @@ export function armarLibro(m: MaterialKids, s: Salidas, voz: { ids: string[] }):
   }
   return {
     nombre: m.ficha.nombre,
+    idioma: esIdiomaKids(m.ficha.idioma) ? m.ficha.idioma : IDIOMA_POR_DEFECTO,
     llamado: m.ficha.llamado,
     subtitulo: subtituloTapa(m.ficha.edad),
     partes,
