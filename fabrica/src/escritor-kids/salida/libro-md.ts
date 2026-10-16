@@ -32,7 +32,7 @@ export type LibroKids = {
 export const TAPA_KIDS_DE: Readonly<Partial<Record<IdiomaKids, { subtitulo: (edad: number) => string; album: (edad: number) => string }>>> = {
   'es-AR': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
   'es-ES': { subtitulo: (edad) => `Capítulo Uno: ${edad} años`, album: (edad) => `Mis cosas a los ${edad}` },
-  // TEXTO PARA NAZA: no está en textos-ca-2026-10-16.md. «Capítol primer» es como se numera un capítulo en un libro
+  // APROBADO por Naza 16/10 (tanda 11): no está en textos-ca-2026-10-16.md. «Capítol primer» es como se numera un capítulo en un libro
   // en catalán («Capítol u» también se dice, pero suena a lista); «als 11» es «a los 11».
   ca: { subtitulo: (edad) => `Capítol primer: ${edad} anys`, album: (edad) => `Les meves coses als ${edad}` },
 };

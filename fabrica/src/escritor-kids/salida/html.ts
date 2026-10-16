@@ -9,7 +9,7 @@
 // hoja (box-decoration-break: clone). htmlAPdf espera `window.__libroPaginado`: se pone cuando cargan las letras.
 //
 // Los textos fijos de acá («Su voz», su bajada y «Escuchala») los aprobó Naza el 16/10 (tanda 5); los de España
-// (tú), el 16/10 (tanda 8); los de catalán, el 16/10 (tanda 10), salvo los números de las partes (TEXTO PARA NAZA).
+// (tú), el 16/10 (tanda 8); los de catalán, el 16/10 (tanda 10), salvo los números de las partes (APROBADO por Naza 16/10 (tanda 11)).
 // Salen en el idioma del chico (LibroKids.idioma; sin idioma, es-AR). Un idioma sin textos tiraría (idioma-textos.ts),
 // nunca un PDF en castellano.
 import { escaparHtml } from '../../libro/comun.js';
@@ -49,7 +49,7 @@ export const TEXTOS_KIDS_CA: TextosKids = {
   escuchala: 'Escolta-la',
   altQr: 'Codi per escoltar aquesta resposta',
   marca: 'VITÁCORA',
-  // TEXTO PARA NAZA: la apertura de cada parte. En catalán «part» es femenino y «Part Un» no suena a libro: va el
+  // APROBADO por Naza 16/10 (tanda 11): la apertura de cada parte. En catalán «part» es femenino y «Part Un» no suena a libro: va el
   // ordinal entero («Primera part»), sin la palabra suelta. Alternativa sin ordinal: parte 'Part' y 'una', 'dues'…
   parte: '',
   numeros: ['', 'Primera part', 'Segona part', 'Tercera part', 'Quarta part'],

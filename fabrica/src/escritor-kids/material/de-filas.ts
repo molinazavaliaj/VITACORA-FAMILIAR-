@@ -46,7 +46,7 @@ export function idiomaDelChico(f: Pick<FilasKids, 'kids'>): IdiomaKids {
 /** Dos personas («tus abuelos», «Papá y mamá») → «te la mandan». */
 export const quienEsPlural = (quien: string): boolean => esPlural(quien) || /\s(y|e|i)\s/i.test(quien.trim());
 const LINEA_CASTELLANO = (quien: string): string => `Esta pregunta te ${quienEsPlural(quien) ? 'la mandan' : 'la manda'} ${quien}`;
-// TEXTO PARA NAZA: no está en textos-ca-2026-10-16.md. Es la de PADRE-PREG-LINEA de banco-ca.md (la que le llega
+// APROBADO por Naza 16/10 (tanda 11): no está en textos-ca-2026-10-16.md. Es la de PADRE-PREG-LINEA de banco-ca.md (la que le llega
 // al chico) sin «amb les seves paraules», igual que la del libro en castellano. «Els teus avis», «la mare i el pare» → envien.
 const LINEA_CATALAN = (quien: string): string => `Aquesta pregunta te l'${quienEsPlural(quien) ? 'envien' : 'envia'} ${quien}`;
 /** La línea del libro arriba de una pregunta del padre, por idioma (en España va igual). */
