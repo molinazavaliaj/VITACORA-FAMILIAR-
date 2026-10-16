@@ -2,7 +2,7 @@
 
 **Qué es:** todos los textos de Kids que tienen ID en [`banco.md`](../banco.md) y [`mensajes.md`](../mensajes.md), en castellano de España tratando de tú, para chicos y chicas de 11 años de España y sus padres (al padre también de tú; a varios, vosotros). **Solo textos por ID**: el orden, las ramas, qué vale cada botón, qué foto va pegada a qué pregunta, qué es sensible o sacable y todas las reglas del flujo salen siempre de `banco.md` y `mensajes.md`, que no se tocan. El rioplatense **no cambió**: si algo no sonaba en España, se adaptó solo acá.
 
-**Cómo se hizo:** adaptó Fable el 16/10/2026 siguiendo el método de la entrevista Familiar ([`docs/v3/entrevista/banco-es-ES.md`](../../../v3/entrevista/banco-es-ES.md)): adaptación, no reescritura. Mismo contenido, misma intención, mismo largo, una cosa por mensaje, frases cortas, sin dos puntos, sin «usted». El bot sigue sin decir que le gusta ni que le alegra nada ni guarda nada «con cariño» (el «con mucho cariño» de la bienvenida es del que regala, como en el original). Todo lo que cambia una referencia, una costumbre o el sentido está en la tabla de abajo; lo que no está ahí se adaptó palabra por palabra. Falta la lectura de alguien de España (en Familiar fue una lectora de Valladolid) y la aprobación de Naza.
+**Cómo se hizo:** adaptó Fable el 16/10/2026 siguiendo el método de la entrevista Familiar ([`docs/v3/entrevista/banco-es-ES.md`](../../../v3/entrevista/banco-es-ES.md)): adaptación, no reescritura. Mismo contenido, misma intención, mismo largo, una cosa por mensaje, frases cortas, sin dos puntos, sin «usted». El bot sigue sin decir que le gusta ni que le alegra nada ni guarda nada «con cariño» (el «con mucho cariño» de la bienvenida es del que regala, como en el original). Todo lo que cambia una referencia, una costumbre o el sentido está en la tabla de abajo; lo que no está ahí se adaptó palabra por palabra. La leyó a ciegas una madre de Zaragoza ([`lectura-espana-2026-10-16.md`](lectura-espana-2026-10-16.md)) y Naza aprobó los cambios el 16/10 (tanda 8, al final de este archivo).
 
 **Lo que cambia en todo el archivo, sin anotarlo fila por fila:** la conjugación (contame → cuéntame, decime → dime, tenés → tienes, vos → tú, ustedes → vosotros, se juntaron → os juntasteis); el pasado reciente en pretérito perfecto, como se dice en España («te ha hecho un regalo», «han pasado cuatro días», «lo he escuchado», «¿te has perdido alguna vez?»); y el vocabulario obvio: acá → aquí, allá → allí, afuera → fuera, lugar → sitio, chic{{o/a}} (de edad) → pequeñ{{o/a}}, chiquito → pequeño, grande (de edad) → mayor, viejo (de tiempo) → antiguo, lindo → bonito, dale → vale, plata → dinero, celular → móvil, apuro → prisa, sacar una foto → hacer una foto, mostrame → enséñame, mandame → mándame, prendida → encendida, enojado → enfadado, retar → regañar, tocá → toca, listo → hecho / preparado, igual (de todos modos) → de todas formas, común → normal, rato largo → buen rato, se arma el libro → se hace el libro, se vuelve → se convierte en, animarse → atreverse, acordarse de → recordar, sacar (sin pedir) → coger, la salteamos → nos la saltamos, a la mañana → por la mañana.
 
@@ -43,8 +43,8 @@ K1 | ¿Cuál es el primer recuerdo de tu vida? Lo más antiguo que tengas, aunqu
 K1-OP | ¿Y algo que te han contado de cuando eras bebé, aunque tú no te acuerdes?
 K1-FOTO | Enséñame tu juguete favorito. Si ya no tienes juguetes, la cosa tuya que más quieres. ¿Por qué esa?
 K1-FOTO-B1 | No tengo
-K2 | Ahora una travesura. Una que hiciste tú y que todavía te da risa cuando te acuerdas.
-K2-OP | ¿Y una travesura que hizo otro y tú la viste? Cuéntame esa.
+K2 | Ahora una trastada. Una que hiciste tú y que todavía te da risa cuando te acuerdas.
+K2-OP | ¿Y una trastada que hizo otro y tú la viste? Cuéntame esa.
 K2-FOTO | Hazle una foto a lo que hay dentro de tu mochila, tal como está. ¿Qué es lo más raro que hay?
 K2-FOTO-B1 | No tengo
 K3 | Cuéntame la mejor fiesta que recuerdes de cuando eras más pequeñ{{o/a}}. Un cumpleaños, o la que sea.
@@ -59,11 +59,11 @@ K5 | ¿Cuál fue el peor golpe que te diste de pequeñ{{o/a}}? Cuéntame ese dí
 K5-OP | ¿Te ha quedado alguna marca en el cuerpo de algo? Cuéntame de dónde salió.
 K6 | ¿Te has perdido alguna vez, aunque sea un ratito? Cuéntame qué pasó.
 K6-OP | ¿Y una vez que perdiste algo que querías mucho? Cuéntame.
-K7 | ¿Cuál fue la primera cosa que te dejaron hacer sol{{o/a}}, ir a comprar por ejemplo? Cuéntame cómo fue.
+K7 | ¿Cuál fue la primera cosa que te dejaron hacer sol{{o/a}}, ir a por el pan, por ejemplo? Cuéntame cómo fue.
 K7-OP | ¿Y la primera vez que te quedaste sol{{o/a}} en casa, aunque fuera un rato? Cuéntame.
 K8 | Piensa en el sitio de tu casa donde más estás. Cuéntame la última vez que te quedaste ahí un buen rato.
 K8-OP | ¿Y fuera de tu casa, un sitio al que vas siempre? Cuéntame la última vez que fuiste.
-K8-FOTO | Hazle una foto a ese sitio, tal como está ahora, sin ordenar.
+K8-FOTO | Hazle una foto a ese sitio, tal como está ahora, sin recoger.
 K8-FOTO-B1 | No tengo
 K9 | ¿Qué te daba miedo de pequeñ{{o/a}}? Cuéntame una noche que no podías dormir por eso.
 K9-OP | ¿Y una noche que te quedaste con la luz encendida o con alguien al lado para poder dormir? Cuéntame esa.
@@ -71,18 +71,18 @@ CIERRE-1 | Eso era lo de pequeñ{{o/a}}. ¿Ha quedado algo de esa época que no 
 CIERRE-1-B1 | No, ya está todo
 CIERRE-1-B2 | Sí, hay algo
 ENTRADA-2 | Ahora vamos con la gente de tu vida. Tu familia, tus amigos y los que quieres.
-K10 | Tu mamá. Cuéntame cómo es, y una vez que te cuidó cuando estabas enferm{{o/a}}.
+K10 | Tu madre. Cuéntame cómo es, y una vez que te cuidó cuando estabas enferm{{o/a}}.
 K10-BPASO | Esta la paso
-K10-OP | ¿Y algo que tu mamá hace siempre y que nadie hace igual?
+K10-OP | ¿Y algo que tu madre hace siempre y que nadie hace igual?
 K10-FOTO | Si tienes mascota, hazle una foto y mándamela. ¿Cómo llegó a tu casa? Y dime cómo se llama.
 K10-FOTO-B1 | No tengo
-K11 | Ahora tu papá. Cuéntame cómo es, y la última vez que hicisteis algo los dos solos.
+K11 | Ahora tu padre. Cuéntame cómo es, y la última vez que hicisteis algo los dos solos.
 K11-BPASO | Esta la paso
-K11-OP | ¿Y algo que tu papá dice siempre y que tú ya sabes de memoria?
+K11-OP | ¿Y algo que tu padre dice siempre y que tú ya sabes de memoria?
 K11-FOTO | ¿Haces algún deporte? Hazle una foto a la ropa o a lo que usas para jugar.
-K11-FOTO-B1 | No hago
+K11-FOTO-B1 | No hago ninguno
 K11-FOTO-B2 | No tengo
-K12 | Vamos con hermanos.
+K12 | Vamos con los hermanos.
 K12-B1 | Tengo hermanos
 K12-R1 | Cuéntame la última vez que te reíste mucho con un hermano o una hermana. Y dime cómo se llaman tus hermanos, aunque sea uno solo.
 K12-B2 | No tengo hermanos
@@ -115,12 +115,12 @@ K16-B2 | No tengo
 K16-OP | ¿Y qué hacéis cuando os juntáis? Cuéntame la última.
 K17 | ¿Hay un tío o una tía con quien te llevas mejor, si es que tienes? Cuéntame algo que hace ese tío o esa tía que nadie más de la familia hace, y dime cómo se llama.
 K17-OP | ¿Y qué te dice siempre cuando te ve? Cuéntame la última vez.
-K18 | ¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu mamá o de tu papá, o alguien que vino a vivir con vosotros? Cuéntame el día que os conocisteis.
+K18 | ¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu madre o de tu padre, o alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.
 K18-B1 | No hay nadie así
 K18-OP | ¿Y la primera comida con alguien que ahora vive contigo y antes no?
 K19 | Piensa en un adulto que no es de tu familia ni del cole pero es importante para ti. Cuéntame una vez juntos, y dime cómo se llama.
 K19-OP | ¿Y alguien que te cae bien y en tu casa casi no lo conocen? Háblame de esa persona.
-K20 | ¿Alguna vez has necesitado algo y te lo ha dado alguien del barrio o del edificio?
+K20 | ¿Alguna vez has necesitado algo y te lo ha dado alguien del barrio o algún vecino?
 K20-B1 | Sí, una vez
 K20-R1 | Cuéntame esa vez. Y si sabes cómo se llama esa persona, dímelo.
 K20-B2 | No me ha pasado
@@ -131,10 +131,10 @@ CIERRE-2-B2 | Sí, hay algo
 ENTRADA-3 | Tercera parte. Tu vida hoy, tal como es este año. El cole, tus cosas, lo que te sale bien.
 K21 | Cuéntame la última vez que algo te salió perfecto, de eso que sabes que haces bien.
 K21-OP | ¿Y algo que hace poco te ha salido por primera vez? Cuéntame ese día.
-K21-FOTO | ¿Ves a algún youtuber o streamer? Mándame una captura y cuéntame qué tiene que te gusta.
+K21-FOTO | ¿Ves a algún youtuber o streamer? Mándame un pantallazo y cuéntame qué tiene que te gusta.
 K21-FOTO-B1 | No veo a ninguno
 K21-FOTO-B2 | No tengo
-K22 | Ahora una del futuro. ¿Qué quieres hacer de mayor?
+K22 | Ahora una del futuro. ¿Qué quieres ser de mayor?
 K22-OP | ¿Y a quién de los adultos que conoces te gustaría parecerte? Cuéntame por qué.
 K22-FOTO | ¿Cuál es la peli o serie que más veces has visto? Ponla un segundo y hazle una foto a la pantalla.
 K22-FOTO-B1 | No tengo
@@ -151,12 +151,12 @@ K25-B1 | Sí
 K25-R1 | Cuéntame el día que tuviste móvil por primera vez.
 K25-B2 | Todavía no
 K25-R2 | Cuéntame la última vez que lo pediste.
-K25-OP | ¿Y lo que más haces en un móvil, tuyo o de otro? Cuéntame la última vez.
-K26 | ¿Cuándo fue la última vez que te llamaron a comer y no fuiste porque no podías soltar lo que estabas haciendo?
+K25-OP | ¿Y lo que más haces en un móvil, tuyo o de otra persona? Cuéntame la última vez.
+K26 | ¿Cuándo fue la última vez que te llamaron a cenar y no fuiste porque no podías soltar lo que estabas haciendo?
 K26-OP | ¿Y a qué juegas cuando llegas a casa? Cuéntame la última vez.
 K27 | ¿Qué música te gusta? ¿Cuál es tu canción favorita del momento?
 K27-OP | ¿Y una canción que has escuchado tanto que ya te la sabes entera?
-K28 | ¿En qué te molesta perder de verdad? Cuéntame la última vez que perdiste en eso.
+K28 | ¿En qué te da rabia perder de verdad? Cuéntame la última vez que perdiste en eso.
 K28-OP | ¿Y una vez que ganaste y no te lo esperabas? Cuéntame ese día.
 K29 | ¿Qué fue lo último que compraste con tu dinero? Cuéntame ese día.
 K29-OP | ¿Y algo que te gustaría comprarte y todavía no puedes? Cuéntame.
@@ -171,7 +171,7 @@ CIERRE-3-B2 | Sí, hay algo
 ENTRADA-4 | Cuarta parte. Cosas que te han pasado. Aquí no hay fotos, solo tú contando. Y siempre puedes pasar.
 K31 | Ahora quiero esa historia, la que ya has contado mil veces y todos se ríen igual. Todos tenemos una. ¿Cuál es la tuya?
 K31-OP | ¿Y una historia tuya que cuentas distinta cada vez? Cuéntame la versión de hoy.
-K32 | ¿Cuándo fue la última vez que te pusiste roj{{o/a}} delante de otros? Cuéntame qué pasó.
+K32 | ¿Cuándo fue la última vez que te pusiste roj{{o/a}} delante de los demás? Cuéntame qué pasó.
 K32-OP | ¿Y algo que te daba vergüenza el año pasado y ahora ya no?
 K33 | Cuéntame una vez que hiciste algo bien y nadie se enteró. Solo tú lo sabes.
 K33-OP | ¿Y algo que te costó mucho y al final salió? Cuéntame.
@@ -194,10 +194,10 @@ CIERRE-4 | Eso era lo que te ha pasado. ¿Ha quedado alguna historia tuya que no
 CIERRE-4-B1 | No, ya está todo
 CIERRE-4-B2 | Sí, hay algo
 ENTRADA-5 | Última parte, y es distinta. Estas últimas van en un sobre cerrado, pegado al libro, para que lo abras cuando seas mayor.
-K41 | ¿Ya te ha pasado que te guste alguien? Sin decirme quién, cuéntame cómo te diste cuenta. Y si todavía no, cómo te lo imaginas.
+K41 | ¿Te ha gustado ya alguien? Sin decirme quién, cuéntame cómo te diste cuenta. Y si todavía no, cómo te lo imaginas.
 K41-BPASO | Esta no, gracias
 K41-OP | ¿Y qué es lo que te pone nervios{{o/a}} de otra persona, aunque no sepas por qué?
-K42 | Si algún día tienes un hijo o una hija, ¿qué vas a hacer igual que como te han criado a ti, y qué cambiarías?
+K42 | Si algún día tienes un hijo o una hija, ¿qué vas a hacer igual que te han criado a ti, y qué cambiarías?
 K42-OP | ¿Y qué cosa de tu casa te gustaría que siga existiendo cuando seas mayor?
 K43 | Hazle una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras.
 K43-OP | ¿Y qué le preguntarías que hoy no te atreves a preguntarle a nadie?
@@ -213,26 +213,26 @@ CIERRE-FINAL | Esas eran todas las preguntas. Has contado un montón, y con todo
 CIERRE-FINAL-B1 | No, ya está todo
 CIERRE-FINAL-B2 | Sí, hay algo
 X1-1 | ¿Y algo que te han contado de cuando eras bebé, aunque tú no te acuerdes?
-X1-2 | ¿Y una travesura que hizo otro y tú la viste? Cuéntame esa.
+X1-2 | ¿Y una trastada que hizo otro y tú la viste? Cuéntame esa.
 X1-3 | ¿Y un día normal que acabó siendo buenísimo sin que nadie lo planeara? Cuéntame ese.
 X1-4 | ¿Alguna vez te has aburrido tanto que te has inventado un juego? Cuéntame ese.
 X1-5 | ¿Y fuera de tu casa, un sitio al que vas siempre? Cuéntame la última vez que fuiste.
 X1-6 | ¿Y un sitio al que fuiste una sola vez y quieres volver? Cuéntame qué había allí.
 X1-7 | Enséñame algo que guardas desde hace años aunque nadie entienda por qué. ¿De dónde salió?
-X2-1 | Cuéntame la última vez que le pediste algo a tu mamá y te costó pedírselo.
-X2-2 | Cuéntame la última vez que tu mamá te sorprendió con algo.
-X2-3 | Cuéntame una vez que viste a tu mamá enfadada de verdad.
-X2-4 | ¿Cómo llamas tú a tu mamá? Cuéntame de dónde salió eso.
-X2-5 | Cuéntame una vez que tu papá te enseñó algo que hoy haces sol{{o/a}}.
-X2-6 | Cuéntame la última vez que hiciste reír a tu papá, en serio, a carcajadas.
-X2-7 | Cuéntame una vez que viste a tu papá enfadado de verdad.
-X2-8 | ¿Cómo llamas tú a tu papá? Cuéntame de dónde salió eso.
+X2-1 | Cuéntame la última vez que le pediste algo a tu madre y te costó pedírselo.
+X2-2 | Cuéntame la última vez que tu madre te sorprendió con algo.
+X2-3 | Cuéntame una vez que viste a tu madre enfadada de verdad.
+X2-4 | ¿Cómo le llamas tú a tu madre? Cuéntame de dónde salió eso.
+X2-5 | Cuéntame una vez que tu padre te enseñó algo que hoy haces sol{{o/a}}.
+X2-6 | Cuéntame la última vez que hiciste reír a tu padre, en serio, a carcajadas.
+X2-7 | Cuéntame una vez que viste a tu padre enfadado de verdad.
+X2-8 | ¿Cómo le llamas tú a tu padre? Cuéntame de dónde salió eso.
 X2-9 | Cuéntame una vez que un hermano o hermana te cubrió para que no te regañaran.
 X2-10 | Cuéntame la última vez que tuviste que compartir algo con un hermano o hermana y no querías.
 X2-11 | Cuéntame una vez que un amigo o una amiga te defendió delante de otros.
 X3-1 | Cuéntame una vez con un compañero o compañera de este año que no vas a olvidar.
 X3-2 | Cuéntame una vez que alguien en el cole te hizo pasar un mal momento. Cuenta lo que quieras, y lo que no, no.
-X3-3 | Cuéntame el sábado pasado, desde que te levantaste hasta que te fuiste a dormir.
+X3-3 | Cuéntame el sábado pasado, desde que te levantaste hasta que te acostaste.
 X3-4 | Cuéntame cómo fue ayer, desde que te levantaste.
 X3-5 | Cuéntame la primera vez que ganaste dinero por algo que hiciste.
 X3-6 | Cuéntame una vez que gastaste dinero en algo y después te arrepentiste.
@@ -248,13 +248,13 @@ B-SEGUIR | Esa ya está. ¿Seguimos con otra ahora o la dejamos para mañana?
 B-SEGUIR-B1 | Vale, otra
 B-SEGUIR-B2 | Mañana sigo
 B-MAÑANA | Ya está por hoy, mañana hay más.
-B-AVISO-SERIA | Hay otra, pero es de las que se piensan con calma. ¿Vas ahora o mañana?
-B-AVISO-SERIA-B1 | Voy ahora
+B-AVISO-SERIA | Hay otra, pero es de las que se piensan con calma. ¿La hacemos ahora o mañana?
+B-AVISO-SERIA-B1 | Ahora
 B-AVISO-SERIA-B2 | Mañana mejor
 B-UNA-MAS | Antes de cerrar esta parte, ¿quieres una más de estas?
 B-UNA-MAS-B1 | Vale, otra
 B-UNA-MAS-B2 | No, cerramos
-B-FOTO-NOTENGO | Vale. Si de todas formas hay algo así pero no lo tienes a mano, cuéntamelo en un audio y sirve igual.
+B-FOTO-NOTENGO | Vale. Si hay algo así pero no lo tienes a mano, cuéntamelo en un audio y sirve igual.
 B-FOTO-PLATA | Vale, no pasa nada. Si alguna vez has ahorrado dinero para algo, cuéntamelo en un audio.
 B-PASO | Vale, esa nos la saltamos.
 B-NO-PASA-NADA | Vale, no pasa nada.
@@ -325,7 +325,7 @@ Solo las filas donde cambió algo más que la conjugación y el vocabulario obvi
 | K34 | lo hiciste igual | lo hiciste de todas formas | «Igual» en España quiere decir «quizá»; «de todas formas» es el sentido original (a pesar del miedo). |
 | K40, K36-OP, X2-3, X2-7 | enojad{{o/a}} / te enojaste / enojada de verdad | enfadad{{o/a}} / te enfadaste / enfadada de verdad | «Enojarse» en España suena a literatura; se dice «enfadarse». |
 | X2-9 | para que no te retaran | para que no te regañaran | «Retar» en España es desafiar; la bronca de los padres es «regañar». |
-| X2-4, X2-8 | ¿Cómo le decís vos a tu mamá? | ¿Cómo llamas tú a tu mamá? | «Decirle» a alguien de una forma no se usa así en España; es «llamar». |
+| X2-4, X2-8 | ¿Cómo le decís vos a tu mamá? | ¿Cómo le llamas tú a tu madre? | «Decirle» a alguien de una forma no se usa así en España; es «llamar». |
 | X4-3 | cómo se arreglaron después de esa pelea, si se arreglaron | cómo hicisteis las paces después de esa pelea, si las hicisteis | «Arreglarse» entre amigos no se dice en España; «hacer las paces» es la expresión que usan los chicos. |
 | K12-OP | te saca sin pedir | te coge sin pedirlo | «Sacar» en ese sentido no se usa; «coger» es natural en España (y no tiene el doble sentido de allá). |
 | K30 | ya te sentís list{{o/a}} | ya te sientes preparad{{o/a}} | «Listo» en España es sobre todo «inteligente»; «preparado» es el sentido original. Misma marca {{o/a}}. |
@@ -344,7 +344,7 @@ Solo las filas donde cambió algo más que la conjugación y el vocabulario obvi
 | K1, K13-FOTO | lo más viejo / la cosa más vieja | lo más antiguo / la cosa más antigua | «Viejo» para un recuerdo o un objeto suena despectivo en España; «antiguo» es lo natural. |
 | K3-OP | un día común | un día normal | «Día común» no se dice; es «un día normal». |
 | K47 | no te conoce nada | no te conoce de nada | Es el giro de España. |
-| K16-R1, K16-OP, K18, K11, K36 | se juntaron / se juntan / con ustedes / hicieron / se pelearon | os juntasteis / os juntáis / con vosotros / hicisteis / os peleasteis | Vosotros cuando habla de varios con el chico incluido. En K18 se mantiene entera la frase «como la pareja de tu mamá o de tu papá, o alguien» porque el código la recorta por tema (`compra.ts`). |
+| K16-R1, K16-OP, K18, K11, K36 | se juntaron / se juntan / con ustedes / hicieron / se pelearon | os juntasteis / os juntáis / con vosotros / hicisteis / os peleasteis | Vosotros cuando habla de varios con el chico incluido. En K18 se mantiene entera la frase «como la pareja de tu madre o de tu padre, o alguien» porque el código la recorta por tema (`compra.ts`, variante es-ES). |
 | CAP-4, ENTRADA-4, CIERRE-4, K24, K14, K20, K37, K41 y otros | pasó / te contaron / te echaron la culpa / te pasó | ha pasado / te han contado / te han echado la culpa / te ha pasado | Pretérito perfecto para lo que llega hasta hoy, como se dice en España. Lo de un día concreto del pasado sigue en indefinido («¿Cuál fue el peor golpe…?»). |
 
 ## Textos de la web (compra y panel) con ID en `mensajes.md`
@@ -365,13 +365,13 @@ No entran en `banco.json` (el parser solo toma las tablas «ID | Texto»), por e
 | COMPRA-2-APODO | Cómo le llamáis | placeholder "Como le llamáis en casa" · ayuda "Así lo saludamos en los mensajes." |
 | COMPRA-2-GENERO | Chico o chica | Chico · Chica · ayuda "Solo para que las preguntas le hablen bien." |
 | COMPRA-2-EDAD | Edad | placeholder "11" · ayuda "Va en la portada, al lado del nombre." |
-| COMPRA-2-REGALA | Quién se lo regala | Tu mamá · Tu papá · Tus padres · Tu abuela · Tu abuelo · Tus abuelos · Otra persona (libre, placeholder "Tu tía, tus padrinos, tu madrina") · ayuda "Así lo nombra el primer mensaje. Escríbelo como se lo dirías a quien lo recibe." |
-| COMPRA-2-CANAL-A | Por dónde llegan las preguntas · **A su WhatsApp** | "Le escribimos directamente y responde cuando le apetece. Tú ves todo lo que cuenta desde tu panel." · campo "Su WhatsApp" · "Al elegir esto, eres tú, como adulto a cargo, quien autoriza que le escribamos a ese número." |
+| COMPRA-2-REGALA | Quién se lo regala | Tu madre · Tu padre · Tus padres · Tu abuela · Tu abuelo · Tus abuelos · Otra persona (libre, placeholder "Tu tía, tus padrinos, tu madrina") · ayuda "Así lo nombra el primer mensaje. Escríbelo como se lo dirías a quien lo recibe." |
+| COMPRA-2-CANAL-A | Por dónde llegan las preguntas · **A su WhatsApp** | "Le escribimos directamente y responde cuando le apetece. Tú ves todo lo que cuenta desde tu panel." · campo "Su WhatsApp" · "Al elegir esto, eres tú, como adulto responsable, quien autoriza que le escribamos a ese número." |
 | COMPRA-2-CANAL-B | **Lo hago yo** | "Las preguntas llegan a tu WhatsApp. Te sientas a su lado, se las lees y responde con sus palabras." |
 | COMPRA-2-HORA | A qué hora le escribimos | 18:00 por defecto · ayuda "Mejor a la vuelta del cole, o cuando podáis sentaros juntos." |
 | COMPRA-3-TITULO | Título | Temas y pago. |
 | COMPRA-3-BAJADA | Bajada | Hay cosas que solo tú sabes si conviene tocar. Lo que marques aquí no se pregunta, y el libro se hace igual con el resto. |
-| COMPRA-3-TEMAS | No preguntar sobre | Su mamá · Su papá · Un abuelo o abuela que murió · Su nueva familia (la pareja de mamá o papá, sus hijos) · Una mudanza o un cambio grande · Un mal momento en el cole |
+| COMPRA-3-TEMAS | No preguntar sobre | Su madre · Su padre · Un abuelo o abuela que murió · Su nueva familia (la pareja de su madre o de su padre, sus hijos) · Una mudanza o un cambio grande · Un mal momento en el cole |
 | COMPRA-3-DEBAJO | Debajo de los temas | Todo lo demás tiene botón para pasar. Si una pregunta no le gusta, la salta y seguimos. |
 | COMPRA-3-FOTOS | Casilla (apagada) | Pueden ir fotos con otros niños · ayuda "Si no la marcas, las fotos donde aparecen otros niños quedan fuera del libro." |
 | COMPRA-3-BOTON | Botón | Pagar {precio} |
@@ -390,10 +390,24 @@ Cambios de sentido en la web: «tapa» → «portada» (en España la tapa es la
 ## Dudas
 
 1. **Botones por texto literal.** El motor compara `'Dale, otra'`, `'Dale, mandámela'`, `'Dale, vamos'`, `'Lo dejamos acá'`, `'No, eso fue todo'`, `'No miro'`, `'No me pasó'` como texto (`motor/botones.ts`, `motor/rafaga.ts`). Con este archivo cambian ocho botones; hay que comparar por posición o por el texto del idioma activo antes de prender España.
-2. **«mamá» y «papá».** Los dejé igual: un chico de 11 en España dice «mi mamá / mi papá» en casa y «mi madre / mi padre» con amigos; Familiar los cambió a «madre / padre» porque el narrador es de 60+. Si Naza prefiere «madre / padre» para Kids, cambian K10, K11, K18, X2-1…X2-8, COMPRA-2-REGALA y COMPRA-3-TEMAS, y el recorte de K18 en `compra.ts` tiene que recortar la frase de España.
-3. **«travesura».** Se entiende en España y lo dejé (K2, K2-OP); los chicos dicen más «trastada». Decisión de Naza.
+2. **«mamá» y «papá».** (Resuelta el 16/10: Naza eligió «madre / padre», ver abajo.) Los dejé igual: un chico de 11 en España dice «mi mamá / mi papá» en casa y «mi madre / mi padre» con amigos; Familiar los cambió a «madre / padre» porque el narrador es de 60+. Si Naza prefiere «madre / padre» para Kids, cambian K10, K11, K18, X2-1…X2-8, COMPRA-2-REGALA y COMPRA-3-TEMAS, y el recorte de K18 en `compra.ts` tiene que recortar la frase de España.
+3. **«travesura».** (Resuelta el 16/10: «trastada».) Se entiende en España y lo dejé (K2, K2-OP); los chicos dicen más «trastada». Decisión de Naza.
 4. **«profe» en K23.** Elegí «un profe o una profe» (es lo que dicen los chicos). Si suena demasiado coloquial, «un maestro o una maestra» se entiende en Primaria.
 5. **«con mucho cariño» en BIEN-CHICO.** Es del que regala, no del bot; lo mantuve como en el original aprobado. Lo señalo por la regla «el bot no muestra afecto».
 6. **«Nos vemos pronto» (FINAL-CHICO).** Está en el original; en España se lee como promesa de tiempo. Lo dejé igual porque no es un cambio de idioma.
 7. **Plural «Tus padres».** `esPlural` mira `/^tus\s/`, así que funciona. En las plantillas `{{2}}` llega en minúscula («tus padres»).
-8. **Falta la lectura de alguien de España** (padre con un hijo de 11, o un chico de 11) antes de aprobar, como se hizo en Familiar con la lectora de Valladolid.
+8. **Lectura de alguien de España.** (Resuelta el 16/10: la leyó una madre de Zaragoza con un hijo de 11.)
+
+## Aprobado por Naza el 16/10/2026 (tanda 8)
+
+Leyó la lectura a ciegas de Marta (madre de Zaragoza, [`lectura-espana-2026-10-16.md`](lectura-espana-2026-10-16.md)) y aprobó esto, que ya está aplicado arriba (y en [`plantillas-meta-kids-es-ES.md`](plantillas-meta-kids-es-ES.md) donde toca):
+
+1. **Los 35 cambios de vocabulario de Fable** (la tabla «Cambios que no son solo de vos a tú»): quedan como están.
+2. **Las 20 propuestas «A · solo idioma» de la lectura, tal cual.** Las de este archivo: K22 «¿Qué quieres ser de mayor?», K8-FOTO «sin recoger», K12 «Vamos con los hermanos.», K11-FOTO-B1 [No hago ninguno], K41 «¿Te ha gustado ya alguien?», B-FOTO-NOTENGO sin «de todas formas», B-AVISO-SERIA «¿La hacemos ahora o mañana?» con [Ahora], K21-FOTO «pantallazo», K32 «delante de los demás», K28 «te da rabia perder», K42 «igual que te han criado a ti», X3-3 «hasta que te acostaste», K18 «alguien que ha venido a vivir con vosotros», K25-OP «tuyo o de otra persona», K20 «alguien del barrio o algún vecino», y en la tabla de la web COMPRA-2-CANAL-A «adulto responsable». Las que son solo de la web (KP-INICIO-VER, el asunto del mail `revisar`, KIDS_IMPRESO.impresoDetalle, KP-ESTADO-ANTES-A con el mail `primeraLinea.A` y `canalA`, y COMPRA-2-CANAL-A en `checkout-kids.ts`) se aplican en la rama de la web, no acá.
+3. **«mamá / papá» → «madre / padre»** (era la duda 2). K10, K10-OP, K11, K11-OP, K18, X2-1…X2-8, y en la tabla de la web COMPRA-2-REGALA («Tu madre · Tu padre · Tus padres…») y COMPRA-3-TEMAS («Su madre · Su padre · … Su nueva familia (la pareja de su madre o de su padre, sus hijos)»). X2-4 y X2-8 quedan «¿Cómo le llamas tú a tu madre?» / «¿Cómo le llamas tú a tu padre?» (con «le», lo más cercano al «¿Cómo le decís vos a tu mamá?» original: pregunta por el nombre que le pone, no se contesta sola). El motor ya no mira el texto del idioma para saber qué extra es de qué tema (`temaDeExtra` decide por el texto de banco.md), y K18 en España se recorta con su propia frase («como la pareja de tu madre o de tu padre, o alguien»), solo borrando palabras.
+4. **K26** «te llamaron a cenar» (en España «comer» es a mediodía, en el cole).
+5. **K2 y K2-OP «trastada»** (era la duda 3). También X1-2, que es el mismo texto que K2-OP.
+6. **K7** «ir a por el pan, por ejemplo».
+7. **El botón citado al padre es el de España.** AVISO-PADRE (y su plantilla `kids_aviso_padre_es_es`) ya decía «Vale, vamos». KP-ESTADO-ESPERA-A del panel es de la web: va a la otra rama.
+
+Lo de la lectura que no entró en esta tanda (decisión de Naza, sin tocar): PANEL-GUIA-EJ «mazorca» → «manzana», la hora por defecto de COMPRA-2-HORA y «familia reconstituida» en `checkout-kids.ts` (este archivo ya dice «Su nueva familia»).

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { corregir, destinoDe, lineaDelPadre, materialDeFilas, textoDeFila, textoNombres, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
+import { corregir, destinoDe, idiomaDelChico, lineaDelPadre, materialDeFilas, preguntaDe, textoDeFila, textoNombres, todasLasRespuestas } from '../../src/escritor-kids/material/de-filas.js';
+import { bancoDe, preguntaEn } from '../../src/kids-v2/banco.js';
 import { filasDeFijo } from '../../src/escritor-kids/material/de-fijo.js';
 import type { FilasKids } from '../../src/escritor-kids/material/tipos.js';
 import { fichaXml, itemXml, llamadaAlbum, llamadaArreglo, llamadaLeer, llamadaParte, llamadaSobre, llamadaVeedor, materialXml } from '../../src/escritor-kids/llamadas.js';
@@ -114,5 +115,47 @@ describe('material de Kids', () => {
     const x = materialXml(m);
     expect(x).toContain('<parte n="5" titulo="Para cuando seas grande">');
     expect(x).toContain('<foto id="F01" clave="K1-FOTO"');
+  });
+});
+
+describe('material de Kids en el idioma del chico (ficha.idioma)', () => {
+  const base = filasDeFijo('chico-inventado');
+  const enEs = (kids: Partial<FilasKids['kids']>, ficha: Record<string, unknown> = {}): FilasKids => ({ ...base, kids: { ...base.kids, ...kids, ficha: { ...base.kids.ficha, ...ficha } } });
+  const es = materialDeFilas(enEs({ idioma: 'es-ES' }, { idioma: 'es-ES', temasSacados: ['papa'] }));
+  const itemEs = (clave: string) => [...es.partes.flatMap((p) => p.items), ...es.sobre.items].find((i) => i.clave === clave);
+
+  it('el idioma: ficha.idioma si la web lo puso; si no, la columna; si no es de Kids, es-AR', () => {
+    expect(idiomaDelChico(base)).toBe('es-AR');
+    expect(idiomaDelChico(enEs({}, { idioma: 'es-ES' }))).toBe('es-ES');
+    expect(idiomaDelChico(enEs({ idioma: 'es-ES' }))).toBe('es-ES');
+    expect(idiomaDelChico(enEs({ idioma: 'ca' }))).toBe('es-AR');
+    expect(es.ficha.idioma).toBe('es-ES');
+  });
+
+  it('los títulos de las partes y del sobre salen del banco de España', () => {
+    expect(es.partes.map((p) => p.titulo)).toEqual(['De pequeño', 'Mi gente', 'Mi mundo ahora', 'Lo que me ha pasado']);
+    expect(es.partes.map((p) => p.titulo)).toEqual(bancoDe('es-ES').capitulos.slice(0, 4).map((c) => c.titulo));
+    expect(es.sobre.titulo).toBe('Para cuando seas mayor');
+  });
+
+  it('las preguntas del libro y del sobre son las que le llegaron, en tú (principal, rama, extra, cierre)', () => {
+    expect(itemEs('K12')?.respuestas[0].pregunta).toContain('Cuéntame la última vez que te reíste mucho con un hermano');
+    expect(itemEs('K5')?.pregunta).toContain('de pequeño');
+    expect(itemEs('X2-9')?.pregunta).toBe(preguntaDe('X2-9', 'chico', [], [], 'es-ES'));
+    expect(itemEs('X2-9')?.pregunta).toContain('para que no te regañaran');
+    expect(itemEs('CIERRE-2')?.pregunta).toBe(bancoDe('es-ES').mensajes.find((x) => x.id === 'CIERRE-2')?.texto);
+    expect(itemEs('K41')?.pregunta).toBe(preguntaEn('K41', 'es-ES').texto);
+    for (const i of [...es.partes.flatMap((p) => p.items), ...es.sobre.items]) if (!i.clave.startsWith('PADRE-')) expect(i.pregunta, i.clave).not.toMatch(/Contame|\bvos\b|tenés/);
+    expect(es.fotos.filter((f) => f.pregunta).every((f) => !/Contame|Mostrame|Sacale/.test(f.pregunta))).toBe(true);
+  });
+
+  it('K18 con un tema sacado: la frase de España recortada (sin la de es-AR)', () => {
+    expect(preguntaDe('K18', 'chico', ['papa'], [], 'es-ES')).toBe('¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu madre, o alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.');
+    expect(preguntaDe('K18', 'chico', ['mama', 'papa'], [], 'es-ES')).toContain('como alguien que ha venido a vivir con vosotros');
+    expect(preguntaDe('K18', 'chico', ['papa'], [])).toContain('como la pareja de tu mamá, o alguien que vino a vivir con ustedes');
+  });
+
+  it('es-AR queda igual que antes', () => {
+    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Lo que me pasó']);
   });
 });

@@ -16,8 +16,9 @@
 //   SOLO en la respuesta donde el padre la marcó (respuesta_id): en otra, «Mate» puede ser «tomamos mate». La
 //   lista entera va al modelo como dato ({{NOMBRES}}, textoNombres) para que corrija solo cuando es ese nombre.
 // - Ids cortos R01… en el orden en que llegó todo; las fotos F01…
-import { BANCO, extra, pregunta } from '../../kids-v2/banco.js';
+import { BANCO, bancoDe, extra, extraEn, pregunta, preguntaEn } from '../../kids-v2/banco.js';
 import { textoSegunTemas, type Tema } from '../../kids-v2/compra.js';
+import { esIdiomaKids, IDIOMA_POR_DEFECTO, type IdiomaKids } from '../../kids-v2/idioma.js';
 import { conGenero, esPlural, normalizarQuienRegala, primerNombre, type Genero } from '../../kids-v2/texto.js';
 import type { FichaKids, FilasKids, FilaRespuestaKids, FotoKids, ItemKids, MaterialKids, ParteKids, PreguntaPadreKids, RespuestaKids } from './tipos.js';
 
@@ -25,8 +26,21 @@ export const MARCA_BOTON = '⟦botón:';
 export const MARCA_FOTO = '⟦foto⟧';
 export const SIN_CLAVE = '∅';
 
-const mensaje = (id: string): string => BANCO.mensajes.find((m) => m.id === id)?.texto ?? '';
-const tituloParte = (n: number): string => BANCO.capitulos.find((c) => c.n === n)?.titulo ?? '';
+// Los títulos de las partes y las preguntas salen del banco del idioma del chico (bancoDe: es-ES, de
+// banco-es-ES.md), con el mismo ID: a un chico de España el libro le muestra lo que le preguntamos a él.
+const mensaje = (id: string, idioma: IdiomaKids): string => bancoDe(idioma).mensajes.find((m) => m.id === id)?.texto ?? '';
+const tituloParte = (n: number, idioma: IdiomaKids): string => bancoDe(idioma).capitulos.find((c) => c.n === n)?.titulo ?? '';
+
+/**
+ * En qué idioma le hablamos al chico: `ficha.idioma` si la web lo puso; si no, la columna `kids_v2.idioma`; si
+ * ninguno es de Kids (es-AR o es-ES), el de siempre. Mismo orden que el bot (entrevistador, kids-v2/idioma.ts).
+ */
+export function idiomaDelChico(f: Pick<FilasKids, 'kids'>): IdiomaKids {
+  const enFicha = f.kids.ficha.idioma;
+  if (esIdiomaKids(enFicha)) return enFicha;
+  if (esIdiomaKids(f.kids.idioma)) return f.kids.idioma;
+  return IDIOMA_POR_DEFECTO;
+}
 
 /** Dos personas («tus abuelos», «Papá y mamá») → «te la mandan». */
 export const quienEsPlural = (quien: string): boolean => esPlural(quien) || /\s(y|e)\s/i.test(quien.trim());
@@ -50,26 +64,26 @@ export function destinoDe(clave: string): Destino {
   return null;
 }
 
-/** El texto de la pregunta que le llegó con esa clave, con su género y los temas sacados. */
-export function preguntaDe(clave: string, genero: Genero, temas: readonly Tema[], padre: PreguntaPadreKids[]): string {
+/** El texto de la pregunta que le llegó con esa clave, en su idioma, con su género y los temas sacados. */
+export function preguntaDe(clave: string, genero: Genero, temas: readonly Tema[], padre: PreguntaPadreKids[], idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string {
   const g = (t: string) => conGenero(t, genero);
   const k = clave.match(/^(K\d+)(?:-R(\d+)(?:-(\d+))?|-(OP)|-(FOTO))?$/);
   if (k) {
     let p;
-    try { p = pregunta(k[1]); } catch { return ''; }
+    try { p = preguntaEn(k[1], idioma); } catch { return ''; }
     if (k[2]) {
       const accion = p.ramas[Number(k[2]) - 1]?.accion;
       const paso = accion?.tipo === 'preguntar' ? accion.pasos[Number(k[3] ?? 1) - 1] : undefined;
-      return g(paso ?? textoSegunTemas(p.id, p.texto, temas));
+      return g(paso ?? textoSegunTemas(p.id, p.texto, temas, idioma));
     }
     if (k[4]) return g(p.op?.texto ?? p.texto);
     if (k[5]) return g(p.foto?.texto ?? p.texto);
-    return g(textoSegunTemas(p.id, p.texto, temas));
+    return g(textoSegunTemas(p.id, p.texto, temas, idioma));
   }
-  if (/^X\d+-\d+$/.test(clave)) { try { return g(extra(clave).texto); } catch { return ''; } }
-  if (/^CIERRE-(\d|FINAL)$/.test(clave)) return g(mensaje(clave));
-  if (/^UNA-MAS-\d$/.test(clave)) return g(mensaje('B-UNA-MAS'));
-  if (clave === 'EXTRAS') return g(mensaje('EXTRAS-OFERTA'));
+  if (/^X\d+-\d+$/.test(clave)) { try { return g(extraEn(clave, idioma).texto); } catch { return ''; } }
+  if (/^CIERRE-(\d|FINAL)$/.test(clave)) return g(mensaje(clave, idioma));
+  if (/^UNA-MAS-\d$/.test(clave)) return g(mensaje('B-UNA-MAS', idioma));
+  if (clave === 'EXTRAS') return g(mensaje('EXTRAS-OFERTA', idioma));
   const pp = padre.find((x) => x.clave === clave);
   return pp ? pp.texto : '';
 }
@@ -121,7 +135,7 @@ export function fichaDe(f: FilasKids): FichaKids {
     edad: fi.edad,
     genero: fi.genero === 'chica' ? 'f' : 'm',
     quienRegala,
-    idioma: f.kids.idioma,
+    idioma: idiomaDelChico(f),
     preguntasPadre: (fi.preguntasPadre ?? [])
       .filter((p) => p.texto?.trim())
       .map((p, i) => {
@@ -135,6 +149,7 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
   const ficha = fichaDe(f);
   const genero: Genero = ficha.genero === 'f' ? 'chica' : 'chico';
   const temas = ((f.kids.ficha.temasSacados as Tema[] | undefined) ?? []).filter((t) => typeof t === 'string');
+  const idioma = idiomaDelChico(f);
   const correcciones = (f.kids.correcciones ?? []).filter((k) => k && typeof k.dice === 'string' && typeof k.es === 'string');
   const veces = correcciones.map(() => 0);
 
@@ -150,7 +165,7 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
     let e = items.get(d.item);
     if (!e) {
       const padre = ficha.preguntasPadre.find((p) => p.clave === d.item);
-      const item: ItemKids = { clave: d.item, pregunta: preguntaDe(d.item, genero, temas, ficha.preguntasPadre), respuestas: [], ...(padre ? { padre: { quien: padre.quien, conLinea: padre.conLinea, linea: padre.linea } } : {}) };
+      const item: ItemKids = { clave: d.item, pregunta: preguntaDe(d.item, genero, temas, ficha.preguntasPadre, idioma), respuestas: [], ...(padre ? { padre: { quien: padre.quien, conLinea: padre.conLinea, linea: padre.linea } } : {}) };
       e = { item, parte: d.parte };
       items.set(d.item, e);
     }
@@ -175,7 +190,7 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
     if (esFoto) {
       const imagenes = f.fotos.filter((x) => x.pregunta_orden === r.pregunta_orden && !usadas.has(x.id));
       if (imagenes.length && destino) {
-        const preg = preguntaDe(clave, genero, temas, ficha.preguntasPadre);
+        const preg = preguntaDe(clave, genero, temas, ficha.preguntasPadre, idioma);
         imagenes.forEach((img, i) => {
           usadas.add(img.id);
           fotos.push({
@@ -192,7 +207,7 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
       continue;
     }
     ultimo = destino;
-    const preg = preguntaDe(clave, genero, temas, ficha.preguntasPadre);
+    const preg = preguntaDe(clave, genero, temas, ficha.preguntasPadre, idioma);
     // Lo que contó de una foto que mandó va con esa foto (la última con esa clave).
     if (/-FOTO$/.test(clave)) {
       const foto = [...fotos].reverse().find((x) => x.clave === clave);
@@ -211,8 +226,8 @@ export function materialDeFilas(f: FilasKids): MaterialKids {
 
   const deParte = (n: number): ItemKids[] =>
     [...items.values()].filter((e) => e.parte === n && e.item.respuestas.length).map((e) => e.item).sort((a, b) => ordenItem(a.clave) - ordenItem(b.clave));
-  const partes: ParteKids[] = ([1, 2, 3, 4] as const).map((n) => ({ n, titulo: tituloParte(n), items: deParte(n) }));
-  const titulo5 = tituloParte(5).replace(/\s*\(.*\)\s*$/, '');
+  const partes: ParteKids[] = ([1, 2, 3, 4] as const).map((n) => ({ n, titulo: tituloParte(n, idioma), items: deParte(n) }));
+  const titulo5 = tituloParte(5, idioma).replace(/\s*\(.*\)\s*$/, '');
   return {
     ficha,
     partes,

@@ -1,6 +1,6 @@
 # Kids · Plantillas de Meta en castellano de España (16/10/2026)
 
-Las 13 plantillas de [`plantillas-meta-kids.md`](../plantillas-meta-kids.md) (1 a 10, con 5b, 6b y 10b) en castellano de España, de tú, para chicos y chicas de 11 años de España y sus padres. Mismos nombres con el sufijo `_es_es`, mismas variables, mismos botones (traducidos). Los cuerpos son los de [`banco-es-ES.md`](banco-es-ES.md) (BIEN-CHICO, BIEN-CHICO-PL, BIEN-PADRE, AVISO-PADRE, RECORD-A-4, RECORD-A-8, RECORD-B, RECORD-B-8, PREG-NUEVA-CHICO, PREG-NUEVA-PADRE, TERMINO-PADRE, FINAL-CHICO, FINAL-CHICO-PL): si cambia uno, cambia el otro. **Faltan la lectura de alguien de España y la aprobación de Naza.**
+Las 13 plantillas de [`plantillas-meta-kids.md`](../plantillas-meta-kids.md) (1 a 10, con 5b, 6b y 10b) en castellano de España, de tú, para chicos y chicas de 11 años de España y sus padres. Mismos nombres con el sufijo `_es_es`, mismas variables, mismos botones (traducidos). Los cuerpos son los de [`banco-es-ES.md`](banco-es-ES.md) (BIEN-CHICO, BIEN-CHICO-PL, BIEN-PADRE, AVISO-PADRE, RECORD-A-4, RECORD-A-8, RECORD-B, RECORD-B-8, PREG-NUEVA-CHICO, PREG-NUEVA-PADRE, TERMINO-PADRE, FINAL-CHICO, FINAL-CHICO-PL): si cambia uno, cambia el otro. **Leídas por una madre de España y aprobadas por Naza el 16/10 (tanda 8).**
 
 Reglas de Meta que ya nos frenaron, iguales que en el original: variables posicionales `{{1}}`, nunca al principio ni al final del cuerpo (todas arrancan con «Hola» o «Bueno» y terminan con texto). Botones = respuesta rápida. Idioma: **Spanish (Spain)** `es_ES` (las rioplatenses están en español `es`). Categoría: pedir **Utilidad**; si la rechaza, Marketing (como `bienvenida`).
 
@@ -105,6 +105,6 @@ Bueno {{1}}, hasta aquí llegamos. Ya tengo todo lo que has contado con tus audi
 
 ## Notas
 
-- Las variables de cada plantilla son las mismas y en el mismo lugar que en el original. `{{2}}` de la 1, la 2, la 10 y la 10b llega en minúscula («tu mamá», «tus padres»), como en rioplatense.
-- Lo que cambia de sentido respecto del original está en la tabla de `banco-es-ES.md` (vale → dale, mayor → grande, móvil → celular, regañinas → retos, hacer el libro → armar el libro, etc.).
-- Dudas (las mismas que en `banco-es-ES.md`): «mamá / papá» se mantienen en las opciones de quien regala; «con mucho cariño» es del que regala, no del bot; «Nos vemos pronto» se mantiene porque está en el original.
+- Las variables de cada plantilla son las mismas y en el mismo lugar que en el original. `{{2}}` de la 1, la 2, la 10 y la 10b llega en minúscula («tu madre», «tus padres»), como en rioplatense.
+- Lo que cambia de sentido respecto del original está en la tabla de `banco-es-ES.md` (dale → vale, grande → mayor, celular → móvil, retos → regañinas, armar el libro → hacer el libro, mamá → madre, etc.).
+- Aprobado por Naza el 16/10 (tanda 8, ver `banco-es-ES.md`): las opciones de quien regala son «Tu madre · Tu padre · Tus padres…», y la 4 cita el botón del chico en España, «Vale, vamos». Dudas que quedan: «con mucho cariño» es del que regala, no del bot; «Nos vemos pronto» se mantiene porque está en el original.

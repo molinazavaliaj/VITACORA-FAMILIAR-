@@ -8,9 +8,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsearTextosIdiomaKidsMd } from '../src/kids-v2/banco-idioma-md.js';
-import { BANCO, bancoDe, botonCanonico, botonEn, entradasDelBanco, fijoEn, preguntaEn } from '../src/kids-v2/banco.js';
+import { BANCO, bancoDe, botonCanonico, botonEn, entradasDelBanco, extraEn, fijoEn, pregunta, preguntaEn } from '../src/kids-v2/banco.js';
+import { extrasDisponibles } from '../src/kids-v2/extras.js';
+import { preguntaMsg } from '../src/kids-v2/motor/mensajes.js';
 import bancoEsEsJson from '../src/kids-v2/banco-es-ES.json' with { type: 'json' };
-import { textoSegunTemas, validarFicha, type Ficha } from '../src/kids-v2/compra.js';
+import { temaDeExtra, textoSegunTemas, validarFicha, type Ficha, type Tema } from '../src/kids-v2/compra.js';
 import { idiomaDe, IDIOMAS_KIDS } from '../src/kids-v2/idioma.js';
 import { nuevoEstado, paso, type Enviado, type Fase, type Salida } from '../src/kids-v2/motor.js';
 import { correrUno } from '../src/kids-v2/simulacion.js';
@@ -92,10 +94,52 @@ describe('kids v2 idiomas: es-ES atado a banco.md y mensajes.md', () => {
     expect(enMd).toEqual(expect.arrayContaining([...delBanco, 'kids_final_es_es', 'kids_final_plural_es_es']));
   });
 
-  it('K18 tiene la frase que se recorta por tema (compra.ts) también en España', () => {
-    const t = preguntaEn('K18', 'es-ES').texto;
-    expect(textoSegunTemas('K18', t, ['papa'])).toContain('como la pareja de tu mamá, o alguien');
-    expect(textoSegunTemas('K18', t, ['mama', 'papa'])).toContain('como alguien que vino a vivir con vosotros');
+  it('K18 en España se recorta con su propia frase (tu madre / tu padre), solo borrando palabras', () => {
+    const k18 = (temasSacados: Tema[]) => preguntaMsg(nuevoEstado({ ...FICHA_ES, temasSacados }), pregunta('K18')).texto;
+    const aprobado = preguntaEn('K18', 'es-ES').texto;
+    expect(aprobado).toBe('¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu madre o de tu padre, o alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.');
+    expect(k18([])).toBe(aprobado);
+    expect(k18(['escuela', 'mudanza', 'abuelo-murio'])).toBe(aprobado);
+    expect(k18(['papa'])).toBe('¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu madre, o alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.');
+    expect(k18(['mama'])).toBe('¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu padre, o alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.');
+    expect(k18(['mama', 'papa'])).toBe('¿Hay alguien que ahora es de tu familia pero antes no, como alguien que ha venido a vivir con vosotros? Cuéntame el día que os conocisteis.');
+    // Cada variante: solo palabras del texto aprobado de España, en su orden.
+    const palabras = (t: string) => t.split(/\s+/).map((w) => w.replace(/[,.?¿]/g, ''));
+    for (const temas of [['papa'], ['mama'], ['mama', 'papa']] as Tema[][]) {
+      const ap = palabras(aprobado);
+      let i = 0;
+      for (const w of palabras(k18(temas))) {
+        while (i < ap.length && ap[i] !== w) i++;
+        expect(i, `"${w}" no está en el K18 aprobado de España`).toBeLessThan(ap.length);
+        i++;
+      }
+      expect(k18(temas)).not.toMatch(/mam[aá]|pap[aá]/);
+    }
+    // La frase de un idioma no vale para el otro: si no está, tira (nunca un K18 que nombra a quien sacaron).
+    expect(() => textoSegunTemas('K18', aprobado, ['papa'], 'es-AR')).toThrow(/K18/);
+    expect(() => textoSegunTemas('K18', pregunta('K18').texto, ['papa'], 'es-ES')).toThrow(/K18/);
+  });
+
+  it('«madre / padre» en España (tanda 8): ningún texto dice mamá o papá, y solo K10, K11, K18 y X2-1…X2-8 nombran a la madre o al padre', () => {
+    expect(Object.entries(TEXTOS).filter(([, t]) => /mam[aá]|pap[aá]/i.test(t)).map(([id]) => id)).toEqual([]);
+    const conMadrePadre = Object.entries(TEXTOS).filter(([, t]) => /\b(tu|su) (madre|padre)\b/i.test(t)).map(([id]) => id);
+    expect(conMadrePadre.sort()).toEqual(['K10', 'K10-OP', 'K11', 'K11-OP', 'K18', 'X2-1', 'X2-2', 'X2-3', 'X2-4', 'X2-5', 'X2-6', 'X2-7', 'X2-8'].sort());
+    expect(TEXTOS['X2-4']).toBe('¿Cómo le llamas tú a tu madre? Cuéntame de dónde salió eso.');
+    expect(TEXTOS['AVISO-PADRE']).toContain('"Vale, vamos"');
+    expect(TEXTOS['AVISO-PADRE']).not.toContain('Dale');
+  });
+
+  it('las extras de la madre y el padre salen con su tema también en España (temaDeExtra decide por el ID)', () => {
+    const temaEs = (id: string) => temaDeExtra(extraEn(id, 'es-ES'));
+    for (const id of ['X2-1', 'X2-2', 'X2-3', 'X2-4']) expect(temaEs(id), id).toBe('mama');
+    for (const id of ['X2-5', 'X2-6', 'X2-7', 'X2-8']) expect(temaEs(id), id).toBe('papa');
+    expect(temaEs('X3-2')).toBe('escuela');
+    expect(temaEs('X1-1')).toBeNull();
+    for (const x of BANCO.extras) expect(temaDeExtra(extraEn(x.id, 'es-ES')), x.id).toBe(temaDeExtra(x));
+    const h = { opsUsadas: [], extrasUsadas: [], hermanos: true, peleaK36: true };
+    const disponibles = extrasDisponibles({ ...FICHA_ES, temasSacados: ['mama'] }, h).map((x) => x.id);
+    expect(disponibles.filter((id) => ['X2-1', 'X2-2', 'X2-3', 'X2-4'].includes(id))).toEqual([]);
+    expect(disponibles).toContain('X2-5');
   });
 });
 
@@ -195,7 +239,7 @@ function malEnEspana(ficha: Ficha, mensajes: Enviado[]): string[] {
       mal.push(`${m.id}: no tiene texto en banco-es-ES.md`);
       continue;
     }
-    const esperado = /^K\d+$/.test(m.id) ? textoSegunTemas(m.id, crudo, ficha.temasSacados) : crudo;
+    const esperado = /^K\d+$/.test(m.id) ? textoSegunTemas(m.id, crudo, ficha.temasSacados, 'es-ES') : crudo;
     if (!patron(esperado).test(m.texto)) mal.push(`${m.id}: «${m.texto.slice(0, 70)}» no es el texto de España`);
     for (const w of m.texto.match(RIOPLATENSE) ?? []) if (!new RegExp(`\\b${w}\\b`, 'i').test(crudo)) mal.push(`${m.id}: «${w}» en «${m.texto.slice(0, 70)}»`);
   }
