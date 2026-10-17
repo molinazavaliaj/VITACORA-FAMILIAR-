@@ -17,11 +17,137 @@
 
 ---
 
-## 📍 Lo que sigue vivo al 15/10
+## 📍 Lo que sigue vivo al 17/10
 
-> **Empezá por acá.** Este índice manda. Todo lo que está más abajo es **historial** (se deja como
-> estaba, sin borrar): si una fila vieja dice otra cosa, vale esta. Sale del roadmap de dos días del
-> 13/10 (revisión con Fable) cruzado con `git log origin/main` y los PRs mergeados hasta el #40.
+> **Empezá por acá.** Este índice manda; todo lo de más abajo es historial (se deja sin borrar).
+> Sale de la revisión del 17/10 (Joaquín) cruzada con los 8 PR abiertos, el estado real de Meta
+> y `git log origin/main`. Reemplaza al índice del 15/10, que quedó corto en dos días.
+> Dueño: **Joaquín**, **Naza** o **Claude** (un agente, siempre con el OK de Naza para mergear).
+
+**El hito cambió de forma.** Ya no es «prender la V3»: la V3 está en producción con cuatro
+narradores y el primer libro impreso. Ahora es **vender**: que una compra real entre por la web
+nueva y salga un libro del otro lado sin que nadie empuje a mano.
+
+**La regla que aprendimos.** Cuatro veces en una semana el código estaba bien y lo apagaba la
+configuración, sin avisar. Desde el 12/10 el entrevistador revisa sus variables al arrancar y
+manda un mail si falta alguna (`entrevistador/src/variables.ts`). **Antes de dar algo por roto,
+mirar si está prendido.**
+
+### Bloque 0 · Hoy, destrabar (minutos)
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| `WA_PLANTILLAS_V3_LISTAS` en Railway con las 12 entradas (las 12 plantillas están aprobadas en Meta al 17/10). Si queda mal escrita, el entrevistador lo avisa por mail al arrancar | Joaquín | ☐ |
+| Avisarle a Naza que su clave local de Anthropic vence el **18/10** | Joaquín | ☐ |
+| Las 26 plantillas de Kids (`_ca` y `_es_es`) en revisión de Meta desde el 16/10 | nadie, se espera | 🔄 |
+
+### Bloque 1 · Que `main` vuelva a ser la verdad (Naza, esta semana)
+
+> Hay **8 PR abiertos** y 200 commits del rediseño fuera de main. Probado commit a commit el
+> 17/10 en un clon limpio: 5.371 tests sobre el estado integrado, **una sola falla real**.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Mergear en 6 fases, en este orden: **0** `rediseno-web`→main · **1** #46→#47→#50 (Kids servidor) · **2** #48→#49 (Kids web) · **3** #51 (voz) · **4** #52 (viaje solo V2) · **5** #53 (viaje web) | Naza | ☐ |
+| `rediseno-web` necesita su PR. Un conflicto: `web/src/app/tablero/[narradorId]/page.tsx` (se resuelve con el lado del rediseño) | Naza | ☐ |
+| Actualizar `kids-compra` y `kids-panel` con `rediseno-web`: están 14 commits atrasadas y por eso falla el test `la biografía no cambia` | Naza | ☐ |
+| El conflicto de #52 contra Kids (`procesar.ts`, `scheduler.ts`, `worker.ts`): lo resuelve quien escribió las dos | Naza | ☐ |
+| **Una Action que corra los tests de los tres servicios en cada PR.** Hoy el único workflow es `deploy-web.yml`: 8 PR y cero checks | Naza | ☐ |
+| El lema nuevo quedó a medias: falta en `fabrica/src/mail/{anticipo,frases,hitos}.ts` y en la web (`layout.tsx`, `libro`, `voz`, `regalo-textos`, `mail-textos`) | Naza | ☐ |
+| `REGALO_ENTREGA_WHATSAPP=1` y `MAIL_SOCIOS` en Vercel (Joaquín no tiene acceso) | Naza | ☐ |
+
+### Bloque 2 · La prueba de punta a punta (el corazón; depende del bloque 1)
+
+> Una compra de verdad, con plata de verdad, recorrida entera mirando las dos cosas que avisan:
+> **el panel** y **el mail a los socios**. Lo que no avise en alguno de los dos, se anota acá.
+
+| Paso que hay que probar | Dueño | Estado |
+|---|---|---|
+| Comprar en la web nueva y encargar el biógrafo para un familiar | Joaquín | ☐ |
+| Que llegue la plantilla de bienvenida y el bot siga solo con la entrevista | Joaquín | ☐ |
+| Cargar fotos desde el panel (y que el aviso salga si falla la subida) | Joaquín | ☐ |
+| Editar nombres propios y que el escritor los respete | Joaquín | ☐ |
+| Contestar las dudas del escritor dentro de las 24 h desde la pantalla nueva | Joaquín | ☐ |
+| El pase al escritor con toda la info, y el libro del otro lado | Joaquín, Naza | ☐ |
+| En cada paso: ¿apareció en `/admin`? ¿llegó el mail? | Joaquín | ☐ |
+
+### Bloque 3 · El panel de admin y los avisos (sale del bloque 2)
+
+> No hay que construirlo de cero: `/admin` ya tiene Estado (frenos rojo/ámbar/verde), Familias,
+> Cerebros, Gastos y Plata, y hay 17 puntos que mandan mail a los socios. Falta probarlo con
+> ventas reales entrando y tapar lo que se note.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Seguimiento en vivo de las órdenes que empiecen a llegar (lo que falte después del bloque 2) | Naza, Claude | ☐ |
+| Que el mail de socios traiga novedades, avisos e hitos de cada cliente, sin ruido | Claude, con Naza | ☐ |
+| **Agente que lea el Gmail y avise por un bot de Telegram** lo importante de cada cliente | Joaquín, Claude | ☐ nuevo |
+
+### Bloque 4 · Lo físico: libros y marcos (no depende de código)
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Definir flujo y proveedor de libros impresos en **Argentina** | Joaquín | ☐ |
+| Definir flujo y proveedor de libros impresos en **España** | Naza | ☐ |
+| Un libro impreso de muestra con el proveedor ya definido, en cada país | Ambos | ☐ |
+| Definir la estética del libro y **cómo van las imágenes adentro** | Joaquín, con Naza | ☐ |
+| Proveedor de los marcos con NFC (hay uno hecho de prueba) | Joaquín | ☐ |
+| La imprenta tiene que pegar el sobre (`sobre-imprenta.pdf`) a la contratapa | Naza | ☐ |
+
+### Bloque 5 · Contenido (se puede empezar hoy)
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **Editar el crudo de Dora** y dejarlo listo para subir | Joaquín | 🔄 grabado, sin editar |
+| Grabar el contenido en **catalán con Imma** (su libro se cierra esta semana) | Joaquín, Imma | ☐ sin grabar |
+| **Calendario de posteo**: qué sale cada día, del 17/10 en adelante | Joaquín | ☐ |
+
+### Bloque 6 · Textos y conversión de las landings (depende del bloque 1)
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Revisar **todos los textos** de las landings nuevas, sección por sección | Joaquín | ☐ |
+| Probar los **botones de compra** de cada sección | Joaquín | ☐ |
+| Decidir si hay que **sumar o sacar botones**, y cuánta información va en el hero | Joaquín, con Naza | ☐ |
+| Revisar las **heros de conversión** pensadas para cada publicidad | Joaquín | ☐ |
+
+### Bloque 7 · Meta Ads (depende de los bloques 5 y 6)
+
+> Decisión a tomar: la cuenta está sin movimiento. O se empieza a subir orgánico ahora para
+> poner ads en ~10 días con la cuenta madura, o se arranca ya sabiendo que va a traccionar menos.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Decidir: orgánico 10 días y después ads, o ads desde ya | Joaquín | ☐ decisión |
+| Definir la **estructura de campaña** (objetivos, públicos, presupuesto, creatividades) | Joaquín | ☐ |
+| `pedidos.extras.origen` (de qué anuncio vino la compra) entra con el rediseño | Joaquín lo revisa | 🔄 |
+
+### Trabado por terceros
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **INPI**: Argentina es first-to-file y el contenido ya es público | Joaquín | ☐ **urgente** |
+| Abogado: términos, privacidad, devolución, «Su voz» sin clonación | Naza | ☐ |
+| Abogado para Kids: aviso de «algo preocupante» y permiso del adulto (WhatsApp pide 13 años). **Bloquea vender Kids** | Naza | ☐ |
+| Datos de titulares en los legales (CUIT y domicilio de Joaquín, NIF de Immaculada) | Ambos | ☐ vacíos desde septiembre |
+| Stripe real para España | Naza | ☐ |
+| Clave de Anthropic de Joaquín: vence el **1/11** | Joaquín | ☐ se mira el 25/10 |
+
+### Lo que se cerró entre el 15 y el 17/10
+
+- Las **77 plantillas** en Meta: 51 aprobadas (las 12 de V3 con las 3 de regalo, y las 13 de Kids en español) y 26 de Kids en revisión.
+- `MAIL_SOCIOS` cargada en los dos servicios; la alarma de variables al arrancar, en main.
+- La **pantalla de dudas** del escritor V3 (PR #22) y el roadmap del 13/10 (PR #31), en main.
+- **Kids completo**: motor, bot, compra, panel y libro, en 5 PR probados, apagado por defecto.
+- El **libro modelo de Dora** impreso, y el marco con NFC armado.
+
+---
+
+## 🗄 Historial — lo que seguía vivo al 15/10
+
+> **Esto ya no manda: manda el índice del 17/10, más arriba.** Se deja sin borrar para ver de
+> dónde venimos. Salía del roadmap de dos días del 13/10 (revisión con Fable) cruzado con
+> `git log origin/main` y los PRs mergeados hasta el #40.
 > Dueño: **Naza**, **Joaquín** o **Claude** (un agente, siempre con el OK de Naza para mergear).
 > Ramas y carpetas viejas: `docs/limpieza-2026-10-15.md`.
 
