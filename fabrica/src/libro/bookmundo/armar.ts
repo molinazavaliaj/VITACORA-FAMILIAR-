@@ -17,13 +17,18 @@ export type LibroBookmundo = {
   informeInterior: InformeInterior;
   informeCubierta: Informe;
   ok: boolean;
+  /** Qué marcar en Bookmundo para el interior: COLOR si alguna página tiene color (las fotos), si no BLANCO Y NEGRO. */
+  color: boolean;
+  /** El nombre del interior, que ya dice qué marcar: interior-168x240-COLOR.pdf o interior-168x240-BLANCO-Y-NEGRO.pdf. */
+  archivoInterior: string;
   /** Los dos informes juntos, para leer antes de subir. */
   informe: string;
 };
 
 /** Los nombres de los archivos: llevan la medida, para que nadie suba uno de otro formato. */
 export const ARCHIVOS_BOOKMUNDO = {
-  interior: `interior-${FORMATO_TAPA_DURA.anchoMm}x${FORMATO_TAPA_DURA.altoMm}.pdf`,
+  /** El interior lleva en el nombre qué marcar en Bookmundo, para que un libro con fotos en color no se pida en blanco y negro. */
+  interior: (color: boolean) => `interior-${FORMATO_TAPA_DURA.anchoMm}x${FORMATO_TAPA_DURA.altoMm}-${color ? 'COLOR' : 'BLANCO-Y-NEGRO'}.pdf`,
   cubierta: 'cubierta.png',
   guias: 'cubierta-GUIAS-no-subir.png',
   informe: 'informe.txt',
@@ -47,16 +52,22 @@ export async function armarLibroBookmundo(
   const hecha = await generarCubierta(datosCubierta);
   const informeCubierta = verificarCubierta(hecha, { urlQr: cubierta.urlQr, paginas: informeInterior.paginas });
   const ok = informeInterior.ok && informeCubierta.ok;
+  const color = informeInterior.paginasColor.length > 0;
+  const archivoInterior = ARCHIVOS_BOOKMUNDO.interior(color);
   const informe = [
+    color
+      ? `>>> EN BOOKMUNDO MARCAR «COLOR». Tiene fotos en color (págs. ${informeInterior.paginasColor.join(', ')}). En blanco y negro saldrían en grises. <<<`
+      : '>>> EN BOOKMUNDO MARCAR «BLANCO Y NEGRO». No tiene nada en color. <<<',
+    '',
     informeInterior.texto,
     '',
     informeCubierta.texto,
     '',
     'Para pedirlo en Bookmundo (a mano: no tienen API):',
-    `- Formato ${formato.nombre}, tapa dura, papel ${papel}, ${informeInterior.paginas} páginas, interior en ${informeInterior.paginasColor.length ? `COLOR (${informeInterior.paginasColor.length} páginas con fotos en color)` : 'BLANCO Y NEGRO'}.`,
-    `- Interior: ${ARCHIVOS_BOOKMUNDO.interior}. Cubierta: ${ARCHIVOS_BOOKMUNDO.cubierta} con la plantilla FullEmpty (${ARCHIVOS_BOOKMUNDO.guias} es solo para mirar).`,
+    `- Formato ${formato.nombre}, tapa dura, papel ${papel}, ${informeInterior.paginas} páginas, interior en ${color ? `COLOR (${informeInterior.paginasColor.length} páginas con fotos en color)` : 'BLANCO Y NEGRO'}.`,
+    `- Interior: ${archivoInterior}. Cubierta: ${ARCHIVOS_BOOKMUNDO.cubierta} con la plantilla FullEmpty (${ARCHIVOS_BOOKMUNDO.guias} es solo para mirar).`,
     '- Declarar el uso de IA (obligatorio en Bookmundo).',
     '- Sin ISBN ni publicar: es un libro privado.',
   ].join('\n');
-  return { interior, cubierta: hecha, informeInterior, informeCubierta, ok, informe };
+  return { interior, cubierta: hecha, informeInterior, informeCubierta, ok, color, archivoInterior, informe };
 }

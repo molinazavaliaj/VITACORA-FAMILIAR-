@@ -55,7 +55,7 @@ const r = await armarLibroBookmundo(
   },
 );
 mkdirSync(salida, { recursive: true });
-writeFileSync(join(salida, ARCHIVOS_BOOKMUNDO.interior), r.interior);
+writeFileSync(join(salida, r.archivoInterior), r.interior);
 writeFileSync(join(salida, ARCHIVOS_BOOKMUNDO.cubierta), r.cubierta.png);
 writeFileSync(join(salida, ARCHIVOS_BOOKMUNDO.guias), r.cubierta.guias);
 writeFileSync(join(salida, ARCHIVOS_BOOKMUNDO.informe), r.informe);

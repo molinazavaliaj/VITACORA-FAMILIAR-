@@ -17,7 +17,7 @@ Nunca frena la entrega: si falla, queda en el log y el libro de la familia sale 
 
 | Archivo | Qué es |
 |---|---|
-| `interior-168x240.pdf` | El interior para subir |
+| `interior-168x240-COLOR.pdf` o `-BLANCO-Y-NEGRO.pdf` | El interior para subir. El nombre dice qué marcar en Bookmundo, y la primera línea del informe también: un libro con fotos en color nunca se pide en blanco y negro |
 | `cubierta.png` | La cubierta, 300 ppp, para la plantilla FullEmpty |
 | `cubierta-GUIAS-no-subir.png` | La misma con corte, lomo y zona segura dibujados: para mirar |
 | `informe.txt` | La verificación de los dos, y los datos para el pedido |

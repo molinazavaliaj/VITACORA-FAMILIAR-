@@ -1,6 +1,6 @@
 // El libro para Bookmundo de un narrador: junta lo que ya está en la base (el libro escrito, la tapa que
 // eligió la dueña, el idioma, las frases confirmadas) y deja en Storage, en `{narrador}/bookmundo/`:
-//   interior-168x240.pdf · cubierta.png · cubierta-GUIAS-no-subir.png · informe.txt
+//   interior-168x240-COLOR.pdf (o -BLANCO-Y-NEGRO.pdf: lo que hay que marcar en Bookmundo) · cubierta.png · cubierta-GUIAS-no-subir.png · informe.txt
 // No cuesta modelo: el libro ya está escrito. No sube nada a Bookmundo (no tienen API): una persona lo baja,
 // lee el informe y lo sube a mano. Lo llaman la entrega del libro (libro-v3.ts) y el portón de imprenta
 // (imprenta.ts, cuando la familia confirma las frases y el interior suma «Su voz»).
@@ -80,7 +80,9 @@ export async function armarBookmundoDeNarrador(db: SupabaseClient, narradorId: s
     const { error: e } = await db.storage.from('audios').upload(`${carpeta}/${archivo}`, cuerpo, { contentType: tipo, upsert: true });
     if (e) throw new Error(`bookmundo: no se pudo subir ${carpeta}/${archivo}: ${e.message}`);
   };
-  await subir(ARCHIVOS_BOOKMUNDO.interior, r.interior, 'application/pdf');
+  await subir(r.archivoInterior, r.interior, 'application/pdf');
+  // Si antes salió con el otro nombre (otras fotos), se borra: que nunca queden los dos.
+  await db.storage.from('audios').remove([`${carpeta}/${ARCHIVOS_BOOKMUNDO.interior(!r.color)}`]).catch(() => undefined);
   await subir(ARCHIVOS_BOOKMUNDO.cubierta, r.cubierta.png, 'image/png');
   await subir(ARCHIVOS_BOOKMUNDO.guias, r.cubierta.guias, 'image/png');
   await subir(ARCHIVOS_BOOKMUNDO.informe, r.informe, 'text/plain; charset=utf-8');

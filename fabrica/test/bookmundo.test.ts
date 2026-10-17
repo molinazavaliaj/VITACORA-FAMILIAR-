@@ -222,7 +222,9 @@ describe('de punta a punta con Chromium', () => {
     expect(r.informe).toContain('sin foto');
     // Sin fotos no queda ninguna página en color: el acento va en gris (Bookmundo cobra cada página con color).
     expect(r.informeInterior.paginasColor).toEqual([]);
-    expect(r.informe).toContain('BLANCO Y NEGRO');
+    expect(r.informe.split(/\r?\n/)[0]).toContain('MARCAR «BLANCO Y NEGRO»');
+    expect(r.archivoInterior).toBe('interior-168x240-BLANCO-Y-NEGRO.pdf');
+    expect(r.color).toBe(false);
   }, 180_000);
 
   it('ordena como un libro: capítulos en impar, notas, colofón en la última, márgenes en espejo', async () => {
