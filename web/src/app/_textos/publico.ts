@@ -30,6 +30,8 @@ export type TextosPublico = {
   escribirWhatsApp: string;
   /** El enlace discreto del pie a /opiniones (solo con 3 opiniones o más). */
   opiniones: string;
+  /** El enlace del pie a /eventos (Vitácora Eventos, 17/10). */
+  eventos: string;
 };
 
 export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
@@ -55,6 +57,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     contacto: "Contacto",
     escribirWhatsApp: "Escríbenos por WhatsApp",
     opiniones: "Opiniones",
+    eventos: "Eventos",
   },
   ca: {
     inicio: "Vitácora, inici",
@@ -77,6 +80,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     contacto: "Contacte",
     escribirWhatsApp: "Escriu-nos per WhatsApp",
     opiniones: "Opinions",
+    eventos: "Esdeveniments",
   },
   ar: {
     inicio: "Vitácora, inicio",
@@ -99,5 +103,6 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     contacto: "Contacto",
     escribirWhatsApp: "Escribinos por WhatsApp",
     opiniones: "Opiniones",
+    eventos: "Eventos",
   },
 };

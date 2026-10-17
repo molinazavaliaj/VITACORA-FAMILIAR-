@@ -12,7 +12,8 @@ import { EnlaceIdioma } from "./idioma-cliente";
 // misma página se llama «Desistimiento». Cada idioma enlaza a sus legales
 // (/legal/…, /ca/legal/…, /ar/legal/…; fase 5). El enlace a «Opiniones» solo
 // aparece con al menos tres opiniones reales (lib/opiniones.ts); `opiniones`
-// se pasa solo en los tests.
+// se pasa solo en los tests. «Eventos» lleva a Vitácora Eventos (17/10), que
+// no tiene solapa arriba: no se compra, se consulta.
 
 export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaWeb; camino: string; opiniones?: readonly Opinion[] }) {
   const t = TEXTOS_PUBLICO[idioma];
@@ -39,6 +40,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaW
           </div>
           <div className="flex flex-col">
             <Link prefetch={false} href="/entrar" className={enlace}>{t.entrar}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/eventos")} className={enlace}>{t.eventos}</Link>
             {hayOpiniones(opiniones) ? (
               <Link prefetch={false} href={ruta(idioma, "/opiniones")} className={enlace}>{t.opiniones}</Link>
             ) : null}

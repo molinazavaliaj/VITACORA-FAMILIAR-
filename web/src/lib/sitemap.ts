@@ -10,7 +10,7 @@ import { OPINIONES, hayOpiniones, type Opinion } from "@/lib/opiniones";
 
 const BASE = "https://www.vitacorafamiliar.com";
 
-const CAMINOS_FIJOS = ["/", "/ejemplo"] as const;
+const CAMINOS_FIJOS = ["/", "/ejemplo", "/eventos"] as const;
 
 export function entradasSitemap(opiniones: readonly Opinion[] = OPINIONES): MetadataRoute.Sitemap {
   const caminos: string[] = [...CAMINOS_FIJOS];
