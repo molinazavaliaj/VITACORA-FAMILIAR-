@@ -79,20 +79,43 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Seguimiento en vivo de las órdenes que empiecen a llegar (lo que falte después del bloque 2) | Naza, Claude | ☐ |
+| Seguimiento en vivo de las órdenes que empiecen a llegar (lo que falte después del bloque 2). **Necesita la decisión de logística del bloque 4**: hoy no hay dónde guardar la dirección ni el estado de producción | Naza, Claude | ☐ |
 | Que el mail de socios traiga novedades, avisos e hitos de cada cliente, sin ruido | Claude, con Naza | ☐ |
 | **Agente que lea el Gmail y avise por un bot de Telegram** lo importante de cada cliente | Joaquín, Claude | ☐ nuevo |
 
-### Bloque 4 · Lo físico: libros y marcos (no depende de código)
+### Bloque 4 · Lo físico: libros, marcos, packaging y envío
+
+> **Acá hay una decisión de septiembre que nunca se tomó.** `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`
+> dejó abierto el modelo de datos del envío (columnas propias vs. `pedidos.envio` jsonb), quién paga
+> el envío y con qué agregador se genera la etiqueta. **El seguimiento de las órdenes en el panel
+> (bloque 3) cuelga de esa decisión**: hoy no hay dónde guardar la dirección ni el estado de producción.
 
 | Qué | Dueño | Estado |
 |---|---|---|
+| **Tomar la decisión de logística del 21/09**: modelo de datos del envío, quién paga, qué agregador | Ambos | ☐ **abre el bloque 3** |
 | Definir flujo y proveedor de libros impresos en **Argentina** | Joaquín | ☐ |
 | Definir flujo y proveedor de libros impresos en **España** | Naza | ☐ |
 | Un libro impreso de muestra con el proveedor ya definido, en cada país | Ambos | ☐ |
 | Definir la estética del libro y **cómo van las imágenes adentro** | Joaquín, con Naza | ☐ |
+| **Diseñar el packaging de envío** y mandarlo a producir | Joaquín | ☐ nuevo |
+| **Diseñar el packaging de la gift card** (hoy solo existe la tarjeta digital y el mail) y mandarlo a producir | Joaquín | ☐ nuevo |
+| Que el packaging esté **producido y en mano para el día 1 de lanzamiento**, cuando ya se reciben pedidos | Joaquín | ☐ nuevo |
 | Proveedor de los marcos con NFC (hay uno hecho de prueba) | Joaquín | ☐ |
 | La imprenta tiene que pegar el sobre (`sobre-imprenta.pdf`) a la contratapa | Naza | ☐ |
+
+### Bloque 4bis · El final del libro, a elección del cliente (nuevo, 17/10)
+
+> Hoy el libro termina en «Su voz» (las frases con su código), colofón y contratapa:
+> `fabrica/src/libro/plantilla-html.ts`. No hay nada después. La idea es que el comprador
+> elija en el checkout qué se le suma al final, y la fábrica agregue esas hojas al PDF de imprenta.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Definir las opciones del final: hoja para que el autor **firme y dedique**, hojas de **notas** en blanco, o nada | Joaquín, con Naza | ☐ decisión |
+| Cuántas hojas lleva cada opción y cómo quedan maquetadas en A5 | Joaquín, con Naza | ☐ |
+| La opción entra en el **checkout** y se guarda con el pedido | Claude, con Naza | ☐ |
+| La **fábrica** suma esas hojas al `libro-imprenta.pdf` (no al PDF que descarga la familia) | Claude, con Naza | ☐ |
+| Textos de esas hojas en los tres idiomas, aprobados por Naza | Claude, con Naza | ☐ |
 
 ### Bloque 5 · Contenido (se puede empezar hoy)
 
@@ -122,14 +145,33 @@ mirar si está prendido.**
 | Definir la **estructura de campaña** (objetivos, públicos, presupuesto, creatividades) | Joaquín | ☐ |
 | `pedidos.extras.origen` (de qué anuncio vino la compra) entra con el rediseño | Joaquín lo revisa | 🔄 |
 
+### Bloque 8 · Legales: cómo nos presentamos y en qué situación estamos (nuevo, 17/10)
+
+> **Lo escrito está mucho más avanzado de lo que decía el roadmap.** En `rediseno-web` ya hay
+> términos, privacidad y botón de arrepentimiento, en los tres idiomas y por región
+> (`web/src/app/_textos/legal.ts`, 1.300 líneas), con la ley y la autoridad de reclamo de cada país.
+>
+> **La promesa que queremos hacer ya está redactada**, casi con estas palabras: «los audios y la voz
+> son de tu familia, se usan solo para su libro, **no se usan para entrenar ningún modelo** y se borran
+> cuando lo pidas»; «no los vendemos, no los usamos para publicidad»; «no nos quedamos con ningún
+> derecho sobre su historia, sus audios, sus fotos ni su voz»; «sus frases son recortes de sus propios
+> audios, **sin ninguna voz sintética**». Lo que falta no es escribirla: es **validarla y publicarla**.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **Los titulares están vacíos y es obligatorio**: CUIT y domicilio de Joaquín, NIF y domicilio de Immaculada (`web/src/app/legal/titulares.ts`). La propia página los pinta en amarillo. Sin eso incumplimos LSSI-CE art. 10 en España y la Res. 424/2020 en Argentina | Joaquín y Naza | ☐ **bloquea vender** |
+| Decidir **con qué figura legal se factura en cada país** (Joaquín en AR, Immaculada en ES) y que coincida con lo que dicen los legales | Ambos | ☐ decisión |
+| Que el abogado revise lo ya escrito (un solo brief: devolución, «Su voz» sin clonación, uso de datos, titulares) | Naza | ☐ |
+| Abogado para Kids: aviso de «algo preocupante» y permiso del adulto (WhatsApp pide 13 años). **Bloquea vender Kids** | Naza | ☐ |
+| Los legales **viven en `rediseno-web`**: hasta el bloque 1 no están publicados | Naza | 🔄 con el merge |
+| Sumar a la privacidad la **dirección de envío** (para qué se usa y cuánto se guarda), que sale del bloque 4 | Claude, con Naza | ☐ |
+| Revisar que los textos de venta no prometan nada que los legales no respalden | Joaquín | ☐ |
+
 ### Trabado por terceros
 
 | Qué | Dueño | Estado |
 |---|---|---|
 | **INPI**: Argentina es first-to-file y el contenido ya es público | Joaquín | ☐ **urgente** |
-| Abogado: términos, privacidad, devolución, «Su voz» sin clonación | Naza | ☐ |
-| Abogado para Kids: aviso de «algo preocupante» y permiso del adulto (WhatsApp pide 13 años). **Bloquea vender Kids** | Naza | ☐ |
-| Datos de titulares en los legales (CUIT y domicilio de Joaquín, NIF de Immaculada) | Ambos | ☐ vacíos desde septiembre |
 | Stripe real para España | Naza | ☐ |
 | Clave de Anthropic de Joaquín: vence el **1/11** | Joaquín | ☐ se mira el 25/10 |
 
