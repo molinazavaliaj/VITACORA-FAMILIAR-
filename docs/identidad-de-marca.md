@@ -38,7 +38,7 @@ vuelve mala en ambas.
 | Slot | Frase | Dónde vive |
 |---|---|---|
 | **Slogan** | *En cada familia hay un libro sin escribir.* | Bajo el logo, web, bio de IG |
-| **Descriptor** | *Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.* | Bio de IG, hero de la web, primera línea de cada ad |
+| **Descriptor** | *Un biógrafo entrevista y escribe el libro de una vida, con la voz de quien la cuenta.* | Bio de IG, metadata al compartir, primera línea de cada ad |
 | **Gancho madre de campaña** | *Hay preguntas que un día ya no se pueden hacer.* | Ads y reels |
 | **Frase de la casa** | *Todas las vidas merecen su propio libro* | Contratapa y colofón del libro |
 
@@ -68,19 +68,31 @@ siempre juntos** en toda pieza donde el producto todavía no se explicó.
 
 ### Descriptor
 
-> **Un biógrafo entrevista y escribe el libro de una vida.**
-> **La de tu papá, la de tu abuela, la tuya.**
+> **Un biógrafo entrevista y escribe el libro de una vida, con la voz de quien la cuenta.**
+
+**Cambiado el 17/10/2026 (Joaquín).** Antes era *"Un biógrafo entrevista y escribe el
+libro de una vida. La de tu papá, la de tu abuela, la tuya."* El cierre nuevo dice
+**de dónde sale el libro**, que es lo que de verdad nos separa del competidor: no se
+llena a mano, lo cuenta ella hablando. La enumeración hacía bien su trabajo, pero
+ocupaba el lugar donde hoy va eso.
 
 **Por qué:**
 
-- **La gente se reconoce en una lista, no en una categoría.** "Tu familiar" es
-  una abstracción que no le pasa a nadie; "tu abuela" sí. Enumerar hace el
-  trabajo que ninguna palabra paraguas hace.
-- **"La tuya" al final es el giro:** venís leyendo un producto de regalo y la
-  última palabra te incluye. Abre el caso del auto-narrador sin desenfocar el
-  principal.
+- **"Con la voz de quien la cuenta" es la prueba del producto.** El competidor vende
+  un libro de preguntas para llenar a mano. Acá la persona habla y su voz queda: en
+  el libro impreso, como recortes de sus propios audios. Decirlo en el descriptor
+  adelanta la diferencia antes de que nadie pregunte.
+- **"Quien la cuenta" resuelve quién narra sin nombrarlo.** Sirve igual para el
+  regalo a la abuela y para quien cuenta su propia vida, sin tener que enumerar ni
+  elegir un caso.
 - **"El libro de una vida" rima con el slogan** y, al no llevar posesivo,
   resuelve el problema de "su vida" vs "tu vida".
+
+**Lo que se perdió y hay que compensar:** la enumeración ("la de tu papá, la de tu
+abuela, la tuya") hacía que cada uno se reconociera, y abría el caso del
+auto-narrador. Eso ahora tiene que hacerlo la pieza: el checkout ya pregunta "¿Es
+para…?" con esa misma lista, y la portada enumera más abajo. **En una pieza donde el
+descriptor va solo —una bio, un ad— conviene que la lista aparezca cerca.**
 
 **Por qué "biógrafo":** convierte un servicio raro (¿un bot de WhatsApp?) en un
 oficio de prestigio que existe hace siglos. Suena caro, así que justifica los
@@ -96,7 +108,9 @@ nombre de la marca — repetirla gasta un lugar sin ganar claridad.
 habla del caso regalo. Quien compra es el hijo/a; el libro es de la vida **de
 su padre/madre/abuelo**. Decir "tu vida" hace entender que le escribimos la
 autobiografía al comprador, que es el producto equivocado. La salida limpia es
-**"el libro de UNA vida"**: sin posesivo, deja de importar quién narra.
+**"el libro de UNA vida"**: sin posesivo, deja de importar quién narra. Por lo mismo
+el descriptor cierra con **"quien la cuenta"** y no con "su voz": "su" vuelve a meter
+el posesivo que esta regla saca.
 
 **En ads, "papá" rota** según a quién le hablás (tu mamá, tu abuela, tu viejo).
 
