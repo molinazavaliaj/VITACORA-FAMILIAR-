@@ -689,7 +689,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
   libroEntero: string; libroEnteroBajada: string;
   colofon1: string; colofon2: string; cierre: string;
-  /** El título de las páginas de notas del libro impreso (modo imprenta). PENDIENTE DE APROBACIÓN de Naza. */
+  /** El título de las páginas de notas del libro impreso (modo imprenta). Aprobado por Naza el 17/10. */
   notas: string;
 }> = {
   'es-AR': {
@@ -979,7 +979,19 @@ function estilosImprenta(o: OpcionesImprenta): string {
   const escala = escalaImprenta(o);
   const L = MARGEN_LOMO_PX, F = MARGEN_FUERA_PX, AL = ADORNO_LOMO_PX, AF = ADORNO_FUERA_PX;
   return `
-  :root { --papel: #ffffff; }
+  /* Solo grises puros (Naza, 17/10): Bookmundo cobra como color toda página con un punto de color, y el
+     vino del acento y los tonos cálidos del diseño estaban en casi todas (84 de 88 en el libro de Imma).
+     Así, en color quedan solo las fotos. */
+  :root {
+    --papel: #ffffff; --tinta: #1a1a1a; --acento: #4d4d4d;
+    --gris1: #a3a3a3; --gris3: #555555; --gris4: #424242; --gris5: #272727;
+    --linea: #dedede; --linea2: #ebebeb; --marfil2: #d3d3d3; --tostado: #b0b0b0;
+  }
+  [stroke="#c9a795"] { stroke: #b0b0b0; }
+  [stroke="#eee9df"], [stroke="#f2eee5"] { stroke: #ececec; }
+  [stroke="#1c1917"] { stroke: #1a1a1a; }
+  [fill="#1c1917"] { fill: #1a1a1a; }
+  [fill="#6e2618"] { fill: #4d4d4d; }
   @page { size: ${o.anchoMm}mm ${o.altoMm}mm; margin: 0; }
   body { zoom: ${escala}; }
   .lienzo { height: ${o.altoMm / escala}mm; }
@@ -1012,7 +1024,7 @@ function estilosImprenta(o: OpcionesImprenta): string {
   .notas-titulo .t { position: absolute; top: 70mm; left: 0; right: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 30px; color: var(--tinta); }
   .notas-titulo .r { position: absolute; top: 86mm; left: 50%; width: 44px; margin-left: -22px; height: 1px; background: var(--acento); }
   .notas .renglones { position: absolute; top: 30mm; }
-  .notas .renglones div { height: ${RENGLON_MM}mm; border-bottom: 0.6px solid #d9d3c7; }
+  .notas .renglones div { height: ${RENGLON_MM}mm; border-bottom: 0.6px solid #d6d6d6; }
   `;
 }
 

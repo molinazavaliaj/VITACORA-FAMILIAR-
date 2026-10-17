@@ -84,7 +84,7 @@ const SCRIPT_MEDIR = `(async () => {
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const o = (y * W + x) * 4, r = px[o], g = px[o + 1], b = px[o + 2];
       const min = Math.min(r, g, b), max = Math.max(r, g, b);
-      if (max - min > 40) color++;
+      if (max - min > 15) color++;
       for (const [c, umbral] of [[oscura, 200], [clara, 245]]) {
         if (min < umbral) { if (x < c.x0) c.x0 = x; if (x > c.x1) c.x1 = x; if (y < c.y0) c.y0 = y; if (y > c.y1) c.y1 = y; }
       }
@@ -248,7 +248,14 @@ export function evaluarInterior(
 
   const paginasColor = medidas.filter((p) => p.pixelesColor > 3).map((p) => p.numero);
   const conFoto = medidas.filter((p) => p.fraccionColor > 0.02).map((p) => p.numero);
-  bien.push(`Páginas en color: ${paginasColor.length} de ${n}${paginasColor.length ? ` (${conFoto.length} con fotos; el resto por el acento del diseño)` : ''}. Bookmundo cobra cada una (≈ €0,02).`);
+  // Bookmundo no deja elegir páginas: se elige «color» o «blanco y negro» para todo el interior, y con color
+  // cuenta solo las páginas que tienen algo de color y cobra esas (≈ €0,02 cada una).
+  if (paginasColor.length === 0) bien.push('Páginas en color: ninguna. En Bookmundo elegir BLANCO Y NEGRO.');
+  else {
+    bien.push(`Páginas en color: ${paginasColor.length} de ${n} (págs. ${lista(paginasColor)}). En Bookmundo elegir COLOR: cuentan solas esas páginas y cobran ≈ €0,02 cada una. Con blanco y negro, las fotos salen en grises.`);
+    const sinFoto = paginasColor.filter((p) => !conFoto.includes(p));
+    if (sinFoto.length) avisos.push(`Páginas con color que no son fotos: ${lista(sinFoto)}. Algo del diseño quedó en color: Bookmundo las cobra igual.`);
+  }
 
   const ok = errores.length === 0;
   const texto = [

@@ -26,7 +26,9 @@ Nunca frena la entrega: si falla, queda en el log y el libro de la familia sale 
 
 Portadilla + blanca · capítulos siempre en impar · márgenes en espejo (21,6 mm del lomo, 19,3 del corte) ·
 riel del lado del corte · cruces a 16 mm del lomo y 12,6 del corte · círculos reflejados en las pares ·
-fondo blanco (papel crema), sin grano · TrueType estáticas incrustadas (`fabrica/fuentes-imprenta/`) ·
+fondo blanco (papel crema), sin grano · **todo en grises puros salvo las fotos** (Naza 17/10: Bookmundo no deja
+elegir páginas, solo «color» o «blanco y negro» para todo el interior; con color cuenta sola cada página con
+algo de color y cobra ≈ €0,02 c/u; el acento rojo daba 84 de 88, en gris quedan solo las fotos: 5 en Imma) · TrueType estáticas incrustadas (`fabrica/fuentes-imprenta/`) ·
 notas rayadas hasta 88 · colofón en la última. El MediaBox se corrige a 476,22 × 680,31 pt (Chromium daba 167,9 × 239,9 mm).
 El libro de pantalla no cambia.
 
@@ -42,7 +44,7 @@ PNG con pHYs de 300 ppp. La foto de tapa va **tal cual** la subió la familia: l
 Abre el PDF con pdf.js dentro de Chromium (anda en Railway, sin Python). Mide: páginas (≥ 88 y par),
 tamaño de cada página, fuentes (incrustadas, ninguna Type 3), texto a ≥ 20 mm del lomo, tinta oscura a
 ≥ 15 mm del lomo y ≥ 10 del corte, adornos claros a ≥ 10 del lomo, fotos (< 200 ppp frena, 200–250 avisa),
-enlaces, páginas en color, peso. La cubierta: píxeles exactos, 300 ppp, QR que lleva a su voz, foto de tapa
+enlaces, páginas en color (y dice qué elegir en Bookmundo: COLOR si hay fotos en color, si no BLANCO Y NEGRO), peso. La cubierta: píxeles exactos, 300 ppp, QR que lleva a su voz, foto de tapa
 (misma regla de ppp).
 
 ## Lo que sigue siendo a mano
@@ -53,8 +55,4 @@ enlaces, páginas en color, peso. La cubierta: píxeles exactos, 300 ppp, QR que
   o extender el fondo con IA y pegar encima los píxeles originales de la persona).
 - **Fotos por capítulo en la V3**: la V3 no sabe a qué capítulo va cada foto; hoy salen solo en libros viejos
   o desde la carpeta local (`datos.json → fotos`).
-- **Color**: el acento rojo hace que casi todas las páginas cuenten como color (84 de 88, ≈ €0,02 c/u).
-  Pasarlo a gris en imprenta es decisión de Naza.
 - **Aviso**: nadie recibe un mail cuando los archivos están listos; se miran en Storage.
-- **Textos nuevos** pendientes de aprobación de Naza: título «Notas»/«Notes» y los textos de la cubierta
-  (`TEXTOS_CUBIERTA` en `cubierta.ts`).

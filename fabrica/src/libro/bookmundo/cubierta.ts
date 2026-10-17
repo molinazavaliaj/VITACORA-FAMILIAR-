@@ -20,7 +20,7 @@ import { LOMO_MINIMO_TEXTO_MM, PPP_CUBIERTA, medidasCubierta, type MedidasCubier
 /**
  * Los textos de la cubierta. Los de Imma (17/10) salieron de la web (portada.ts → direccion.libro y
  * publico.ts → lema). Acá van sin género («tal como las vivió») y en las tres lenguas del libro.
- * PENDIENTES DE APROBACIÓN de Naza (los catalanes, además, de revisión nativa).
+ * Aprobados por Naza el 17/10.
  */
 export const TEXTOS_CUBIERTA: Record<LenguaLibro, {
   etiqueta: string; siempre: string; contra: (nombre: string) => string; escucha: string; lema: string;

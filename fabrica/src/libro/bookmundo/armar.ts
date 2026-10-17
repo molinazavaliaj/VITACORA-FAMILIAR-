@@ -53,7 +53,7 @@ export async function armarLibroBookmundo(
     informeCubierta.texto,
     '',
     'Para pedirlo en Bookmundo (a mano: no tienen API):',
-    `- Formato ${formato.nombre}, tapa dura, papel ${papel}, ${informeInterior.paginas} páginas, ${informeInterior.paginasColor.length} en color.`,
+    `- Formato ${formato.nombre}, tapa dura, papel ${papel}, ${informeInterior.paginas} páginas, interior en ${informeInterior.paginasColor.length ? `COLOR (${informeInterior.paginasColor.length} páginas con fotos en color)` : 'BLANCO Y NEGRO'}.`,
     `- Interior: ${ARCHIVOS_BOOKMUNDO.interior}. Cubierta: ${ARCHIVOS_BOOKMUNDO.cubierta} con la plantilla FullEmpty (${ARCHIVOS_BOOKMUNDO.guias} es solo para mirar).`,
     '- Declarar el uso de IA (obligatorio en Bookmundo).',
     '- Sin ISBN ni publicar: es un libro privado.',
