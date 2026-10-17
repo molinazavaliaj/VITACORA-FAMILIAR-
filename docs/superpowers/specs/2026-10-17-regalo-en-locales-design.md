@@ -210,6 +210,10 @@ spec).
    (`docs/regalo/locales/hoja-para-el-local.md`, borrador por aprobar). La
    factura de la comisión se ve con el gestor más adelante.
 
+7. **Dirección del libro impreso regalado:** no se pide al regalar; se carga
+   después desde el panel (Encargar libro) y el mail del regalo lo avisa.
+8. **Carta ya pagada usada en /comprar?carta=:** sigue sumando el 20 % al local.
+
 Textos de la carta, del cartel, de la página *no activada* y del panel del
 local: los escribe Fable con voz cálida y se aprueban de a 10, en vos, tú y
 catalán.
