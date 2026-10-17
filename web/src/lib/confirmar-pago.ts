@@ -1,3 +1,4 @@
+import { esIdiomaKids, idiomaKidsDeRegion, type IdiomaKids } from "./kids";
 // Lo que pasa cuando el proveedor de pago confirma el cobro. Vive aparte del
 // webhook de Stripe para que el de MercadoPago haga exactamente lo mismo
 // cuando exista: un solo lugar donde "pagó" significa algo.
@@ -23,7 +24,7 @@ export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
-type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null }) => Promise<boolean>;
+type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null; kids?: { canal: "A" | "B"; idioma?: IdiomaKids } }) => Promise<boolean>;
 type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
 
 export async function confirmarPago(
@@ -57,6 +58,8 @@ export async function confirmarPago(
   // Gift card (08/10): el narrador todavía no tiene teléfono. Espera en
   // regalo_pendiente hasta que escriba con su código (supabase/CONTRATO.md).
   const esRegalo = extras?.regalo === true;
+  // Vitácora Kids (15/10): el mail de acceso de Kids, según el canal de kids_v2.
+  const esKids = extras?.tipo === "kids";
 
   // 1. El pedido. Solo si sigue pendiente: Stripe reintenta el webhook y una
   //    segunda llamada no debe volver a mandar el mail ni tocar nada.
@@ -139,6 +142,8 @@ export async function confirmarPago(
         } else {
           console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
         }
+      } else if (esKids) {
+        await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}), kids: await canalKids(admin, pedido.narrador_id, region) });
       } else {
         // De vos para Argentina y de tú para España (Naza, 09/10).
         await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}) });
@@ -149,4 +154,24 @@ export async function confirmarPago(
   }
 
   return { ok: true, yaEstaba: false, email, codigoRegalo };
+}
+
+/**
+ * El canal de un pedido de Kids (A = su WhatsApp, B = «Lo hago yo») y su
+ * castellano, de `kids_v2.canal` y `kids_v2.idioma`. Si no se puede leer se
+ * loguea y va el del canal A en el idioma de la región: el mail sale igual (el
+ * pago ya está hecho) y el A no le pide nada al padre.
+ */
+async function canalKids(admin: SupabaseClient, narradorId: string, region: "ES" | "AR" | undefined): Promise<{ canal: "A" | "B"; idioma: IdiomaKids }> {
+  const deRegion = idiomaKidsDeRegion(region ?? "AR");
+  try {
+    const { data, error } = await admin.from("kids_v2").select("canal, idioma").eq("narrador_id", narradorId).maybeSingle();
+    const fila = data as { canal?: unknown; idioma?: unknown } | null;
+    const idioma = esIdiomaKids(fila?.idioma) ? fila.idioma : deRegion;
+    if (fila?.canal === "A" || fila?.canal === "B") return { canal: fila.canal, idioma };
+    console.error(`confirmarPago: no pude leer el canal de Kids del narrador ${narradorId}${error ? `: ${error.message}` : ""}; va el mail del canal A.`);
+  } catch (err) {
+    console.error(`confirmarPago: no pude leer el canal de Kids del narrador ${narradorId}; va el mail del canal A.`, err);
+  }
+  return { canal: "A", idioma: deRegion };
 }

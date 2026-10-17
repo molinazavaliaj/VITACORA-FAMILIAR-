@@ -1,3 +1,4 @@
+import type { IdiomaKids } from "./kids";
 // Los textos de los mails que manda la web con el diseño del rediseño (maqueta
 // `Email`, fase 1): el de acceso tras el pago y el de la tarjeta del regalo, y
 // desde la fase 3 la invitación a una historia.
@@ -230,6 +231,63 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
     },
   },
 };
+
+/**
+ * Vitácora Kids (15/10): el mail de acceso cuando el pedido es de Kids
+ * (`extras.tipo = "kids"`), en el castellano del chico (`kids_v2.idioma`): vos
+ * en Argentina, tú en España (Naza 16/10, tanda 8). Cambia el asunto, la vista
+ * previa y la primera línea (según el canal: A = su WhatsApp, B = «Lo hago yo»)
+ * y la fila «Mientras cuenta». Lo demás (título, botón, código, «Al terminar»,
+ * dudas y pie) es el del mail de siempre en ese idioma (`ar`, `es` o `ca`).
+ * En vos aprobados por Naza el 15/10 (docs/rediseno-2026-10/kids/textos-aprobados-2026-10-15.md).
+ */
+export type CanalMailKids = "A" | "B";
+
+export type TextosMailKids = {
+  asunto: (apodo: string) => string;
+  /** La vista previa y la primera línea del cuerpo, por canal. */
+  primeraLinea: Record<CanalMailKids, (apodo: string) => string>;
+  /** La fila «Mientras cuenta». */
+  enTuPanel: string;
+};
+
+export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
+  "es-AR": {
+    asunto: (apodo) => `Listo, ya está en marcha el libro de ${apodo}`,
+    primeraLinea: {
+      A: (apodo) => `Le vamos a escribir a ${apodo} a la hora que elegiste. A vos te avisamos por WhatsApp.`,
+      B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.",
+    },
+    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
+  },
+  "es-ES": {
+    // APROBADO por Naza 16/10 (tanda 8) · asunto («Ya está en marcha…», sin «Listo»)
+    asunto: (apodo) => `Ya está en marcha el libro de ${apodo}`,
+    primeraLinea: {
+      // APROBADO por Naza 16/10 (tanda 8) · primeraLinea.A («a la hora que has elegido», lectura de Marta)
+      A: (apodo) => `Le vamos a escribir a ${apodo} a la hora que has elegido. A ti te avisamos por WhatsApp.`,
+      // APROBADO por Naza 16/10 (tanda 8) · primeraLinea.B
+      B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estéis juntos.",
+    },
+    // APROBADO por Naza 16/10 (tanda 8) · enTuPanel
+    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
+  },
+  ca: {
+    // APROBADO por Naza 16/10 (tanda 10) · asunto
+    asunto: (apodo) => `Ja està en marxa el llibre de ${apodo}`,
+    primeraLinea: {
+      // APROBADO por Naza 16/10 (tanda 10) · primeraLinea.A
+      A: (apodo) => `Escriurem a ${apodo} a l'hora que has triat. A tu t'avisem per WhatsApp.`,
+      // APROBADO por Naza 16/10 (tanda 10) · primeraLinea.B
+      B: () => "El primer missatge t'arriba al teu WhatsApp. La primera pregunta surt quan estigueu junts.",
+    },
+    // APROBADO por Naza 16/10 (tanda 10) · enTuPanel
+    enTuPanel: "Al teu panell veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
+  },
+};
+
+/** Los de vos (Argentina), con su nombre de siempre. */
+export const TEXTOS_MAIL_KIDS: TextosMailKids = TEXTOS_MAIL_KIDS_IDIOMA["es-AR"];
 
 export function textosMail(idioma: IdiomaWeb): TextosMail {
   return TEXTOS_MAIL[idioma];

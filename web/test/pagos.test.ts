@@ -259,6 +259,11 @@ describe('crearCheckout', () => {
     expect(viaje.body.back_urls.failure).toBe('https://vitacorafamiliar.com/ar/comprar/viaje?pago=fallido');
     expect(new URL(viaje.body.back_urls.success).searchParams.get('viaje')).toBe('1');
     delete process.env.PRECIO_VIAJE_ARS;
+
+    // Vitácora Kids (K4): de vuelta a /ar/comprar/kids.
+    await crearCheckout({ id: 'pedido-9', email: 'juan@test.com' }, calcularCompra('AR', SOLO_PDF), { idioma: 'ar', pantalla: 'kids' });
+    const kids = mockPreferenceCreate.mock.calls[2][0] as { body: { back_urls: { failure: string } } };
+    expect(kids.body.back_urls.failure).toBe('https://vitacorafamiliar.com/ar/comprar/kids?pago=fallido');
   });
 });
 

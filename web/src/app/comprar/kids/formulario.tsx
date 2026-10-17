@@ -4,14 +4,21 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { origenDelNavegador } from "@/lib/origen";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import type { Moneda } from "@/lib/productos";
-import { HORAS_KIDS, QUIENES_REGALAN, TEMAS_KIDS, cuerpoKids, estadoKidsInicial, fallaKids, type EstadoKids, type FallaKids, type PasoKids } from "@/lib/kids";
+import type { Catalogo, Moneda } from "@/lib/productos";
+import {
+  HORAS_KIDS, QUIENES_REGALAN, TEMAS_KIDS, compraKids, cuerpoKids, estadoKidsInicial, fallaEnvioKids, fallaKids, idiomaKidsDeRegion, impresosKids,
+  type EstadoKids, type FallaKids, type PasoKids,
+} from "@/lib/kids";
 import { ContenidoPaso, Opcion, Pastilla } from "../../_ui";
-import { CHECKOUT } from "../../_textos/checkout";
-import { CHECKOUT_KIDS } from "../../_textos/checkout-kids";
+import { CHECKOUT, RESUMEN } from "../../_textos/checkout";
+import { CHECKOUT_KIDS, KIDS_IMPRESO_TEXTOS } from "../../_textos/checkout-kids";
 import { AYUDA, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, TituloPaso, arriba } from "../../_checkout/piezas";
 import { PasosLibro } from "../../_checkout/pasos-libro";
 import { crearPagador } from "../../_checkout/pagador";
+import { CLAVE_DIRECCION, guardar, olvidar } from "../../_checkout/memoria";
+import { CamposDireccion } from "../../_checkout/direccion";
+import { eleccionDe } from "../../_checkout/opciones-libro";
+import { OpcionesLibro } from "../../_checkout/opciones-libro-ui";
 import { formatearPrecio } from "../productos-ui";
 
 // La compra de Vitácora Kids (15/10) con el cascarón de las compras y la
@@ -21,11 +28,21 @@ import { formatearPrecio } from "../productos-ui";
 // dónde llegan las preguntas, a qué hora) y 3 temas y pago (qué no preguntar,
 // fotos con otros chicos, pagar). Lo puro vive en lib/kids.ts.
 //
-// Sin `vende` (KIDS_VENTA y precio) el paso 3 no tiene botón de pagar: dice
-// «Próximamente» y ofrece escribirnos. Con `vende`, el botón manda el cuerpo a
-// /api/compra, que HOY lo rechaza (la base no sabe guardar un pedido de Kids;
-// PENDIENTES «Apuntado: Kids»): KIDS_VENTA no se prende hasta que Joaquín lo
-// conecte.
+// Sin `vende` (KIDS_VENTA, precio y región: lib/kids.ts, kidsVende) el paso 3
+// no tiene botón de pagar: dice «Próximamente» y ofrece escribirnos. Con
+// `vende`, el botón manda el cuerpo a /api/compra, que crea el narrador, el
+// pedido y la fila de kids_v2 (lib/kids-compra.ts) y va a la pasarela.
+// KIDS_VENTA no se prende hasta que Joaquín conecte el motor (PENDIENTES
+// «Apuntado: Kids»).
+//
+// El libro impreso (Naza 15/10, tanda 3, punto 10): con `catalogo` (el de Kids,
+// lib/kids.ts `catalogoKids`) y un impreso con precio, el paso 3 ofrece las
+// opciones de la casa (impreso + digital arriba y elegido, después digital; sin
+// marco) y, con el impreso, la dirección de envío de la casa. La dirección se
+// guarda en el navegador al ir a pagar y «Pedido confirmado» la escribe en su
+// entrega, igual que la casa. El precio lo vuelve a calcular el servidor.
+
+const sesion = () => window.sessionStorage;
 
 const FORM_PAGO = "pago-kids";
 const BOTON_PRIMARIO =
@@ -37,6 +54,7 @@ export function CheckoutKids({
   idioma,
   precio,
   moneda,
+  catalogo: cat = null,
   escribir,
   pasoInicial = 1,
 }: {
@@ -44,6 +62,8 @@ export function CheckoutKids({
   /** El precio de Kids SOLO si se vende (KIDS_VENTA y precio válido); si no, null. */
   precio: number | null;
   moneda: Moneda;
+  /** El catálogo de Kids (`catalogoKids`) si se vende; sin él, sin impreso. */
+  catalogo?: Catalogo | null;
   /** Adónde lleva «Escríbenos» (WhatsApp de dudas o correo), resuelto en el servidor. */
   escribir: { href: string; externo: boolean };
   /** Para probar cada paso sin navegador. */
@@ -53,9 +73,12 @@ export function CheckoutKids({
   const T = CHECKOUT[idioma];
   const region = regionDeIdioma(idioma);
   const vende = precio !== null;
+  // El impreso solo si se vende y tiene precio en la región (catálogo de la casa).
+  const conImpreso = vende && cat !== null && cat.impreso !== null;
+  const R = RESUMEN[idioma];
 
   const [paso, setPaso] = useState<PasoKids>(pasoInicial);
-  const [e, setE] = useState<EstadoKids>(estadoKidsInicial);
+  const [e, setE] = useState<EstadoKids>(() => estadoKidsInicial(conImpreso && cat ? cat : undefined, region));
   const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [animar, setAnimar] = useState(false);
@@ -65,9 +88,33 @@ export function CheckoutKids({
   const cambiar = (cambios: Partial<EstadoKids>) => setE((x) => ({ ...x, ...cambios }));
   const f = (n: number) => formatearPrecio(n, moneda, region);
   const aTexto = (x: FallaKids | null) => (x ? { texto: K.errores[x.clave], campo: x.campo } : null);
+  // El ticket, con la misma cuenta que el servidor (sin impreso, solo la base).
+  const compra = useMemo(
+    () => (conImpreso && cat && precio !== null ? compraKids({ ...cat, base: { ...cat.base, precio } }, region, impresosKids(e)) : null),
+    [conImpreso, cat, precio, region, e],
+  );
+  const total = compra ? compra.total : precio;
+  const llevaImpreso = conImpreso && e.formato === "impreso";
+
+  // Justo antes de ir a la pasarela: la dirección, para que «Pedido confirmado»
+  // la guarde en su entrega cuando vuelva pagado (como la casa).
+  const antesDeIr = useRef<(narradorId: string) => void>(() => {});
+  useEffect(() => {
+    antesDeIr.current = (narradorId) => {
+      if (llevaImpreso) {
+        guardar(sesion, CLAVE_DIRECCION, narradorId, { destinatarioNombre: e.recibe.trim(), destinatarioTelefono: e.telefonoRecibe.trim(), direccion: e.direccion });
+      } else {
+        olvidar(sesion, CLAVE_DIRECCION);
+      }
+    };
+  });
 
   const pagador = useMemo(
-    () => crearPagador({ fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), origen: origenDelNavegador }, T),
+    () =>
+      crearPagador(
+        { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), origen: origenDelNavegador, antesDeIr: (c) => antesDeIr.current(c.narradorId) },
+        T,
+      ),
     [T],
   );
 
@@ -107,9 +154,12 @@ export function CheckoutKids({
         return irA(p);
       }
     }
+    const envio = llevaImpreso ? fallaEnvioKids(e, T) : null;
+    if (envio) return setFalla(envio);
     setFalla(null);
     setEnviando(true);
-    const r = await pagador.pagar(cuerpoKids(e, region, idioma), []);
+    const cuerpo = cuerpoKids(e, region, idioma);
+    const r = await pagador.pagar(conImpreso ? cuerpo : { ...cuerpo, productos: { impresos: 0 } }, []);
     if ("error" in r) {
       setFalla({ texto: r.error });
       setEnviando(false);
@@ -268,6 +318,23 @@ export function CheckoutKids({
                   <Opcion tipo="checkbox" name="fotos" checked={e.fotosConOtrosChicos} onChange={() => cambiar({ fotosConOtrosChicos: !e.fotosConOtrosChicos })} titulo={K.fotos} detalle={K.fotosAyuda} />
                 </div>
 
+                {conImpreso && cat && precio !== null ? (
+                  <div className="flex flex-col gap-4">
+                    <p className="text-[22px] font-medium text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{T.libroTitulo}</p>
+                    <OpcionesLibro
+                      cat={cat}
+                      base={precio}
+                      estado={e}
+                      onElegir={(o) => cambiar(eleccionDe(o, e))}
+                      onCambio={(c) => cambiar({ ...c, marcos: 0 })}
+                      textos={{ ...T, ...KIDS_IMPRESO_TEXTOS[idiomaKidsDeRegion(region, idioma)], titulo: T.libroTitulo }}
+                      tapa={{ titulo: e.nombre.trim(), idioma: idioma === "ca" ? "ca" : "es", foto: null }}
+                      formatear={f}
+                    />
+                  </div>
+                ) : null}
+                {llevaImpreso ? <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} /> : null}
+
                 <p className="border-l-2 border-[var(--kids-acento,#151412)] py-1 pl-5 text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">
                   <strong className="font-medium text-[var(--texto-oscuro-fuerte)]">{K.despues}</strong> {K.despuesTexto}
                 </p>
@@ -276,7 +343,7 @@ export function CheckoutKids({
                 {vende && precio !== null ? (
                   <>
                     <div className="chk-solo-escritorio">
-                      <BotonPagar enviando={enviando} texto={K.pagar(f(precio))} procesando={K.procesando} />
+                      <BotonPagar enviando={enviando} texto={K.pagar(f(total as number))} procesando={K.procesando} />
                     </div>
                     <p className="text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
                       {K.legalAntes}
@@ -317,9 +384,24 @@ export function CheckoutKids({
             <div className="chk-ficha-cuerpo flex flex-col gap-2.5">
               {vende && precio !== null ? (
                 <>
+                  {compra && compra.lineas.length > 1
+                    ? compra.lineas.map((l) => (
+                        <div key={l.id} className="chk-renglon">
+                          <span>
+                            {l.id === "pdf" ? K.marca : R.lineas[l.id]}
+                            {l.cantidad > 1 ? ` × ${l.cantidad}` : ""}
+                          </span>
+                          <span aria-hidden className="chk-guia" />
+                          <span className="tabular-nums text-[var(--texto-oscuro-fuerte)]">
+                            {l.id === "pdf" ? "" : "+"}
+                            {f(l.cantidad * l.precioUnitario)}
+                          </span>
+                        </div>
+                      ))
+                    : null}
                   <div className="chk-total">
                     <span className="text-[15px] font-medium">{K.total}</span>
-                    <span className="chk-total-cifra">{f(precio)}</span>
+                    <span className="chk-total-cifra">{f(total as number)}</span>
                   </div>
                   <span className="text-[12.5px] text-[var(--texto-oscuro-menor)]">{K.pagoUnico}</span>
                 </>
@@ -335,10 +417,10 @@ export function CheckoutKids({
       </div>
 
       {/* En el teléfono: el botón del paso, abajo. */}
-      <BarraPaso etiqueta={K.total} total={vende && precio !== null ? f(precio) : K.proximamente}>
+      <BarraPaso etiqueta={K.total} total={vende && total !== null ? f(total) : K.proximamente}>
         {paso === 3 ? (
           vende ? (
-            <BotonPagar form={FORM_PAGO} enviando={enviando} texto={K.pagar(f(precio as number))} procesando={K.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
+            <BotonPagar form={FORM_PAGO} enviando={enviando} texto={K.pagar(f(total as number))} procesando={K.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
           ) : (
             <Escribir className={BOTON_BARRA} />
           )

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Toroide } from "../marca";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import { kidsVende } from "@/lib/kids";
+import { kidsVendeEn } from "@/lib/kids";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { EnlaceIdioma, SugerenciaCatalan } from "./idioma-cliente";
 
@@ -32,7 +32,7 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
   const t = TEXTOS_PUBLICO[idioma];
   const comprar = ruta(idioma, producto === "viaje" ? "/comprar/viaje" : producto === "kids" ? "/comprar/kids" : "/comprar");
   // En Kids, «Comprar» solo si se vende (KIDS_VENTA y precio): si no, no hay botón.
-  const conComprar = !compacta && (producto !== "kids" || kidsVende(regionDeIdioma(idioma)));
+  const conComprar = !compacta && (producto !== "kids" || kidsVendeEn(idioma));
   return (
     <header
       className={`relative z-20 text-[var(--texto-oscuro)] ${sobreHero ? "" : "border-b border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)]"}`}
