@@ -11,12 +11,12 @@
 Gracias por tener nuestra caja en el mostrador. Esto es lo que acordamos.
 
 **Qué os dejamos**
-Una caja con sobres negros. Dentro de cada sobre hay una carta para regalar el
-libro de la vida de alguien. La caja y los sobres son nuestros. Cuando se acaben,
-los reponemos nosotros.
+Una caja con libritos negros, cerrados con un sello. Cada uno es una carta para
+regalar el libro de la vida de alguien. La caja y los libritos son nuestros.
+Cuando se acaben, los reponemos nosotros.
 
 **Qué hacéis vosotros**
-Nada más que tener la caja a la vista. La gente se lleva el sobre gratis. No
+Nada más que tener la caja a la vista. La gente se lleva el librito gratis. No
 hace falta cobrar nada en caja.
 
 **Qué ganáis**

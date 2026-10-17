@@ -51,11 +51,11 @@ async function render(token: string) {
 }
 
 describe("el panel del local", () => {
-  it("con el token bueno muestra sobres, el mes con sus cartas y lo que le toca", async () => {
+  it("con el token bueno muestra libritos, el mes con sus cartas y lo que le toca", async () => {
     const html = await render(TOKEN_BUENO);
     const t = textosPanelLocal("ca");
     expect(html).toContain(t.titulo("Copistería Berga"));
-    expect(html).toContain(t.sobres(15));
+    expect(html).toContain(t.libritos(15));
     expect(html).toContain("2026-10");
     expect(html).toContain(">2<");
     const total = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(3);
@@ -88,11 +88,11 @@ describe("el panel del local", () => {
   });
 });
 
-describe("sobres en singular", () => {
+describe("libritos en singular", () => {
   it("usa 'sobre' cuando es uno", () => {
-    expect(textosPanelLocal("es-AR").sobres(1)).toBe("Te dejamos 1 sobre.");
-    expect(textosPanelLocal("es-ES").sobres(1)).toBe("Os hemos dejado 1 sobre.");
-    expect(textosPanelLocal("ca").sobres(1)).toBe("Us hem deixat 1 sobre.");
-    expect(textosPanelLocal("es-AR").sobres(15)).toBe("Te dejamos 15 sobres.");
+    expect(textosPanelLocal("es-AR").libritos(1)).toBe("Te dejamos 1 librito.");
+    expect(textosPanelLocal("es-ES").libritos(1)).toBe("Os hemos dejado 1 librito.");
+    expect(textosPanelLocal("ca").libritos(1)).toBe("Us hem deixat 1 llibret.");
+    expect(textosPanelLocal("es-AR").libritos(15)).toBe("Te dejamos 15 libritos.");
   });
 });

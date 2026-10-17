@@ -8,7 +8,7 @@ import type { IdiomaRegalo } from "@/lib/regalo-textos";
 import { Toroide } from "../../marca";
 
 // El panel de solo lectura del local (spec regalo en locales, 17/10): sin login,
-// el token de la URL es la llave. Muestra cuántos sobres se le dejaron, cuántas
+// el token de la URL es la llave. Muestra cuántos libritos se le dejaron, cuántas
 // cartas se pagaron por mes y lo que le toca. No tiene botones ni formularios.
 
 export const dynamic = "force-dynamic";
@@ -28,9 +28,9 @@ export default async function PanelLocal({ params }: { params: Promise<{ token: 
   if (!local) notFound();
 
   const { data: lotes, error: errorLotes } = await admin.from("lotes_impresos").select("cantidad").eq("local_id", local.id);
-  // Si la base falla, mejor la pantalla de error de Next que un "0 sobres" falso.
+  // Si la base falla, mejor la pantalla de error de Next que un "0 libritos" falso.
   if (errorLotes) throw new Error(`panel local: no pude leer los lotes: ${errorLotes.message}`);
-  const sobres = ((lotes ?? []) as { cantidad: number }[]).reduce((s, l) => s + Number(l.cantidad), 0);
+  const libritos = ((lotes ?? []) as { cantidad: number }[]).reduce((s, l) => s + Number(l.cantidad), 0);
 
   const { data: pedidos, error: errorPedidos } = await admin
     .from("pedidos")
@@ -54,7 +54,7 @@ export default async function PanelLocal({ params }: { params: Promise<{ token: 
         </header>
 
         <h1 className="mt-12 text-[28px] font-medium leading-tight [font-family:var(--fuente-titulo)] [text-wrap:balance]">{t.titulo(local.nombre)}</h1>
-        <p className="mt-4 text-[17px] font-light leading-relaxed">{t.sobres(sobres)}</p>
+        <p className="mt-4 text-[17px] font-light leading-relaxed">{t.libritos(libritos)}</p>
 
         {filas.length === 0 ? (
           <p className="mt-8 text-[17px] font-light leading-relaxed">{t.sinVentas}</p>

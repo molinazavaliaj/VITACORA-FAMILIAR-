@@ -51,7 +51,7 @@ Cambio del 17/10 (carta-libro): ya no hay sobre. La carta se dobla como un libri
 | 5 | Ya no disponible | La tarjeta por correo no está disponible ahora. | La tarjeta por correo no está disponible ahora. | — |
 | 6 | Mail, si eligió impreso | Elegiste el libro impreso. Cuando quieras, cargá la dirección de envío desde tu panel, en Encargar libro. | Has elegido el libro impreso. Cuando quieras, carga la dirección de envío desde tu panel, en Encargar libro. | — |
 | 7 | Link del local, título | Vitácora Familiar en {local} | Vitácora Familiar en {local} | Vitácora Familiar a {local} |
-| 8 | Sobres | Te dejamos {n} sobres. / Te dejamos 1 sobre. | Os hemos dejado {n} sobres. / Os hemos dejado 1 sobre. | Us hem deixat {n} sobres. / Us hem deixat 1 sobre. |
+| 8 | Libritos (17/10, antes «sobres») | Te dejamos {n} libritos. / Te dejamos 1 librito. | Os hemos dejado {n} libritos. / Os hemos dejado 1 librito. | Us hem deixat {n} llibrets. / Us hem deixat 1 llibret. |
 | 9 | Sin ventas | Todavía no se pagó ninguna carta de tu caja. | Todavía no se ha pagado ninguna carta de vuestra caja. | Encara no s'ha pagat cap carta de la vostra caixa. |
 | 10 | Tabla y pago | Mes · Cartas pagadas · Te toca. Lo de cada mes te lo pagamos a principios del mes siguiente. | Mes · Cartas pagadas · Os toca. Lo de cada mes os lo pagamos a principios del mes siguiente. | Mes · Cartes pagades · Us toca. El de cada mes us el paguem a principis del mes següent. |
 

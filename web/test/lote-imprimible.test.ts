@@ -32,6 +32,16 @@ describe("la carta-libro", () => {
     expect(hoja(armarHojaLote(dos, "es-AR"), "afuera")).toContain("Vitácora Familiar");
   });
 
+  it("la tapa se lee en láser: toroide blanco con trazo grueso, marca en blanco pleno, lomo gris claro", () => {
+    const html = armarHojaLote(dos, "es-AR");
+    expect(html).toMatch(/\.sello-tapa \{[^}]*color: #F4F2EC/);
+    expect(html).toMatch(/\.sello-tapa svg \{ width: 34mm/);
+    expect(hoja(html, "afuera")).toMatch(/class="toroide-tapa"[^>]*>(<ellipse[^>]*stroke-width="3\.4"\/>)+/);
+    expect(html).toMatch(/\.marca-tapa \{[^}]*color: #F4F2EC \}/);
+    expect(html).not.toContain("rgba(244, 242, 236, 0.7)");
+    expect(html).toMatch(/\.tapa > \.lomo \{[^}]*width: 0\.4mm; background: #8a877e/);
+  });
+
   it("la contratapa tiene la frase y la línea de activación; adentro no va la activación", () => {
     for (const idioma of ["es-AR", "es-ES", "ca"] as const) {
       const t = TEXTOS_CARTA[idioma];

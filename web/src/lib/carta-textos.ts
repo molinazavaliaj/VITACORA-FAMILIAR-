@@ -96,7 +96,7 @@ export function textosCartaComprador(trato: TratoComprador): TextosCartaComprado
 /** El panel de solo lectura del local. */
 export type TextosPanelLocal = {
   titulo: (nombre: string) => string;
-  sobres: (n: number) => string;
+  libritos: (n: number) => string;
   sinVentas: string;
   mes: string;
   cartas: string;
@@ -107,21 +107,21 @@ export type TextosPanelLocal = {
 const PANEL: Record<IdiomaRegalo, TextosPanelLocal> = {
   "es-AR": {
     titulo: (nombre) => `Vitácora Familiar en ${nombre}`,
-    sobres: (n) => (n === 1 ? "Te dejamos 1 sobre." : `Te dejamos ${n} sobres.`),
+    libritos: (n) => (n === 1 ? "Te dejamos 1 librito." : `Te dejamos ${n} libritos.`),
     sinVentas: "Todavía no se pagó ninguna carta de tu caja.",
     mes: "Mes", cartas: "Cartas pagadas", teToca: "Te toca",
     pago: "Lo de cada mes te lo pagamos a principios del mes siguiente.",
   },
   "es-ES": {
     titulo: (nombre) => `Vitácora Familiar en ${nombre}`,
-    sobres: (n) => (n === 1 ? "Os hemos dejado 1 sobre." : `Os hemos dejado ${n} sobres.`),
+    libritos: (n) => (n === 1 ? "Os hemos dejado 1 librito." : `Os hemos dejado ${n} libritos.`),
     sinVentas: "Todavía no se ha pagado ninguna carta de vuestra caja.",
     mes: "Mes", cartas: "Cartas pagadas", teToca: "Os toca",
     pago: "Lo de cada mes os lo pagamos a principios del mes siguiente.",
   },
   ca: {
     titulo: (nombre) => `Vitácora Familiar a ${nombre}`,
-    sobres: (n) => (n === 1 ? "Us hem deixat 1 sobre." : `Us hem deixat ${n} sobres.`),
+    libritos: (n) => (n === 1 ? "Us hem deixat 1 llibret." : `Us hem deixat ${n} llibrets.`),
     sinVentas: "Encara no s'ha pagat cap carta de la vostra caixa.",
     mes: "Mes", cartas: "Cartes pagades", teToca: "Us toca",
     pago: "El de cada mes us el paguem a principis del mes següent.",
