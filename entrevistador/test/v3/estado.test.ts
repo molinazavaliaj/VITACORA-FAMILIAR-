@@ -128,3 +128,26 @@ describe('la fila de entrevistas_v3', () => {
     expect(esTablaAusente({ message: 'relation "entrevistas_v3" does not exist' })).toBe(true);
   });
 });
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico nunca entra a la V3. Todo camino que crea la fila pasa por crearFila.
+describe('crearFila con un chico de Kids', () => {
+  it('un chico (fila en kids_v2) no entra: tira y no crea nada', async () => {
+    const base = crearBaseFalsa({ kids_v2: [{ narrador_id: 'n1' }] });
+    await expect(crearFila(base.cliente, nueva())).rejects.toThrow(/chico de Kids/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+  });
+
+  it('sin la migración de Kids, nadie es chico: se crea como siempre', async () => {
+    const base = crearBaseFalsa();
+    base.ausentes.add('kids_v2');
+    expect(await crearFila(base.cliente, nueva())).toBe('creada');
+  });
+
+  it('si la base no deja saber si es un chico, no se crea nada', async () => {
+    const base = crearBaseFalsa();
+    const roto = { maybeSingle: async () => ({ data: null, error: { code: '57014', message: 'timeout' } }) };
+    const cliente = { ...base.cliente, from: (t: string) => (t === 'kids_v2' ? { select: () => ({ eq: () => roto }) } : base.cliente.from(t)) } as unknown as typeof base.cliente;
+    await expect(crearFila(cliente, nueva())).rejects.toThrow(/Kids/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+  });
+});

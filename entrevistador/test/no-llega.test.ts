@@ -7,10 +7,11 @@ import { avisarFamiliaNoLlega, NO_LLEGA, semanaIso } from '../src/mail/no-llega.
 // número «en experimento», que escriba él; 131026: sin WhatsApp, versión vieja o
 // nos bloqueó), le llega un mail a quien compró. Textos aprobados por Naza (11/10).
 
-function armar(o: { region?: string; contexto?: Record<string, unknown>; marca?: 'nueva' | 'ya' | 'no-se'; mailOk?: boolean } = {}) {
+function armar(o: { region?: string; contexto?: Record<string, unknown>; marca?: 'nueva' | 'ya' | 'no-se'; mailOk?: boolean; kids?: boolean } = {}) {
   const base = crearBaseFalsa({
     familias: [{ id: 'f1', email: 'lucia@ejemplo.com', region: o.region ?? 'AR' }],
     narradores: [{ id: 'n1', familia_id: 'f1', como_le_dicen: 'Babu', contexto: o.contexto ?? { vinculoComprador: 'nieto' } }],
+    ...(o.kids ? { kids_v2: [{ narrador_id: 'n1' }] } : {}),
   });
   const mails: { familiaId: string; asunto: string; cuerpo: string; narradorId: string; boton?: boolean }[] = [];
   const marcas: [string, string][] = [];
@@ -78,5 +79,28 @@ describe('semanaIso', () => {
     expect(semanaIso(new Date('2026-10-11T13:00:00Z'))).toBe('2026-W41'); // domingo
     expect(semanaIso(new Date('2026-10-12T13:00:00Z'))).toBe('2026-W42'); // lunes
     expect(semanaIso(new Date('2027-01-01T13:00:00Z'))).toBe('2026-W53');
+  });
+});
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): el mail está escrito para un narrador adulto.
+describe('avisarFamiliaNoLlega con un chico de Kids', () => {
+  it('a un chico (fila en kids_v2) no le sale el mail, ni marca la semana', async () => {
+    const { deps, mails, marcas } = armar({ kids: true, contexto: { modo: 'kids' } });
+    expect(await avisarFamiliaNoLlega(deps, 'n1', 130472)).toBe(false);
+    expect(mails).toEqual([]);
+    expect(marcas).toEqual([]);
+  });
+  it('si la base no deja saber si es un chico, no sale', async () => {
+    const { deps, mails } = armar();
+    const roto = { maybeSingle: async () => ({ data: null, error: { code: '57014', message: 'timeout' } }) };
+    const db = deps.db;
+    const conKidsRoto = { ...deps, db: { ...db, from: (t: string) => (t === 'kids_v2' ? { select: () => ({ eq: () => roto }) } : db.from(t)) } as unknown as typeof db };
+    expect(await avisarFamiliaNoLlega(conKidsRoto, 'n1', 130472)).toBe(false);
+    expect(mails).toEqual([]);
+  });
+  it('un narrador sin fila en kids_v2 recibe el mail como siempre', async () => {
+    const { deps, mails } = armar();
+    expect(await avisarFamiliaNoLlega(deps, 'n1', 130472)).toBe(true);
+    expect(mails).toHaveLength(1);
   });
 });

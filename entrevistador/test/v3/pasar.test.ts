@@ -552,3 +552,29 @@ describe('el pase con la tabla aprobada (07/10)', () => {
     expect(plan.cargadas.map((c) => c.clave)).toEqual(['CA1', 'CA2', 'CA3']);
   });
 });
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico nunca entra a la V3, ni por el pase ni por el alta.
+describe('un chico de Kids y la V3', () => {
+  it('el pase no se aplica y no toca ni clave_v3', async () => {
+    const base = baseConNarrador();
+    base.tablas.kids_v2 = [{ narrador_id: 'n1' }];
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/chico de Kids/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+    expect(base.tablas.respuestas.every((r) => (r.clave_v3 ?? null) === null)).toBe(true);
+  });
+
+  it('el alta de un nuevo se frena: no crea fila, no manda nada, no lo pasa a activo y avisa', async () => {
+    const n: NarradorV3 = {
+      id: 'n1', familia_id: 'f1', como_le_dicen: 'Juani', telefono_whatsapp: '+5491100000000', hora_preferida: '10:00:00',
+      zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { genero: 'varon', modo: 'kids' }, estado: 'acepto', dia_actual: 0, ultima_respuesta_at: null,
+    };
+    const base = crearBaseFalsa({ familias: [{ id: 'f1', nombre: 'Laura' }], narradores: [{ ...n }], kids_v2: [{ narrador_id: 'n1' }] });
+    const { deps, enviados, avisos } = depsDePrueba(base);
+    expect(await altaNuevo(deps, n, { ventanaAbierta: true })).toBe('frenada');
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+    expect(enviados).toEqual([]);
+    expect(base.tablas.narradores[0].estado).toBe('acepto');
+    expect(avisos.map((a) => a.clave)).toEqual(['alta-v3-chico-kids-n1']);
+  });
+});
