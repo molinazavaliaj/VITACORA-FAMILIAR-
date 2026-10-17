@@ -1,0 +1,83 @@
+# Tests de los cuatro servicios en cada PR (pedido de Joaquín, 17/10).
+#
+# Antes el único workflow era deploy-web.yml: ocho PR abiertos y ningún check.
+# Un test que se rompe al juntar ramas (como el del mail de acceso en #49) tiene
+# que saltar acá, en el PR, y no al probar a mano.
+#
+# No usa secretos ni toca la base: los tests corren con dobles (Supabase,
+# WhatsApp, modelos falsos). Cada servicio en su job, para ver cuál falló.
+
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, rediseno-web]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: ${{ matrix.servicio }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        servicio: [entrevistador, fabrica, web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.servicio }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.servicio }}/package-lock.json
+
+      # La fábrica corta audio (ffmpeg) y arma PDF con Chromium (playwright).
+      - name: ffmpeg y Chromium (fábrica)
+        if: matrix.servicio == 'fabrica'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg
+
+      - name: Instalar
+        run: npm ci
+
+      - name: Chromium de playwright (fábrica)
+        if: matrix.servicio == 'fabrica'
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests
+        run: npm test
+
+  voz:
+    name: voz
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: voz
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: voz/requirements.txt
+
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg
+
+      - name: Instalar
+        run: pip install -r requirements.txt
+
+      - name: Tests
+        run: python -m pytest -q
