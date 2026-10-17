@@ -86,3 +86,5 @@ Reemplaza a las filas 8 y 9 de la tanda 1. Va en el atril, detrás de la caja co
 | 4 | Con lo que cuenta, escribimos el libro de su vida. | Con lo que cuenta, escribimos el libro de su vida. | Amb el que explica, escrivim el llibre de la seva vida. |
 
 El cartel todavía no tiene archivo para imprimir (el código solo arma los libritos).
+
+**Sello de precio en el cartel (17/10).** Círculo negro al lado del título: «Desde 49 €» (es-ES), «Des de 49 €» (ca), «Desde $85.750» (es-AR, monto a confirmar con el valor real de PRECIO_ARS). Si cambia el precio, se reimprime el cartel.

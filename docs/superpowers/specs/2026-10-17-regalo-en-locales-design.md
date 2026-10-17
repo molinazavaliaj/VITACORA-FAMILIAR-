@@ -200,7 +200,7 @@ spec).
 
 1. **Qué compra la carta:** se elige al pagar (digital 49 €, impreso 99 €,
    pack 109 €), con el **impreso marcado de entrada**.
-2. **Precio:** ni en la carta ni en el cartel. **Solo en la web.**
+2. **Precio:** ~~ni en la carta ni en el cartel~~. Cambiado el 17/10: **en el cartel, grande, como sello de oferta «Desde 49 €»** (el precio del digital). En el librito no va (lo recibe el narrador).
 3. **Color:** sobre negro liso con sticker blanco del toroide; carta blanca con
    tinta negra.
 4. **El 20 %:** del libro elegido, sin extras ni envío, pagado el mes siguiente.
