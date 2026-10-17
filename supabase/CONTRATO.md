@@ -980,3 +980,24 @@ Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 - `entrega_contacto` se usa solo para este envío: no pasa a `narradores`. El teléfono del narrador
   es siempre el del canje.
 - El recordatorio de los 15 días no cambia.
+
+## Regalo en locales (17/10, migración `20261017000000_regalo_locales.sql`)
+
+Spec: `docs/superpowers/specs/2026-10-17-regalo-en-locales-design.md`.
+
+| Tabla / columna | Quién escribe | Qué es |
+|---|---|---|
+| `locales` | script `web/scripts/lote-local.mts` | La copistería o librería. `token_panel` es su link privado de solo lectura |
+| `lotes_impresos` | el mismo script | Una tanda de cartas impresas para un local, en un idioma |
+| `codigos_impresos.codigo` | el mismo script | El código impreso en la carta. Nunca coincide con un `regalos.codigo` (trigger) |
+| `codigos_impresos.pedido_id` | web, `confirmarPago` | Null hasta que alguien la paga. Se escribe una sola vez (compare-and-swap sobre `pedido_id is null`) |
+| `pedidos.local_id` | web, `/api/compra` | El local de la carta, si la compra vino de una |
+| `pedidos.comision_local` | web, `/api/compra` | Lo que le toca al local, en la moneda del pedido |
+| `pedidos.extras.codigo_impreso` | web, `/api/compra` | La carta que se está pagando (solo regalos) |
+| `pedidos.extras.tarjeta` | web, `/api/compra` | `{ direccion }` si se pidió la tarjeta negra por correo |
+
+- El regalo nace con un código generado, como siempre. Al confirmar el pago, la web toma la carta y
+  cambia `regalos.codigo` al impreso. Si la carta ya era de otro pedido, el regalo se queda con su
+  código generado y la web avisa a `MAIL_SOCIOS` para devolver o resolver a mano.
+- El entrevistador no cambia: canjea el código que tenga `regalos.codigo` en ese momento.
+- `comisiones_locales_mes` es la cuenta mensual: cartas pagadas, total cobrado y comisión por local.
