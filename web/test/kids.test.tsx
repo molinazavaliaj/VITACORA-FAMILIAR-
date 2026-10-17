@@ -3,9 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextRequest } from "next/server";
 
 // Vitácora Kids en la web nueva (15/10): /kids, la compra (/comprar/kids) y
-// las dos landings, en los tres idiomas. Kids aparece, pero solo vende en
-// Argentina (KIDS_REGIONES: el bot habla rioplatense), con KIDS_VENTA="1" y
-// PRECIO_KIDS_* válido. La compra en sí se prueba en compra-kids.test.ts.
+// las dos landings, en los tres idiomas. Kids vende en Argentina y en España
+// (KIDS_REGIONES, desde el 16/10: el bot ya habla es-ES), nunca en catalán,
+// con KIDS_VENTA="1" y PRECIO_KIDS_* válido. La compra en sí se prueba en
+// compra-kids.test.ts.
 
 import KidsEs, { metadata as metaEs } from "../src/app/kids/page";
 import KidsCa from "../src/app/ca/kids/page";
@@ -32,6 +33,7 @@ import {
   fallaKids,
   fichaDeCompra,
   kidsVende,
+  kidsVendeEn,
   quienRegalaTexto,
   type EstadoKids,
 } from "../src/lib/kids";
@@ -79,15 +81,19 @@ const LLENO: EstadoKids = {
 };
 
 describe("lib/kids: cuándo se vende y qué ficha arma", () => {
-  it("se vende solo en Argentina, con KIDS_VENTA=1 y un precio válido", () => {
+  it("se vende en Argentina y en España (nunca en catalán), con KIDS_VENTA=1 y un precio válido", () => {
     expect(kidsVende("AR")).toBe(false);
     process.env.PRECIO_KIDS_ARS = "90000";
     expect(kidsVende("AR")).toBe(false);
     process.env.KIDS_VENTA = "1";
     expect(kidsVende("AR")).toBe(true);
-    // España no, aunque tenga precio: el bot de Kids todavía no habla de tú (K7).
-    process.env.PRECIO_KIDS_EUR = "59";
+    // España sin precio no; con precio sí (Naza 16/10, tanda 8). Catalán, con el precio de España (tanda 10).
     expect(kidsVende("ES")).toBe(false);
+    process.env.PRECIO_KIDS_EUR = "59";
+    expect(kidsVende("ES")).toBe(true);
+    expect(kidsVendeEn("es")).toBe(true);
+    expect(kidsVendeEn("ar")).toBe(true);
+    expect(kidsVendeEn("ca")).toBe(true);
     process.env.PRECIO_KIDS_ARS = "85.750,00";
     expect(obtenerPrecioKids("AR")).toBeNull();
     expect(kidsVende("AR")).toBe(false);
@@ -107,13 +113,30 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
   it("quién se lo regala va como lo lee el motor («tu mamá», «tus abuelos»)", () => {
     expect(quienRegalaTexto({ quien: "papas", quienOtra: "" })).toBe("tus papás");
     expect(quienRegalaTexto({ quien: "otra", quienOtra: "Tus padrinos" })).toBe("tus padrinos");
+    // En España, «tu madre», «tu padre», «tus padres» (Naza 16/10, tanda 8).
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "ES")).toBe("tu madre");
+    expect(quienRegalaTexto({ quien: "papa", quienOtra: "" }, "ES")).toBe("tu padre");
+    expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ES")).toBe("tus padres");
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "AR")).toBe("tu mamá");
+    // En catalán, «la teva mare», «els teus pares» (Naza 16/10, tanda 10), y «Otra persona» con el posesivo en minúscula.
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "ca")).toBe("la teva mare");
+    expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ca")).toBe("els teus pares");
+    expect(quienRegalaTexto({ quien: "abuela", quienOtra: "" }, "ca")).toBe("la teva àvia");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "El teu padrí" }, "ca")).toBe("el teu padrí");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "Les teves ties" }, "ca")).toBe("les teves ties");
   });
 
-  it("la ficha es la del motor: temas en el orden de la pantalla, zona del país, hora por defecto 18:00", () => {
+  it("la ficha es la del motor: temas en el orden de la pantalla, zona e idioma del país, hora por defecto 18:00 en Argentina y 20:00 en España", () => {
     const f = fichaDeCompra(LLENO, "ES");
-    expect(f).toMatchObject({ nombre: "Nico Rivas", apodo: "Nico", genero: "chico", edad: 11, quienRegala: "tus papás", canal: "B", nombrePadre: "Laura Gómez", hora: "18:00", zona: "Europe/Madrid", fotosConOtrosChicos: false });
+    expect(f).toMatchObject({ nombre: "Nico Rivas", apodo: "Nico", genero: "chico", edad: 11, quienRegala: "tus padres", canal: "B", nombrePadre: "Laura Gómez", hora: "18:00", zona: "Europe/Madrid", fotosConOtrosChicos: false, idioma: "es-ES" });
     expect(f.temasSacados).toEqual(["mama", "escuela"]);
-    expect(fichaDeCompra(LLENO, "AR").zona).toBe("America/Argentina/Buenos_Aires");
+    expect(fichaDeCompra(LLENO, "AR")).toMatchObject({ zona: "America/Argentina/Buenos_Aires", idioma: "es-AR", quienRegala: "tus papás" });
+    expect(estadoKidsInicial().hora).toBe("18:00");
+    expect(estadoKidsInicial(undefined, "AR").hora).toBe("18:00");
+    expect(estadoKidsInicial(undefined, "ES").hora).toBe("20:00");
+    // Desde /ca: región ES (zona de Madrid, 20:00 por defecto), idioma ca (tanda 10).
+    expect(fichaDeCompra(LLENO, "ES", "ca")).toMatchObject({ zona: "Europe/Madrid", idioma: "ca", quienRegala: "els teus pares" });
+    expect(cuerpoKids(LLENO, "ES", "ca").kids).toMatchObject({ idioma: "ca", quienRegala: "els teus pares" });
   });
 
   it("el cuerpo lleva producto kids y el WhatsApp del chico solo con el canal A", () => {
@@ -121,11 +144,11 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+34 600 00 00 00" }, "ES", "es").whatsappChico).toBe("+34 600 00 00 00");
   });
 
-  it("/api/compra no vende Kids en España aunque esté prendido (KIDS_REGIONES)", async () => {
+  it("/api/compra no vende Kids con un idioma de web que no es el de la región", async () => {
     vender();
-    const r = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "es")) }));
-    expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe(KIDS_TODAVIA_NO);
+    const r2 = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "ar")) }));
+    expect(r2.status).toBe(409);
+    expect((await r2.json()).error).toBe(KIDS_TODAVIA_NO);
   });
 });
 
@@ -149,13 +172,14 @@ describe("/kids por idioma", () => {
     expect(pagina(KidsAr)).toContain('href="https://wa.me/34611222333"');
   });
 
-  it("con KIDS_VENTA y precio, /ar lleva a su compra; España y catalán siguen en «Próximamente» (KIDS_REGIONES)", () => {
+  it("con KIDS_VENTA y precio, /ar, España y /ca llevan a su compra (KIDS_IDIOMAS_WEB, tanda 10)", () => {
     vender();
     expect(pagina(KidsAr)).toContain('href="/ar/comprar/kids"');
     expect(pagina(KidsAr)).toContain("90");
-    expect(pagina(KidsEs)).not.toContain('href="/comprar/kids"');
-    expect(pagina(KidsEs)).toContain("Próximamente");
-    expect(pagina(KidsCa)).not.toContain('href="/ca/comprar/kids"');
+    expect(pagina(KidsEs)).toContain('href="/comprar/kids"');
+    expect(pagina(KidsEs)).toContain("59");
+    expect(pagina(KidsCa)).toContain('href="/ca/comprar/kids"');
+    expect(pagina(KidsCa)).toContain("59");
   });
 
   it("los textos aprobados de la rama de Kids, en vos, en /ar", () => {

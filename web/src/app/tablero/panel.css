@@ -474,3 +474,48 @@
   border-color: var(--viaje-boton);
   color: var(--viaje-sobre-boton);
 }
+
+/* ── El panel de Vitácora Kids con su color (K5, 15/10) ────────────────────
+   La paleta de Kids de la guía (la misma de _kids/kids.css: fondo #fbf8f3,
+   tarjeta #ffffff, texto #14140f, acento #c4502e, botón #ff8a6b con texto en
+   tinta, 8,2:1). Kids es claro de punta a punta, como su página: el panel de
+   un chico (PanelKids, data-producto="kids") pinta la página en papel aunque
+   el tema elegido sea el oscuro. En el Inicio, el libro de un chico lleva solo
+   el acento. */
+.pnl:has(.pnl-marco[data-producto="kids"]) {
+  --dir-papel: #fbf8f3;
+  --fondo: #fbf8f3;
+  --texto: #14140f;
+  --texto-suave: #57534b;           /* 7,4:1 */
+  --texto-menor: #6f6a61;           /* 5,2:1 */
+  --linea: rgba(20, 20, 15, 0.14);
+  --linea-fuerte: rgba(20, 20, 15, 0.32);
+  --acento: #c4502e;
+  --sobre-acento: #ffffff;
+  --relieve: #ffffff;
+  --hueco: rgba(196, 80, 46, 0.08);
+  --alerta: #8a2a1e;
+  --alerta-fondo: #f6e8e1;
+  --tarjeta: #ffffff;
+  --texto-oscuro: #14140f;
+  --texto-oscuro-fuerte: #14140f;
+  --texto-oscuro-suave: #57534b;
+  --texto-oscuro-menor: #6f6a61;
+  --borde-oscuro: rgba(20, 20, 15, 0.14);
+  --acento-oscuro: #c4502e;
+  --boton: #ff8a6b;
+  --sobre-boton: #14140f;
+  --pnl-acento: #c4502e;
+  --pnl-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -28px rgba(120, 60, 30, 0.35);
+  background-color: #fbf8f3;
+  background-image: var(--dir-fibra);
+  background-size: var(--dir-fibra-tamano);
+  color-scheme: light;
+}
+.pnl [data-producto="kids"] { --pnl-acento: #c4502e; }
+.pnl [data-producto="kids"] .pnl-micro,
+.pnl [data-producto="kids"] .pnl-num { color: var(--pnl-acento); }
+.pnl [data-producto="kids"] .pnl-paso-hilo > span { background: var(--pnl-acento); }
+.pnl:has(.pnl-marco[data-producto="kids"]) .pnl-boton--lleno { background: #ff8a6b; color: #14140f; }
+.pnl:has(.pnl-marco[data-producto="kids"]) .pnl-boton--lleno:hover { background: #ff7a57; opacity: 1; }
+.pnl .pnl-marco[data-producto="kids"] .pnl-hoja { background-color: #ffffff; }

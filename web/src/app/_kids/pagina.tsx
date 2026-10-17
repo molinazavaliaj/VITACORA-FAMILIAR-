@@ -4,7 +4,7 @@ import { Cabecera, Pie } from "../_publico";
 import { Acordeon } from "../_ui/acordeon";
 import { TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
 import { obtenerPrecioKids } from "@/lib/precios";
-import { kidsVende } from "@/lib/kids";
+import { kidsVendeEn } from "@/lib/kids";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -17,7 +17,7 @@ import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } fro
 //
 // ESTÁTICA: no lee headers ni cookies. Lo que vende lo deciden las variables al
 // construir: con KIDS_VENTA="1", PRECIO_KIDS_* válido y una región que vende
-// (KIDS_REGIONES: hoy solo /ar), los botones llevan a /comprar/kids de su
+// (KIDS_REGIONES: /ar y España, con /ca desde la tanda 10), los botones llevan a /comprar/kids de su
 // idioma y se ve el precio; si falta alguna, «Próximamente» y «Escríbenos»
 // (WhatsApp de dudas o correo). KIDS_VENTA no se prende hasta que Joaquín
 // conecte el motor y esté aplicada la migración de kids_v2 (lib/kids.ts).
@@ -36,7 +36,7 @@ export function preciosKids(idioma: IdiomaWeb) {
   const region = regionDeIdioma(idioma);
   const { moneda } = catalogo(region);
   const precio = obtenerPrecioKids(region);
-  const vende = kidsVende(region);
+  const vende = kidsVendeEn(idioma);
   const formatear = (n: number) => new Intl.NumberFormat(localeDeIdioma(idioma), { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(n);
   const promo = promoPorcentaje();
   const lista = vende && precio !== null && promo ? formatear(precioDeLista(precio, moneda, promo)) : null;

@@ -13,10 +13,10 @@
 //   - fila de `kids_v2`: `canal`, `telefono_padre` (E.164), `idioma` y `ficha`.
 
 import { normalizarTelefono, type Region } from "./registro";
-import { edadValida, zonaKids } from "./kids";
+import { edadValida, esIdiomaKids, idiomaKidsDeRegion, zonaKids, type IdiomaKids } from "./kids";
 
-/** Así lo guarda `kids_v2.idioma`: el banco de Kids está solo en rioplatense (CONTRATO). */
-export const IDIOMA_KIDS = "es-AR";
+/** Así lo guarda `kids_v2.idioma` sin región: el de siempre, rioplatense. */
+export const IDIOMA_KIDS: IdiomaKids = "es-AR";
 
 // ── La Ficha del motor, copiada ─────────────────────────────────────────────
 //
@@ -45,10 +45,13 @@ function zonaValida(zona: string): boolean {
   }
 }
 
-/** "Tu mamá" → "tu mamá": solo se baja la mayúscula de "Tu"/"Tus" (texto.ts). */
+/** Los posesivos con que empieza quien regala: «tu / tus» en castellano, «la teva / el teu / els teus / les teves» en catalán (texto.ts). */
+const POSESIVO = /^(tus?|la teva|el teu|els teus|les teves)\s/i;
+
+/** "Tu mamá" → "tu mamá", "La teva mare" → "la teva mare": solo se baja la mayúscula del posesivo (texto.ts). */
 export function normalizarQuienRegala(s: string): string {
   const t = s.trim().replace(/\s+/g, " ");
-  return /^tus?\s/i.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
+  return POSESIVO.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
 }
 
 export type PreguntaPadre = { texto: string; conLinea: boolean; quien?: string };
@@ -67,6 +70,8 @@ export type FichaKids = {
   temasSacados: Tema[];
   fotosConOtrosChicos: boolean;
   preguntasPadre: PreguntaPadre[];
+  /** 'es-AR' (vos), 'es-ES' (tú) o 'ca' (catalán), como el motor (idioma.ts). Sin el campo, es-AR. Va igual que `kids_v2.idioma`. */
+  idioma?: IdiomaKids;
 };
 
 /** `validarFicha` del motor: valida y normaliza; tira error con el nombre del campo. */
@@ -79,6 +84,7 @@ export function validarFichaKids(f: FichaKids): FichaKids {
   if (!esHora(f.hora) || f.hora < NOCHE_HASTA || f.hora >= NOCHE_DESDE) throw new Error(`Ficha: hora ${f.hora} fuera de 09:00–21:59`);
   if (!zonaValida(f.zona)) throw new Error(`Ficha: zona desconocida ${f.zona}`);
   for (const t of f.temasSacados) if (!(TEMAS as readonly string[]).includes(t)) throw new Error(`Ficha: tema desconocido ${t}`);
+  if (f.idioma !== undefined && !esIdiomaKids(f.idioma)) throw new Error(`Ficha: idioma ${JSON.stringify(f.idioma)} (va es-AR, es-ES o ca, o sin el campo)`);
   const preguntasPadre = f.preguntasPadre
     .map((p): PreguntaPadre => ({ texto: p.texto.trim(), conLinea: p.conLinea, ...(p.quien?.trim() ? { quien: normalizarQuienRegala(p.quien) } : {}) }))
     .filter((p) => p.texto !== "");
@@ -101,6 +107,8 @@ const TELEFONO_E164 = /^\+[1-9]\d{7,14}$/;
 
 /** Lo que manda /comprar/kids (lib/kids.ts, `cuerpoKids`); nada de esto se cree sin mirarlo. */
 export type CuerpoKids = {
+  /** La web desde donde se compró: "ca" es España en catalán (el idioma del chico). */
+  idiomaWeb?: unknown;
   nombreComprador?: unknown;
   whatsappComprador?: unknown;
   whatsappChico?: unknown;
@@ -119,6 +127,8 @@ export type CompraKidsLeida = {
   };
   canal: "A" | "B";
   telefonoPadre: string;
+  /** El de `kids_v2.idioma`: el mismo que `ficha.idioma`. */
+  idioma: IdiomaKids;
   /** Ya validada, sin `linkPanel`: el link lleva el id del narrador y se pone al crearlo (`conLinkPanel`). */
   ficha: Omit<FichaKids, "linkPanel">;
 };
@@ -158,6 +168,11 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
   // Tope de largo (van en la tapa y en los mensajes): lo que la pantalla no
   // deja escribir tampoco entra por el servidor. quienRegala trae también
   // «Otra persona» (quienOtra) y nombrePadre es «Tu nombre» (tuNombre).
+  // De la región y de la web, no de la ficha del cliente: España de tú (o en
+  // catalán desde /ca), Argentina de vos. Es el mismo que va a `kids_v2.idioma`
+  // (si no son iguales, el bot no arranca).
+  const idioma = idiomaKidsDeRegion(region, body.idiomaWeb);
+
   for (const v of [c.nombre, c.apodo, c.quienRegala, body.nombreComprador]) {
     if (texto(v).trim().length > LARGO_MAXIMO) return { ok: false, falla: "malFormado" };
   }
@@ -179,6 +194,7 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
       temasSacados: temas as Tema[],
       fotosConOtrosChicos: c.fotosConOtrosChicos,
       preguntasPadre: [],
+      idioma,
     });
   } catch {
     return { ok: false, falla: "malFormado" };
@@ -209,6 +225,7 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
       },
       canal: ficha.canal,
       telefonoPadre,
+      idioma,
       ficha: sinLink,
     },
   };
@@ -217,7 +234,7 @@ export function leerCompraKids(body: CuerpoKids, region: Region): { ok: true; co
 /**
  * La ficha con su `linkPanel`: el tablero del narrador, con la misma base que
  * los links del mail de acceso (lib/mail.ts). Sin sesión, el tablero manda a
- * /entrar y vuelve. Cuando exista el panel de Kids (K5), cambia acá.
+ * /entrar y vuelve. Con fila en kids_v2, /tablero/<id> es el panel de Kids (K5).
  */
 export function conLinkPanel(ficha: Omit<FichaKids, "linkPanel">, narradorId: string, urlBase: string): FichaKids {
   return { ...ficha, linkPanel: `${urlBase}/tablero/${narradorId}` };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenVoz } from "@/lib/token-libro";
+import { accesoVoz } from "@/lib/voz-acceso";
 import { frasesPublicables, leerFrases } from "@/lib/frases";
 
 // El mp3 de una frase desde la página pública (el código impreso, el chip del
@@ -15,8 +16,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (!datos) return NextResponse.json({ error: "Link no válido." }, { status: 404 });
 
   const admin = crearClienteServidor();
-  const { data: n } = await admin.from("narradores").select("libro_aprobado_at").eq("id", datos.narradorId).maybeSingle();
-  if (!(n as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at) {
+  // La casa: libro cerrado. Kids: desde listo.json (lib/voz-acceso).
+  if (!(await accesoVoz(admin, datos.narradorId)).abre) {
     return NextResponse.json({ error: "Este libro todavía no está cerrado." }, { status: 404 });
   }
 
