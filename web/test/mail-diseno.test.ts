@@ -193,7 +193,7 @@ describe("mail de acceso de Vitácora Kids", () => {
   const A = "Le vamos a escribir a Tomi a la hora que elegiste. A vos te avisamos por WhatsApp.";
   const B = "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.";
   const PANEL = "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.";
-  const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde tu panel/;
+  const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde (tu panel|la página de su historia)/;
 
   it("canal A: asunto, vista previa y primera línea del A, y la fila del panel", () => {
     const { asunto, html, texto } = armarMailAcceso({ comoLeDicen: "Tomi", region: "AR", kids: { canal: "A" } });
@@ -232,7 +232,7 @@ describe("mail de acceso de Vitácora Kids", () => {
   it("la biografía no cambia", () => {
     const { asunto, texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR" });
     expect(asunto).toBe("Listo. Hoy le escribimos a tu abuela.");
-    expect(texto).toContain("vas a poder escuchar su voz desde tu panel.");
+    expect(texto).toContain("vas a poder escuchar su voz desde la página de su historia.");
     expect(texto).not.toContain(PANEL);
   });
 });
