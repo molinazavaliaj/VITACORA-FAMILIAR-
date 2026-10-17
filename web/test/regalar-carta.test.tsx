@@ -51,6 +51,15 @@ describe("PaginaRegalar con ?codigo", () => {
     estado.carta = carta({ pagado: true });
     const html = await render({ codigo: "VF-7K3M2Q" });
     expect(html).toContain(T.cartaUsada);
+    expect(html).not.toContain(T.cartaNoExiste);
+    expect(html).toContain('data-carta=""');
+  });
+
+  it("código que no existe: avisa que no la encontró, no que ya se regaló", async () => {
+    estado.carta = null;
+    const html = await render({ codigo: "VF-NOEXISTE" });
+    expect(html).toContain(T.cartaNoExiste);
+    expect(html).not.toContain(T.cartaUsada);
     expect(html).toContain('data-carta=""');
   });
 

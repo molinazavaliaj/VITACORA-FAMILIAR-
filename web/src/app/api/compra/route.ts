@@ -150,7 +150,8 @@ export async function POST(request: NextRequest) {
   if (datosRegalo && codigoImpreso) {
     carta = await leerCodigoImpreso(admin, codigoImpreso);
     if (!carta || carta.pagado) {
-      return NextResponse.json({ error: textosCartaComprador(trato).cartaUsada }, { status: carta ? 409 : 404 });
+      const t = textosCartaComprador(trato);
+      return NextResponse.json({ error: carta ? t.cartaUsada : t.cartaNoExiste }, { status: carta ? 409 : 404 });
     }
     // La carta se da en mano: no hay día de entrega.
     datosRegalo = { ...datosRegalo, fechaEntrega: null, entrega: null };

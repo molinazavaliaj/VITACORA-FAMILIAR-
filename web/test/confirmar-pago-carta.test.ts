@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // sobre codigos_impresos) y la tarjeta negra avisa a los socios.
 type Llamada = { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] };
 
-function construirAdmin(opciones: { extras: Record<string, unknown>; cartaLibre?: boolean; codigoGenerado?: string; pedidoActualizado?: boolean }) {
+function construirAdmin(opciones: { extras: Record<string, unknown>; cartaLibre?: boolean; codigoGenerado?: string; pedidoActualizado?: boolean; regalosError?: boolean }) {
   const updates: Llamada[] = [];
   const from = vi.fn((tabla: string) => {
     const filtros: [string, unknown][] = [];
@@ -32,6 +32,7 @@ function construirAdmin(opciones: { extras: Record<string, unknown>; cartaLibre?
     cadena.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
       let resultado: unknown = { data: null, error: null };
       if (tabla === "pedidos") resultado = { data: opciones.pedidoActualizado === false ? [] : [{ id: "ped-1", narrador_id: "nar-1", familia_id: "f1" }], error: null };
+      else if (tabla === "regalos" && opciones.regalosError) resultado = { data: null, error: { message: "regalos caído" } };
       else if (tabla === "narradores") resultado = { data: [{ id: "nar-1" }], error: null };
       else if (tabla === "codigos_impresos") resultado = { data: opciones.cartaLibre === false ? [] : [{ codigo: "VF-7K3M2Q" }], error: null };
       return Promise.resolve(resultado).then(resolve, reject);
@@ -71,6 +72,27 @@ describe("confirmarPago — carta impresa y tarjeta negra", () => {
     expect(avisarSocios).toHaveBeenCalledTimes(1);
     expect(avisarSocios.mock.calls[0][0]).toContain("VF-7K3M2Q");
     expect(r).toMatchObject({ ok: true, codigoRegalo: "VF-GENERADO" });
+    // Y al pedido perdedor se le quita la comisión del local.
+    const quitada = updates.find((u) => u.tabla === "pedidos" && "comision_local" in u.valores);
+    expect(quitada?.valores).toEqual({ local_id: null, comision_local: null });
+    expect(quitada?.filtros).toContainEqual(["id", "ped-1"]);
+    expect(avisarSocios.mock.calls[0][1]).toContain("comisión del local se quitó");
+  });
+
+  it("la carta se tomó pero el regalo no cambió de código: avisa con el SQL para repararlo y el pago sigue ok", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { admin, updates } = construirAdmin({ extras: { regalo: true, codigo_impreso: "VF-7K3M2Q" }, regalosError: true });
+    const avisarSocios = vi.fn().mockResolvedValue(true);
+    const r = await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "ref", enviarMailAcceso: vi.fn(), enviarMailRegalo: vi.fn().mockResolvedValue(true), avisarSocios });
+    expect(r.ok).toBe(true);
+    expect(avisarSocios).toHaveBeenCalledTimes(1);
+    const [asunto, texto] = avisarSocios.mock.calls[0];
+    expect(asunto).toContain("tomada pero el regalo sigue con otro código");
+    expect(texto).toContain("update regalos set codigo = 'VF-7K3M2Q' where narrador_id = 'nar-1';");
+    expect(texto).toContain("ped-1");
+    expect(texto).toContain("regalos caído");
+    expect(updates.find((u) => u.tabla === "pedidos" && "comision_local" in u.valores)).toBeUndefined();
+    error.mockRestore();
   });
 
   it("con tarjeta negra avisa a los socios con la dirección y la región", async () => {

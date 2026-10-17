@@ -83,6 +83,7 @@ create or replace view comisiones_locales_mes with (security_invoker = true) as
 select
   l.id as local_id,
   l.nombre,
+  -- El mes es el de created_at del pedido, no el del pago (se paga casi enseguida).
   date_trunc('month', p.created_at at time zone
     case when l.pais = 'ES' then 'Europe/Madrid' else 'America/Argentina/Buenos_Aires' end)::date as mes,
   p.moneda,
@@ -91,5 +92,5 @@ select
   sum(p.comision_local)  as comision
 from pedidos p
 join locales l on l.id = p.local_id
-where p.estado in ('pagado', 'generando', 'esperando_voz', 'entregado')
+where p.estado <> 'pendiente'
 group by l.id, l.nombre, mes, p.moneda;

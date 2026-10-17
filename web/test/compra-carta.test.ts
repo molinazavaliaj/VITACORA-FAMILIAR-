@@ -8,6 +8,7 @@ vi.mock("@/lib/pagos", () => ({ crearCheckout: vi.fn() }));
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearCheckout } from "@/lib/pagos";
 import { POST } from "../src/app/api/compra/route";
+import { firmarTokenFotos } from "../src/lib/token-fotos";
 
 // El mismo doble que compra-regalo.test.ts: una cola de resultados por tabla y
 // se guarda qué se insertó. La tabla codigos_impresos responde por su cola con
@@ -15,12 +16,17 @@ import { POST } from "../src/app/api/compra/route";
 function crearAdmin(secuencia: Record<string, unknown[]>) {
   const contadores: Record<string, number> = {};
   const inserts: Record<string, Record<string, unknown>[]> = {};
+  const updates: Record<string, Record<string, unknown>[]> = {};
   const from = vi.fn((tabla: string) => {
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
     const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
     const b: Record<string, unknown> = {};
-    for (const m of ["select", "ilike", "is", "eq", "single", "maybeSingle", "update"]) b[m] = () => b;
+    for (const m of ["select", "ilike", "is", "eq", "single", "maybeSingle"]) b[m] = () => b;
+    b.update = (valores: Record<string, unknown>) => {
+      (updates[tabla] ??= []).push(valores);
+      return b;
+    };
     b.insert = (valores: Record<string, unknown>) => {
       (inserts[tabla] ??= []).push(valores);
       return b;
@@ -28,7 +34,7 @@ function crearAdmin(secuencia: Record<string, unknown[]>) {
     b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(resultado).then(res, rej);
     return b;
   });
-  const admin = { from, inserts };
+  const admin = { from, inserts, updates };
   (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
   return admin;
 }
@@ -102,7 +108,11 @@ describe("POST /api/compra con carta de un local", () => {
 
   it("carta inexistente: 404", async () => {
     crearAdmin({ codigos_impresos: [{ data: null }] });
-    expect((await POST(pedido(cuerpoCarta()))).status).toBe(404);
+    const r = await POST(pedido(cuerpoCarta()));
+    expect(r.status).toBe(404);
+    const { error } = (await r.json()) as { error: string };
+    expect(error).not.toContain("ya se ha regalado");
+    expect(error).toContain("No encontramos esa carta");
   });
 
   it("carta de un local inactivo: sigue, sin local", async () => {
@@ -158,5 +168,25 @@ describe("POST /api/compra con carta de un local", () => {
     expect("comision_local" in admin.inserts.pedidos[0]).toBe(false);
     expect((admin.inserts.pedidos[0].extras as Record<string, unknown>).codigo_impreso).toBeUndefined();
     expect(admin.inserts.regalos[0].fecha_entrega).toBe("2026-12-24"); // sin carta, la fecha se respeta
+  });
+
+  it("retomar un regalo sin pagar con carta: el regalo apunta al pedido NUEVO, sin fecha, y el pedido lleva el código impreso", async () => {
+    const admin = crearAdmin({
+      codigos_impresos: [{ data: CARTA }],
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [
+        { data: { id: "nar-viejo", familia_id: "fam-1", nombre: "Osvaldo", estado: "pendiente_pago", contexto: { regalo: true } }, error: null },
+        { data: { id: "nar-viejo" }, error: null },
+      ],
+      pedidos: [{ data: { id: "ped-nuevo" }, error: null }],
+      regalos: [{ data: { id: "reg-1" }, error: null }, { data: null, error: null }],
+    });
+    const cuerpo = cuerpoCarta();
+    (cuerpo.regalo as Record<string, unknown>).retomar = { narradorId: "nar-viejo", token: firmarTokenFotos("nar-viejo") };
+    const r = await POST(pedido(cuerpo));
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos ?? []).toHaveLength(0); // no nace otro regalo
+    expect(admin.updates.regalos[0]).toMatchObject({ pedido_id: "ped-nuevo", fecha_entrega: null });
+    expect(admin.inserts.pedidos[0].extras).toMatchObject({ regalo: true, codigo_impreso: "VF-7K3M2Q" });
   });
 });

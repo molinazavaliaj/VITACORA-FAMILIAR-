@@ -101,6 +101,19 @@ export async function GET(request: NextRequest) {
   if (!codigoRegalo && resultado.yaEstaba && pedido.extras?.regalo === true) {
     const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
     codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
+    // Carta impresa (17/10): si el webhook ya la tomó, el código vigente es el
+    // impreso. Si la carta todavía no cambió el código del regalo (carrera con
+    // el webhook), se prefiere el impreso cuando es de ESTE pedido. Sin la
+    // tabla (migración sin aplicar) o sin fila, queda el de regalos.
+    const impreso = pedido.extras?.codigo_impreso;
+    if (typeof impreso === "string") {
+      try {
+        const { data: tomada } = await admin.from("codigos_impresos").select("codigo").eq("codigo", impreso).eq("pedido_id", pedido.id).maybeSingle();
+        if ((tomada as { codigo?: string } | null)?.codigo) codigoRegalo = impreso;
+      } catch {
+        // tabla ausente: se sigue con el código de regalos
+      }
+    }
   }
   if (codigoRegalo) return NextResponse.redirect(`${urlBase}/regalo/${encodeURIComponent(codigoRegalo)}/tarjeta`);
 

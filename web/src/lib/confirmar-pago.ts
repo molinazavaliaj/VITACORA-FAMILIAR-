@@ -131,6 +131,7 @@ export async function confirmarPago(
   //     igual, y los socios lo resuelven a mano.
   const codigoImpreso = typeof extras?.codigo_impreso === "string" ? extras.codigo_impreso : null;
   if (esRegalo && codigoImpreso) {
+    let resultadoCarta: "tomada" | "perdida" | "error" = "error";
     try {
       const { data: tomadas, error } = await admin
         .from("codigos_impresos")
@@ -139,18 +140,41 @@ export async function confirmarPago(
         .is("pedido_id", null)
         .select("codigo");
       if (error) throw new Error(error.message);
-      if (((tomadas as { codigo: string }[] | null) ?? []).length > 0) {
-        const { error: errorCodigo } = await admin.from("regalos").update({ codigo: codigoImpreso }).eq("narrador_id", pedido.narrador_id);
-        if (errorCodigo) throw new Error(errorCodigo.message);
-      } else {
-        await avisar(
-          `Carta ${codigoImpreso} pagada dos veces`,
-          `El pedido ${pedidoId} pagó la carta ${codigoImpreso}, pero ya era de otro pedido. El regalo quedó con su código generado y anda. Hay que avisarle a quien compró y ver si se devuelve.`,
-        );
-      }
+      resultadoCarta = ((tomadas as { codigo: string }[] | null) ?? []).length > 0 ? "tomada" : "perdida";
     } catch (err) {
       console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero no pude tomar la carta ${codigoImpreso}:`, err);
       await avisar(`Carta ${codigoImpreso} sin tomar`, `El pedido ${pedidoId} está pagado pero la carta no quedó tomada: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (resultadoCarta === "tomada") {
+      try {
+        const { error: errorCodigo } = await admin.from("regalos").update({ codigo: codigoImpreso }).eq("narrador_id", pedido.narrador_id);
+        if (errorCodigo) throw new Error(errorCodigo.message);
+      } catch (err) {
+        const motivo = err instanceof Error ? err.message : String(err);
+        console.error(`confirmarPago: el pedido ${pedidoId} tomó la carta ${codigoImpreso} pero no pude cambiar el código del regalo:`, err);
+        await avisar(
+          `Carta ${codigoImpreso} tomada pero el regalo sigue con otro código`,
+          `El pedido ${pedidoId} tomó la carta ${codigoImpreso}, pero el regalo quedó con otro código y la carta impresa no abre. Motivo: ${motivo}
+
+Para repararlo:
+update regalos set codigo = '${codigoImpreso}' where narrador_id = '${pedido.narrador_id}';`,
+        );
+      }
+    } else if (resultadoCarta === "perdida") {
+      // Otra persona pagó antes esta carta: este pedido no puede cobrarle
+      // comisión al local por ella. Si falla, se loguea y se avisa igual.
+      let comisionQuitada = true;
+      try {
+        const { error } = await admin.from("pedidos").update({ local_id: null, comision_local: null }).eq("id", pedido.id);
+        if (error) throw new Error(error.message);
+      } catch (err) {
+        comisionQuitada = false;
+        console.error(`confirmarPago: el pedido ${pedidoId} pagó la carta ${codigoImpreso} dos veces y no pude quitarle la comisión del local:`, err);
+      }
+      await avisar(
+        `Carta ${codigoImpreso} pagada dos veces`,
+        `El pedido ${pedidoId} pagó la carta ${codigoImpreso}, pero ya era de otro pedido. El regalo quedó con su código generado y anda. ${comisionQuitada ? "La comisión del local se quitó de este pedido." : "No pude quitar la comisión del local de este pedido, hay que hacerlo a mano (local_id y comision_local en null)."} Hay que avisarle a quien compró y ver si se devuelve.`,
+      );
     }
   }
 

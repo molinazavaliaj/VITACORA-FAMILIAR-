@@ -27,14 +27,18 @@ export default async function PanelLocal({ params }: { params: Promise<{ token: 
   const { data: local } = await admin.from("locales").select("id, nombre, idioma, pais").eq("token_panel", token).maybeSingle<Local>();
   if (!local) notFound();
 
-  const { data: lotes } = await admin.from("lotes_impresos").select("cantidad").eq("local_id", local.id);
+  const { data: lotes, error: errorLotes } = await admin.from("lotes_impresos").select("cantidad").eq("local_id", local.id);
+  // Si la base falla, mejor la pantalla de error de Next que un "0 sobres" falso.
+  if (errorLotes) throw new Error(`panel local: no pude leer los lotes: ${errorLotes.message}`);
   const sobres = ((lotes ?? []) as { cantidad: number }[]).reduce((s, l) => s + Number(l.cantidad), 0);
 
-  const { data: pedidos } = await admin
+  const { data: pedidos, error: errorPedidos } = await admin
     .from("pedidos")
     .select("created_at, comision_local, monto, moneda")
     .eq("local_id", local.id)
-    .in("estado", ["pagado", "generando", "esperando_voz", "entregado"]);
+    .neq("estado", "pendiente");
+
+  if (errorPedidos) throw new Error(`panel local: no pude leer los pedidos: ${errorPedidos.message}`);
 
   const es = local.pais === "ES";
   const filas = resumenPorMes((pedidos ?? []) as PedidoDelLocal[], es ? "Europe/Madrid" : "America/Argentina/Buenos_Aires");

@@ -995,6 +995,7 @@ Spec: `docs/superpowers/specs/2026-10-17-regalo-en-locales-design.md`.
 | `pedidos.comision_local` | web, `/api/compra` | Lo que le toca al local, en la moneda del pedido |
 | `pedidos.extras.codigo_impreso` | web, `/api/compra` | La carta que se está pagando (solo regalos) |
 | `pedidos.extras.tarjeta` | web, `/api/compra` | `{ direccion }` si se pidió la tarjeta negra por correo |
+| `pedidos.extras.tarjetas` | web, `/api/compra` | Cuántas tarjetas negras se compraron. Solo está si es mayor que 0 |
 
 - El regalo nace con un código generado, como siempre. Al confirmar el pago, la web toma la carta y
   cambia `regalos.codigo` al impreso. Si la carta ya era de otro pedido, el regalo se queda con su

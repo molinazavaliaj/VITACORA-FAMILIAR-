@@ -47,6 +47,7 @@ export function textosCartaLibre(idioma: IdiomaRegalo): TextosCartaLibre {
 export type TextosCartaComprador = {
   avisoCarta: (codigo: string) => string;
   cartaUsada: string;
+  cartaNoExiste: string;
   queLibro: string;
   digital: string;
   digitalDetalle: string;
@@ -61,6 +62,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
   vos: {
     avisoCarta: (codigo) => `Estás regalando la carta ${codigo}. Cuando pagues, esa misma carta queda activada.`,
     cartaUsada: "Esta carta ya fue regalada. Podés regalar igual un libro nuevo desde acá.",
+    cartaNoExiste: "No encontramos esa carta. Revisá el código o regalá un libro nuevo desde acá.",
     queLibro: "Qué libro le regalás",
     digital: "El libro digital",
     digitalDetalle: "Se lee en la web, con sus fotos y su voz.",
@@ -73,6 +75,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
   tu: {
     avisoCarta: (codigo) => `Estás regalando la carta ${codigo}. Cuando pagues, esa misma carta queda activada.`,
     cartaUsada: "Esta carta ya se ha regalado. Puedes regalar igualmente un libro nuevo desde aquí.",
+    cartaNoExiste: "No encontramos esa carta. Revisa el código o regala un libro nuevo desde aquí.",
     queLibro: "Qué libro le regalas",
     digital: "El libro digital",
     digitalDetalle: "Se lee en la web, con sus fotos y su voz.",

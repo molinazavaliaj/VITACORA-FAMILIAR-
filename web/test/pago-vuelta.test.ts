@@ -29,17 +29,19 @@ const auth = { createUser: vi.fn(), generateLink: vi.fn(), listUsers: vi.fn() };
 const verifyOtp = vi.fn();
 
 const tablasLeidas: string[] = [];
-function admin(pedido: Record<string, unknown> | null, codigoRegalo?: string) {
+function admin(pedido: Record<string, unknown> | null, codigoRegalo?: string, codigoImpresoTomado?: string | null | "sin-tabla") {
   return {
     from: (tabla: string) => {
       tablasLeidas.push(tabla);
       const b: Record<string, unknown> = {};
       const enc = () => b;
       b.select = enc; b.eq = enc;
+      if (tabla === "codigos_impresos" && codigoImpresoTomado === "sin-tabla") b.select = () => { throw new Error("relation does not exist"); };
       b.maybeSingle = async () => ({
         data: tabla === "pedidos" ? pedido
           : tabla === "familias" ? { email: "martina@test.com" }
           : tabla === "regalos" && codigoRegalo ? { codigo: codigoRegalo }
+          : tabla === "codigos_impresos" && typeof codigoImpresoTomado === "string" && codigoImpresoTomado !== "sin-tabla" ? { codigo: codigoImpresoTomado }
           : null,
         error: null,
       });
@@ -142,5 +144,29 @@ describe("GET /api/pago/vuelta", () => {
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
     expect(destino(r)).toBe("/tablero/n1");
     expect(tablasLeidas).not.toContain("regalos");
+  });
+
+  const yaEstaba = () => (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
+  const pedidoCarta = { id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1", extras: { regalo: true, codigo_impreso: "VF-7K3M2Q" } };
+
+  it("(j) carta impresa tomada por este pedido, yaEstaba: va a la tarjeta con el código impreso", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin(pedidoCarta, "VF-GENERADO", "VF-7K3M2Q"));
+    yaEstaba();
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(destino(r)).toBe("/regalo/VF-7K3M2Q/tarjeta");
+  });
+
+  it("(k) carta impresa que no es de este pedido (la ganó otro): se queda con el código de regalos", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin(pedidoCarta, "VF-GENERADO", null));
+    yaEstaba();
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(destino(r)).toBe("/regalo/VF-GENERADO/tarjeta");
+  });
+
+  it("(l) sin la tabla codigos_impresos: no se rompe y usa el código de regalos", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin(pedidoCarta, "VF-GENERADO", "sin-tabla"));
+    yaEstaba();
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(destino(r)).toBe("/regalo/VF-GENERADO/tarjeta");
   });
 });

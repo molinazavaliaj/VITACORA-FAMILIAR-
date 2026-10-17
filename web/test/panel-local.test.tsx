@@ -13,14 +13,22 @@ const tablas: Record<string, unknown[]> = {
   ],
 };
 
+const errores: Record<string, string> = {};
+const filtrosNeq: Record<string, unknown> = {};
+
 function consulta(tabla: string) {
   const q: Record<string, unknown> = {};
   const fila = () => (tabla === "locales" ? (q._token === TOKEN_BUENO ? { id: "L1", nombre: "Copistería Berga", idioma: "ca", pais: "ES" } : null) : null);
   q.select = () => q;
   q.eq = (col: string, val: unknown) => { if (col === "token_panel") q._token = val; return q; };
   q.in = () => q;
+  q.neq = (col: string, val: unknown) => { q._neq = [col, val]; return q; };
   q.maybeSingle = async () => ({ data: fila(), error: null });
-  q.then = (res: (v: unknown) => unknown) => res({ data: tablas[tabla] ?? [], error: null });
+  q.then = (res: (v: unknown) => unknown) => {
+    if (errores[tabla]) return res({ data: null, error: { message: errores[tabla] } });
+    filtrosNeq[tabla] = q._neq;
+    return res({ data: tablas[tabla] ?? [], error: null });
+  };
   return q;
 }
 
@@ -63,5 +71,19 @@ describe("el panel del local", () => {
     tablas.pedidos = [];
     const html = await render(TOKEN_BUENO);
     expect(html).toContain(textosPanelLocal("ca").sinVentas.replace("'", "&#x27;"));
+  });
+
+  it("cuenta todo lo que no está pendiente (también fallido)", async () => {
+    await render(TOKEN_BUENO);
+    expect(filtrosNeq.pedidos).toEqual(["estado", "pendiente"]);
+  });
+
+  it.each(["lotes_impresos", "pedidos"])("si falla la consulta de %s, no muestra ceros: tira el error", async (tabla) => {
+    errores[tabla] = "base caída";
+    try {
+      await expect(render(TOKEN_BUENO)).rejects.toThrow("base caída");
+    } finally {
+      delete errores[tabla];
+    }
   });
 });

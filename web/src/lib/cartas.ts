@@ -65,7 +65,8 @@ export function comisionDelLibro(compra: Compra, pct: number): number {
 
 export type PedidoDelLocal = { created_at: string; comision_local: number | string | null; monto: number | string; moneda: string };
 
-/** Lo que ve el local en su panel: cartas pagadas y su parte, por mes, el más nuevo primero. */
+/** Lo que ve el local en su panel: cartas pagadas y su parte, por mes, el más nuevo primero.
+ *  El mes sale de created_at del pedido, no de la fecha de pago (se paga casi enseguida). */
 export function resumenPorMes(pedidos: PedidoDelLocal[], zona: string): { mes: string; cartas: number; comision: number; moneda: string }[] {
   const formato = new Intl.DateTimeFormat("en-CA", { timeZone: zona, year: "numeric", month: "2-digit" });
   const porMes = new Map<string, { mes: string; cartas: number; centavos: number; moneda: string }>();
