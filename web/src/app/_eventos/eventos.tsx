@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { Coreografia } from "../_direccion/coreografia";
@@ -24,10 +25,12 @@ import "./eventos.css";
 // tildes; la hoja de papel con el borde cortado (dir-deckle); «Cómo funciona»
 // en tinta con el número grande y el dibujo a lápiz de cada paso; el cierre
 // con el logo y el lema. Orden: 1 inicio, 2 qué es y para qué celebraciones,
-// 3 cómo funciona, 4 el formulario (papel), 5 cierre y pie. Sin fotos:
-// todavía no hay ninguna de un evento real. Estática.
+// 3 cómo funciona, 4 el formulario (papel), 5 cierre y pie. Una foto del
+// rincón de Vitácora en un casamiento, hecha con IA (no hay de un evento real
+// todavía). Estática.
 
 const CAMINO = "/eventos";
+const FOTO_STAND = "/rediseno/eventos-casamiento-stand.jpg";
 const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 export function Eventos({ idioma }: { idioma: IdiomaWeb }) {
@@ -86,6 +89,12 @@ export function Eventos({ idioma }: { idioma: IdiomaWeb }) {
             <h2 className="dir-titular dir-t3 max-w-[18ch]">{t.queEs.titulo}</h2>
             <p className="dir-parrafo max-w-[44ch]">{t.queEs.bajada}</p>
           </div>
+
+          {/* La foto del rincón en un casamiento (Higgsfield, 17/10; Naza la
+              eligió en color). Gente inventada: ningún narrador real. */}
+          <figure className="aparece evt-foto mt-16 md:mt-20">
+            <Image src={FOTO_STAND} alt={t.queEs.altFoto} width={1920} height={1288} sizes="(min-width: 1360px) 1264px, 92vw" />
+          </figure>
 
           <div className="aparece mt-20 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-28 md:pt-24">
             <h3 className="dir-titular dir-t4">{t.tipos.titulo}</h3>

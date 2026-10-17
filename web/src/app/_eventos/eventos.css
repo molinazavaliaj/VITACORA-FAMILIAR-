@@ -50,3 +50,14 @@
   border-bottom: 1px solid var(--dir-hilo-papel);
   padding: 40px 0;
 }
+
+/* La foto del rincón: ancha, en color, con las esquinas apenas redondeadas y
+   la sombra suave de las tapas de la portada. */
+.evt-foto { margin-inline: 0; }
+.evt-foto img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 30px 60px -30px rgba(21, 20, 18, 0.55);
+}
