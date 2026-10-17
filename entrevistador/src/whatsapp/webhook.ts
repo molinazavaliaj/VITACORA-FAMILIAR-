@@ -55,8 +55,14 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   // botones que mandamos nosotros). Le dimos a la gente el camino más fácil
   // para contestar y era el único que no escuchábamos: leyeron la bienvenida,
   // apretaron SI, y del otro lado no pasó nada.
+  //
+  // Kids V2 (15/10): el botón trae el id del mensaje tocado (`context.id`). Con eso un botón de un mensaje viejo no
+  // hace nada (decisión 22 del motor de Kids); lo demás no lo mira.
   const apretado = textoDelBoton(mensaje);
-  if (apretado) return { ...base, tipo: 'texto', texto: apretado, esBoton: true };
+  if (apretado) {
+    const cita = typeof mensaje.context?.id === 'string' ? { citaA: mensaje.context.id as string } : {};
+    return { ...base, tipo: 'texto', texto: apretado, esBoton: true, ...cita };
+  }
   return null; // stickers, reacciones, documentos, ubicaciones: se ignoran
 }
 

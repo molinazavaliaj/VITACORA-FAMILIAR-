@@ -27,7 +27,9 @@ const mocks = vi.hoisted(() => ({
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
   procesarEntranteV3: vi.fn(),
-  estado: { errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
+  procesarEntranteKids: vi.fn(),
+  atenderPadreKids: vi.fn(),
+  estado: { filaKids: null as any, errorKids: null as any, errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -41,6 +43,7 @@ vi.mock('../src/db/cliente.js', () => {
       const error = Array.isArray(mocks.estado.errorV3) ? (mocks.estado.errorV3.shift() ?? null) : mocks.estado.errorV3;
       return { data: error ? null : mocks.estado.filaV3, error };
     }
+    if (tabla === 'kids_v2') return { data: mocks.estado.errorKids ? null : mocks.estado.filaKids, error: mocks.estado.errorKids };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -117,6 +120,11 @@ vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 // La V3 entera se prueba en test/v3; acá solo que procesar la llama.
 vi.mock('../src/v3/entrante.js', () => ({ procesarEntranteV3: mocks.procesarEntranteV3 }));
 vi.mock('../src/v3/deps-reales.js', () => ({ depsReales: () => ({}) }));
+// El bot de Kids se prueba en test/kids-v2; acá solo que procesar lo llama a él y a nada más.
+vi.mock('../src/kids-v2/entrante.js', () => ({ procesarEntranteKids: mocks.procesarEntranteKids }));
+vi.mock('../src/kids-v2/deps-reales.js', () => ({ depsKidsReales: () => ({ kids: true }) }));
+// El padre de canal A se prueba en test/kids-v2/padre.test.ts; acá solo cuándo procesar lo llama.
+vi.mock('../src/kids-v2/padre.js', () => ({ atenderPadreKids: mocks.atenderPadreKids }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -134,6 +142,10 @@ beforeEach(() => {
   mocks.estado.narrador = null;
   mocks.estado.filaV3 = null;
   mocks.estado.errorV3 = null;
+  mocks.estado.filaKids = null;
+  mocks.estado.errorKids = null;
+  mocks.procesarEntranteKids.mockReset();
+  mocks.procesarEntranteKids.mockResolvedValue(undefined);
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
@@ -155,6 +167,8 @@ beforeEach(() => {
   mocks.pedidoAbierto.mockResolvedValue(null);  // por defecto, no hay pedido esperando
   mocks.canjearRegalo.mockReset();
   mocks.canjearRegalo.mockResolvedValue('sin_codigo');
+  mocks.atenderPadreKids.mockReset();
+  mocks.atenderPadreKids.mockResolvedValue(false);
   mocks.mandarBienvenidaDeRegalo.mockReset();
   mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
   mocks.avisarSocios.mockReset();
@@ -1129,4 +1143,98 @@ describe('leerSiNo en catalán y de España', () => {
   for (const t of ['Ara no', 'Demà', 'Després', 'Més tard', 'Avui no']) {
     it(`«${t}» es no`, () => expect(leerSiNo(t)).toBe('no'));
   }
+});
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): el mensaje de un chico va al motor de Kids y a nada más.
+describe('un chico de Kids', () => {
+  const chico = (estado: string) => ({ ...narradorEn(estado, 0, { modo: 'kids' }), como_le_dicen: 'Juani' });
+
+  for (const estado of ['invitado', 'activo', 'completado']) {
+    it(`en '${estado}' va al bot de Kids y a nada más`, async () => {
+      mocks.estado.narrador = chico(estado);
+      mocks.estado.filaKids = { narrador_id: 'n1' };
+      const m = { telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w1' } as MensajeEntrante;
+      await procesarEntrante(m);
+      expect(mocks.procesarEntranteKids).toHaveBeenCalledWith({ kids: true }, mocks.estado.narrador, m);
+      expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+      expect(mocks.descargarAudio).not.toHaveBeenCalled();
+      expect(mocks.enviarTexto).not.toHaveBeenCalled();
+      expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+      expect(mocks.mandarHito).not.toHaveBeenCalled();
+      expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+      expect(mocks.estado.capturas).toEqual([]);
+    });
+  }
+
+  it('un código de regalo que manda un chico terminado también va al bot de Kids (no al aviso del regalo)', async () => {
+    mocks.estado.narrador = chico('completado');
+    mocks.estado.filaKids = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.procesarEntranteKids).toHaveBeenCalled();
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('en pendiente_pago no se toca la fila de Kids (sigue como hoy)', async () => {
+    mocks.estado.narrador = chico('pendiente_pago');
+    mocks.estado.filaKids = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+  });
+
+  it('si la base no deja saber si es un chico, no se le contesta nada', async () => {
+    mocks.estado.narrador = chico('activo');
+    mocks.estado.errorKids = { code: '57014', message: 'canceling statement due to statement timeout' };
+    await expect(procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante)).rejects.toThrow(/Kids/);
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('sin la migración (kids_v2 no existe), un narrador sigue como hoy', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorKids = { code: 'PGRST205', message: "Could not find the table 'public.kids_v2' in the schema cache" };
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).toHaveBeenCalled();
+  });
+});
+
+// Kids V2 (15/10, decisión de Naza): el padre de un chico de canal A que le escribe al número del bot.
+describe('el padre de un chico de Kids (canal A)', () => {
+  it('un número desconocido que es padre de Kids: lo atiende el bot de Kids y no va al canje', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    const m = { telefono: TEL, tipo: 'texto', texto: 'buenas', waMessageId: 'w' } as MensajeEntrante;
+    await procesarEntrante(m);
+    expect(mocks.atenderPadreKids).toHaveBeenCalledWith({ kids: true }, m);
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('si no es padre de Kids, sigue como hoy (el canje)', async () => {
+    mocks.estado.narrador = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+  });
+
+  it('con un código con VF, primero el canje; si no había regalo, después el padre', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo.mock.invocationCallOrder[0]).toBeLessThan(mocks.atenderPadreKids.mock.invocationCallOrder[0]);
+  });
+
+  it('un padre que además es narrador va por su flujo de narrador: no se lo trata como padre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorKids = null;
+    mocks.estado.filaKids = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.atenderPadreKids).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).toHaveBeenCalled();
+  });
 });

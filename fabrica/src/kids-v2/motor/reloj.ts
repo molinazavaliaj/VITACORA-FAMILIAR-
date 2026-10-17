@@ -1,0 +1,136 @@
+// El tiempo: los 90 s de silencio, la espera del audio de la foto, "la hora"
+// (mínimo una principal por día), los recordatorios al padre (4 y 8 días),
+// el cierre solo a los 2 días y TERMINO-PADRE en canal B. Nada de noche.
+
+import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from '../horas.js';
+import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS, VENTANA_MS } from '../reglas.js';
+import { emitir, empezarItem, guardarFotoVencida, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, ventanaAbierta, type Ctx } from './flujo.js';
+import { fijoA, variables } from './mensajes.js';
+import { procesarRafaga } from './rafaga.js';
+import { enDiaSobrio } from './sobrio.js';
+import type { Estado } from './tipos.js';
+
+const ms = (iso: string) => new Date(iso).getTime();
+
+/** Esperando algo que solo puede mandar el chico: a la hora no sale nada nuevo (no se acumulan). */
+export function bloqueante(e: Estado): boolean {
+  const f = e.fase;
+  if (f.tipo === 'bienvenida' || f.tipo === 'aviso-seria' || f.tipo === 'retenido') return true;
+  if (f.tipo === 'pregunta') {
+    const item = e.guion[e.cursor];
+    return !e.extra && (item.tipo === 'principal' || item.tipo === 'padre');
+  }
+  return false;
+}
+
+export function alReloj(c: Ctx): void {
+  const e = c.e;
+  if (esDeNoche(c.ahora, e.ficha.zona)) return;
+  if (e.rafaga && c.ahora.getTime() - ms(e.rafaga.ultima) >= SILENCIO_MS) procesarRafaga(c);
+  // La espera del audio después de [No tengo] vence (B-SEGUIR, EXTRAS-OTRA…), salvo que: esté
+  // contando (primero va el acuse de lo que mandó); sea el día de algo preocupante (ningún reloj hace
+  // avanzar el flujo); o la ventana de 24 h esté cerrada (saldría texto libre: lo retoma la hora con
+  // PREG-NUEVA o, en las extras, el cierre a los 2 días).
+  if (e.fase.tipo === 'foto-audio' && !e.rafaga && !enDiaSobrio(c) && ventanaAbierta(e, c.ahora) && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
+  if (e.rafaga) return; // está contando: la hora espera
+  const fecha = hoy(c);
+  if (e.horaHecha === fecha || c.ahora < aInstante(fecha, e.ficha.hora, e.ficha.zona)) return;
+  if (e.ultimaEntrada && c.ahora.getTime() - ms(e.ultimaEntrada) < ACTIVO_MS) return; // está en medio de algo: la hora espera
+  e.horaHecha = fecha;
+  alaHora(c);
+}
+
+function recordatorio(c: Ctx): void {
+  const e = c.e;
+  const desde = e.ultimaEntrada ?? e.inicio;
+  if (!desde) return;
+  const dias = diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, hoy(c));
+  const B = e.ficha.canal === 'B';
+  const vars = variables.padre(e.ficha);
+  if (e.recordatorios === 0 && dias >= RECORDATORIO_DIAS[0]) {
+    emitir(c, fijoA(e, B ? 'RECORD-B' : 'RECORD-A-4', { variables: vars, paraPadre: true }));
+    e.recordatorios = 1;
+    e.reenviar = B;
+  } else if (e.recordatorios === 1 && dias >= RECORDATORIO_DIAS[1]) {
+    emitir(c, fijoA(e, B ? 'RECORD-B-8' : 'RECORD-A-8', { variables: vars, paraPadre: true }));
+    e.reenviar = B;
+    marcar(c, 'silencio-8-dias', `${dias} días sin respuesta en ${e.guion[e.cursor]?.clave ?? 'la bienvenida'}`);
+    e.recordatorios = 2;
+  }
+}
+
+/**
+ * El cierre solo a los 2 días cuando la oferta de extras quedó detrás de un
+ * PREG-NUEVA que el chico nunca tocó. Al chico no le sale nada (sería una
+ * segunda plantilla sin respuesta): FINAL-CHICO queda retenido en lugar de la
+ * oferta y le llega cuando toque el botón o escriba. Al padre, TERMINO-PADRE
+ * (canal B: al día siguiente de que le llegue el final o, si sigue retenido,
+ * a los 2 días del cierre, a la hora); a Naza, una marca. El cursor pasa al
+ * final, así que no vuelve a correr ni se retoman las extras.
+ */
+function cerrarConFinalRetenido(c: Ctx): void {
+  const e = c.e;
+  const i = e.guion.findIndex((x) => x.tipo === 'final');
+  if (i < 0) throw new Error('El guion no tiene final');
+  e.cursor = i;
+  e.extra = null;
+  e.fase = { tipo: 'retenido', mensajes: [mensajeFinal(e).final], luego: { tipo: 'terminado' } };
+  // Canal B: TERMINO-PADRE va al día siguiente de que LLEGÓ el final (decisión 15): lo agenda soltarRetenido al soltarlo.
+  // Si el padre nunca toca el botón, sale igual a los 2 días del cierre, a la hora (Naza 05/10).
+  if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
+  else e.terminoPadre = sumarDias(hoy(c), CIERRE_SOLO_DIAS);
+  marcar(c, 'cerro-sin-respuesta', 'cerró solo a los 2 días con un PREG-NUEVA sin tocar en las extras; el final le llega cuando conteste');
+}
+
+function alaHora(c: Ctx): void {
+  const e = c.e;
+  const fecha = hoy(c);
+  if (e.sobrioHasta && c.ahora >= new Date(e.sobrioHasta)) e.sobrioHasta = null;
+  // Canal B: al día siguiente de que llegó el final (decisión 15); con el final todavía retenido detrás
+  // de un PREG-NUEVA, a los 2 días del cierre (Naza 05/10). Una sola vez: después queda en null.
+  if (e.terminoPadre && e.terminoPadre <= fecha) {
+    emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
+    e.terminoPadre = null;
+  }
+  if (e.sobrioHasta) return; // día sobrio: ni cierre de las extras, ni recordatorios, ni la pregunta de la hora
+  if (e.fase.tipo === 'terminado' || e.fase.tipo === 'sin-empezar') return;
+  const item = e.guion[e.cursor];
+  if (item?.tipo === 'final') return;
+  if (item?.tipo === 'extras') {
+    const desde = Math.max(...[e.extrasDesde, e.ultimaEntrada].filter((x): x is string => x !== null).map(ms));
+    if (diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, fecha) < CIERRE_SOLO_DIAS) return;
+    if (e.fase.tipo === 'retenido') return cerrarConFinalRetenido(c);
+    empezarItem(c, e.cursor + 1, true);
+    return;
+  }
+  if (bloqueante(e)) return recordatorio(c);
+  if (e.diaHecho === fecha) return;
+  guardarFotoVencida(e);
+  empezarItem(c, e.fase.tipo === 'libre' ? e.fase.siguiente : e.cursor + 1, true);
+}
+
+/** Cuándo hay que volver a llamar con `reloj` (null: nada pendiente). Nunca de noche. */
+export function proximoDespertar(e: Estado, ahora: Date): Date | null {
+  const z = e.ficha.zona;
+  const c: Date[] = [];
+  if (e.nocturnos.length) c.push(ahora);
+  if (e.rafaga) c.push(new Date(ms(e.rafaga.ultima) + SILENCIO_MS));
+  if (e.fase.tipo === 'foto-audio' && !e.rafaga) {
+    // En el día sobrio la espera del audio no vence: se retoma cuando termina (si no, despertaría sin parar).
+    // Con una ráfaga pendiente despierta la ráfaga; fuera de las 24 h no vence (alReloj): no se despierta para eso.
+    const sobrio = e.sobrioHasta !== null && ahora < new Date(e.sobrioHasta) ? ms(e.sobrioHasta) : 0;
+    const vence = finDeLaNoche(new Date(Math.max(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS, sobrio, ahora.getTime())), z);
+    if (e.ultimaEntrada && vence.getTime() - ms(e.ultimaEntrada) < VENTANA_MS) c.push(vence);
+  }
+  const sigueLaHora = !(e.fase.tipo === 'terminado' && !e.terminoPadre) && e.fase.tipo !== 'sin-empezar';
+  if (sigueLaHora && !e.rafaga) {
+    const fecha = aLocal(ahora, z).fecha;
+    const hoyHora = aInstante(fecha, e.ficha.hora, z);
+    const hora = e.horaHecha !== fecha ? hoyHora : aInstante(sumarDias(fecha, 1), e.ficha.hora, z);
+    const activo = e.ultimaEntrada ? ms(e.ultimaEntrada) + ACTIVO_MS : 0;
+    c.push(new Date(Math.max(hora.getTime(), activo, ahora.getTime())));
+  }
+  if (!c.length) return null;
+  const t = new Date(Math.min(...c.map((x) => finDeLaNoche(x, z).getTime())));
+  return t < ahora ? ahora : t;
+}
