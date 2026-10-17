@@ -132,3 +132,14 @@ describe("confirmarPago — carta impresa y tarjeta negra", () => {
     expect(avisarSocios).not.toHaveBeenCalled();
   });
 });
+
+describe("confirmarPago — aviso del impreso en el mail del regalo", () => {
+  it("regalo con impreso: enviarMailRegalo recibe conImpreso true; digital, false", async () => {
+    for (const [extras, esperado] of [[{ regalo: true, impreso: "color" }, true], [{ regalo: true }, false]] as const) {
+      const { admin } = construirAdmin({ extras });
+      const enviarMailRegalo = vi.fn().mockResolvedValue(true);
+      await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "ref", enviarMailAcceso: vi.fn(), enviarMailRegalo, avisarSocios: vi.fn().mockResolvedValue(true) });
+      expect(enviarMailRegalo).toHaveBeenCalledWith(expect.objectContaining({ conImpreso: esperado }));
+    }
+  });
+});

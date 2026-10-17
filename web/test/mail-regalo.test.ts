@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { enviarMailRegalo } from "../src/lib/mail";
 import { textosComprador } from "../src/lib/regalo-textos";
+import { textosCartaComprador } from "../src/lib/carta-textos";
 
 const VOS = textosComprador("vos");
 
@@ -56,5 +57,25 @@ describe("enviarMailRegalo", () => {
     vi.stubGlobal("fetch", fetchFalso);
     expect(await enviarMailRegalo({ para: "a@b.com", comoLeDicen: "abuela", codigo: "VF-AAAAAA", trato: "vos" })).toBe(false);
     expect(fetchFalso).not.toHaveBeenCalled();
+  });
+
+  it("con conImpreso avisa que la dirección se carga desde el panel (vos y tú); sin él no aparece", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_prueba");
+    const fetchFalso = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => "" });
+    vi.stubGlobal("fetch", fetchFalso);
+    const html = async (trato: "vos" | "tu", conImpreso?: boolean) => {
+      fetchFalso.mockClear();
+      await enviarMailRegalo({ para: "a@b.com", comoLeDicen: "abuela", codigo: "VF-AAAAAA", trato, ...(conImpreso === undefined ? {} : { conImpreso }) });
+      return JSON.parse(fetchFalso.mock.calls[0][1].body).html as string;
+    };
+    for (const trato of ["vos", "tu"] as const) {
+      const linea = textosCartaComprador(trato).mailImpreso;
+      const con = await html(trato, true);
+      expect(con).toContain(linea);
+      expect(con.indexOf(linea)).toBeLessThan(con.indexOf("/tarjeta"));
+      expect(await html(trato, false)).not.toContain(linea);
+      expect(await html(trato)).not.toContain(linea);
+    }
+    expect(await html("vos", false)).toBe(await html("vos"));
   });
 });

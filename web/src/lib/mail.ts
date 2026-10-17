@@ -12,6 +12,7 @@
 const deTu = (region: string | null | undefined): boolean => region === "ES";
 
 import { textosComprador, type TratoComprador } from "./regalo-textos";
+import { textosCartaComprador } from "./carta-textos";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -132,6 +133,8 @@ export async function enviarMailRegalo(opciones: {
   comoLeDicen: string;
   codigo: string;
   trato: TratoComprador;
+  /** Se compró con el libro impreso: el mail avisa que la dirección se carga desde el panel. */
+  conImpreso?: boolean;
 }): Promise<boolean> {
   const textos = textosComprador(opciones.trato);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
@@ -140,7 +143,8 @@ export async function enviarMailRegalo(opciones: {
     para: opciones.para,
     asunto: textos.mailAsunto(opciones.comoLeDicen),
     html: envoltorio(`
-        <tr><td style="padding-bottom:24px;">${escapar(textos.mailCuerpo(opciones.comoLeDicen))}</td></tr>
+        <tr><td style="padding-bottom:24px;">${escapar(textos.mailCuerpo(opciones.comoLeDicen))}</td></tr>${opciones.conImpreso ? `
+        <tr><td style="padding-bottom:24px;">${escapar(textosCartaComprador(opciones.trato).mailImpreso)}</td></tr>` : ""}
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(url)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
             ${escapar(textos.mailBoton)}

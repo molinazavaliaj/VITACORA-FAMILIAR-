@@ -56,6 +56,8 @@ export type TextosCartaComprador = {
   tarjetaTitulo: string;
   tarjetaDetalle: string;
   direccionTitulo: string;
+  /** Línea extra del mail del regalo cuando se compró con el impreso: la dirección se carga después. */
+  mailImpreso: string;
 };
 
 const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
@@ -71,6 +73,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
     tarjetaTitulo: "Sumar la tarjeta negra por correo",
     tarjetaDetalle: "Te la mandamos a tu casa en un sobre negro, para dársela en mano.",
     direccionTitulo: "Dónde te la mandamos",
+    mailImpreso: "Elegiste el libro impreso. Cuando quieras, cargá la dirección de envío desde tu panel, en Encargar libro.",
   },
   tu: {
     avisoCarta: (codigo) => `Estás regalando la carta ${codigo}. Cuando pagues, esa misma carta queda activada.`,
@@ -84,6 +87,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
     tarjetaTitulo: "Añadir la tarjeta negra por correo",
     tarjetaDetalle: "Te la enviamos a casa en un sobre negro, para dársela en mano.",
     direccionTitulo: "Dónde te la enviamos",
+    mailImpreso: "Has elegido el libro impreso. Cuando quieras, carga la dirección de envío desde tu panel, en Encargar libro.",
   },
 };
 

@@ -24,7 +24,7 @@ export type ResultadoConfirmacion =
   | { ok: false; error: string };
 
 type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null }) => Promise<boolean>;
-type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
+type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador; conImpreso?: boolean }) => Promise<boolean>;
 
 type AvisarSocios = (asunto: string, texto: string) => Promise<boolean>;
 
@@ -208,7 +208,7 @@ update regalos set codigo = '${codigoImpreso}' where narrador_id = '${pedido.nar
       const comoLeDicen = (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? "tu familiar";
       if (esRegalo) {
         if (codigoRegalo && opciones.enviarMailRegalo) {
-          await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo, trato: tratoDeRegion(region ?? "AR") });
+          await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo, trato: tratoDeRegion(region ?? "AR"), conImpreso: productosDelPedido(extras).impreso !== null });
         } else {
           console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
         }

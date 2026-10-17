@@ -148,14 +148,14 @@ describe("confirmarPago", () => {
     expect(alNarrador?.valores).toEqual({ estado: "regalo_pendiente" });
     expect(alNarrador?.filtros).toContainEqual(["estado", "pendiente_pago"]);
     expect(enviarMailAcceso).not.toHaveBeenCalled();
-    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q", trato: "vos" });
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q", trato: "vos", conImpreso: false });
   });
 
   it("un regalo de una familia de España manda el mail de la tarjeta de tú", async () => {
     const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { regalo: true }, codigoRegalo: "VF-7K3M2Q", comoLeDicen: "abuela", region: "ES" });
     const enviarMailRegalo = vi.fn().mockResolvedValue(true);
     await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso: vi.fn(), enviarMailRegalo });
-    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuela", codigo: "VF-7K3M2Q", trato: "tu" });
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuela", codigo: "VF-7K3M2Q", trato: "tu", conImpreso: false });
   });
 
   it("un pedido normal sigue pasando a invitado y devuelve codigoRegalo null", async () => {
