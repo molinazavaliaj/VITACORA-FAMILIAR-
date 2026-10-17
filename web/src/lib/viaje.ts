@@ -215,7 +215,7 @@ export function textoBaseDelDia(viaje: Viaje, dia: number): string {
   const angulo = anguloDelDia(viaje, dia);
   if (angulo === "llegada") return `Día ${dia}${donde}: contame el momento en que sentiste que habías llegado.`;
   if (angulo === "despedida") return `Día ${dia}${donde}: te vas. ¿Con qué te quedás? ¿Qué dejás?`;
-  return `Día ${dia}${donde}: contame ${TEXTO_ANGULO[angulo]}. Y mandame la foto de hoy con lo que estaba pasando.`;
+  return `Día ${dia}${donde}: contame ${TEXTO_ANGULO[angulo]}, y mandame la foto de hoy con lo que estaba pasando.`;
 }
 
 /** El guion entero: una pregunta por día. */

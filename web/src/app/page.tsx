@@ -18,6 +18,8 @@ export const metadata: Metadata = {
     locale: "es_ES",
     type: "website",
   },
+  // Sin esto, twitter:* sale del layout (que dice «tu papá»).
+  twitter: { title: TEXTOS_PORTADA.es.hero.titulo.join(" "), description: TEXTOS_PORTADA.es.meta.descripcion },
 };
 
 export default function Home() {

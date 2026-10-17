@@ -191,7 +191,7 @@ export default async function PaginaAnticipo({
             <div className="mt-12 border-t border-[#EBEBE7] pt-8 text-center">
               <p className="text-[26px] tracking-[0.4em] text-[#AEAEA6]">…</p>
               <p className="mt-3 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light italic">
-                Y sigue contando.
+                Sigue contando.
               </p>
             </div>
           </div>
@@ -205,9 +205,9 @@ export default async function PaginaAnticipo({
           Va a seguir contando, a su ritmo.
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-          Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
+          Desde la página de su historia vas a ver el libro crecer capítulo a capítulo. Cuando
           esté terminado, te avisamos por correo y {tu ? "lo lees y lo escuchas" : "lo leés y lo escuchás"} desde
-          tu panel: el libro en PDF y sus mejores frases, en su voz.
+          la página de su historia: el libro en PDF y sus mejores frases, en su voz.
         </p>
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
@@ -225,7 +225,7 @@ export default async function PaginaAnticipo({
       <footer className="mt-auto border-t border-[#EBEBE7]">
         <div className="mx-auto w-full max-w-2xl px-6 py-8 text-center">
           <p className="text-[15px] italic text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-            Para las vidas que merecen su propio libro
+            Todas las vidas merecen su propio libro
           </p>
         </div>
       </footer>

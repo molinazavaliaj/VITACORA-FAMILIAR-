@@ -110,7 +110,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     tuWhatsappAyuda: "Aquí te avisamos si hace falta y cuando el libro esté listo.",
     correo: "Tu correo",
     correoPista: "tu@ejemplo.com",
-    correoAyuda: "Con este entras a tu panel, donde ves todo lo que cuenta.",
+    correoAyuda: "Con este entras a la página de su historia, donde ves todo lo que cuenta.",
     quienTitulo: "Quién lo cuenta.",
     quienBajada: "Lo que necesitamos para que las preguntas le hablen bien y la tapa sea suya.",
     suNombre: "Su nombre",
@@ -131,7 +131,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     regalaOtraPista: "Tu tía, tus padrinos, tu madrina",
     regalaAyuda: "Así lo nombra el primer mensaje. Escríbelo como se lo dirías a quien lo recibe.",
     canal: "Por dónde llegan las preguntas",
-    canalA: { titulo: "A su WhatsApp", detalle: "Le escribimos directo y responde cuando le apetece. Tú ves todo lo que cuenta desde tu panel." },
+    canalA: { titulo: "A su WhatsApp", detalle: "Le escribimos directo y responde cuando le apetece. Tú ves todo lo que cuenta desde la página de su historia." },
     suWhatsapp: "Su WhatsApp",
     // APROBADO por Naza 16/10 (tanda 8) · COMPRA-2-CANAL-A en España («adulto responsable», lectura de Marta)
     canalAutoriza: "Al elegir esto, eres tú, como adulto responsable, quien autoriza que le escribamos a ese número.",
@@ -157,7 +157,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     procesando: "Abriendo el pago…",
     despues: "Qué pasa después.",
     despuesTexto:
-      "Después de pagar te llega un correo para entrar a tu panel. Si elegiste su WhatsApp, le escribimos para presentarnos y a ti te avisamos. Si lo haces tú, el primer mensaje llega a tu WhatsApp y la primera pregunta sale cuando estéis juntos.",
+      "Después de pagar te llega un correo para entrar a la página de su historia. Si elegiste su WhatsApp, le escribimos para presentarnos y a ti te avisamos. Si lo haces tú, el primer mensaje llega a tu WhatsApp y la primera pregunta sale cuando estéis juntos.",
     legalAntes: "Al pagar aceptas los ",
     terminos: "términos",
     legalDespues: ".",
@@ -208,7 +208,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     tuWhatsappAyuda: "Aquí t'avisem si cal i quan el llibre estigui llest.",
     correo: "El teu correu",
     correoPista: "tu@exemple.com",
-    correoAyuda: "Amb aquest entres al teu panell, on veus tot el que explica.",
+    correoAyuda: "Amb aquest entres a la pàgina de la seva història, on veus tot el que explica.",
     quienTitulo: "Qui ho explica.",
     // APROBADO por Naza 16/10 (tanda 10) · «portada» en vez de «tapa»
     quienBajada: "El que necessitem perquè les preguntes li parlin bé i la portada sigui seva.",
@@ -237,7 +237,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     regalaAyuda: "Així ho diu el primer missatge. Escriu-ho com ho diries a qui ho rep.",
     canal: "Per on arriben les preguntes",
     // APROBADO por Naza 16/10 (tanda 10) · «quan li vingui de gust» (lectura de Montse)
-    canalA: { titulo: "Al seu WhatsApp", detalle: "Li escrivim directament i respon quan li vingui de gust. Tu veus tot el que explica des del teu panell." },
+    canalA: { titulo: "Al seu WhatsApp", detalle: "Li escrivim directament i respon quan li vingui de gust. Tu veus tot el que explica des de la pàgina de la seva història." },
     suWhatsapp: "El seu WhatsApp",
     // APROBADO por Naza 16/10 (tanda 10) · A3, «que escriguem»
     canalAutoriza: "En triar això, ets tu, com a adult responsable, qui autoritza que escriguem a aquest número.",
@@ -265,7 +265,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     despues: "Què passa després.",
     // APROBADO por Naza 16/10 (tanda 10) · «t'arriba», «estigueu junts»
     despuesTexto:
-      "Després de pagar t'arriba un correu per entrar al teu panell. Si has triat el seu WhatsApp, li escrivim per presentar-nos i a tu t'avisem. Si ho fas tu, el primer missatge arriba al teu WhatsApp i la primera pregunta surt quan estigueu junts.",
+      "Després de pagar t'arriba un correu per entrar a la pàgina de la seva història. Si has triat el seu WhatsApp, li escrivim per presentar-nos i a tu t'avisem. Si ho fas tu, el primer missatge arriba al teu WhatsApp i la primera pregunta surt quan estigueu junts.",
     legalAntes: "En pagar acceptes els ",
     terminos: "termes",
     legalDespues: ".",
@@ -312,7 +312,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     tuWhatsappAyuda: "Acá te avisamos si hace falta y cuando el libro esté listo.",
     correo: "Tu correo",
     correoPista: "vos@ejemplo.com",
-    correoAyuda: "Con este entrás a tu panel, donde ves todo lo que cuenta.",
+    correoAyuda: "Con este entrás a la página de su historia, donde ves todo lo que cuenta.",
     quienTitulo: "Quién lo cuenta.",
     quienBajada: "Lo que necesitamos para que las preguntas le hablen bien y la tapa sea suya.",
     suNombre: "Su nombre",
@@ -332,7 +332,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     regalaOtraPista: "Tu tía, tus padrinos, tu madrina",
     regalaAyuda: "Así lo nombra el primer mensaje. Escribilo como se lo dirías a quien lo recibe.",
     canal: "Por dónde llegan las preguntas",
-    canalA: { titulo: "A su WhatsApp", detalle: "Le escribimos directo y responde cuando tiene ganas. Vos ves todo lo que cuenta desde tu panel." },
+    canalA: { titulo: "A su WhatsApp", detalle: "Le escribimos directo y responde cuando tiene ganas. Vos ves todo lo que cuenta desde la página de su historia." },
     suWhatsapp: "Su WhatsApp",
     canalAutoriza: "Al elegir esto, sos vos, como adulto a cargo, quien autoriza que le escribamos a ese número.",
     canalB: { titulo: "Lo hago yo", detalle: "Las preguntas llegan a tu WhatsApp. Te sentás al lado, se las leés y responde con sus palabras." },
@@ -356,7 +356,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     procesando: "Abriendo el pago…",
     despues: "Qué pasa después.",
     despuesTexto:
-      "Después de pagar te llega un correo para entrar a tu panel. Si elegiste su WhatsApp, le escribimos para presentarnos y a vos te avisamos. Si lo hacés vos, el primer mensaje llega a tu WhatsApp y la primera pregunta sale cuando estén juntos.",
+      "Después de pagar te llega un correo para entrar a la página de su historia. Si elegiste su WhatsApp, le escribimos para presentarnos y a vos te avisamos. Si lo hacés vos, el primer mensaje llega a tu WhatsApp y la primera pregunta sale cuando estén juntos.",
     legalAntes: "Al pagar aceptás los ",
     terminos: "términos",
     legalDespues: ".",

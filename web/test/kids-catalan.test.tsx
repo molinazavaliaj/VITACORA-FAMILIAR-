@@ -135,7 +135,7 @@ describe("la compra de Kids en catalán", () => {
     expect([K.regala, K.errores.faltaQuien]).toEqual(["Qui li ho regala", "Falta qui li ho regala."]);
     expect(K.canalAutoriza).toBe("En triar això, ets tu, com a adult responsable, qui autoritza que escriguem a aquest número.");
     expect([K.tuNombrePista, K.suNombrePista]).toEqual(["Nom i cognoms", "Nom i cognoms"]);
-    expect(K.canalA.detalle).toBe("Li escrivim directament i respon quan li vingui de gust. Tu veus tot el que explica des del teu panell.");
+    expect(K.canalA.detalle).toBe("Li escrivim directament i respon quan li vingui de gust. Tu veus tot el que explica des de la pàgina de la seva història.");
     expect(K.despuesTexto).toContain("Després de pagar t'arriba un correu");
     expect(K.despuesTexto).toContain("quan estigueu junts.");
     const todo = JSON.stringify(K);

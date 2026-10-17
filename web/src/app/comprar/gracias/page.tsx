@@ -131,7 +131,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
         <AlConfirmar
           narradorId={confirmado?.narradorId ?? null}
           entregaId={confirmado?.entregaSinDireccion ?? null}
-          textos={{ guardada: T.direccionGuardada, falta: T.faltaDireccion, poner: T.ponerDireccion }}
+          textos={{ guardada: T.direccionGuardada, falta: T.faltaDireccion, poner: T.ponerDireccion(confirmado?.propia ?? false) }}
         />
 
         <div className="flex flex-wrap gap-3">
@@ -142,12 +142,12 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
           ) : null}
           {confirmado ? (
             <Link href={`/tablero/${confirmado.narradorId}`} className={clasesBoton(confirmado.regalo ? "fantasma" : "primario", "min-h-14 px-7")}>
-              {T.irAlPanel}
+              {T.irAlPanel(confirmado.propia)}
             </Link>
           ) : (
             <div className="flex flex-col gap-3">
               <Link href="/entrar" className={clasesBoton("primario", "min-h-14 self-start px-8 text-[16px]")}>
-                {T.entrarAlPanel}
+                {T.entrarAlPanel(esViaje)}
               </Link>
               <p className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.sinContrasenas}</p>
             </div>
