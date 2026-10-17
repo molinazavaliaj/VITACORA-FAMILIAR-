@@ -8,6 +8,9 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
+import { comisionDelLibro, leerCodigoImpreso, type CodigoImpreso } from "@/lib/cartas";
+import { textosCartaComprador } from "@/lib/carta-textos";
+import { validarDireccion, type Direccion } from "@/lib/entregas";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -24,7 +27,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type CompraBody = RegistroBody & {
   email?: string;
   /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
-  productos?: { viaje?: boolean; impresos?: number; marcos?: number };
+  productos?: { viaje?: boolean; impresos?: number; marcos?: number; tarjetas?: number };
+  /** Regalo en locales (17/10): compra para uno mismo que vino de una carta. Solo atribuye. */
+  carta?: string;
+  /** La tarjeta negra por correo: a dónde mandarla. */
+  tarjeta?: { direccion?: unknown };
   /**
    * Gift card (08/10): sin teléfono del narrador; nace un código. `retomar`
    * (09/10) es la prueba de un intento anterior sin pagar: el narradorId y el
@@ -33,6 +40,8 @@ export type CompraBody = RegistroBody & {
   regalo?: {
     mensaje?: string;
     fechaEntrega?: string;
+    /** El código impreso de la carta de un local (17/10). */
+    codigoImpreso?: string;
     genero?: string;
     idioma?: string;
     /** Mandárselo solo el día elegido (10/10). La zona no viene: sale del idioma. */
@@ -58,6 +67,7 @@ function leerCarrito(crudo: CompraBody["productos"]): Carrito {
     base: crudo?.viaje === true ? "viaje" : "pdf",
     impresos: typeof crudo?.impresos === "number" ? crudo.impresos : 0,
     marcos: typeof crudo?.marcos === "number" ? crudo.marcos : 0,
+    tarjetas: typeof crudo?.tarjetas === "number" ? crudo.tarjetas : 0,
   };
 }
 
@@ -131,6 +141,33 @@ export async function POST(request: NextRequest) {
   const compra = calcularCompra(familiaAInsertar.region, carrito);
 
   const admin = crearClienteServidor();
+
+  // Regalo en locales (17/10). Un regalo desde una carta tiene que poder
+  // pagarse: la carta existe y nadie la pagó. La compra para uno mismo con
+  // ?carta solo atribuye el local y no consume la carta.
+  const codigoImpreso = typeof body.regalo?.codigoImpreso === "string" ? body.regalo.codigoImpreso : null;
+  let carta: CodigoImpreso | null = null;
+  if (datosRegalo && codigoImpreso) {
+    carta = await leerCodigoImpreso(admin, codigoImpreso);
+    if (!carta || carta.pagado) {
+      return NextResponse.json({ error: textosCartaComprador(trato).cartaUsada }, { status: carta ? 409 : 404 });
+    }
+    // La carta se da en mano: no hay día de entrega.
+    datosRegalo = { ...datosRegalo, fechaEntrega: null, entrega: null };
+  } else if (!datosRegalo && typeof body.carta === "string") {
+    carta = await leerCodigoImpreso(admin, body.carta);
+  }
+  const local = carta?.localActivo ? carta : null;
+
+  let tarjeta: { direccion: Direccion } | null = null;
+  if (carrito.tarjetas && carrito.tarjetas > 0) {
+    if (!(datosRegalo && carta)) {
+      return NextResponse.json({ error: "La tarjeta por correo solo se puede sumar al regalar una carta." }, { status: 400 });
+    }
+    const d = validarDireccion(body.tarjeta?.direccion);
+    if (!d.ok) return NextResponse.json({ error: d.mensaje }, { status: 400 });
+    tarjeta = { direccion: d.direccion };
+  }
 
   // La familia: la de siempre si ya compró antes (mismo correo), o una nueva.
   // Sin auth_user_id: la cuenta la crea el login la primera vez que entra.
@@ -256,7 +293,15 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: datosRegalo ? { ...productosParaPedido(compra), regalo: true } : productosParaPedido(compra),
+      extras: {
+        ...productosParaPedido(compra),
+        ...(datosRegalo ? { regalo: true } : {}),
+        ...(datosRegalo && carta ? { codigo_impreso: carta.codigo } : {}),
+        ...(tarjeta ? { tarjeta } : {}),
+      },
+      // Solo con local: una compra común no escribe columnas que la migración
+      // 20261017000000 todavía puede no haber creado.
+      ...(local ? { local_id: local.localId, comision_local: comisionDelLibro(compra, local.comisionPct) } : {}),
     })
     .select("id")
     .single();
