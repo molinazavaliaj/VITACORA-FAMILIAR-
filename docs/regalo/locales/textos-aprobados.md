@@ -23,6 +23,8 @@
 
 El cartel y la caja (7 a 10) no los arma el código: se imprimen aparte para el stand.
 
+Cambio del 17/10 (carta-libro): ya no hay sobre. La carta se dobla como un librito negro y la cierra un sello redondo de 25 mm sin texto (solo el toroide), así que la fila 6 ya no se imprime. La tapa lleva el título «El libro de tu vida» (ca «El llibre de la teva vida») y la frase de la fila 1 pasó a la contratapa, junto con la fila 5.
+
 ## Tanda 2: página «no activada» y formulario
 
 | # | Dónde | es-AR (vos) | es-ES (tú) | ca |
