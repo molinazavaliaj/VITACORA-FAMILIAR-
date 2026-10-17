@@ -7,7 +7,8 @@
 > - **[N]** = Naza (socio 2, Barcelona) — `web/`, `fabrica/`, Meta/Facebook, infra
 > - **[A]** = Ambos
 >
-> Fuentes relacionadas: `ESTADO.md` (estado técnico) · `GASTOS.md` (plata) ·
+> Fuentes relacionadas: `docs/PLAN.md` (**en qué orden** se hace lo de acá) ·
+> `ESTADO.md` (estado técnico) · `GASTOS.md` (plata) ·
 > `supabase/CONTRATO.md` (contrato de datos) ·
 > `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` (marca) ·
 > `docs/identidad-de-marca.md` (marca: decisiones) · `docs/design.md` (tokens) ·
