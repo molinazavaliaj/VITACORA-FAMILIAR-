@@ -19,6 +19,7 @@
 #   - La simulación de 2400 semillas de Viaje V2 tarda ~25 s en una máquina
 #     normal y tiene un tope de 180 s. Si en los runners llegara a pasarse,
 #     poner `VIAJE_V2_SIN_2400: '1'` en el env de ese job (el test se saltea).
+#   - voz necesita ffmpeg en el runner: lo instala su propio job.
 #   - Si algún día sobran minutos de Actions, se puede filtrar por carpeta con
 #     dorny/paths-filter. Hoy no hace falta y sin filtro es más difícil de
 #     romper.
@@ -43,7 +44,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -61,7 +62,7 @@ jobs:
       run:
         working-directory: entrevistador
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -79,7 +80,7 @@ jobs:
       run:
         working-directory: fabrica
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -100,12 +101,16 @@ jobs:
       run:
         working-directory: voz
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: voz/requirements.txt
+      # El worker recorta audio con ffmpeg; sin él, tres tests fallan (el README
+      # de voz/ ya lo pedía: «ffmpeg en el PATH»).
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Instalar
         run: pip install -r requirements.txt
       - name: Tests
