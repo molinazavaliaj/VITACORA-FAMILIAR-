@@ -73,10 +73,13 @@ jobs:
           cache: pip
           cache-dependency-path: voz/requirements.txt
 
-      - name: ffmpeg
+      # El ffmpeg de Ubuntu (6.1) se cuelga con silenceremove + areverse en
+      # test_a_wav_limpio_conserva_las_pausas_internas; la PC usa uno nuevo.
+      - name: ffmpeg (estático, versión nueva)
+        working-directory: ${{ runner.temp }}
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q ffmpeg
+          curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar -xJ
+          echo "$(ls -d "$PWD"/ffmpeg-*-static)" >> "$GITHUB_PATH"
 
       - name: Instalar
         run: pip install -r requirements.txt pytest-timeout
