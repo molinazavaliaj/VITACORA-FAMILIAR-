@@ -11,7 +11,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
-import { generarCodigo } from "../src/lib/regalo";
+import { crearLoteConCodigos, borrarLote } from "../src/lib/lote-codigos";
 import { qrDataUri, urlRegalo } from "../src/lib/qr";
 import { armarHojaLote } from "../src/lib/lote-imprimible";
 import type { IdiomaRegalo } from "../src/lib/regalo-textos";
@@ -75,30 +75,25 @@ if (comando === "crear-local") {
   if (errLocal || !local) fallar(`No encuentro el local ${opt.local}${errLocal ? `: ${errLocal.message}` : ""}`);
   const idioma = local.idioma as IdiomaRegalo;
 
-  const { data: lote, error: errLote } = await admin
-    .from("lotes_impresos")
-    .insert({ local_id: local.id, idioma, cantidad })
-    .select("id")
-    .single();
-  if (errLote || !lote) fallar(`No pude crear el lote: ${errLote?.message ?? "sin respuesta"}`);
-
-  const cartas: { codigo: string; qr: string }[] = [];
-  for (let n = 0; n < cantidad; n++) {
-    let codigo: string | null = null;
-    for (let intento = 0; intento < 5 && !codigo; intento++) {
-      const candidato = generarCodigo();
-      const { error } = await admin.from("codigos_impresos").insert({ codigo: candidato, lote_id: lote.id });
-      if (!error) codigo = candidato;
-      else if (error.code !== "23505") fallar(`No pude guardar un código: ${error.message}`);
-    }
-    if (!codigo) fallar("No logré un código libre en 5 intentos.");
-    cartas.push({ codigo, qr: await qrDataUri(urlRegalo(codigo)) });
+  let lote: { loteId: string; codigos: string[] };
+  try {
+    lote = await crearLoteConCodigos(admin, { localId: local.id, idioma, cantidad });
+  } catch (e) {
+    fallar(e instanceof Error ? e.message : String(e));
   }
 
-  const carpeta = fileURLToPath(new URL("./salida/", import.meta.url));
-  mkdirSync(carpeta, { recursive: true });
-  const fecha = new Date().toISOString().slice(0, 10);
-  const ruta = `${carpeta}lote-${fecha}-${String(local.id).slice(0, 8)}.html`;
-  writeFileSync(ruta, armarHojaLote(cartas, idioma));
+  // Si falla armar o escribir el HTML, el lote se borra: no queda nada que cuente sobres de más.
+  let ruta: string;
+  try {
+    const cartas: { codigo: string; qr: string }[] = [];
+    for (const codigo of lote.codigos) cartas.push({ codigo, qr: await qrDataUri(urlRegalo(codigo)) });
+    const carpeta = fileURLToPath(new URL("./salida/", import.meta.url));
+    mkdirSync(carpeta, { recursive: true });
+    const fecha = new Date().toISOString().slice(0, 10);
+    ruta = `${carpeta}lote-${fecha}-${String(local.id).slice(0, 8)}.html`;
+    writeFileSync(ruta, armarHojaLote(cartas, idioma));
+  } catch (e) {
+    fallar(`${e instanceof Error ? e.message : String(e)} ${await borrarLote(admin, lote.loteId)}`);
+  }
   console.log(`\n  ${cantidad} cartas guardadas. Abrilo en el navegador e imprimilo a doble faz (borde largo):\n  ${ruta}\n`);
 }
