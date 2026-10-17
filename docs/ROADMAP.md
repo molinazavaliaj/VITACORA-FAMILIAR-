@@ -191,6 +191,18 @@ mirar si está prendido.**
 | Sumar a la privacidad la **dirección de envío** (para qué se usa y cuánto se guarda), que sale del bloque 4 | Claude, con Naza | ☐ |
 | Revisar que los textos de venta no prometan nada que los legales no respalden | Joaquín | ☐ |
 
+### Descriptor nuevo (17/10): lo que falta propagar
+
+> El descriptor de marca cambió a **«Un biógrafo entrevista y escribe el libro de una vida, con la
+> voz de quien la cuenta.»** (PR #64, encadenado sobre #55). En los documentos de marca ya está.
+> La web nueva había sacado el descriptor del hero, así que en código sobrevive en un solo lugar.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| `web/src/app/layout.tsx`: la descripción con la que se comparte el sitio (Open Graph) todavía tiene la frase vieja. **Después de la tanda de merges**, para no tocar `web/` ahora | Claude, texto de Naza | ☐ |
+| Los documentos de textos aprobados (`docs/web-textos-v3/aprobados.md`, `docs/rediseno-2026-10/…`) citan la frase vieja como aprobada: anotar el cambio o quedan mintiendo | Claude | ☐ |
+| En una bio o un ad donde el descriptor vaya solo, la lista («tu papá, tu abuela, la tuya») tiene que aparecer cerca: era lo que hacía que cada uno se reconociera | Joaquín | ☐ |
+
 ### Trabado por terceros
 
 | Qué | Dueño | Estado |
