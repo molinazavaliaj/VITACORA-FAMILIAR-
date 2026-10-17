@@ -21,7 +21,7 @@ import { obtenerPrecio, obtenerPrecioViaje, precioValido, type Region } from "./
 export type Moneda = "EUR" | "ARS";
 
 /** Las líneas que pueden aparecer en un ticket. */
-export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional";
+export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional" | "tarjeta";
 
 /**
  * Con qué voz se narraba el audiolibro, en los pedidos que lo compraron antes
@@ -42,6 +42,7 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   copia: "Copia extra del libro impreso",
   marco: "Marco con su voz",
   marco_adicional: "Marco adicional",
+  tarjeta: "Tarjeta negra por correo", // ⚠️ texto a aprobar por Naza (17/10)
 };
 export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
 export const DETALLE_MARCO = "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viaja con el libro.";
@@ -59,6 +60,19 @@ function precioDeEntorno(clave: string, region: Region): number | null {
   return precioValido(process.env[`${clave}_${region === "ES" ? "EUR" : "ARS"}`]);
 }
 
+/**
+ * La tarjeta negra por correo (regalo en locales, 17/10) se puede pedir hasta
+ * el 15/12 inclusive en la hora del país, para que llegue antes del 24. Del
+ * 16/12 al 31/12 no existe. En enero vuelve.
+ */
+export function tarjetaEnFecha(region: Region, ahora: Date): boolean {
+  const zona = region === "ES" ? "Europe/Madrid" : "America/Argentina/Buenos_Aires";
+  const partes = new Intl.DateTimeFormat("en-US", { timeZone: zona, month: "numeric", day: "numeric" }).formatToParts(ahora);
+  const mes = Number(partes.find((p) => p.type === "month")?.value);
+  const dia = Number(partes.find((p) => p.type === "day")?.value);
+  return !(mes === 12 && dia >= 16);
+}
+
 export type Catalogo = {
   moneda: Moneda;
   base: { nombre: string; detalle: string; precio: number };
@@ -67,10 +81,12 @@ export type Catalogo = {
   impreso: { precio: number; precioCopia: number | null } | null;
   /** El primer marco y cada marco más; null = no se vende. */
   marco: { precio: number; precioAdicional: number | null } | null;
+  /** La tarjeta negra por correo; null = no se vende (sin variable o fuera de fecha). */
+  tarjeta: number | null;
 };
 
 /** Todo lo que se puede comprar en una región, con precio. Baja al cliente ya resuelto. */
-export function catalogo(region: Region): Catalogo {
+export function catalogo(region: Region, ahora: Date = new Date()): Catalogo {
   const { monto, moneda } = obtenerPrecio(region);
   const impreso = precioDeEntorno("PRECIO_IMPRESO", region);
   const marco = precioDeEntorno("PRECIO_MARCO", region);
@@ -80,6 +96,7 @@ export function catalogo(region: Region): Catalogo {
     viaje: obtenerPrecioViaje(region),
     impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
     marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
+    tarjeta: tarjetaEnFecha(region, ahora) ? precioDeEntorno("PRECIO_TARJETA_FISICA", region) : null,
   };
 }
 
@@ -96,6 +113,8 @@ export type Carrito = {
   marcos: number;
   impresosPrevios?: number;
   marcosPrevios?: number;
+  /** La tarjeta negra por correo (0 o 1). */
+  tarjetas?: number;
 };
 
 export const CARRITO_VACIO: Carrito = { base: "pdf", impresos: 0, marcos: 0 };
@@ -158,6 +177,10 @@ export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Co
     }
   }
 
+  if (entero(carrito.tarjetas) > 0 && cat.tarjeta !== null) {
+    lineas.push({ id: "tarjeta", nombre: NOMBRES.tarjeta, cantidad: 1, precioUnitario: cat.tarjeta });
+  }
+
   // Redondeo a centavos: precios con decimales dan flotantes sucios.
   const total = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
   return { region, moneda: cat.moneda, lineas, total };
@@ -175,6 +198,7 @@ export function validarCarrito(region: Region, carrito: Carrito): { ok: true } |
   if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };
   if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso: hay que agregar el libro impreso para sumar marcos." };
   if (marcos > 0 && !cat.marco) return { ok: false, mensaje: "Los marcos todavía no están disponibles en tu región." };
+  if (entero(carrito.tarjetas) > 0 && cat.tarjeta === null) return { ok: false, mensaje: "La tarjeta por correo no está disponible ahora." };
   if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Falta elegir al menos una cosa." };
   return { ok: true };
 }
@@ -189,6 +213,8 @@ export type ProductosDelPedido = {
   impreso: "bn" | "color" | null;
   copias: number;
   marcos: number;
+  /** Tarjeta negra por correo (17/10). Solo existe si es > 0: los pedidos de antes no la traen. */
+  tarjetas?: number;
   /** 'viaje' = Vitácora de viaje (CONTRATO, 18/09): la fábrica arma el libro de viaje. Sin clave = biografía. */
   tipo?: "viaje";
 };
@@ -204,6 +230,7 @@ export function productosParaPedido(compra: Compra): ProductosDelPedido {
     impreso: copias > 0 ? "color" : null,
     copias,
     marcos: cantidad("marco") + cantidad("marco_adicional"),
+    ...(cantidad("tarjeta") > 0 ? { tarjetas: cantidad("tarjeta") } : {}),
     ...(viaje ? { tipo: "viaje" as const } : {}),
   };
 }

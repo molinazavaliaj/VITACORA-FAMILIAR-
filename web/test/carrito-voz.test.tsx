@@ -16,6 +16,7 @@ const cat: Catalogo = {
   viaje: null,
   impreso: { precio: 49, precioCopia: 40 },
   marco: { precio: 20, precioAdicional: 15 },
+  tarjeta: null,
 };
 const carrito: Carrito = { base: "pdf", impresos: 0, marcos: 0 };
 const render = (trato: "tu" | "vos") =>
