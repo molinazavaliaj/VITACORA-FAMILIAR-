@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Catalogo } from "@/lib/productos";
+import { armarCompra, type Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
+import { textosCartaComprador } from "@/lib/carta-textos";
+import { validarDireccion, type Direccion } from "@/lib/entregas";
 import { idiomaPorDefecto, textosComprador, tratoDeRegion, type IdiomaRegalo, type TextosComprador, type TratoComprador } from "@/lib/regalo-textos";
 import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
+import { campo, etiqueta } from "./estilos";
+import { EleccionCarta } from "./eleccion-carta";
 import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
 
 // La compra del regalo (plan 2026-10-07-gift-card, Task 8), en cuatro pasos:
@@ -24,8 +28,6 @@ type Paso = 1 | 2 | 3 | 4;
 
 const ID_ERROR = "error-paso";
 
-const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
-const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const titulo = "outline-none text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl";
 
 /** Hoy en el reloj de quien compra, como lo pide `input type="date"`. */
@@ -35,11 +37,13 @@ function hoyLocal(): string {
 }
 
 export function FormularioRegalo({
-  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false,
+  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false, carta = null,
 }: {
   catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso;
   /** Si se ofrece mandarlo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
+  /** Regalo en locales (17/10): la carta impresa que se activa con este pago. */
+  carta?: { codigo: string } | null;
 }) {
   const T = textosComprador(trato);
   const [paso, setPaso] = useState<Paso>(pasoInicial);
@@ -58,7 +62,14 @@ export function FormularioRegalo({
   const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const error = falla?.texto ?? null;
   const [enviando, setEnviando] = useState(false);
-  const precio = formatearPrecio(catalogo.base.precio, catalogo.moneda, region);
+  // Desde una carta se elige el libro (el impreso viene marcado si se vende) y, aparte, la tarjeta.
+  const [impresos, setImpresos] = useState(carta && catalogo.impreso ? 1 : 0);
+  const [tarjeta, setTarjeta] = useState<Partial<Direccion> | null>(null);
+  const TC = textosCartaComprador(trato);
+  const totalCarta = carta
+    ? armarCompra(catalogo, region, { base: "pdf", impresos, marcos: 0, tarjetas: tarjeta ? 1 : 0 }).total
+    : 0;
+  const precio = formatearPrecio(carta ? totalCarta : catalogo.base.precio, catalogo.moneda, region);
   const encabezado = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
 
@@ -88,8 +99,21 @@ export function FormularioRegalo({
     if (enviando) return;
     setEnviando(true);
     setFalla(null);
+    let direccion: Direccion | null = null;
+    if (carta && tarjeta) {
+      const v = validarDireccion(tarjeta);
+      if (!v.ok) {
+        fallar(v.mensaje);
+        setEnviando(false);
+        return;
+      }
+      direccion = v.direccion;
+    }
     const r = await enviarRegalo(
-      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega },
+      {
+        nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega,
+        ...(carta ? { codigoImpreso: carta.codigo, impresos, tarjeta: direccion } : {}),
+      },
       { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage },
     );
     if ("error" in r) {
@@ -116,6 +140,7 @@ export function FormularioRegalo({
         {/* ── 1 · A quién ── */}
         {paso === 1 && (
           <section className="mt-12">
+            {carta && <p role="status" className="mb-6 text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)]">{TC.avisoCarta(carta.codigo)}</p>}
             <h1 ref={encabezado} tabIndex={-1} className={titulo}>{T.pasos[0]}</h1>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
@@ -175,20 +200,26 @@ export function FormularioRegalo({
               <p id="etiqueta-audio" className={etiqueta}>{T.audio}</p>
               <Grabador audio={audio} onAudio={setAudio} etiquetadoPor="etiqueta-audio" textos={T} />
             </div>
-            <div className="mt-8 sm:max-w-xs">
-              <label className={etiqueta} htmlFor="fecha">{T.cuando}</label>
-              <input id="fecha" type="date" {...marca("fecha")} className={`${campo} mt-2`} value={fechaEntrega} min={hoyLocal()} onChange={(e) => {
-                setFechaEntrega(e.target.value);
-                // Sin fecha no hay día en que mandarlo: vuelve a «se la doy yo».
-                if (!e.target.value) setEntrega(SIN_ENTREGA);
-              }} />
-            </div>
-            <CamposEntrega fecha={fechaEntrega} idioma={idioma} eleccion={entrega} onCambio={setEntrega} whatsapp={entregaWhatsApp} textos={T} marca={marca} />
+            {/* Con una carta impresa no hay día de entrega: se la da quien regala en mano. */}
+            {!carta && (
+              <>
+                <div className="mt-8 sm:max-w-xs">
+                  <label className={etiqueta} htmlFor="fecha">{T.cuando}</label>
+                  <input id="fecha" type="date" {...marca("fecha")} className={`${campo} mt-2`} value={fechaEntrega} min={hoyLocal()} onChange={(e) => {
+                    setFechaEntrega(e.target.value);
+                    // Sin fecha no hay día en que mandarlo: vuelve a «se la doy yo».
+                    if (!e.target.value) setEntrega(SIN_ENTREGA);
+                  }} />
+                </div>
+                <CamposEntrega fecha={fechaEntrega} idioma={idioma} eleccion={entrega} onCambio={setEntrega} whatsapp={entregaWhatsApp} textos={T} marca={marca} />
+              </>
+            )}
             <Botones
               textos={T}
               atras={() => avanzar(1)}
               siguiente={() => {
                 if (!mensaje.trim()) return fallar(T.faltaMensaje, "mensaje");
+                if (carta) return avanzar(3);
                 // La misma regla que el servidor: real y desde ayer en UTC.
                 const problemaFecha = fechaEntrega ? errorDeFechaEntrega(fechaEntrega, new Date()) : null;
                 if (problemaFecha) return fallar(problemaFecha, "fecha");
@@ -243,10 +274,14 @@ export function FormularioRegalo({
             {lineaLeLlega(entrega, fechaEntrega, T.entrega) && (
               <p className="mt-6 text-center text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)]">{lineaLeLlega(entrega, fechaEntrega, T.entrega)}</p>
             )}
-            <div className="mt-8 flex items-baseline justify-between gap-4 rounded-lg border border-[#EBEBE7] bg-white p-5">
-              <p className="text-[17px] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
-              <p className="text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
-            </div>
+            {carta ? (
+              <EleccionCarta catalogo={catalogo} region={region} textos={TC} impresos={impresos} onImpresos={setImpresos} tarjeta={tarjeta} onTarjeta={setTarjeta} />
+            ) : (
+              <div className="mt-8 flex items-baseline justify-between gap-4 rounded-lg border border-[#EBEBE7] bg-white p-5">
+                <p className="text-[17px] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
+                <p className="text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
+              </div>
+            )}
             {error && <p id={ID_ERROR} className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => avanzar(3)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← {T.atras}</button>

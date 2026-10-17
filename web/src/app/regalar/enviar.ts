@@ -1,6 +1,7 @@
 import type { Region } from "@/lib/precios";
 import type { Genero } from "@/lib/regalo-reglas";
 import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
+import type { Direccion } from "@/lib/entregas";
 import type { EleccionEntrega } from "./entrega";
 
 // El pago del regalo, separado del formulario para probarlo sin navegador:
@@ -23,6 +24,12 @@ export type PedidoRegalo = {
   audio: Blob | null;
   /** Mandárselo solo el día elegido (10/10). Viaja solo con fecha, canal y hora. */
   entrega: EleccionEntrega | null;
+  /** Regalo en locales (17/10): la carta impresa que se está pagando. */
+  codigoImpreso?: string;
+  /** 1 = libro impreso (solo desde una carta; el regalo común sigue siendo el digital). */
+  impresos?: number;
+  /** La tarjeta negra por correo: a dónde mandarla. */
+  tarjeta?: Direccion | null;
 };
 
 export type Dependencias = {
@@ -68,8 +75,10 @@ export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
         ? { entrega: { canal: p.entrega.canal, contacto: p.entrega.contacto.trim(), hora: p.entrega.hora } }
         : {}),
       ...(retomar ? { retomar } : {}),
+      ...(p.codigoImpreso ? { codigoImpreso: p.codigoImpreso } : {}),
     },
-    productos: { impresos: 0, marcos: 0 },
+    productos: { impresos: p.impresos ?? 0, marcos: 0, ...(p.tarjeta ? { tarjetas: 1 } : {}) },
+    ...(p.tarjeta ? { tarjeta: { direccion: p.tarjeta } } : {}),
   };
 }
 

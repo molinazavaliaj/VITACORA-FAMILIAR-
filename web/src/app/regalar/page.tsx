@@ -6,6 +6,9 @@ import { catalogo } from "@/lib/productos";
 import { regionDelRequest } from "@/lib/region";
 import { idiomaPorDefecto, textosComprador, tratoDeRegion } from "@/lib/regalo-textos";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
+import { leerCodigoImpreso } from "@/lib/cartas";
+import { textosCartaComprador } from "@/lib/carta-textos";
+import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Toroide } from "../marca";
 import { FormularioRegalo } from "./formulario";
 
@@ -26,10 +29,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Quien compra lee de vos (AR) o de tú (ES); el idioma del regalo arranca en
 // el de su región y lo puede cambiar en el paso 1 (plan 2026-10-09-regalo-idiomas).
-export default async function PaginaRegalar() {
+export default async function PaginaRegalar({ searchParams }: { searchParams?: Promise<{ codigo?: string | string[] }> } = {}) {
   const region = regionDelRequest(await headers());
   const trato = tratoDeRegion(region);
   const T = textosComprador(trato);
+  const crudo = (await searchParams)?.codigo;
+  const codigo = typeof crudo === "string" ? crudo : null;
+  // Regalo en locales (17/10): se llega desde la página de una carta sin pagar.
+  const carta = codigo ? await leerCodigoImpreso(crearClienteServidor(), codigo) : null;
+  const cartaLibre = carta && !carta.pagado ? { codigo: carta.codigo } : null;
+  const cartaUsada = codigo !== null && !cartaLibre;
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]`}>
       <header className="border-b border-[#EBEBE7] bg-white">
@@ -43,7 +52,17 @@ export default async function PaginaRegalar() {
           </Link>
         </div>
       </header>
-      <FormularioRegalo catalogo={catalogo(region)} region={region} trato={trato} idiomaInicial={idiomaPorDefecto(region)} entregaWhatsApp={entregaWhatsAppPrendida()} />
+      {cartaUsada && (
+        <p role="status" className="mx-auto mt-8 w-full max-w-6xl px-4 text-[15px] text-[#45453C] sm:px-6 [font-family:var(--fuente-cuerpo)]">
+          {textosCartaComprador(trato).cartaUsada}
+        </p>
+      )}
+      <FormularioRegalo
+        catalogo={catalogo(region)} region={region} trato={trato}
+        idiomaInicial={carta && cartaLibre ? carta.idioma : idiomaPorDefecto(region)}
+        entregaWhatsApp={entregaWhatsAppPrendida()}
+        carta={cartaLibre}
+      />
     </div>
   );
 }

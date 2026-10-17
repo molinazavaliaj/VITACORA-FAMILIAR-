@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { enviarRegalo, type PedidoRegalo } from "../src/app/regalar/enviar";
+import { cuerpoCompra, enviarRegalo, type PedidoRegalo } from "../src/app/regalar/enviar";
 import { textosComprador } from "../src/lib/regalo-textos";
 
 const VOS = textosComprador("vos");
@@ -230,5 +230,22 @@ describe("enviarRegalo: retomar un regalo sin pagar", () => {
       expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo).not.toHaveProperty("retomar");
       expect(d.asignar).toHaveBeenCalledWith(OK.urlPago);
     }
+  });
+});
+
+describe("cuerpoCompra: regalo desde una carta", () => {
+  it("desde una carta: manda el código, el libro elegido y la tarjeta", () => {
+    const direccion = { linea1: "Carrer Major 3", ciudad: "Berga", cp: "08600", pais: "España" };
+    const c = cuerpoCompra(pedido({ codigoImpreso: "VF-7K3M2Q", impresos: 1, tarjeta: direccion, fechaEntrega: "" }));
+    expect(c.regalo.codigoImpreso).toBe("VF-7K3M2Q");
+    expect(c.productos).toEqual({ impresos: 1, marcos: 0, tarjetas: 1 });
+    expect((c as { tarjeta?: unknown }).tarjeta).toEqual({ direccion });
+  });
+
+  it("sin carta: igual que antes", () => {
+    const c = cuerpoCompra(pedido());
+    expect(c.productos).toEqual({ impresos: 0, marcos: 0 });
+    expect("tarjeta" in c).toBe(false);
+    expect("codigoImpreso" in c.regalo).toBe(false);
   });
 });
