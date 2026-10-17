@@ -1,9 +1,9 @@
-// Los 6 arreglos que pidió Naza el 05/10 (handoff-2026-10-05.md, "Para Naza").
+// Los 6 arreglos que pidió Naza el 05/10 (docs/archivo/kids/v2-handoff-2026-10-05.md, "Para Naza").
 // Chicos INVENTADOS.
 
 import { describe, it, expect } from 'vitest';
 import { fraseQueSalta, FRASES_EXCLUIDAS } from '../src/kids-v2/preocupante.js';
-import { BANCO, pregunta } from '../src/kids-v2/banco.js';
+import { BANCO, pregunta, preguntaEn } from '../src/kids-v2/banco.js';
 import { BORRADOS_POR_TEMA, textoSegunTemas, type Tema } from '../src/kids-v2/compra.js';
 import { preguntaMsg } from '../src/kids-v2/motor/mensajes.js';
 import { nuevoEstado } from '../src/kids-v2/motor.js';
@@ -37,10 +37,10 @@ describe('kids v2, arreglo 1: K18 sin la mamá o el papá sacados', () => {
 
   it('la frase aprobada sigue en el banco (si cambia banco.md, este test avisa)', () => {
     for (const b of BORRADOS_POR_TEMA) {
-      expect(pregunta(b.pregunta).texto).toContain(b.frase);
+      expect(preguntaEn(b.pregunta, b.idioma).texto).toContain(b.frase);
       for (const x of Object.values(b.borrar)) expect(b.frase).toContain(x);
     }
-    expect(BORRADOS_POR_TEMA.map((b) => b.pregunta)).toEqual(['K18']);
+    expect(BORRADOS_POR_TEMA.map((b) => [b.pregunta, b.idioma])).toEqual([['K18', 'es-AR'], ['K18', 'es-ES'], ['K18', 'ca']]);
   });
 
   it('con los dos temas, el texto aprobado tal cual', () => {

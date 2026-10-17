@@ -28,3 +28,9 @@ export const MAX_PREGUNTAS_PADRE = 3;
  * ni tildes; Naza 05/10). Si no ("ya te la mando", "ahí va"), sigue esperando la foto.
  */
 export const PALABRAS_NO = ['no', 'nada', 'ninguno', 'ninguna', 'tampoco', 'nunca'] as const;
+/**
+ * BORRADOR EN CATALÁN (16/10, para Naza con la lectura de Catalunya): lo mismo que PALABRAS_NO. En catalán se
+ * buscan estas y las castellanas (quien habla catalán mezcla). «Cap» a secas queda afuera a propósito: también es
+ * «hacia» («te l'envio cap al vespre»); «no en tinc cap» ya lleva el «no». Pueden ser dos palabras («cap ni una»).
+ */
+export const PALABRAS_NO_CA = ['no', 'res', 'tampoc', 'mai', 'gens', 'cap ni un', 'cap ni una'] as const;

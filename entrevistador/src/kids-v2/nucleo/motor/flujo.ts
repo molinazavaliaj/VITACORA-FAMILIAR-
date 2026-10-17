@@ -8,6 +8,7 @@ import { fotoDelItem } from '../compra.js';
 import { extrasDisponibles, type HistorialExtras } from '../extras.js';
 import { aLocal, sumarDias } from '../horas.js';
 import { CIERRE_SOLO_DIAS, VENTANA_MS } from '../reglas.js';
+import { idiomaDe, nombrePlantilla } from '../idioma.js';
 import { esPlural } from '../texto.js';
 import type { Extra, Foto } from '../tipos.js';
 import { avisoPreguntaNueva, extraMsg, fijoA, fotoMsg, padreMsgs, preguntaMsg, variables } from './mensajes.js';
@@ -140,7 +141,7 @@ export function guardarFotoVencida(e: Estado): void {
   e.fotosVencidas.push(item.clave);
 }
 
-/** FINAL-CHICO y FINAL-CHICO-PL como plantillas de Meta propias (cambio B de Naza, 05/10; plantillas-meta-kids.md, 10 y 10b). */
+/** FINAL-CHICO y FINAL-CHICO-PL como plantillas de Meta propias (cambio B de Naza, 05/10; plantillas-meta-kids.md, 10 y 10b). En es-ES, con su sufijo (_es_es). */
 const PLANTILLA_FINAL = { 'FINAL-CHICO': 'kids_final', 'FINAL-CHICO-PL': 'kids_final_plural' } as const;
 
 /** FINAL-CHICO (o -PL según quién se lo regala), como mensaje común; la plantilla se le pone solo si sale fuera de las 24 h. */
@@ -186,7 +187,7 @@ export function empezarItem(c: Ctx, i: number, proactivo: boolean): void {
       if (proactivo && !ventanaAbierta(e, c.ahora)) {
         // Fuera de las 24 h (el cierre solo a los 2 días): el final sale como su
         // plantilla, sin PREG-NUEVA antes, y después TERMINO-PADRE (cambio B, 05/10).
-        emitir(c, { ...final, plantilla: { nombre: PLANTILLA_FINAL[id], variables: vars } });
+        emitir(c, { ...final, plantilla: { nombre: nombrePlantilla(PLANTILLA_FINAL[id], idiomaDe(e.ficha)), variables: vars } });
         if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
         else e.terminoPadre = sumarDias(hoy(c), 1);
         e.fase = { tipo: 'terminado' };

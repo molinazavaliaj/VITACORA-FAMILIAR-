@@ -4,7 +4,9 @@
 // lo que les llega por WhatsApp: audio, foto, texto y botones (con el `context.id` del mensaje de verdad que tocaron).
 // Por arriba, lo que sale mal en la vida real: Meta que reintenta un webhook, envíos que fallan, transcripciones que
 // fallan, audios que no se bajan, el padre que cambia cosas en el panel, mensajes antes del arranque, plantillas que
-// se aprueban tarde. Nada contra la base real; no gasta nada.
+// se aprueban tarde. Nada contra la base real; no gasta nada. Un tercio de los chicos en castellano de España (es-ES:
+// las semillas 2, 3, 8, 9…) y un tercio en catalán (ca: 4, 5, 10, 11…); uno de cada cinco de ellos con el idioma
+// solo en la columna kids_v2.idioma, sin ficha.idioma.
 //
 //   npm run kids-v2-simular                     # 200 chicos (semillas 1 a 200: canal A y B, todas las conductas)
 //   npm run kids-v2-simular -- 50               # otra cantidad
@@ -13,12 +15,13 @@
 // Sale con código 1 si hay alguna violación. Chicos INVENTADOS: nunca la vida de un narrador real.
 
 import { pathToFileURL } from 'node:url';
-import { plantillaKidsLista, PLANTILLAS_KIDS } from '../src/config.js';
+import { IDIOMAS_PLANTILLAS_KIDS, plantillaKidsLista, PLANTILLAS_KIDS } from '../src/config.js';
+import type { IdiomaKids } from '../src/kids-v2/nucleo/idioma.js';
 import type { DepsKids } from '../src/kids-v2/deps.js';
 import { procesarEntranteKids } from '../src/kids-v2/entrante.js';
 import { esChicoKids } from '../src/kids-v2/filas.js';
 import { PREGUNTA_DEL_TEMA, TEMAS, type Ficha, type Tema } from '../src/kids-v2/nucleo/compra.js';
-import { azar, chico, fichaAlAzar, FRASE_PREOCUPANTE, TIPOS_DE_CONDUCTA, type Azar, type TipoConducta } from '../src/kids-v2/nucleo/conductas.js';
+import { azar, chico, fichaAlAzar, frasePreocupanteDe, TIPOS_DE_CONDUCTA, type Azar, type TipoConducta } from '../src/kids-v2/nucleo/conductas.js';
 import { revisar } from '../src/kids-v2/nucleo/controles.js';
 import type { Accion, Corrida, Linea as LineaMotor } from '../src/kids-v2/nucleo/corrida.js';
 import { aLocal, esDeNoche } from '../src/kids-v2/nucleo/horas.js';
@@ -35,8 +38,14 @@ const DIA = 86_400_000;
 export const DESDE_SIM = '2026-10-06T15:00:00.000Z';
 const ENV = 'WA_PLANTILLAS_KIDS_LISTAS';
 const TODAS = Object.keys(PLANTILLAS_KIDS);
-/** Las plantillas que no son del primer mensaje (las que se pueden aprobar tarde sin frenar el arranque). */
-const DESPUES_DEL_ARRANQUE = TODAS.filter((p) => !['kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre'].includes(p));
+/** Las plantillas de un idioma que no son del primer mensaje (las que se pueden aprobar tarde sin frenar el arranque). */
+const despuesDelArranque = (idioma: IdiomaKids) => {
+  const { sufijo } = IDIOMAS_PLANTILLAS_KIDS[idioma];
+  const arranque = ['kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre'].map((x) => `${x}${sufijo}`);
+  return TODAS.filter((p) => PLANTILLAS_KIDS[p].idioma === idioma && !arranque.includes(p));
+};
+/** En qué idioma va cada semilla si el plan no lo dice: 1 es-AR, 2 y 3 es-ES, 4 y 5 ca, 6 y 7 es-AR… (no va con el canal, que es par/impar). */
+export const idiomaDeSemilla = (semilla: number): IdiomaKids => (['es-AR', 'es-ES', 'ca'] as const)[Math.floor(semilla / 2) % 3];
 const HORAS = ['09:00', '13:30', '18:00', '19:15', '21:30'];
 /** Cuántos ticks seguidos sin que cambie nada se corren minuto a minuto antes de saltar al próximo evento. */
 const TICKS_QUIETOS = 30;
@@ -46,6 +55,8 @@ export type Plan = {
   semilla: number;
   canal?: 'A' | 'B';
   conducta?: TipoConducta;
+  /** El idioma del chico (por defecto, idiomaDeSemilla). */
+  idioma?: IdiomaKids;
   /** Probabilidad de que un envío a Meta falle. */
   pFalloEnvio?: number;
   /** Probabilidad de que Meta mande dos veces el mismo webhook (a la vez o minutos después). */
@@ -73,13 +84,13 @@ export type Plan = {
 /** Lo que salió por el WhatsApp falso. `saliente`: el mensaje del motor que era (el primero de la cola al mandar). */
 export type SalidaBot = {
   en: Date; a: string; tipo: 'texto' | 'botones' | 'plantilla'; wamid: string; texto?: string; botones?: string[];
-  plantilla?: string; variables?: string[]; saliente: Saliente | null; aprobada: boolean;
+  plantilla?: string; idiomaMeta?: string; variables?: string[]; saliente: Saliente | null; aprobada: boolean;
 };
 export type EntradaBot = { en: Date; wamid: string; dice: string; reintento: boolean };
 export type Violacion = { control: string; detalle: string };
 
 export type ResultadoSim = {
-  semilla: number; canal: 'A' | 'B'; conducta: TipoConducta; ficha: Ficha;
+  semilla: number; canal: 'A' | 'B'; idioma: IdiomaKids; conducta: TipoConducta; ficha: Ficha;
   violaciones: Violacion[];
   dias: number; enviados: number; entradas: number; respuestas: number; reintentos: number; fallosEnvio: number; fallasBase: number; preguntasTarde: number;
   panel: number; marcas: string[]; termino: boolean;
@@ -112,7 +123,10 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
   const p: Azar = azar(semilla * 7919 + 17);
   const canal = plan.canal ?? (semilla % 2 === 0 ? 'A' : 'B');
   const tipo = plan.conducta ?? TIPOS_DE_CONDUCTA[semilla % TIPOS_DE_CONDUCTA.length];
-  const ficha = fichaAlAzar(r, canal);
+  const idioma = plan.idioma ?? idiomaDeSemilla(semilla);
+  const ficha = fichaAlAzar(r, canal, idioma === 'es-AR' ? undefined : idioma);
+  // Uno de cada cinco de España o de Catalunya llega con el idioma solo en la columna (la ficha sin el campo): lo completa el arranque.
+  const fichaCompra: Ficha = idioma !== 'es-AR' && semilla % 5 === 0 ? (({ idioma: _i, ...resto }) => resto)(ficha) : ficha;
   const conducta = chico(tipo, r, ficha);
   const pFallo = plan.pFalloEnvio ?? 0.02;
   const pReintento = plan.pReintento ?? 0.08;
@@ -121,7 +135,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
   const pFallaBase = plan.pFallaBase ?? 0.01;
   const conPanel = plan.panel ?? p.si(0.5);
   const antesDelArranque = plan.antesDelArranque ?? p.si(0.1);
-  const plantillaTarde = plan.plantillaTarde ?? (p.si(0.1) ? { nombre: p.uno(DESPUES_DEL_ARRANQUE), dias: p.entre(1, 20) } : undefined);
+  const plantillaTarde = plan.plantillaTarde ?? (p.si(0.1) ? { nombre: p.uno(despuesDelArranque(idioma)), dias: p.entre(1, 20) } : undefined);
   const id = `kids-sim-${semilla}`;
   const num = String(semilla).padStart(6, '0');
   const telChico = `+549110${num}1`;
@@ -147,7 +161,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
   const base = crearBaseFalsa({
     narradores: [{ id, nombre: ficha.nombre, como_le_dicen: ficha.apodo, telefono_whatsapp: telPreguntas, estado: 'invitado', contexto: { modo: 'kids' } }],
     kids_v2: [{
-      narrador_id: id, idioma: 'es-AR', canal, telefono_padre: telPadre, ficha, estado: null, cambios_panel: null, cambios_error: null,
+      narrador_id: id, idioma, canal, telefono_padre: telPadre, ficha: fichaCompra, estado: null, cambios_panel: null, cambios_error: null,
       avance: {}, marcas: [], version: 0, enviando_hasta: null, despertar_at: null, creada_at: reloj.toISOString(), empezo_at: null, termino_at: null,
     }],
     respuestas: [], envios: [], fotos: [],
@@ -178,7 +192,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
     wa: {
       texto: (a, texto) => salir(a, { tipo: 'texto', texto }),
       botones: (a, texto, botones) => salir(a, { tipo: 'botones', texto, botones }),
-      plantilla: (a, plantilla, _idioma, variables) => salir(a, { tipo: 'plantilla', plantilla, variables }),
+      plantilla: (a, plantilla, idiomaMeta, variables) => salir(a, { tipo: 'plantilla', plantilla, idiomaMeta, variables }),
       descargar: async (mediaId) => {
         if (!mediaId.startsWith('sim|')) return Buffer.from(`foto ${mediaId}`, 'utf8');
         const [, seg, modo, t] = mediaId.split('|');
@@ -186,7 +200,8 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
         return oggFalso(Number(seg), `${modo}|${decodeURIComponent(t)}`);
       },
     },
-    transcribir: async (audio) => {
+    transcribir: async (audio, o) => {
+      if (o.idioma !== idioma) mal('idioma', `se transcribió en ${o.idioma} un audio de un chico en ${idioma}`);
       const seg = Number(audio.readBigUInt64LE(6)) / 48_000;
       const [modo, ...resto] = audio.subarray(27).toString('utf8').split('|');
       if (modo === 'FALLA') throw new Error('La transcripción falló (simulación)');
@@ -261,7 +276,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
           agendar(reloj.getTime() + p.entre(5, 30) * MIN, hacer({ ...a, reenviado: true }));
           return;
         }
-        if (modo === 'ok' && c.transcripcion?.includes(FRASE_PREOCUPANTE)) dichoPreocupante.add(wamid);
+        if (modo === 'ok' && c.transcripcion?.includes(frasePreocupanteDe(idioma))) dichoPreocupante.add(wamid);
         cuerpo = { type: 'audio', audio: { id: mediaAudio(c.seg, modo, c.transcripcion), mime_type: 'audio/ogg; codecs=opus' } };
       } else if (c.tipo === 'foto') {
         cuerpo = { type: 'image', image: { id: `foto-${wamid}`, mime_type: 'image/jpeg', sha256: `sha-${wamid}` } };
@@ -459,6 +474,10 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
       if (u === undefined || s.en.getTime() - u >= VENTANA_MS) mal('ventana', `${m?.id} salió como texto libre a ${s.a === telPadre ? 'el padre' : 'el chico'} el ${cuando(s.en)} con la ventana cerrada (lo último de ese número: ${u === undefined ? 'nunca' : cuando(new Date(u))})`);
     }
     if (plantillas(s) && !s.aprobada) mal('plantillas', `salió la plantilla ${s.plantilla} sin estar aprobada`);
+    const { sufijo, idiomaMeta } = IDIOMAS_PLANTILLAS_KIDS[idioma];
+    if (plantillas(s) && (s.idiomaMeta !== idiomaMeta || !s.plantilla!.endsWith(sufijo) || PLANTILLAS_KIDS[s.plantilla!]?.idioma !== idioma)) {
+      mal('idioma', `salió la plantilla ${s.plantilla} (${s.idiomaMeta}) a un chico en ${idioma}`);
+    }
     if (!m) continue;
     if (Boolean(m.plantilla) !== plantillas(s)) mal('forma', `${m.id} salió como ${s.tipo} y el motor lo pidió ${m.plantilla ? 'como plantilla' : 'como texto'}`);
     if (m.plantilla && (s.plantilla !== m.plantilla.nombre || JSON.stringify(s.variables) !== JSON.stringify(m.plantilla.variables))) mal('forma', `${m.id}: la plantilla no es la que pidió el motor`);
@@ -507,6 +526,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
     if (/^kids-ficha-/.test(a.clave)) mal('ficha', `aviso: ${a.asunto}`);
   }
   // Los controles del motor, sobre lo que de verdad salió por WhatsApp y cuándo (con la ficha final: el panel la cambia).
+  if (motor && motor.ficha.idioma !== (idioma === 'es-AR' ? undefined : idioma)) mal('idioma', `el motor arrancó con idioma ${motor.ficha.idioma ?? '(sin campo)'} y el chico es ${idioma}`);
   if (motor) {
     const corrida: Corrida = { lineas: [...lineas].sort((a, b) => a.en.getTime() - b.en.getTime()), estado: motor, pasos: 0, recibidos };
     for (const x of revisar(fichaDelGuion(motor), corrida, { sigueContestando: true })) {
@@ -517,7 +537,7 @@ export async function simularChico(plan: Plan): Promise<ResultadoSim> {
 
   const ultima = Math.max(...salidas.map((s) => s.en.getTime()), f.termino_at ? Date.parse(f.termino_at) : desde);
   return {
-    semilla, canal, conducta: tipo, ficha, violaciones: v,
+    semilla, canal, idioma, conducta: tipo, ficha, violaciones: v,
     dias: Math.ceil((ultima - desde) / DIA), enviados: salidas.length, entradas: entradas.length, respuestas: rs.length, reintentos, fallosEnvio, fallasBase, preguntasTarde,
     panel: pedidosPanel, marcas: f.marcas.map((m) => m.motivo), termino: !!f.termino_at,
     salidas, charla, base, fila: f,
@@ -557,7 +577,7 @@ async function main() {
   try {
     if (arg[0] === '--semilla') {
       const [r] = await simularMuchos(1, {}, Number(arg[1]));
-      console.log(`semilla ${r.semilla}: ${r.conducta}, canal ${r.canal}, hora ${r.ficha.hora}, ${r.ficha.zona}, temas [${r.ficha.temasSacados.join(', ')}]`);
+      console.log(`semilla ${r.semilla}: ${r.conducta}, ${r.idioma}, canal ${r.canal}, hora ${r.ficha.hora}, ${r.ficha.zona}, temas [${r.ficha.temasSacados.join(', ')}]`);
       for (const l of r.charla) console.log(l);
       console.log(r.violaciones.length ? r.violaciones : 'sin violaciones');
       if (r.violaciones.length) process.exitCode = 1;
@@ -567,12 +587,12 @@ async function main() {
     const t0 = Date.now();
     const rs = await simularMuchos(n);
     const porControl = new Map<string, string[]>();
-    for (const r of rs) for (const x of r.violaciones) porControl.set(x.control, [...(porControl.get(x.control) ?? []), `semilla ${r.semilla} (${r.conducta}, ${r.canal}): ${x.detalle}`]);
+    for (const r of rs) for (const x of r.violaciones) porControl.set(x.control, [...(porControl.get(x.control) ?? []), `semilla ${r.semilla} (${r.conducta}, ${r.canal}, ${r.idioma}): ${x.detalle}`]);
     const dias = rs.map((r) => r.dias).sort((a, b) => a - b);
     const suma = (k: keyof ResultadoSim) => rs.reduce((a, r) => a + (r[k] as number), 0);
     const marcas = new Map<string, number>();
     for (const r of rs) for (const m of r.marcas) marcas.set(m, (marcas.get(m) ?? 0) + 1);
-    console.log(`Kids V2 · simulación del bot: ${n} chicos (canal A ${rs.filter((r) => r.canal === 'A').length}, B ${rs.filter((r) => r.canal === 'B').length}; ${TIPOS_DE_CONDUCTA.length} conductas)`);
+    console.log(`Kids V2 · simulación del bot: ${n} chicos (canal A ${rs.filter((r) => r.canal === 'A').length}, B ${rs.filter((r) => r.canal === 'B').length}; es-AR ${rs.filter((r) => r.idioma === 'es-AR').length}, es-ES ${rs.filter((r) => r.idioma === 'es-ES').length}, ca ${rs.filter((r) => r.idioma === 'ca').length}; ${TIPOS_DE_CONDUCTA.length} conductas)`);
     console.log(`- Terminaron: ${rs.filter((r) => r.termino).length} de ${n}. Días de punta a punta: mediana ${dias[Math.floor(n / 2)]}, máximo ${dias[n - 1]}.`);
     console.log(`- Mensajes del bot: ${suma('enviados')}; mensajes de los chicos: ${suma('entradas')} (Meta reintentó ${suma('reintentos')}); envíos que fallaron: ${suma('fallosEnvio')}; la base falló ${suma('fallasBase')} (lo retomó el reloj); cambios del panel: ${suma('panel')} (preguntas del padre tarde: ${suma('preguntasTarde')}).`);
     console.log(`- Marcas: ${[...marcas].map(([k, x]) => `${k} ${x}`).join(', ') || 'ninguna'}.`);

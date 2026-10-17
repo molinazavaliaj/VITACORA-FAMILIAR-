@@ -156,3 +156,13 @@ Fable leyó banco, mensajes y flujo en el orden en que le llegan al chico ([`pas
 | FINAL-CHICO-PL | Faltaba | Huecos: por defecto técnico | Plural mecánico, "te lo van a dar {{2}}, que fueron quienes te hicieron este regalo" |
 
 No se aplicó la 18 de Fable ("Nos vemos pronto" → "Hasta acá llego yo"): Naza eligió "Nos vemos pronto" a propósito.
+
+## Cambios del 16/10 (tanda 10)
+
+Salieron al revisar el catalán (`idiomas/revision-ca-2026-10-16.md`, B2 y B3; `idiomas/lectura-catalunya-2026-10-16.md`, CAP-5). Aprobado por Naza el 16/10/2026, en los tres idiomas.
+
+| ID | Antes | Por qué | Ahora |
+|---|---|---|---|
+| K14-OP | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo de chic{{o/a}}"? Contame ese día. | La marca tomaba el género del chico, pero la frase la dice el adulto (una nena con su abuelo: «de chica») | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo cuando tenía tu edad"? Contame ese día. |
+| K44-OP | ¿Y un lugar de ahora que querés que vuelva cuando lo leas? | Decía que el lugar «vuelve»; se entendía mal | ¿Y un lugar de ahora que quieras recordar cuando lo leas? |
+| Título del cap. 5 | Para cuando seas grande (la cápsula) | «La cápsula» no aparece en ningún otro mensaje; todos dicen «el sobre cerrado» | Para cuando seas grande (el sobre cerrado) |

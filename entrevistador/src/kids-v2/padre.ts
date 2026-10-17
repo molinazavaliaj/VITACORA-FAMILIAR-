@@ -18,20 +18,31 @@ import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import type { DepsKids } from './deps.js';
 import { conReintento, filasDelPadre } from './filas.js';
+import { idiomaDeFila } from './idioma.js';
+import type { IdiomaKids } from './nucleo/idioma.js';
 import type { FilaKids } from './tipos.js';
 
 /**
  * Lo que se le contesta al padre, una sola vez por chico. Texto aprobado por Naza 15/10: no se cambia sin su OK.
  * `{apodo}` = cómo le dicen al chico (`ficha.apodo`). No está en el banco del motor porque el banco sale de los md
- * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A.
+ * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A. Tampoco tiene versión en
+ * banco-es-ES.md: va el mismo a España (no tiene voseo: «ves» es igual con tú), hasta que Naza apruebe otro.
+ * Si un idioma no tuviera el suyo, al padre no se le contesta nada, nunca en castellano, y se avisa a los socios.
  */
 export const TEXTO_AL_PADRE = 'Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en tu panel.';
 
-export function textoAlPadre(apodo: string): string {
-  return TEXTO_AL_PADRE.replace('{apodo}', apodo);
+/** En catalán: Aprobado por Naza el 16/10/2026 (tanda 10), de docs/rediseno-2026-10/kids/textos-ca-2026-10-16.md (rama de la web). */
+export const TEXTO_AL_PADRE_CA = 'Aquest número és per a les preguntes de {apodo}. El que explica ho veus al teu panell.';
+
+/** Por idioma del chico. */
+export const TEXTOS_AL_PADRE: Readonly<Partial<Record<IdiomaKids, string>>> = { 'es-AR': TEXTO_AL_PADRE, 'es-ES': TEXTO_AL_PADRE, ca: TEXTO_AL_PADRE_CA };
+
+/** El texto en el idioma del chico, o null si ese idioma todavía no tiene el suyo aprobado. */
+export function textoAlPadre(apodo: string, idioma: IdiomaKids = 'es-AR'): string | null {
+  return TEXTOS_AL_PADRE[idioma]?.replace('{apodo}', apodo) ?? null;
 }
 
-export type ResultadoPadre = 'no-es-padre' | 'contestado' | 'ya-contestado' | 'varios' | 'sin-arrancar' | 'fallo-envio';
+export type ResultadoPadre = 'no-es-padre' | 'contestado' | 'ya-contestado' | 'varios' | 'sin-arrancar' | 'sin-texto' | 'fallo-envio';
 
 /** ¿Es el padre de un chico de canal A? Si lo es, se ocupa de todo y devuelve true; si no (o la base falla), false: sigue como hoy. */
 export async function atenderPadreKids(deps: DepsKids, m: MensajeEntrante): Promise<boolean> {
@@ -62,6 +73,11 @@ export async function procesarPadreKids(deps: DepsKids, m: MensajeEntrante): Pro
     await aviso('Su Kids todavía no arrancó (no hay dónde recordar que se le contestó): no se le contestó nada.');
     return 'sin-arrancar';
   }
+  const texto = textoAlPadre(fila.ficha.apodo, idiomaDeFila(fila));
+  if (texto === null) {
+    await aviso(`El chico está en ${idiomaDeFila(fila)} y no hay texto aprobado para contestarle al padre en ese idioma (falta el de Naza): no se le contestó nada.`);
+    return 'sin-texto';
+  }
   if (fila.estado.respondioAlPadre) {
     await aviso('Ya se le había contestado una vez: esta vez no se le contestó.');
     return 'ya-contestado';
@@ -72,7 +88,6 @@ export async function procesarPadreKids(deps: DepsKids, m: MensajeEntrante): Pro
     await aviso('Ya se le había contestado una vez: esta vez no se le contestó.');
     return 'ya-contestado';
   }
-  const texto = textoAlPadre(fila.ficha.apodo);
   let waId: string;
   try {
     waId = await deps.wa.texto(fila.telefono_padre, texto);
@@ -117,7 +132,7 @@ async function queMando(deps: DepsKids, m: MensajeEntrante, fila: FilaKids): Pro
     if (!m.mediaId) return 'un audio (vino sin media id)';
     try {
       const audio = await deps.wa.descargar(m.mediaId);
-      const t = await deps.transcribir(audio, { nombre: fila.ficha.nombrePadre, narradorId: fila.narrador_id });
+      const t = await deps.transcribir(audio, { nombre: fila.ficha.nombrePadre, idioma: idiomaDeFila(fila), narradorId: fila.narrador_id });
       return t.texto.trim() ? `un audio que dice «${t.texto.trim()}»` : 'un audio (la transcripción vino vacía)';
     } catch (err) {
       return `un audio que no se pudo transcribir (${err instanceof Error ? err.message : err}; media ${m.mediaId})`;

@@ -7,6 +7,7 @@
 // `activo → completado` cuando terminó de contar.
 
 import type { DepsKids } from './deps.js';
+import { fichaParaArrancar } from './idioma.js';
 import { conReintento, type CambioFila, type Paso } from './filas.js';
 import { validarFicha } from './nucleo/compra.js';
 import { esDeNoche, finDeLaNoche } from './nucleo/horas.js';
@@ -127,10 +128,13 @@ export function pasoKids(fila: FilaKids, eventos: readonly Evento[], ahora: Date
   return armar(fila, fila.estado, eventos, ahora, { visto: o.visto, arranque: false });
 }
 
-/** El arranque: nuevoEstado(ficha) (con el cambio del panel aplicado, si había) y el evento `inicio`. Puro; tira si la ficha no es válida. */
+/**
+ * El arranque: nuevoEstado(ficha) (con el cambio del panel aplicado, si había) y el evento `inicio`. La ficha lleva el
+ * idioma de la compra (fichaParaArrancar: `ficha.idioma` o `kids_v2.idioma`). Puro; tira si la ficha no es válida.
+ */
 export function arranqueKids(fila: FilaKids, ahora: Date): Paso<FilaKids, ResultadoPaso> {
   if (fila.estado) return null;
-  return armar(fila, estadoBotInicial(nuevoEstado(fila.ficha)), [{ tipo: 'inicio' }], ahora, { arranque: true });
+  return armar(fila, estadoBotInicial(nuevoEstado(fichaParaArrancar(fila))), [{ tipo: 'inicio' }], ahora, { arranque: true });
 }
 
 /** Lee, aplica `pasoKids` con compare-and-swap y, si la escritura ganó, saca los efectos de afuera. */

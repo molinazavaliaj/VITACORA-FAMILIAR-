@@ -4,7 +4,8 @@
 // se arma acá: todo sale del motor (banco aprobado) o de las plantillas de Meta (docs/kids/v2/plantillas-meta-kids.md).
 //
 // A dónde: `chico` → narradores.telefono_whatsapp (el número de las preguntas); `padre` → kids_v2.telefono_padre.
-// Cómo: con `plantilla` → plantilla de Meta (si no está en WA_PLANTILLAS_KIDS_LISTAS, queda y se avisa); sin
+// Cómo: con `plantilla` → plantilla de Meta, en el idioma de Meta de la suya (PLANTILLAS_KIDS: 'es', las `_ca` 'ca' o, las `_es_es`,
+// 'es_ES'; si no está en WA_PLANTILLAS_KIDS_LISTAS, o no es del idioma del chico, queda y se avisa); sin
 // plantilla y con botones → botones de respuesta rápida; si no, texto. El texto libre solo sale con la ventana de
 // 24 h de ESE número abierta: el del número de las preguntas por `motor.ultimaEntrada`; para el padre en canal A
 // siempre está cerrada (si le escribe al bot, padre.ts le contesta aparte, fuera de esta cola). El motor no debería pedirlo nunca: si pasa, queda y se avisa.
@@ -16,6 +17,7 @@ import type { DepsKids } from './deps.js';
 import { conReintento, leerFila, soltarTurno, tomarTurno, TOMA_MS, type CambioFila } from './filas.js';
 import { completar, despertarDe } from './motor.js';
 import { esDeNoche } from './nucleo/horas.js';
+import { idiomaDe } from './nucleo/idioma.js';
 import { VENTANA_MS } from './nucleo/reglas.js';
 import { anotarEnviado, type EstadoBotKids, type FilaKids, type Saliente } from './tipos.js';
 
@@ -35,6 +37,8 @@ export type EnvioKids =
   | { tipo: 'botones'; texto: string; botones: string[] }
   | { tipo: 'texto'; texto: string }
   | { tipo: 'sin-plantilla'; nombre: string }
+  /** La plantilla que pidió el motor no es del idioma del chico (no debería pasar: el motor le pone el sufijo de su ficha). */
+  | { tipo: 'otro-idioma'; nombre: string; idioma: string }
   | { tipo: 'ventana-cerrada' };
 
 /** Cómo sale este mensaje ahora. Puro, salvo que lee WA_PLANTILLAS_KIDS_LISTAS. */
@@ -42,6 +46,8 @@ export function elegirEnvio(fila: Pick<FilaKids, 'canal'>, e: EstadoBotKids, s: 
   if (s.plantilla) {
     const p = PLANTILLAS_KIDS[s.plantilla.nombre];
     if (!p || !plantillaKidsLista(s.plantilla.nombre)) return { tipo: 'sin-plantilla', nombre: s.plantilla.nombre };
+    const idioma = idiomaDe(e.motor.ficha);
+    if (p.idioma !== idioma) return { tipo: 'otro-idioma', nombre: s.plantilla.nombre, idioma };
     return { tipo: 'plantilla', nombre: p.nombre, idiomaMeta: p.idiomaMeta, variables: s.plantilla.variables };
   }
   if (!ventanaAbierta(fila, e, s, ahora)) return { tipo: 'ventana-cerrada' };
@@ -52,7 +58,7 @@ export function telefonoDe(fila: Pick<FilaKids, 'telefono_padre'>, telefonoChico
   return s.a === 'padre' ? fila.telefono_padre : telefonoChico;
 }
 
-export type ResultadoDrenar = 'vacio' | 'enviado' | 'ocupado' | 'fallo' | 'sin-plantilla' | 'ventana-cerrada' | 'noche';
+export type ResultadoDrenar = 'vacio' | 'enviado' | 'ocupado' | 'fallo' | 'sin-plantilla' | 'otro-idioma' | 'ventana-cerrada' | 'noche';
 
 export async function drenar(deps: DepsKids, narradorId: string): Promise<ResultadoDrenar> {
   // Con la cola vacía no se toma el turno (el reloj pasa seguido); sí se arregla el `completado` que haya fallado.
@@ -80,6 +86,11 @@ export async function drenar(deps: DepsKids, narradorId: string): Promise<Result
         await deps.avisar(`kids-plantilla-${envio.nombre}`, `Falta la plantilla «${envio.nombre}» (Kids)`,
           `${fila.ficha.apodo} (${narradorId}) tiene que recibir ${s.id} como plantilla «${envio.nombre}» y no figura como aprobada en WA_PLANTILLAS_KIDS_LISTAS. Queda en la cola (y lo que viene atrás, también) hasta que se apruebe.`);
         return 'sin-plantilla';
+      }
+      if (envio.tipo === 'otro-idioma') {
+        await deps.avisar(`kids-plantilla-idioma-${narradorId}-${envio.nombre}`, `Kids: una plantilla en otro idioma (${fila.ficha.apodo})`,
+          `El motor de Kids pidió mandarle ${s.id} a ${narradorId} con la plantilla «${envio.nombre}», que no es de su idioma (${envio.idioma}). No salió: queda en la cola. El motor no debería pedirlo nunca; hay que verlo.`);
+        return 'otro-idioma';
       }
       if (envio.tipo === 'ventana-cerrada') {
         await deps.avisar(`kids-ventana-${narradorId}-${s.envio}`, `Kids: un texto libre con la ventana de 24 h cerrada (${fila.ficha.apodo})`,

@@ -1,5 +1,5 @@
 // Las dependencias de verdad de Kids V2: la base, WhatsApp de Meta (con los botones de respuesta rápida), la
-// transcripción de OpenAI en castellano rioplatense y los avisos a los socios. Importa db/cliente.ts: solo se carga
+// transcripción de OpenAI en el castellano del chico (rioplatense o de España) y los avisos a los socios. Importa db/cliente.ts: solo se carga
 // cuando hay un chico de Kids (import dinámico desde procesar.ts y el scheduler).
 
 import { db } from '../db/cliente.js';
@@ -21,7 +21,7 @@ export function depsKidsReales(): DepsKids {
       plantilla: (telefono, nombre, idiomaMeta, variables) => enviarPlantilla(telefono, nombre, variables, idiomaMeta, envio),
       descargar: descargarAudio,
     },
-    transcribir: (audio, o) => transcribir(audio, promptDeTranscripcion(o.nombre, 'es-AR'), o.narradorId, IDIOMA_OPENAI['es-AR']),
+    transcribir: (audio, o) => transcribir(audio, promptDeTranscripcion(o.nombre, o.idioma), o.narradorId, IDIOMA_OPENAI[o.idioma]),
     avisar: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle); },
     ahora: () => new Date(),
   };

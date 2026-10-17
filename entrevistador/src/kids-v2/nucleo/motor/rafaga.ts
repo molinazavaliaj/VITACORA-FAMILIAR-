@@ -4,7 +4,8 @@
 
 import { pregunta } from '../banco.js';
 import { fraseQueSalta, normalizar } from '../preocupante.js';
-import { CORTO_AUDIO_SEG, CORTO_PALABRAS, PALABRAS_NO } from '../reglas.js';
+import { idiomaDe, type IdiomaKids } from '../idioma.js';
+import { CORTO_AUDIO_SEG, CORTO_PALABRAS, PALABRAS_NO, PALABRAS_NO_CA } from '../reglas.js';
 import { acusar, acuseFoto, acuseSobrio, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
 import { fotoEnCurso, hoyNoLaComo, noTengo } from './botones.js';
 import { opMsg, ramaMsg } from './mensajes.js';
@@ -32,9 +33,12 @@ export function esCorta(r: { seg: number; palabras: number; fotos: number }): bo
   return r.fotos === 0 && r.seg < CORTO_AUDIO_SEG && r.palabras < CORTO_PALABRAS;
 }
 
-/** ¿Lo que escribió (o la transcripción del audio) dice que no? Por palabras enteras (PALABRAS_NO). */
-export function diceQueNo(textos: readonly string[]): boolean {
-  return textos.some((t) => PALABRAS_NO.some((w) => normalizar(t).includes(` ${w} `)));
+const NO_DE: Readonly<Record<IdiomaKids, readonly string[]>> = { 'es-AR': PALABRAS_NO, 'es-ES': PALABRAS_NO, ca: [...PALABRAS_NO_CA, ...PALABRAS_NO] };
+
+/** ¿Lo que escribió (o la transcripción del audio) dice que no? Por palabras enteras (PALABRAS_NO; en catalán, también PALABRAS_NO_CA). */
+export function diceQueNo(textos: readonly string[], idioma: IdiomaKids = 'es-AR'): boolean {
+  const ws = NO_DE[idioma].map((w) => normalizar(w).trim());
+  return textos.some((t) => ws.some((w) => normalizar(t).includes(` ${w} `)));
 }
 
 export function procesarRafaga(c: Ctx): void {
@@ -55,7 +59,8 @@ export function procesarRafaga(c: Ctx): void {
 
   // Algo preocupante (Naza 05/10): ese día solo el acuse sobrio; gana a todos los otros acuses.
   if (enDiaSobrio(c)) return acuseSobrio(c);
-  const frase = r.textos.map(fraseQueSalta).find((x) => x !== null);
+  const idioma = idiomaDe(e.ficha);
+  const frase = r.textos.map((t) => fraseQueSalta(t, idioma)).find((x) => x !== null);
   if (frase) return alPreocupante(c, frase, r.fotos > 0);
 
   switch (f.tipo) {
@@ -86,7 +91,7 @@ export function procesarRafaga(c: Ctx): void {
       if (corta) {
         // K24 es la excepción: ahí "contame la última vez que la comiste" se contesta con algo corto
         // ("milanesas"); sin un "no" es la respuesta a la foto: acuse y sigue como después de una foto.
-        if (!diceQueNo(r.textos)) {
+        if (!diceQueNo(r.textos, idioma)) {
           if (f.clave !== 'K24') return;
           acuse();
           return terminarItem(c);

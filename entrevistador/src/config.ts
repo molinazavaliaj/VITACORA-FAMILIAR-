@@ -98,18 +98,35 @@ export function plantillaViajeLista(idioma: 'es-AR' | 'es-ES' | 'ca', cual: Cual
   return (env.WA_PLANTILLAS_VIAJE_V2_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
 }
 
+/** Las 13 plantillas de Kids en rioplatense (docs/kids/v2/plantillas-meta-kids.md, textos aprobados por Naza el 05/10). */
+export const PLANTILLAS_KIDS_BASE = [
+  'kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre',
+  'kids_recordatorio_padre', 'kids_recordatorio_padre_8', 'kids_recordatorio_lo_hago_yo', 'kids_recordatorio_lo_hago_yo_8',
+  'kids_pregunta_nueva', 'kids_pregunta_nueva_padre', 'kids_termino_padre', 'kids_final', 'kids_final_plural',
+] as const;
+
 /**
- * Las 13 plantillas de Meta de Vitácora Kids V2 (docs/kids/v2/plantillas-meta-kids.md, textos aprobados por Naza
- * el 05/10), todas en español ('es', como las de siempre: el banco de Kids es solo rioplatense). Los nombres son los
- * que trae el motor en cada mensaje (`plantilla.nombre`, de banco.json): acá solo se dice cuáles existen. Las carga
- * Joaquín en Meta y se marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS; hasta entonces no salen.
+ * Cada idioma de Kids: el sufijo de sus plantillas en Meta y su idioma en Meta (el mismo que `PLANTILLA_KIDS_IDIOMA`
+ * del motor, nucleo/idioma.ts). es-ES: docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md, Spanish (Spain). ca:
+ * docs/kids/v2/idiomas/plantillas-meta-kids-ca.md, Catalan.
  */
-export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3>> = Object.fromEntries(
-  [
-    'kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre',
-    'kids_recordatorio_padre', 'kids_recordatorio_padre_8', 'kids_recordatorio_lo_hago_yo', 'kids_recordatorio_lo_hago_yo_8',
-    'kids_pregunta_nueva', 'kids_pregunta_nueva_padre', 'kids_termino_padre', 'kids_final', 'kids_final_plural',
-  ].map((nombre) => [nombre, { nombre, idiomaMeta: 'es' }]),
+export const IDIOMAS_PLANTILLAS_KIDS: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { sufijo: string; idiomaMeta: string }>> = {
+  'es-AR': { sufijo: '', idiomaMeta: 'es' },
+  'es-ES': { sufijo: '_es_es', idiomaMeta: 'es_ES' },
+  ca: { sufijo: '_ca', idiomaMeta: 'ca' },
+};
+
+/**
+ * Las plantillas de Meta de Vitácora Kids V2, por idioma (39): las 13 rioplatenses ('es'), las mismas 13 con `_es_es`
+ * ('es_ES') y las mismas 13 con `_ca` ('ca'). Los nombres son los que trae el motor en cada mensaje (`plantilla.nombre`: el motor ya le pone el sufijo
+ * del idioma de la ficha); acá se dice cuáles existen y en qué idioma de Meta van. Las carga Joaquín en Meta y se
+ * marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS (los nombres `_es_es` y `_ca` van con su sufijo); hasta entonces no salen.
+ */
+export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3 & { idioma: 'es-AR' | 'es-ES' | 'ca' }>> = Object.fromEntries(
+  (['es-AR', 'es-ES', 'ca'] as const).flatMap((idioma) => {
+    const { sufijo, idiomaMeta } = IDIOMAS_PLANTILLAS_KIDS[idioma];
+    return PLANTILLAS_KIDS_BASE.map((base) => [`${base}${sufijo}`, { nombre: `${base}${sufijo}`, idiomaMeta, idioma }]);
+  }),
 );
 
 /**

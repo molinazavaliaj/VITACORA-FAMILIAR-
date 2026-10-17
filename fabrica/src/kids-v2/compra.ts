@@ -5,6 +5,7 @@
 
 import { BANCO, pregunta as preguntaDelBanco } from './banco.js';
 import { esHora, NOCHE_DESDE, NOCHE_HASTA, zonaValida } from './horas.js';
+import { esIdiomaKids, IDIOMA_POR_DEFECTO, IDIOMAS_KIDS, type IdiomaKids } from './idioma.js';
 import { MAX_PREGUNTAS_PADRE } from './reglas.js';
 import { normalizarQuienRegala, type Genero } from './texto.js';
 import type { Cap, Extra, Foto, Pregunta } from './tipos.js';
@@ -24,37 +25,60 @@ export const PREGUNTA_DEL_TEMA: Record<Exclude<Tema, 'escuela'>, string> = {
   mudanza: 'K38',
 };
 
-/** El tema de una extra: las de mamá y papá ("si el padre sacó el tema, sus extras tampoco salen") y la del mal momento en la escuela. */
+/**
+ * El tema de una extra: las de mamá y papá ("si el padre sacó el tema, sus extras tampoco salen") y la del mal
+ * momento en la escuela. Decide por el ID, con el texto de banco.md (es-AR): en España la extra dice «tu madre»
+ * y es la misma extra (Naza, 16/10, tanda 8). Así no depende del idioma en que llegue.
+ */
 export function temaDeExtra(x: Extra): Tema | null {
-  if (x.texto.includes('tu mamá')) return 'mama';
-  if (x.texto.includes('tu papá')) return 'papa';
-  if (x.sacable) return 'escuela';
+  const deBanco = BANCO.extras.find((e) => e.id === x.id) ?? x;
+  if (deBanco.texto.includes('tu mamá')) return 'mama';
+  if (deBanco.texto.includes('tu papá')) return 'papa';
+  if (deBanco.sacable) return 'escuela';
   return null;
 }
 
 /**
  * Una principal que nombra a mamá y papá y queda aunque se saque uno de los dos
  * temas (K18, Naza 05/10). Cada variante sale SOLO borrando palabras de la frase
- * aprobada en banco.md: nada de redacción nueva. Si la frase cambia en el banco,
- * un test avisa y textoSegunTemas tira error.
+ * aprobada en el banco de su idioma (banco.md; en es-ES, banco-es-ES.md; en ca, banco-ca.md): nada de
+ * redacción nueva. Si la frase cambia en el banco, un test avisa y textoSegunTemas
+ * tira error. Un idioma sin su frase también tira: nunca un K18 que nombra a quien sacaron.
  */
-export const BORRADOS_POR_TEMA: readonly { pregunta: string; frase: string; borrar: { mama: string; papa: string; ambos: string } }[] = [
+export const BORRADOS_POR_TEMA: readonly { pregunta: string; idioma: IdiomaKids; frase: string; borrar: { mama: string; papa: string; ambos: string } }[] = [
   {
     pregunta: 'K18',
+    idioma: 'es-AR',
     frase: 'como la pareja de tu mamá o de tu papá, o alguien',
     // Lo que se borra de la frase: sin papá → "la pareja de tu mamá, o alguien"; sin mamá → "la pareja de tu papá, o alguien"; sin los dos → "como alguien".
     borrar: { papa: ' o de tu papá', mama: 'de tu mamá o ', ambos: 'la pareja de tu mamá o de tu papá, o ' },
   },
+  {
+    pregunta: 'K18',
+    idioma: 'es-ES',
+    frase: 'como la pareja de tu madre o de tu padre, o alguien',
+    // Igual que en es-AR, con la frase aprobada de España (tanda 8, 16/10): sin padre → "la pareja de tu madre, o alguien"; sin madre → "la pareja de tu padre, o alguien"; sin los dos → "como alguien".
+    borrar: { papa: ' o de tu padre', mama: 'de tu madre o ', ambos: 'la pareja de tu madre o de tu padre, o ' },
+  },
+  {
+    pregunta: 'K18',
+    idioma: 'ca',
+    frase: 'com la parella de la teva mare o del teu pare, o algú',
+    // La frase de banco-ca.md (16/10, sin revisar todavía): sin pare → "la parella de la teva mare, o algú"; sin mare → "la parella del teu pare, o algú"; sin els dos → "com algú".
+    borrar: { papa: ' o del teu pare', mama: 'de la teva mare o ', ambos: 'la parella de la teva mare o del teu pare, o ' },
+  },
 ];
 
-/** El texto de una principal según los temas sacados (solo borra; ver BORRADOS_POR_TEMA). */
-export function textoSegunTemas(id: string, texto: string, temasSacados: readonly Tema[]): string {
-  const b = BORRADOS_POR_TEMA.find((x) => x.pregunta === id);
-  if (!b) return texto;
+/** El texto de una principal según los temas sacados, en el idioma de ese texto (solo borra; ver BORRADOS_POR_TEMA). */
+export function textoSegunTemas(id: string, texto: string, temasSacados: readonly Tema[], idioma: IdiomaKids = IDIOMA_POR_DEFECTO): string {
+  const deLaPregunta = BORRADOS_POR_TEMA.filter((x) => x.pregunta === id);
+  if (!deLaPregunta.length) return texto;
   const sinMama = temasSacados.includes('mama');
   const sinPapa = temasSacados.includes('papa');
   if (!sinMama && !sinPapa) return texto;
-  if (!texto.includes(b.frase)) throw new Error(`${id}: en el banco ya no está la frase "${b.frase}" (revisar BORRADOS_POR_TEMA en compra.ts)`);
+  const b = deLaPregunta.find((x) => x.idioma === idioma);
+  if (!b) throw new Error(`${id}: no hay frase para recortar en ${idioma} (revisar BORRADOS_POR_TEMA en compra.ts)`);
+  if (!texto.includes(b.frase)) throw new Error(`${id}: en el banco ${idioma} ya no está la frase "${b.frase}" (revisar BORRADOS_POR_TEMA en compra.ts)`);
   const borrar = sinMama && sinPapa ? b.borrar.ambos : sinMama ? b.borrar.mama : b.borrar.papa;
   return texto.replace(b.frase, b.frase.replace(borrar, ''));
 }
@@ -87,6 +111,12 @@ export type Ficha = {
   fotosConOtrosChicos: boolean;
   /** Hasta 3. conLinea = false si marcó "sin decir que es mía". */
   preguntasPadre: PreguntaPadre[];
+  /**
+   * En qué idioma le hablan (idioma.ts): 'es-AR' (vos, el de siempre), 'es-ES' (tú) o 'ca' (catalán, de tu). Sin el campo, es-AR:
+   * las fichas de antes del 16/10 siguen igual. Todo lo que sale (preguntas, botones, mensajes, plantillas) sale
+   * del banco de ese idioma.
+   */
+  idioma?: IdiomaKids;
 };
 
 /** Valida y normaliza. Tira error con el nombre del campo. */
@@ -99,6 +129,7 @@ export function validarFicha(f: Ficha): Ficha {
   if (!esHora(f.hora) || f.hora < NOCHE_HASTA || f.hora >= NOCHE_DESDE) throw new Error(`Ficha: hora ${f.hora} fuera de 09:00–21:59`);
   if (!zonaValida(f.zona)) throw new Error(`Ficha: zona desconocida ${f.zona}`);
   for (const t of f.temasSacados) if (!(TEMAS as readonly string[]).includes(t)) throw new Error(`Ficha: tema desconocido ${t}`);
+  if (f.idioma !== undefined && !esIdiomaKids(f.idioma)) throw new Error(`Ficha: idioma ${JSON.stringify(f.idioma)} (va ${IDIOMAS_KIDS.join(' o ')}, o sin el campo)`);
   const preguntasPadre = f.preguntasPadre
     .map((p): PreguntaPadre => ({ texto: p.texto.trim(), conLinea: p.conLinea, ...(p.quien?.trim() ? { quien: normalizarQuienRegala(p.quien) } : {}) }))
     .filter((p) => p.texto !== '');

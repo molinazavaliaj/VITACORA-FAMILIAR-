@@ -12,9 +12,11 @@ import { drenar } from './enviar.js';
 import { reconciliarEnCola, respuestasSinClave, type FilaRespuesta } from './entrante.js';
 import { chicosKids, conReintento, filasDelReloj, listarFilas, tomaVigente } from './filas.js';
 import { alMotor, arranqueKids, despuesDelPaso, type ResultadoPaso } from './motor.js';
-import { fijo } from './nucleo/banco.js';
+import { fijoEn } from './nucleo/banco.js';
 import type { Ficha } from './nucleo/compra.js';
+import { idiomaDe } from './nucleo/idioma.js';
 import { nuevoEstado } from './nucleo/motor.js';
+import { fichaParaArrancar } from './idioma.js';
 import { idBienvenida } from './nucleo/motor/recibido.js';
 import type { FilaKids } from './tipos.js';
 
@@ -25,12 +27,12 @@ export type Trabajo = 'nada' | 'arranque' | 'sin-plantillas' | 'reloj' | 'reconc
 /**
  * Las plantillas que necesita el primer mensaje (siempre es plantilla): canal A, la bienvenida del chico (singular o
  * plural según quién se lo regala) y el aviso al padre; canal B, la bienvenida del padre. Los nombres salen del banco
- * del motor, no de acá.
+ * del motor en el idioma de la ficha (kids_bienvenida_es_es en es-ES), no de acá.
  */
 export function plantillasDelArranque(ficha: Ficha): string[] {
   const e = nuevoEstado(ficha);
   const ids = ficha.canal === 'A' ? [idBienvenida(e), 'AVISO-PADRE' as const] : ['BIEN-PADRE' as const];
-  return ids.map((id) => fijo(id).plantilla).filter((p): p is string => !!p);
+  return ids.map((id) => fijoEn(id, idiomaDe(ficha)).plantilla).filter((p): p is string => !!p);
 }
 
 /**
@@ -41,7 +43,7 @@ export function plantillasDelArranque(ficha: Ficha): string[] {
 export async function arrancar(deps: DepsKids, fila: FilaKids, n: Narrador): Promise<Trabajo> {
   let necesarias: string[];
   try {
-    necesarias = plantillasDelArranque(fila.ficha);
+    necesarias = plantillasDelArranque(fichaParaArrancar(fila));
   } catch (err) {
     await deps.avisar(`kids-ficha-${n.id}`, `Kids: la ficha de ${n.id} no es válida`,
       `La fila de kids_v2 de ${n.id} tiene una ficha que el motor rechaza (${err instanceof Error ? err.message : String(err)}). No arranca hasta que se corrija.`);

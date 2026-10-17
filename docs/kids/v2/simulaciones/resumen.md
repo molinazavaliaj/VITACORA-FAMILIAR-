@@ -1,8 +1,11 @@
 # Kids V2 · Simulaciones · Resumen
 
-Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semillas 1 a 800. No editar a mano.
+Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semillas 1 a 800, un tercio en rioplatense (es-AR), uno en castellano de España (es-ES) y uno en catalán (ca). No editar a mano.
 
 - Terminaron: 800 de 800.
+- es-AR: 267 chicos, terminaron 267, 0 violaciones.
+- es-ES: 267 chicos, terminaron 267, 0 violaciones.
+- ca: 266 chicos, terminaron 266, 0 violaciones.
 - Días de punta a punta: mediana 30, máximo 152.
 - Mensajes del bot: 198808.
 
