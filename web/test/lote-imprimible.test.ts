@@ -121,9 +121,9 @@ describe("los sellos", () => {
 
 describe("adentro de la carta-libro (textos del 17/10)", () => {
   const esperado = {
-    "es-AR": ["Te regalaron una Vitácora.", "Vos le vas contestando con audios, en tus momentos libres.", "Apuntá la cámara del celular acá para empezar.", `Si la cámara no te anda, mandá un WhatsApp al ${NUMERO} con este código.`],
-    "es-ES": ["Te han regalado una Vitácora.", "Tú le vas contestando con audios, en tus momentos libres.", "Apunta la cámara del móvil aquí para empezar.", `Si la cámara no te funciona, manda un WhatsApp al ${NUMERO} con este código.`],
-    ca: ["T&#39;han regalat una Vitácora.", "Tu li vas responent amb àudios, en els teus moments lliures.", "Apunta la càmera del mòbil aquí per començar.", `Si la càmera no et funciona, envia un WhatsApp al ${NUMERO} amb aquest codi.`],
+    "es-AR": ["Te regalaron una Vitácora.", "Vos le vas contestando con audios en tus momentos libres.", "Apuntá la cámara del celular acá para empezar.", `Si la cámara no te anda, mandá un WhatsApp al ${NUMERO} con este código.`],
+    "es-ES": ["Te han regalado una Vitácora.", "Tú le vas contestando con audios en tus momentos libres.", "Apunta la cámara del móvil aquí para empezar.", `Si la cámara no te funciona, manda un WhatsApp al ${NUMERO} con este código.`],
+    ca: ["T&#39;han regalat una Vitácora.", "Tu li vas responent amb àudios en els teus moments lliures.", "Apunta la càmera del mòbil aquí per començar.", `Si la càmera no et funciona, envia un WhatsApp al ${NUMERO} amb aquest codi.`],
   } as const;
 
   it.each(Object.keys(esperado) as IdiomaRegalo[])("%s: título, texto, cómo escanear, el número y el código, en ese orden", (idioma) => {
