@@ -79,20 +79,31 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Seguimiento en vivo de las órdenes que empiecen a llegar (lo que falte después del bloque 2). **Necesita la decisión de logística del bloque 4**: hoy no hay dónde guardar la dirección ni el estado de producción | Naza, Claude | ☐ |
+| Seguimiento en vivo de las órdenes que empiecen a llegar (lo que falte después del bloque 2). El modelo de datos ya existe (`entregas`, bloque 4): lo que falta es la pantalla de Envíos en `/admin` y que la migración esté aplicada | Naza, Claude | ☐ |
 | Que el mail de socios traiga novedades, avisos e hitos de cada cliente, sin ruido | Claude, con Naza | ☐ |
 | **Agente que lea el Gmail y avise por un bot de Telegram** lo importante de cada cliente | Joaquín, Claude | ☐ nuevo |
 
 ### Bloque 4 · Lo físico: libros, marcos, packaging y envío
 
-> **Acá hay una decisión de septiembre que nunca se tomó.** `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`
-> dejó abierto el modelo de datos del envío (columnas propias vs. `pedidos.envio` jsonb), quién paga
-> el envío y con qué agregador se genera la etiqueta. **El seguimiento de las órdenes en el panel
-> (bloque 3) cuelga de esa decisión**: hoy no hay dónde guardar la dirección ni el estado de producción.
+> **El sistema de envíos ya está construido y casi nadie lo sabe.** Hay tabla `entregas`, migración
+> `20260922000000_entregas.sql` y código en main desde el 27/09. El flujo decidido: al confirmar el
+> pago la web crea la fila en `sin_direccion` · el comprador carga la dirección desde su panel
+> (`PATCH /api/entrega`) y pasa a `lista` · **sin dirección el botón Encargar no se habilita** ·
+> la fábrica crea el envío en el agregador y pasa a `en_produccion → impreso → enviado → entregado`.
+> El envío va **incluido en el precio**: nada se le cotiza al comprador.
+>
+> **Entonces la dirección se pide después de pagar, desde el panel, cuando encarga lo físico.** Eso
+> ya está programado.
+>
+> ⚠️ **Lo que nadie verificó: si la migración se aplicó.** El CONTRATO lo dice textual: «en git no
+> quedó escrito si se aplicó». Si no está, la web no muestra la sección Envío y todo lo demás sigue
+> andando igual, sin avisar. Es el mismo patrón de las cuatro veces anteriores.
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| **Tomar la decisión de logística del 21/09**: modelo de datos del envío, quién paga, qué agregador | Ambos | ☐ **abre el bloque 3** |
+| **Verificar si la migración de `entregas` está aplicada**: `select to_regclass('public.entregas');` en el SQL Editor. Y anotarlo en el CONTRATO | Naza | ☐ **primero esto** |
+| **Elegir el agregador de envíos de cada país** y cargar su API key: ES Sendcloud o Packlink · AR Enviopack, Zippin o Shipnow | Naza (ES), Joaquín (AR) | ☐ decisión |
+| Probar el circuito entero una vez: dirección cargada → etiqueta generada → la imprenta la imprime | Ambos | ☐ |
 | Definir flujo y proveedor de libros impresos en **Argentina** | Joaquín | ☐ |
 | Definir flujo y proveedor de libros impresos en **España** | Naza | ☐ |
 | Un libro impreso de muestra con el proveedor ya definido, en cada país | Ambos | ☐ |
@@ -103,19 +114,23 @@ mirar si está prendido.**
 | Proveedor de los marcos con NFC (hay uno hecho de prueba) | Joaquín | ☐ |
 | La imprenta tiene que pegar el sobre (`sobre-imprenta.pdf`) a la contratapa | Naza | ☐ |
 
-### Bloque 4bis · El final del libro, a elección del cliente (nuevo, 17/10)
+### Bloque 4bis · El pie del libro impreso (nuevo, 17/10)
 
-> Hoy el libro termina en «Su voz» (las frases con su código), colofón y contratapa:
-> `fabrica/src/libro/plantilla-html.ts`. No hay nada después. La idea es que el comprador
-> elija en el checkout qué se le suma al final, y la fábrica agregue esas hojas al PDF de imprenta.
+> **Decidido el 17/10: no se le comunica al cliente y no elige nada.** Todo libro impreso lleva
+> el pie, siempre. No cambia el `libro.pdf` que descarga la familia: se suma solo al
+> `libro-imprenta.pdf` (`fabrica/src/libro/imprenta.ts`), que hoy termina en «Su voz», colofón
+> y contratapa.
+>
+> **Lo que lleva:** una hoja para que el autor firme y dedique, y dos hojas en blanco para
+> escribir o dibujar a mano.
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Definir las opciones del final: hoja para que el autor **firme y dedique**, hojas de **notas** en blanco, o nada | Joaquín, con Naza | ☐ decisión |
-| Cuántas hojas lleva cada opción y cómo quedan maquetadas en A5 | Joaquín, con Naza | ☐ |
-| La opción entra en el **checkout** y se guarda con el pedido | Claude, con Naza | ☐ |
-| La **fábrica** suma esas hojas al `libro-imprenta.pdf` (no al PDF que descarga la familia) | Claude, con Naza | ☐ |
-| Textos de esas hojas en los tres idiomas, aprobados por Naza | Claude, con Naza | ☐ |
+| Definir la maqueta del pie en A5 (ver la propuesta de estructura abajo) | Joaquín, con Naza | ☐ |
+| **Preguntarle al proveedor si pide múltiplos de 4 páginas.** Si pide, el pie son 4 hojas y no 3: una de firma y tres en blanco | Joaquín | ☐ **antes de maquetar** |
+| Que las hojas en blanco salgan **de verdad en blanco**: sin número de página, sin encabezado, sin pie | Claude | ☐ |
+| Programarlo en `fabrica/src/libro/imprenta.ts` + `plantilla-html.ts`, con test de que el `libro.pdf` entregado no cambia | Claude, con Naza | ☐ |
+| Textos de la hoja de firma en los tres idiomas, aprobados por Naza | Claude, con Naza | ☐ |
 
 ### Bloque 5 · Contenido (se puede empezar hoy)
 
@@ -159,8 +174,6 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| **Los titulares están vacíos y es obligatorio**: CUIT y domicilio de Joaquín, NIF y domicilio de Immaculada (`web/src/app/legal/titulares.ts`). La propia página los pinta en amarillo. Sin eso incumplimos LSSI-CE art. 10 en España y la Res. 424/2020 en Argentina | Joaquín y Naza | ☐ **bloquea vender** |
-| Decidir **con qué figura legal se factura en cada país** (Joaquín en AR, Immaculada en ES) y que coincida con lo que dicen los legales | Ambos | ☐ decisión |
 | Que el abogado revise lo ya escrito (un solo brief: devolución, «Su voz» sin clonación, uso de datos, titulares) | Naza | ☐ |
 | Abogado para Kids: aviso de «algo preocupante» y permiso del adulto (WhatsApp pide 13 años). **Bloquea vender Kids** | Naza | ☐ |
 | Los legales **viven en `rediseno-web`**: hasta el bloque 1 no están publicados | Naza | 🔄 con el merge |
@@ -172,6 +185,8 @@ mirar si está prendido.**
 | Qué | Dueño | Estado |
 |---|---|---|
 | **INPI**: Argentina es first-to-file y el contenido ya es público | Joaquín | ☐ **urgente** |
+| **Con qué figura legal se factura en cada país** (Joaquín en AR, Immaculada en ES). Falta definirlo con Naza | Ambos | ☐ decisión |
+| **Los titulares de los legales, vacíos desde septiembre**: CUIT y domicilio de Joaquín, NIF y domicilio de Immaculada (`web/src/app/legal/titulares.ts`). La página los pinta en amarillo. Obligatorio por LSSI-CE art. 10 (ES) y Res. 424/2020 (AR). Sale de la figura legal de arriba | Joaquín y Naza | ☐ **bloquea vender** |
 | Stripe real para España | Naza | ☐ |
 | Clave de Anthropic de Joaquín: vence el **1/11** | Joaquín | ☐ se mira el 25/10 |
 
