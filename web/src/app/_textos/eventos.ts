@@ -32,7 +32,7 @@ export type TextosEventos = {
   /** #6 a #9 */
   como: { titulo: string; bajada: string; paso: string; pasos: readonly { titulo: string; texto: string }[] };
   /** #10 y #11 */
-  tipos: { titulo: string; pie: string };
+  tipos: { titulo: string; pie: string; altFoto: string };
   /** #12 (los nombres de cada tipo, también en el formulario) */
   tipo: Record<TipoEvento, string>;
   /** #13 a #22 */
@@ -95,7 +95,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
         { titulo: "Te llega el libro", texto: "Con sus palabras escribimos el libro de tu evento y te lo entregamos impreso." },
       ],
     },
-    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, cuéntanoslo igual." },
+    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, cuéntanoslo igual.", altFoto: "La carpa negra de Vitácora en una boda, con una entrevista adentro." },
     tipo: {
       boda: "Bodas",
       cumpleanos: "Cumpleaños",
@@ -164,7 +164,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
         { titulo: "Et arriba el llibre", texto: "Amb les seves paraules escrivim el llibre del teu esdeveniment i te'l lliurem imprès." },
       ],
     },
-    tipos: { titulo: "Per a qualsevol celebració", pie: "Si el teu no és a la llista, explica-ho igualment." },
+    tipos: { titulo: "Per a qualsevol celebració", pie: "Si el teu no és a la llista, explica-ho igualment.", altFoto: "La carpa negra de Vitácora en un casament, amb una entrevista a dins." },
     tipo: {
       boda: "Casaments",
       cumpleanos: "Aniversaris",
@@ -233,7 +233,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
         { titulo: "Te llega el libro", texto: "Con sus palabras escribimos el libro de tu evento y te lo entregamos impreso." },
       ],
     },
-    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, contanos igual." },
+    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, contanos igual.", altFoto: "La carpa negra de Vitácora en un casamiento, con una entrevista adentro." },
     tipo: {
       boda: "Casamientos",
       cumpleanos: "Cumpleaños",
