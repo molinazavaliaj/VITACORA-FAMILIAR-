@@ -26,11 +26,18 @@ export type ResultadoConfirmacion =
 type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null }) => Promise<boolean>;
 type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
 
+type AvisarSocios = (asunto: string, texto: string) => Promise<boolean>;
+
 export async function confirmarPago(
   admin: SupabaseClient,
-  opciones: { pedidoId: string; referenciaExterna: string; enviarMailAcceso: EnviarMailAcceso; enviarMailRegalo?: EnviarMailRegalo },
+  opciones: { pedidoId: string; referenciaExterna: string; enviarMailAcceso: EnviarMailAcceso; enviarMailRegalo?: EnviarMailRegalo; avisarSocios?: AvisarSocios },
 ): Promise<ResultadoConfirmacion> {
   const { pedidoId, referenciaExterna, enviarMailAcceso } = opciones;
+  // El aviso a los socios es inyectable: si tira error no puede romper el
+  // resultado de un pago que ya está hecho.
+  const avisar = async (asunto: string, texto: string) => {
+    try { await opciones.avisarSocios?.(asunto, texto); } catch (err) { console.error(`confirmarPago: no pude avisar a los socios (${asunto}):`, err); }
+  };
 
   // 0. Qué se compró, ANTES de tocar nada. Si es un regalo el narrador va a
   //    otro estado y le llega otro mail; leerlo mal haría arrancar un regalo
@@ -116,6 +123,48 @@ export async function confirmarPago(
     }
   } catch (err) {
     console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero no pude crear su entrega:`, err);
+  }
+
+  // 3b. Regalo en locales (17/10). La carta se toma recién ahora que está
+  //     pagada (compare-and-swap: la primera que paga gana). Si otra persona
+  //     la pagó antes, este regalo se queda con su código generado, que anda
+  //     igual, y los socios lo resuelven a mano.
+  const codigoImpreso = typeof extras?.codigo_impreso === "string" ? extras.codigo_impreso : null;
+  if (esRegalo && codigoImpreso) {
+    try {
+      const { data: tomadas, error } = await admin
+        .from("codigos_impresos")
+        .update({ pedido_id: pedido.id })
+        .eq("codigo", codigoImpreso)
+        .is("pedido_id", null)
+        .select("codigo");
+      if (error) throw new Error(error.message);
+      if (((tomadas as { codigo: string }[] | null) ?? []).length > 0) {
+        const { error: errorCodigo } = await admin.from("regalos").update({ codigo: codigoImpreso }).eq("narrador_id", pedido.narrador_id);
+        if (errorCodigo) throw new Error(errorCodigo.message);
+      } else {
+        await avisar(
+          `Carta ${codigoImpreso} pagada dos veces`,
+          `El pedido ${pedidoId} pagó la carta ${codigoImpreso}, pero ya era de otro pedido. El regalo quedó con su código generado y anda. Hay que avisarle a quien compró y ver si se devuelve.`,
+        );
+      }
+    } catch (err) {
+      console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero no pude tomar la carta ${codigoImpreso}:`, err);
+      await avisar(`Carta ${codigoImpreso} sin tomar`, `El pedido ${pedidoId} está pagado pero la carta no quedó tomada: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  // 3c. La tarjeta negra por correo: no pasa por `entregas` (no es un libro).
+  //     Se avisa a los socios con la dirección para imprimirla y mandarla desde
+  //     el país (en Argentina se hace todo desde allá).
+  const pedidoTarjeta = extras?.tarjeta as { direccion?: Record<string, string> } | undefined;
+  if (pedidoTarjeta?.direccion) {
+    const d = pedidoTarjeta.direccion;
+    const lineas = [d.linea1, d.linea2, `${d.cp} ${d.ciudad}`, d.provincia, d.pais].filter(Boolean).join("\n");
+    await avisar(
+      `Tarjeta negra para mandar (${region ?? "AR"})`,
+      `Pedido ${pedidoId}. Imprimir la tarjeta negra${codigoImpreso ? ` de la carta ${codigoImpreso}` : ""} y mandarla en sobre negro a\n\n${lineas}`,
+    );
   }
 
   // 4. El mail: de acceso, o (regalo) el de la tarjeta.

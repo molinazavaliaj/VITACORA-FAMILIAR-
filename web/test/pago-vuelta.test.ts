@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@/lib/supabase/sesion", () => ({ crearClienteSesion: vi.fn() }));
 vi.mock("@/lib/confirmar-pago", () => ({ confirmarPago: vi.fn() }));
-vi.mock("@/lib/mail", () => ({ enviarMailAcceso: vi.fn(), enviarMailRegalo: vi.fn() }));
+vi.mock("@/lib/mail", () => ({ enviarMailAcceso: vi.fn(), enviarMailRegalo: vi.fn(), enviarMailSocios: vi.fn() }));
 const mp = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("mercadopago", () => ({
   MercadoPagoConfig: vi.fn(),

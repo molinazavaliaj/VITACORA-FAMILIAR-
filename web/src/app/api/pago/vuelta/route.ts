@@ -4,7 +4,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
-import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
+import { enviarMailAcceso, enviarMailRegalo, enviarMailSocios } from "@/lib/mail";
 import { verificarToken } from "@/lib/token-firmado";
 
 // Adonde vuelve el proveedor después de cobrar (3t.20, 21/09). Tres cosas, en
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 2. Confirmar el pedido (idempotente con el webhook).
-  const resultado = await confirmarPago(admin, { pedidoId: pedido.id, referenciaExterna: referencia, enviarMailAcceso, enviarMailRegalo });
+  const resultado = await confirmarPago(admin, { pedidoId: pedido.id, referenciaExterna: referencia, enviarMailAcceso, enviarMailRegalo, avisarSocios: enviarMailSocios });
   if (!resultado.ok) {
     console.error(`pago/vuelta: el pago ${referencia} está aprobado pero no pude confirmar el pedido ${pedido.id}:`, resultado.error);
     return gracias;
