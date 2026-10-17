@@ -28,7 +28,7 @@ export type TextosEventos = {
   /** #5c las cuatro líneas con tilde del inicio */
   ventajas: readonly string[];
   /** #5d qué es, en la hoja de papel */
-  queEs: { etiqueta: string; titulo: string; bajada: string };
+  queEs: { etiqueta: string; titulo: string; bajada: string; altFoto: string };
   /** #6 a #9 */
   como: { titulo: string; bajada: string; paso: string; pasos: readonly { titulo: string; texto: string }[] };
   /** #10 y #11 */
@@ -80,6 +80,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
       etiqueta: "Qué es Vitácora Eventos",
       titulo: "Lo que tus invitados dicen ese día, en un libro.",
       bajada: "Una fiesta pasa rápido y casi nada queda escrito. Escuchamos a quienes estuvieron y guardamos sus palabras en un libro para ti.",
+      altFoto: "Un invitado cuenta un recuerdo en el rincón de Vitácora durante una boda.",
     },
     como: {
       titulo: "Cómo funciona",
@@ -148,6 +149,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
       etiqueta: "Què és Vitácora Esdeveniments",
       titulo: "El que els teus convidats diuen aquell dia, en un llibre.",
       bajada: "Una festa passa ràpid i gairebé res no queda escrit. Escoltem qui hi era i guardem les seves paraules en un llibre per a tu.",
+      altFoto: "Un convidat explica un record al racó de Vitácora durant un casament.",
     },
     como: {
       titulo: "Com funciona",
@@ -216,6 +218,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
       etiqueta: "Qué es Vitácora Eventos",
       titulo: "Lo que tus invitados dicen ese día, en un libro.",
       bajada: "Una fiesta pasa rápido y casi nada queda escrito. Escuchamos a quienes estuvieron y guardamos sus palabras en un libro para vos.",
+      altFoto: "Un invitado cuenta un recuerdo en el rincón de Vitácora durante un casamiento.",
     },
     como: {
       titulo: "Cómo funciona",
