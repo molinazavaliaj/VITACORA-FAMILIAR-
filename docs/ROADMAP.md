@@ -168,6 +168,29 @@ mirar si está prendido.**
 
 ### Bloque 8 · Legales: cómo nos presentamos y en qué situación estamos (nuevo, 17/10)
 
+> 📄 **Llegó la revisión (17/10): `docs/legal/revision-textos-2026-10-17.md`.** Seis riesgos
+> reales, siete contradicciones internas y una lista de lo que falta. Los tres que tocan el
+> corazón del negocio: el consentimiento de la narradora, el desistimiento y quién responde
+> por los datos. La sección F los ordena por esfuerzo.
+>
+> ⚠️ **El más urgente no es un texto, es una ley ya en vigor.** El Reglamento Europeo de IA
+> (art. 50.1) obliga desde el **2/8/2026** a que la persona sepa que habla con un sistema
+> automático. La bienvenida dice «yo soy quien te va a entrevistar», que sugiere lo contrario.
+> Arreglarlo obliga a **rehacer las plantillas de bienvenida en Meta y esperar su aprobación**,
+> así que tiene el plazo más largo de todo el bloque: hay que empezarlo primero.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **A1 · La bienvenida tiene que decir que es un asistente automático.** Rehacer `bienvenida_v3_*` en Meta (3 idiomas) y esperar aprobación | Claude carga, Naza aprueba el texto | ☐ **primero, por el plazo de Meta** |
+| **A5 · El consentimiento de la narradora no informa lo que la ley obliga.** Falta quién responde, que el audio se procesa fuera, cuánto se guarda, que el permiso se retira y que el libro se vendió. Va en el mismo mensaje | Claude, Naza aprueba | ☐ con A1 |
+| **A2 · El plazo de arrepentimiento en Argentina está mal contado.** Dice «10 días desde la compra»; la ley dice desde la entrega o el contrato, lo último que ocurra. Una cláusula que resta un derecho se tiene por no escrita | sesión de legales | ☐ |
+| **A3 · Dos casillas en el paso 3 del checkout**, más registro por pedido (versión, fecha, IP, valores). Toca el formulario y su test: **después de #56** | sesión de legales | ☐ |
+| **A4 · Correo de confirmación de contrato** con el formulario del Anexo B (España) | sesión de legales | ☐ |
+| **A6 · No hay plazo de entrega.** «El 90 % de las reclamaciones vienen por el plazo» | **Joaquín decide el número** | ☐ **decisión** |
+| **B · Siete contradicciones internas** entre secciones de los propios términos | sesión de legales | ☐ |
+| **D3 · Qué pasa si la narradora muere o pierde capacidad.** El hueco más grande: se vende un servicio de un mes a personas de 80 años | sesión de legales, Joaquín decide | ☐ |
+| **G · Lo que necesita un abogado con matrícula**: contrato con la narradora, contrato entre los dos titulares, revisión contra el registro de tratamientos | Joaquín | ☐ |
+
 > ⚠️ **Consecuencia de la decisión del 17/10: España no puede vender hasta que salga el alta de
 > autónomo.** Sin NIF no hay titular legal válido en los legales y no se puede dar de alta Stripe.
 > Argentina sí puede: el CUIT de monotributo ya existe. **El lanzamiento es Argentina**, como ya
