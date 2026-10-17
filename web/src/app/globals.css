@@ -316,6 +316,9 @@ body {
 .m-solapas[data-activa="viaje"] .m-pill {
   transform: translateX(200%);
 }
+/* En /eventos ninguna solapa es la de la página: la pastilla aparece solo al señalar una. */
+.m-solapas[data-activa="eventos"] .m-pill { opacity: 0; transition: opacity 0.2s, transform var(--d-base) var(--ease-io); }
+.m-solapas[data-activa="eventos"]:has(> [data-solapa]:hover, > [data-solapa]:focus-visible) .m-pill { opacity: 1; }
 .m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
   transform: none;
 }
