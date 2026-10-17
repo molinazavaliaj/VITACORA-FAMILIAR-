@@ -68,12 +68,13 @@ describe("la carta-libro", () => {
     }
   });
 
-  it("el código y el QR van adentro, nunca afuera", () => {
+  it("el código escrito va solo adentro", () => {
     const html = armar(dos, "es-ES");
     const afuera = hoja(html, "afuera");
     const adentro = hoja(html, "adentro");
     expect(afuera).not.toContain("VF-");
     expect(afuera).not.toContain('class="qr"');
+    expect(afuera).not.toContain('class="codigo"');
     expect(adentro).toContain('<p class="codigo">VF-7K3M2Q</p>');
     expect(adentro.match(/<img class="qr"/g)).toHaveLength(2);
   });
@@ -158,5 +159,29 @@ describe("adentro de la carta-libro (textos del 17/10)", () => {
 
   it("el sello va abajo del título, a 105 mm del borde de arriba", () => {
     expect(SELLO_CENTRO_Y).toBe(105);
+  });
+});
+
+describe("el QR de la contratapa (17/10)", () => {
+  it("cada carta lleva afuera el mismo QR que adentro, en la misma posición, arriba de la activación", () => {
+    const html = armar(dos, "es-AR");
+    const afuera = hoja(html, "afuera");
+    const adentro = hoja(html, "adentro");
+    const srcs = (s: string, clase: string) => [...s.matchAll(new RegExp(`<img class="${clase}" src="([^"]+)"`, "g"))].map((m) => m[1]);
+    expect(srcs(afuera, "qr-afuera")).toEqual(["data:image/png;base64,AAA", "data:image/png;base64,BBB"]);
+    expect(srcs(adentro, "qr")).toEqual(srcs(afuera, "qr-afuera"));
+    const contratapa = afuera.slice(afuera.indexOf('class="pagina contratapa"'), afuera.indexOf('class="pagina tapa"'));
+    expect(contratapa.indexOf('class="frase"')).toBeLessThan(contratapa.indexOf('class="qr-afuera"'));
+    expect(contratapa.indexOf('class="qr-afuera"')).toBeLessThan(contratapa.indexOf('class="activar"'));
+  });
+
+  it("la activación habla de «este código» en los tres idiomas", () => {
+    expect(hoja(armar(dos, "es-AR"), "afuera")).toContain("Para regalarla, escaneá este código y pagala en vitacorafamiliar.com. Recién ahí queda activada.");
+    expect(hoja(armar(dos, "es-ES"), "afuera")).toContain("Para regalarla, escanea este código y págala en vitacorafamiliar.com. Solo entonces queda activada.");
+    expect(hoja(armar(dos, "ca"), "afuera")).toContain("Per regalar-la, escaneja aquest codi i paga-la a vitacorafamiliar.com. Només llavors queda activada.");
+  });
+
+  it("el cuadrado blanco mide 22 mm de QR más 3 mm de blanco por lado", () => {
+    expect(armar(dos, "ca")).toMatch(/\.qr-afuera \{[^}]*width: 22mm; height: 22mm; padding: 3mm; background: #fff/);
   });
 });

@@ -14,7 +14,7 @@
 | 2 | Adentro, título (ya aprobado; **reemplazado el 17/10**, ver «Adentro de la carta-libro») | Esto es un regalo. | Esto es un regalo. | Això és un regal. |
 | 3 | Adentro, texto para el narrador (ya aprobado; **reemplazado el 17/10**, ver «Adentro de la carta-libro») | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le contestás con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le contestas con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li respons amb àudios, quan puguis. Amb el que li expliquis s'escriu el llibre de la teva vida. |
 | 4 | Adentro, para escribir a mano | Para ___ / De ___ | Para ___ / De ___ | Per a ___ / De ___ |
-| 5 | Contratapa (nueva ubicación; adentro ya no va ninguna línea de activación; sigue igual en la carta-libro) | Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada. | Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada. | Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada. |
+| 5 | Contratapa, debajo del QR (QR también en la contratapa, 17/10: se paga sin romper el sello; adentro ya no va ninguna línea de activación) | Para regalarla, escaneá este código y pagala en vitacorafamiliar.com. Recién ahí queda activada. | Para regalarla, escanea este código y págala en vitacorafamiliar.com. Solo entonces queda activada. | Per regalar-la, escaneja aquest codi i paga-la a vitacorafamiliar.com. Només llavors queda activada. |
 | 6 | Sticker que cierra el sobre | El libro de tu vida · Para ___ | El libro de tu vida · Para ___ | El llibre de la teva vida · Per a ___ |
 | 7 | Cartel, título (cambiado 17/10) | Regalale el libro de su vida | Regálale el libro de su vida | Regala-li el llibre de la seva vida |
 | 8 | Cartel, bajada | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Explica la seva vida per WhatsApp. Nosaltres n'escrivim el llibre. |
@@ -81,7 +81,7 @@ Reemplaza a las filas 8 y 9 de la tanda 1. Va en el atril, detrás de la caja co
 | Título | Regalale el libro de su vida | Regálale el libro de su vida | Regala-li el llibre de la seva vida |
 | Bajada | Un regalo para tu papá, tu mamá o tus abuelos. | Un regalo para tu padre, tu madre o tus abuelos. | Un regal per al teu pare, la teva mare o els teus avis. |
 | 1 | Llevate un librito gratis. | Llévate un librito gratis. | Emporta't un llibret gratis. |
-| 2 | Activalo en vitacorafamiliar.com cuando quieras regalarlo. | Actívalo en vitacorafamiliar.com cuando quieras regalarlo. | Activa'l a vitacorafamiliar.com quan el vulguis regalar. |
+| 2 | Pagalo en vitacorafamiliar.com y queda listo para regalar. | Págalo en vitacorafamiliar.com y queda listo para regalar. | Paga'l a vitacorafamiliar.com i queda a punt per regalar. |
 | 3 | Un biógrafo le hace preguntas por WhatsApp y contesta con audios. | Un biógrafo le hace preguntas por WhatsApp y contesta con audios. | Un biògraf li fa preguntes per WhatsApp i respon amb àudios. |
 | 4 | Con lo que cuenta, escribimos el libro de su vida. | Con lo que cuenta, escribimos el libro de su vida. | Amb el que explica, escrivim el llibre de la seva vida. |
 

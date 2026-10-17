@@ -18,7 +18,8 @@ import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
  * carta-libro (17/10); `tapa` es la frase que ahora va en la contratapa. `regaloTitulo`
  * y `adentro` son los textos de adentro aprobados el 17/10 (carta-libro). Las líneas
  * del QR («apuntá la cámara…» y «si la cámara no te anda…») salen de `textosAbuelo`,
- * las mismas ya aprobadas para la tarjeta.
+ * las mismas ya aprobadas para la tarjeta. `contratapa` (17/10) habla de «este código»: el
+ * QR de la contratapa, para pagarla sin romper el sello.
  */
 export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   titulo: string;
@@ -35,7 +36,7 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
     tapa: "En cada familia hay un libro sin escribir",
     regaloTitulo: "Te regalaron una Vitácora.",
     adentro: "Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le vas contestando con audios en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida.",
-    contratapa: "Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada.",
+    contratapa: "Para regalarla, escaneá este código y pagala en vitacorafamiliar.com. Recién ahí queda activada.",
     para: "Para",
     de: "De",
     lang: "es",
@@ -45,7 +46,7 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
     tapa: "En cada familia hay un libro sin escribir",
     regaloTitulo: "Te han regalado una Vitácora.",
     adentro: "Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le vas contestando con audios en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida.",
-    contratapa: "Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada.",
+    contratapa: "Para regalarla, escanea este código y págala en vitacorafamiliar.com. Solo entonces queda activada.",
     para: "Para",
     de: "De",
     lang: "es",
@@ -55,7 +56,7 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
     tapa: "A cada família hi ha un llibre per escriure",
     regaloTitulo: "T'han regalat una Vitácora.",
     adentro: "El nostre biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li vas responent amb àudios en els teus moments lliures. Amb el que ens expliquis, escriurem el llibre de la teva vida.",
-    contratapa: "Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada.",
+    contratapa: "Per regalar-la, escaneja aquest codi i paga-la a vitacorafamiliar.com. Només llavors queda activada.",
     para: "Per a",
     de: "De",
     lang: "ca",
@@ -185,7 +186,10 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 .marca-tapa { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 6.8pt; letter-spacing: 0.32em; padding-left: 0.32em; text-transform: uppercase; color: ${BLANCO} }
 .contratapa > * { position: absolute; left: ${SELLO_LIBRE}mm; right: ${CONTRA_DOBLEZ}mm; margin: 0 auto; max-width: 64mm; text-align: center; color: ${BLANCO} }
 .frase { top: 22mm; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 13pt; line-height: 1.4; text-wrap: balance }
-.activar { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 400; font-size: 8pt; line-height: 1.5; text-wrap: balance }
+/* Abajo de la contratapa: el QR (el mismo de adentro) en un cuadrado blanco y, debajo, cómo activarla. */
+.pie { bottom: 15mm; display: flex; flex-direction: column; align-items: center }
+.qr-afuera { display: block; box-sizing: content-box; width: 22mm; height: 22mm; padding: 3mm; background: #fff }
+.activar { margin-top: 4mm; font-family: Archivo, sans-serif; font-weight: 400; font-size: 8pt; line-height: 1.5; text-wrap: balance }
 
 /* Adentro: papel blanco, todo en negro pleno */
 .escribir { display: flex; flex-direction: column; justify-content: center; padding: 0 13mm }
@@ -228,11 +232,12 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
   const top = (i: number) => `top:${Y_CARTA + i * ALTO_CARTA}mm`;
 
   // Afuera: contratapa a la izquierda, tapa a la derecha (el lomo junto al doblez).
-  const exterior = (n: number) => {
+  const exterior = (par: { codigo: string; qr: string }[]) => {
+    const n = par.length;
     const sangrado = `<div class="sangrado" style="left:${X_CARTA - SANGRADO}mm;top:${Y_CARTA - SANGRADO}mm;width:${ANCHO_CARTA + 2 * SANGRADO}mm;height:${n * ALTO_CARTA + 2 * SANGRADO}mm"></div>`;
     const carta = (i: number) =>
       `<div class="carta" style="${top(i)}">` +
-      `<div class="pagina contratapa"><p class="frase">${esc(t.tapa)}</p><p class="activar">${esc(t.contratapa)}</p></div>` +
+      `<div class="pagina contratapa"><p class="frase">${esc(t.tapa)}</p><div class="pie"><img class="qr-afuera" src="${esc(par[i].qr)}" alt="QR"><p class="activar">${esc(t.contratapa)}</p></div></div>` +
       `<div class="pagina tapa"><i class="lomo"></i><i class="bisagra"></i><div class="sello-tapa">${toroideSvg("toroide-tapa", TRAZO_TAPA)}</div>` +
       `<h1 class="titulo"><span>${esc(titulo1)}</span>${titulo2 ? `<span>${esc(titulo2)}</span>` : ""}</h1>` +
       `<p class="marca-tapa">Vitácora Familiar</p></div>` +
@@ -253,7 +258,7 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
   const hojas: string[] = [];
   for (let i = 0; i < cartas.length; i += 2) {
     const par = cartas.slice(i, i + 2);
-    hojas.push(`<section class="hoja afuera">${exterior(par.length)}</section>`);
+    hojas.push(`<section class="hoja afuera">${exterior(par)}</section>`);
     hojas.push(`<section class="hoja adentro">${par.map(interior).join("")}${marcas(par.length, false)}</section>`);
   }
 
