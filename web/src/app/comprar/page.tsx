@@ -26,7 +26,13 @@ export const metadata: Metadata = {
   description: "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida. Pago único.",
 };
 
-export default async function PaginaComprar() {
+// ?carta=VF-XXXXXX: quien compra para sí mismo con la carta impresa de un local.
+// Acá solo se valida la forma; la ruta /api/compra atribuye el local (y no falla si no existe).
+const FORMA_CARTA = /^VF-[0-9A-Z]{6}$/i;
+
+export default async function PaginaComprar({ searchParams }: { searchParams?: Promise<{ carta?: string | string[] }> } = {}) {
+  const bruto = (await searchParams)?.carta;
+  const carta = typeof bruto === "string" && FORMA_CARTA.test(bruto) ? bruto : null;
   const catalogos: Catalogo = { ES: catalogo("ES"), AR: catalogo("AR") };
 
   return (
@@ -43,7 +49,7 @@ export default async function PaginaComprar() {
         </div>
       </header>
 
-      <Checkout catalogo={catalogos} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
+      <Checkout catalogo={catalogos} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} carta={carta} />
     </div>
   );
 }
