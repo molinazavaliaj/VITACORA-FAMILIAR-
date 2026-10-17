@@ -998,7 +998,9 @@ migración no está aplicada, el producto sigue andando: los servicios avisan po
 
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
-> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09). En git no quedó escrito si la migración `20260922000000_entregas.sql` se aplicó: verificarlo en el SQL Editor (`select to_regclass('public.entregas');` devuelve `entregas` si existe) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09).
+> **Verificado el 17/10 por Naza en el SQL Editor: la migración `20260922000000_entregas.sql` está aplicada**
+> (`to_regclass('public.entregas')` no es null). La tabla existe y la sección Envío de la web funciona.
 
 Diseño: `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`. Migración:
 `20260922000000_entregas.sql`. Una fila por pedido que lleva **libro impreso y/o marcos**
@@ -1032,7 +1034,8 @@ para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
 
 ## «Sus objetos preciados» — el pedido de una foto concreta (PROPUESTA del 22/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09). En git no quedó escrito si se aplicaron `20260923000000` y `20260923000100`: verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'fotos' and column_name = 'pregunta_orden';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09).
+> **Verificado el 17/10 por Naza: aplicadas** (`fotos.pregunta_orden` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000000_preguntas_de_objeto.sql` y la aplica
 Naza en el SQL Editor. Mientras tanto el código funciona sin la columna: `fotos.pregunta_orden` se lee
@@ -1070,7 +1073,8 @@ Reglas:
 
 ## Saber si el mensaje llegó — `envios.entrega` (PROPUESTA del 23/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main desde el 27/09. En git no quedó escrito si se aplicó `20260923000200_envios_entrega.sql` (el ROADMAP del 29/09 ya manda a mirar `envios.entrega`, lo que sugiere que sí): verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'envios' and column_name = 'entrega';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main desde el 27/09.
+> **Verificado el 17/10 por Naza: aplicada** (`envios.entrega` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000200_envios_entrega.sql`. Mientras tanto
 el código funciona sin las columnas: avisa por consola (los logs de Railway ya sirven para saber qué
