@@ -6,6 +6,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FilaV3 } from './tipos.js';
+import { esChicoKids } from '../kids-v2/filas.js';
 
 export const TABLA_V3 = 'entrevistas_v3';
 /** La toma del turno dura esto: si el proceso muere mandando, a los 2 minutos otro retoma. */
@@ -60,7 +61,12 @@ export async function listarFilas(db: SupabaseClient, ids?: readonly string[]): 
 
 export type FilaNueva = Omit<FilaV3, 'version' | 'creada_at' | 'enviando_hasta'>;
 
+/**
+ * Un chico de Kids (fila en kids_v2) nunca entra a la V3 (plan-conexion-bot.md de Kids, T4): todo camino que crea la
+ * fila V3 pasa por acá. Si la base no deja saber si es un chico, esChicoKids tira y no se crea nada.
+ */
 export async function crearFila(db: SupabaseClient, fila: FilaNueva): Promise<'creada' | 'ya-existia'> {
+  if (await esChicoKids(db, fila.narrador_id)) throw new Error(`${fila.narrador_id} es un chico de Kids: no entra a la V3.`);
   const { error } = await db.from(TABLA_V3).insert({ ...fila, version: 0, enviando_hasta: null });
   if (!error) return 'creada';
   if (error.code === '23505') return 'ya-existia';

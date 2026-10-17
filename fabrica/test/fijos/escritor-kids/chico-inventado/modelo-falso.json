@@ -1,0 +1,58 @@
+{
+  "_nota": "Respuestas falsas escritas a mano para correr la receta de Kids sin gastar (src/escritor-kids/falso.ts completa el resto desde el material). Benja es inventado.",
+  "lectura": {
+    "preocupante": [],
+    "dudas": [
+      { "ids": ["R35", "R40", "R63"], "cita": "Con Uriel, el sábado que fuimos a su casa", "que": "el padre corrigió Oriel por Uriel; confirmar que es el mismo amigo en las tres" },
+      { "ids": ["R45"], "cita": "Es Tostadito, juega al Minecraft.", "que": "confirmar cómo se escribe el nombre del youtuber" }
+    ],
+    "su_voz": ["R04", "R14", "R27", "R43", "R56", "R64", "R72"],
+    "notas": "En K27 escribió que no sabe cómo se escribe la canción. Casi todo lo contó largo; K5, K22 y K23-FOTO son cortas."
+  },
+  "titulos": {
+    "K1": "Una pileta azul",
+    "K2": "El azúcar por sal",
+    "K3": "La piñata del creeper",
+    "K4": "La pelota de medias",
+    "K5": "Me raspé todo",
+    "K6": "En la cancha de Vélez",
+    "K7": "Medio kilo de pan",
+    "K8": "La cama de arriba",
+    "X1-6": "Un río con piedras",
+    "K10": "Mi mamá Caro",
+    "K11": "Dale campeón",
+    "K12": "Delfi me saca todo",
+    "K13": "Todos los martes",
+    "K14": "A la escuela a caballo",
+    "K15": "Una rampa para las bicis",
+    "K16": "Bruno y Valen",
+    "K17": "Los trucos del tío Fede",
+    "K20": "Se me pinchó la rueda",
+    "X2-9": "El control de la tele",
+    "CIERRE-2": "La Pocha",
+    "K21": "Un gol de tiro libre",
+    "K22": "Veterinario o youtuber",
+    "K23": "La seño Maite",
+    "K24": "El boletín en la heladera",
+    "K25": "La pantalla rajada",
+    "K26": "Un foso con lava",
+    "K27": "El trap y la cumbia",
+    "K28": "Contra mi primo Bruno",
+    "K29": "Sobres de figuritas",
+    "K30": "Ir solo en colectivo",
+    "K31": "La torta de Delfi",
+    "K33": "Le arreglé la bici",
+    "K34": "El trampolín de cinco metros",
+    "K35": "Un chico nuevo",
+    "K36": "La explotó con TNT",
+    "K37": "Las galletitas de chocolate",
+    "K39": "El día que se murió Pancho",
+    "K40": "Erré un penal",
+    "X4-1": "Una lechuza de verdad"
+  },
+  "veedor": {
+    "3": [
+      { "clave": "K22", "tipo": "otro", "cita": "Veterinario. O youtuber. O las dos.", "arreglo": "revisar que lo de su mamá (la otra puerta) quede después, como lo contó" }
+    ]
+  }
+}
