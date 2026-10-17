@@ -19,6 +19,8 @@ vi.mock('../src/libro/plantilla-html.js', async () => {
   return { ...actual, construirHtmlLibro: construirHtmlLibroMock };
 });
 
+// El libro para Bookmundo levanta Chromium de verdad: tiene sus propios tests (bookmundo.test.ts).
+vi.mock('../src/libro/bookmundo/narrador.js', () => ({ armarBookmundoSinFrenar: vi.fn(async () => undefined) }));
 vi.mock('../src/libro/pdf.js', () => ({ htmlAPdf: generarPdfMock }));
 
 const { armarLibroDeImprenta, RUTA_LIBRO_IMPRENTA } = await import('../src/libro/imprenta.js');
