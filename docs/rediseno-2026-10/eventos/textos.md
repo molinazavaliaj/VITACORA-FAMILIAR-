@@ -12,7 +12,7 @@ España (tú) · Argentina (vos). Catalán pendiente de revisión nativa (Imma).
 |---|---|---|---|
 | 1 | Título de la pestaña y Google | Vitácora Eventos · «Vamos a tu evento, entrevistamos a tus invitados y hacemos el libro impreso de ese día.» | igual |
 | 2 | Etiqueta | Vitácora Eventos | igual |
-| 3 | Titular | Tu evento, *contado por quienes estuvieron.* | igual |
+| 3 | Titular | Tu evento, contado por quienes estuvieron. | igual |
 | 4 | Bajada | Vamos a tu boda, tu cumpleaños o tu fiesta. Entrevistamos a tus invitados y con lo que cuentan hacemos el libro impreso de ese día. | casamiento en vez de boda |
 | 5 | Botón de arriba | Cuéntanos tu evento | Contanos tu evento |
 | 5b | Segundo botón | Cómo funciona ↓ | igual |
