@@ -159,9 +159,10 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 .carta { position: absolute; left: ${X_CARTA}mm; width: ${ANCHO_CARTA}mm; height: ${ALTO_CARTA}mm; display: grid; grid-template-columns: 1fr 1fr }
 .pagina { position: relative; height: ${ALTO_CARTA}mm }
 
-/* Afuera: negro mate. La tapa centra todo entre el lomo y la franja libre del sello. */
+/* Afuera: negro mate. La tapa centra todo entre la bisagra y el canto. El sello (12,5 mm del canto, a media altura)
+   no toca el título: «de la teva vida», la línea más larga, queda a ~16,7 mm del canto. */
 .afuera .pagina { color: ${BLANCO} }
-.tapa > * { position: absolute; left: ${TAPA_DESDE}mm; right: ${SELLO_LIBRE}mm; text-align: center }
+.tapa > * { position: absolute; left: ${TAPA_DESDE}mm; right: 0; text-align: center }
 /* Trampantojo de tapa dura: el lomo redondeado con luz junto al doblez y la canaleta de la bisagra. */
 .tapa > .lomo, .tapa > .bisagra { right: auto; top: -${SANGRADO}mm; bottom: -${SANGRADO}mm }
 .tapa > .lomo { left: 0; width: ${LOMO}mm; background: linear-gradient(to right, #22221d 0, #3d3d36 0.9mm, #32322c 2.2mm, #22221d 4.5mm, #181813 6.6mm, #0f0f0d ${LOMO}mm) }

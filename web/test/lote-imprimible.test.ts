@@ -44,7 +44,7 @@ describe("la carta-libro", () => {
     expect(html).toMatch(/\.tapa > \.lomo \{ left: 0; width: 8mm; background: linear-gradient\(to right/);
     expect(html).toMatch(/\.tapa > \.bisagra \{[^}]*#070706[^}]*#4a4943/);
     expect(html).toContain(".tapa > .lomo, .tapa > .bisagra { right: auto; top: -2mm; bottom: -2mm }");
-    expect(html).toMatch(/\.tapa > \* \{ position: absolute; left: 11\.5mm; right: 15mm/);
+    expect(html).toMatch(/\.tapa > \* \{ position: absolute; left: 11\.5mm; right: 0;/);
     expect(html).not.toContain("#8a877e");
   });
 
