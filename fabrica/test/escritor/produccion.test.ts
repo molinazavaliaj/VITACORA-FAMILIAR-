@@ -15,7 +15,7 @@ import type { AudioV3 } from '../../src/escritor/material/de-base.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { Cola } from '../../src/escritor/produccion/cola.js';
 import {
-  colaDelEscritor, escribirLibroV3, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, soloConAudio, type Motor,
+  colaDelEscritor, escribirLibroV3, esLibroPropio, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, soloConAudio, type Motor,
 } from '../../src/escritor/produccion/libro-v3.js';
 import { carpetaNelida, DEFECTOS_NELIDA, salidasModeloNelida } from './ayuda.js';
 
@@ -568,5 +568,16 @@ describe('arreglos de la segunda revisión (09/10)', () => {
     const { motor } = motorFalso();
     await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
     expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+});
+
+// «Para mí» (15/10): el mismo criterio que esPropia en la web (vinculoComprador = "yo mismo").
+describe('esLibroPropio', () => {
+  it('solo cuando quien compró eligió «Para mí»', () => {
+    expect(esLibroPropio({ vinculoComprador: 'yo mismo' })).toBe(true);
+    expect(esLibroPropio({ vinculoComprador: 'hija' })).toBe(false);
+    expect(esLibroPropio({})).toBe(false);
+    expect(esLibroPropio(null)).toBe(false);
+    expect(esLibroPropio(undefined)).toBe(false);
   });
 });

@@ -23,11 +23,18 @@ export const llamadaDisputa = (docsHechos: string[], d: Disputa): Llamada => ({
   instr: promptFabrica('### Disputa', { FRASE: d.frase, ID: d.id, CITA: d.cita }),
 });
 
-export const llamadaDudas = (c: Carpeta, dudas: DudaDeDatos[]): Llamada => ({
-  nombre: 'dudas',
-  docs: [tag('ficha', ficha(c)), tag('dudas', JSON.stringify(dudas, null, 1))],
-  instr: promptFabrica('### Dudas para la familia', { NOMBRE: nombreDePila(c), IDIOMA: idiomaDeLaFamilia(c) }) + esquemaDe('### Dudas para la familia'),
-});
+/**
+ * Las preguntas de las dudas de datos. `propia`: el libro lo compró quien narra, para sí («Para mí»,
+ * vinculoComprador = "yo mismo"); las lee la misma persona que contó, así que le hablan de vos/tú (15/10).
+ */
+export const llamadaDudas = (c: Carpeta, dudas: DudaDeDatos[], o: { propia?: boolean } = {}): Llamada => {
+  const encabezado = o.propia ? '### Dudas para quien narra' : '### Dudas para la familia';
+  return {
+    nombre: 'dudas',
+    docs: [tag('ficha', ficha(c)), tag('dudas', JSON.stringify(dudas, null, 1))],
+    instr: promptFabrica(encabezado, { NOMBRE: nombreDePila(c), IDIOMA: idiomaDeLaFamilia(c) }) + esquemaDe(encabezado),
+  };
+};
 
 export const llamadaCorreccion = (c: Carpeta): Llamada => ({
   nombre: 'correccion-registro',

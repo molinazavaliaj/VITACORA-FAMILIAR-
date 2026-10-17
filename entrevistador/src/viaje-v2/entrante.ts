@@ -179,6 +179,8 @@ async function antesDelSi(deps: DepsViaje, n: ViajeroV2, m: MensajeEntrante, fil
     if (error) console.error(`viaje V2: no pude dejar activo a ${n.id}: ${error.message}`);
     anotarNotas(n.id, q.paso.notas);
     await mandarAvisos(deps, n.id, q.paso.avisos);
+    // Un regalo: a quien regaló le llega «dijo que sí». Quien compró para sí no lo necesita.
+    if (fila.compra.regalo) await deps.mailSi(n.id);
   } else if (q.que === 'nada') {
     await deps.avisar(`viaje-sin-si-${n.id}`, `${fila.compra.nombre} escribe pero no dice SÍ (viaje V2)`,
       `${n.id} recibió la bienvenida del viaje dos veces y sigue escribiendo sin decir SÍ (lo último: ${m.tipo === 'texto' ? `«${(m.texto ?? '').slice(0, 200)}»` : m.tipo}). El bot no le contesta más: hay que verlo a mano.`);

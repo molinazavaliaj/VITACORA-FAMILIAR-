@@ -709,7 +709,7 @@ function HistoriaClasica({
 
       {dudasPendientes ? (
         <div className="mt-8">
-          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
+          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
         </div>
       ) : null}
 

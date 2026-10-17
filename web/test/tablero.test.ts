@@ -347,6 +347,11 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
     const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
     expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contaste. Contestalas antes de que se escriba el libro.');
   });
+  it('a un invitado de una historia propia le habla de quien contó, no de vos', () => {
+    const base = h('completado', 'invitado');
+    const propiaInvitado = { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propiaInvitado, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.');
+  });
   it('un invitado también las ve: son los que saben los datos', () => {
     expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
   });
