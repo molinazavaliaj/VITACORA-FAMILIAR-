@@ -45,7 +45,7 @@ jobs:
         run: npm test
 
       - name: Vercel CLI
-        run: npm i -g vercel@latest
+        run: npm i -g vercel@64.2.0
 
       # Sin `vercel pull` + `vercel build` local: las variables marcadas como
       # sensibles en Vercel (precios nuevos, URL_BASE, claves) no se bajan y el

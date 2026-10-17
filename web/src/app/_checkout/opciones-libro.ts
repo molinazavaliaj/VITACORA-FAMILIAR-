@@ -92,6 +92,22 @@ export function contadorDeMarcos(
 }
 
 /**
+ * La regla de precio del contador de marcos («+20 € el primero, +15 € los
+ * demás»), solo cuando el primero y los demás cuestan distinto. Con un solo
+ * precio (Naza 15/10: el marco a 19 € todos, PRECIO_MARCO = PRECIO_MARCO_
+ * ADICIONAL) no va: la fila ya muestra «+19 €». Solo el texto: lo que se
+ * cobra sigue saliendo de `armarCompra`.
+ */
+export function reglaDeMarcos(
+  marco: { primero: number; demas: number | null },
+  regla: (primero: string, demas: string) => string,
+  formatear: (n: number) => string,
+): string | undefined {
+  if (marco.demas === null || marco.demas === marco.primero) return undefined;
+  return regla(formatear(marco.primero), formatear(marco.demas));
+}
+
+/**
  * El precio de cada opción, del catálogo, el mismo que cobra el servidor para
  * una unidad de cada cosa. Con `conPack` (el libro de una vida, no el viaje),
  * el libro completo vale el pack si es más barato que la suma.

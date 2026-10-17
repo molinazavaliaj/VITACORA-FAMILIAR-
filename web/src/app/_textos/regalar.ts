@@ -11,7 +11,7 @@ const HORA_DE_CA = (pais: "AR" | "ES") => (pais === "AR" ? "És l'hora d'Argenti
 const CA: TextosComprador = {
   mailAsunto: (como) => `El teu regal per a ${como} està llest`,
   mailCuerpo: (como) =>
-    `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, comença la seva entrevista i ho veuràs al teu panell.`,
+    `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, comença la seva entrevista i ho veuràs a la pàgina de la seva història.`,
   mailBoton: "Veure la targeta",
   estadoPanel: "Esperant que obri el seu regal",
   estadoCorto: "esperant que obri el regal",

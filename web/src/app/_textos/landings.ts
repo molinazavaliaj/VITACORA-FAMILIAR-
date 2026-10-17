@@ -35,10 +35,10 @@ export type TextosLandingComun = {
 };
 
 export const TEXTOS_LANDING_COMUN: Textos<TextosLandingComun> = {
-  es: { comprar: "Comprar", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
-  ar: { comprar: "Comprar", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
+  es: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
+  ar: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
   // ca: PENDIENTE REVISIÓN NATIVA
-  ca: { comprar: "Comprar", inicio: "Vitácora, inici", libroTitulo: "Així queda el seu llibre." },
+  ca: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inici", libroTitulo: "Així queda el seu llibre." },
 };
 
 /**

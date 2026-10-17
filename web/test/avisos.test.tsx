@@ -35,7 +35,7 @@ describe("el 404", () => {
     expect(h).toContain("Esta página se ha perdido.");
     expect(h).toContain("Como algunos recuerdos, si nadie los apunta.");
     expect(h).toMatch(/<a[^>]*href="\/"[^>]*>Volver al inicio<\/a>/);
-    expect(h).toMatch(/<a[^>]*href="\/comprar"[^>]*>Comprar el libro<\/a>/);
+    expect(h).toMatch(/<a[^>]*href="\/comprar"[^>]*>Iniciar Vitácora<\/a>/);
     expect(h).toContain('lang="es-ES"');
     expect(h).toContain("404");
     expect(h).not.toMatch(/<script/i);

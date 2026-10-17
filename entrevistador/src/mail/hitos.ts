@@ -92,7 +92,7 @@ function envoltorio(cuerpo: string, pie = true): string {
 <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
 <p style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#5F5F55;font-family:Helvetica,Arial,sans-serif;">Vitácora Familiar</p>
 <div style="font-size:17px;line-height:1.6;">${cuerpo}</div>
-${pie ? '<p style="margin-top:40px;font-size:12px;color:#83837A;font-family:Helvetica,Arial,sans-serif;">Para las vidas que merecen su propio libro.</p>\n' : ''}</div></body></html>`;
+${pie ? '<p style="margin-top:40px;font-size:12px;color:#83837A;font-family:Helvetica,Arial,sans-serif;">Todas las vidas merecen su propio libro.</p>\n' : ''}</div></body></html>`;
 }
 
 async function enviar(para: string, asunto: string, html: string): Promise<boolean> {

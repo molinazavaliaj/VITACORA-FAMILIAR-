@@ -13,13 +13,15 @@ import { useEffect, useRef, useState } from "react";
 // usa la portada.
 //
 // Los textos y el destino llegan por props para las versiones por idioma del
-// rediseño (/, /ca, /ar); sin ellos, dice lo de siempre y va a /comprar.
+// rediseño (/, /ca, /ar); sin ellos, dice lo de siempre y va a /comprar. La
+// portada la usa sin «desde» (desde vacío): el precio del libro impreso, el
+// mismo de su bloque del libro, y «Iniciar Vitácora».
 type TextosCta = { desde: string; conImpreso: string; sinImpreso: string; boton: string };
 const TEXTOS_CTA: TextosCta = {
   desde: "desde",
   conImpreso: "Pago único · Libro impreso + PDF con «Su voz»",
   sinImpreso: "Pago único · PDF con «Su voz»",
-  boton: "Comprar el libro",
+  boton: "Iniciar Vitácora",
 };
 
 export function CtaSticky({
@@ -84,7 +86,7 @@ export function CtaSticky({
     >
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{textos.desde} {precio}</p>
+          <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{textos.desde ? `${textos.desde} ${precio}` : precio}</p>
           <p className="truncate text-[11px] text-[#a39f96] [font-family:var(--fuente-micro)]">{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
         </div>
         <Link prefetch={false}

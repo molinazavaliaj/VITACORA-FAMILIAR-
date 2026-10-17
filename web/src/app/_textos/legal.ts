@@ -351,7 +351,7 @@ const ES: TextosLegal = {
         titulo: "3. Qué datos guardamos",
         bloques: [
           p("**De ti**: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos llega solo la confirmación. Cuando entras a tu cuenta guardamos los registros técnicos normales de cualquier web (dirección IP, navegador, hora)."),
-          p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia). Y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
+          p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
           p("**Su voz**: sus mejores frases se recortan de sus propios audios, tal como las dijo, para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz sintética. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
           p("**De los invitados**: su correo (para invitarlos), su nombre si entran, y las fotos que suben."),
           p("**De quien visita**: nada que lo identifique. Solo los registros técnicos del servidor y las cookies de la sección 12."),
@@ -380,7 +380,7 @@ const ES: TextosLegal = {
             ["Quién", "Para qué", "Dónde"],
             [
               ["Supabase", "La base de datos y el almacén de audios, fotos, libros y sus frases en su voz. También el acceso a tu cuenta.", "Unión Europea"],
-              ["Vercel", "Aloja la web que estás leyendo y tu panel.", "Estados Unidos (red global)"],
+              ["Vercel", "Aloja la web que estás leyendo y la página de la historia.", "Estados Unidos (red global)"],
               ["Railway", "Corre el entrevistador (el que manda y recibe los WhatsApp) y la fábrica que produce el libro y elige sus frases.", "Estados Unidos"],
               ["Meta (WhatsApp Business)", "Lleva y trae los mensajes y audios entre el narrador y nosotros. Meta ve los mensajes como los vería en cualquier chat de WhatsApp Business.", "Según las reglas de Meta"],
               ["OpenAI", "Transcribe los audios a texto. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
@@ -445,7 +445,7 @@ const ES: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres el panel en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
         ],
       },
       {
@@ -738,7 +738,7 @@ const AR: TextosLegal = {
         titulo: "3. Qué datos guardamos",
         bloques: [
           p("**De vos**: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos llega solo la confirmación. Cuando entrás a tu cuenta guardamos los registros técnicos normales de cualquier web (dirección IP, navegador, hora)."),
-          p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia). Y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
+          p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
           p("**Su voz**: sus mejores frases se recortan de sus propios audios, tal como las dijo, para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz sintética. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
           p("**De los invitados**: su correo (para invitarlos), su nombre si entran, y las fotos que suben."),
           p("**De quien visita**: nada que lo identifique. Solo los registros técnicos del servidor y las cookies de la sección 12."),
@@ -767,7 +767,7 @@ const AR: TextosLegal = {
             ["Quién", "Para qué", "Dónde"],
             [
               ["Supabase", "La base de datos y el almacén de audios, fotos, libros y sus frases en su voz. También el acceso a tu cuenta.", "Unión Europea"],
-              ["Vercel", "Aloja la web que estás leyendo y tu panel.", "Estados Unidos (red global)"],
+              ["Vercel", "Aloja la web que estás leyendo y la página de la historia.", "Estados Unidos (red global)"],
               ["Railway", "Corre el entrevistador (el que manda y recibe los WhatsApp) y la fábrica que produce el libro y elige sus frases.", "Estados Unidos"],
               ["Meta (WhatsApp Business)", "Lleva y trae los mensajes y audios entre el narrador y nosotros. Meta ve los mensajes como los vería en cualquier chat de WhatsApp Business.", "Según las reglas de Meta"],
               ["OpenAI", "Transcribe los audios a texto. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
@@ -832,7 +832,7 @@ const AR: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís el panel en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
         ],
       },
       {
@@ -1125,7 +1125,7 @@ const CA: TextosLegal = {
         titulo: "3. Quines dades guardem",
         bloques: [
           p("**De tu**: el teu nom, el teu correu, la regió que vas triar, i què vas comprar, quan i per quin mitjà. La teva targeta no la veiem mai: la cobra Stripe o Mercado Pago i a nosaltres només ens arriba la confirmació. Quan entres al teu compte guardem els registres tècnics normals de qualsevol web (adreça IP, navegador, hora)."),
-          p("**Del narrador**: el seu nom i com li agrada que li diguin, el seu número de WhatsApp, la seva zona horària, i les dades que ens dones perquè les preguntes li sonin properes (on i quan va néixer, a què es va dedicar, qui és qui a la seva família). I el més important: els **àudios** que grava, les **transcripcions** que en fem, els **textos** del llibre i les **fotos** que puja la família."),
+          p("**Del narrador**: el seu nom i com li agrada que li diguin, el seu número de WhatsApp, la seva zona horària, i les dades que ens dones perquè les preguntes li sonin properes (on i quan va néixer, a què es va dedicar, qui és qui a la seva família), i el més important: els **àudios** que grava, les **transcripcions** que en fem, els **textos** del llibre i les **fotos** que puja la família."),
           p("**La seva veu**: les seves millors frases es retallen dels seus propis àudios, tal com les va dir, per escoltar-les a la web i amb el codi imprès al llibre. No creem cap veu sintètica. Si algun dia oferíssim un producte amb la seva veu clonada —una **dada biomètrica**—, només ho faríem amb el consentiment explícit del narrador, demanat per WhatsApp per a aquesta finalitat concreta."),
           p("**Dels convidats**: el seu correu (per convidar-los), el seu nom si entren, i les fotos que pugen."),
           p("**De qui visita**: res que l'identifiqui. Només els registres tècnics del servidor i les galetes de la secció 12."),
@@ -1154,7 +1154,7 @@ const CA: TextosLegal = {
             ["Qui", "Per a què", "On"],
             [
               ["Supabase", "La base de dades i el magatzem d'àudios, fotos, llibres i les seves frases amb la seva veu. També l'accés al teu compte.", "Unió Europea"],
-              ["Vercel", "Allotja la web que estàs llegint i el teu panell.", "Estats Units (xarxa global)"],
+              ["Vercel", "Allotja la web que estàs llegint i la pàgina de la història.", "Estats Units (xarxa global)"],
               ["Railway", "Executa l'entrevistador (el que envia i rep els WhatsApp) i la fàbrica que produeix el llibre i tria les seves frases.", "Estats Units"],
               ["Meta (WhatsApp Business)", "Porta i duu els missatges i àudios entre el narrador i nosaltres. Meta veu els missatges com els veuria en qualsevol xat de WhatsApp Business.", "Segons les normes de Meta"],
               ["OpenAI", "Transcriu els àudios a text. Per API: no fa servir el que li enviem per entrenar els seus models.", "Estats Units"],
@@ -1219,7 +1219,7 @@ const CA: TextosLegal = {
         id: "cookies",
         titulo: "12. Galetes",
         bloques: [
-          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes el panell clar o fosc i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
+          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
         ],
       },
       {

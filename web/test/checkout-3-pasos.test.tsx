@@ -21,7 +21,7 @@ vi.mock("@/lib/supabase/sesion", () => ({ usuarioDeLaSesion: vi.fn(async () => n
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
 import { armarCompra, catalogo } from "@/lib/productos";
-import { conMarcosParaRegalar, contadorDeMarcos, eleccionDe, eleccionInicial, marcosParaRegalar, opcionDe, opcionesDeLibro, precioDeOpcion } from "../src/app/_checkout/opciones-libro";
+import { conMarcosParaRegalar, contadorDeMarcos, eleccionDe, eleccionInicial, marcosParaRegalar, opcionDe, opcionesDeLibro, precioDeOpcion, reglaDeMarcos } from "../src/app/_checkout/opciones-libro";
 import { OpcionesLibro } from "../src/app/_checkout/opciones-libro-ui";
 import { idiomaDePrefijo, idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { textosComprador } from "@/lib/regalo-textos";
@@ -229,6 +229,30 @@ describe("/comprar en tres pasos", () => {
     expect(contadorDeMarcos("marco", catalogo("ES"))).toBeNull();
   });
 
+  it("marco a 19 € todos (Naza 15/10): con PRECIO_MARCO igual a PRECIO_MARCO_ADICIONAL se ve un solo precio, sin «el primero, los demás»", () => {
+    process.env.PRECIO_MARCO_EUR = "19";
+    process.env.PRECIO_MARCO_ADICIONAL_EUR = "19";
+    const cat = catalogo("ES");
+    const eur = (n: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+    // La regla pura: con un solo precio no hay texto; con dos, el de siempre.
+    expect(reglaDeMarcos({ primero: 19, demas: 19 }, ES.primeroYDemas, eur)).toBeUndefined();
+    expect(reglaDeMarcos({ primero: 20, demas: null }, ES.primeroYDemas, eur)).toBeUndefined();
+    expect(reglaDeMarcos({ primero: 20, demas: 15 }, ES.primeroYDemas, eur)).toBe(ES.primeroYDemas(eur(20), eur(15)));
+    // Lo que se ve en la opción del impreso (la 2, donde antes decía «+20 € el primero, +15 € los demás»).
+    const base = estadoInicial("es", cat);
+    const impreso = { ...base, ...eleccionDe("impreso", base) };
+    const dos = { ...impreso, ...conMarcosParaRegalar(impreso, 2) };
+    const html = renderToStaticMarkup(
+      <OpcionesLibro cat={cat} base={49} estado={dos} onElegir={() => {}} onCambio={() => {}} textos={{ ...ES, titulo: ES.libroTitulo, cinta: ES.impresoEtiqueta }}
+        tapa={{ titulo: "", idioma: "es" }} conPack formatear={eur} />,
+    );
+    expect(html).toContain(`>${escapar(`+${eur(19)}`)}<`);
+    expect(html).not.toContain(escapar(ES.primeroYDemas(eur(19), eur(19))));
+    expect(html).not.toContain("el primero");
+    // Lo que se cobra no cambia: cada marco a 19.
+    expect(armarCompra(cat, "ES", carritoDe(dos)).total).toBe(49 + 50 + 19 * 2);
+  });
+
   it("el pack (Naza 14/10): el libro completo cuesta el pack, con la suma tachada; el ticket lleva una línea y lo que se ahorra", () => {
     process.env.PRECIO_PACK_EUR = "109";
     try {
@@ -275,7 +299,7 @@ describe("/comprar en tres pasos", () => {
         expect(html).toContain('id="pago-compra"');
         expect(enLaBarra).toContain(escapar(ES.pagar(total)));
       } else {
-        // Paso 1: «Quiero su libro» (Naza 14/10); paso 2: «Continuar».
+        // Paso 1: «Iniciar Vitácora» (Naza 15/10); paso 2: «Continuar».
         expect(enLaBarra).toContain(`>${escapar(paso === 1 ? ES.quieroLibro(false) : ES.continuar)}<`);
       }
       // El botón del paso (el mismo) se esconde en el teléfono, y la página deja lugar para la barra.
@@ -619,11 +643,11 @@ describe("«Pedido confirmado»", () => {
   const pagina = async (params: Record<string, string>) =>
     renderToStaticMarkup(await (Gracias as unknown as (p: { searchParams: Promise<Record<string, string>> }) => Promise<ReactElement>)({ searchParams: Promise.resolve(params) }));
 
-  it("sin sesión: la pantalla de respaldo, en el idioma de la vuelta, con «Entrar a mi panel»", async () => {
+  it("sin sesión: la pantalla de respaldo, en el idioma de la vuelta, con «Entrar a la página de la historia»", async () => {
     const ca = await pagina({ idioma: "ca" });
     expect(ca).toContain('lang="ca-ES"');
     expect(ca).toContain(escapar(CONFIRMADO.ca.tituloGenerico));
-    expect(ca).toContain(escapar(CONFIRMADO.ca.entrarAlPanel));
+    expect(ca).toContain(escapar(CONFIRMADO.ca.entrarAlPanel(false)));
     const ar = await pagina({ idioma: "ar" });
     expect(ar).toContain(escapar("Si no lo ves, mirá en promociones o en spam."));
   });

@@ -33,7 +33,7 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
   es: {
     inicio: "Vitácora, inicio",
     volverAlInicio: "Volver al inicio",
-    comprar: "Comprar el libro",
+    comprar: "Iniciar Vitácora",
     escribirnos: "Escríbenos",
     entrar: "Entrar con mi correo",
     noExiste: {
@@ -57,7 +57,7 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
   ca: {
     inicio: "Vitácora, inici",
     volverAlInicio: "Tornar a l'inici",
-    comprar: "Comprar el llibre",
+    comprar: "Iniciar Vitácora",
     escribirnos: "Escriu-nos",
     entrar: "Entrar amb el meu correu",
     noExiste: {
@@ -81,7 +81,7 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
   ar: {
     inicio: "Vitácora, inicio",
     volverAlInicio: "Volver al inicio",
-    comprar: "Comprar el libro",
+    comprar: "Iniciar Vitácora",
     escribirnos: "Escribinos",
     entrar: "Entrar con mi correo",
     noExiste: {

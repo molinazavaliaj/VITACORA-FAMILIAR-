@@ -28,6 +28,8 @@ export type TextosPublico = {
   arrepentimiento: string;
   contacto: string;
   escribirWhatsApp: string;
+  /** El enlace discreto del pie a /opiniones (solo con 3 opiniones o más). */
+  opiniones: string;
 };
 
 export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
@@ -38,20 +40,21 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     kids: "Kids",
     viaje: "De viaje",
     entrar: "Entrar",
-    comprar: "Comprar el libro",
+    comprar: "Iniciar Vitácora",
     idioma: "Idioma",
     cambiarPais: "¿Estás en Argentina?",
     // La sugerencia sale cuando el navegador pide catalán: va en catalán.
     sugerenciaCatalan: "Aquesta web també està en català.",
     sugerenciaCatalanEnlace: "Llegeix-la en català",
     cerrar: "Cerrar",
-    lema: "Para las vidas que merecen su propio libro",
+    lema: "Todas las vidas merecen su propio libro",
     legales: "Legales",
     terminos: "Términos",
     privacidad: "Privacidad",
     arrepentimiento: "Desistimiento",
     contacto: "Contacto",
     escribirWhatsApp: "Escríbenos por WhatsApp",
+    opiniones: "Opiniones",
   },
   ca: {
     inicio: "Vitácora, inici",
@@ -60,19 +63,20 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     kids: "Kids",
     viaje: "De viatge",
     entrar: "Entrar",
-    comprar: "Comprar el llibre",
+    comprar: "Iniciar Vitácora",
     idioma: "Idioma",
     cambiarPais: "Ets a l'Argentina?",
     sugerenciaCatalan: "Aquesta web també està en català.",
     sugerenciaCatalanEnlace: "Llegeix-la en català",
     cerrar: "Tancar",
-    lema: "Per a les vides que mereixen el seu propi llibre",
+    lema: "Totes les vides mereixen el seu propi llibre",
     legales: "Legals",
     terminos: "Termes",
     privacidad: "Privacitat",
     arrepentimiento: "Desistiment",
     contacto: "Contacte",
     escribirWhatsApp: "Escriu-nos per WhatsApp",
+    opiniones: "Opinions",
   },
   ar: {
     inicio: "Vitácora, inicio",
@@ -81,18 +85,19 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     kids: "Kids",
     viaje: "De viaje",
     entrar: "Entrar",
-    comprar: "Comprar el libro",
+    comprar: "Iniciar Vitácora",
     idioma: "Idioma",
     cambiarPais: "¿Estás en España?",
     sugerenciaCatalan: "Aquesta web també està en català.",
     sugerenciaCatalanEnlace: "Llegeix-la en català",
     cerrar: "Cerrar",
-    lema: "Para las vidas que merecen su propio libro",
+    lema: "Todas las vidas merecen su propio libro",
     legales: "Legales",
     terminos: "Términos",
     privacidad: "Privacidad",
     arrepentimiento: "Botón de arrepentimiento",
     contacto: "Contacto",
     escribirWhatsApp: "Escribinos por WhatsApp",
+    opiniones: "Opiniones",
   },
 };

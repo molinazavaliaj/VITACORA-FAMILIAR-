@@ -92,7 +92,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
       preguntas: [
         {
           pregunta: "¿Y si todavía no tenemos todas las fechas?",
-          respuesta: "Ponéis lo que sabéis. Las etapas sin fecha se completan después desde tu panel, y si aparece una ciudad nueva, se añade ahí.",
+          respuesta: "Ponéis lo que sabéis. Las etapas sin fecha se completan después desde la página de vuestro viaje, y si aparece una ciudad nueva, se añade ahí.",
         },
         {
           pregunta: "¿Cuántas fotos podemos mandar?",
@@ -156,7 +156,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         {
           pregunta: "¿Y si todavía no tengo todas las fechas?",
           respuesta:
-            "Cargás lo que sabés. Las etapas sin fecha se completan después desde tu panel, y si aparece una ciudad nueva la agregás ahí.",
+            "Cargás lo que sabés. Las etapas sin fecha se completan después desde la página de tu viaje, y si aparece una ciudad nueva la agregás ahí.",
         },
         {
           pregunta: "¿Cuántas fotos puedo mandar?",
@@ -225,7 +225,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
       preguntas: [
         {
           pregunta: "I si encara no tenim totes les dates?",
-          respuesta: "Hi poseu el que sabeu. Les etapes sense data es completen després des del teu panell, i si apareix una ciutat nova, s'hi afegeix.",
+          respuesta: "Hi poseu el que sabeu. Les etapes sense data es completen després des de la pàgina del vostre viatge, i si apareix una ciutat nova, s'hi afegeix.",
         },
         {
           pregunta: "Quantes fotos podem enviar?",
