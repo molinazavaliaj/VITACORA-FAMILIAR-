@@ -10,6 +10,8 @@
 name: Tests
 
 on:
+  # Sin filtro de ramas: corre en todo PR, también los que apuntan a ramas
+  # intermedias (las cadenas de Kids y Viaje). El filtro de abajo es solo push.
   pull_request:
   push:
     branches: [main, rediseno-web]
@@ -73,13 +75,15 @@ jobs:
           cache: pip
           cache-dependency-path: voz/requirements.txt
 
-      # El ffmpeg de Ubuntu (6.1) se cuelga con silenceremove + areverse en
-      # test_a_wav_limpio_conserva_las_pausas_internas; la PC usa uno nuevo.
-      - name: ffmpeg (estático, versión nueva)
+      # El ffmpeg de Ubuntu (6.1) se cuelga y el estático de johnvansickle (7.x)
+      # aborta con silenceremove + areverse en
+      # test_a_wav_limpio_conserva_las_pausas_internas. La PC de la voz usa 9.0.
+      - name: ffmpeg 9.0 (el mismo que la PC)
         working-directory: ${{ runner.temp }}
         run: |
-          curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar -xJ
-          echo "$(ls -d "$PWD"/ffmpeg-*-static)" >> "$GITHUB_PATH"
+          curl -sSL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-linux64-gpl-9.0.tar.xz | tar -xJ
+          echo "$(ls -d "$PWD"/ffmpeg-n9.0-*/bin)" >> "$GITHUB_PATH"
+          "$(ls -d "$PWD"/ffmpeg-n9.0-*/bin)/ffmpeg" -version | head -1
 
       - name: Instalar
         run: pip install -r requirements.txt pytest-timeout
