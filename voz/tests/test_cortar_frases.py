@@ -108,3 +108,12 @@ def test_narradores_con_pedido_mira_storage():
     })})()
     assert narradores_con_pedido(sb) == ["n1", "n3"]
     assert narradores_con_pedido(type("Sb", (), {"storage": StorageFalso({})})()) == []
+
+
+def test_pendientes_marca_la_respuesta_entera_solo_si_lo_dice_la_candidata():
+    frases = frases_de_prueba()
+    frases["capitulos"][0]["candidatas"][0]["entera"] = True
+    por_id = {f.id: f for f in pendientes(frases)}
+    assert por_id["sf-1"].entera is True
+    # Las de la casa no traen la clave: siguen siendo un tramo a ubicar.
+    assert por_id["sf-2"].entera is False

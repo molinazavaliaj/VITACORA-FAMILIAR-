@@ -225,6 +225,19 @@ export async function anotarUsoEscritor(db: Db, narradorId: string, f: UsoEscrit
   });
 }
 
+/**
+ * El escritor del libro de Kids (escritor-kids/produccion/libro-kids.ts), igual que el de la casa pero con su
+ * propio `paso`: `escritor-kids-A`, `escritor-kids-B` o `escritor-kids-C`. Nunca tira.
+ */
+export async function anotarUsoEscritorKids(db: Db, narradorId: string, f: UsoEscritor): Promise<void> {
+  await anotarEnConsumoIa(db, narradorId, {
+    modelo: f.modelo,
+    paso: `escritor-kids-${/^[ABC]\//.test(f.clave) ? f.clave[0] : 'otro'}`,
+    usage: { input_tokens: f.input, output_tokens: f.output, cache_creation_input_tokens: f.cache_write, cache_read_input_tokens: f.cache_read },
+    usd: f.usd,
+  });
+}
+
 export type ResumenCostos = {
   totalUsd: number;
   llamadas: number;

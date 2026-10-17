@@ -1,0 +1,53 @@
+{
+  "narrador_id": "9d2e7b40-1c5f-4a83-b6e0-2f8c3a91d057",
+  "idioma": "es-AR",
+  "canal": "A",
+  "telefono_padre": "+5491100000002",
+  "ficha": {
+    "nombre": "Benjamín Sosa",
+    "apodo": "Benja",
+    "genero": "chico",
+    "edad": 11,
+    "quienRegala": "tu mamá",
+    "canal": "A",
+    "nombrePadre": "Carolina Ríos",
+    "linkPanel": "https://vitacorafamiliar.com/kids/panel/fijo-benja-9d2e7b40",
+    "hora": "18:30",
+    "zona": "America/Argentina/Buenos_Aires",
+    "temasSacados": [
+      "mudanza"
+    ],
+    "fotosConOtrosChicos": false,
+    "preguntasPadre": [
+      {
+        "texto": "¿Qué es lo que más te gusta de tu hermana Delfi, aunque se peleen?",
+        "conLinea": true
+      },
+      {
+        "texto": "¿Qué te acordás del día que nació Simón?",
+        "conLinea": false
+      },
+      {
+        "texto": "¿Qué es lo que más te gusta hacer con el abuelo Héctor en Chivilcoy?",
+        "conLinea": true,
+        "quien": "tu papá"
+      }
+    ]
+  },
+  "estado": null,
+  "cambios_panel": null,
+  "cambios_error": null,
+  "avance": {
+    "capitulo": 5,
+    "preguntasPadreAbiertas": false,
+    "terminado": true
+  },
+  "marcas": [],
+  "correcciones": [],
+  "version": 37,
+  "enviando_hasta": null,
+  "despertar_at": null,
+  "creada_at": "2026-09-06T18:30:00.000Z",
+  "empezo_at": "2026-09-08T21:25:00.000Z",
+  "termino_at": "2026-09-11T21:53:41.000Z"
+}

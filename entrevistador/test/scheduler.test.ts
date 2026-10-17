@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
     preguntas: [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }] as any[],
     familias: { nombre: 'Martina' } as any,
     v3: [] as any[],
+    kids: [] as any[],
+    kidsError: null as any,
   },
   capturas: [] as any[],
   ultimoOrden: 26,
@@ -39,6 +41,7 @@ vi.mock('../src/db/cliente.js', () => {
     const resolver = () => {
       if (b._op !== 'select') return { data: null, error: null };
       if (tabla === 'entrevistas_v3') return { data: mocks.filas.v3 };
+      if (tabla === 'kids_v2') return { data: mocks.filas.kidsError ? null : mocks.filas.kids, error: mocks.filas.kidsError };
       if (tabla === 'narradores') {
         const estados = b._filtros.estado;
         return { data: estados ? mocks.filas.narradores.filter((n) => estados.includes(n.estado)) : mocks.filas.narradores };
@@ -103,6 +106,7 @@ vi.mock('../src/db/historia.js', () => ({
 }));
 
 import { tick, esHoraDeEnviar, fechaLocal } from '../src/flujo/scheduler.js';
+import { mandarHito } from '../src/mail/hitos.js';
 import { capituloNoAplica, edadDe } from '../src/flujo/preguntar.js';
 
 const ZONA = 'America/Argentina/Buenos_Aires';
@@ -120,6 +124,8 @@ const inserts = (tabla: string) => mocks.capturas.filter((c) => c.op === 'insert
 beforeEach(() => {
   mocks.filas.narradores = [];
   mocks.filas.v3 = [];
+  mocks.filas.kids = [];
+  mocks.filas.kidsError = null;
   mocks.filas.envios = [];
   mocks.filas.respuestas = [];
   mocks.filas.preguntas = [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }];
@@ -468,5 +474,62 @@ describe('narradores V3 (spec 2026-10-07)', () => {
     conPreguntaSinResponder();
     await tick(A_LAS_17_05);
     expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'recordatorio', ['Don Osvaldo']);
+  });
+});
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico con fila en kids_v2 tiene su propio reloj; nada del
+// scheduler viejo le sale (ni la bienvenida, ni la pregunta, ni el recordatorio, ni el hito «silencio» al comprador).
+describe('chicos de Kids', () => {
+  beforeEach(() => { vi.mocked(mandarHito).mockClear(); });
+  const A_LAS_17_05 = new Date('2026-09-01T20:05:00Z');
+
+  it('un chico invitado no recibe la bienvenida vieja', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'invitado' })];
+    mocks.filas.kids = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(inserts('envios')).toEqual([]);
+  });
+
+  it('un chico activo no recibe la pregunta del día ni el recordatorio', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 1 })];
+    mocks.filas.envios = [{ tipo: 'pregunta', pregunta_orden: 1, enviado_at: '2026-09-01T13:00:00Z', wa_message_id: 'wamid.x' }];
+    mocks.filas.kids = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    await tick(A_LAS_17_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('a los tres días de silencio no se prende la alerta vieja ni sale el hito «silencio»', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 7, ultima_respuesta_at: '2026-08-27T10:00:00Z' })];
+    mocks.filas.kids = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    expect(mocks.capturas.filter((c) => c.op === 'update' && c.tabla === 'narradores')).toEqual([]);
+    expect(mandarHito).not.toHaveBeenCalled();
+  });
+
+  it('el chico se saltea y el adulto de al lado sigue como siempre', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto' }), narrador({ id: 'n2', estado: 'acepto', telefono_whatsapp: '+5491100000002' })];
+    mocks.filas.kids = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledTimes(1);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000002', 'pregunta_diaria', ['PREGUNTA_1']);
+  });
+
+  it('sin la migración (kids_v2 no existe), nadie es chico: el narrador sigue como siempre', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto' })];
+    mocks.filas.kidsError = { code: '42P01', message: 'relation "kids_v2" does not exist' };
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'pregunta_diaria', ['PREGUNTA_1']);
+  });
+
+  it('si la base no deja saber quién es chico, no se manda nada', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'invitado' }), narrador({ id: 'n2', estado: 'acepto' }), narrador({ id: 'n3', estado: 'activo', ultima_respuesta_at: '2026-08-27T10:00:00Z' })];
+    mocks.filas.kidsError = { code: '57014', message: 'canceling statement due to statement timeout' };
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(mandarHito).not.toHaveBeenCalled();
   });
 });

@@ -226,7 +226,7 @@ function anioRomano(anio: number): string {
 
 function svgGrano(seed: number): string {
   const id = `grano${seed}`;
-  return `<svg style="position:absolute;inset:0;opacity:0.5;pointer-events:none;" width="559" height="794" xmlns="http://www.w3.org/2000/svg">
+  return `<svg class="grano" style="position:absolute;inset:0;opacity:0.5;pointer-events:none;" width="559" height="794" xmlns="http://www.w3.org/2000/svg">
     <filter id="${id}">
       <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="${seed}"></feTurbulence>
       <feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.38  0 0 0 0 0.33  0 0 0 0.06 0"></feColorMatrix>
@@ -250,7 +250,7 @@ function svgCirculoCortado(opts: {
   const anillo2 = segundoAnillo
     ? `<circle cx="${r}" cy="${r}" r="${r - (r * 0.26)}" stroke="#f2eee5" stroke-width="0.8"></circle>`
     : '';
-  return `<svg style="position:absolute;${pos}pointer-events:none;" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  return `<svg class="espejo" style="position:absolute;${pos}pointer-events:none;" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="${r}" cy="${r}" r="${r - 2}" stroke="${color}" stroke-width="1.2"></circle>
     ${anillo2}
   </svg>`;
@@ -283,7 +283,8 @@ function svgMedallion(opts: {
 
 function svgCruz(top: number, left?: number, right?: number): string {
   const pos = left !== undefined ? `left:${left}px;` : `right:${right}px;`;
-  return `<svg style="position:absolute;top:${top}px;${pos}pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>`;
+  const lado = left !== undefined ? 'orn-izq' : 'orn-der';
+  return `<svg class="${lado}" style="position:absolute;top:${top}px;${pos}pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>`;
 }
 
 // --- Hoja de estilos ---------------------------------------------------------
@@ -688,6 +689,8 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
   libroEntero: string; libroEnteroBajada: string;
   colofon1: string; colofon2: string; cierre: string;
+  /** El título de las páginas de notas del libro impreso (modo imprenta). Aprobado por Naza el 17/10. */
+  notas: string;
 }> = {
   'es-AR': {
     susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
@@ -702,6 +705,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     colofon1: 'Este libro fue contado por',
     colofon2: 'con su propia voz, y guardado para siempre por',
     cierre: '«Acá adentro están todos vivos.»',
+    notas: 'Notas',
   },
   'es-ES': {
     susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
@@ -716,6 +720,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     colofon1: 'Este libro fue contado por',
     colofon2: 'con su propia voz, y guardado para siempre por',
     cierre: '«Aquí dentro están todos vivos.»',
+    notas: 'Notas',
   },
   ca: {
     susFrasesEyebrow: 'TAL COM LES DIU · PERQUÈ NO ES PERDIN',
@@ -730,6 +735,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     colofon1: 'Aquest llibre el va explicar',
     colofon2: 'amb la seva pròpia veu, i el va guardar per sempre',
     cierre: '«Aquí dins hi són tots vius.»',
+    notas: 'Notes',
   },
 };
 
@@ -755,13 +761,13 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
   // La página de arte lleva SOLO el título y la frase héroe (entra siempre);
   // el listado completo fluye después por el paginador, para que ninguna
   // frase se pierda por un overflow:hidden — antes se cortaban en silencio.
-  return `<div class="lienzo quiebre">
+  return `<div class="lienzo sus-frases-pagina quiebre">
     ${svgCirculoCortado({ top: -30, left: 300, size: 240, color: '#f2eee5' })}
     <div class="sus-frases-eyebrow">${t.susFrasesEyebrow}</div>
-    <div style="position:absolute; top:48px; left:44px; right:100px;">
+    <div class="sf-titulo" style="position:absolute; top:48px; left:44px; right:100px;">
       <div class="sus-frases-titulo">${escaparHtml(titulo)}</div>
     </div>
-    <div style="position:absolute; top:230px; left:44px; right:44px;">
+    <div class="sf-hero" style="position:absolute; top:230px; left:44px; right:44px;">
       ${heroHtml}
     </div>
     <div class="sus-frases-narrador">${escaparHtml(nombreNarrador)}</div>
@@ -866,7 +872,7 @@ function construirColofon(opts: { nombreNarrador: string; mono: string; lengua: 
   const { nombreNarrador, mono } = opts;
   const t = TEXTOS_LIBRO[opts.lengua];
   const anio = new Date().getFullYear();
-  return `<div class="lienzo quiebre antes">
+  return `<div class="lienzo colofon quiebre antes">
     ${svgGrano(11)}
     ${svgCruz(46, 32)}
     ${svgCruz(46, undefined, 32)}
@@ -931,6 +937,112 @@ function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: 
   </div>`;
 }
 
+// --- Modo imprenta (Bookmundo tapa dura) -------------------------------------
+
+/**
+ * El libro que va a una imprenta de verdad (Bookmundo tapa dura; docs/bookmundo/receta-imprenta.md).
+ * Es el mismo diseño A5 escalado entero al formato pedido (168×240 tiene la proporción del A5: ×1,135),
+ * con lo que un libro encuadernado necesita y la pantalla no:
+ *  - sin tapa ni contratapa (la cubierta va aparte, bookmundo/cubierta.ts), con portadilla y su blanca;
+ *  - cada capítulo en página derecha (impar), con blancas antes si hace falta;
+ *  - márgenes en espejo: el lomo queda a la izquierda en las impares y a la derecha en las pares;
+ *  - fondo blanco (se pide papel crema) y sin el grano de papel de la pantalla;
+ *  - fuentes TrueType estáticas incrustadas: las variables de Google, Chromium las imprime como Type 3;
+ *  - páginas de notas hasta el mínimo de la encuadernación, y el colofón en la última.
+ * El libro de pantalla (el que descarga la familia) no cambia: todo esto vive detrás de `imprenta`.
+ */
+export type OpcionesImprenta = {
+  anchoMm: number;
+  altoMm: number;
+  /** Mínimo de páginas de la encuadernación (Bookmundo tapa dura, papel crema: 88). */
+  paginasMinimas: number;
+  /** Los @font-face con las fuentes estáticas incrustadas (bookmundo/fuentes.ts). */
+  fuentesCss: string;
+};
+
+/** El ancho del A5 del diseño: todo lo demás se escala desde acá. */
+const ANCHO_A5_MM = 148;
+/** Margen del lado del lomo y del corte exterior, en px del lienzo A5 (19 y 17 mm; impresos ×1,135). */
+const MARGEN_LOMO_PX = 72;
+const MARGEN_FUERA_PX = 64;
+/** Las cruces del lado del lomo y del lado del corte, en px del lienzo A5 (impresas a 16 y 12,6 mm). */
+const ADORNO_LOMO_PX = 54;
+const ADORNO_FUERA_PX = 42;
+/** Alto de cada renglón de las páginas de notas, en mm del lienzo. */
+const RENGLON_MM = 9;
+
+export function escalaImprenta(o: Pick<OpcionesImprenta, 'anchoMm'>): number {
+  return o.anchoMm / ANCHO_A5_MM;
+}
+
+function estilosImprenta(o: OpcionesImprenta): string {
+  const escala = escalaImprenta(o);
+  const L = MARGEN_LOMO_PX, F = MARGEN_FUERA_PX, AL = ADORNO_LOMO_PX, AF = ADORNO_FUERA_PX;
+  return `
+  /* Solo grises puros (Naza, 17/10): Bookmundo cobra como color toda página con un punto de color, y el
+     vino del acento y los tonos cálidos del diseño estaban en casi todas (84 de 88 en el libro de Imma).
+     Así, en color quedan solo las fotos. */
+  :root {
+    --papel: #ffffff; --tinta: #1a1a1a; --acento: #4d4d4d;
+    --gris1: #a3a3a3; --gris3: #555555; --gris4: #424242; --gris5: #272727;
+    --linea: #dedede; --linea2: #ebebeb; --marfil2: #d3d3d3; --tostado: #b0b0b0;
+  }
+  [stroke="#c9a795"] { stroke: #b0b0b0; }
+  [stroke="#eee9df"], [stroke="#f2eee5"] { stroke: #ececec; }
+  [stroke="#1c1917"] { stroke: #1a1a1a; }
+  [fill="#1c1917"] { fill: #1a1a1a; }
+  [fill="#6e2618"] { fill: #4d4d4d; }
+  @page { size: ${o.anchoMm}mm ${o.altoMm}mm; margin: 0; }
+  body { zoom: ${escala}; }
+  .lienzo { height: ${o.altoMm / escala}mm; }
+  .grano { display: none; }
+  /* Texto en espejo: en la impar el lomo es el borde izquierdo. */
+  .lienzo.impar .columna-texto, .lienzo.impar .cabecera-pagina, .lienzo.impar .pie-pagina, .lienzo.impar .renglones { left: ${L}px; right: ${F}px; }
+  .lienzo.par .columna-texto, .lienzo.par .cabecera-pagina, .lienzo.par .pie-pagina, .lienzo.par .renglones { left: ${F}px; right: ${L}px; }
+  /* El riel va siempre del lado del corte, y su línea cortada como borde (no como degradé). */
+  .riel .riel-linea { background: none; border-left: 1px dashed var(--linea); width: 0; }
+  .lienzo.impar .riel { left: auto; right: 38px; }
+  .lienzo.par .riel { left: 38px; right: auto; }
+  /* Cruces: lejos del lomo y a más de 10 mm del corte. */
+  .lienzo.impar .orn-izq { left: ${AL}px !important; }
+  .lienzo.impar .orn-der { right: ${AF}px !important; }
+  .lienzo.par .orn-izq { left: ${AF}px !important; }
+  .lienzo.par .orn-der { right: ${AL}px !important; }
+  /* Apertura (siempre impar): el numeral y los textos lejos de los bordes. */
+  .apertura .numeral { right: 40px; }
+  .apertura.impar .marca-narrador, .apertura.impar .cuerpo-apertura, .apertura.impar .apertura-foto-bloque { left: ${L}px; }
+  /* Páginas de foto. */
+  .lienzo.foto.impar .foto-cabecera, .lienzo.foto.impar .foto-marco, .lienzo.foto.impar .foto-epigrafe { left: ${L}px; }
+  .lienzo.foto.par .foto-cabecera, .lienzo.foto.par .foto-marco, .lienzo.foto.par .foto-epigrafe { right: ${L}px; }
+  /* Sus frases. */
+  .sus-frases-pagina.impar .sf-titulo, .sus-frases-pagina.impar .sf-hero, .sus-frases-pagina.impar .sus-frases-narrador { left: ${L}px !important; }
+  .sus-frases-pagina.par .sus-frases-eyebrow, .sus-frases-pagina.par .sf-hero { right: ${L}px !important; }
+  /* Portadilla y notas. */
+  .portadilla-imp .eyebrow { position: absolute; top: 74mm; left: 0; right: 0; text-align: center; font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
+  .portadilla-imp .nombre { position: absolute; top: 84mm; left: ${L}px; right: ${L}px; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-size: 40px; line-height: 1.1; color: var(--tinta); text-wrap: balance; }
+  .portadilla-imp .regla { position: absolute; top: 112mm; left: 50%; width: 44px; margin-left: -22px; height: 1px; background: var(--acento); }
+  .notas-titulo .t { position: absolute; top: 70mm; left: 0; right: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 30px; color: var(--tinta); }
+  .notas-titulo .r { position: absolute; top: 86mm; left: 50%; width: 44px; margin-left: -22px; height: 1px; background: var(--acento); }
+  .notas .renglones { position: absolute; top: 30mm; }
+  .notas .renglones div { height: ${RENGLON_MM}mm; border-bottom: 0.6px solid #d6d6d6; }
+  `;
+}
+
+/** La portadilla (pág. 1) y su blanca: lo que dice la tapa, sin la foto. */
+function construirPortadilla(opts: { nombre: string; idioma: 'es' | 'ca' }): string {
+  return `<div class="lienzo quiebre portadilla-imp">
+    <div class="eyebrow">${TEXTOS_TAPA[opts.idioma].eyebrow}</div>
+    <div class="nombre">${escaparHtml(opts.nombre)}</div>
+    <div class="regla"></div>
+  </div>
+  <div class="lienzo quiebre blanca"></div>`;
+}
+
+/** Cuántos renglones entran en una página de notas: desde 30 mm arriba hasta 26 mm del pie. */
+function renglonesNotas(o: OpcionesImprenta): number {
+  return Math.floor((o.altoMm / escalaImprenta(o) - 30 - 26) / RENGLON_MM);
+}
+
 // --- Paginador embebido ------------------------------------------------------
 
 /**
@@ -960,11 +1072,11 @@ function construirScriptPaginador(): string {
 
   // Cromo fijo de cada página de texto (círculo cortado + cruces de registro).
   var ORNAMENTOS =
-    '<svg style="position:absolute;top:-120px;right:-120px;pointer-events:none;" width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<svg class="espejo" style="position:absolute;top:-120px;right:-120px;pointer-events:none;" width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">' +
     '<circle cx="140" cy="140" r="138" stroke="#eee9df" stroke-width="1.2"></circle>' +
     '<circle cx="140" cy="140" r="112" stroke="#f2eee5" stroke-width="0.8"></circle></svg>' +
-    '<svg style="position:absolute;top:46px;left:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>' +
-    '<svg style="position:absolute;bottom:46px;right:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>';
+    '<svg class="orn-izq" style="position:absolute;top:46px;left:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>' +
+    '<svg class="orn-der" style="position:absolute;bottom:46px;right:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>';
 
   function crearPagina(fuente, meta, esPrimera) {
     var lienzo = document.createElement('div');
@@ -1125,11 +1237,65 @@ function construirScriptPaginador(): string {
     }
   }
 
+  // Modo imprenta (ver estilosImprenta): reordena las páginas ya armadas como un libro
+  // encuadernado —capítulos en impar, notas hasta el mínimo, colofón en la última— y marca
+  // cada página impar/par para los márgenes en espejo.
+  function nuevaPagina(clase, html) {
+    var d = document.createElement('div');
+    d.className = 'lienzo quiebre ' + clase;
+    if (html) d.innerHTML = html;
+    return d;
+  }
+  function armarImprenta() {
+    var b = document.body;
+    var minimo = Number(b.getAttribute('data-paginas-min')) || 0;
+    var renglones = Number(b.getAttribute('data-renglones')) || 0;
+    var todos = Array.prototype.slice.call(document.querySelectorAll('.lienzo'));
+    var colofon = null;
+    var final = [];
+    function aImpar() { while ((final.length + 1) % 2 === 0) final.push(nuevaPagina('blanca')); }
+    for (var i = 0; i < todos.length; i++) {
+      var el = todos[i];
+      el.parentNode.removeChild(el);
+      if (el.classList.contains('colofon')) { colofon = el; continue; }
+      if (el.classList.contains('apertura')) aImpar();
+      final.push(el);
+    }
+    aImpar();
+    var titulo = nuevaPagina('notas-titulo', '<div class="t"></div><div class="r"></div>');
+    titulo.querySelector('.t').textContent = b.getAttribute('data-notas') || '';
+    final.push(titulo);
+    var conColofon = final.length + (colofon ? 1 : 0);
+    var total = Math.max(minimo, conColofon + (conColofon % 2));
+    var renglon = '';
+    for (var r = 0; r < renglones; r++) renglon += '<div></div>';
+    while (final.length < total - (colofon ? 1 : 0)) {
+      final.push(nuevaPagina('notas', '<div class="renglones">' + renglon + '</div><div class="pie-pagina"><span class="adorno"><span class="p"></span><span class="r"></span></span><span class="folio"></span></div>'));
+    }
+    if (colofon) final.push(colofon);
+    var script = document.querySelector('script');
+    for (var k = 0; k < final.length; k++) {
+      var pag = final[k];
+      var par = (k + 1) % 2 === 0;
+      pag.classList.add(par ? 'par' : 'impar');
+      // En la par el lomo es el borde derecho: los adornos que sangran se reflejan.
+      if (par) {
+        var esp = pag.querySelectorAll('.espejo');
+        for (var e = 0; e < esp.length; e++) {
+          var st = esp[e].style, izq = st.left, der = st.right;
+          st.left = der; st.right = izq;
+        }
+      }
+      b.insertBefore(pag, script);
+    }
+  }
+
   function paginar() {
     try {
       var narrador = document.body.getAttribute('data-narrador') || '';
       var fuentes = document.querySelectorAll('section.fuente-texto');
       for (var i = 0; i < fuentes.length; i++) paginarFuente(fuentes[i], narrador);
+      if (document.body.getAttribute('data-imprenta') === '1') armarImprenta();
       numerarFolios();
     } catch (err) {
       console.error('paginador del libro falló, queda el flujo sin cromo:', err);
@@ -1187,6 +1353,8 @@ export async function construirHtmlLibro(datos: {
   idioma?: 'es' | 'ca';
   /** El trato del castellano (13/10): `tu` para España. Sin esto, vos. En catalán no cuenta. */
   trato?: 'vos' | 'tu';
+  /** El libro para la imprenta (Bookmundo tapa dura), ver `OpcionesImprenta`. Sin esto, el de pantalla. */
+  imprenta?: OpcionesImprenta;
 }): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
@@ -1215,7 +1383,10 @@ export async function construirHtmlLibro(datos: {
     .join('\n');
 
   // La foto va en la tapa (Naza, 13/10): el frontispicio ya no se arma, para no repetirla.
-  const portadaHtml = construirPortada({ nombreNarrador, tapa, fotoUrl, fotoFoco, idioma: datos.idioma ?? 'es' });
+  const imprenta = datos.imprenta;
+  const portadaHtml = imprenta
+    ? construirPortadilla({ nombre: tapa.titulo ?? nombreNarrador, idioma: datos.idioma ?? 'es' })
+    : construirPortada({ nombreNarrador, tapa, fotoUrl, fotoFoco, idioma: datos.idioma ?? 'es' });
   // «Su voz» va después de todo el cuerpo y antes de las páginas de cierre
   // (colofón y contratapa), como pidió el plan: es una sección del libro, no una
   // página suelta pegada al final.
@@ -1224,17 +1395,24 @@ export async function construirHtmlLibro(datos: {
       ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente, lengua })
       : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono, lengua });
-  const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
+  // En imprenta la contratapa es la de la cubierta (bookmundo/cubierta.ts), no una página del libro.
+  const contratapaHtml = imprenta ? '' : construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
+  const fuentesHtml = imprenta
+    ? `<style>${imprenta.fuentesCss}</style>`
+    : '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">';
+  const atributosImprenta = imprenta
+    ? ` data-imprenta="1" data-paginas-min="${imprenta.paginasMinimas}" data-renglones="${renglonesNotas(imprenta)}" data-notas="${escaparHtml(TEXTOS_LIBRO[lengua].notas)}"`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="${datos.idioma ?? 'es'}">
 <head>
 <meta charset="utf-8" />
 <title>${escaparHtml(titulo)}</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">
-<style>${construirEstilos(acento)}</style>
+${fuentesHtml}
+<style>${construirEstilos(acento)}${imprenta ? estilosImprenta(imprenta) : ''}</style>
 </head>
-<body data-narrador="${escaparHtml(nombreNarrador)}">
+<body data-narrador="${escaparHtml(nombreNarrador)}"${atributosImprenta}>
 ${portadaHtml}
 ${contenidoHtml}
 ${seccionVozHtml}

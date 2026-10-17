@@ -43,6 +43,7 @@ import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/pl
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
+import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
 
 type Db = SupabaseClient;
 
@@ -493,6 +494,8 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo dejar entregado el pedido ${pedido.id}: ${errorUpdate.message}`);
     erroresLibro.delete(pedido.id);
+    // El libro para Bookmundo tapa dura (interior, cubierta e informe en {id}/bookmundo/): después de entregar, y sin frenar nada.
+    await armarBookmundoSinFrenar(db, narradorId);
   } catch (err) {
     const motivo = err instanceof Error ? err.message : String(err);
     console.error(`escritor ${narradorId}: el libro del pedido ${pedido.id} falló:`, motivo);

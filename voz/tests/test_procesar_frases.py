@@ -493,3 +493,28 @@ def test_con_un_cliente_viejo_igual_lee_y_avisa_una_sola_vez(monkeypatch):
     assert viejo.bucket.pedidas == [RUTA_FRASES_JSON(NARRADOR)] * 2
     assert len(log.avisos) == 1  # una sola vez por corrida: no llena el log en cada narrador
     assert "cacheado" in log.avisos[0]
+
+
+# --- la respuesta entera (Vitácora Kids) ---
+
+
+def test_una_candidata_entera_pasa_toda_la_respuesta_al_mp3_sin_whisper(tmp_path, monkeypatch):
+    cadena_sin_ffmpeg(monkeypatch, {})
+
+    def whisper_prohibido(ruta):
+        raise AssertionError("una respuesta entera no se escucha con Whisper")
+
+    entera = {**candidata("R02", "Un texto que no está en las marcas de Whisper", respuesta_id="r2"), "entera": True, "inicio": 0}
+    fake = escenario([entera])
+
+    cortadas = pf.procesar_pedido(fake, config_de(tmp_path), LOG, transcriptor=whisper_prohibido, restaurador=restaurador_falso())
+
+    assert cortadas == 1
+    ruta = RUTA_AUDIO_DE_FRASE(NARRADOR, "R02")
+    audio, tasa = audio_de(fake, ruta)
+    assert abs(len(audio) / tasa - DURACION) < 0.02  # de punta a punta
+    anotada = candidatas_publicadas(fake)["R02"]
+    assert anotada["estado"] == "cortada"
+    assert anotada["audio_path"] == ruta
+    assert (anotada["inicio"], anotada["fin"], anotada["segundos"]) == (0.0, DURACION, DURACION)
+    assert not pedido_esta(fake)
