@@ -37,7 +37,7 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| `WA_PLANTILLAS_V3_LISTAS` en Railway con las 12 entradas (las 12 plantillas están aprobadas en Meta al 17/10). Si queda mal escrita, el entrevistador lo avisa por mail al arrancar | Joaquín | ☐ |
+| `WA_PLANTILLAS_V3_LISTAS` en Railway con las 12 entradas | Joaquín | ✅ 17/10 |
 | Avisarle a Naza que su clave local de Anthropic vence el **18/10** | Joaquín | ☐ |
 | Las 26 plantillas de Kids (`_ca` y `_es_es`) en revisión de Meta desde el 16/10 | nadie, se espera | 🔄 |
 
@@ -48,11 +48,11 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Mergear en 6 fases, en este orden: **0** `rediseno-web`→main · **1** #46→#47→#50 (Kids servidor) · **2** #48→#49 (Kids web) · **3** #51 (voz) · **4** #52 (viaje solo V2) · **5** #53 (viaje web) | Naza | ☐ |
+| Mergear en 6 fases (Naza confirmó el 17/10 que arranca), en este orden: **0** `rediseno-web`→main · **1** #46→#47→#50 (Kids servidor) · **2** #48→#49 (Kids web) · **3** #51 (voz) · **4** #52 (viaje solo V2) · **5** #53 (viaje web) | Naza | ☐ |
 | `rediseno-web` necesita su PR. Un conflicto: `web/src/app/tablero/[narradorId]/page.tsx` (se resuelve con el lado del rediseño) | Naza | ☐ |
 | Actualizar `kids-compra` y `kids-panel` con `rediseno-web`: están 14 commits atrasadas y por eso falla el test `la biografía no cambia` | Naza | ☐ |
 | El conflicto de #52 contra Kids (`procesar.ts`, `scheduler.ts`, `worker.ts`): lo resuelve quien escribió las dos | Naza | ☐ |
-| **Una Action que corra los tests de los tres servicios en cada PR.** Hoy el único workflow es `deploy-web.yml`: 8 PR y cero checks | Naza | ☐ |
+| **Una Action que corra los tests de los tres servicios en cada PR.** Hoy el único workflow es `deploy-web.yml`: 8 PR y cero checks | Joaquín, con Claude | ☐ |
 | El lema nuevo quedó a medias: falta en `fabrica/src/mail/{anticipo,frases,hitos}.ts` y en la web (`layout.tsx`, `libro`, `voz`, `regalo-textos`, `mail-textos`) | Naza | ☐ |
 | `REGALO_ENTREGA_WHATSAPP=1` y `MAIL_SOCIOS` en Vercel (Joaquín no tiene acceso) | Naza | ☐ |
 
@@ -90,7 +90,8 @@ mirar si está prendido.**
 > pago la web crea la fila en `sin_direccion` · el comprador carga la dirección desde su panel
 > (`PATCH /api/entrega`) y pasa a `lista` · **sin dirección el botón Encargar no se habilita** ·
 > la fábrica crea el envío en el agregador y pasa a `en_produccion → impreso → enviado → entregado`.
-> El envío va **incluido en el precio**: nada se le cotiza al comprador.
+> El envío va **incluido en el precio**: nada se le cotiza al comprador. **Decisión del 17/10:**
+> se comunica como **envío gratis**, un plus del producto, y por eso tiene que estar en la landing.
 >
 > **Entonces la dirección se pide después de pagar, desde el panel, cuando encarga lo físico.** Eso
 > ya está programado.
@@ -102,7 +103,10 @@ mirar si está prendido.**
 | Qué | Dueño | Estado |
 |---|---|---|
 | **Verificar si la migración de `entregas` está aplicada**: `select to_regclass('public.entregas');` en el SQL Editor. Y anotarlo en el CONTRATO | Naza | ☐ **primero esto** |
-| **Elegir el agregador de envíos de cada país** y cargar su API key: ES Sendcloud o Packlink · AR Enviopack, Zippin o Shipnow | Naza (ES), Joaquín (AR) | ☐ decisión |
+| **Argentina: Correo Argentino, método Paquetería e-commerce** | Joaquín | ✅ decidido 17/10 |
+| **España: falta elegir el transportista.** Recomendación: Correos (Paq Premium) como transportista, contratado a través de **Sendcloud** como agregador | Joaquín, con Naza | ☐ decisión |
+| **Al arrancar, las etiquetas se sacan a mano** del portal de cada transportista: es la fase 1 de la spec del 21/09. La API del agregador se integra cuando el volumen la justifique | Ambos | ✅ decidido 17/10 |
+| **El envío va gratis y es un argumento de venta**: tiene que decirlo la landing y el checkout | Joaquín, textos con Naza | ☐ nuevo |
 | Probar el circuito entero una vez: dirección cargada → etiqueta generada → la imprenta la imprime | Ambos | ☐ |
 | Definir flujo y proveedor de libros impresos en **Argentina** | Joaquín | ☐ |
 | Definir flujo y proveedor de libros impresos en **España** | Naza | ☐ |
@@ -127,7 +131,8 @@ mirar si está prendido.**
 | Qué | Dueño | Estado |
 |---|---|---|
 | Definir la maqueta del pie en A5 (ver la propuesta de estructura abajo) | Joaquín, con Naza | ☐ |
-| **Preguntarle al proveedor si pide múltiplos de 4 páginas.** Si pide, el pie son 4 hojas y no 3: una de firma y tres en blanco | Joaquín | ☐ **antes de maquetar** |
+| El proveedor acepta **cualquier cantidad de páginas, con un mínimo de 45**: el pie queda en **3 hojas** (una de firma, dos en blanco) | Joaquín | ✅ confirmado 17/10 |
+| **Avisar si un libro queda por debajo de 45 páginas**: el proveedor no lo imprime. Hoy nada lo controla; el pie suma 3 y ayuda, pero no alcanza como garantía | Claude | ☐ nuevo |
 | Que las hojas en blanco salgan **de verdad en blanco**: sin número de página, sin encabezado, sin pie | Claude | ☐ |
 | Programarlo en `fabrica/src/libro/imprenta.ts` + `plantilla-html.ts`, con test de que el `libro.pdf` entregado no cambia | Claude, con Naza | ☐ |
 | Textos de la hoja de firma en los tres idiomas, aprobados por Naza | Claude, con Naza | ☐ |
@@ -162,6 +167,11 @@ mirar si está prendido.**
 
 ### Bloque 8 · Legales: cómo nos presentamos y en qué situación estamos (nuevo, 17/10)
 
+> ⚠️ **Consecuencia de la decisión del 17/10: España no puede vender hasta que salga el alta de
+> autónomo.** Sin NIF no hay titular legal válido en los legales y no se puede dar de alta Stripe.
+> Argentina sí puede: el CUIT de monotributo ya existe. **El lanzamiento es Argentina**, como ya
+> decía la decisión del 04/09, y ahora con una fecha dura: la del alta.
+
 > **Lo escrito está mucho más avanzado de lo que decía el roadmap.** En `rediseno-web` ya hay
 > términos, privacidad y botón de arrepentimiento, en los tres idiomas y por región
 > (`web/src/app/_textos/legal.ts`, 1.300 líneas), con la ley y la autoridad de reclamo de cada país.
@@ -174,7 +184,7 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Que el abogado revise lo ya escrito (un solo brief: devolución, «Su voz» sin clonación, uso de datos, titulares) | Naza | ☐ |
+| Que el abogado revise el PDF del 17/10 y que Joaquín dé el OK | Joaquín | 🔄 en revisión |
 | Abogado para Kids: aviso de «algo preocupante» y permiso del adulto (WhatsApp pide 13 años). **Bloquea vender Kids** | Naza | ☐ |
 | Los legales **viven en `rediseno-web`**: hasta el bloque 1 no están publicados | Naza | 🔄 con el merge |
 | Sumar a la privacidad la **dirección de envío** (para qué se usa y cuánto se guarda), que sale del bloque 4 | Claude, con Naza | ☐ |
@@ -185,8 +195,11 @@ mirar si está prendido.**
 | Qué | Dueño | Estado |
 |---|---|---|
 | **INPI**: Argentina es first-to-file y el contenido ya es público | Joaquín | ☐ **urgente** |
-| **Con qué figura legal se factura en cada país** (Joaquín en AR, Immaculada en ES). Falta definirlo con Naza | Ambos | ☐ decisión |
-| **Los titulares de los legales, vacíos desde septiembre**: CUIT y domicilio de Joaquín, NIF y domicilio de Immaculada (`web/src/app/legal/titulares.ts`). La página los pinta en amarillo. Obligatorio por LSSI-CE art. 10 (ES) y Res. 424/2020 (AR). Sale de la figura legal de arriba | Joaquín y Naza | ☐ **bloquea vender** |
+| **Figura legal, decidida el 17/10: Joaquín en los dos países.** Argentina con su CUIT de monotributo; España con su **NIF de autónomo, alta en trámite**. Cambia el titular de España, que en el código figura como Immaculada Collel | Joaquín | ✅ decidido · ☐ en trámite |
+| Cargar el **titular de Argentina** (CUIT y domicilio): se puede hacer ya | Joaquín, lo carga Claude | ☐ se puede hoy |
+| Cargar el **titular de España** (NIF y domicilio) y cambiar el nombre de Immaculada por Joaquín en `titulares.ts` | Joaquín, lo carga Claude | ☐ espera el alta |
+| **Dar de alta Stripe con el NIF** y dejar la pasarela activa. Es **lo último antes de salir a mercado** | Joaquín | ☐ espera el alta |
+| Los legales en PDF para el abogado: entregado el 17/10 (`legales-vitacora-para-abogado-17-10-2026.pdf`, 25 páginas, los 9 documentos) | Claude | ✅ |
 | Stripe real para España | Naza | ☐ |
 | Clave de Anthropic de Joaquín: vence el **1/11** | Joaquín | ☐ se mira el 25/10 |
 
