@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { textosAbuelo } from "../src/lib/regalo-textos";
+import { textosCartaLibre } from "../src/lib/carta-textos";
+import type { CodigoImpreso } from "../src/lib/cartas";
 import type { RegaloPublico } from "../src/lib/regalo-datos";
 
 // Gift card: la página que abre el QR, renderizada sin base (leerRegalo mockeado).
@@ -9,6 +11,7 @@ const estado = vi.hoisted(() => ({
   regalo: null as RegaloPublico | null,
   numero: null as { digitos: string; legible: string } | null,
   codigos: [] as string[],
+  carta: null as CodigoImpreso | null,
 }));
 
 vi.mock("next/font/google", () => {
@@ -19,6 +22,7 @@ vi.mock("next/navigation", () => ({
   notFound: () => { throw new Error("NEXT_NOT_FOUND"); },
 }));
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: () => ({}) }));
+vi.mock("@/lib/cartas", () => ({ leerCodigoImpreso: async () => estado.carta }));
 vi.mock("@/lib/regalo-datos", () => ({
   leerRegalo: async (_admin: unknown, codigo: string) => { estado.codigos.push(codigo); return estado.regalo; },
   numeroPublico: () => estado.numero,
@@ -53,6 +57,7 @@ describe("la página del regalo", () => {
     estado.regalo = regalo();
     estado.numero = { digitos: "5491100000000", legible: "+54 9 11 0000 0000" };
     estado.codigos = [];
+    estado.carta = null;
   });
 
   it("sin usar y con número: el título, el mensaje, lo que va a pasar y el botón a WhatsApp", async () => {
@@ -135,6 +140,24 @@ describe("la página del regalo", () => {
 
   it("si leerRegalo devuelve null, llama a notFound", async () => {
     estado.regalo = null;
+    await expect(render()).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("carta sin pagar: muestra que no se activó y lleva a regalarla", async () => {
+    estado.regalo = null;
+    estado.carta = { codigo: "VF-7K3M2Q", pagado: false, localId: "l", idioma: "ca", comisionPct: 20, localActivo: true };
+    const html = await render();
+    expect(html).toContain(textosCartaLibre("ca").titulo.replace(/'/g, "&#x27;")); // React escapa el apóstrofo
+    expect(html).toContain('href="/regalar?codigo=VF-7K3M2Q"');
+    expect(html).toContain('href="/comprar?carta=VF-7K3M2Q"');
+    expect(html).not.toMatch(/€|ARS|\$/); // sin precio
+  });
+
+  it("carta pagada pero sin regalo legible, o código inexistente: 404", async () => {
+    estado.regalo = null;
+    estado.carta = { codigo: "VF-7K3M2Q", pagado: true, localId: "l", idioma: "ca", comisionPct: 20, localActivo: true };
+    await expect(render()).rejects.toThrow("NEXT_NOT_FOUND");
+    estado.carta = null;
     await expect(render()).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

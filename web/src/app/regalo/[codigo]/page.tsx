@@ -4,8 +4,10 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { linkWhatsApp } from "@/lib/regalo";
 import { textosAbuelo } from "@/lib/regalo-textos";
+import { leerCodigoImpreso } from "@/lib/cartas";
 import { Toroide } from "../../marca";
 import { AudioRegalo } from "./audio";
+import { CartaLibre } from "./carta-libre";
 
 // La página que abre el QR de la gift card (spec 2026-10-07-gift-card-design §5):
 // corta, sin login, una columna pensada para el celular. Fondo blanco y tinta;
@@ -25,7 +27,13 @@ export default async function PaginaRegalo({ params }: { params: Promise<{ codig
     // Un % mal formado no es un código: leerRegalo lo descarta.
   }
   const regalo = await leerRegalo(crearClienteServidor(), crudo);
-  if (!regalo) notFound();
+  if (!regalo) {
+    // Regalo en locales (17/10): una carta que alguien se llevó y nadie pagó.
+    // Una pagada sin regalo legible (narrador pendiente) sigue siendo 404.
+    const carta = await leerCodigoImpreso(crearClienteServidor(), crudo);
+    if (carta && !carta.pagado) return <CartaLibre codigo={carta.codigo} idioma={carta.idioma} />;
+    notFound();
+  }
   const numero = numeroPublico();
   const textos = textosAbuelo(regalo.idioma);
 
