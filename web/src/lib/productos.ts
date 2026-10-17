@@ -42,7 +42,7 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   copia: "Copia extra del libro impreso",
   marco: "Marco con su voz",
   marco_adicional: "Marco adicional",
-  tarjeta: "Tarjeta negra por correo", // ⚠️ texto a aprobar por Naza (17/10)
+  tarjeta: "Tarjeta negra por correo",
 };
 export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
 export const DETALLE_MARCO = "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viaja con el libro.";

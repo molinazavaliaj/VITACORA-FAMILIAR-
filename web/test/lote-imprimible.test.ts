@@ -19,10 +19,17 @@ it("una carta por código, con su código y su QR, sin precio", () => {
 describe("la hoja", () => {
   it("lleva el texto del idioma del lote y 12 stickers sin código", () => {
     const html = armarHojaLote(dos, "es-ES");
-    expect(html).toContain("Se activa cuando la pagas en vitacorafamiliar.com");
+    expect(html).toContain("Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada.");
+    // La activación va en la contratapa (afuera), ya no adentro.
+    const interior = html.slice(html.indexOf('<section class="hoja">', html.indexOf("</section>")));
+    expect(interior.slice(0, interior.indexOf("</section>"))).not.toContain("queda activada");
+    expect(html).toContain('class="contratapa"');
     expect(html.match(/class="sticker"/g)).toHaveLength(12);
     const stickers = html.slice(html.indexOf('class="stickers"'));
     expect(stickers).not.toContain("VF-");
+    expect(stickers).toContain("El libro de tu vida");
+    expect(stickers).toContain("Para");
+    expect(armarHojaLote(dos, "ca")).toContain("Per a");
   });
 
   it("una carta impar sigue dando una hoja de afuera y otra de adentro", () => {

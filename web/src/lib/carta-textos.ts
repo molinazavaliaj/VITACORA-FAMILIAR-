@@ -1,8 +1,6 @@
 // web/src/lib/carta-textos.ts
-// ⚠️ BORRADOR (17/10). Ningún texto de este archivo está aprobado. Naza los
-// aprueba de a 10 antes de mergear (vos, tú y catalán). Reglas: sin dos
-// puntos, sin oraciones que empiecen con «Y», sin precio, sin «tu vida» hacia
-// quien compra.
+// Textos aprobados por Naza el 17/10/2026, ver docs/regalo/locales/textos-aprobados.md.
+// El catalán lo tradujo Claude y debe revisarlo un nativo antes de la primera impresión.
 
 import type { IdiomaRegalo, TratoComprador } from "./regalo-textos";
 
@@ -18,21 +16,21 @@ export type TextosCartaLibre = {
 const CARTA_LIBRE: Record<IdiomaRegalo, TextosCartaLibre> = {
   "es-AR": {
     titulo: "Esta carta es un regalo que todavía no se activó",
-    cuerpo: "Con ella alguien que querés cuenta su vida por WhatsApp y nosotros escribimos su libro. Se activa cuando la regalás desde acá.",
+    cuerpo: "Con esta carta, alguien que querés cuenta su vida por WhatsApp. Nosotros escribimos su libro. Se activa cuando la regalás desde acá.",
     regalarla: "Regalarla",
     paraVos: "¿La querés para vos?",
     siTeLaRegalaron: "Si te la dieron como regalo, avisale a quien te la dio.",
   },
   "es-ES": {
     titulo: "Esta carta es un regalo que todavía no se ha activado",
-    cuerpo: "Con ella alguien a quien quieres cuenta su vida por WhatsApp y nosotros escribimos su libro. Se activa cuando la regalas desde aquí.",
+    cuerpo: "Con esta carta, alguien a quien quieres cuenta su vida por WhatsApp. Nosotros escribimos su libro. Se activa cuando la regalas desde aquí.",
     regalarla: "Regalarla",
     paraVos: "¿La quieres para ti?",
     siTeLaRegalaron: "Si te la han dado como regalo, avísale a quien te la dio.",
   },
   ca: {
     titulo: "Aquesta carta és un regal que encara no s'ha activat",
-    cuerpo: "Amb ella algú que estimes explica la seva vida per WhatsApp i nosaltres n'escrivim el llibre. S'activa quan la regales des d'aquí.",
+    cuerpo: "Amb aquesta carta, algú que estimes explica la seva vida per WhatsApp. Nosaltres n'escrivim el llibre. S'activa quan la regales des d'aquí.",
     regalarla: "Regalar-la",
     paraVos: "La vols per a tu?",
     siTeLaRegalaron: "Si te l'han donat com a regal, avisa qui te la va donar.",
@@ -69,7 +67,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
     digital: "El libro digital",
     digitalDetalle: "Se lee en la web, con sus fotos y su voz.",
     impreso: "El libro impreso",
-    impresoDetalle: "Tapa dura, a color, con su voz en un código. Incluye el digital.",
+    impresoDetalle: "Tapa dura, a color, con un código que hace sonar su voz. Incluye el digital.",
     tarjetaTitulo: "Sumar la tarjeta negra por correo",
     tarjetaDetalle: "Te la mandamos a tu casa en un sobre negro, para dársela en mano.",
     direccionTitulo: "Dónde te la mandamos",
@@ -83,7 +81,7 @@ const CARTA_COMPRADOR: Record<TratoComprador, TextosCartaComprador> = {
     digital: "El libro digital",
     digitalDetalle: "Se lee en la web, con sus fotos y su voz.",
     impreso: "El libro impreso",
-    impresoDetalle: "Tapa dura, a color, con su voz en un código. Incluye el digital.",
+    impresoDetalle: "Tapa dura, a color, con un código que hace sonar su voz. Incluye el digital.",
     tarjetaTitulo: "Añadir la tarjeta negra por correo",
     tarjetaDetalle: "Te la enviamos a casa en un sobre negro, para dársela en mano.",
     direccionTitulo: "Dónde te la enviamos",
@@ -109,21 +107,21 @@ export type TextosPanelLocal = {
 const PANEL: Record<IdiomaRegalo, TextosPanelLocal> = {
   "es-AR": {
     titulo: (nombre) => `Vitácora Familiar en ${nombre}`,
-    sobres: (n) => `Te dejamos ${n} sobres.`,
+    sobres: (n) => (n === 1 ? "Te dejamos 1 sobre." : `Te dejamos ${n} sobres.`),
     sinVentas: "Todavía no se pagó ninguna carta de tu caja.",
     mes: "Mes", cartas: "Cartas pagadas", teToca: "Te toca",
     pago: "Lo de cada mes te lo pagamos a principios del mes siguiente.",
   },
   "es-ES": {
     titulo: (nombre) => `Vitácora Familiar en ${nombre}`,
-    sobres: (n) => `Os hemos dejado ${n} sobres.`,
+    sobres: (n) => (n === 1 ? "Os hemos dejado 1 sobre." : `Os hemos dejado ${n} sobres.`),
     sinVentas: "Todavía no se ha pagado ninguna carta de vuestra caja.",
     mes: "Mes", cartas: "Cartas pagadas", teToca: "Os toca",
     pago: "Lo de cada mes os lo pagamos a principios del mes siguiente.",
   },
   ca: {
     titulo: (nombre) => `Vitácora Familiar a ${nombre}`,
-    sobres: (n) => `Us hem deixat ${n} sobres.`,
+    sobres: (n) => (n === 1 ? "Us hem deixat 1 sobre." : `Us hem deixat ${n} sobres.`),
     sinVentas: "Encara no s'ha pagat cap carta de la vostra caixa.",
     mes: "Mes", cartas: "Cartes pagades", teToca: "Us toca",
     pago: "El de cada mes us el paguem a principis del mes següent.",

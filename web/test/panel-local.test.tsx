@@ -87,3 +87,12 @@ describe("el panel del local", () => {
     }
   });
 });
+
+describe("sobres en singular", () => {
+  it("usa 'sobre' cuando es uno", () => {
+    expect(textosPanelLocal("es-AR").sobres(1)).toBe("Te dejamos 1 sobre.");
+    expect(textosPanelLocal("es-ES").sobres(1)).toBe("Os hemos dejado 1 sobre.");
+    expect(textosPanelLocal("ca").sobres(1)).toBe("Us hem deixat 1 sobre.");
+    expect(textosPanelLocal("es-AR").sobres(15)).toBe("Te dejamos 15 sobres.");
+  });
+});

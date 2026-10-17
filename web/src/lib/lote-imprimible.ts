@@ -6,49 +6,52 @@
 import type { IdiomaRegalo } from "./regalo-textos";
 
 /**
- * ⚠️ BORRADOR (17/10). Ningún texto de este objeto está aprobado. Naza los
- * aprueba de a 10 antes de imprimir. es-ES y ca reusan las frases ya aprobadas
- * de la gift card (`textosAbuelo` en regalo-textos.ts); lo nuevo es `pie`,
- * `para`, `de` y `sticker`. Sin precio, sin dos puntos.
+ * Textos aprobados por Naza el 17/10/2026, ver docs/regalo/locales/textos-aprobados.md.
+ * El catalán lo tradujo Claude y debe revisarlo un nativo antes de la primera
+ * impresión. Sin precio, sin dos puntos.
  */
 export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   tapa: string;
   esUnRegalo: string;
   adentro: string;
-  pie: string;
+  contratapa: string;
   para: string;
   de: string;
-  sticker: string;
+  stickerTitulo: string;
+  stickerPara: string;
   lang: string;
 }> = {
   "es-AR": {
     tapa: "En cada familia hay un libro sin escribir",
     esUnRegalo: "Esto es un regalo.",
     adentro: "Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le contestás con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida.",
-    pie: "Se activa cuando la pagás en vitacorafamiliar.com",
+    contratapa: "Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada.",
     para: "Para",
     de: "De",
-    sticker: "El libro de su vida · Gift card",
+    stickerTitulo: "El libro de tu vida",
+    stickerPara: "Para",
     lang: "es",
   },
   "es-ES": {
     tapa: "En cada familia hay un libro sin escribir",
     esUnRegalo: "Esto es un regalo.",
     adentro: "Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le contestas con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida.",
-    pie: "Se activa cuando la pagas en vitacorafamiliar.com",
+    contratapa: "Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada.",
     para: "Para",
     de: "De",
-    sticker: "El libro de su vida · Gift card",
+    stickerTitulo: "El libro de tu vida",
+    stickerPara: "Para",
     lang: "es",
   },
   ca: {
     tapa: "A cada família hi ha un llibre per escriure",
     esUnRegalo: "Això és un regal.",
     adentro: "Un biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li respons amb àudios, quan puguis. Amb el que li expliquis s'escriu el llibre de la teva vida.",
-    pie: "S'activa quan la pagues a vitacorafamiliar.com",
+    contratapa: "Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada.",
     para: "Per a",
     de: "De",
-    sticker: "El llibre de la seva vida · Gift card",
+    stickerTitulo: "El llibre de la teva vida",
+    stickerPara: "Per a",
     lang: "ca",
   },
 };
@@ -95,11 +98,13 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 300 }
 .texto { margin-top: 3mm; font-size: 9pt; line-height: 1.35 }
 .qr { width: 30mm; height: 30mm; margin-top: 4mm }
 .codigo { margin-top: 2mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 17pt; letter-spacing: 0.12em }
-.pie { margin-top: 3mm; font-family: Archivo, sans-serif; font-size: 7pt }
+.contratapa { font-family: Archivo, sans-serif; font-size: 7pt; line-height: 1.4; max-width: 60mm }
 .stickers { display: grid; grid-template-columns: repeat(3, 40mm); grid-auto-rows: 40mm; gap: 12mm; justify-content: center; align-content: center; height: 100% }
 .sticker { width: 40mm; height: 40mm; border-radius: 50%; border: 0.2mm solid #14140F33; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4mm }
 .sticker .toroide { width: 22mm }
 .sticker p { margin-top: 2mm; font-family: Archivo, sans-serif; font-size: 5.5pt; letter-spacing: 0.08em; line-height: 1.25 }
+.sticker .para { width: 100%; margin-top: 1.5mm; display: flex; align-items: flex-end; gap: 1mm; font-size: 5.5pt }
+.sticker .para span { flex: 1; border-bottom: 0.25mm solid #14140F; height: 4mm }
 `;
 
 /**
@@ -110,9 +115,9 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 300 }
 export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: IdiomaRegalo): string {
   const t = TEXTOS_CARTA[idioma];
 
-  // Afuera: contratapa en blanco a la izquierda, tapa a la derecha.
+  // Afuera: contratapa (cómo se activa) a la izquierda, tapa a la derecha.
   const exterior = (n: number) => {
-    const fila = `<div class="a5"><div class="panel"></div><div class="panel">${toroideSvg("toroide")}<p class="marca">Vitácora Familiar</p><p class="tapa">${esc(t.tapa)}</p></div></div>`;
+    const fila = `<div class="a5"><div class="panel"><p class="contratapa">${esc(t.contratapa)}</p></div><div class="panel">${toroideSvg("toroide")}<p class="marca">Vitácora Familiar</p><p class="tapa">${esc(t.tapa)}</p></div></div>`;
     return fila.repeat(n);
   };
   // Adentro: Para/De a la izquierda; qué es, QR y código a la derecha.
@@ -120,7 +125,7 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
     `<div class="a5">` +
     `<div class="panel"><div class="escribir"><b>${esc(t.para)}</b><span></span></div><div class="escribir"><b>${esc(t.de)}</b><span></span></div></div>` +
     `<div class="panel"><p class="regalo">${esc(t.esUnRegalo)}</p><p class="texto">${esc(t.adentro)}</p>` +
-    `<img class="qr" src="${esc(c.qr)}" alt="QR"><p class="codigo">${esc(c.codigo)}</p><p class="pie">${esc(t.pie)}</p></div>` +
+    `<img class="qr" src="${esc(c.qr)}" alt="QR"><p class="codigo">${esc(c.codigo)}</p></div>` +
     `</div>`;
 
   const hojas: string[] = [];
@@ -130,7 +135,7 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
     hojas.push(`<section class="hoja">${par.map(interior).join("")}</section>`);
   }
 
-  const sticker = `<div class="sticker">${toroideSvg("toroide")}<p>${esc(t.sticker)}</p></div>`;
+  const sticker = `<div class="sticker">${toroideSvg("toroide")}<p>${esc(t.stickerTitulo)}</p><p class="para">${esc(t.stickerPara)}<span></span></p></div>`;
   hojas.push(`<section class="hoja"><div class="stickers">${sticker.repeat(12)}</div></section>`);
 
   return `<!doctype html>
