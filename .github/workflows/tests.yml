@@ -1,0 +1,112 @@
+# Los tests de los cuatro servicios en cada PR (17/10).
+#
+# Por qué existe: al 17/10 había 8 PR abiertos y cero checks. El único workflow
+# era deploy-web.yml, que corre los tests de la web pero recién al pushear a
+# main: cuando ya es tarde. Una regresión se encontraba a mano, corriendo todo
+# en una máquina, o no se encontraba. Pasó: la rama de Kids tenía un test que
+# fijaba un texto del mail que el rediseño ya había cambiado, y eso se vio
+# probando el merge a mano.
+#
+# Corre en todo PR, contra cualquier rama: las ramas de Kids y de Viaje apuntan
+# unas a otras, no a main, y también merecen check.
+#
+# Los cuatro jobs van en paralelo y son independientes: si falla uno, los otros
+# igual te dicen si están bien.
+#
+# Notas de mantenimiento:
+#   - `npm test` de entrevistador y fábrica ya corre `tsc` antes de vitest.
+#   - La fábrica necesita Chromium: hay un test que arma el PDF del libro.
+#   - La simulación de 2400 semillas de Viaje V2 tarda ~25 s en una máquina
+#     normal y tiene un tope de 180 s. Si en los runners llegara a pasarse,
+#     poner `VIAJE_V2_SIN_2400: '1'` en el env de ese job (el test se saltea).
+#   - Si algún día sobran minutos de Actions, se puede filtrar por carpeta con
+#     dorny/paths-filter. Hoy no hace falta y sin filtro es más difícil de
+#     romper.
+
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Instalar
+        run: npm ci
+      - name: Tests
+        run: npm test
+
+  entrevistador:
+    name: entrevistador
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: entrevistador
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: entrevistador/package-lock.json
+      - name: Instalar
+        run: npm ci
+      - name: Tipos y tests
+        run: npm test
+
+  fabrica:
+    name: fábrica
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fabrica
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fabrica/package-lock.json
+      - name: Instalar
+        run: npm ci
+      # El libro sale en PDF con Playwright; sin el navegador ese test falla.
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Tipos y tests
+        run: npm test
+
+  voz:
+    name: voz
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: voz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: voz/requirements.txt
+      - name: Instalar
+        run: pip install -r requirements.txt
+      - name: Tests
+        run: python -m pytest -q
