@@ -1,0 +1,89 @@
+/* ── /opiniones, opción C «revista» (Naza, 17/10) ──────────────────────────
+   Las superficies (dir-papel, dir-tinta, dir-hoja, el grano y las capas)
+   son las de la portada, en globals.css y _direccion/direccion.css. Acá va
+   solo la composición de esta página, con prefijo opn-. Maqueta:
+   docs/rediseno-2026-10/opiniones/maqueta-c-revista.html. */
+
+.opn > section + section,
+.opn > main > section { margin-top: -1px; }
+
+.opn-titulo {
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 1.2rem + 7vw, 8rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+.opn-bajada {
+  max-width: 30ch;
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.5;
+  color: #cfcbc1;
+  text-wrap: balance;
+}
+
+/* Un bloque por opinión: el número grande a un lado, la frase al otro. En
+   los de tinta el número pasa a la derecha. */
+.opn-rejilla { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 900px) {
+  .opn-rejilla { grid-template-columns: 3fr 9fr; gap: 48px; align-items: start; }
+  .opn-bloque[data-superficie="tinta"] .opn-rejilla { grid-template-columns: 9fr 3fr; }
+  .opn-bloque[data-superficie="tinta"] .opn-numero { order: 2; text-align: right; }
+}
+.opn-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(5rem, 3rem + 9vw, 11rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  font-variant-numeric: lining-nums;
+}
+.opn-bloque[data-superficie="papel"] .opn-numero { color: var(--dir-dorado); opacity: 0.6; }
+.opn-bloque[data-superficie="tinta"] .opn-numero { color: var(--dir-sobre-tinta); opacity: 0.2; }
+
+.opn-texto { margin: 0; }
+.opn-frase {
+  margin: 0;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 1.1rem + 3.6vw, 4.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.opn-frase::before { content: "«"; }
+.opn-frase::after { content: "»"; }
+
+.opn-meta { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+.opn-quien { font-family: var(--fuente-micro), sans-serif; font-size: 16px; line-height: 1.5; }
+.opn-quien b { font-weight: 600; }
+.dir-papel .opn-dato { color: var(--dir-sobre-papel-suave); }
+.dir-tinta .opn-dato { color: var(--dir-sobre-tinta-suave); }
+.dir-papel .opn-producto { color: var(--dir-dorado); }
+
+/* El trozo de su libro: una línea chica en cursiva, sin tarjeta. */
+.opn-fragmento {
+  margin-top: 26px;
+  max-width: 60ch;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+.opn-fragmento-etiqueta { display: block; margin-bottom: 6px; font-style: normal; font-size: 10.5px; }
+
+/* Cómo se comprueban y el enlace a Google. */
+.opn-comprobadas { display: grid; gap: 28px; }
+@media (min-width: 900px) {
+  .opn-comprobadas { grid-template-columns: 7fr 5fr; gap: 64px; align-items: start; }
+  .opn-boton-hilo { justify-self: end; }
+}
+.opn-comprobadas-texto { margin-top: 12px; max-width: 52ch; font-size: 16px; font-weight: 300; line-height: 1.6; }
+.dir-papel .opn-comprobadas-texto { color: var(--dir-sobre-papel-suave); }
+.dir-tinta .opn-comprobadas-texto { color: #cfcbc1; }
+.opn-boton-hilo { justify-self: start; border: 1px solid currentColor; white-space: normal; text-align: center; }
+.dir-papel .opn-boton-hilo { color: var(--dir-sobre-papel); border-color: rgba(21, 20, 18, 0.35); }
+.dir-tinta .opn-boton-hilo { color: var(--dir-sobre-tinta); border-color: rgba(238, 234, 225, 0.36); }
+.opn-boton-hilo:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

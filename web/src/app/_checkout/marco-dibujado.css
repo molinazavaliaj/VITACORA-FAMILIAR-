@@ -1,0 +1,62 @@
+/* El marco dibujado (marco-dibujado.tsx). Todo en cqw del ancho del marco. */
+/* El contenedor solo mide (los cqw de adentro se miden contra él). */
+.mdb {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  container-type: inline-size;
+}
+.mdb-moldura {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 7cqw;
+  border-radius: 1.2cqw;
+  /* La moldura: madera negra con un poco de luz en el canto de arriba y a la
+     izquierda, como si le diera la ventana. */
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 38%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0) 45%),
+    repeating-linear-gradient(90deg, #191816 0 1.6cqw, #1f1d1a 1.6cqw 2.4cqw),
+    #1a1917;
+  box-shadow:
+    inset 0 0 0 0.6cqw rgba(255, 255, 255, 0.05),
+    0 0.8cqw 1.4cqw rgba(30, 24, 14, 0.35),
+    0 3cqw 6cqw -1.5cqw rgba(30, 24, 14, 0.45);
+}
+/* El paspartú: cartón crema con el corte biselado hacia la foto. */
+.mdb-paspartu {
+  position: relative;
+  display: block;
+  height: 100%;
+  padding: 11cqw 11cqw 16cqw;
+  background: #f1ebdd;
+  box-shadow: inset 0 0.8cqw 1.4cqw rgba(0, 0, 0, 0.28);
+}
+.mdb-foto {
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  background: #d9d0bf;
+  box-shadow: 0 0 0 0.5cqw #fbf7ee, 0 0 0 0.8cqw rgba(60, 45, 25, 0.25);
+}
+/* Recortada al retrato: la cara y el pecho, en sepia suave. */
+.mdb-img {
+  object-fit: cover;
+  object-position: 51% 30%;
+  transform: scale(1.45);
+  transform-origin: 51% 34%;
+  filter: grayscale(0.3) sepia(0.35) saturate(0.85) contrast(1.02);
+}
+/* El chip, grabado chiquito en el paspartú. */
+.mdb-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 4.5cqw;
+  width: 11cqw;
+  height: auto;
+  transform: translateX(-50%);
+  color: #8f8573;
+  opacity: 0.8;
+}

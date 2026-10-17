@@ -1,0 +1,525 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Anuncios.dc.html": {
+      "h": 2144,
+      "title": "Anuncios por ángulo — feed y stories",
+      "w": 1440,
+      "x": 15180,
+      "y": 0
+    },
+    "AnunciosLineas.dc.html": {
+      "h": 3919,
+      "title": "Anuncios Kids y Viaje — feed y stories",
+      "w": 1440,
+      "x": 15180,
+      "y": 2280
+    },
+    "Checkout.dc.html": {
+      "x": 7130,
+      "y": 0,
+      "w": 1440,
+      "h": 1240,
+      "title": "Checkout — pago primero, 3 pasos (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "CheckoutKids.dc.html": {
+      "x": 7130,
+      "y": 3520,
+      "w": 1440,
+      "h": 1240,
+      "title": "Checkout Kids (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "CheckoutKidsMovil.dc.html": {
+      "h": 2010,
+      "is_interactive": true,
+      "title": "Checkout Kids — móvil (prototipo)",
+      "w": 390,
+      "x": 7130,
+      "y": 6280
+    },
+    "CheckoutMovil.dc.html": {
+      "h": 2010,
+      "is_interactive": true,
+      "title": "Checkout — móvil (prototipo)",
+      "w": 390,
+      "x": 7130,
+      "y": 1380
+    },
+    "CheckoutViaje.dc.html": {
+      "x": 7130,
+      "y": 4900,
+      "w": 1440,
+      "h": 1240,
+      "title": "Checkout Viaje (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "CheckoutViajeMovil.dc.html": {
+      "h": 2010,
+      "is_interactive": true,
+      "title": "Checkout Viaje — móvil (prototipo)",
+      "w": 390,
+      "x": 7600,
+      "y": 6280
+    },
+    "Ejemplo.dc.html": {
+      "expand": "fill",
+      "h": 1180,
+      "is_interactive": true,
+      "title": "Ejemplo de libro — hojeable (prototipo)",
+      "w": 1440,
+      "x": 10250,
+      "y": 2440
+    },
+    "EjemploMovil.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "title": "Ejemplo de libro — móvil (prototipo)",
+      "w": 390,
+      "x": 11770,
+      "y": 2440
+    },
+    "Email.dc.html": {
+      "h": 1300,
+      "title": "Email de confirmación",
+      "w": 680,
+      "x": 13660,
+      "y": 1850
+    },
+    "Guia.dc.html": {
+      "h": 4500,
+      "title": "LÉEME — guía para el programador",
+      "w": 1440,
+      "x": -1520,
+      "y": 0
+    },
+    "Kids.dc.html": {
+      "expand": "fill",
+      "h": 8000,
+      "title": "Vitácora Kids — página",
+      "w": 1440,
+      "x": 4010,
+      "y": 0
+    },
+    "KidsMovil.dc.html": {
+      "h": 8000,
+      "title": "Kids — móvil",
+      "w": 390,
+      "x": 4010,
+      "y": 8200
+    },
+    "LandingKidsAbuelos.dc.html": {
+      "h": 2850,
+      "title": "Landing Kids · para los abuelos",
+      "w": 390,
+      "x": 13180,
+      "y": 4600
+    },
+    "LandingKidsMundo.dc.html": {
+      "h": 3080,
+      "title": "Landing Kids · su mundo",
+      "w": 390,
+      "x": 12710,
+      "y": 4600
+    },
+    "LandingKidsOnce.dc.html": {
+      "h": 3048,
+      "title": "Landing Kids · a los once",
+      "w": 390,
+      "x": 12240,
+      "y": 4600
+    },
+    "LandingPreguntas.dc.html": {
+      "h": 3268,
+      "title": "Landing · anuncio preguntas",
+      "w": 390,
+      "x": 12710,
+      "y": 0
+    },
+    "LandingRegalo.dc.html": {
+      "h": 3036,
+      "title": "Landing · anuncio regalo",
+      "w": 390,
+      "x": 12240,
+      "y": 0
+    },
+    "LandingViajeLuna.dc.html": {
+      "h": 3039,
+      "title": "Landing Viaje · luna de miel",
+      "w": 390,
+      "x": 13650,
+      "y": 4600
+    },
+    "LandingViajeOlvida.dc.html": {
+      "h": 2816,
+      "title": "Landing Viaje · el viaje se olvida",
+      "w": 390,
+      "x": 14120,
+      "y": 4600
+    },
+    "LandingViajeVolver.dc.html": {
+      "h": 2788,
+      "title": "Landing Viaje · al volver",
+      "w": 390,
+      "x": 14590,
+      "y": 4600
+    },
+    "LandingVoz.dc.html": {
+      "h": 3830,
+      "title": "Landing · anuncio su voz",
+      "w": 390,
+      "x": 13180,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 4702,
+      "title": "Escritorio — portada con video",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Motion.dc.html": {
+      "expand": "fill",
+      "h": 2300,
+      "is_interactive": true,
+      "title": "Guía de motion (prototipo)",
+      "w": 1440,
+      "x": 10250,
+      "y": 0
+    },
+    "Movil.dc.html": {
+      "h": 7175,
+      "title": "Móvil — portada con video",
+      "w": 390,
+      "x": 1520,
+      "y": 0
+    },
+    "Paletas.dc.html": {
+      "h": 1180,
+      "title": "Paletas Kids y Viaje",
+      "w": 1900,
+      "x": 1990,
+      "y": 3400
+    },
+    "Panel.dc.html": {
+      "expand": "fill",
+      "h": 1740,
+      "is_interactive": true,
+      "title": "Área de cliente — 3 momentos (prototipo)",
+      "w": 1440,
+      "x": 8690,
+      "y": 0
+    },
+    "PanelMovil.dc.html": {
+      "h": 3420,
+      "is_interactive": true,
+      "title": "Área de cliente — móvil, 3 momentos (prototipo)",
+      "w": 390,
+      "x": 8690,
+      "y": 2020
+    },
+    "Rasca.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "Popup rasca-rasca (prototipo)",
+      "w": 1280,
+      "x": 1990,
+      "y": 0
+    },
+    "RascaPasos.dc.html": {
+      "h": 1180,
+      "title": "Rasca-rasca paso a paso",
+      "w": 2480,
+      "x": 1990,
+      "y": 2100
+    },
+    "Resto.dc.html": {
+      "expand": "fill",
+      "h": 8000,
+      "title": "Resto de la página — rediseño oscuro",
+      "w": 1440,
+      "x": 0,
+      "y": 4980
+    },
+    "RestoMovil.dc.html": {
+      "h": 8000,
+      "title": "Resto de la página — móvil",
+      "w": 390,
+      "x": 1520,
+      "y": 7400
+    },
+    "Tarjeta.dc.html": {
+      "h": 1710,
+      "title": "Tarjeta regalo (imprimible y WhatsApp)",
+      "w": 1440,
+      "x": 13660,
+      "y": 0
+    },
+    "Viaje.dc.html": {
+      "expand": "fill",
+      "h": 8000,
+      "title": "Vitácora de Viaje — página",
+      "w": 1440,
+      "x": 5570,
+      "y": 0
+    },
+    "ViajeMovil.dc.html": {
+      "h": 8000,
+      "title": "Viaje — móvil",
+      "w": 390,
+      "x": 5570,
+      "y": 8340
+    },
+    "Whatsapp.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "title": "Primer WhatsApp (prototipo)",
+      "w": 1440,
+      "x": 10250,
+      "y": 3760
+    },
+    "SuVoz.dc.html": {
+      "x": 11770,
+      "y": 3560,
+      "w": 390,
+      "h": 2400,
+      "title": "Su voz — lo que abre el código del libro y el marco (prototipo)",
+      "is_interactive": true
+    },
+    "Narrador.dc.html": {
+      "x": 10250,
+      "y": 5600,
+      "w": 1440,
+      "h": 1460,
+      "title": "Lo que ve el narrador — final, repaso y libro (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "Emails.dc.html": {
+      "x": 16700,
+      "y": 0,
+      "w": 1440,
+      "h": 2000,
+      "title": "Emails del recorrido (6)"
+    },
+    "Entrar.dc.html": {
+      "x": 16700,
+      "y": 2100,
+      "w": 1440,
+      "h": 900,
+      "title": "Entrar — enlace por email (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "EntrarMovil.dc.html": {
+      "x": 16700,
+      "y": 3140,
+      "w": 390,
+      "h": 844,
+      "title": "Entrar — móvil (prototipo)",
+      "is_interactive": true
+    },
+    "PanelKids.dc.html": {
+      "x": 8690,
+      "y": 6400,
+      "w": 1440,
+      "h": 1620,
+      "title": "Panel Kids — 3 momentos (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "PanelViaje.dc.html": {
+      "x": 8690,
+      "y": 8160,
+      "w": 1440,
+      "h": 1620,
+      "title": "Panel Viaje — 3 momentos (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "PanelKidsMovil.dc.html": {
+      "x": 10250,
+      "y": 7200,
+      "w": 390,
+      "h": 3300,
+      "title": "Panel Kids — móvil (prototipo)",
+      "is_interactive": true
+    },
+    "PanelViajeMovil.dc.html": {
+      "x": 10720,
+      "y": 7200,
+      "w": 390,
+      "h": 3290,
+      "title": "Panel Viaje — móvil (prototipo)",
+      "is_interactive": true
+    },
+    "TarjetaKids.dc.html": {
+      "x": 18220,
+      "y": 0,
+      "w": 1440,
+      "h": 1710,
+      "title": "Tarjeta regalo Kids"
+    },
+    "TarjetaViaje.dc.html": {
+      "x": 18220,
+      "y": 1850,
+      "w": 1440,
+      "h": 1760,
+      "title": "Tarjeta regalo Viaje"
+    },
+    "EmailKids.dc.html": {
+      "x": 19740,
+      "y": 0,
+      "w": 680,
+      "h": 1300,
+      "title": "Email de confirmación Kids"
+    },
+    "EmailViaje.dc.html": {
+      "x": 20500,
+      "y": 0,
+      "w": 680,
+      "h": 1340,
+      "title": "Email de confirmación Viaje"
+    },
+    "Casos.dc.html": {
+      "x": 21260,
+      "y": 0,
+      "w": 1440,
+      "h": 4570,
+      "title": "Cuando algo sale mal — 5 casos"
+    },
+    "Legal.dc.html": {
+      "x": 22780,
+      "y": 0,
+      "w": 1440,
+      "h": 1380,
+      "title": "Páginas legales (prototipo)",
+      "is_interactive": true,
+      "expand": "fill"
+    },
+    "LegalMovil.dc.html": {
+      "x": 22780,
+      "y": 1520,
+      "w": 390,
+      "h": 1620,
+      "title": "Páginas legales — móvil (prototipo)",
+      "is_interactive": true
+    },
+    "Familias.dc.html": {
+      "x": 24300,
+      "y": 0,
+      "w": 1440,
+      "h": 3030,
+      "title": "Dos hermanos y regalar desde otro país"
+    },
+    "MasFlujos.dc.html": {
+      "x": 25820,
+      "y": 0,
+      "w": 1440,
+      "h": 3560,
+      "title": "Ejemplares, vuelta del viaje y «Para mí»"
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-09T15:22:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "landings": {
+      "color": "purple",
+      "maxH": 600,
+      "size": 24,
+      "text": "Una página por anuncio (móvil primero, que es de donde llega casi todo el tráfico):\n\n· Regalo → anuncios de cumpleaños, Navidad, Día del Padre. Lleva la tarjeta para dárselo en mano.\n· Preguntas → anuncios de «lo que nunca le preguntaste». Enseña ejemplos de preguntas en forma de WhatsApp (cambiarlas por las del banco real).\n· Su voz → anuncios del audio y del marco. Enseña el reproductor, el código de la contraportada y el marco.\n\nLas tres comparten estructura: el titular del anuncio arriba, precio y garantía en la primera pantalla, el libro de ejemplo y las dudas. Solo cambia lo que el anuncio prometió.",
+      "w": 1330,
+      "x": 12240,
+      "y": 3960
+    },
+    "mejoras": {
+      "color": "purple",
+      "maxH": 900,
+      "size": 24,
+      "text": "Qué cambia frente a la web actual:\n\n1. Toda la página en negro, como la portada (hoy pasa a blanco y crema al bajar).\n2. Osvaldo de principio a fin: su libro, su voz, su chat (hoy es Roberto, que no aparece en ningún anuncio).\n3. Portada y contraportada reales del libro en vez de una tapa dibujada.\n4. Precio del impreso a la vista (hoy no aparece).\n5. Anticipo de ejemplo y audio de ejemplo a un clic.\n6. Comprar como regalo: eliges el día en que le llega + tarjeta para imprimir.\n7. Dudas por WhatsApp: botón flotante y caja junto a las preguntas.\n8. Textos en español de España: móvil, eliges, desistimiento (hoy hay celular, elegís, botón de arrepentimiento).\n9. La cita de Su voz ya no es de amor: ahora es de la infancia.",
+      "w": 440,
+      "x": 1990,
+      "y": 960
+    },
+    "popup": {
+      "maxH": 700,
+      "size": 24,
+      "text": "Cuándo sale el rasca y gana (para código):\n\n· Nunca nada más entrar. Sale a los 25 segundos o al llegar a la mitad de la página, lo que pase antes.\n· Nunca en las páginas de anuncio (Regalo, Preguntas, Su voz) ni en el checkout.\n· Una sola vez por visitante. Si lo cierra, no vuelve en 7 días.\n· En móvil, como hoja desde abajo y fácil de cerrar.\n· Si ya ha empezado a comprar, no sale.",
+      "w": 420,
+      "x": 3330,
+      "y": 0
+    }
+  },
+  "order": [
+    "Guia.dc.html",
+    "Main.dc.html",
+    "Movil.dc.html",
+    "Rasca.dc.html",
+    "Resto.dc.html",
+    "RascaPasos.dc.html",
+    "Paletas.dc.html",
+    "Kids.dc.html",
+    "Viaje.dc.html",
+    "Checkout.dc.html",
+    "Panel.dc.html",
+    "KidsMovil.dc.html",
+    "ViajeMovil.dc.html",
+    "CheckoutMovil.dc.html",
+    "CheckoutKids.dc.html",
+    "CheckoutViaje.dc.html",
+    "Motion.dc.html",
+    "Ejemplo.dc.html",
+    "Whatsapp.dc.html",
+    "EjemploMovil.dc.html",
+    "LandingRegalo.dc.html",
+    "LandingPreguntas.dc.html",
+    "LandingVoz.dc.html",
+    "PanelMovil.dc.html",
+    "Tarjeta.dc.html",
+    "Email.dc.html",
+    "RestoMovil.dc.html",
+    "Anuncios.dc.html",
+    "LandingKidsOnce.dc.html",
+    "LandingKidsMundo.dc.html",
+    "LandingKidsAbuelos.dc.html",
+    "LandingViajeLuna.dc.html",
+    "LandingViajeOlvida.dc.html",
+    "LandingViajeVolver.dc.html",
+    "AnunciosLineas.dc.html",
+    "CheckoutKidsMovil.dc.html",
+    "CheckoutViajeMovil.dc.html",
+    "SuVoz.dc.html",
+    "Narrador.dc.html",
+    "Emails.dc.html",
+    "Entrar.dc.html",
+    "EntrarMovil.dc.html",
+    "PanelKids.dc.html",
+    "PanelViaje.dc.html",
+    "PanelKidsMovil.dc.html",
+    "PanelViajeMovil.dc.html",
+    "TarjetaKids.dc.html",
+    "TarjetaViaje.dc.html",
+    "EmailKids.dc.html",
+    "EmailViaje.dc.html",
+    "Casos.dc.html",
+    "Legal.dc.html",
+    "LegalMovil.dc.html",
+    "Familias.dc.html",
+    "MasFlujos.dc.html"
+  ],
+  "pages": [],
+  "title": "Vitácora web · portada cinematográfica"
+}

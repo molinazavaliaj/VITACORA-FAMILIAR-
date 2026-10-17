@@ -1,12 +1,14 @@
 import Link from "next/link";
+import { Suspense, type ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
+import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable, type NarradorPanel, type Rol } from "@/lib/panel";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../proximo-paso";
-import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
+import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -15,38 +17,64 @@ import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { HistoriaViaje } from "./viaje";
 import { HistoriaV3 } from "./v3";
 import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
-import type { Viaje } from "@/lib/viaje";
-import { Riel, type CapituloRiel } from "../riel";
+import { diasDelViaje, fechaDelDia, type Viaje } from "@/lib/viaje";
+import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
 import { VistaMuestra } from "../../muestra";
 import { ReproductorRespuesta } from "../reproductor";
+import { idiomaDelLibro } from "@/lib/tapa";
+import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
+import type { TratoComprador } from "@/lib/regalo-textos";
+import { CONTACTO } from "../../legal/titulares";
+import { idiomaDelTrato, type Quien } from "../../_textos/panel";
+import { MarcoHistoria } from "../_historia/marco";
+import { CifrasHistoria, PortadaHistoria } from "../_historia/portada";
+import { EnlaceDudas, HojaFamilia, HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp } from "../_historia/lateral";
+import { leerPedido, type DatosPedido } from "../_historia/pedido";
+import { vozClasica, vozV3, vozViaje, type ResumenVoz } from "../_historia/voz";
+import { CabeceraHueca, CuerpoHueco, HojaHueca } from "../esqueleto";
+import { esElla, lineaDeTiempo, momentoDe, primerNombre, titularDe } from "../momento";
 import {
   Contenedor,
   estadoEnHumano,
-  tituloHistoria,
   EstadoError,
   Etiqueta,
   ProximoPaso,
   Respuesta,
   Titulo,
-  TOTAL_PREGUNTAS_BASE,
   fechaCorta,
-  formatearDuracion,
   type RespuestaVista,
 } from "../ui";
 
-// Una historia (docs/panel-usuario.md §5 y §15.3): ES el guion completo,
-// por capítulo. Las contestadas traen el audio y la transcripción; las que
-// faltan dicen "todavía no". Con ?editar=1 las que vienen se editan acá
-// mismo (antes era la sección Preguntas, que ya no existe). Sin atribución de
-// quién preguntó: pregunta el biógrafo.
+// Una historia (docs/panel-usuario.md §5 y §15.3). Rediseño 2026-10 (fase 2):
+// arriba su libro (la tapa, el saludo, la línea de tiempo), a la izquierda lo
+// contado y a la derecha las hojas del lateral (lo último que contó, sus
+// fotos, la familia, tu pedido). Lo contado sigue siendo lo de siempre, en sus
+// tres formas: el guion clásico (abajo, en esta página: el guion completo por
+// capítulo, con ?editar=1 para editar las que vienen), la entrevista V3
+// (v3.tsx) y el viaje (viaje.tsx).
+//
+// Rendimiento (RENDIMIENTO.md P2, 3.14): todas las consultas salen juntas al
+// principio, como antes, pero la página ya no espera a todas para pintar. La
+// cabecera (dos consultas cortas) llega primero; lo contado, lo último que
+// contó, sus fotos y el pedido llegan cada uno en su Suspense apenas está lo
+// suyo. Ninguna consulta nueva va en serie.
 
 const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
 type Pregunta = PreguntaGuion & { narrador_id: string | null };
+
+type FilaNarrador = {
+  contexto?: Record<string, unknown>;
+  libro_aprobado_at?: string | null;
+  edicion?: { historiaCerradaEl?: string | null; portadaFotoId?: string | null; titulo?: string } | null;
+  zona_horaria?: string | null;
+  hora_preferida?: string | null;
+  telefono_whatsapp?: string | null;
+};
 
 const botonBarra = "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-[14px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 const botonBarraSec = `${botonBarra} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)] focus-visible:outline-[var(--texto)]`;
@@ -62,14 +90,41 @@ function IconoBarra({ nombre }: { nombre: "lapiz" | "foto" | "check" }) {
   );
 }
 
+type LecturaV3 = {
+  v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  filasV3: unknown[] | null;
+  e4: { message: string } | null;
+  /** entrevistaV3 tiró: la página muestra el error, salvo en un viaje (que no la mira). */
+  fallo?: unknown;
+};
+
+/** La entrevista V3 y, si hay, sus respuestas en el orden en que llegaron. Nunca rechaza. */
+async function leerV3(admin: SupabaseClient, narradorId: string): Promise<LecturaV3> {
+  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  try {
+    v3 = await entrevistaV3(admin, narradorId);
+  } catch (e) {
+    return { v3: null, filasV3: null, e4: null, fallo: e };
+  }
+  if (!v3) return { v3, filasV3: null, e4: null };
+  const { data, error } = await admin
+    .from("respuestas")
+    .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
+    .eq("narrador_id", narradorId)
+    .order("recibido_at", { ascending: true });
+  return { v3, filasV3: data, e4: error };
+}
+
+/** "22 de septiembre" desde YYYY-MM-DD, sin que la zona del servidor corra el día (como en viaje.tsx). */
+function fechaLarga(ymd: string): string {
+  return new Date(`${ymd}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" });
+}
+
 export default async function PaginaHistoria({ params, searchParams }: PageProps<"/tablero/[narradorId]">) {
   const { narradorId } = await params;
   const { editar, sobre } = await searchParams;
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();
@@ -108,15 +163,223 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     );
   }
 
+  // Todas las consultas salen ahora, juntas; cada parte de la página espera solo lo suyo.
+  const pFila: Promise<FilaNarrador> = Promise.resolve(
+    admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria, hora_preferida, telefono_whatsapp").eq("id", n.id).maybeSingle(),
+  ).then((r) => (r.data as FilaNarrador | null) ?? {}, () => ({}));
+  // Los textos del panel van con el trato de la familia dueña de la historia.
+  const pTrato = tratoDeLaFamilia(admin, n.familia_id);
+  const pPedido = leerPedido(admin, n);
+  // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
+  const pFotos: Promise<FotoVista[]> = Promise.resolve(
+    admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
+  ).then((r) => (r.data as FotoVista[] | null) ?? [], () => []);
+  const pInvitados: Promise<(InvitadoVista & { rol?: string })[]> =
+    rol === "duena"
+      ? Promise.resolve(admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")).then(
+          (r) => (r.data as (InvitadoVista & { rol?: string })[] | null) ?? [],
+          () => [],
+        )
+      : Promise.resolve([]);
+  // Terminó de contar y el escritor dejó dudas sin contestar (13/10). Solo depende del rol y del estado.
+  const pDudas: Promise<boolean> =
+    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? hayDudasPendientes(admin, n.id).catch(() => false) : Promise.resolve(false);
+  const pLectura = leerHistoria({ admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato });
+
+  const contexto = (n.contexto ?? {}) as Record<string, unknown>;
+  const quien: Quien = { como: n.como_le_dicen, propia, ella: esElla(contexto), viaje: contexto.modo === "viaje" && Boolean(contexto.viaje) };
+  const contacto = { whatsapp: urlWhatsAppDudas(), correo: CONTACTO.hola };
+
+  return (
+    <MarcoHistoria
+      producto={quien.viaje ? "viaje" : undefined}
+      cabecera={
+        <Suspense fallback={<CabeceraHueca />}>
+          <Cabecera admin={admin} user={user} n={n} rol={rol} quien={quien} pFila={pFila} pPedido={pPedido} pTrato={pTrato} pLectura={pLectura} />
+        </Suspense>
+      }
+      arriba={
+        <Suspense fallback={<HojaHueca />}>
+          <LateralArriba n={n} rol={rol} quien={quien} pFila={pFila} pFotos={pFotos} pTrato={pTrato} pLectura={pLectura} />
+        </Suspense>
+      }
+      cuerpo={
+        <Suspense fallback={<CuerpoHueco />}>
+          <Cuerpo pLectura={pLectura} />
+        </Suspense>
+      }
+      abajo={
+        <Suspense fallback={<HojaHueca />}>
+          <LateralAbajo n={n} rol={rol} quien={quien} pFila={pFila} pPedido={pPedido} pTrato={pTrato} pLectura={pLectura} contacto={contacto} />
+        </Suspense>
+      }
+    />
+  );
+}
+
+// ── Las partes, cada una en su Suspense ───────────────────────────────────
+
+async function Cabecera({
+  admin, user, n, rol, quien, pFila, pPedido, pTrato, pLectura,
+}: {
+  admin: SupabaseClient; user: User; n: NarradorPanel; rol: Rol; quien: Quien;
+  pFila: Promise<FilaNarrador>; pPedido: Promise<DatosPedido>; pTrato: Promise<TratoComprador>; pLectura: Promise<Lectura>;
+}) {
+  // historiasDelUsuario ya está en la memoria del request (la cargó el layout): no consulta.
+  const [fila, pedido, trato, { panel }] = await Promise.all([pFila, pPedido, pTrato, historiasDelUsuario(admin, user)]);
+  const idioma = idiomaDelTrato(trato);
+  const aprobado = Boolean(fila.libro_aprobado_at);
+  const edicion = fila.edicion ?? {};
+  const portada = edicion.portadaFotoId ?? null;
+  const contexto = fila.contexto ?? n.contexto ?? {};
+  return (
+    <PortadaHistoria
+      idioma={idioma}
+      quien={quien}
+      // «Hola, Laura.»: solo a quien compró (un invitado no es Laura).
+      hola={rol === "duena" ? primerNombre(panel.familia?.nombre) : null}
+      titular={titularDe(n.estado, aprobado, pedido.libroEntregado)}
+      estado={estadoEnHumano(n.estado, quien.propia || (quien.viaje && rol === "duena"), trato)}
+      tapa={{
+        titulo: edicion.titulo?.trim() || n.nombre,
+        fotoSrc: portada ? `/api/fotos/${portada}` : null,
+        idioma: idiomaDelLibro(contexto.idioma === "ca" ? "ca" : null),
+      }}
+      pasos={lineaDeTiempo({ estado: n.estado, aprobado, libroEntregado: pedido.libroEntregado, conImpreso: rol === "duena" && pedido.impresos > 0, impresoEnCasa: pedido.impresoEnCasa })}
+      cifras={
+        <Suspense fallback={null}>
+          <Cifras pLectura={pLectura} idioma={idioma} quien={quien} />
+        </Suspense>
+      }
+      hrefTapa={rol === "duena" ? `/tablero/${n.id}/libro` : undefined}
+    />
+  );
+}
+
+async function Cifras({ pLectura, idioma, quien }: { pLectura: Promise<Lectura>; idioma: ReturnType<typeof idiomaDelTrato>; quien: Quien }) {
+  const { voz } = await pLectura;
+  return voz ? <CifrasHistoria idioma={idioma} quien={quien} respuestas={voz.respuestas} segundos={voz.segundos} /> : null;
+}
+
+async function Cuerpo({ pLectura }: { pLectura: Promise<Lectura> }) {
+  return (await pLectura).cuerpo;
+}
+
+async function LateralArriba({
+  n, rol, quien, pFila, pFotos, pTrato, pLectura,
+}: {
+  n: NarradorPanel; rol: Rol; quien: Quien;
+  pFila: Promise<FilaNarrador>; pFotos: Promise<FotoVista[]>; pTrato: Promise<TratoComprador>; pLectura: Promise<Lectura>;
+}) {
+  const [fila, fotos, trato, lectura] = await Promise.all([pFila, pFotos, pTrato, pLectura]);
+  const idioma = idiomaDelTrato(trato);
+  const aprobado = Boolean(fila.libro_aprobado_at);
+  const momento = momentoDe(n.estado, aprobado);
+  const portada = fila.edicion?.portadaFotoId ?? null;
+  return (
+    <>
+      {momento === "antes" && rol === "duena" ? (
+        <HojaWhatsApp idioma={idioma} quien={quien} telefono={fila.telefono_whatsapp ?? null} hrefTarjeta={n.estado === "regalo_pendiente" ? `/tablero/${n.id}/regalo` : undefined} />
+      ) : null}
+      {lectura.voz ? <HojaUltimo idioma={idioma} quien={quien} ultimas={lectura.voz.ultimas} hrefTodo="#lo-contado" ahora={new Date()} /> : null}
+      {!aprobado ? (
+        <HojaFotos
+          idioma={idioma}
+          quien={quien}
+          fotos={fotos}
+          hayPortada={Boolean(portada)}
+          subir={lectura.subirFoto ?? undefined}
+          hrefTapa={rol === "duena" ? `/tablero/${n.id}/libro` : undefined}
+        />
+      ) : null}
+    </>
+  );
+}
+
+async function LateralAbajo({
+  n, rol, quien, pFila, pPedido, pTrato, pLectura, contacto,
+}: {
+  n: NarradorPanel; rol: Rol; quien: Quien;
+  pFila: Promise<FilaNarrador>; pPedido: Promise<DatosPedido>; pTrato: Promise<TratoComprador>; pLectura: Promise<Lectura>;
+  contacto: { whatsapp: string | null; correo: string };
+}) {
+  const [fila, pedido, trato, lectura] = await Promise.all([pFila, pPedido, pTrato, pLectura]);
+  const idioma = idiomaDelTrato(trato);
+  const momento = momentoDe(n.estado, Boolean(fila.libro_aprobado_at));
+  return (
+    <>
+      {lectura.familia ? (
+        <HojaFamilia idioma={idioma} quien={quien}>
+          {lectura.familia}
+        </HojaFamilia>
+      ) : null}
+      {rol === "duena" ? (
+        <HojaPedido
+          idioma={idioma}
+          quien={quien}
+          momento={momento}
+          lineas={{ impresos: pedido.impresos, marcos: pedido.marcos }}
+          hrefDireccion={pedido.direccionEditable ? `/tablero/${n.id}/libro#envio` : undefined}
+          hrefMarco={pedido.impresos > 0 && pedido.marcos === 0 ? `/tablero/${n.id}/libro` : undefined}
+          contacto={contacto}
+          cierre={lectura.cierre ?? undefined}
+        />
+      ) : null}
+      <EnlaceDudas idioma={idioma} contacto={contacto} />
+    </>
+  );
+}
+
+// ── Lo contado ──────────────────────────────────────────────────────────
+
+type Lectura = {
+  cuerpo: ReactNode;
+  /** Respuestas, minutos y lo último que contó, sacados de lo mismo que se muestra. Null si falló la carga. */
+  voz: ResumenVoz | null;
+  /** El botón de subir fotos (va a «Sus fotos»), si puede. */
+  subirFoto: ReactNode | null;
+  /** Compartir (va a «La familia»), si puede invitar. */
+  familia: ReactNode | null;
+  /** El cierre anticipado (va a «Tu pedido», adentro de «Pausar o cerrar»), si se puede. */
+  cierre: ReactNode | null;
+};
+
+/**
+ * Lee todo lo contado y arma su vista (clásica, V3 o viaje). Es lo mismo que
+ * hacía esta página antes del rediseño, con las mismas consultas en la misma
+ * ronda; ahora devuelve las piezas en vez de la página entera. Nunca rechaza.
+ */
+async function leerHistoria({
+  admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato,
+}: {
+  admin: SupabaseClient; user: User; n: NarradorPanel; rol: Rol; propia: boolean;
+  editar: string | string[] | undefined; sobre: string | string[] | undefined;
+  pFila: Promise<FilaNarrador>; pFotos: Promise<FotoVista[]>; pInvitados: Promise<(InvitadoVista & { rol?: string })[]>;
+  pDudas: Promise<boolean>; pTrato: Promise<TratoComprador>;
+}): Promise<Lectura> {
+  const sinNada = { voz: null, subirFoto: null, familia: null, cierre: null };
+  try {
+    return await armarLectura({ admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato });
+  } catch (e) {
+    console.error("historia: fallo la carga", e);
+    return { cuerpo: <EstadoError trato={await pTrato.catch(() => "vos" as const)} />, ...sinNada };
+  }
+}
+
+async function armarLectura({
+  admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato,
+}: Parameters<typeof leerHistoria>[0]): Promise<Lectura> {
   const [
     { data: propias, error: e1 },
     { data: globales, error: e2 },
     { data: respuestas, error: e3 },
-    { data: fotosData },
-    { data: invitadosData },
-    { data: filaNarrador },
+    fotosData,
+    invitadosData,
+    fila,
     { panel },
     tratoPanel,
+    dudasPendientes,
+    lecturaV3,
   ] = await Promise.all([
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, foto_id, narrador_id").eq("narrador_id", n.id),
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").is("narrador_id", null),
@@ -126,48 +389,46 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
       .eq("narrador_id", n.id)
       .order("pregunta_orden", { ascending: true })
       .order("recibido_at", { ascending: true }),
-    // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
-    admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
-    rol === "duena"
-      ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
-      : Promise.resolve({ data: null }),
-    admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria, hora_preferida").eq("id", n.id).maybeSingle(),
+    pFotos,
+    pInvitados,
+    pFila,
     historiasDelUsuario(admin, user),
-    // Los textos del panel van con el trato de la familia dueña de la historia.
-    tratoDeLaFamilia(admin, n.familia_id),
+    pTrato,
+    pDudas,
+    // Entrevista V3 y sus respuestas, también en esta ronda (RENDIMIENTO.md §3.4).
+    // Las respuestas V3 se piden solo si hay entrevista V3 (encadenadas acá
+    // adentro): así una historia vieja no baja dos veces sus respuestas. El
+    // error no corta acá: en un viaje no se mira la V3, igual que antes.
+    leerV3(admin, n.id),
   ]);
 
+  const error = () => ({ cuerpo: <EstadoError trato={tratoPanel} />, voz: null, subirFoto: null, familia: null, cierre: null });
   if (e1 || e2 || e3) {
     console.error("historia: fallo la carga", { e1, e2, e3 });
-    return <EstadoError />;
+    return error();
   }
 
-  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null; zona_horaria?: string | null; hora_preferida?: string | null } | null) ?? {};
   // La hora de la pregunta (3t.23): la base guarda "HH:MM:SS"; el panel muestra "HH:MM".
   const horario = fila.hora_preferida && fila.zona_horaria ? { hora: fila.hora_preferida.slice(0, 5), zona: fila.zona_horaria } : undefined;
   const aprobado = Boolean(fila.libro_aprobado_at);
   // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
   // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
   const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
-  // Terminó de contar y el escritor dejó dudas sin contestar (13/10): la dueña
-  // puede invitar a quien sepa las respuestas, aunque la historia esté cerrada.
   // El aviso que lleva a la pantalla de dudas (13/10): la dueña y los invitados, mientras el libro no esté escrito
   // (aunque ya lo hayan encargado: el libro espera las respuestas). Invitar, solo con el libro sin cerrar.
-  const dudasPendientes = PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? await hayDudasPendientes(admin, n.id) : false;
   const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
-  const soloInvitados = ((invitadosData as (InvitadoVista & { rol?: string })[] | null) ?? []).filter((i) => i.rol !== "visitante");
+  const soloInvitados = invitadosData.filter((i) => i.rol !== "visitante");
+  const cerrado = ESTADOS_CERRADOS.includes(n.estado);
 
   const contexto = fila.contexto ?? {};
+  const ella = esElla(contexto);
   const ritmo: Ritmo = validarRitmo(contexto.ritmo) ? contexto.ritmo : contexto.modoRapido === true ? "seguido" : "diario";
   const evitar = typeof contexto.evitar === "string" ? contexto.evitar : "";
   // Lo que el biógrafo le mandó de verdad (entrevistador, 14/09): la pregunta
-  // preparada del día (el guion dice "¿Cómo era su casa?" y a él le llegó "¿Cómo
-  // era esa casa de Pelliza?") y la repregunta. Viven en contexto, provisorio
-  // (CONTRATO.md); sin esto la familia veía la respuesta de la repregunta sin
-  // la pregunta que la originó.
+  // preparada del día y la repregunta. Viven en contexto, provisorio (CONTRATO.md).
   const preguntasEnviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
   const repreguntasEnviadas = (contexto.repreguntasEnviadas ?? {}) as Record<string, string>;
   // El trato (3t.22): se ve siempre; se cambia solo hasta la primera pregunta.
@@ -177,74 +438,107 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   };
   const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
 
+  // Las piezas que van al lateral: Compartir (la familia), subir fotos, el cierre anticipado.
+  const deshabilitarCompartir = historiaCerrada && !aprobado && !dudasAbiertas;
+  const familia = PUEDE.invitar(rol) ? (
+    <span className={deshabilitarCompartir ? "pointer-events-none opacity-50" : ""} aria-disabled={deshabilitarCompartir ? true : undefined}>
+      <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={soloInvitados} trato={tratoPanel} />
+    </span>
+  ) : null;
+  // Las fotos siguen entrando después de terminar — hasta cerrar la edición
+  // acá o el libro en Encargar libro (Joaquín, 17/09: es donde se ve cómo queda).
+  const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
+  const subir = (capitulos: string[]) =>
+    puedeAgregarFotos ? (
+      <SubirFoto narradorId={n.id} capitulos={capitulos} variante="barra" trato={tratoPanel}>
+        <IconoBarra nombre="foto" />
+        Agregar fotos
+      </SubirFoto>
+    ) : null;
+  const cierre = (contadas: number) =>
+    rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO ? <CierreAnticipado narradorId={n.id} trato={tratoPanel} /> : null;
+
   // Vitácora de viaje (3t.19): otra pantalla. Los capítulos son las etapas y no
   // hay guion que mostrar ni editar: la plantilla global del Familiar (30
   // preguntas) no se mezcla acá — era lo que veía el viajero antes.
   if (contexto.modo === "viaje" && contexto.viaje) {
-    return (
-      <HistoriaViaje
-        n={n}
-        rol={rol}
-        viaje={contexto.viaje as Viaje}
-        zonaHoraria={fila.zona_horaria ?? "UTC"}
-        respuestas={(respuestas as RespuestaVista[] | null) ?? []}
-        fotos={(fotosData as FotoVista[] | null) ?? []}
-        preguntasEnviadas={preguntasEnviadas}
-        repreguntasEnviadas={repreguntasEnviadas}
-        usuarioId={user.id}
-        historiasRiel={historiasRiel}
-        aprobado={aprobado}
-        historiaCerrada={historiaCerrada}
-        linkPublico={linkPublico}
-        invitados={soloInvitados}
-        dudasAbiertas={dudasAbiertas}
-        ritmo={ritmo}
-        evitar={evitar}
-        horario={horario}
-      />
-    );
+    const viaje = contexto.viaje as Viaje;
+    const noches = diasDelViaje(viaje);
+    const lista = (respuestas as RespuestaVista[] | null) ?? [];
+    const voz = vozViaje(lista, noches, (o) => (o >= 1 && o <= noches ? `Noche ${o} · ${fechaLarga(fechaDelDia(viaje, o))}` : "Al volver"));
+    return {
+      cuerpo: (
+        <HistoriaViaje
+          enMarco
+          n={n}
+          rol={rol}
+          viaje={viaje}
+          zonaHoraria={fila.zona_horaria ?? "UTC"}
+          respuestas={lista}
+          fotos={fotosData}
+          preguntasEnviadas={preguntasEnviadas}
+          repreguntasEnviadas={repreguntasEnviadas}
+          usuarioId={user.id}
+          historiasRiel={historiasRiel}
+          aprobado={aprobado}
+          historiaCerrada={historiaCerrada}
+          linkPublico={linkPublico}
+          invitados={soloInvitados}
+          dudasAbiertas={dudasAbiertas}
+          ritmo={ritmo}
+          evitar={evitar}
+          horario={horario}
+        />
+      ),
+      voz,
+      subirFoto: subir(viaje.etapas.map((e) => e.nombre)),
+      familia,
+      cierre: cierre(voz.respuestas),
+    };
   }
 
   // Entrevista V3 (WhatsApp, 10/10): otra pantalla. Sin guion de 30 ni capítulos: lo que se le preguntó y lo
   // que contestó, por bloque (lib/v3.ts).
-  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
-  try {
-    v3 = await entrevistaV3(admin, n.id);
-  } catch (e) {
-    console.error("historia: fallo la lectura V3", e);
-    return <EstadoError />;
+  if ("fallo" in lecturaV3) {
+    console.error("historia: fallo la lectura V3", lecturaV3.fallo);
+    return error();
   }
+  const { v3, filasV3, e4 } = lecturaV3;
   if (v3) {
-    const { data: filasV3, error: e4 } = await admin
-      .from("respuestas")
-      .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
-      .eq("narrador_id", n.id)
-      .order("recibido_at", { ascending: true });
     if (e4) {
       console.error("historia: fallo la carga V3", e4);
-      return <EstadoError />;
+      return error();
     }
-    return (
-      <HistoriaV3
-        n={n}
-        rol={rol}
-        propia={propia}
-        bloques={historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? [])}
-        fotos={(fotosData as FotoVista[] | null) ?? []}
-        usuarioId={user.id}
-        historiasRiel={historiasRiel}
-        aprobado={aprobado}
-        historiaCerrada={historiaCerrada}
-        linkPublico={linkPublico}
-        invitados={soloInvitados}
-        dudasAbiertas={dudasAbiertas}
-        dudasPendientes={dudasPendientes}
-        ritmo={ritmo}
-        horario={horario}
-        alFinal={llegoAlFinalV3(v3.estado)}
-        trato={tratoPanel}
-      />
-    );
+    const bloques = historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? []);
+    const voz = vozV3(bloques);
+    return {
+      cuerpo: (
+        <HistoriaV3
+          enMarco
+          n={n}
+          rol={rol}
+          propia={propia}
+          bloques={bloques}
+          fotos={fotosData}
+          usuarioId={user.id}
+          historiasRiel={historiasRiel}
+          aprobado={aprobado}
+          historiaCerrada={historiaCerrada}
+          linkPublico={linkPublico}
+          invitados={soloInvitados}
+          dudasAbiertas={dudasAbiertas}
+          dudasPendientes={dudasPendientes}
+          ritmo={ritmo}
+          horario={horario}
+          alFinal={llegoAlFinalV3(v3.estado)}
+          trato={tratoPanel}
+        />
+      ),
+      voz,
+      subirFoto: subir([]),
+      familia,
+      cierre: cierre(voz.respuestas),
+    };
   }
 
   // El guion del narrador: sus filas propias; si todavía no tiene (anterior a la
@@ -253,16 +547,66 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // «Sus objetos preciados» (3t.30): van aparte, no son parte del recorrido.
   const objetos = objetosDelGuion(globales as Pregunta[] | null, propias as Pregunta[] | null);
   const porOrden = new Map(guion.map((p) => [p.orden, p]));
-  const total = totalDelGuion(guion, [], TOTAL_PREGUNTAS_BASE); // el mismo cálculo que Inicio
+  const listaRespuestas = (respuestas as RespuestaVista[] | null) ?? [];
+  const voz = vozClasica(listaRespuestas, (o) => preguntasEnviadas[String(o)] ?? porOrden.get(o)?.texto ?? null);
+
+  return {
+    cuerpo: (
+      <HistoriaClasica
+        n={n}
+        rol={rol}
+        propia={propia}
+        ella={ella}
+        editar={editar}
+        sobre={sobre}
+        guion={guion}
+        objetos={objetos}
+        respuestas={listaRespuestas}
+        fotos={fotosData}
+        usuarioId={user.id}
+        aprobado={aprobado}
+        historiaCerrada={historiaCerrada}
+        dudasAbiertas={dudasAbiertas}
+        dudasPendientes={dudasPendientes}
+        cerrado={cerrado}
+        preguntasEnviadas={preguntasEnviadas}
+        repreguntasEnviadas={repreguntasEnviadas}
+        ritmo={ritmo}
+        evitar={evitar}
+        horario={horario}
+        trato={trato}
+        pedirFotos={contexto.sinFotos !== true}
+        tratoPanel={tratoPanel}
+      />
+    ),
+    voz,
+    subirFoto: subir([...new Set(guion.map((p) => p.capitulo))]),
+    familia,
+    cierre: cierre(voz.respuestas),
+  };
+}
+
+/** El guion clásico, por capítulo (lo que era esta página antes de V3), sin riel ni título: va adentro del marco. */
+function HistoriaClasica({
+  n, rol, propia, ella, editar, sobre, guion, objetos, respuestas, fotos, usuarioId, aprobado, historiaCerrada, dudasAbiertas, dudasPendientes, cerrado,
+  preguntasEnviadas, repreguntasEnviadas, ritmo, evitar, horario, trato, pedirFotos, tratoPanel,
+}: {
+  n: NarradorPanel; rol: Rol; propia: boolean; ella: boolean;
+  editar: string | string[] | undefined; sobre: string | string[] | undefined;
+  guion: Pregunta[]; objetos: Pregunta[]; respuestas: RespuestaVista[]; fotos: FotoVista[]; usuarioId: string;
+  aprobado: boolean; historiaCerrada: boolean; dudasAbiertas: boolean; dudasPendientes: boolean; cerrado: boolean;
+  preguntasEnviadas: Record<string, string>; repreguntasEnviadas: Record<string, string>;
+  ritmo: Ritmo; evitar: string; horario?: { hora: string; zona: string };
+  trato: { valor: "usted" | "vos" | null; editable: boolean }; pedirFotos: boolean; tratoPanel: TratoComprador;
+}): ReactNode {
+  const porOrden = new Map(guion.map((p) => [p.orden, p]));
 
   const respuestasPorOrden = new Map<number, RespuestaVista[]>();
-  for (const r of (respuestas as RespuestaVista[] | null) ?? []) {
+  for (const r of respuestas) {
     const lista = respuestasPorOrden.get(r.pregunta_orden) ?? [];
     lista.push(r);
     respuestasPorOrden.set(r.pregunta_orden, lista);
   }
-  const respondidas = respuestasPorOrden.size;
-  const segundosDeVoz = ((respuestas as RespuestaVista[] | null) ?? []).reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
 
   // Los capítulos, en el orden en que aparecen en el guion (el del biógrafo).
   const capitulos: { nombre: string; preguntas: Pregunta[] }[] = [];
@@ -279,7 +623,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   const fotosPorCapitulo = new Map<string, FotoVista[]>();
   const fotosDelLibro: FotoVista[] = []; // sin capítulo: tapa, contratapa, marco (§15.2)
-  for (const f of (fotosData as FotoVista[] | null) ?? []) {
+  for (const f of fotos) {
     if (f.capitulo === null) {
       fotosDelLibro.push(f);
       continue;
@@ -290,355 +634,298 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   }
   const capitulosConocidos = [...new Set(guion.map((p) => p.capitulo))];
 
-  const cerrado = ESTADOS_CERRADOS.includes(n.estado);
-  const puedeCerrarAnticipado =
-    rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && respondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
-
   // El modo edición: las que vienen se editan, sacan, mueven y suman. El guion
   // se cierra solo al terminar de contar (el biógrafo ya se despidió).
   const puedeAgregar = !cerrado && PUEDE.agregarPreguntasYFotos(rol);
-  // Las fotos siguen entrando después de terminar — hasta cerrar la edición
-  // acá o el libro en Encargar libro (Joaquín, 17/09: es donde se ve cómo queda).
-  const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const editando = puedeAgregar && editar === "1";
   const futuras = guion.filter((p) => p.orden > n.dia_actual);
   const lugar = lugarLibre(guion);
   const sobreOrden = typeof sobre === "string" ? Number(sobre) : null;
   const preguntaSobre = sobreOrden ? porOrden.get(sobreOrden) : null;
 
+  const botonPreguntas = puedeAgregar ? (
+    <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
+      <IconoBarra nombre="lapiz" />
+      {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
+    </Link>
+  ) : cerrado && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
+    // Terminó de contar: el guion queda cerrado. El botón se queda, en gris, para que se entienda por qué.
+    <span aria-disabled className={`${botonBarraSec} cursor-not-allowed opacity-50`} title="El guion se cerró al terminar de contar: no se agregan más preguntas.">
+      <IconoBarra nombre="lapiz" />
+      {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
+    </span>
+  ) : null;
+  const botonCerrar = cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={tratoPanel} /> : null;
+
   return (
-    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
-      <Riel
-        historias={historiasRiel}
-        actual={n.id}
-        capitulos={capitulosRiel}
-        respondidas={respondidas}
-        total={total}
-        segundosDeVoz={segundosDeVoz}
-      />
-
-      <div className="min-w-0 flex-1">
-        {n.alerta_silencio && rol === "duena" ? (
-          <div className="mb-8">
-            <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={tratoPanel} />
-          </div>
-        ) : null}
-
-        {/* ── Cabecera: título + estado, y los botones a la derecha ─────── */}
-        <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 md:pr-14">
-          <div className="min-w-0">
-            <Etiqueta>{rol === "invitado" ? "Te invitaron a esta historia" : editando ? "Historia · editando el guion" : "Historia"}</Etiqueta>
-            <div className="mt-1">
-              <Titulo>{tituloHistoria(n.nombre, propia)}</Titulo>
-            </div>
-            <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-              {editando
-                ? tratoPanel === "tu"
-                  ? "Las que ya se mandaron no se tocan. Las que vienen, sí: edita, saca, mueve."
-                  : "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové."
-                : estadoEnHumano(n.estado, propia, tratoPanel)}
-            </p>
-          </div>
-          {/* Editando: el "Listo" va abajo, después de Sugerime preguntas (Joaquín, 17/09). */}
-          {!editando ? (
-            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
-              {puedeAgregar ? (
-                <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
-                  <IconoBarra nombre="lapiz" />
-                  {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
-                </Link>
-              ) : cerrado && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-                // Terminó de contar: el guion queda cerrado. El botón se queda, en gris, para que se entienda por qué.
-                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed opacity-50`} title="El guion se cerró al terminar de contar: no se agregan más preguntas.">
-                  <IconoBarra nombre="lapiz" />
-                  {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
-                </span>
-              ) : null}
-              {puedeAgregarFotos ? (
-                <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} variante="barra" trato={tratoPanel}>
-                  <IconoBarra nombre="foto" />
-                  Agregar fotos
-                </SubirFoto>
-              ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
-                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed ${dudasAbiertas ? "opacity-50" : ""}`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
-                  <IconoBarra nombre="foto" />
-                  Agregar fotos
-                </span>
-              ) : null}
-              {PUEDE.invitar(rol) ? (
-                <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
-                  <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={soloInvitados} trato={tratoPanel} />
-                </span>
-              ) : null}
-              {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (
-                <CerrarEdicion narradorId={n.id} propia={propia} trato={tratoPanel} />
-              ) : null}
-            </div>
-          ) : null}
-        </header>
-
-        {/* ── En el celular: progreso + índice en pastillas ──────────────── */}
-        <div className="mt-6 lg:hidden">
-          <div className="flex items-end justify-between gap-4">
-            <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">{respondidas} de {total} respuestas</p>
-            {segundosDeVoz > 0 ? (
-              <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosDeVoz)}</span> {propia ? "de tu voz" : "de su voz"}
-              </p>
-            ) : null}
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--hueco)]">
-            <div className="h-full rounded-full bg-[var(--texto)]" style={{ width: `${total > 0 ? Math.min(100, Math.round((respondidas / total) * 100)) : 0}%` }} />
-          </div>
-          <nav aria-label="Capítulos" className="-mx-6 mt-5 overflow-x-auto px-6 md:mx-0 md:px-0">
-            <ol className="flex gap-2 pb-1">
-              {capitulosRiel.map((cap, i) => {
-                const completo = cap.contestadas === cap.total;
-                return (
-                  <li key={cap.nombre} className="shrink-0">
-                    <a
-                      href={`#cap-${i}`}
-                      className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[13px] transition-colors hover:border-[var(--texto)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] [font-family:var(--fuente-micro)] ${
-                        completo ? "border-[var(--texto)] bg-[var(--texto)] text-[var(--fondo)]" : cap.contestadas > 0 ? "border-[var(--texto)]" : "border-[var(--linea)] text-[var(--texto-menor)]"
-                      }`}
-                    >
-                      <span className="tabular-nums opacity-70">{i + 1}</span>
-                      {cap.nombre}
-                    </a>
-                  </li>
-                );
-              })}
-            </ol>
-          </nav>
+    <div className="min-w-0">
+      {n.alerta_silencio && rol === "duena" ? (
+        <div className="mb-8">
+          <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} trato={tratoPanel} />
         </div>
+      ) : null}
 
-        {dudasPendientes ? (
-          <div className="mt-8">
-            <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
-          </div>
-        ) : null}
+      {/* Editando: el "Listo" va abajo, después de Sugerime preguntas (Joaquín, 17/09). */}
+      {editando ? (
+        <div>
+          <Etiqueta>Historia · editando el guion</Etiqueta>
+          <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
+            {tratoPanel === "tu"
+              ? "Las que ya se mandaron no se tocan. Las que vienen, sí: edita, saca, mueve."
+              : "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové."}
+          </p>
+        </div>
+      ) : botonPreguntas || botonCerrar ? (
+        <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
+          {botonPreguntas}
+          {botonCerrar}
+        </div>
+      ) : null}
 
-        {/* Terminó de contar: mientras la edición está abierta, la barra manda (fotos,
-            compartir, cerrar). Al cerrarla aparece el paso siguiente. Los invitados
-            ven "Leer su libro" cuando el libro está cerrado. */}
-        {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
-          <div className="mt-8 flex flex-col gap-3">
-            {/* Libro encargado: dueña e invitados van al lector (que avisa si todavía se está armando). */}
-            <ProximoPaso href={aprobado || !PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/leer` : `/tablero/${n.id}/libro`}>
-              {aprobado
-                ? (propia ? "Leer tu libro y escuchar tu voz" : "Leer su libro y escuchar su voz")
-                : PUEDE.cerrarLibro(rol)
-                  ? tratoPanel === "tu"
-                    ? (propia ? "Dale los últimos retoques y encarga tu libro" : "Dale los últimos retoques y encarga su libro")
-                    : (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
-                  : "Leer su libro"}
-            </ProximoPaso>
-            {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
-              <div className="flex items-center gap-3 text-[13px] text-[var(--texto-menor)]">
-                <span>Edición cerrada. Las fotos se siguen sumando en Encargar libro.</span>
-                <ReabrirEdicion narradorId={n.id} />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {editando ? (
-          <div className="mt-8">
-            <AgregarPregunta
-              narradorId={n.id}
-              capitulos={capitulosConocidos}
-              lugarLibre={lugar}
-              textoInicial={preguntaSobre ? (propia ? `Quiero contar más sobre esto: "${preguntaSobre.texto}"` : `Me gustaría que me cuente más sobre esto: "${preguntaSobre.texto}"`) : ""}
-              propia={propia}
-              capituloInicial={preguntaSobre?.capitulo}
-              trato={tratoPanel}
-            />
-            <div className="mt-3">
-              <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} trato={tratoPanel} />
-            </div>
-            <div className="mt-5 flex justify-end">
-              <Link href={`/tablero/${n.id}`} className={botonBarraPri}>
-                <IconoBarra nombre="check" />
-                Listo
-              </Link>
-            </div>
-          </div>
-        ) : null}
-
-        {/* ── Los capítulos ───────────────────────────────────────────────── */}
-        <div className="mt-10 flex flex-col gap-14">
-          {capitulos.map((cap, i) => {
-            const contestadas = capitulosRiel[i].contestadas;
-            const porVenir = cap.preguntas.filter((p) => p.orden > n.dia_actual);
-            const todoEnviado = porVenir.length === 0;
+      {/* ── El índice de capítulos, en pastillas (el riel de antes) ──────── */}
+      <nav aria-label="Capítulos" className="-mx-4 mt-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <ol className="flex gap-2 pb-1">
+          {capitulosRiel.map((cap, i) => {
+            const completo = cap.contestadas === cap.total;
             return (
-              <section key={cap.nombre} id={`cap-${i}`} aria-labelledby={`cap-titulo-${i}`} className="scroll-mt-20">
-                <div className="flex items-end justify-between gap-4 border-b border-[var(--texto)] pb-4">
-                  <div className="flex items-baseline gap-3">
-                    <span aria-hidden className="text-3xl leading-none text-[var(--linea-fuerte)] [font-family:var(--fuente-titulo)] tabular-nums">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h2 id={`cap-titulo-${i}`} className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{cap.nombre}</h2>
-                  </div>
-                  <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em] tabular-nums">
-                    {editando ? (todoEnviado ? "ya se mandaron · no se tocan" : "las que vienen") : `${contestadas} de ${cap.preguntas.length}`}
+              <li key={cap.nombre} className="shrink-0">
+                <a
+                  href={`#cap-${i}`}
+                  className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[13px] transition-colors hover:border-[var(--texto)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] [font-family:var(--fuente-micro)] ${
+                    completo ? "border-[var(--texto)] bg-[var(--texto)] text-[var(--fondo)]" : cap.contestadas > 0 ? "border-[var(--texto)]" : "border-[var(--linea)] text-[var(--texto-menor)]"
+                  }`}
+                >
+                  <span className="italic opacity-70 [font-family:var(--fuente-titulo)]">{i + 1}</span>
+                  {cap.nombre}
+                  <span className="tabular-nums opacity-60">
+                    {cap.contestadas}/{cap.total}
                   </span>
-                </div>
-
-                {!editando ? (
-                  <GaleriaCapitulo fotos={fotosPorCapitulo.get(cap.nombre) ?? []} usuarioId={user.id} esDuena={rol === "duena"} />
-                ) : null}
-
-                <div className="mt-6 flex flex-col gap-4">
-                  {cap.preguntas.map((p) => {
-                    const lista = respuestasPorOrden.get(p.orden);
-                    const porVenirEsta = p.orden > n.dia_actual;
-
-                    // En edición, las que vienen las dibuja el editor (abajo).
-                    if (editando && porVenirEsta) return null;
-
-                    if (!lista) {
-                      return (
-                        <div
-                          key={p.orden}
-                          className="grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 rounded-xl border border-dashed border-[var(--linea-fuerte)] px-4 py-3.5 text-[var(--texto-menor)] sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center sm:gap-4 sm:px-5"
-                        >
-                          <span className="text-[22px] leading-[1.2] text-[var(--linea)] [font-family:var(--fuente-titulo)] tabular-nums">{p.orden}</span>
-                          <p className="text-[14.5px] leading-[1.55] [font-family:var(--fuente-cuerpo)] font-light">{p.texto}</p>
-                          <span className="col-start-2 text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.18em] sm:col-start-3">
-                            {porVenirEsta ? "todavía no" : propia ? "enviada · esperando tu audio" : "enviada · esperando su audio"}
-                          </span>
-                        </div>
-                      );
-                    }
-
-                    const principales = lista.filter((r) => !r.es_repregunta);
-                    const ampliaciones = lista.filter((r) => r.es_repregunta);
-                    const principal = principales[0] ?? lista[0];
-                    const texto = (principal.transcripcion ?? principal.texto_directo ?? "").trim();
-                    return (
-                      <article
-                        key={p.orden}
-                        className="grid grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 gap-y-3 rounded-xl border border-[var(--linea)] p-4 sm:grid-cols-[40px_minmax(0,1fr)_220px] sm:gap-x-4 sm:px-5 sm:py-5"
-                      >
-                        <span className="text-[22px] leading-[1.2] text-[var(--linea-fuerte)] [font-family:var(--fuente-titulo)] tabular-nums">{p.orden}</span>
-                        <div className="min-w-0 flex flex-col gap-2.5">
-                          <h3 className="text-[16.5px] font-medium leading-[1.4] [font-family:var(--fuente-titulo)]">{p.texto}</h3>
-                          {preguntasEnviadas[String(p.orden)] && preguntasEnviadas[String(p.orden)] !== p.texto ? (
-                            <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
-                              Se lo preguntamos así: «{preguntasEnviadas[String(p.orden)]}»
-                            </p>
-                          ) : null}
-                          {p.foto_id ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={`/api/fotos/${p.foto_id}`} alt="" className="max-h-64 self-start rounded-lg border border-[var(--linea)] object-contain" />
-                          ) : null}
-                          {texto ? (
-                            <p className="text-[15.5px] leading-[1.7] text-[var(--texto-suave)] [font-family:var(--fuente-cuerpo)] font-light">{texto}</p>
-                          ) : principal.audio_path ? (
-                            <p className="text-sm text-[var(--texto-menor)]">Estamos transcribiendo el audio…</p>
-                          ) : null}
-                          {ampliaciones.length > 0 ? (
-                            <div className="mt-1 flex flex-col gap-4 border-l-2 border-[var(--linea)] pl-4">
-                              {repreguntasEnviadas[String(p.orden)] ? (
-                                <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
-                                  Le repreguntamos: «{repreguntasEnviadas[String(p.orden)]}»
-                                </p>
-                              ) : null}
-                              <Etiqueta>y agregó</Etiqueta>
-                              {ampliaciones.map((r) => (
-                                <Respuesta key={r.id} respuesta={r} />
-                              ))}
-                            </div>
-                          ) : null}
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                            <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{fechaCorta(principal.recibido_at)}</span>
-                            {puedeAgregar ? (
-                              <Link
-                                href={`/tablero/${n.id}?editar=1&sobre=${p.orden}`}
-                                className="text-[13px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)]"
-                              >
-                                {propia ? "Contar más sobre esto" : "Pedirle que cuente más"}
-                              </Link>
-                            ) : null}
-                          </div>
-                        </div>
-                        {principal.audio_path ? (
-                          <div className="col-start-2 sm:col-start-3 sm:row-start-1">
-                            <ReproductorRespuesta src={`/api/audio/${principal.id}`} duracion={principal.duracion_segundos} etiqueta={`respuesta ${p.orden}`} />
-                          </div>
-                        ) : null}
-                      </article>
-                    );
-                  })}
-
-                  {editando ? (
-                    <EditorGuion
-                      narradorId={n.id}
-                      futuras={futuras}
-                      puedeEditar={PUEDE.editarGuion(rol)}
-                      puedeSaltar={puedeSaltar(guion).ok}
-                      capitulo={cap.nombre}
-                      trato={tratoPanel}
-                    />
-                  ) : null}
-                </div>
-
-                {!editando && puedeAgregar ? (
-                  <div className="mt-5">
-                    <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre} trato={tratoPanel}>
-                      + Agregar una foto de esta época
-                    </SubirFoto>
-                  </div>
-                ) : null}
-              </section>
+                </a>
+              </li>
             );
           })}
+        </ol>
+      </nav>
 
-          {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
-            <p className="flex gap-4 text-[var(--texto-menor)]">
-              <span className="w-8 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">+{ADAPTATIVAS}</span>
-              <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que {propia ? "hayas" : "él haya"} contado.</span>
-            </p>
+      {dudasPendientes ? (
+        <div className="mt-8">
+          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
+        </div>
+      ) : null}
+
+      {/* Terminó de contar: mientras la edición está abierta, la barra manda (fotos,
+          compartir, cerrar). Al cerrarla aparece el paso siguiente. Los invitados
+          ven "Leer su libro" cuando el libro está cerrado. */}
+      {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
+        <div className="mt-8 flex flex-col gap-3">
+          {/* Libro encargado: dueña e invitados van al lector (que avisa si todavía se está armando). */}
+          <ProximoPaso href={aprobado || !PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/leer` : `/tablero/${n.id}/libro`}>
+            {aprobado
+              ? (propia ? "Leer tu libro y escuchar tu voz" : "Leer su libro y escuchar su voz")
+              : PUEDE.cerrarLibro(rol)
+                ? tratoPanel === "tu"
+                  ? (propia ? "Dale los últimos retoques y encarga tu libro" : "Dale los últimos retoques y encarga su libro")
+                  : (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
+                : "Leer su libro"}
+          </ProximoPaso>
+          {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
+            <div className="flex items-center gap-3 text-[13px] text-[var(--texto-menor)]">
+              <span>Edición cerrada. Las fotos se siguen sumando en Encargar libro.</span>
+              <ReabrirEdicion narradorId={n.id} />
+            </div>
           ) : null}
+        </div>
+      ) : null}
 
-          {!editando && (fotosDelLibro.length > 0 || puedeAgregar) ? (
-            <section aria-labelledby="fotos-del-libro">
-              <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
-                <h2 id="fotos-del-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">El álbum del libro</h2>
-                <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">sin lugar todavía</span>
+      {editando ? (
+        <div className="mt-8">
+          <AgregarPregunta
+            narradorId={n.id}
+            capitulos={capitulosConocidos}
+            lugarLibre={lugar}
+            textoInicial={preguntaSobre ? (propia ? `Quiero contar más sobre esto: "${preguntaSobre.texto}"` : `Me gustaría que me cuente más sobre esto: "${preguntaSobre.texto}"`) : ""}
+            propia={propia}
+            capituloInicial={preguntaSobre?.capitulo}
+            trato={tratoPanel}
+          />
+          <div className="mt-3">
+            <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} trato={tratoPanel} ella={ella} />
+          </div>
+          <div className="mt-5 flex justify-end">
+            <Link href={`/tablero/${n.id}`} className={botonBarraPri}>
+              <IconoBarra nombre="check" />
+              Listo
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── Los capítulos ───────────────────────────────────────────────── */}
+      <div className="mt-10 flex flex-col gap-14">
+        {capitulos.map((cap, i) => {
+          const contestadas = capitulosRiel[i].contestadas;
+          const porVenir = cap.preguntas.filter((p) => p.orden > n.dia_actual);
+          const todoEnviado = porVenir.length === 0;
+          return (
+            <section key={cap.nombre} id={`cap-${i}`} aria-labelledby={`cap-titulo-${i}`} className="scroll-mt-24">
+              <div className="flex items-end justify-between gap-4 border-b border-[var(--texto)] pb-4">
+                <div className="flex items-baseline gap-3">
+                  <span aria-hidden className="pnl-num text-3xl leading-none">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h2 id={`cap-titulo-${i}`} className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{cap.nombre}</h2>
+                </div>
+                <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em] tabular-nums">
+                  {editando ? (todoEnviado ? "ya se mandaron · no se tocan" : "las que vienen") : `${contestadas} de ${cap.preguntas.length}`}
+                </span>
               </div>
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                Las fotos que todavía no tienen lugar. En{" "}
-                <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>{" "}
-                {tratoPanel === "tu" ? "las arrastras" : "las arrastrás"} a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
-              </p>
-              <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={user.id} esDuena={rol === "duena"} />
-              {puedeAgregar ? (
+
+              {!editando ? <GaleriaCapitulo fotos={fotosPorCapitulo.get(cap.nombre) ?? []} usuarioId={usuarioId} esDuena={rol === "duena"} /> : null}
+
+              <div className="mt-6 flex flex-col gap-4">
+                {cap.preguntas.map((p) => {
+                  const lista = respuestasPorOrden.get(p.orden);
+                  const porVenirEsta = p.orden > n.dia_actual;
+
+                  // En edición, las que vienen las dibuja el editor (abajo).
+                  if (editando && porVenirEsta) return null;
+
+                  if (!lista) {
+                    return (
+                      <div
+                        key={p.orden}
+                        className="grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 rounded-xl border border-dashed border-[var(--linea-fuerte)] px-4 py-3.5 text-[var(--texto-menor)] sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                      >
+                        <span className="pnl-num text-[22px] leading-[1.2] opacity-60">{p.orden}</span>
+                        <p className="text-[14.5px] leading-[1.55] [font-family:var(--fuente-cuerpo)] font-light">{p.texto}</p>
+                        <span className="col-start-2 text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.18em] sm:col-start-3">
+                          {porVenirEsta ? "todavía no" : propia ? "enviada · esperando tu audio" : "enviada · esperando su audio"}
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  const principales = lista.filter((r) => !r.es_repregunta);
+                  const ampliaciones = lista.filter((r) => r.es_repregunta);
+                  const principal = principales[0] ?? lista[0];
+                  const texto = (principal.transcripcion ?? principal.texto_directo ?? "").trim();
+                  return (
+                    <article
+                      key={p.orden}
+                      className="grid grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 gap-y-3 rounded-xl border border-[var(--linea)] bg-[var(--relieve)] p-4 sm:grid-cols-[40px_minmax(0,1fr)_220px] sm:gap-x-4 sm:px-5 sm:py-5"
+                    >
+                      <span className="pnl-num text-[22px] leading-[1.2]">{p.orden}</span>
+                      <div className="min-w-0 flex flex-col gap-2.5">
+                        <h3 className="text-[16.5px] font-medium leading-[1.4] [font-family:var(--fuente-titulo)]">{p.texto}</h3>
+                        {preguntasEnviadas[String(p.orden)] && preguntasEnviadas[String(p.orden)] !== p.texto ? (
+                          <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                            Se lo preguntamos así: «{preguntasEnviadas[String(p.orden)]}»
+                          </p>
+                        ) : null}
+                        {p.foto_id ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`/api/fotos/${p.foto_id}`} alt="" className="max-h-64 self-start rounded-lg border border-[var(--linea)] object-contain" />
+                        ) : null}
+                        {texto ? (
+                          <p className="text-[15.5px] leading-[1.7] text-[var(--texto-suave)] [font-family:var(--fuente-cuerpo)] font-light">{texto}</p>
+                        ) : principal.audio_path ? (
+                          <p className="text-sm text-[var(--texto-menor)]">Estamos transcribiendo el audio…</p>
+                        ) : null}
+                        {ampliaciones.length > 0 ? (
+                          <div className="mt-1 flex flex-col gap-4 border-l-2 border-[var(--linea)] pl-4">
+                            {repreguntasEnviadas[String(p.orden)] ? (
+                              <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                                Le repreguntamos: «{repreguntasEnviadas[String(p.orden)]}»
+                              </p>
+                            ) : null}
+                            <Etiqueta>y agregó</Etiqueta>
+                            {ampliaciones.map((r) => (
+                              <Respuesta key={r.id} respuesta={r} />
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{fechaCorta(principal.recibido_at)}</span>
+                          {puedeAgregar ? (
+                            <Link
+                              href={`/tablero/${n.id}?editar=1&sobre=${p.orden}`}
+                              className="text-[13px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)]"
+                            >
+                              {propia ? "Contar más sobre esto" : "Pedirle que cuente más"}
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                      {principal.audio_path ? (
+                        <div className="col-start-2 sm:col-start-3 sm:row-start-1">
+                          <ReproductorRespuesta src={`/api/audio/${principal.id}`} duracion={principal.duracion_segundos} etiqueta={`respuesta ${p.orden}`} />
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+
+                {editando ? (
+                  <EditorGuion
+                    narradorId={n.id}
+                    futuras={futuras}
+                    puedeEditar={PUEDE.editarGuion(rol)}
+                    puedeSaltar={puedeSaltar(guion).ok}
+                    capitulo={cap.nombre}
+                    trato={tratoPanel}
+                    ella={ella}
+                  />
+                ) : null}
+              </div>
+
+              {!editando && puedeAgregar ? (
                 <div className="mt-5">
-                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} trato={tratoPanel}>+ Agregar una foto al álbum</SubirFoto>
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre} trato={tratoPanel}>
+                    + Agregar una foto de esta época
+                  </SubirFoto>
                 </div>
               ) : null}
             </section>
-          ) : null}
-        </div>
+          );
+        })}
 
-        {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
-        {!cerrado && PUEDE.cambiarRitmo(rol) ? (
-          <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Ajustes de la entrevista</Etiqueta>
-            <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={contexto.sinFotos !== true} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
+        {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
+          <p className="flex gap-4 text-[var(--texto-menor)]">
+            <span className="w-8 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">+{ADAPTATIVAS}</span>
+            <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que {propia ? "hayas" : ella ? "ella haya" : "él haya"} contado.</span>
+          </p>
+        ) : null}
+
+        {!editando && (fotosDelLibro.length > 0 || puedeAgregar) ? (
+          <section aria-labelledby="fotos-del-libro">
+            <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
+              <h2 id="fotos-del-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">El álbum del libro</h2>
+              <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">sin lugar todavía</span>
             </div>
+            <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+              Las fotos que todavía no tienen lugar. En{" "}
+              <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>{" "}
+              {tratoPanel === "tu" ? "las arrastras" : "las arrastrás"} a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
+            </p>
+            <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={usuarioId} esDuena={rol === "duena"} />
+            {puedeAgregar ? (
+              <div className="mt-5">
+                <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} trato={tratoPanel}>+ Agregar una foto al álbum</SubirFoto>
+              </div>
+            ) : null}
           </section>
         ) : null}
-
-        {puedeCerrarAnticipado ? (
-          <div className="mt-8">
-            <CierreAnticipado narradorId={n.id} trato={tratoPanel} />
-          </div>
-        ) : null}
       </div>
+
+      {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
+      {!cerrado && PUEDE.cambiarRitmo(rol) ? (
+        <section className="mt-16 border-t border-[var(--linea)] pt-10">
+          <Etiqueta>Ajustes de la entrevista</Etiqueta>
+          <div className="mt-6">
+            <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={pedirFotos} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

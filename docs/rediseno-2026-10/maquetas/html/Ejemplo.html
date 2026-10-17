@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ejemplo de libro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+a{color:#ededed}a:hover{color:#ffffff}
+@keyframes flipR{from{transform:rotateY(-95deg);filter:brightness(.7)}to{transform:none;filter:none}}
+@keyframes flipL{from{transform:rotateY(95deg);filter:brightness(.7)}to{transform:none;filter:none}}
+@keyframes fade{from{opacity:.2}to{opacity:1}}
+.fwdR{animation:flipR 700ms cubic-bezier(.65,0,.35,1) both}
+.fwdL{animation:fade 500ms 200ms both}
+.backL{animation:flipL 700ms cubic-bezier(.65,0,.35,1) both}
+.backR{animation:fade 500ms 200ms both}
+.still{}
+@keyframes bar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+[data-playing="true"] .m-bar{animation:bar 900ms ease-in-out infinite}
+.m-bar:nth-child(3n){animation-delay:-300ms!important}.m-bar:nth-child(3n+1){animation-delay:-600ms!important}
+.nav{transition:transform 160ms cubic-bezier(.2,.7,.2,1),background-color 200ms,opacity 200ms}
+.nav:hover{transform:translateY(-2px)}.nav:active{transform:scale(.95)}
+a[style*="border-radius: 999px"]{transition:transform 160ms cubic-bezier(.2,.7,.2,1),filter 200ms}
+a[style*="border-radius: 999px"]:hover{transform:translateY(-2px);filter:brightness(1.06)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition-duration:1ms!important}}
+</style>
+
+<div style="background: radial-gradient(ellipse at 50% 30%, #1a1712 0%, #0a0a0a 60%); color: #ededed; min-height: 100vh;">
+<header style="border-bottom: 1px solid #1f1e1b;"><div style="max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <a href="#" aria-label="Vitácora, inicio" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #ededed;">
+        <svg viewBox="-78 31 356 228" style="height: 28px; width: auto;" aria-hidden="true">
+          <ellipse cx="86.14" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="113.86" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="73.23" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="126.77" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="60.65" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="139.35" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="48.29" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="151.71" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="36.08" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="163.92" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="23.99" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="176.01" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="12" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="188" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+        </svg>
+        <span style="font-family: Archivo, sans-serif; font-size: 13px; letter-spacing: 0.22em; font-weight: 500;">VITÁCORA</span>
+      </a>
+  <a href="#" style="font-family: Archivo, sans-serif; font-size: 14px; color: #b4b1a9; text-decoration: none;">← Volver a la web</a>
+</div></header>
+<div style="max-width: 1180px; margin: 0 auto; padding: 48px 24px 90px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 30px;">
+  <div style="text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; max-width: 720px;">
+    <span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.2em; color: #b9a8f5;">EJEMPLO · EL ANTICIPO DE OSVALDO</span>
+    <h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 50px; line-height: 1.05; color: #ffffff;">Así es su libro por dentro.</h1>
+    <p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 18px; line-height: 1.55; color: #c9c6be;">Así es su libro por dentro. Tras su tercera respuesta te llega el anticipo: la portada, el índice y su primera página. Pasa las páginas.</p>
+  </div>
+  <div style="position: relative; display: flex; justify-content: center; perspective: 2400px; padding: 10px 0 46px;"><span style="position: absolute; left: 50%; bottom: 8px; width: 900px; height: 60px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgba(0,0,0,.65), rgba(0,0,0,0) 70%); filter: blur(6px);"></span><div style="position: relative; display: flex; transform: rotateX(9deg); transform-style: preserve-3d;"><div class="still" style="transform-origin: right center; position: relative;"><div style="width: 420px; height: 580px;"></div></div><div class="still" style="transform-origin: left center; position: relative;"><div style="position: relative; width: 420px; height: 580px; border-radius: 3px 7px 7px 3px; box-shadow: 1px 0px 0 #f1eadc, 2px 1px 0 #d6cab3, 3px 1px 0 #f1eadc, 4px 2px 0 #d6cab3, 5px 2px 0 #f1eadc, 6px 3px 0 #d6cab3, 7px 3px 0 #f1eadc, 8px 4px 0 #d6cab3, 14px 10px 0 #1c1b18;"><div style="position: absolute; inset: 0; border-radius: 3px 7px 7px 3px; overflow: hidden;"><img src="assets/665ec8b045160a78ad512c596459a38b.jpg" alt="Portada: El libro de su vida, Osvaldo Toroide" style="width: 100%; height: 100%; object-fit: cover; display: block;"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 26px; background: linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.15) 40%, rgba(255,255,255,.12) 55%, rgba(0,0,0,0) 100%);"></span><span style="position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.10), rgba(255,255,255,0) 40%);"></span></div></div></div></div></div>
+
+
+
+
+
+  <div style="display: flex; align-items: center; gap: 22px;">
+    <button type="button" class="nav" onClick="" aria-label="Página anterior" style="width: 52px; height: 52px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-size: 20px; cursor: default; opacity: 0.3;">←</button>
+    <div style="width: 230px; display: flex; flex-direction: column; align-items: center; gap: 10px;"><div style="display: flex; gap: 8px;"><button type="button" onClick="" aria-label="Portada" style="width: 22px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: #b9a8f5;"></button><button type="button" onClick="" aria-label="Dedicatoria e índice" style="width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: #3a3833;"></button><button type="button" onClick="" aria-label="Capítulo 1" style="width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: #3a3833;"></button><button type="button" onClick="" aria-label="Su foto y su voz" style="width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: #3a3833;"></button><button type="button" onClick="" aria-label="Contraportada" style="width: 8px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: #3a3833;"></button></div><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">1 de 5 · Portada</span></div>
+    <button type="button" class="nav" onClick="" aria-label="Página siguiente" style="width: 52px; height: 52px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-size: 20px; cursor: pointer; opacity: 1;">→</button>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 18px;">
+    <a href="Checkout.dc.html" style="padding: 18px 36px; border-radius: 999px; background: #a08ce8; color: #14140f; text-decoration: none; font-family: Archivo, sans-serif; font-size: 17px; font-weight: 600;">Empezar el libro de tu padre · 49 €</a>
+    <span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">Libro de ejemplo con una historia inventada. El de tu familia se escribe con sus palabras.</span>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { i: 0, dir: 0, playing: false }; this.N = 5; }
+  renderVals() {
+    var st = this.state, self = this, N = this.N;
+    function go(k) { if (k < 0 || k >= N || k === st.i) return; self.setState({ i: k, dir: k > st.i ? 1 : -1, playing: false }); }
+    var labels = ["Portada", "Dedicatoria e índice", "Capítulo 1", "Su foto y su voz", "Contraportada"];
+    function navSt(on) { return 'width: 52px; height: 52px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-size: 20px; cursor: ' + (on ? 'pointer' : 'default') + '; opacity: ' + (on ? 1 : .3) + ';'; }
+    var v = { animR: st.dir > 0 ? 'fwdR' : (st.dir < 0 ? 'backR' : 'still'), animL: st.dir > 0 ? 'fwdL' : (st.dir < 0 ? 'backL' : 'still'),
+      prev: function () { go(st.i - 1); }, next: function () { go(st.i + 1); }, prevSt: navSt(st.i > 0), nextSt: navSt(st.i < N - 1), label: (st.i + 1) + ' de ' + N + ' · ' + labels[st.i],
+      playing: st.playing ? 'true' : 'false', playIc: st.playing ? '❚❚' : '▶', togglePlay: function () { self.setState({ playing: !st.playing }); } };
+    for (var k = 0; k < N; k++) { (function (k) { v['sp' + k] = st.i === k; v['go' + k] = function () { go(k); }; v['dot' + k] = 'width: ' + (st.i === k ? 22 : 8) + 'px; height: 8px; border-radius: 999px; border: none; padding: 0; cursor: pointer; transition: width 320ms cubic-bezier(.65,0,.35,1), background-color 320ms; background: ' + (st.i === k ? '#b9a8f5' : '#3a3833') + ';'; })(k); }
+    return v;
+  }
+}
+</script>
+</body>
+</html>

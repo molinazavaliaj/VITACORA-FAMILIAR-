@@ -13,7 +13,8 @@ const TIPOS = ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/x-m4
 const MAXIMO_BYTES = 10 * 1024 * 1024;
 const TOPE_SEGUNDOS = 120;
 
-const boton = "inline-flex h-11 items-center justify-center rounded-full border border-[#14140F] bg-white px-5 text-[15px] text-[#14140F] transition-colors hover:bg-[#14140F] hover:text-white disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
+// Tema oscuro del rediseño (2026-10): el botón fantasma de la casa.
+const boton = "m-ghost inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-5 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 
 function reloj(segundos: number): string {
   const m = Math.floor(segundos / 60);
@@ -45,6 +46,11 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
   const [grabando, setGrabando] = useState(false);
   const [sonando, setSonando] = useState(false);
   const [segundos, setSegundos] = useState(0);
+  // Lo que dura el audio que quedó y por dónde va al escucharlo. La duración
+  // de lo grabado sale del reloj de la grabación: Chrome no la sabe leer de un
+  // webm hecho con MediaRecorder (dice Infinity hasta el final).
+  const [duracion, setDuracion] = useState<number | null>(null);
+  const [posicion, setPosicion] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const grabador = useRef<MediaRecorder | null>(null);
   const reproductor = useRef<HTMLAudioElement>(null);
@@ -104,6 +110,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
       return;
     }
     const partes: Blob[] = [];
+    let inicio = Date.now();
     r.ondataavailable = (e) => { if (e.data.size > 0) partes.push(e.data); };
     r.onstop = () => {
       cortar();
@@ -115,6 +122,8 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
         setError(textos.audioNoSirve);
         return;
       }
+      setDuracion(Math.max(1, Math.round((Date.now() - inicio) / 1000)));
+      setPosicion(0);
       onAudio(new Blob(partes, { type: aceptado }));
     };
     grabador.current = r;
@@ -129,7 +138,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
     iniciando.current = false;
     setGrabando(true);
     setSegundos(0);
-    const inicio = Date.now();
+    inicio = Date.now();
     temporizador.current = setInterval(() => {
       const s = Math.floor((Date.now() - inicio) / 1000);
       setSegundos(Math.min(s, TOPE_SEGUNDOS));
@@ -148,6 +157,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
     if (!a.paused) {
       a.pause();
       a.currentTime = 0;
+      setPosicion(0);
       return;
     }
     a.play().catch(() => setSonando(false));
@@ -157,6 +167,8 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
     reproductor.current?.pause();
     setSonando(false);
     setSegundos(0);
+    setDuracion(null);
+    setPosicion(0);
     setError(null);
     onAudio(null);
   }
@@ -171,25 +183,55 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
       return;
     }
     setError(null);
+    setDuracion(null); // la lee el reproductor al cargar
+    setPosicion(0);
     onAudio(archivo);
   }
 
   return (
     <div className="mt-3" role="group" aria-labelledby={etiquetadoPor}>
       {audio && url ? (
-        <div className="flex flex-wrap items-center gap-3">
+        // El audio que quedó, a la vista (amigo de Naza, 15/10: «se puede
+        // parar pero no se ve dónde quedó»): una tira con la onda de avance y
+        // los minutos, Escuchar/Parar y Borrar (que deja grabar de nuevo).
+        <div data-audio-grabado className="flex flex-col gap-3 rounded-2xl border border-[var(--borde-oscuro-fuerte)] p-3 sm:p-4">
           <audio
             ref={reproductor}
             src={url}
             preload="metadata"
+            onLoadedMetadata={(e) => {
+              const d = e.currentTarget.duration;
+              if (Number.isFinite(d) && d > 0) setDuracion((antes) => antes ?? Math.round(d));
+            }}
+            onTimeUpdate={(e) => setPosicion(e.currentTarget.currentTime)}
             onPlay={() => setSonando(true)}
             onPause={() => setSonando(false)}
-            onEnded={() => setSonando(false)}
+            onEnded={() => { setSonando(false); setPosicion(0); }}
           />
-          <button type="button" className={boton} onClick={escuchar} aria-pressed={sonando}>
-            {sonando ? textos.parar : textos.escuchar}
-          </button>
-          <button type="button" className={boton} onClick={borrar}>{textos.borrar}</button>
+          <div className="flex items-center gap-3" aria-hidden>
+            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[var(--boton)] text-[var(--sobre-boton)]">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                <rect x="9" y="3" width="6" height="11" rx="3" />
+                <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
+              </svg>
+            </span>
+            <span className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--borde-oscuro)]">
+              <span
+                className="absolute inset-y-0 left-0 rounded-full bg-[var(--texto-oscuro-fuerte)]"
+                style={{ width: duracion ? `${Math.min(100, (posicion / duracion) * 100)}%` : "0%" }}
+              />
+            </span>
+            <span className="flex-none text-[14px] tabular-nums text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">
+              {sonando || posicion > 0 ? `${reloj(Math.floor(posicion))} / ` : ""}
+              {duracion !== null ? reloj(duracion) : ""}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" className={boton} onClick={escuchar} aria-pressed={sonando}>
+              {sonando ? textos.parar : textos.escuchar}
+            </button>
+            <button type="button" className={boton} onClick={borrar}>{textos.borrar}</button>
+          </div>
         </div>
       ) : puedeGrabar ? (
         <div className="flex flex-wrap items-center gap-3">
@@ -199,19 +241,19 @@ export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprad
             <button type="button" className={boton} onClick={grabar}>{textos.grabar}</button>
           )}
           {grabando && (
-            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[#5F5F55] [font-family:var(--fuente-micro)]">
-              <span className="h-2 w-2 rounded-full bg-[#B42318]" aria-hidden />
+            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
+              <span className="h-2 w-2 rounded-full bg-[var(--error,#f0a37a)]" aria-hidden />
               {reloj(segundos)} / {reloj(TOPE_SEGUNDOS)}
             </span>
           )}
         </div>
       ) : (
         <label className="block">
-          <span className="text-[14px] text-[#5F5F55] [font-family:var(--fuente-micro)]">{textos.elegirAudio}</span>
-          <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] [font-family:var(--fuente-micro)]" />
+          <span className="text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{textos.elegirAudio}</span>
+          <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]" />
         </label>
       )}
-      {error && <p className="mt-2 text-[14px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
+      {error && <p className="mt-2 text-[14px] text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
     </div>
   );
 }

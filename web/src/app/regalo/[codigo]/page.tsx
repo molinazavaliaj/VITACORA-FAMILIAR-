@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { linkWhatsApp } from "@/lib/regalo";
@@ -11,10 +10,6 @@ import { AudioRegalo } from "./audio";
 // corta, sin login, una columna pensada para el celular. Fondo blanco y tinta;
 // el violeta va solo en el botón Empezar. Si el regalo no existe o no se pagó,
 // 404: el código no revela nada.
-
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500"], style: ["normal", "italic"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], variable: "--fuente-cuerpo", display: "swap" });
 
 export default async function PaginaRegalo({ params }: { params: Promise<{ codigo: string }> }) {
   const { codigo } = await params;
@@ -30,7 +25,7 @@ export default async function PaginaRegalo({ params }: { params: Promise<{ codig
   const textos = textosAbuelo(regalo.idioma);
 
   return (
-    <div lang={regalo.idioma === "ca" ? "ca" : "es"} className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} min-h-full bg-white text-[#14140F] [font-family:var(--fuente-cuerpo)]`}>
+    <div lang={regalo.idioma === "ca" ? "ca" : "es"} className="min-h-full bg-white text-[#14140F] [font-family:var(--fuente-cuerpo)]">
       <main className="mx-auto w-full max-w-[28rem] p-6 pb-12">
         <header className="flex items-center gap-3">
           <Toroide className="h-7 w-7" />

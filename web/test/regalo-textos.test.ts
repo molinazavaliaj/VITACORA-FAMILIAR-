@@ -30,7 +30,7 @@ const ABUELO_AR = {
 const COMPRADOR_VOS = {
   mailAsunto: "Tu regalo para abuela está listo",
   mailCuerpo:
-    "Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando abuela la escanee, empieza su entrevista y lo vas a ver en tu tablero.",
+    "Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando abuela la escanee, empieza su entrevista y lo vas a ver en la página de su historia.",
   mailBoton: "Ver la tarjeta",
   estadoPanel: "Esperando que abra su regalo",
   estadoCorto: "esperando que abra el regalo",

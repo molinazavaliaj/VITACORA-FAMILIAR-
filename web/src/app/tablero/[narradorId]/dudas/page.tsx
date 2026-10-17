@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { textosPantallaDudas, type TextosPantallaDudas } from "@/lib/dudas-textos";
@@ -53,10 +53,7 @@ async function zonaDeLaHistoria(
 export default async function TableroDudas({ params }: PageProps<"/tablero/[narradorId]/dudas">) {
   const { narradorId } = await params;
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) {
     redirect("/entrar");
   }

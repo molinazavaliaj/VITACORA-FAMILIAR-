@@ -1,6 +1,6 @@
 # Vitácora Familiar
 
-En 30 días de entrevistas por WhatsApp, el libro y el audiolibro de la vida de tu familiar, contados con su propia voz.
+Una entrevista por WhatsApp, a su ritmo, y el libro de la vida de tu familiar, escrito con sus palabras y con sus audios a un toque.
 
 ## Estructura (propiedad por carpeta)
 

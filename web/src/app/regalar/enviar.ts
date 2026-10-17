@@ -2,6 +2,7 @@ import type { Region } from "@/lib/precios";
 import type { Genero } from "@/lib/regalo-reglas";
 import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
 import type { EleccionEntrega } from "./entrega";
+import type { IdiomaWeb } from "@/lib/idioma-web";
 
 // El pago del regalo, separado del formulario para probarlo sin navegador:
 // un POST a /api/compra con `regalo`; si salió bien y hay audio, se sube con
@@ -23,6 +24,8 @@ export type PedidoRegalo = {
   audio: Blob | null;
   /** Mandárselo solo el día elegido (10/10). Viaja solo con fecha, canal y hora. */
   entrega: EleccionEntrega | null;
+  /** La versión de la web (rediseño 2026-10): la pasarela vuelve a /regalar de ese idioma. */
+  idiomaWeb?: IdiomaWeb;
 };
 
 export type Dependencias = {
@@ -39,6 +42,8 @@ export type Dependencias = {
    * también puede tirar error; cualquier error se ignora.
    */
   almacen?: () => Almacen;
+  /** De qué anuncio vino (F4-5, lib/origen.ts); si no hay o tira, va sin origen. */
+  origen?: () => unknown;
 };
 
 /** Lo poco de Storage que se usa. */
@@ -52,12 +57,13 @@ export const CLAVE_PENDIENTE = "vitacora-regalo-pendiente";
 const ESPERA_AUDIO_MS = 30_000;
 
 /** Lo que va a /api/compra. */
-export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
+export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null, origen: unknown = null) {
   return {
     nombreComprador: p.nombreComprador.trim(),
     vinculoComprador: p.vinculoComprador.trim(),
     region: p.region,
     email: p.email.trim(),
+    ...(p.idiomaWeb ? { idiomaWeb: p.idiomaWeb, pantalla: "regalar" } : {}),
     narrador: { nombre: p.nombre.trim(), comoLeDicen: p.comoLeDicen.trim() },
     regalo: {
       mensaje: p.mensaje.trim(),
@@ -70,7 +76,16 @@ export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
       ...(retomar ? { retomar } : {}),
     },
     productos: { impresos: 0, marcos: 0 },
+    ...(origen ? { origen } : {}),
   };
+}
+
+function leerOrigen(origen: Dependencias["origen"]): unknown {
+  try {
+    return origen?.() ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function leerPendiente(almacen: Dependencias["almacen"]): Retomar | null {
@@ -104,7 +119,7 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
     const r = await deps.fetch("/api/compra", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpoCompra(p, leerPendiente(deps.almacen))),
+      body: JSON.stringify(cuerpoCompra(p, leerPendiente(deps.almacen), leerOrigen(deps.origen))),
     });
     const crudo = (await r.json()) as Respuesta;
     if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? errorPago };

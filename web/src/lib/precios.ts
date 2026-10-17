@@ -68,3 +68,13 @@ export function obtenerPrecio(region: Region): { monto: number; moneda: "EUR" | 
 export function obtenerPrecioViaje(region: Region): number | null {
   return precioValido(process.env[region === "ES" ? "PRECIO_VIAJE_EUR" : "PRECIO_VIAJE_ARS"]);
 }
+
+/**
+ * Vitácora Kids («Mi Primer Capítulo», 15/10): precio propio, como Viaje. Sin
+ * precio válido no se vende (la página y la compra dicen «Próximamente»). Los
+ * mismos nombres que en la rama `vitacora-kids` (PRECIO_KIDS_EUR / _ARS). Tener
+ * precio no alcanza para vender: además hace falta KIDS_VENTA (lib/kids.ts).
+ */
+export function obtenerPrecioKids(region: Region): number | null {
+  return precioValido(process.env[region === "ES" ? "PRECIO_KIDS_EUR" : "PRECIO_KIDS_ARS"]);
+}

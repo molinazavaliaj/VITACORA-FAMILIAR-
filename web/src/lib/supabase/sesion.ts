@@ -1,13 +1,14 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 // Cliente Supabase atado a la sesión del usuario (cookies), para usar en
 // Server Components, Server Actions y Route Handlers.
 //
-// El middleware (src/middleware.ts) es el que refresca el token en cada
-// request — ahí sí se pueden escribir cookies. Este helper solo necesita
+// El proxy (src/proxy.ts) es el que refresca el token en cada request del
+// panel — ahí sí se pueden escribir cookies. Este helper solo necesita
 // leerlas. El intento de escritura queda envuelto en try/catch porque en
-// render de RSC no se pueden escribir cookies; el middleware se encarga
+// render de RSC no se pueden escribir cookies; el proxy se encarga
 // del refresh.
 export async function crearClienteSesion() {
   const cookieStore = await cookies();
@@ -26,10 +27,26 @@ export async function crearClienteSesion() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // en render de RSC no se pueden escribir cookies; el middleware se encarga del refresh
+            // en render de RSC no se pueden escribir cookies; el proxy se encarga del refresh
           }
         },
       },
     },
   );
 }
+
+/**
+ * El usuario de la sesión, leído UNA vez por request. `getUser()` siempre va
+ * al servidor de auth (no valida local): el layout del panel y la página lo
+ * pedían cada uno por su lado y eran dos viajes iguales en serie
+ * (docs/rediseno-2026-10/RENDIMIENTO.md §3.2). Con `cache` de React, dentro de
+ * un mismo render de servidor la segunda llamada reusa la primera. Fuera de un
+ * render (route handlers, tests) no memoriza: se comporta como antes.
+ */
+export const usuarioDeLaSesion = cache(async () => {
+  const supabase = await crearClienteSesion();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});

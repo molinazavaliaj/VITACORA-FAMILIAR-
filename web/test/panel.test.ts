@@ -38,6 +38,22 @@ describe("historiasDelUsuario", () => {
     ]);
   });
 
+  it("un narrador de su familia al que además la invitaron cuenta una vez, como dueña", async () => {
+    const { admin } = crearAdmin({
+      familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
+      narradores: [alfredo, osvaldo],
+      invitados: [
+        { id: "i1", narrador_id: "n-alfredo", auth_user_id: "u-martina", email: "martina@mail.com" },
+        { id: "i2", narrador_id: "n-osvaldo", auth_user_id: "u-martina", email: "martina@mail.com" },
+      ],
+    });
+    const { panel } = await historiasDelUsuario(admin, martina);
+    expect(panel.historias.map((h) => [h.narrador.nombre, h.rol])).toEqual([
+      ["Alfredo", "duena"],
+      ["Osvaldo", "invitado"],
+    ]);
+  });
+
   it("una invitación por mail todavía no abierta se vincula al entrar", async () => {
     const { admin, updates } = crearAdmin({
       familias: [],

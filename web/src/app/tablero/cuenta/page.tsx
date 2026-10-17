@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiasDelUsuario } from "@/lib/panel";
 import { Contenedor, EstadoError, Etiqueta, Tarjeta, Titulo } from "../ui";
@@ -8,10 +8,7 @@ import { Contenedor, EstadoError, Etiqueta, Tarjeta, Titulo } from "../ui";
 // el botón de arriba a la derecha; los datos de compra no se editan acá.
 
 export default async function PaginaCuenta() {
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();

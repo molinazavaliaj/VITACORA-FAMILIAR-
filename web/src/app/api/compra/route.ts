@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
-import { crearCheckout } from "@/lib/pagos";
+import { crearCheckout, type OrigenCompra } from "@/lib/pagos";
+import { esIdiomaWeb, regionDeIdioma } from "@/lib/idioma-web";
 import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
 import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } from "@/lib/regalo";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
+import { limpiarOrigen } from "@/lib/origen";
+import { KIDS_TODAVIA_NO } from "@/lib/kids";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -23,6 +26,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
   email?: string;
+  /**
+   * La versión de la web desde donde se compra (es, ca, ar) y la pantalla
+   * (rediseño 2026-10): con esto la pasarela vuelve a la ruta de ese idioma.
+   * No va a la base. Sin esto, las vueltas de siempre.
+   */
+  idiomaWeb?: string;
+  pantalla?: string;
   /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
   productos?: { viaje?: boolean; impresos?: number; marcos?: number };
   /**
@@ -39,6 +49,20 @@ export type CompraBody = RegistroBody & {
     entrega?: { canal?: unknown; contacto?: unknown; hora?: unknown };
     retomar?: { narradorId?: unknown; token?: unknown };
   };
+  /**
+   * De qué anuncio vino (F4-5): primer y último toque guardados en el
+   * navegador (lib/origen.ts). Se limpia estricto y va a `pedidos.extras.origen`;
+   * si viene mal, se descarta sin decir nada.
+   */
+  origen?: unknown;
+  /**
+   * Vitácora Kids (15/10): la compra de /comprar/kids manda `producto: "kids"`.
+   * Hoy se rechaza siempre: la base de main no sabe guardar un pedido de Kids
+   * (lib/kids.ts, PENDIENTES «Apuntado: Kids»). Sin esto, un cuerpo de Kids se
+   * cobraría como el libro de una vida y el entrevistador le escribiría a un
+   * chico con las preguntas de un adulto.
+   */
+  producto?: unknown;
 };
 
 /**
@@ -84,6 +108,30 @@ function columnasEntrega(e: EntregaRegalo | null) {
   };
 }
 
+/** De dónde salió la compra, si el cuerpo lo dice y coincide con la región; si no, nada (vueltas de siempre). */
+function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
+  if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
+  return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
+}
+
+/**
+ * `pedidos.extras`: los productos, `regalo: true` si es un regalo y `origen`
+ * (F4-5) solo si vino uno válido. Sin origen, exactamente lo de antes.
+ */
+function extrasDelPedido(compra: Parameters<typeof productosParaPedido>[0], regalo: boolean, origenCrudo: unknown) {
+  let origen: ReturnType<typeof limpiarOrigen> = null;
+  try {
+    origen = limpiarOrigen(origenCrudo, new Date());
+  } catch {
+    origen = null;
+  }
+  return {
+    ...productosParaPedido(compra),
+    ...(regalo ? { regalo: true } : {}),
+    ...(origen ? { origen } : {}),
+  };
+}
+
 /** PostgREST no conoce la columna: la migración de la entrega todavía no se aplicó. */
 function faltaColumna(error: unknown): boolean {
   const code = (error as { code?: string } | null)?.code;
@@ -96,6 +144,9 @@ export async function POST(request: NextRequest) {
     body = (await request.json()) as CompraBody;
   } catch {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
+  }
+  if (body.producto === "kids") {
+    return NextResponse.json({ error: KIDS_TODAVIA_NO }, { status: 409 });
   }
   // Vos o tú: el de la región que eligió en el formulario.
   const trato: TratoComprador = body.region === "ES" ? "tu" : "vos";
@@ -256,7 +307,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: datosRegalo ? { ...productosParaPedido(compra), regalo: true } : productosParaPedido(compra),
+      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen),
     })
     .select("id")
     .single();
@@ -332,7 +383,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { urlPago } = await crearCheckout({ id: (pedido as { id: string }).id, email }, compra);
+    // Sin origen (otra pantalla, un cliente viejo), el llamado de siempre.
+    const datosPedido = { id: (pedido as { id: string }).id, email };
+    const origen = origenDe(body, compra.region);
+    const { urlPago } = await (origen ? crearCheckout(datosPedido, compra, origen) : crearCheckout(datosPedido, compra));
     // Paso 5 (17/09): las fotos del álbum se suben antes de ir a pagar, sin
     // sesión, con un token atado a este narrador y de una hora (lib/token-fotos).
     return NextResponse.json(

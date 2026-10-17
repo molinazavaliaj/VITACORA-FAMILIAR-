@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Su voz · página del libro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+a{color:#ededed}
+button:focus-visible,a:focus-visible{outline:2px solid #b9a8f5;outline-offset:2px}
+.m-btn{transition:transform 160ms cubic-bezier(.2,.7,.2,1),filter 200ms,background-color 200ms}.m-btn:active{transform:scale(.94)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0;visibility:hidden}}
+@keyframes pulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+@keyframes bar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes prog{from{width:0}to{width:100%}}
+@keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.12)}}
+.ring{position:absolute;inset:0;border-radius:999px;border:1.5px solid #b9a8f5;animation:pulse 1800ms cubic-bezier(.2,.7,.2,1) infinite}
+.ring2{animation-delay:600ms}
+.in1{animation:fadeUp 700ms cubic-bezier(.2,.7,.2,1) both}.in2{animation:fadeUp 700ms 150ms cubic-bezier(.2,.7,.2,1) both}.in3{animation:fadeUp 700ms 300ms cubic-bezier(.2,.7,.2,1) both}
+.m-open{animation:fadeUp 320ms cubic-bezier(.2,.7,.2,1) both}
+.wave[data-playing="true"] .m-bar{animation:bar 900ms ease-in-out infinite}.m-bar{opacity:.75}.m-bar:nth-child(3n){animation-delay:-300ms!important}.m-bar:nth-child(3n+1){animation-delay:-600ms!important}
+.prog{animation:prog 58s linear both}
+.kb{animation:kb 18s ease-out both}
+.qs::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition-duration:1ms!important}}
+</style>
+
+<div style="position: relative; background: #0a0a0a; color: #ededed; min-height: 100vh; max-width: 560px; margin: 0 auto;">
+
+
+<button type="button" onClick="" aria-label="Escuchar a Osvaldo" style="position: absolute; inset: 0; z-index: 20; height: 844px; width: 100%; border: none; padding: 0; cursor: pointer; background: #0a0a0a; overflow: hidden; display: block; text-align: center;">
+<img class="kb" src="assets/b41429dd26955df86f00e1a89be8ff52.jpg" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.2) brightness(.55);">
+<span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,10,10,.2) 0%, rgba(10,10,10,.1) 40%, rgba(10,10,10,.9) 100%);"></span>
+<span style="position: absolute; left: 0; right: 0; bottom: 120px; display: flex; flex-direction: column; align-items: center; gap: 22px; color: #fff;">
+<span style="position: relative; width: 84px; height: 84px; display: flex; align-items: center; justify-content: center;"><span class="ring"></span><span class="ring ring2"></span><span style="width: 84px; height: 84px; border-radius: 999px; background: #ffffff; color: #14140f; display: flex; align-items: center; justify-content: center; font-size: 26px;">▶</span></span>
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 34px; line-height: 1.1;">Osvaldo</span>
+<span style="font-family: Archivo, sans-serif; font-size: 14px; color: rgba(255,255,255,.8);">Toca y escúchale</span>
+</span></button>
+
+
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;"><a href="#" aria-label="Vitácora, inicio" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #ededed;">
+        <svg viewBox="-78 31 356 228" style="height: 28px; width: auto;" aria-hidden="true">
+          <ellipse cx="86.14" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="113.86" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="73.23" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="126.77" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="60.65" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="139.35" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="48.29" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="151.71" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="36.08" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="163.92" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="23.99" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="176.01" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="12" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="188" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+        </svg>
+        <span style="font-family: Archivo, sans-serif; font-size: 13px; letter-spacing: 0.22em; font-weight: 500;">VITÁCORA</span>
+      </a><span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .14em; color: #8f8c85;">PRIVADO</span></header>
+
+<section style="padding: 6px 20px 28px; display: flex; flex-direction: column; gap: 18px;">
+<div class="in1" style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 4.2;"><img src="assets/b41429dd26955df86f00e1a89be8ff52.jpg" alt="Osvaldo de joven tocando la guitarra en una calle del pueblo, en blanco y negro" style="width: 100%; height: 100%; object-fit: cover; display: block;"><span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.75) 100%);"></span><span style="position: absolute; left: 18px; bottom: 16px; font-family: Archivo, sans-serif; font-size: 12px; color: rgba(255,255,255,.85);">El verano de 1985, en la calle de abajo</span></div>
+<div class="in2" style="display: flex; flex-direction: column; gap: 6px;"><span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .2em; color: #b9a8f5;">EL LIBRO DE SU VIDA</span><h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 40px; line-height: 1.04; color: #fff;">Osvaldo Toroide</h1><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; color: #b4b1a9;">Contado con su voz · 23 historias · 41 minutos</span></div>
+<div class="in3" style="border: 1px solid #2f2a45; border-radius: 20px; background: #13111b; padding: 18px; display: flex; flex-direction: column; gap: 14px;">
+ <span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .18em; color: #b4b1a9;">EMPIEZA POR AQUÍ</span>
+ <div style="display: flex; align-items: center; gap: 14px;"><button type="button" onClick="" aria-label="Escuchar El primer sueldo" class="m-btn" style="width: 60px; height: 60px; flex: none; border-radius: 999px; border: none; background: #ffffff; color: #14140f; font-size: 20px; cursor: pointer;">▶</button><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 19px; color: #fff;">El primer sueldo</span><div class="wave" data-playing="false" style="display: flex; align-items: center; gap: 2px; height: 26px;"><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 14px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 24px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 10px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 22px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 15px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 11px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 7px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 17px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 23px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 13px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 19px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 21px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 10px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 14px; border-radius: 2px; background: #b9a8f5;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #b9a8f5;"></span></div></div></div>
+ <div style="height: 3px; border-radius: 999px; background: #2a2925; overflow: hidden;"></div>
+ <span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 17px; line-height: 1.45; color: #e4e1da;">«El primer sueldo se lo di entero a mi madre. Me devolvió veinte duros y me dijo: “Para que aprendas a gastarlos”.»</span>
+</div>
+<a href="EjemploMovil.dc.html" class="m-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 54px; border-radius: 999px; background: #a08ce8; color: #14140f; text-decoration: none; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600;">Leer su libro</a>
+</section>
+
+<section style="padding: 26px 20px; border-top: 1px solid #1c1b18; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .2em; color: #b9a8f5;">SU VOZ, CAPÍTULO A CAPÍTULO</span>
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; line-height: 1.12; color: #fff; margin-bottom: 8px;">Así lo contaba él.</span>
+<div style="border-top: 1px solid #1f1e1b;"><div style="border-bottom: 1px solid #1f1e1b;"><button type="button" onClick="" aria-expanded="true" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 0; border: none; background: transparent; color: #ededed; cursor: pointer; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #6f6c66; width: 22px;">01</span><span style="flex: 1; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 21px; color: #fff;">La infancia</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">2 audios</span><span style="color: #8f8c85; font-size: 18px; transition: transform 320ms cubic-bezier(.65,0,.35,1); transform: rotate(180deg);">⌄</span></button>
+<div class="m-open" style="padding: 0 0 8px;"><div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid #1f1e1b;">
+<div style="display: flex; align-items: center; gap: 12px;"><button type="button" onClick="" aria-label="Escuchar: La casa del pueblo" class="m-btn" style="width: 44px; height: 44px; flex: none; border-radius: 999px; border: none; cursor: pointer; font-size: 14px; background: #a08ce8; color: #14140f;">▶</button><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;"><span style="font-family: Archivo, sans-serif; font-size: 15px; color: #fff;">La casa del pueblo</span><div class="wave" data-playing="false" style="display: flex; align-items: center; gap: 2px; height: 20px;"><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 14px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 24px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 10px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 22px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 15px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 11px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 7px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 17px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 23px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 13px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 19px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #d9d4ff;"></span></div></div><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; white-space: nowrap;">4:51</span></div>
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 16px; line-height: 1.45; color: #c9c6be; padding-left: 56px;">«Éramos cuatro en dos habitaciones y a mí me parecía un palacio.»</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid #1f1e1b;">
+<div style="display: flex; align-items: center; gap: 12px;"><button type="button" onClick="" aria-label="Escuchar: La higuera del patio" class="m-btn" style="width: 44px; height: 44px; flex: none; border-radius: 999px; border: none; cursor: pointer; font-size: 14px; background: #a08ce8; color: #14140f;">▶</button><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;"><span style="font-family: Archivo, sans-serif; font-size: 15px; color: #fff;">La higuera del patio</span><div class="wave" data-playing="false" style="display: flex; align-items: center; gap: 2px; height: 20px;"><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 14px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 24px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 10px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 22px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 15px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 11px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 7px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 17px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 23px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 13px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 9px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 19px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 8px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #d9d4ff;"></span></div></div><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; white-space: nowrap;">2:37</span></div>
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 16px; line-height: 1.45; color: #c9c6be; padding-left: 56px;">«Debajo de esa higuera aprendí casi todo lo que sé.»</span></div></div></div><div style="border-bottom: 1px solid #1f1e1b;"><button type="button" onClick="" aria-expanded="false" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 0; border: none; background: transparent; color: #ededed; cursor: pointer; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #6f6c66; width: 22px;">02</span><span style="flex: 1; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 21px; color: #fff;">Las raíces</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">1 audio</span><span style="color: #8f8c85; font-size: 18px; transition: transform 320ms cubic-bezier(.65,0,.35,1); transform: rotate(0deg);">⌄</span></button>
+</div><div style="border-bottom: 1px solid #1f1e1b;"><button type="button" onClick="" aria-expanded="false" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 0; border: none; background: transparent; color: #ededed; cursor: pointer; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #6f6c66; width: 22px;">03</span><span style="flex: 1; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 21px; color: #fff;">La juventud</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">2 audios</span><span style="color: #8f8c85; font-size: 18px; transition: transform 320ms cubic-bezier(.65,0,.35,1); transform: rotate(0deg);">⌄</span></button>
+</div><div style="border-bottom: 1px solid #1f1e1b;"><button type="button" onClick="" aria-expanded="false" style="width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 0; border: none; background: transparent; color: #ededed; cursor: pointer; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #6f6c66; width: 22px;">04</span><span style="flex: 1; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 21px; color: #fff;">Salir al mundo</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">1 audio</span><span style="color: #8f8c85; font-size: 18px; transition: transform 320ms cubic-bezier(.65,0,.35,1); transform: rotate(0deg);">⌄</span></button>
+</div></div>
+<a href="#" style="align-self: flex-start; margin-top: 10px; font-family: Archivo, sans-serif; font-size: 14px; color: #b4b1a9;">Ver los 8 capítulos →</a>
+</section>
+
+<section style="padding: 26px 0 26px 20px; border-top: 1px solid #1c1b18; display: flex; flex-direction: column; gap: 14px;">
+<span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .2em; color: #b9a8f5;">SUS FRASES DE SIEMPRE</span>
+<div class="qs" style="display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-right: 20px;"><div style="flex: 0 0 82%; scroll-snap-align: start; border: 1px solid #2a2925; border-radius: 18px; background: #12120f; padding: 22px; display: flex; flex-direction: column; gap: 10px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 20px; line-height: 1.35; color: #fff;">«En casa no sobraba nada, pero nunca faltó la risa.»</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">Osvaldo</span></div><div style="flex: 0 0 82%; scroll-snap-align: start; border: 1px solid #2a2925; border-radius: 18px; background: #12120f; padding: 22px; display: flex; flex-direction: column; gap: 10px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 20px; line-height: 1.35; color: #fff;">«Tocaba fatal, pero tocaba fuerte.»</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">Osvaldo</span></div><div style="flex: 0 0 82%; scroll-snap-align: start; border: 1px solid #2a2925; border-radius: 18px; background: #12120f; padding: 22px; display: flex; flex-direction: column; gap: 10px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 20px; line-height: 1.35; color: #fff;">«Lo que se hace con las manos no se olvida.»</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">Osvaldo</span></div></div>
+</section>
+
+<section style="padding: 26px 20px; border-top: 1px solid #1c1b18; display: flex; flex-direction: column; gap: 12px;">
+<span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .2em; color: #b9a8f5;">PARA LA FAMILIA</span>
+<p style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.55; color: #c9c6be;">Esta página es privada: solo entra quien tiene el libro, el marco o el enlace. Puedes compartirla con quien quieras de la familia.</p>
+<button type="button" onClick="" class="m-btn" style="align-self: flex-start; height: 46px; padding: 0 20px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 14px; cursor: pointer;">Compartir con la familia</button>
+</section>
+
+<footer style="padding: 30px 20px 40px; border-top: 1px solid #1c1b18; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
+<span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-style: italic; font-size: 17px; color: #b4b1a9;">En cada familia hay un libro sin escribir.</span>
+<a href="LandingRegalo.dc.html" style="font-family: Archivo, sans-serif; font-size: 14px; color: #b9a8f5;">¿Quieres el libro de alguien de tu familia? →</a>
+<span style="font-family: Archivo, sans-serif; font-size: 11px; color: #6f6c66;">Hecho con Vitácora</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { gate: true, playing: '', open: { c1: true }, shared: false }; }
+  renderVals() {
+    var st = this.state, self = this;
+    var v = { gate: st.gate, enter: function () { self.setState({ gate: false, playing: 'j2' }); },
+      shareTxt: st.shared ? 'Enlace copiado' : 'Compartir con la familia', share: function () { self.setState({ shared: true }); } };
+    ["i1", "i2", "r1", "j1", "j2", "s1"].forEach(function (k) {
+      var on = st.playing === k; v['ic_' + k] = on ? '❚❚' : '▶'; v['pl_' + k] = on ? 'true' : 'false'; v['is' + k] = on;
+      v['play_' + k] = function () { self.setState({ playing: on ? '' : k }); };
+      v['pb_' + k] = 'width: 44px; height: 44px; flex: none; border-radius: 999px; border: none; cursor: pointer; font-size: 14px; background: ' + (on ? '#ffffff' : '#a08ce8') + '; color: #14140f;';
+    });
+    ["c1", "c2", "c3", "c4"].forEach(function (k) {
+      var on = !!st.open[k]; v['op_' + k] = on; v['ex_' + k] = on ? 'true' : 'false';
+      v['ar_' + k] = 'color: #8f8c85; font-size: 18px; transition: transform 320ms cubic-bezier(.65,0,.35,1); transform: rotate(' + (on ? '180' : '0') + 'deg);';
+      v['tog_' + k] = function () { var o = Object.assign({}, st.open); o[k] = !on; self.setState({ open: o }); };
+    });
+    return v;
+  }
+}
+</script>
+</body>
+</html>

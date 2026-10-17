@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Guía de motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+:root{--ease-out:cubic-bezier(.2,.7,.2,1);--ease-io:cubic-bezier(.65,0,.35,1)}
+.m-btn{transition:transform 160ms var(--ease-out),box-shadow 200ms var(--ease-out),background-color 200ms}
+.m-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(160,140,232,.28)}
+.m-btn:active{transform:translateY(0) scale(.97);box-shadow:none;transition-duration:80ms}
+.m-ghost{transition:border-color 200ms,background-color 200ms,color 200ms}
+.m-ghost:hover{border-color:#b9a8f5!important;background:#1a1726!important}
+.m-card{transition:border-color 200ms var(--ease-out),background-color 200ms var(--ease-out),transform 200ms var(--ease-out)}
+.m-card:active{transform:scale(.985)}
+.m-dot{transition:border-width 200ms var(--ease-out),border-color 200ms}
+@keyframes stepIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.m-step{animation:stepIn 320ms var(--ease-out) both}
+.m-pill{transition:transform 320ms var(--ease-io),width 320ms var(--ease-io)}
+.m-acc{transition:max-height 320ms var(--ease-io),opacity 240ms}
+.m-plus{transition:transform 320ms var(--ease-io)}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.m-up{animation:up 480ms var(--ease-out) both}
+.m-up:nth-child(2){animation-delay:70ms}.m-up:nth-child(3){animation-delay:140ms}
+@keyframes flash{0%{color:#b9a8f5;transform:translateY(-6px);opacity:0}100%{color:#ffffff;transform:none;opacity:1}}
+.m-price{display:inline-block;animation:flash 360ms var(--ease-out) both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.m-overlay{animation:fadeIn 240ms both}
+.m-pop{animation:popIn 480ms var(--ease-out) both}
+@keyframes bar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+[data-playing="true"] .m-bar{animation:bar 900ms ease-in-out infinite}
+.m-bar{transform-origin:center;transition:transform 200ms}
+.m-bar:nth-child(3n){animation-delay:-300ms!important}.m-bar:nth-child(3n+1){animation-delay:-600ms!important}
+@keyframes turn{0%{transform:rotateY(0)}100%{transform:rotateY(-180deg)}}
+[data-turn="true"] .m-leaf{animation:turn 700ms var(--ease-io) both}
+@media (prefers-reduced-motion: reduce){*{animation-duration:1ms!important;transition-duration:1ms!important}}
+</style>
+
+<div style="background: #0a0a0a; color: #ededed; min-height: 100vh;">
+<div style="max-width: 1180px; margin: 0 auto; padding: 64px 24px 100px; box-sizing: border-box; display: flex; flex-direction: column; gap: 36px;">
+
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px;">
+  <span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.2em; color: #b9a8f5;">GUÍA DE MOTION · VITÁCORA</span>
+  <h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 54px; line-height: 1.05; color: #ffffff;">Cómo se mueve la web.</h1>
+  <p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 18px; line-height: 1.6; color: #c9c6be;">Movimientos cortos y suaves, como pasar una página. Nada rebota ni gira. Cada movimiento confirma algo que hizo la persona: tocó, eligió, avanzó. Pulsa cada ejemplo para verlo.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px;">
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; color: #fff;">120 ms</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Instantáneo · tocar, pasar el ratón</span></div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; color: #fff;">200 ms</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Rápido · elegir una opción</span></div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; color: #fff;">320 ms</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Base · pasos, solapas, acordeón</span></div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; color: #fff;">480 ms</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Lento · aparecer, popups</span></div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; gap: 6px;"><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 28px; color: #fff;">700 ms</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #b4b1a9;">Libro · pasar una página</span></div>
+</div>
+<div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; flex-direction: row; flex-wrap: wrap; gap: 28px; font-family: Archivo, sans-serif; font-size: 14px; color: #c9c6be;">
+  <span><b style="color:#fff;">Salida suave</b> · cubic-bezier(.2, .7, .2, 1) — todo lo que entra o aparece</span>
+  <span><b style="color:#fff;">Ida y vuelta</b> · cubic-bezier(.65, 0, .35, 1) — lo que se desplaza de un sitio a otro</span>
+  <span><b style="color:#fff;">Movimiento reducido</b> · si el móvil lo pide, todo se vuelve instantáneo</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">01</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">120–200 ms · salida suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Botones</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">Al pasar el ratón sube 2 px y gana una sombra suave. Al pulsar se hunde un poco. Así se nota que responde.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden; align-items: center;"><button type="button" class="m-btn" style="height: 54px; padding: 0 30px; border-radius: 999px; border: none; background: #a08ce8; color: #14140f; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;">Comprar el libro</button><button type="button" class="m-ghost" style="height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 15px; cursor: pointer;">Cómo funciona</button></div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">02</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">320 ms · salida suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Pasos del checkout</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">El paso nuevo entra desde la derecha mientras aparece. La barra de progreso se llena. Se siente que avanzas, no que cambias de página.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden; justify-content: flex-start;">
+    <div style="height: 4px; border-radius: 999px; background: #23221e; overflow: hidden;"><div class="m-pill" style="height: 100%; width: 100%; border-radius: 999px; background: #a08ce8; transform-origin: left; transform: scaleX(0.3333333333333333);"></div></div>
+    <div class="m-step" style="display: flex; flex-direction: column; gap: 6px;"><span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: .16em; color: #8f8c85;">PASO 1 DE 3</span><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 22px; color: #fff;">¿Cómo quieres su libro?</span></div>
+    
+    
+    <button type="button" class="m-btn" onClick="" style="align-self: flex-start; margin-top: auto; height: 42px; padding: 0 20px; border-radius: 999px; border: none; background: #a08ce8; color: #14140f; font-family: Archivo, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;">Continuar</button>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">03</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">200 ms · salida suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Elegir una opción</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">El borde y el fondo cambian de color y el punto se rellena. Al tocar, la tarjeta se encoge un instante.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden; gap: 10px;">
+    <button type="button" class="m-card" onClick="" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 14px; cursor: pointer; background: #1a1726; border: 1px solid #a08ce8;"><span class="m-dot" style="width: 18px; height: 18px; flex: none; border-radius: 999px; box-sizing: border-box; border: 5px solid #a08ce8;"></span><span style="font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; color: #fff;">Libro digital</span><span style="margin-left: auto; font-family: Archivo, sans-serif; color: #fff;">49 €</span></button>
+    <button type="button" class="m-card" onClick="" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 14px; cursor: pointer; background: #12120f; border: 1px solid #2a2925;"><span class="m-dot" style="width: 18px; height: 18px; flex: none; border-radius: 999px; box-sizing: border-box; border: 1.5px solid #5a5850;"></span><span style="font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; color: #fff;">Impreso + digital</span><span style="margin-left: auto; font-family: Archivo, sans-serif; color: #fff;">99 €</span></button>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">04</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">320 ms · ida y vuelta</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Solapas Familiar · Kids · Viaje</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">La pastilla de color se desliza hasta la solapa elegida, en vez de saltar.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden; align-items: center;">
+    <div style="position: relative; display: flex; padding: 4px; border: 1px solid #2c2c28; border-radius: 999px; font-family: Archivo, sans-serif; font-size: 14px;">
+      <span class="m-pill" style="position: absolute; top: 4px; left: 4px; height: 38px; border-radius: 999px; background: #a08ce8; width: 88px; transform: translateX(0px);"></span>
+      <button type="button" onClick="" style="position: relative; z-index: 1; height: 38px; width: 88px; border: none; background: transparent; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 14px; transition: color 320ms; color: #14140f;">Familiar</button><button type="button" onClick="" style="position: relative; z-index: 1; height: 38px; width: 62px; border: none; background: transparent; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 14px; transition: color 320ms; color: #ededed;">Kids</button><button type="button" onClick="" style="position: relative; z-index: 1; height: 38px; width: 84px; border: none; background: transparent; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 14px; transition: color 320ms; color: #ededed;">De viaje</button>
+    </div>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">05</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">320 ms · ida y vuelta</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Preguntas frecuentes</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">La respuesta se despliega hacia abajo y el «+» gira hasta ser una «×». Al cerrar, lo mismo al revés.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden; justify-content: flex-start;">
+    <button type="button" onClick="" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 6px 0; border: none; background: transparent; color: #fff; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 19px; cursor: pointer; text-align: left;">¿Mi padre va a saber usarlo?<span class="m-plus" style="display: inline-block; font-family: Archivo, sans-serif; font-size: 22px; color: #b9a8f5; transform: rotate(0deg);">+</span></button>
+    <div class="m-acc" style="overflow: hidden; max-height: 0px; opacity: 0;"><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">Si sabe mandar un audio por WhatsApp, ya sabe hacerlo. No hay nada que instalar.</p></div>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">06</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">480 ms · salida suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Aparecer al bajar</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">Cada bloque sube 16 px mientras aparece, uno detrás de otro con 70 ms de diferencia. Solo la primera vez que entra en pantalla.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden;">
+    <div style="display: flex; gap: 8px;"><div class="m-up" style="flex:1; height: 70px; border-radius: 12px; background: #1a1726;"></div><div class="m-up" style="flex:1; height: 70px; border-radius: 12px; background: #1a1726;"></div><div class="m-up" style="flex:1; height: 70px; border-radius: 12px; background: #1a1726;"></div></div>
+    
+    <button type="button" onClick="" class="m-ghost" style="align-self: flex-start; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 13px; cursor: pointer;">Repetir</button>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">07</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">360 ms · salida suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Cambia el total</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">Cuando añades el marco, el precio nuevo baja desde arriba y se tiñe un instante del color de la marca. Se ve que sumó.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden;">
+    <div style="display: flex; justify-content: space-between; font-family: Archivo, sans-serif; font-size: 18px; font-weight: 600; color: #fff;"><span>Total</span><span class="m-price">49 €</span></div>
+    <button type="button" onClick="" class="m-ghost" style="align-self: flex-start; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 13px; cursor: pointer;">Añadir el marco · +20 €</button>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">08</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">240 ms fondo · 480 ms tarjeta</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Popup del rasca-rasca</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">El fondo se oscurece y la tarjeta aparece desde un poco más pequeña. Nunca entra de golpe ni desde un lado.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden;">
+    <button type="button" onClick="" class="m-btn" style="align-self: center; height: 44px; padding: 0 22px; border-radius: 999px; border: none; background: #a08ce8; color: #14140f; font-family: Archivo, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;">Abrir popup</button>
+    
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">09</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">900 ms · bucle suave</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Su voz sonando</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">Mientras suena un audio, las barras se mueven como una onda. Al pausar se calman.</p>
+  <div style="border-radius: 16px; background: #0a0a0a; border: 1px solid #23221e; min-height: 190px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; position: relative; overflow: hidden;" data-playing="false">
+    <div style="display: flex; align-items: center; gap: 14px;"><button type="button" onClick="" class="m-btn" style="width: 48px; height: 48px; flex: none; border-radius: 999px; border: none; background: #a08ce8; color: #14140f; font-family: Archivo, sans-serif; font-size: 15px; cursor: pointer;">▶</button><div style="display: flex; align-items: center; gap: 3px; height: 40px;"><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 22px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 34px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 28px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 38px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 20px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 14px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 30px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 36px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 16px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 24px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 32px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 12px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 26px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 34px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 18px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 10px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 28px; border-radius: 2px; background: #d9d4ff;"></span><span class="m-bar" style="width: 3px; height: 22px; border-radius: 2px; background: #d9d4ff;"></span></div></div>
+  </div>
+</section>
+
+</div>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 28px;">
+  <div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 10px;"><div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">10</span><span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85; text-align: right;">700 ms · ida y vuelta</span></div><h3 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 24px; color: #ffffff;">Pasar la página del libro</h3><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 15px; line-height: 1.5; color: #c9c6be;">En la página de ejemplo, la hoja gira sobre el lomo como un libro de verdad, con una sombra que avanza con ella. Es el único movimiento lento de la web.</p><button type="button" onClick="" class="m-ghost" style="align-self: flex-start; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a3833; background: transparent; color: #ededed; font-family: Archivo, sans-serif; font-size: 13px; cursor: pointer;">Pasar página</button></div>
+  <div style="flex: 1 1 360px; display: flex; justify-content: center; perspective: 1400px;" data-turn="false">
+    <div style="position: relative; width: 340px; height: 220px; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,.5);">
+      <div style="flex: 1; background: #f3ece0; border-radius: 4px 0 0 4px; padding: 18px; box-sizing: border-box; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 15px; color: #2a2620;">Capítulo 1<br><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; color: #5c5446;">La infancia</span></div>
+      <div style="flex: 1; background: #efe7d8; border-radius: 0 4px 4px 0; padding: 18px; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; line-height: 1.5; color: #4a4236;">Mi madre se levantaba antes que el sol…</div>
+      <div class="m-leaf" style="position: absolute; right: 0; top: 0; width: 50%; height: 100%; transform-origin: left center; transform-style: preserve-3d; background: #f7f1e6; border-radius: 0 4px 4px 0; box-shadow: inset 12px 0 18px -12px rgba(0,0,0,.25); padding: 18px; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; color: #4a4236;">…y encendía la estufa de leña.</div>
+    </div>
+  </div>
+</section>
+
+<section style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 26px; display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+  <span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">REGLAS PARA QUIEN PROGRAME</span>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5; color: #c9c6be;">
+    <span>· Animar solo transform y opacity: van fluidas incluso en móviles viejos.</span>
+    <span>· Nada dura más de 480 ms, salvo pasar la página del libro.</span>
+    <span>· Los vídeos de portada empiezan cuando están cargados; antes, la imagen fija.</span>
+    <span>· La aparición al bajar se hace una sola vez por bloque, no cada vez que se vuelve a él.</span>
+    <span>· Respetar «reducir movimiento» del sistema: todo instantáneo.</span>
+    <span>· En el checkout, el botón «Pagar» muestra un indicador mientras procesa y no se puede pulsar dos veces.</span>
+  </div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 1, pick: 'a', tab: 0, acc: false, rev: 0, marco: false, pop: false, playing: false, turning: false }; }
+  renderVals() {
+    var st = this.state, self = this, ACC = '#a08ce8';
+    function card(on) { return 'display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 14px; cursor: pointer; background: ' + (on ? '#1a1726' : '#12120f') + '; border: 1px solid ' + (on ? ACC : '#2a2925') + ';'; }
+    function dot(on) { return 'width: 18px; height: 18px; flex: none; border-radius: 999px; box-sizing: border-box; border: ' + (on ? '5px solid ' + ACC : '1.5px solid #5a5850') + ';'; }
+    var tabW = [88, 62, 84], tabX = [0, 88, 150];
+    function tabS(i) { return 'position: relative; z-index: 1; height: 38px; width: ' + tabW[i] + 'px; border: none; background: transparent; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 14px; transition: color 320ms; color: ' + (st.tab === i ? '#14140f' : '#ededed') + ';'; }
+    var v = {
+      s1: st.step === 1, s2: st.step === 2, s3: st.step === 3,
+      progStyle: 'height: 100%; width: 100%; border-radius: 999px; background: ' + ACC + '; transform-origin: left; transform: scaleX(' + (st.step / 3) + ');',
+      nextStep: function () { self.setState({ step: st.step === 3 ? 1 : st.step + 1 }); },
+      cardA: card(st.pick === 'a'), cardB: card(st.pick === 'b'), dotA: dot(st.pick === 'a'), dotB: dot(st.pick === 'b'),
+      pickA: function () { self.setState({ pick: 'a' }); }, pickB: function () { self.setState({ pick: 'b' }); },
+      pillStyle: 'position: absolute; top: 4px; left: 4px; height: 38px; border-radius: 999px; background: ' + ACC + '; width: ' + tabW[st.tab] + 'px; transform: translateX(' + tabX[st.tab] + 'px);',
+      tabS0: tabS(0), tabS1: tabS(1), tabS2: tabS(2),
+      tab0: function () { self.setState({ tab: 0 }); }, tab1: function () { self.setState({ tab: 1 }); }, tab2: function () { self.setState({ tab: 2 }); },
+      toggleAcc: function () { self.setState({ acc: !st.acc }); },
+      plusStyle: 'display: inline-block; font-family: Archivo, sans-serif; font-size: 22px; color: #b9a8f5; transform: rotate(' + (st.acc ? 45 : 0) + 'deg);',
+      accStyle: 'overflow: hidden; max-height: ' + (st.acc ? '120px' : '0px') + '; opacity: ' + (st.acc ? 1 : 0) + ';',
+      revA: st.rev % 2 === 0, revB: st.rev % 2 === 1, replay: function () { self.setState({ rev: st.rev + 1 }); },
+      pA: !st.marco, pB: st.marco, priceTxt: st.marco ? '69 €' : '49 €', marcoTxt: st.marco ? 'Quitar el marco' : 'Añadir el marco · +20 €',
+      toggleMarco: function () { self.setState({ marco: !st.marco }); },
+      pop: st.pop, openPop: function () { self.setState({ pop: true }); }, closePop: function () { self.setState({ pop: false }); },
+      playing: st.playing ? 'true' : 'false', playIc: st.playing ? '❚❚' : '▶', togglePlay: function () { self.setState({ playing: !st.playing }); },
+      turning: st.turning ? 'true' : 'false', turn: function () { self.setState({ turning: false }); setTimeout(function () { self.setState({ turning: true }); }, 30); }
+    };
+    return v;
+  }
+}
+</script>
+</body>
+</html>

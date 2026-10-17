@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Doble página · referencia para la foto</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #fff; width: 1600px; height: 1100px; display: flex; align-items: center; justify-content: center; }
+  .libro { display: flex; width: 1500px; height: 1000px; box-shadow: 0 0 0 1px #d9d2c2; }
+  .pag { width: 50%; height: 100%; background: #f7f2e6; position: relative; }
+  .izq { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px;
+         background: linear-gradient(90deg, #f7f2e6 85%, #e9e2d2); }
+  .izq svg { width: 170px; height: auto; }
+  .izq p { font: 500 15px "Playfair Display", serif; letter-spacing: .32em; text-transform: uppercase; color: #3a372f; }
+  .der { padding: 120px 110px 0 120px; background: linear-gradient(270deg, #f7f2e6 88%, #e9e2d2); color: #151412; }
+  .der .cap { font: 500 15px "Playfair Display", serif; letter-spacing: .3em; text-transform: uppercase; color: #8a7246; }
+  .der h1 { font: 400 54px/1.1 "Playfair Display", serif; margin-top: 18px; }
+  .der .cita { font: italic 400 22px/1.4 "Playfair Display", serif; margin-top: 30px; color: #3a372f; }
+  .der .texto { font: 400 19px/1.65 "Playfair Display", Georgia, serif; margin-top: 34px; text-align: justify; hyphens: auto; }
+  .der .texto p + p { text-indent: 1.4em; }
+  .folio { position: absolute; bottom: 50px; font: 400 14px "Playfair Display", serif; color: #8a8273; }
+  .der .folio { right: 110px; }
+</style>
+</head>
+<body>
+<div class="libro">
+  <div class="pag izq">
+    <svg viewBox="0 0 200 290" aria-label="Vitácora Familiar">
+      <line x1="100" y1="20.32" x2="100" y2="269.68" stroke="#14140F" stroke-width="0.9" stroke-dasharray="3 4" opacity="0.55"/>
+      <path d="M100 12 l5.2 5.2 l-5.2 5.2 l-5.2 -5.2 Z" fill="#14140F" opacity="0.75"/>
+      <path d="M100 278 l5.2 -5.2 l-5.2 -5.2 l-5.2 5.2 Z" fill="#14140F" opacity="0.75"/>
+      <g fill="none" stroke="#14140F" stroke-width="1.15">
+        <ellipse cx="86.14" cy="145" rx="13.86" ry="17.63"/><ellipse cx="113.86" cy="145" rx="13.86" ry="17.63"/>
+        <ellipse cx="73.23" cy="145" rx="26.77" ry="34.07"/><ellipse cx="126.77" cy="145" rx="26.77" ry="34.07"/>
+        <ellipse cx="60.65" cy="145" rx="39.35" ry="50.08"/><ellipse cx="139.35" cy="145" rx="39.35" ry="50.08"/>
+        <ellipse cx="48.29" cy="145" rx="51.71" ry="65.82"/><ellipse cx="151.71" cy="145" rx="51.71" ry="65.82"/>
+        <ellipse cx="36.08" cy="145" rx="63.92" ry="81.36"/><ellipse cx="163.92" cy="145" rx="63.92" ry="81.36"/>
+        <ellipse cx="23.99" cy="145" rx="76.01" ry="96.74"/><ellipse cx="176.01" cy="145" rx="76.01" ry="96.74"/>
+        <ellipse cx="12" cy="145" rx="88" ry="112"/><ellipse cx="188" cy="145" rx="88" ry="112"/>
+      </g>
+      <ellipse cx="52" cy="145" rx="33.5" ry="43" fill="#f7f2e6"/>
+      <ellipse cx="148" cy="145" rx="33.5" ry="43" fill="#f7f2e6"/>
+      <text x="52" y="171" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="500" font-size="76" fill="#14140F">V</text>
+      <text x="148" y="171" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="500" font-size="76" fill="#14140F">F</text>
+    </svg>
+    <p>Vitácora Familiar</p>
+  </div>
+  <div class="pag der">
+    <p class="cap">Capítulo 1</p>
+    <h1>La infancia</h1>
+    <p class="cita">«En casa no sobraba nada, pero nunca faltó la risa.»</p>
+    <div class="texto">
+      <p>Mi madre se levantaba antes que el sol. La oía desde la cama. Primero el cerrojo de la puerta del corral, luego la estufa de leña, que tardaba en prender y se quejaba como un viejo. Cuando el olor del café llegaba a la habitación, mi hermano y yo sabíamos que teníamos cinco minutos antes de que nos llamara por segunda vez.</p>
+      <p>Éramos cuatro en una casa de dos habitaciones, en el pueblo, y a mí me parecía un palacio. Tenía un patio con una higuera que daba más sombra que higos, y debajo de esa higuera aprendí casi todo lo que sé.</p>
+    </div>
+    <span class="folio">9</span>
+  </div>
+</div>
+</body>
+</html>
