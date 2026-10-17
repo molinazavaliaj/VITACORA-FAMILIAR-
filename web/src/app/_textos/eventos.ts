@@ -23,8 +23,14 @@ export type TextosEventos = {
   bajada: string;
   /** #5 */
   irAlFormulario: string;
+  /** #5b el segundo botón del inicio */
+  verComo: string;
+  /** #5c las cuatro líneas con tilde del inicio */
+  ventajas: readonly string[];
+  /** #5d qué es, en la hoja de papel */
+  queEs: { etiqueta: string; titulo: string; bajada: string };
   /** #6 a #9 */
-  como: { titulo: string; paso: string; pasos: readonly { titulo: string; texto: string }[] };
+  como: { titulo: string; bajada: string; paso: string; pasos: readonly { titulo: string; texto: string }[] };
   /** #10 y #11 */
   tipos: { titulo: string; pie: string };
   /** #12 (los nombres de cada tipo, también en el formulario) */
@@ -68,8 +74,16 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
     bajada:
       "Vamos a tu boda, tu cumpleaños o tu fiesta. Entrevistamos a tus invitados y con lo que cuentan hacemos el libro impreso de ese día.",
     irAlFormulario: "Cuéntanos tu evento",
+    verComo: "Cómo funciona ↓",
+    ventajas: ["Vamos nosotros a tu evento", "Tus invitados solo hablan", "Un libro impreso con sus palabras", "Para cualquier celebración"],
+    queEs: {
+      etiqueta: "Qué es Vitácora Eventos",
+      titulo: "Lo que tus invitados dicen ese día, en un libro.",
+      bajada: "Una fiesta pasa rápido y casi nada queda escrito. Escuchamos a quienes estuvieron y guardamos sus palabras en un libro para ti.",
+    },
     como: {
       titulo: "Cómo funciona",
+      bajada: "Tú nos cuentas el evento, nosotros escuchamos a tus invitados y escribimos el libro.",
       paso: "Paso",
       pasos: [
         { titulo: "Nos cuentas tu evento", texto: "Qué celebras, cuándo y dónde. Lo hablamos contigo y lo preparamos a tu medida." },
@@ -128,8 +142,16 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
     bajada:
       "Venim al teu casament, al teu aniversari o a la teva festa. Entrevistem els teus convidats i amb el que expliquen fem el llibre imprès d'aquell dia.",
     irAlFormulario: "Explica'ns el teu esdeveniment",
+    verComo: "Com funciona ↓",
+    ventajas: ["Venim nosaltres al teu esdeveniment", "Els teus convidats només parlen", "Un llibre imprès amb les seves paraules", "Per a qualsevol celebració"],
+    queEs: {
+      etiqueta: "Què és Vitácora Esdeveniments",
+      titulo: "El que els teus convidats diuen aquell dia, en un llibre.",
+      bajada: "Una festa passa ràpid i gairebé res no queda escrit. Escoltem qui hi era i guardem les seves paraules en un llibre per a tu.",
+    },
     como: {
       titulo: "Com funciona",
+      bajada: "Tu ens expliques l'esdeveniment, nosaltres escoltem els teus convidats i escrivim el llibre.",
       paso: "Pas",
       pasos: [
         { titulo: "Ens expliques el teu esdeveniment", texto: "Què celebres, quan i on. Ho parlem amb tu i ho preparem a la teva mida." },
@@ -188,8 +210,16 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
     bajada:
       "Vamos a tu casamiento, tu cumpleaños o tu fiesta. Entrevistamos a tus invitados y con lo que cuentan hacemos el libro impreso de ese día.",
     irAlFormulario: "Contanos tu evento",
+    verComo: "Cómo funciona ↓",
+    ventajas: ["Vamos nosotros a tu evento", "Tus invitados solo hablan", "Un libro impreso con sus palabras", "Para cualquier celebración"],
+    queEs: {
+      etiqueta: "Qué es Vitácora Eventos",
+      titulo: "Lo que tus invitados dicen ese día, en un libro.",
+      bajada: "Una fiesta pasa rápido y casi nada queda escrito. Escuchamos a quienes estuvieron y guardamos sus palabras en un libro para vos.",
+    },
     como: {
       titulo: "Cómo funciona",
+      bajada: "Vos nos contás el evento, nosotros escuchamos a tus invitados y escribimos el libro.",
       paso: "Paso",
       pasos: [
         { titulo: "Nos contás tu evento", texto: "Qué celebrás, cuándo y dónde. Lo hablamos con vos y lo preparamos a tu medida." },

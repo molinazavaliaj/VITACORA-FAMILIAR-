@@ -100,7 +100,7 @@ export function FormularioEventos({ idioma, correo }: { idioma: IdiomaWeb; corre
         {estado.tipo === "error" ? (
           <p role="alert" className={ERROR}>{estado.mensaje}</p>
         ) : null}
-        <button type="submit" disabled={enviando} className="dir-boton dir-boton--lleno w-full sm:w-auto sm:self-start">
+        <button type="submit" disabled={enviando} className="dir-boton dir-boton--tinta w-full sm:w-auto sm:self-start">
           {enviando ? f.enviando : f.enviar}
         </button>
       </div>

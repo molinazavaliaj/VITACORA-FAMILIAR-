@@ -1,52 +1,8 @@
 /* ── /eventos, Vitácora Eventos (17/10) ─────────────────────────────────────
-   Las superficies (dir-papel, dir-tinta, dir-hoja, el grano y las capas) son
-   las de la portada. Acá va solo la composición de esta página, con prefijo
-   evt-. */
-
-.evt > section + section,
-.evt > main > section { margin-top: -1px; }
-
-.evt-titulo {
-  font-size: clamp(2.6rem, 1.1rem + 6.4vw, 7.4rem);
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-}
-.evt-titulo em { font-style: italic; }
-.evt-bajada {
-  max-width: 34ch;
-  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
-  font-weight: 300;
-  line-height: 1.5;
-  color: #cfcbc1;
-  text-wrap: pretty;
-}
-
-/* Los tres pasos: número grande en cursiva y el texto al lado. */
-.evt-pasos { display: flex; flex-direction: column; }
-.evt-pasos li {
-  display: grid;
-  grid-template-columns: 4.2rem 1fr;
-  gap: 20px;
-  padding: 28px 0;
-  border-top: 1px solid var(--dir-hilo-papel);
-}
-.evt-pasos li:last-child { border-bottom: 1px solid var(--dir-hilo-papel); }
-.evt-num {
-  font-family: var(--fuente-titulo), Georgia, serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 2.6rem;
-  line-height: 1;
-  color: var(--dir-dorado);
-  font-variant-numeric: lining-nums;
-}
-.evt-paso-titulo {
-  font-family: var(--fuente-titulo), Georgia, serif;
-  font-weight: 500;
-  font-size: clamp(1.4rem, 1.15rem + 0.9vw, 1.9rem);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-}
+   La estética es la de la portada nueva: tinta, papel, deckle, letra, botones,
+   tildes y capas vienen de _direccion/direccion.css, globals.css y
+   _portada/portada.css. Acá va solo lo propio de esta página, con prefijo
+   evt-: las celebraciones y el formulario sobre papel. */
 
 /* Las celebraciones: etiquetas de hilo, como los temas de la portada. */
 .evt-tipo {
@@ -58,33 +14,39 @@
   color: var(--dir-sobre-papel);
 }
 
-/* El formulario: dos columnas desde la tableta, el mensaje a lo ancho. */
-.evt-form { display: grid; grid-template-columns: 1fr; gap: 22px; }
+/* El formulario sobre la hoja de papel: los campos del checkout (CAMPO, AREA)
+   leen --fondo-oscuro y --punto-vacio; acá pasan a un blanco de papel. Lo
+   demás (texto, borde, foco) ya lo pone .dir-papel. */
+.evt-form {
+  --fondo-oscuro: #fbf9f4;
+  --punto-vacio: rgba(21, 20, 18, 0.4);
+  --error: #a3401f;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
 @media (min-width: 640px) {
   .evt-form { grid-template-columns: 1fr 1fr; }
   .evt-campo--ancho { grid-column: 1 / -1; }
 }
-.evt-form select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 40px; }
+.evt-form select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+}
 .evt-trampa { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .evt-privacidad {
   margin-top: 22px;
   font-family: var(--fuente-micro), sans-serif;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--dir-sobre-tinta-suave);
+  color: var(--dir-sobre-papel-suave);
 }
-.evt-enlace {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  color: var(--dir-sobre-tinta);
-  text-decoration: underline;
-  text-decoration-color: rgba(238, 234, 225, 0.35);
-  text-underline-offset: 4px;
-}
-.evt-enlace:hover { text-decoration-color: currentColor; }
 .evt-gracias {
-  border-top: 1px solid var(--dir-hilo-tinta);
-  border-bottom: 1px solid var(--dir-hilo-tinta);
+  border-top: 1px solid var(--dir-hilo-papel);
+  border-bottom: 1px solid var(--dir-hilo-papel);
   padding: 40px 0;
 }
