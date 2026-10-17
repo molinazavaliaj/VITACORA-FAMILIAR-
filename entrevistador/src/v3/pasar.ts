@@ -16,6 +16,7 @@ import type { DepsV3 } from './deps.js';
 import { drenar } from './enviar.js';
 import equivalenciasJson from './equivalencias.json' with { type: 'json' };
 import { conReintento, crearFila, esNarradorV3, leerFila } from './estado.js';
+import { esChicoKids } from '../kids-v2/filas.js';
 import { leerFamilia } from './filas.js';
 import { preguntaPorId } from './nucleo/entrevista/banco.js';
 import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
@@ -300,6 +301,8 @@ export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: D
   const bloqueos = bloqueosDePase(plan);
   if (bloqueos.length > 0) throw new Error(`No se aplica el pase de ${plan.narradorId}: ${bloqueos.join('; ')}. No se cambió nada.`);
   if (await esNarradorV3(db, plan.narradorId)) throw new Error(`${plan.narradorId} ya tiene entrevista V3: no se toca.`);
+  // Antes de poner clave_v3 en sus respuestas: un chico de Kids no se pasa (crearFila también lo frena, pero tarde).
+  if (await esChicoKids(db, plan.narradorId)) throw new Error(`${plan.narradorId} es un chico de Kids: no se pasa a la V3. No se cambió nada.`);
   const n = await leerNarrador(db, plan.narradorId);
   const hoy = fechaLocal(ahora, n.zona_horaria);
   // clave_v3 primero: si algo se corta en el medio, repetir el pase vuelve a poner lo mismo.
@@ -403,6 +406,13 @@ export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, fi
  * «dijo que sí» de un regalo). 'frenada': sin género o idioma, no se creó nada.
  */
 export async function altaNuevo(deps: DepsV3, n: NarradorV3, o: { ventanaAbierta: boolean }): Promise<'mandada' | 'en-cola' | 'frenada'> {
+  // Un chico de Kids no entra a la V3 (tiene su bot: kids-v2/). No debería llegar acá (procesar lo desvía antes y
+  // entraALaV3 dice que no); si llega, no sale nada y se avisa.
+  if (await esChicoKids(deps.db, n.id)) {
+    await deps.avisar(`alta-v3-chico-kids-${n.id}`, `Alta V3 frenada: ${n.como_le_dicen} es un chico de Kids`,
+      `${n.id} tiene fila en kids_v2 y algo intentó darlo de alta en la V3. No se creó nada ni se le mandó nada: lo maneja el bot de Kids.`);
+    return 'frenada';
+  }
   const genero = n.contexto?.genero;
   if (!esGenero(genero)) {
     await deps.avisar(`alta-sin-genero-${n.id}`, `Alta V3 frenada: ${n.como_le_dicen} no tiene género`,

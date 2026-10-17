@@ -10,9 +10,9 @@ La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 > **20/09 — cuenta nueva.** El número propio (+54 9 11 2866-8813, `Phone Number ID 1242792948928690`)
 > vive en la WABA **"Vitácora" (`1997432587590526`)**, distinta de la de prueba (`1553096429416760`).
 > **22/09: las 5 están APROBADAS** en la WABA nueva y el bot manda solo (las bienvenidas salieron
-> el 21 a las 22:15 UTC; la primera pregunta a Naza el 22 a las 07:00). Cuando se carguen
-> `WA_BIENVENIDA_PIDE_VOZ=1` y `WA_PLANTILLA_BIENVENIDA_VIAJE=1` en Railway, el scheduler manda
-> también las bienvenidas sin que nadie escriba primero.
+> el 21 a las 22:15 UTC; la primera pregunta a Naza el 22 a las 07:00). Cuando se cargue
+> `WA_BIENVENIDA_PIDE_VOZ=1` en Railway, el scheduler manda también las bienvenidas sin que nadie
+> escriba primero. (`WA_PLANTILLA_BIENVENIDA_VIAJE` ya no existe: el viaje viejo se borró el 16/10/2026.)
 >
 > ⚠️ **3t.25 (22/09): los cuerpos de `bienvenida` y `bienvenida_viaje` de abajo son NUEVOS** (sin el
 > audiolibro con voz recreada, que se descartó el 20/09; con «Su voz» explicada de verdad). Están en
@@ -88,19 +88,11 @@ respuesta. Cuando tenga un ratito, me la manda por audio. Sin apuro.
 exactamente lo mismo que la plantilla — es el que usa el "modo rápido" de los
 pilotos y la puerta manual.
 
-## bienvenida_viaje — variables: {{1}} cómo le dicen (Vitácora de viaje, 18/09)
+## bienvenida_viaje — BORRADA (16/10/2026)
 
-Hola {{1}} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el
-día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto
-del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus
-mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas
-cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así.
-¿Arrancamos? Respondé SÍ y empezamos esta noche.
-
-> Categoría: Marketing (como `bienvenida`). Cuando esté aprobada: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`
-> en Railway y el scheduler la manda solo. **Mientras tanto** el viajero escribe primero
-> "hola" al número y el bot le contesta esta misma bienvenida como texto libre. El código
-> en `src/manual/puro.ts` (`bienvenidaViaje`) es este cuerpo con "esta noche" / "ya" según el ritmo.
+La Vitácora de Viaje vieja (V1) se borró el 16/10/2026: el código ya no usa esta plantilla y se
+puede dar de baja en WhatsApp Manager. Las plantillas de viaje vigentes son las de la Viaje V2
+(`docs/viajes-v2/plantillas-meta.md`, `PLANTILLAS_VIAJE_V2` en `src/config.ts`).
 
 ---
 

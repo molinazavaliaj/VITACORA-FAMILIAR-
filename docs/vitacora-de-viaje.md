@@ -1,5 +1,7 @@
 # Vitácora de viaje — spec (18/09/2026, Joaquín)
 
+> **Histórico.** Este es el viaje viejo (V1). Se borró del código el 16/10/2026: la Vitácora de Viaje es solo V2 (`docs/viajes-v2/README.md`).
+
 **Qué es.** Un producto aparte, con precio propio: el biógrafo acompaña un viaje. Cada
 noche pregunta cómo fue el día, pide la foto del día con su historia, y al volver hay un
 libro de viaje. Primer caso: un influencer que sale **en dos días**. El flujo es el real:

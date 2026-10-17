@@ -98,13 +98,46 @@ export function plantillaViajeLista(idioma: 'es-AR' | 'es-ES' | 'ca', cual: Cual
   return (env.WA_PLANTILLAS_VIAJE_V2_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
 }
 
+/** Las 13 plantillas de Kids en rioplatense (docs/kids/v2/plantillas-meta-kids.md, textos aprobados por Naza el 05/10). */
+export const PLANTILLAS_KIDS_BASE = [
+  'kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre',
+  'kids_recordatorio_padre', 'kids_recordatorio_padre_8', 'kids_recordatorio_lo_hago_yo', 'kids_recordatorio_lo_hago_yo_8',
+  'kids_pregunta_nueva', 'kids_pregunta_nueva_padre', 'kids_termino_padre', 'kids_final', 'kids_final_plural',
+] as const;
+
 /**
- * ¿Los viajeros NUEVOS van a la Viaje V2? (VIAJE_V2_PARA_NUEVOS=1, cuando Naza lo diga y con las bienvenidas
- * aprobadas en Meta). Prendido, a un viajero nuevo sin fila en `viajes_v2` no le sale la bienvenida vieja: se
- * avisa a los socios para que le creen la fila (npm run viaje-v2-alta) hasta que exista /comprar/viaje V2.
+ * Cada idioma de Kids: el sufijo de sus plantillas en Meta y su idioma en Meta (el mismo que `PLANTILLA_KIDS_IDIOMA`
+ * del motor, nucleo/idioma.ts). es-ES: docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md, Spanish (Spain). ca:
+ * docs/kids/v2/idiomas/plantillas-meta-kids-ca.md, Catalan.
  */
-export function viajeV2ParaNuevos(): boolean {
-  return process.env.VIAJE_V2_PARA_NUEVOS === '1';
+export const IDIOMAS_PLANTILLAS_KIDS: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { sufijo: string; idiomaMeta: string }>> = {
+  'es-AR': { sufijo: '', idiomaMeta: 'es' },
+  'es-ES': { sufijo: '_es_es', idiomaMeta: 'es_ES' },
+  ca: { sufijo: '_ca', idiomaMeta: 'ca' },
+};
+
+/**
+ * Las plantillas de Meta de Vitácora Kids V2, por idioma (39): las 13 rioplatenses ('es'), las mismas 13 con `_es_es`
+ * ('es_ES') y las mismas 13 con `_ca` ('ca'). Los nombres son los que trae el motor en cada mensaje (`plantilla.nombre`: el motor ya le pone el sufijo
+ * del idioma de la ficha); acá se dice cuáles existen y en qué idioma de Meta van. Las carga Joaquín en Meta y se
+ * marcan como aprobadas en WA_PLANTILLAS_KIDS_LISTAS (los nombres `_es_es` y `_ca` van con su sufijo); hasta entonces no salen.
+ */
+export const PLANTILLAS_KIDS: Readonly<Record<string, PlantillaV3 & { idioma: 'es-AR' | 'es-ES' | 'ca' }>> = Object.fromEntries(
+  (['es-AR', 'es-ES', 'ca'] as const).flatMap((idioma) => {
+    const { sufijo, idiomaMeta } = IDIOMAS_PLANTILLAS_KIDS[idioma];
+    return PLANTILLAS_KIDS_BASE.map((base) => [`${base}${sufijo}`, { nombre: `${base}${sufijo}`, idiomaMeta, idioma }]);
+  }),
+);
+
+/**
+ * ¿Está aprobada en Meta? Se lee en el momento, para poder prenderla sin deploy: WA_PLANTILLAS_KIDS_LISTAS es una
+ * lista de nombres separados por comas (`kids_bienvenida,kids_aviso_padre`) o `*` para todas. Un nombre que no está
+ * en PLANTILLAS_KIDS nunca está listo.
+ */
+export function plantillaKidsLista(nombre: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!Object.hasOwn(PLANTILLAS_KIDS, nombre)) return false;
+  const lista = (env.WA_PLANTILLAS_KIDS_LISTAS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return lista.includes('*') || lista.includes(nombre);
 }
 
 /**
@@ -123,6 +156,9 @@ export function v3ParaNuevos(): boolean {
  */
 export function entraALaV3(contexto: Record<string, unknown> | null | undefined): boolean {
   if (contexto?.modo === 'viaje') return false;
+  // Un chico de Kids nunca (plan-conexion-bot.md, T4): la web le pone modo 'kids'. La marca que vale es la fila de
+  // kids_v2, que se mira donde se crea la fila V3 (v3/estado.ts crearFila, v3/pasar.ts); esto frena antes, sin base.
+  if (contexto?.modo === 'kids') return false;
   if (contexto?.regalo === true) return true;
   return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
 }

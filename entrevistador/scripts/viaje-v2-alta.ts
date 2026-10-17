@@ -1,10 +1,11 @@
-// Alta de un viajero en la Viaje V2 (paso 8 de plan-conexion-bot.md): crea su fila en `viajes_v2` con la compra.
-// Hasta que exista /comprar/viaje V2, la compra se completa a mano en un JSON (la `Compra` de nucleo/tipos.ts).
-// Con la fila, el reloj le manda la bienvenida (BIEN-1 o BIEN-1R) por plantilla, o se la contesta como texto si
-// la persona escribe primero. El narrador tiene que existir y estar en 'invitado' (la compra de siempre lo crea).
+// Alta de un viajero en la Viaje V2 a mano: crea su fila en `viajes_v2` con la compra. Desde el 16/10 el bot da el
+// alta solo (src/viaje-v2/alta.ts) con lo que trae `contexto.viaje`; este script queda para cuando eso no alcanza
+// (datos que faltan, un caso raro) y usa lo mismo. Con la fila, el reloj le manda la bienvenida (BIEN-1 o BIEN-1R)
+// por plantilla, o se la contesta como texto si la persona escribe primero. El narrador tiene que estar en 'invitado'.
 //
-//   npm run viaje-v2-alta -- <narradorId> --compra compra.json            # muestra qué haría (no escribe)
-//   npm run viaje-v2-alta -- <narradorId> --compra compra.json --aplicar  # crea la fila en la base REAL
+//   npm run viaje-v2-alta -- <narradorId>                                 # arma la compra de su contexto.viaje (no escribe)
+//   npm run viaje-v2-alta -- <narradorId> --compra compra.json            # con la compra de un JSON (no escribe)
+//   npm run viaje-v2-alta -- <narradorId> [--compra compra.json] --aplicar  # crea la fila en la base REAL
 //
 // compra.json, por ejemplo (viaje INVENTADO):
 //   { "nombre": "Lucía", "salida": "2026-11-10", "vuelta": "2026-11-20",
@@ -14,16 +15,15 @@
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { crearFila } from '../src/viaje-v2/filas.js';
+import { compraDeContexto, crearAlta, pedidoDelViaje, type NarradorParaAlta } from '../src/viaje-v2/alta.js';
 import { arranque } from '../src/viaje-v2/nucleo/mensajes.js';
 import { armarCalendario, CADENA_ANTES, validarCompra } from '../src/viaje-v2/nucleo/calendario.js';
 import { aLocal } from '../src/viaje-v2/nucleo/horas.js';
 import { idiomaDe } from '../src/viaje-v2/nucleo/idioma.js';
 import type { Compra } from '../src/viaje-v2/nucleo/tipos.js';
-import { estadoInicial } from '../src/viaje-v2/tipos.js';
 import { baseReal, opcion } from './viaje-v2-comun.js';
 
-const USO = 'Uso: npm run viaje-v2-alta -- <narradorId> --compra compra.json [--aplicar]';
+const USO = 'Uso: npm run viaje-v2-alta -- <narradorId> [--compra compra.json] [--aplicar]';
 
 export function leerCompra(ruta: string): Compra {
   const c = JSON.parse(readFileSync(ruta, 'utf8')) as Compra;
@@ -36,11 +36,26 @@ export function leerCompra(ruta: string): Compra {
 async function main(args: string[]): Promise<void> {
   const narradorId = args[0];
   const ruta = opcion(args, '--compra');
-  if (!narradorId || narradorId.startsWith('--') || !ruta) {
+  if (!narradorId || narradorId.startsWith('--')) {
     console.log(USO);
     return;
   }
-  const compra = leerCompra(ruta);
+  const { db, host } = await baseReal();
+  const { data: n, error } = await db.from('narradores').select('id,estado,como_le_dicen,zona_horaria,hora_preferida,contexto').eq('id', narradorId).maybeSingle();
+  if (error || !n) throw new Error(`No encontré al narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
+  const narrador = n as NarradorParaAlta;
+  if (narrador.estado !== 'invitado') throw new Error(`${narradorId} está en '${narrador.estado}': el alta V2 es para un viajero nuevo ('invitado').`);
+
+  let compra: Compra;
+  if (ruta) {
+    compra = leerCompra(ruta);
+  } else {
+    const armada = compraDeContexto(narrador, await pedidoDelViaje(db, narradorId));
+    if (!armada.ok) throw new Error(`Con su contexto.viaje no se arma la compra: ${armada.motivo}. Pasá --compra compra.json.`);
+    compra = armada.compra;
+    console.log(`Compra armada de su contexto.viaje (formulario ${armada.forma}).`);
+    for (const s of armada.supuestos) console.log(`  SUPUESTO: ${s}`);
+  }
   const idioma = idiomaDe(compra);
   const cal = armarCalendario(compra, [...CADENA_ANTES]);
   console.log(`Viaje de ${compra.nombre} (${idioma}): sale ${compra.salida}, vuelve ${compra.vuelta}, ${compra.zonaCasa} → ${compra.zonaViaje}, ${compra.formato}, álbum de ${compra.fotosAlbum}${compra.regalo ? `, regalo de ${compra.regalo.quienRegala}` : ''}.`);
@@ -48,15 +63,11 @@ async function main(args: string[]): Promise<void> {
   for (const a of cal.avisosNaza) console.log(`  OJO: ${a}`);
   console.log(`La bienvenida que le va a llegar:\n  ${arranque(compra).texto}`);
 
-  const { db, host } = await baseReal();
-  const { data: n, error } = await db.from('narradores').select('id,estado,como_le_dicen,contexto').eq('id', narradorId).maybeSingle();
-  if (error || !n) throw new Error(`No encontré al narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
-  if ((n as { estado: string }).estado !== 'invitado') throw new Error(`${narradorId} está en '${(n as { estado: string }).estado}': el alta V2 es para un viajero nuevo ('invitado').`);
   if (!args.includes('--aplicar')) {
     console.log(`\n(No se escribió nada. Con --aplicar se crea la fila en ${host}.)`);
     return;
   }
-  const r = await crearFila(db, { narrador_id: narradorId, idioma, compra, estado: estadoInicial() });
+  const r = await crearAlta(db, narradorId, compra);
   console.log(r === 'creada' ? `Listo: ${narradorId} es viajero V2 en ${host}. El reloj le manda la bienvenida en el próximo minuto (si la plantilla está aprobada).` : `${narradorId} ya tenía fila en viajes_v2: no se tocó.`);
 }
 

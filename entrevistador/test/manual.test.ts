@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
-  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, bienvenidaViaje, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
   motivoParaRechazarAudio, listaParaConcatenar, valorDelArbol, queHacerAlFinal,
 } from '../src/manual/puro.js';
 
@@ -214,15 +214,6 @@ describe('los seis textos fijos, en los dos tratos', () => {
     );
   });
 
-  it('el SÍ de un viaje que todavía no empezó dice cuándo llega la primera (12/10)', () => {
-    expect(bienvenidaAceptacion('Ñako', 'vos', { viaje: true, salida: '20 de octubre' })).toBe(
-      '¡Listo, Ñako! El 20 de octubre, cuando arranque el viaje, te llega la primera pregunta. Sin apuro y sin respuestas incorrectas: esto es tu bitácora, a tu ritmo. 🧭',
-    );
-    expect(bienvenidaViaje('Ñako', { salida: '20 de octubre' })).toContain('Respondé SÍ y empezamos el 20 de octubre, cuando salís.');
-    // Ya en viaje, como siempre.
-    expect(bienvenidaAceptacion('Ñako', 'vos', { viaje: true })).toContain('Esta noche te llega la primera pregunta.');
-  });
-
   it('la bienvenida, en vos', () => {
     expect(bienvenidaAceptacion('Ciro', 'vos')).toBe(
       '¡Qué alegría, Ciro! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖',
@@ -256,7 +247,7 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
   // 3t.25: el audiolibro se descartó el 20/09 y nunca hubo voz recreada. Ninguna
   // bienvenida puede prometerlo — pero el permiso de voz (3t.15) se mantiene.
   it('ninguna bienvenida habla del audiolibro ni de voz recreada, y todas piden el permiso', () => {
-    const textos = [bienvenida('Don Osvaldo', 'su nieto Juan'), bienvenida('Ciro', 'Naza', 'vos'), bienvenidaViaje('Ñako')];
+    const textos = [bienvenida('Don Osvaldo', 'su nieto Juan'), bienvenida('Ciro', 'Naza', 'vos')];
     for (const t of textos) {
       expect(t).not.toMatch(/audiolibro|recreada|clonada|sintética/i);
       expect(t).toMatch(/permiso/);

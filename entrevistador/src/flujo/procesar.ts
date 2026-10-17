@@ -16,16 +16,14 @@ import { bienvenidaAceptacion, noEntendi, noQuiereTodavia } from '../manual/puro
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
-import { esViaje, fechaEnPalabras, viajeDe } from './viaje.js';
-import { fechaLocal } from './tiempo.js';
-import { confirmarFoto, crearGuionDelViaje, guardarFotoEntrante } from './viaje-db.js';
 import { recibirFotoFamiliar } from './fotos.js';
 import { pedidoAbierto, pedirObjeto } from './objetos.js';
-import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
 import { esViajeroV2 } from '../viaje-v2/filas.js';
+import { asegurarAltaViajeV2, esModoViaje } from '../viaje-v2/alta.js';
+import { esChicoKids } from '../kids-v2/filas.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
@@ -37,6 +35,13 @@ async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   // Con y sin el 9 de celular argentino: Meta y la web no siempre coinciden.
   const { data } = await db.from('narradores').select('*').in('telefono_whatsapp', variantesDeTelefono(telefono)).limit(1).maybeSingle();
   return (data as Narrador | null) ?? null;
+}
+
+/** ¿Es el padre de un chico de Kids de canal A? Si lo es, el bot de Kids ya se ocupó. Imports dinámicos, como el resto de Kids. */
+async function atenderPadreKids(m: MensajeEntrante): Promise<boolean> {
+  const { atenderPadreKids: atender } = await import('../kids-v2/padre.js');
+  const { depsKidsReales } = await import('../kids-v2/deps-reales.js');
+  return atender(depsKidsReales(), m);
 }
 
 async function ultimaBienvenida(narradorId: string): Promise<boolean> {
@@ -125,12 +130,29 @@ function estimarDuracion(texto: string): number {
 export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
+    // Kids V2 (15/10, decisión de Naza): el padre de un chico de canal A no es un narrador. Se le contesta una vez
+    // por chico y su mensaje no entra a nada (kids-v2/padre.ts). Va antes del canje del regalo: un «buenas» parece
+    // un código y el canje le contestaría «no encuentro ese código»; con un código con VF, primero el canje.
+    const conCodigo = /VF/i.test(m.texto ?? '');
+    if (!conCodigo && (await atenderPadreKids(m))) return;
     // Gift card (08/10): quien escribe puede ser un narrador con su tarjeta en la mano.
     // Con cualquier mensaje (10/10): si se le mandó el regalo por WhatsApp el día
     // elegido, contesta con un audio o con el botón y canjea sin el código.
     const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
     if (canje !== 'sin_codigo') return;
+    if (conCodigo && (await atenderPadreKids(m))) return;
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
+    return;
+  }
+
+  // Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico con fila en kids_v2 va entero por el motor de Kids, desde
+  // antes del arranque hasta después del final, y a nada más (ni al canje del regalo, ni a la V3, ni a la Viaje V2, ni
+  // al flujo viejo). Sin pagar, el entrevistador no toca la fila: sigue como hoy (no contesta nada). Sin fila —o sin la
+  // migración— sigue como hoy. Si la base no deja saber si es un chico, esChicoKids tira y no se manda nada.
+  if (narrador.estado !== 'pendiente_pago' && (await esChicoKids(db, narrador.id))) {
+    const { procesarEntranteKids } = await import('../kids-v2/entrante.js');
+    const { depsKidsReales } = await import('../kids-v2/deps-reales.js');
+    await procesarEntranteKids(depsKidsReales(), narrador, m);
     return;
   }
 
@@ -153,12 +175,35 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   }
 
   // Viaje V2 (plan-conexion-bot.md): un viajero con fila en viajes_v2 va entero por la V2, desde la bienvenida
-  // (invitado) hasta después de la despedida. Sin fila —o sin la migración— sigue como hoy.
-  if (narrador.estado !== 'pendiente_pago' && (await esViajeroV2(db, narrador.id))) {
-    const { procesarEntranteViajeV2 } = await import('../viaje-v2/entrante.js');
-    const { depsViajeReales } = await import('../viaje-v2/deps-reales.js');
-    await procesarEntranteViajeV2(depsViajeReales(), narrador, m);
-    return;
+  // (invitado) hasta después de la despedida. Desde el 16/10 la Vitácora de Viaje es solo V2: un viajero nuevo
+  // que escribe antes de que el tick le dé el alta la recibe acá, antes de cualquier bienvenida. Uno sin fila que
+  // ya había empezado el viaje viejo (V1, borrado), o al que no se le pudo dar el alta, no recibe nada: ni del
+  // viaje viejo ni del Familiar. Sus socios ya están avisados (scheduler y alta.ts).
+  if (narrador.estado !== 'pendiente_pago') {
+    let viajeV2 = await esViajeroV2(db, narrador.id);
+    if (!viajeV2 && esModoViaje(narrador.contexto)) {
+      let alta: Awaited<ReturnType<typeof asegurarAltaViajeV2>> | 'error';
+      try {
+        alta = await asegurarAltaViajeV2({
+          db, avisarUnaVez: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle, { unaVez: true }); },
+        }, narrador);
+      } catch (err) {
+        // La base no respondió: no se le contesta ahora; el tick reintenta el alta.
+        console.error(`viaje: no pude darle el alta V2 a ${narrador.id}:`, err instanceof Error ? err.message : err);
+        alta = 'error';
+      }
+      viajeV2 = alta === 'creada' || alta === 'ya-existia';
+      if (!viajeV2) {
+        console.warn(`viaje: ${narrador.id} ('${narrador.estado}') no tiene Viaje V2: no se le contesta`);
+        return;
+      }
+    }
+    if (viajeV2) {
+      const { procesarEntranteViajeV2 } = await import('../viaje-v2/entrante.js');
+      const { depsViajeReales } = await import('../viaje-v2/deps-reales.js');
+      await procesarEntranteViajeV2(depsViajeReales(), narrador, m);
+      return;
+    }
   }
 
   // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va
@@ -182,17 +227,11 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   // se guarda; un texto o un audio en 'acepto' se ignora.
   await recuperarRegaloFrenado(narrador);
 
-  // Una foto por WhatsApp se guarda SIEMPRE, en los dos productos (22/09).
-  // En viaje va al álbum del día (la etapa vigente); en el Familiar, al capítulo
-  // de la pregunta que está contestando. Antes de hoy la del Familiar se perdía.
+  // Una foto por WhatsApp se guarda SIEMPRE (22/09), al capítulo de la pregunta
+  // que está contestando. Antes de esa fecha la del Familiar se perdía.
   if (m.tipo === 'imagen' && m.mediaId) {
     if (!['activo', 'acepto', 'pausado'].includes(narrador.estado)) return;
-    if (esViaje(narrador.contexto)) {
-      const capitulo = await guardarFotoEntrante(narrador, m.mediaId, m.mimeType, m.texto);
-      await confirmarFoto(narrador, capitulo);
-    } else {
-      await recibirFotoFamiliar(narrador, m.mediaId, m.mimeType, m.texto);
-    }
+    await recibirFotoFamiliar(narrador, m.mediaId, m.mimeType, m.texto);
     return;
   }
 
@@ -238,13 +277,6 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const esV3Nuevo = !esRegalo && narrador.contexto?.bienvenidaV3 === true;
   const idiomaRegalo = esRegalo || esV3Nuevo ? idiomaDeRegalo(narrador.contexto) : null;
   if (!dijoSi) {
-    // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
-    // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
-    if (esViaje(narrador.contexto) && !(await ultimaBienvenida(narrador.id))) {
-      const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido', salida: salidaPorVenir(narrador) }));
-      await db.from('envios').insert({ narrador_id: narrador.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
-      return;
-    }
     // Escribió algo que no entendimos. El silencio es la peor respuesta: la
     // persona ya hizo su parte y del otro lado no pasa nada, así que no
     // vuelve a intentar. Se le pide de nuevo UNA sola vez — insistir a quien
@@ -264,8 +296,6 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     }
     return;
   }
-  // Vitácora de viaje: el guion nace acá, una pregunta por día.
-  if (esViaje(narrador.contexto)) await crearGuionDelViaje(narrador);
   // El mismo SÍ es el permiso para clonar su voz (dato biométrico, 3t.15) —
   // pero solo si la bienvenida que recibió ya se lo pedía. Sin fecha, la
   // fábrica no clona nunca (supabase/CONTRATO.md).
@@ -303,12 +333,12 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   }
   // Un regalo recibe su primera pregunta con el SÍ, sea cual sea el ritmo: su
   // aceptación le dice que ya va (la V3 sigue después con su propio reloj).
-  const enseguida = idiomaRegalo !== null || (!esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido');
+  const enseguida = idiomaRegalo !== null || ritmoDe(narrador.contexto) === 'seguido';
   await enviarTexto(
     narrador.telefono_whatsapp,
     idiomaRegalo
       ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
-      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida, salida: salidaPorVenir(narrador) }),
+      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { enseguida }),
   );
   // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
   // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
@@ -537,7 +567,7 @@ async function trasResponder(
   // la 26 o la 36, según lo que la familia sacó o sumó— el cerebro estudia toda
   // la historia y escribe las 4 finales a medida (N+1..N+4). Recién si ya las
   // tenía y esta era la última, la entrevista termina.
-  if (!esViaje(narrador.contexto) && (await esLaUltimaPregunta(narrador.id, orden)) && !(await tieneAdaptativas(narrador.id))) {
+  if ((await esLaUltimaPregunta(narrador.id, orden)) && !(await tieneAdaptativas(narrador.id))) {
     await generarPreguntasAdaptativas(narrador.id);
   }
 
@@ -635,9 +665,3 @@ async function ofrecerSiguiente(narrador: Narrador, orden: number): Promise<void
   });
 }
 
-/** Si es un viaje que todavía no empezó (en su zona), la salida en palabras ("20 de octubre"); si no, undefined. */
-function salidaPorVenir(n: Narrador): string | undefined {
-  if (!esViaje(n.contexto)) return undefined;
-  const { salida } = viajeDe(n.contexto);
-  return fechaLocal(new Date(), n.zona_horaria) < salida ? fechaEnPalabras(salida) : undefined;
-}

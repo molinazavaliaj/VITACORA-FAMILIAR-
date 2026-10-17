@@ -57,14 +57,19 @@ hoy recibe la vieja (`V3_PARA_NUEVOS` no existe en Railway al 13/10).
 | `WHATSAPP_NUMERO_PUBLICO` en Railway | Joaquín | ☐ sin verificar |
 | Prueba real por mail con plata real, e imprimir una tarjeta y probarla con el teléfono | Naza | ☐ |
 
-### Viaje V2 (en main desde el PR #7, **apagada** para clientes nuevos)
+### Viaje V2 (en main desde el PR #7; **desde el 16/10 es la única Vitácora de Viaje**)
 
-| Qué falta | Dueño | Estado al 15/10 |
+El 16/10 Naza decidió que la Viaje es solo V2: se borró el viaje viejo (V1) y el interruptor
+`VIAJE_V2_PARA_NUEVOS`. El bot le da el alta V2 solo a cada viajero nuevo con lo que trae
+`contexto.viaje` (contrato en `docs/viajes-v2/compra-contrato.md`). Ñako quedó en el viaje viejo y el
+bot ya no le escribe.
+
+| Qué falta | Dueño | Estado al 16/10 |
 |---|---|---|
-| Las 15 plantillas en Meta y `WA_PLANTILLAS_VIAJE_V2_LISTAS` | Joaquín | ☐ |
-| Compra nueva de Viaje (`/comprar/viaje`) y panel. Es lo que traba prenderla | Joaquín | ☐ |
+| Las 15 plantillas en Meta y `WA_PLANTILLAS_VIAJE_V2_LISTAS` (la alarma de variables la pide desde el 16/10) | Joaquín | ☐ |
+| Compra nueva de Viaje (`/comprar/viaje`) que mande `contexto.viaje` con `v: 2`, y panel | Rama `rediseno-web` | 🔄 |
 | Mail «dijo que sí» a quien regaló el viaje. Texto aprobado por Naza el 15/10, rama `viaje-v2-mail-si`, **sin PR** | Claude abre el PR, Naza mergea | 🔄 |
-| Prender `VIAJE_V2_PARA_NUEVOS` y reescribir `/viaje` ese día | Naza (OK), Joaquín, Claude | ☐ |
+| ~~Prender `VIAJE_V2_PARA_NUEVOS`~~: ya no existe, V2 va siempre (16/10). Falta reescribir `/viaje` | Joaquín, Claude | ☐ |
 
 ### Web y legales
 

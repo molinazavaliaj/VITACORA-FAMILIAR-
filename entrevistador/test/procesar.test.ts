@@ -18,9 +18,8 @@ const mocks = vi.hoisted(() => ({
   mandarHito: vi.fn(),
   detectarQueNoTuvo: vi.fn(),
   faseDeCierre: vi.fn(),
-  crearGuionDelViaje: vi.fn(),
-  guardarFotoEntrante: vi.fn(),
-  confirmarFoto: vi.fn(),
+  asegurarAltaViajeV2: vi.fn(),
+  procesarEntranteViajeV2: vi.fn(),
   recibirFotoFamiliar: vi.fn(),
   pedirObjeto: vi.fn(),
   pedidoAbierto: vi.fn(),
@@ -28,7 +27,9 @@ const mocks = vi.hoisted(() => ({
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
   procesarEntranteV3: vi.fn(),
-  estado: { errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
+  procesarEntranteKids: vi.fn(),
+  atenderPadreKids: vi.fn(),
+  estado: { filaKids: null as any, errorKids: null as any, errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -42,6 +43,7 @@ vi.mock('../src/db/cliente.js', () => {
       const error = Array.isArray(mocks.estado.errorV3) ? (mocks.estado.errorV3.shift() ?? null) : mocks.estado.errorV3;
       return { data: error ? null : mocks.estado.filaV3, error };
     }
+    if (tabla === 'kids_v2') return { data: mocks.estado.errorKids ? null : mocks.estado.filaKids, error: mocks.estado.errorKids };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -103,10 +105,13 @@ vi.mock('../src/db/guion.js', () => ({
     [1, 2, 3, 4, 5, 6, 7, 8].filter((o) => o < orden).map((o) => ({ orden: o, capitulo: o <= 4 ? 'La infancia' : 'El trabajo', texto: `pregunta ${o}` })),
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
-// Vitácora de viaje (18/09): lo que toca la base se simula.
-vi.mock('../src/flujo/viaje-db.js', () => ({
-  crearGuionDelViaje: mocks.crearGuionDelViaje, guardarFotoEntrante: mocks.guardarFotoEntrante, confirmarFoto: mocks.confirmarFoto,
+// Vitácora de Viaje (solo V2 desde el 16/10): el alta y la V2 se prueban en test/viaje-v2; acá, que procesar las llama.
+vi.mock('../src/viaje-v2/alta.js', async (importar) => ({
+  ...(await importar<typeof import('../src/viaje-v2/alta.js')>()),
+  asegurarAltaViajeV2: mocks.asegurarAltaViajeV2,
 }));
+vi.mock('../src/viaje-v2/entrante.js', () => ({ procesarEntranteViajeV2: mocks.procesarEntranteViajeV2 }));
+vi.mock('../src/viaje-v2/deps-reales.js', () => ({ depsViajeReales: () => ({}) }));
 vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
 vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
 // Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
@@ -115,6 +120,11 @@ vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 // La V3 entera se prueba en test/v3; acá solo que procesar la llama.
 vi.mock('../src/v3/entrante.js', () => ({ procesarEntranteV3: mocks.procesarEntranteV3 }));
 vi.mock('../src/v3/deps-reales.js', () => ({ depsReales: () => ({}) }));
+// El bot de Kids se prueba en test/kids-v2; acá solo que procesar lo llama a él y a nada más.
+vi.mock('../src/kids-v2/entrante.js', () => ({ procesarEntranteKids: mocks.procesarEntranteKids }));
+vi.mock('../src/kids-v2/deps-reales.js', () => ({ depsKidsReales: () => ({ kids: true }) }));
+// El padre de canal A se prueba en test/kids-v2/padre.test.ts; acá solo cuándo procesar lo llama.
+vi.mock('../src/kids-v2/padre.js', () => ({ atenderPadreKids: mocks.atenderPadreKids }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -132,6 +142,10 @@ beforeEach(() => {
   mocks.estado.narrador = null;
   mocks.estado.filaV3 = null;
   mocks.estado.errorV3 = null;
+  mocks.estado.filaKids = null;
+  mocks.estado.errorKids = null;
+  mocks.procesarEntranteKids.mockReset();
+  mocks.procesarEntranteKids.mockResolvedValue(undefined);
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
@@ -144,20 +158,23 @@ beforeEach(() => {
   mocks.detectarQueNoTuvo.mockResolvedValue('normal');
   mocks.faseDeCierre.mockReset();
   mocks.faseDeCierre.mockResolvedValue(false);
-  for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto, mocks.recibirFotoFamiliar]) fn.mockReset();
+  for (const fn of [mocks.recibirFotoFamiliar, mocks.procesarEntranteViajeV2]) fn.mockReset();
+  mocks.asegurarAltaViajeV2.mockReset();
+  mocks.asegurarAltaViajeV2.mockImplementation(async (_deps: unknown, n: { estado: string }) => (n.estado === 'invitado' ? 'creada' : 'no-corresponde'));
   mocks.pedirObjeto.mockReset();
   mocks.pedirObjeto.mockResolvedValue(false);   // por defecto, la pregunta no cierra capítulo
   mocks.pedidoAbierto.mockReset();
   mocks.pedidoAbierto.mockResolvedValue(null);  // por defecto, no hay pedido esperando
   mocks.canjearRegalo.mockReset();
   mocks.canjearRegalo.mockResolvedValue('sin_codigo');
+  mocks.atenderPadreKids.mockReset();
+  mocks.atenderPadreKids.mockResolvedValue(false);
   mocks.mandarBienvenidaDeRegalo.mockReset();
   mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
   mocks.avisarSocios.mockReset();
   mocks.avisarSocios.mockResolvedValue(true);
   mocks.procesarEntranteV3.mockReset();
   mocks.procesarEntranteV3.mockResolvedValue(undefined);
-  mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
   mocks.guardarTemaDeOtraParte.mockReset();
@@ -513,31 +530,50 @@ describe('procesarEntrante', () => {
     expect(mocks.cerrarBitacora).toHaveBeenCalled(); // faseDeCierre devolvió false: se despide
   });
 
-  // ── Vitácora de viaje ──
+  // ── Vitácora de Viaje: solo V2 desde el 16/10 ──
   const VIAJE = { modo: 'viaje', trato: 'vos', viaje: { salida: '2026-09-20', vuelta: '2026-09-29', etapas: [{ nombre: 'Lisboa' }] } };
 
-  it('(v1) un viajero invitado que escribe "hola" recibe la bienvenida de viaje como texto libre, una sola vez', async () => {
+  it('(v1) un viajero nuevo que escribe antes de su alta la recibe ahí mismo y sigue por la V2, sin bienvenida vieja', async () => {
     mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola!', waMessageId: 'w' });
-    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('biógrafo de viaje'));
-    expect(insert('envios')?.p).toMatchObject({ tipo: 'bienvenida' });
+    expect(mocks.asegurarAltaViajeV2).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: 'n1' }));
+    expect(mocks.procesarEntranteViajeV2).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: 'n1' }), expect.objectContaining({ texto: 'hola!' }));
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(insert('envios')).toBeUndefined();
+    expect(update('narradores')).toBeUndefined();
+  });
+
+  it('(v2) si con sus datos no se arma la compra, no se le contesta nada (los socios ya están avisados)', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
+    mocks.asegurarAltaViajeV2.mockResolvedValue('faltan-datos');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    expect(mocks.procesarEntranteViajeV2).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
     expect(update('narradores')).toBeUndefined(); // sigue invitado
   });
 
-  it('(v2) el SÍ de un viajero crea el guion del viaje y contesta en vos', async () => {
+  it('(v2b) si la base falla al darle el alta, procesar no se cae y no le contesta (el tick reintenta)', async () => {
     mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
-    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
-    expect(mocks.crearGuionDelViaje).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
-    expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
-    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('Buen viaje'));
+    mocks.asegurarAltaViajeV2.mockRejectedValue(new Error('No pude leer el pedido de n1: base caída'));
+    await expect(procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' })).resolves.toBeUndefined();
+    expect(mocks.procesarEntranteViajeV2).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
   });
 
-  it('(v3) una foto por WhatsApp de un viajero activo se guarda en el álbum del día y se confirma', async () => {
+  it('(v3) un viajero que quedó en el viaje viejo (activo, sin fila V2) no recibe nada: ni audio procesado, ni foto, ni Familiar', async () => {
     mocks.estado.narrador = narradorEn('activo', 3, VIAJE);
-    await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', mimeType: 'image/jpeg', texto: 'El tranvía 28', waMessageId: 'w' });
-    expect(mocks.guardarFotoEntrante).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'img-1', 'image/jpeg', 'El tranvía 28');
-    expect(mocks.confirmarFoto).toHaveBeenCalledWith(expect.anything(), 'Lisboa');
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y qué más?' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w2' });
+    await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', mimeType: 'image/jpeg', waMessageId: 'w3' });
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
     expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    expect(mocks.recibirFotoFamiliar).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteViajeV2).not.toHaveBeenCalled();
+    expect(mocks.estado.capturas).toEqual([]);
   });
 
   // Hasta el 22/09 este test afirmaba que la foto se IGNORABA. Era el bug
@@ -547,7 +583,6 @@ describe('procesarEntrante', () => {
     mocks.estado.narrador = narradorEn('activo', 3);
     await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', mimeType: 'image/jpeg', texto: 'Mi casamiento', waMessageId: 'w' });
     expect(mocks.recibirFotoFamiliar).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'img-1', 'image/jpeg', 'Mi casamiento');
-    expect(mocks.guardarFotoEntrante).not.toHaveBeenCalled(); // esa es la del viaje
     expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
   });
 
@@ -1108,4 +1143,98 @@ describe('leerSiNo en catalán y de España', () => {
   for (const t of ['Ara no', 'Demà', 'Després', 'Més tard', 'Avui no']) {
     it(`«${t}» es no`, () => expect(leerSiNo(t)).toBe('no'));
   }
+});
+
+// Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): el mensaje de un chico va al motor de Kids y a nada más.
+describe('un chico de Kids', () => {
+  const chico = (estado: string) => ({ ...narradorEn(estado, 0, { modo: 'kids' }), como_le_dicen: 'Juani' });
+
+  for (const estado of ['invitado', 'activo', 'completado']) {
+    it(`en '${estado}' va al bot de Kids y a nada más`, async () => {
+      mocks.estado.narrador = chico(estado);
+      mocks.estado.filaKids = { narrador_id: 'n1' };
+      const m = { telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w1' } as MensajeEntrante;
+      await procesarEntrante(m);
+      expect(mocks.procesarEntranteKids).toHaveBeenCalledWith({ kids: true }, mocks.estado.narrador, m);
+      expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+      expect(mocks.descargarAudio).not.toHaveBeenCalled();
+      expect(mocks.enviarTexto).not.toHaveBeenCalled();
+      expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+      expect(mocks.mandarHito).not.toHaveBeenCalled();
+      expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+      expect(mocks.estado.capturas).toEqual([]);
+    });
+  }
+
+  it('un código de regalo que manda un chico terminado también va al bot de Kids (no al aviso del regalo)', async () => {
+    mocks.estado.narrador = chico('completado');
+    mocks.estado.filaKids = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.procesarEntranteKids).toHaveBeenCalled();
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('en pendiente_pago no se toca la fila de Kids (sigue como hoy)', async () => {
+    mocks.estado.narrador = chico('pendiente_pago');
+    mocks.estado.filaKids = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+  });
+
+  it('si la base no deja saber si es un chico, no se le contesta nada', async () => {
+    mocks.estado.narrador = chico('activo');
+    mocks.estado.errorKids = { code: '57014', message: 'canceling statement due to statement timeout' };
+    await expect(procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante)).rejects.toThrow(/Kids/);
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('sin la migración (kids_v2 no existe), un narrador sigue como hoy', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorKids = { code: 'PGRST205', message: "Could not find the table 'public.kids_v2' in the schema cache" };
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).toHaveBeenCalled();
+  });
+});
+
+// Kids V2 (15/10, decisión de Naza): el padre de un chico de canal A que le escribe al número del bot.
+describe('el padre de un chico de Kids (canal A)', () => {
+  it('un número desconocido que es padre de Kids: lo atiende el bot de Kids y no va al canje', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    const m = { telefono: TEL, tipo: 'texto', texto: 'buenas', waMessageId: 'w' } as MensajeEntrante;
+    await procesarEntrante(m);
+    expect(mocks.atenderPadreKids).toHaveBeenCalledWith({ kids: true }, m);
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteKids).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('si no es padre de Kids, sigue como hoy (el canje)', async () => {
+    mocks.estado.narrador = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+  });
+
+  it('con un código con VF, primero el canje; si no había regalo, después el padre', async () => {
+    mocks.estado.narrador = null;
+    mocks.atenderPadreKids.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.canjearRegalo).toHaveBeenCalled();
+    expect(mocks.atenderPadreKids).toHaveBeenCalledTimes(1);
+    expect(mocks.canjearRegalo.mock.invocationCallOrder[0]).toBeLessThan(mocks.atenderPadreKids.mock.invocationCallOrder[0]);
+  });
+
+  it('un padre que además es narrador va por su flujo de narrador: no se lo trata como padre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorKids = null;
+    mocks.estado.filaKids = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.atenderPadreKids).not.toHaveBeenCalled();
+    expect(mocks.descargarAudio).toHaveBeenCalled();
+  });
 });
