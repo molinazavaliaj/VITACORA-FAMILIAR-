@@ -32,14 +32,20 @@ describe("la carta-libro", () => {
     expect(hoja(armarHojaLote(dos, "es-AR"), "afuera")).toContain("Vitácora Familiar");
   });
 
-  it("la tapa se lee en láser: toroide blanco con trazo grueso, marca en blanco pleno, lomo gris claro", () => {
+  it("la tapa se lee en láser: toroide blanco con trazo grueso, marca en blanco pleno, lomo de tapa dura", () => {
     const html = armarHojaLote(dos, "es-AR");
     expect(html).toMatch(/\.sello-tapa \{[^}]*color: #F4F2EC/);
     expect(html).toMatch(/\.sello-tapa svg \{ width: 34mm/);
     expect(hoja(html, "afuera")).toMatch(/class="toroide-tapa"[^>]*>(<ellipse[^>]*stroke-width="3\.4"\/>)+/);
     expect(html).toMatch(/\.marca-tapa \{[^}]*color: #F4F2EC \}/);
     expect(html).not.toContain("rgba(244, 242, 236, 0.7)");
-    expect(html).toMatch(/\.tapa > \.lomo \{[^}]*width: 0\.4mm; background: #8a877e/);
+    // Trampantojo de tapa dura: lomo con luz y canaleta de bisagra, de punta a punta (en el sangrado).
+    expect(hoja(html, "afuera")).toContain('<i class="lomo"></i><i class="bisagra"></i>');
+    expect(html).toMatch(/\.tapa > \.lomo \{ left: 0; width: 8mm; background: linear-gradient\(to right/);
+    expect(html).toMatch(/\.tapa > \.bisagra \{[^}]*#070706[^}]*#4a4943/);
+    expect(html).toContain(".tapa > .lomo, .tapa > .bisagra { right: auto; top: -2mm; bottom: -2mm }");
+    expect(html).toMatch(/\.tapa > \* \{ position: absolute; left: 11\.5mm; right: 15mm/);
+    expect(html).not.toContain("#8a877e");
   });
 
   it("la contratapa tiene la frase y la línea de activación; adentro no va la activación", () => {

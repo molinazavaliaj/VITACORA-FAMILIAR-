@@ -88,7 +88,10 @@ const X_CARTA = (210 - ANCHO_CARTA) / 2; // 5
 const Y_CARTA = (297 - 2 * ALTO_CARTA) / 2; // 8,5
 const SANGRADO = 2; // negro de más afuera del corte, solo en la cara de afuera
 const LARGO_MARCA = 5;
-const LOMO = 6; // la línea del lomo (gris claro), a 6 mm del doblez
+const LOMO = 8; // ancho del lomo dibujado en la tapa, desde el doblez
+const BISAGRA = 3.5; // la canaleta de la bisagra, justo después del lomo
+const TAPA_DESDE = LOMO + BISAGRA; // el contenido de la tapa empieza después de la canaleta
+const CONTRA_DOBLEZ = 6; // margen de la contratapa del lado del doblez
 const TRAZO_TAPA = 3.4; // en unidades del viewBox (356 de ancho): a 34 mm da ~0,32 mm, imprimible en láser
 const SELLO_LIBRE = 15; // franja libre en el borde abierto: ahí va medio sello de 25 mm
 const SELLO = 25; // diámetro del sello
@@ -158,14 +161,17 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 
 /* Afuera: negro mate. La tapa centra todo entre el lomo y la franja libre del sello. */
 .afuera .pagina { color: ${BLANCO} }
-.tapa > * { position: absolute; left: ${LOMO}mm; right: ${SELLO_LIBRE}mm; text-align: center }
-.tapa > .lomo { left: ${LOMO}mm; right: auto; top: -${SANGRADO}mm; bottom: -${SANGRADO}mm; width: 0.4mm; background: #8a877e }
+.tapa > * { position: absolute; left: ${TAPA_DESDE}mm; right: ${SELLO_LIBRE}mm; text-align: center }
+/* Trampantojo de tapa dura: el lomo redondeado con luz junto al doblez y la canaleta de la bisagra. */
+.tapa > .lomo, .tapa > .bisagra { right: auto; top: -${SANGRADO}mm; bottom: -${SANGRADO}mm }
+.tapa > .lomo { left: 0; width: ${LOMO}mm; background: linear-gradient(to right, #22221d 0, #3d3d36 0.9mm, #32322c 2.2mm, #22221d 4.5mm, #181813 6.6mm, #0f0f0d ${LOMO}mm) }
+.tapa > .bisagra { left: ${LOMO - 0.5}mm; width: ${BISAGRA + 0.5}mm; background: linear-gradient(to right, rgba(7, 7, 6, 0) 0, #0b0b0a 0.9mm, #070706 1.4mm, #070706 2mm, #4a4943 2.25mm, #4a4943 2.6mm, #2a2a24 3.1mm, rgba(20, 20, 15, 0) ${BISAGRA + 0.5}mm) }
 .sello-tapa { top: 15mm; display: flex; justify-content: center; color: ${BLANCO} }
 .sello-tapa svg { width: 34mm; height: auto; display: block }
 .titulo { top: 50%; transform: translateY(-38%); font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 25pt; line-height: 1.12; color: ${BLANCO}; white-space: nowrap }
 .titulo span { display: block }
 .marca-tapa { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 6.8pt; letter-spacing: 0.32em; padding-left: 0.32em; text-transform: uppercase; color: ${BLANCO} }
-.contratapa > * { position: absolute; left: ${SELLO_LIBRE}mm; right: ${LOMO}mm; margin: 0 auto; max-width: 64mm; text-align: center; color: ${BLANCO} }
+.contratapa > * { position: absolute; left: ${SELLO_LIBRE}mm; right: ${CONTRA_DOBLEZ}mm; margin: 0 auto; max-width: 64mm; text-align: center; color: ${BLANCO} }
 .frase { top: 22mm; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 13pt; line-height: 1.4; text-wrap: balance }
 .activar { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 400; font-size: 8pt; line-height: 1.5; text-wrap: balance }
 
@@ -205,7 +211,7 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
     const carta = (i: number) =>
       `<div class="carta" style="${top(i)}">` +
       `<div class="pagina contratapa"><p class="frase">${esc(t.tapa)}</p><p class="activar">${esc(t.contratapa)}</p></div>` +
-      `<div class="pagina tapa"><i class="lomo"></i><div class="sello-tapa">${toroideSvg("toroide-tapa", TRAZO_TAPA)}</div>` +
+      `<div class="pagina tapa"><i class="lomo"></i><i class="bisagra"></i><div class="sello-tapa">${toroideSvg("toroide-tapa", TRAZO_TAPA)}</div>` +
       `<h1 class="titulo"><span>${esc(titulo1)}</span>${titulo2 ? `<span>${esc(titulo2)}</span>` : ""}</h1>` +
       `<p class="marca-tapa">Vitácora Familiar</p></div>` +
       `</div>`;
