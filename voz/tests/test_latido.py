@@ -13,7 +13,7 @@ class SupabaseQueFalla:
 def test_late_con_el_servicio_voz_y_su_detalle():
     fake = FakeSupabase()
 
-    latir(fake, {"motor": "qwen3tts", "vueltas": 7})
+    latir(fake, {"trabajo": "frases", "vueltas": 7})
 
     cadena = fake.ejecutadas[-1]
     assert cadena.tabla == "latidos"
@@ -21,7 +21,7 @@ def test_late_con_el_servicio_voz_y_su_detalle():
 
     (_, fila), = [l for l in cadena.llamadas if l[0] == "upsert"]
     assert fila["servicio"] == "voz"
-    assert fila["detalle"] == {"motor": "qwen3tts", "vueltas": 7}
+    assert fila["detalle"] == {"trabajo": "frases", "vueltas": 7}
     assert isinstance(fila["ultimo_ping"], str) and fila["ultimo_ping"]
 
 
@@ -37,4 +37,4 @@ def test_sin_detalle_tambien_late():
 
 def test_si_no_puede_latir_avisa_y_no_tira():
     # La PC de música puede quedarse sin red: el latido no puede tumbar el worker.
-    latir(SupabaseQueFalla(), {"motor": "qwen3tts"})
+    latir(SupabaseQueFalla(), {"trabajo": "frases"})

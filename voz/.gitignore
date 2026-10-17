@@ -4,5 +4,6 @@ __pycache__/
 prueba/
 modelos/
 logs/
-motores/*/.venv/
+# Los venvs de los motores del audiolibro (sacado el 16/10/2026) que queden en la PC.
+motores/
 herramientas/*/.venv/
