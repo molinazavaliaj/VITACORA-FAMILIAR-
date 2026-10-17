@@ -25,12 +25,13 @@ import "./eventos.css";
 // tildes; la hoja de papel con el borde cortado (dir-deckle); «Cómo funciona»
 // en tinta con el número grande y el dibujo a lápiz de cada paso; el cierre
 // con el logo y el lema. Orden: 1 inicio, 2 qué es y para qué celebraciones,
-// 3 cómo funciona, 4 el formulario (papel), 5 cierre y pie. Una foto del
-// rincón de Vitácora en un casamiento, hecha con IA (no hay de un evento real
+// 3 cómo funciona, 4 el formulario (papel), 5 cierre y pie. Dos fotos hechas
+// con IA: el rincón de Vitácora en un casamiento y la carpa negra (no hay de un evento real
 // todavía). Estática.
 
 const CAMINO = "/eventos";
 const FOTO_STAND = "/rediseno/eventos-casamiento-stand.jpg";
+const FOTO_CARPA = "/rediseno/eventos-carpa-negra.jpg";
 const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 export function Eventos({ idioma }: { idioma: IdiomaWeb }) {
@@ -96,14 +97,21 @@ export function Eventos({ idioma }: { idioma: IdiomaWeb }) {
             <Image src={FOTO_STAND} alt={t.queEs.altFoto} width={1920} height={1288} sizes="(min-width: 1360px) 1264px, 92vw" />
           </figure>
 
-          <div className="aparece mt-20 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-28 md:pt-24">
-            <h3 className="dir-titular dir-t4">{t.tipos.titulo}</h3>
-            <ul className="mt-8 flex flex-wrap gap-3">
-              {TIPOS_EVENTO.filter((tipo) => tipo !== "otro").map((tipo) => (
-                <li key={tipo} className="evt-tipo">{t.tipo[tipo]}</li>
-              ))}
-            </ul>
-            <p className="dir-parrafo mt-8">{t.tipos.pie}</p>
+          <div className="mt-20 grid grid-cols-1 items-center gap-12 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-28 md:grid-cols-12 md:gap-8 md:pt-24">
+            <div className="aparece md:col-span-6">
+              <h3 className="dir-titular dir-t4">{t.tipos.titulo}</h3>
+              <ul className="mt-8 flex flex-wrap gap-3">
+                {TIPOS_EVENTO.filter((tipo) => tipo !== "otro").map((tipo) => (
+                  <li key={tipo} className="evt-tipo">{t.tipo[tipo]}</li>
+                ))}
+              </ul>
+              <p className="dir-parrafo mt-8">{t.tipos.pie}</p>
+            </div>
+            {/* La carpa negra con un solo logo (IA, 17/10; Naza: «con onda,
+                tampoco tanto»). Mediana: el archivo es de 1024 px. */}
+            <figure className="aparece evt-foto md:col-span-6">
+              <Image src={FOTO_CARPA} alt={t.tipos.altFoto} width={1024} height={688} sizes="(min-width: 768px) 46vw, 92vw" />
+            </figure>
           </div>
         </div>
       </section>
