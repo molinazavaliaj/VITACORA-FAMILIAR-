@@ -40,7 +40,7 @@ vuelve mala en ambas.
 | **Slogan** | *En cada familia hay un libro sin escribir.* | Bajo el logo, web, bio de IG |
 | **Descriptor** | *Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.* | Bio de IG, hero de la web, primera línea de cada ad |
 | **Gancho madre de campaña** | *Hay preguntas que un día ya no se pueden hacer.* | Ads y reels |
-| **Frase de la casa** | *Para las vidas que merecen su propio libro* | Contratapa y colofón del libro |
+| **Frase de la casa** | *Todas las vidas merecen su propio libro* | Contratapa y colofón del libro |
 
 ### Slogan
 
@@ -116,7 +116,9 @@ una campaña frenada.
 
 ### Frase de la casa
 
-> **Para las vidas que merecen su propio libro**
+> **Todas las vidas merecen su propio libro**
+>
+> En catalán: **Totes les vides mereixen el seu propi llibre**. Aprobada por Naza el 16/10/2026; antes era «Para las vidas que merecen su propio libro».
 
 Va en la contratapa y el colofón. **Sin punto final**: cierra mejor como
 inscripción que como oración.

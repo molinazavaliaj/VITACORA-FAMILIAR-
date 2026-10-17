@@ -244,7 +244,7 @@ Ya están implementadas tal cual en `fabrica/src/libro/plantilla-html.ts`.
 | **Slogan** | En cada familia hay un libro sin escribir. |
 | **Descriptor** | Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya. |
 | **Gancho de campaña** | Hay preguntas que un día ya no se pueden hacer. |
-| **Frase de la casa** | Para las vidas que merecen su propio libro *(sin punto final)* |
+| **Frase de la casa** | Todas las vidas merecen su propio libro *(sin punto final)* |
 | Orgullo editorial | Una vida merece un libro. |
 
 **Slogan y descriptor van siempre juntos** en cualquier pieza donde el producto
