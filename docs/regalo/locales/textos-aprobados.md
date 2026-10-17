@@ -11,10 +11,10 @@
 | # | Dónde | es-AR (vos) | es-ES (tú) | ca |
 |---|---|---|---|---|
 | 1 | Tapa de la carta (ya aprobado) | En cada familia hay un libro sin escribir | En cada familia hay un libro sin escribir | A cada família hi ha un llibre per escriure |
-| 2 | Adentro, título (ya aprobado) | Esto es un regalo. | Esto es un regalo. | Això és un regal. |
-| 3 | Adentro, texto para el narrador (ya aprobado) | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le contestás con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le contestas con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li respons amb àudios, quan puguis. Amb el que li expliquis s'escriu el llibre de la teva vida. |
+| 2 | Adentro, título (ya aprobado; **reemplazado el 17/10**, ver «Adentro de la carta-libro») | Esto es un regalo. | Esto es un regalo. | Això és un regal. |
+| 3 | Adentro, texto para el narrador (ya aprobado; **reemplazado el 17/10**, ver «Adentro de la carta-libro») | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le contestás con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le contestas con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida. | Un biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li respons amb àudios, quan puguis. Amb el que li expliquis s'escriu el llibre de la teva vida. |
 | 4 | Adentro, para escribir a mano | Para ___ / De ___ | Para ___ / De ___ | Per a ___ / De ___ |
-| 5 | Contratapa (nueva ubicación; adentro ya no va ninguna línea de activación) | Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada. | Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada. | Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada. |
+| 5 | Contratapa (nueva ubicación; adentro ya no va ninguna línea de activación; sigue igual en la carta-libro) | Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada. | Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada. | Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada. |
 | 6 | Sticker que cierra el sobre | El libro de tu vida · Para ___ | El libro de tu vida · Para ___ | El llibre de la teva vida · Per a ___ |
 | 7 | Cartel, título | El libro de su vida | El libro de su vida | El llibre de la seva vida |
 | 8 | Cartel, bajada | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Explica la seva vida per WhatsApp. Nosaltres n'escrivim el llibre. |
@@ -24,6 +24,21 @@
 El cartel y la caja (7 a 10) no los arma el código: se imprimen aparte para el stand.
 
 Cambio del 17/10 (carta-libro): ya no hay sobre. La carta se dobla como un librito negro y la cierra un sello redondo de 25 mm sin texto (solo el toroide), así que la fila 6 ya no se imprime. La tapa lleva el título «El libro de tu vida» (ca «El llibre de la teva vida») y la frase de la fila 1 pasó a la contratapa, junto con la fila 5.
+
+## Adentro de la carta-libro, aprobado 17/10
+
+Reemplaza las filas 2 y 3 de la tanda 1. Las dos líneas del QR («Apuntá la cámara…»
+y «Si la cámara no te anda…») son las que ya estaban aprobadas para la tarjeta
+(`textosAbuelo` en `web/src/lib/regalo-textos.ts`, 07/10 y 09/10) y salen de ahí;
+en es-ES dice «manda», no «envía». `{numero}` es `WHATSAPP_NUMERO_PUBLICO`, legible.
+
+| Dónde | es-AR (vos) | es-ES (tú) | ca |
+|---|---|---|---|
+| Título | Te regalaron una Vitácora. | Te han regalado una Vitácora. | T'han regalat una Vitácora. |
+| Texto | Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le vas contestando con audios, en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida. | Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le vas contestando con audios, en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida. | El nostre biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li vas responent amb àudios, en els teus moments lliures. Amb el que ens expliquis, escriurem el llibre de la teva vida. |
+| Arriba del QR | Apuntá la cámara del celular acá para empezar. | Apunta la cámara del móvil aquí para empezar. | Apunta la càmera del mòbil aquí per començar. |
+| Abajo del QR (después, el código) | Si la cámara no te anda, mandá un WhatsApp al {numero} con este código. | Si la cámara no te funciona, manda un WhatsApp al {numero} con este código. | Si la càmera no et funciona, envia un WhatsApp al {numero} amb aquest codi. |
+| Página izquierda | Para ___ / cuatro renglones / De ___ | Para ___ / cuatro renglones / De ___ | Per a ___ / cuatre renglons / De ___ |
 
 ## Tanda 2: página «no activada» y formulario
 

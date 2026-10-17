@@ -9,18 +9,21 @@
 // apiladas y pegadas (se separan con un solo corte), con marcas de corte en el margen
 // y 2 mm de negro de más afuera del corte, para que la guillotina no deje borde blanco.
 
-import type { IdiomaRegalo } from "./regalo-textos";
+import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
 
 /**
  * Textos aprobados por Naza el 17/10/2026, ver docs/regalo/locales/textos-aprobados.md.
  * El catalán lo tradujo Claude y debe revisarlo un nativo antes de la primera
  * impresión. Sin precio, sin dos puntos. `titulo` es el título de la tapa de la
- * carta-libro (17/10); `tapa` es la frase que ahora va en la contratapa.
+ * carta-libro (17/10); `tapa` es la frase que ahora va en la contratapa. `regaloTitulo`
+ * y `adentro` son los textos de adentro aprobados el 17/10 (carta-libro). Las líneas
+ * del QR («apuntá la cámara…» y «si la cámara no te anda…») salen de `textosAbuelo`,
+ * las mismas ya aprobadas para la tarjeta.
  */
 export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   titulo: string;
   tapa: string;
-  esUnRegalo: string;
+  regaloTitulo: string;
   adentro: string;
   contratapa: string;
   para: string;
@@ -30,8 +33,8 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   "es-AR": {
     titulo: "El libro de tu vida",
     tapa: "En cada familia hay un libro sin escribir",
-    esUnRegalo: "Esto es un regalo.",
-    adentro: "Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le contestás con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida.",
+    regaloTitulo: "Te regalaron una Vitácora.",
+    adentro: "Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Vos le vas contestando con audios, en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida.",
     contratapa: "Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada.",
     para: "Para",
     de: "De",
@@ -40,8 +43,8 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   "es-ES": {
     titulo: "El libro de tu vida",
     tapa: "En cada familia hay un libro sin escribir",
-    esUnRegalo: "Esto es un regalo.",
-    adentro: "Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le contestas con audios, cuando puedas. Con lo que le cuentes se escribe el libro de tu vida.",
+    regaloTitulo: "Te han regalado una Vitácora.",
+    adentro: "Nuestro biógrafo te va a hacer preguntas sobre tu vida por WhatsApp. Tú le vas contestando con audios, en tus momentos libres. Con lo que nos cuentes, vamos a escribir el libro de tu vida.",
     contratapa: "Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada.",
     para: "Para",
     de: "De",
@@ -50,8 +53,8 @@ export const TEXTOS_CARTA: Record<IdiomaRegalo, {
   ca: {
     titulo: "El llibre de la teva vida",
     tapa: "A cada família hi ha un llibre per escriure",
-    esUnRegalo: "Això és un regal.",
-    adentro: "Un biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li respons amb àudios, quan puguis. Amb el que li expliquis s'escriu el llibre de la teva vida.",
+    regaloTitulo: "T'han regalat una Vitácora.",
+    adentro: "El nostre biògraf et farà preguntes sobre la teva vida per WhatsApp. Tu li vas responent amb àudios, en els teus moments lliures. Amb el que ens expliquis, escriurem el llibre de la teva vida.",
     contratapa: "Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada.",
     para: "Per a",
     de: "De",
@@ -93,7 +96,15 @@ const BISAGRA = 3.5; // la canaleta de la bisagra, justo después del lomo
 const TAPA_DESDE = LOMO + BISAGRA; // el contenido de la tapa empieza después de la canaleta
 const CONTRA_DOBLEZ = 6; // margen de la contratapa del lado del doblez
 const TRAZO_TAPA = 3.4; // en unidades del viewBox (356 de ancho): a 34 mm da ~0,32 mm, imprimible en láser
-const SELLO_LIBRE = 15; // franja libre en el borde abierto: ahí va medio sello de 25 mm
+const SELLO_LIBRE = 15; // margen de la contratapa del lado del canto (borde abierto)
+/**
+ * El sello que cierra el librito va sobre el canto, con el centro a 105 mm del borde
+ * de arriba de la carta (entre el título y «Vitácora Familiar»), mitad en la tapa y
+ * mitad en la contratapa. Tapa a 105 mm y no a media altura porque el título grande
+ * («de la teva vida») llega a ~12 mm del canto a media altura. En la franja de
+ * 92 a 118 mm no hay nada a menos de 13,5 mm del canto, en ninguna de las dos caras.
+ */
+export const SELLO_CENTRO_Y = 105;
 const SELLO = 25; // diámetro del sello
 const SELLOS_COLUMNAS = 6;
 const SELLOS_FILAS = 9;
@@ -159,8 +170,8 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 .carta { position: absolute; left: ${X_CARTA}mm; width: ${ANCHO_CARTA}mm; height: ${ALTO_CARTA}mm; display: grid; grid-template-columns: 1fr 1fr }
 .pagina { position: relative; height: ${ALTO_CARTA}mm }
 
-/* Afuera: negro mate. La tapa centra todo entre la bisagra y el canto. El sello (12,5 mm del canto, a media altura)
-   no toca el título: «de la teva vida», la línea más larga, queda a ~16,7 mm del canto. */
+/* Afuera: negro mate. La tapa centra todo entre la bisagra y el canto. El sello va abajo del título
+   (ver SELLO_CENTRO_Y): entre el título y la marca no hay nada cerca del canto. */
 .afuera .pagina { color: ${BLANCO} }
 .tapa > * { position: absolute; left: ${TAPA_DESDE}mm; right: 0; text-align: center }
 /* Trampantojo de tapa dura: el lomo redondeado con luz junto al doblez y la canaleta de la bisagra. */
@@ -169,7 +180,7 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 .tapa > .bisagra { left: ${LOMO - 0.5}mm; width: ${BISAGRA + 0.5}mm; background: linear-gradient(to right, rgba(7, 7, 6, 0) 0, #0b0b0a 0.9mm, #070706 1.4mm, #070706 2mm, #4a4943 2.25mm, #4a4943 2.6mm, #2a2a24 3.1mm, rgba(20, 20, 15, 0) ${BISAGRA + 0.5}mm) }
 .sello-tapa { top: 15mm; display: flex; justify-content: center; color: ${BLANCO} }
 .sello-tapa svg { width: 34mm; height: auto; display: block }
-.titulo { top: 50%; transform: translateY(-38%); font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 25pt; line-height: 1.12; color: ${BLANCO}; white-space: nowrap }
+.titulo { top: 50%; transform: translateY(-50%); font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 29pt; line-height: 1.1; color: ${BLANCO}; white-space: nowrap }
 .titulo span { display: block }
 .marca-tapa { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 6.8pt; letter-spacing: 0.32em; padding-left: 0.32em; text-transform: uppercase; color: ${BLANCO} }
 .contratapa > * { position: absolute; left: ${SELLO_LIBRE}mm; right: ${CONTRA_DOBLEZ}mm; margin: 0 auto; max-width: 64mm; text-align: center; color: ${BLANCO} }
@@ -177,14 +188,20 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
 .activar { bottom: 15mm; font-family: Archivo, sans-serif; font-weight: 400; font-size: 8pt; line-height: 1.5; text-wrap: balance }
 
 /* Adentro: papel blanco, todo en negro pleno */
-.escribir { display: flex; flex-direction: column; justify-content: center; gap: 22mm; padding: 0 14mm }
-.linea { display: flex; align-items: baseline; gap: 3mm; font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: 14pt }
+.escribir { display: flex; flex-direction: column; justify-content: center; padding: 0 13mm }
+.linea { display: flex; align-items: baseline; gap: 3mm; height: 10mm; font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: 14pt }
 .linea span { flex: 1; border-bottom: 0.3mm solid ${NEGRO}; transform: translateY(-1mm) }
-.regalo-pag { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 13mm }
+.renglones { margin: 6mm 0 10mm }
+.renglon { display: block; height: 10mm; border-bottom: 0.25mm solid #b8b4aa }
+.regalo-pag { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8mm 9mm }
 .regalo { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 16pt; line-height: 1.2 }
-.texto { margin-top: 5mm; max-width: 70mm; font-size: 10.5pt; line-height: 1.5; color: ${NEGRO}; text-wrap: balance }
-.qr { width: 30mm; height: 30mm; margin-top: 6mm; display: block }
-.codigo { margin-top: 2mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 12pt; letter-spacing: 0.22em; padding-left: 0.22em }
+.texto, .apunta, .respaldo { max-width: 78mm; font-size: 10.5pt; line-height: 1.42; color: ${NEGRO}; text-wrap: balance }
+.texto { margin-top: 3.5mm }
+.apunta { margin-top: 4mm }
+.qr { width: 26mm; height: 26mm; margin-top: 1.5mm; display: block }
+.respaldo { margin-top: 1.5mm }
+.numero { white-space: nowrap }
+.codigo { margin-top: 1.5mm; font-family: Archivo, sans-serif; font-weight: 500; font-size: 12pt; letter-spacing: 0.22em; padding-left: 0.22em }
 
 /* Sellos: círculos de 25 mm con el toroide, sin texto. La línea gris es el corte. */
 .sellos { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(${SELLOS_COLUMNAS}, ${SELLO}mm); grid-auto-rows: ${SELLO}mm; gap: 6mm 7mm; justify-content: center; align-content: center }
@@ -201,8 +218,12 @@ body { font-family: "Source Serif 4", Georgia, serif; font-weight: 400 }
  * Al dar vuelta por el borde largo, la mitad derecha de afuera (la tapa) queda
  * detrás de la mitad izquierda de adentro (Para/De): doblada, es la tapa del librito.
  */
-export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: IdiomaRegalo): string {
+export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: IdiomaRegalo, numeroWhatsApp: string): string {
   const t = TEXTOS_CARTA[idioma];
+  const abuelo = textosAbuelo(idioma);
+  // El número no se parte entre renglones.
+  const lugarNumero = "\u0000";
+  const respaldo = esc(abuelo.respaldo(lugarNumero)).replace(lugarNumero, `<span class="numero">${esc(numeroWhatsApp)}</span>`);
   const [titulo1, titulo2] = partirTitulo(t.titulo);
   const top = (i: number) => `top:${Y_CARTA + i * ALTO_CARTA}mm`;
 
@@ -221,9 +242,12 @@ export function armarHojaLote(cartas: { codigo: string; qr: string }[], idioma: 
   // Adentro: Para/De a la izquierda; qué es, QR y código a la derecha.
   const interior = (c: { codigo: string; qr: string }, i: number) =>
     `<div class="carta" style="${top(i)}">` +
-    `<div class="pagina escribir"><p class="linea">${esc(t.para)}<span></span></p><p class="linea">${esc(t.de)}<span></span></p></div>` +
-    `<div class="pagina regalo-pag"><p class="regalo">${esc(t.esUnRegalo)}</p><p class="texto">${esc(t.adentro)}</p>` +
-    `<img class="qr" src="${esc(c.qr)}" alt="QR"><p class="codigo">${esc(c.codigo)}</p></div>` +
+    `<div class="pagina escribir"><p class="linea">${esc(t.para)}<span></span></p>` +
+    `<div class="renglones">${'<i class="renglon"></i>'.repeat(4)}</div>` +
+    `<p class="linea">${esc(t.de)}<span></span></p></div>` +
+    `<div class="pagina regalo-pag"><p class="regalo">${esc(t.regaloTitulo)}</p><p class="texto">${esc(t.adentro)}</p>` +
+    `<p class="apunta">${esc(abuelo.apunta)}</p><img class="qr" src="${esc(c.qr)}" alt="QR">` +
+    `<p class="respaldo">${respaldo}</p><p class="codigo">${esc(c.codigo)}</p></div>` +
     `</div>`;
 
   const hojas: string[] = [];

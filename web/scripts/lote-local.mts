@@ -4,7 +4,7 @@
 //   npx tsx scripts/lote-local.mts crear-local --nombre "Copistería Berga" --pais ES --idioma ca [--contacto "…"]
 //   npx tsx scripts/lote-local.mts lote --local <uuid> --cantidad 10
 //
-// Necesita SUPABASE_SERVICE_ROLE_KEY en web/.env.local. El lote queda en
+// Necesita SUPABASE_SERVICE_ROLE_KEY (y, para el lote, WHATSAPP_NUMERO_PUBLICO) en web/.env.local. El lote queda en
 // scripts/salida/ (ignorada por git). Solo imports relativos: tsx no resuelve `@/`.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -14,6 +14,7 @@ import { createClient } from "@supabase/supabase-js";
 import { crearLoteConCodigos, borrarLote } from "../src/lib/lote-codigos";
 import { qrDataUri, urlRegalo } from "../src/lib/qr";
 import { armarHojaLote } from "../src/lib/lote-imprimible";
+import { numeroPublico } from "../src/lib/regalo-datos";
 import type { IdiomaRegalo } from "../src/lib/regalo-textos";
 
 const USO = `Uso:
@@ -70,6 +71,9 @@ if (comando === "crear-local") {
   console.log(`\n  Local creado: ${data.id}`);
   console.log(`  Panel:        ${URL_BASE}/local/${token}\n`);
 } else {
+  // La carta lleva el número de WhatsApp por si la cámara no lee el QR. Sin número no se imprime nada.
+  const numero = numeroPublico();
+  if (!numero) fallar("Falta WHATSAPP_NUMERO_PUBLICO en web/.env.local: la carta lo imprime por si la cámara no lee el QR.");
   const cantidad = Number(opt.cantidad);
   const { data: local, error: errLocal } = await admin.from("locales").select("id, idioma").eq("id", opt.local).maybeSingle();
   if (errLocal || !local) fallar(`No encuentro el local ${opt.local}${errLocal ? `: ${errLocal.message}` : ""}`);
@@ -82,7 +86,7 @@ if (comando === "crear-local") {
     fallar(e instanceof Error ? e.message : String(e));
   }
 
-  // Si falla armar o escribir el HTML, el lote se borra: no queda nada que cuente sobres de más.
+  // Si falla armar o escribir el HTML, el lote se borra: no queda nada que cuente libritos de más.
   let ruta: string;
   try {
     const cartas: { codigo: string; qr: string }[] = [];
@@ -91,7 +95,7 @@ if (comando === "crear-local") {
     mkdirSync(carpeta, { recursive: true });
     const fecha = new Date().toISOString().slice(0, 10);
     ruta = `${carpeta}lote-${fecha}-${String(local.id).slice(0, 8)}.html`;
-    writeFileSync(ruta, armarHojaLote(cartas, idioma));
+    writeFileSync(ruta, armarHojaLote(cartas, idioma, numero.legible));
   } catch (e) {
     fallar(`${e instanceof Error ? e.message : String(e)} ${await borrarLote(admin, lote.loteId)}`);
   }
