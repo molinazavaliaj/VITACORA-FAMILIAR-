@@ -16,7 +16,7 @@
 | 4 | Adentro, para escribir a mano | Para ___ / De ___ | Para ___ / De ___ | Per a ___ / De ___ |
 | 5 | Contratapa (nueva ubicación; adentro ya no va ninguna línea de activación; sigue igual en la carta-libro) | Para regalarla, escaneá el código y pagala en vitacorafamiliar.com. Recién ahí queda activada. | Para regalarla, escanea el código y págala en vitacorafamiliar.com. Solo entonces queda activada. | Per regalar-la, escaneja el codi i paga-la a vitacorafamiliar.com. Només llavors queda activada. |
 | 6 | Sticker que cierra el sobre | El libro de tu vida · Para ___ | El libro de tu vida · Para ___ | El llibre de la teva vida · Per a ___ |
-| 7 | Cartel, título | El libro de su vida | El libro de su vida | El llibre de la seva vida |
+| 7 | Cartel, título (cambiado 17/10) | Regalale el libro de su vida | Regálale el libro de su vida | Regala-li el llibre de la seva vida |
 | 8 | Cartel, bajada | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Cuenta su vida por WhatsApp. Nosotros escribimos su libro. | Explica la seva vida per WhatsApp. Nosaltres n'escrivim el llibre. |
 | 9 | Cartel, cómo funciona | Llevate un sobre gratis. Se activa cuando lo regalás en la web. | Llévate un sobre gratis. Se activa cuando lo regalas en la web. | Emporta't un sobre gratis. S'activa quan el regales al web. |
 | 10 | Frente de la caja | Gift card · Llevátela | Gift card · Llévatela | Gift card · Emporta-te-la |
@@ -71,3 +71,18 @@ en es-ES dice «manda», no «envía». `{numero}` es `WHATSAPP_NUMERO_PUBLICO`,
 | 10 | Tabla y pago | Mes · Cartas pagadas · Te toca. Lo de cada mes te lo pagamos a principios del mes siguiente. | Mes · Cartas pagadas · Os toca. Lo de cada mes os lo pagamos a principios del mes siguiente. | Mes · Cartes pagades · Us toca. El de cada mes us el paguem a principis del mes següent. |
 
 Fuera de las tandas, sin cambiar: el error interno «La tarjeta por correo solo se puede sumar al regalar una carta.» (no se ve desde la web).
+
+## Cartel del stand, versión final (aprobada 17/10)
+
+Reemplaza a las filas 8 y 9 de la tanda 1. Va en el atril, detrás de la caja con los libritos.
+
+| Línea | es-AR (vos) | es-ES (tú) | ca |
+|---|---|---|---|
+| Título | Regalale el libro de su vida | Regálale el libro de su vida | Regala-li el llibre de la seva vida |
+| Bajada | Un regalo para tu papá, tu mamá o tus abuelos. | Un regalo para tu padre, tu madre o tus abuelos. | Un regal per al teu pare, la teva mare o els teus avis. |
+| 1 | Llevate un librito gratis. | Llévate un librito gratis. | Emporta't un llibret gratis. |
+| 2 | Activalo en vitacorafamiliar.com cuando quieras regalarlo. | Actívalo en vitacorafamiliar.com cuando quieras regalarlo. | Activa'l a vitacorafamiliar.com quan el vulguis regalar. |
+| 3 | Un biógrafo le hace preguntas por WhatsApp y contesta con audios. | Un biógrafo le hace preguntas por WhatsApp y contesta con audios. | Un biògraf li fa preguntes per WhatsApp i respon amb àudios. |
+| 4 | Con lo que cuenta, escribimos el libro de su vida. | Con lo que cuenta, escribimos el libro de su vida. | Amb el que explica, escrivim el llibre de la seva vida. |
+
+El cartel todavía no tiene archivo para imprimir (el código solo arma los libritos).
