@@ -18,6 +18,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
+| `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **aplicada por Naza el 17/10** (migración 20261016000000). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
@@ -513,6 +514,8 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
 - **El worker de la PC de audio** (`voz/voz/procesar_frases.py`) corta y completa: `audio_path`,
   `segundos`, `inicio`, `fin` y `estado` (`cortada` | `fallida`, con `error` cuando falla). Nunca
   toca `texto`, `elegida` ni `confirmado_at`.
+  Una candidata con `entera: true` (solo Kids, ver «El libro de Kids en la fábrica») no se ubica con
+  Whisper: se pasa la respuesta entera, de 0 al final del audio. Sin la clave, todo sigue igual.
 - **La web** (`web/src/lib/frases.ts` y `POST /api/frases`, solo la dueña) escribe la selección de la
   familia: `elegida`, `elegida_por` (`familia`) y `confirmado_at` al darla por buena. Nunca toca
   `audio_path`, `segundos`, `inicio`, `fin` ni `estado`.
@@ -715,6 +718,247 @@ nuevos entran a la V2 con `VIAJE_V2_PARA_NUEVOS=1`.
 
 Álbum con cero fotos (Naza, 10/10): aviso a los socios, se repite a las 48 h y se cierra solo a los 7 días.
 
+## Vitácora Kids V2 por WhatsApp (migración 20261016000000 — **aplicada por Naza el 17/10**)
+
+Producto: «Mi Primer Capítulo», chicos de 11 (rama `vitacora-kids`, `docs/kids/v2/README.md` y `flujo-vigente.md`).
+El motor es `fabrica/src/kids-v2/motor.ts`: puro, sin red ni modelos, `paso(estado, evento, ahora) → { estado, salidas }`.
+**Una fila en `kids_v2` es un chico de Kids**; sin fila, el entrevistador y la fábrica siguen exactamente como hoy.
+
+### Cómo se marca un pedido y un narrador de Kids
+
+| Dónde | Qué va | Quién |
+|---|---|---|
+| `pedidos.extras.tipo` | `"kids"` (como `"viaje"`). Sin la clave es biografía. El formato (pdf / impreso) y las copias van en `extras` como siempre. | web |
+| `narradores.contexto.modo` | `"kids"`. **Ojo:** hoy el código solo pregunta por `modo === 'viaje'`, así que esto solo no frena nada; cada camino de la lista de abajo tiene que preguntar por la fila de `kids_v2`. | web |
+| `narradores.nombre` | El nombre del chico (tapa). | web |
+| `narradores.como_le_dicen` | Cómo le dicen (`ficha.apodo`). | web |
+| `narradores.telefono_whatsapp` | **El número de las preguntas**: canal A, el del chico; canal B («lo hago yo»), el del padre. El entrevistador encuentra al chico por acá, como a cualquier narrador. | web |
+| `narradores.hora_preferida`, `zona_horaria` | Copia de `ficha.hora` y `ficha.zona` al comprar. **No mandan**: manda la ficha del motor (el panel las cambia por `cambios_panel`, abajo). | web |
+| `kids_v2` | La fila del chico (abajo). | web la crea; después, sobre todo el entrevistador |
+
+La web crea narrador, pedido y fila de `kids_v2` juntos en `/api/compra` (narrador `pendiente_pago`). Mientras el
+narrador esté en `pendiente_pago`, el entrevistador no toca la fila.
+
+### `kids_v2`
+
+| Columna | Escribe | Qué guarda |
+|---|---|---|
+| `narrador_id` | web | Clave primaria y referencia a `narradores`. |
+| `idioma` | web | `es-AR` (rioplatense, vos), `es-ES` (castellano de España, tú; **16/10**, rama `kids-libro`) o `ca` (catalán, de tu; **16/10**, mismo camino; textos revisados y aprobados por Naza el 16/10, tanda 10, salvo los marcados `TEXTO PARA NAZA` en el libro). La web escribe el mismo valor acá y en `ficha.idioma` (abajo). |
+| `canal` | web | `A` (su WhatsApp) o `B` («lo hago yo»). Elegir A es la autorización del adulto a cargo. Un `check` cuida que sea el mismo que `ficha.canal`. |
+| `telefono_padre` | web | WhatsApp del padre, E.164 (con `check` de formato). En canal A le llegan AVISO-PADRE, los recordatorios y TERMINO-PADRE; en canal B tiene que ser el mismo número que `narradores.telefono_whatsapp` (lo cuida la web: un `check` no puede mirar otra tabla). |
+| `ficha` (jsonb) | web (al comprar) | La `Ficha` de `fabrica/src/kids-v2/compra.ts`, **ya pasada por `validarFicha`**: `nombre`, `apodo`, `genero` (`chico`/`chica`), `edad`, `quienRegala` («tu mamá», en minúscula), `canal`, `nombrePadre`, `linkPanel`, `hora` (`HH:MM` entre 09:00 y 21:59), `zona` (IANA, la del país del número), `temasSacados`, `fotosConOtrosChicos`, `preguntasPadre` (vacía al comprar) e `idioma` (**16/10**, opcional: `es-AR`, `es-ES` o `ca`; sin el campo, `es-AR`, como las fichas de antes). En catalán `quienRegala` va como lo elige el padre («la teva mare», «els teus pares», en minúscula; «els teus / les teves» es plural). Después de arrancar, la ficha que vale es la de `estado.motor.ficha`; esta columna queda como lo que se compró. |
+| `estado` (jsonb) | entrevistador | Null hasta el arranque. Después: `{ motor, salida, enviados, vistos, recibidos, fallosEnvio, avisoFallos, respondioAlPadre? }` (`entrevistador/src/kids-v2/tipos.ts`). `motor` es el `Estado` del motor (serializable; **es la verdad de la entrevista**; adentro ya viven la ráfaga, lo que llegó de noche y todo lo que espera). `salida`: los mensajes que el motor ya decidió y falta mandar por WhatsApp. `enviados`: `envio` del motor ↔ `wa_message_id` (los últimos 200), para traducir el `context.id` de un botón tocado en el `aMensaje` del evento (decisión 22, botones viejos). `vistos`: los últimos 200 ids de WhatsApp procesados (dedupe). `recibidos`: los últimos 200 `wa_message_id` → `clave_kids` que dio el motor, para que la reconciliación recupere la clave si se perdió la escritura en `respuestas`. `respondioAlPadre`: canal A, ya se le contestó al padre que escribió al bot (falta = false). |
+| `cambios_panel` (jsonb) | web (panel) | Un cambio del padre que el motor todavía no tomó: `{ hora?, temasSacados?, preguntasPadre?, pedido_at }`, con la **lista completa** de `temasSacados` y de `preguntasPadre` (no un diff). La web la valida antes con las mismas reglas de `validarFicha`. Ver «Cambios del panel», abajo. |
+| `cambios_error` (text) | entrevistador / web | Por qué no se tomó el último cambio del panel. El panel lo muestra; la web lo borra con el cambio siguiente. |
+| `avance` (jsonb) | entrevistador | Lo que el panel necesita sin leer el motor: `{ capitulo, preguntasPadreAbiertas, terminado }`. `capitulo` = el del item en curso (0 antes de K1). `preguntasPadreAbiertas` es false desde que empieza el capítulo 4. `terminado` = la misma regla que `termino_at`. Se escribe en cada guardada del estado. |
+| `marcas` (jsonb) | entrevistador (solo agrega) | Las salidas `marca` del motor: `[{ motivo, detalle, at }]` con `motivo` = `preocupante`, `silencio-8-dias`, `escribio-despues-del-final` o `cerro-sin-respuesta`. Cada marca nueva también va por mail a `MAIL_SOCIOS`. La lee el panel de Naza (`/admin`); **los padres no la ven**. |
+| `correcciones` (jsonb) | web (panel) | Los nombres que el padre corrige (banco.md: «cómo los escribe no importa: se corrigen en el panel»): `[{ respuesta_id, dice, es, at }]`, por ejemplo `{ dice: "Yaco", es: "Jaco" }`. La web reescribe la lista entera con `UPDATE … WHERE correcciones = <lo que leyó>` (no toca `version`). No cambian lo guardado en `respuestas`: la fábrica las aplica al escribir el libro, como `correcciones.json` del escritor V3. |
+| `version` | entrevistador | Sus escrituras son `UPDATE … WHERE version = n`; si cambió, relee y reaplica (el `paso` es puro). **La web no la toca.** |
+| `enviando_hasta` | entrevistador | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
+| `despertar_at` | entrevistador | `proximoDespertar(motor, ahora)`, escrito en cada guardada (si la cola no pudo salir, queda en el momento en que se guardó; si es de noche, a las 9). El reloj busca los chicos con `despertar_at <= now()` en vez de leer el jsonb de todos cada minuto. |
+| `creada_at`, `empezo_at`, `termino_at` | web / entrevistador | `empezo_at`: se mandó el evento `inicio`. `termino_at`: **terminó de contar** (abajo). Es la señal para la fábrica. |
+
+**El idioma (16/10, rama `kids-libro`).** El motor habla en el idioma de su ficha: todos los textos (preguntas, ramas,
+otras puertas, fotos, extras, mensajes fijos, botones) salen de `fabrica/src/kids-v2/banco-es-ES.json` o
+`banco-ca.json` (generados desde `docs/kids/v2/idiomas/banco-<idioma>.md`, solo textos por ID; la estructura sigue
+siendo la de `banco.md`) y las plantillas llevan `_es_es` o `_ca`. Al arrancar, el entrevistador le pone a la ficha del motor
+`ficha.idioma` o, si la ficha no lo trae, `kids_v2.idioma` (`entrevistador/src/kids-v2/idioma.ts`); si los dos
+están y no coinciden, o es otro idioma, no arranca y avisa a los socios. Después, el idioma es el de `estado.motor.ficha`
+(no se cambia desde el panel). Los botones que toca un chico de España («Vale, otra», «No me ha pasado»…) llegan al
+motor como su texto de España y el motor los reconoce por ID. La transcripción va en el castellano del chico
+(`es-ES`: `language: 'es'` con el vocabulario de España; `ca`: `language: 'ca'` con el vocabulario de Catalunya de la
+V3). **La compra de España y la de Catalunya no están hechas** (otra rama). **Catalán (16/10):** el género va con la
+palabra entera (`{{petit/petita}}`), los botones se reconocen por ID igual que los de España, y «algo preocupante» y
+«dice que no» buscan las listas catalanas (BORRADOR para Naza y el abogado) y también las castellanas. Lo que no
+tiene texto aprobado en catalán no sale en castellano. Desde el 16/10 (tanda 10) el texto al padre de canal A tiene
+su versión catalana y el libro también (abajo).
+
+### Cuándo «terminó de contar»
+
+No alcanza con que la fase del motor sea `terminado`: en canal B esa fase llega con el final y TERMINO-PADRE sale
+recién al día siguiente; si cerró solo a los 2 días con un PREG-NUEVA sin tocar, la fase queda `retenido` (el final
+le llega al chico cuando vuelva, y puede no volver nunca) aunque el padre ya recibió TERMINO-PADRE. Por eso:
+
+> **Terminó** = la fase es `terminado`, o `retenido` con `luego` = `terminado`; **y** `terminoPadre` es null (TERMINO-PADRE ya salió).
+
+Una función pura del motor (`termino(estado)`, en el PR de la conexión) la calcula, y de ella salen `termino_at`,
+`avance.terminado` y el paso a `completado`. Lo que el chico mande después sigue entrando al motor (puede saltar
+`escribio-despues-del-final` o soltarse el final retenido) y se guarda, pero no cambia `termino_at`.
+
+### Transiciones de `narradores.estado` de un chico
+
+    pendiente_pago → invitado     (web: confirmarPago, como siempre)
+    invitado → activo             (entrevistador: crea `estado` con nuevoEstado(ficha), manda `inicio` y pone `empezo_at`)
+    activo → completado           (entrevistador: terminó de contar, arriba; pone `termino_at`)
+
+Sin `acepto` (el motor ya espera el [Dale, vamos] o el [Estamos listos]) y sin `pausado`: Kids no tiene «quiero parar»
+y los silencios los maneja el motor (recordatorios de 4 y 8 días). `ultima_respuesta_at` se actualiza con cada
+respuesta, como siempre; `alerta_silencio` se prende con la marca `silencio-8-dias` y la apaga la web.
+
+### Cambios del panel
+
+- **La web** lee `cambios_panel`, **fusiona** su cambio con lo que ya esté pendiente (si el padre cambió la hora y
+  enseguida los temas, van los dos) y escribe con `UPDATE … WHERE cambios_panel IS NOT DISTINCT FROM <lo que leyó>`.
+  Si no vuelve fila, relee y reintenta. No toca `version`: así nunca hace fallar una escritura del entrevistador
+  a mitad de un envío.
+- **El entrevistador**, en su próxima escritura, pasa el cambio al motor como evento `ficha` y pone `cambios_panel`
+  en null en la misma escritura, con la condición extra `cambios_panel IS NOT DISTINCT FROM <lo que aplicó>` (si la
+  web fusionó otro cambio en el medio, relee y aplica el nuevo). Esa condición va solo en la escritura que aplica el
+  cambio; la que marca un mensaje como enviado no toca `cambios_panel`.
+- **Antes del arranque** (`estado` null) el cambio se aplica sobre `ficha` al crear el estado.
+- **Rechazos.** Si el motor tira error (datos inválidos), o si descarta las `preguntasPadre` porque ya empezó el
+  capítulo 4 (el motor las ignora sin error), el entrevistador escribe el motivo en `cambios_error`, limpia
+  `cambios_panel` y, en el primer caso, avisa a los socios. Así el panel nunca dice «guardado» sin que se haya tomado.
+
+### Respuestas, audios y fotos
+
+- Cada mensaje del número de las preguntas deja una fila en `respuestas` **al llegar**, como en la V3:
+  `pregunta_orden` = número de llegada; `audio_path` = `{narrador_id}/dia_NN.ogg` (NN = la llegada);
+  `transcripcion` = el texto del audio; `texto_directo` = el texto escrito, la marca del botón (`⟦botón:Dale, vamos⟧`)
+  o `⟦foto⟧`; `duracion_segundos`; `wa_message_id`.
+- `respuestas.clave_kids` (text, nuevo): a qué item del motor responde (la principal `K12`, su rama `K12-R1`, la extra
+  en curso, `PADRE-1`, `CIERRE-3`, la foto `K10-FOTO` o `K16-FOTO`…). **La decide el motor cuando procesa el
+  evento**, no el entrevistador al llegar: lo que llega de noche queda en `motor.nocturnos` y se procesa a las 9, con
+  la fase de ese momento. En el PR de la conexión el motor suma una salida pura `{ tipo: 'recibido', id, clave }` por
+  cada evento de contenido o botón que aplica (también los nocturnos), con el `id` que trae el evento (el
+  `wa_message_id`); el entrevistador la escribe en la fila. Mientras tanto la fila queda con `clave_kids` null.
+  `∅` = se guardó y quedó afuera a propósito (un botón viejo que el motor ignoró). Null en todo lo que no es Kids.
+  Una fila con `clave_kids` null de más de 5 minutos la retoma el reloj (reconciliar): la pasa al motor, o le pone la
+  clave de `estado.recibidos` si el motor ya la había procesado.
+  La fábrica arma el libro con esto; la cápsula son las claves del capítulo 5.
+- **La transcripción va en el evento** (`contenido.transcripcion`): sin ella, la lista de palabras de «algo
+  preocupante» no ve los audios. Se transcribe antes de pasar el evento al motor.
+- Las fotos van a `fotos` como en la V3 (`capitulo` null, `pregunta_orden` = la llegada, `subida_por` null). Su clave
+  está en la fila de `respuestas` con el mismo `pregunta_orden` (`⟦foto⟧`); `fotos` no lleva columna nueva. Las fotos
+  con otros chicos las mira Naza antes de imprimir (`ficha.fotosConOtrosChicos`).
+- **Canal A: solo lo que manda el número del chico entra al motor.** Lo que escriba el padre desde su número no se
+  pasa (se acusaría como si fuera del chico) ni va a `respuestas`. Ese número no es un narrador: el entrevistador lo
+  reconoce por `kids_v2.telefono_padre` (canal A, chico que no está en `pendiente_pago`) y le contesta **una vez por
+  chico**, como texto libre (la ventana está abierta), el texto aprobado por Naza el 15/10: «Este número es para las
+  preguntas de {apodo}. Lo que cuenta lo ves en tu panel.» (`{apodo}` = `ficha.apodo`; constante `TEXTO_AL_PADRE` en
+  `entrevistador/src/kids-v2/padre.ts`). Que ya se le contestó queda en `kids_v2.estado.respondioAlPadre` (con el
+  compare-and-swap de siempre; se marca antes de mandar y se desmarca si Meta falla). Cada mensaje del padre va por
+  mail a los socios (el texto, o la transcripción si es un audio). Si el número es padre de dos chicos de canal A, o
+  el chico todavía no arrancó (`estado` null), no se le contesta y se avisa. Si ese número además es un narrador (un
+  padre con su biografía), manda el flujo del narrador, como siempre. Va antes del canje del regalo, salvo que el
+  mensaje traiga un código con VF.
+
+### Lo que no tiene que tocar a un chico de Kids
+
+Hoy ningún camino sabe qué es Kids. Cada uno pregunta por la fila de `kids_v2` (como `esViajeroV2` / `viajerosV2`
+y el candado de la V3) y, si la hay, no hace nada:
+
+- **Entrevistador:** `procesar.ts` (el mensaje va al motor de Kids y a nada más); en `scheduler.ts`, `narradoresEn`
+  (bienvenidas de `invitado`, preguntas, recordatorios, y `prenderAlertasDeSilencio`, que a los 3 días manda el
+  hito «silencio» al comprador); la entrada a la V3 (`entraALaV3` en `config.ts`, que además mira
+  `contexto.modo === 'kids'`; `v3/pasar.ts`; y `v3/estado.ts:crearFila`, que tira si es un chico); el mail «no le
+  llegan los mensajes» (`mail/no-llega.ts`, escrito para un narrador adulto).
+- **Fábrica**, con `narradoresConKids` (`fabrica/src/kids/candado.ts`). En `worker.ts`: el anticipo (lee `activo` y
+  `pausado` y con 3 respuestas llama al modelo viejo y le manda mail a la familia); los hitos de cierre (mail
+  «terminó», recordatorios a los 3, 7 y 14 días y el cierre solo a los 30 días desde `ultima_respuesta_at`, que corren
+  después de `completado`); estructura, previsualización, pedidos pagados (paquete, escritor V3, entrega con los
+  mismos archivos), «el libro está listo» y el recordatorio de frases. En `entregas.ts`: la imprenta y los mails de la
+  entrega. **Mientras no exista el libro de Kids, un impreso de Kids no avanza**: el libro y su entrega se programan
+  aparte y arrancan con `termino_at`. **16/10:** el libro ya existe («El libro de Kids en la fábrica», abajo); la
+  imprenta toma a un chico solo con el libro escrito y aprobado por el padre. Los mails de la entrega siguen sin salir.
+- **Web:** el tablero de biografías (`tablero/[narradorId]`, `proximo-paso.ts`) no es el panel de Kids, ni
+  `/api/sugeridas` (sugerencias con modelo); y `confirmarPago` manda el mail de acceso al tablero (para Kids, el mismo
+  mail con el link al panel de Kids: COMPRA-3-DESPUES dice «igual que el resto de la casa») y crea la fila de la
+  entrega del impreso, que queda quieta hasta el libro de Kids.
+
+### Plantillas y variables
+
+`envios.tipo` suma `'kids'` (una fila por mensaje que sale). Las 13 plantillas son las de
+`docs/kids/v2/plantillas-meta-kids.md` (rama `vitacora-kids`), en español (`es`). **16/10:** las mismas 13 en
+castellano de España, con el sufijo `_es_es` (`kids_bienvenida_es_es`…, `kids_final_plural_es_es`), en Spanish
+(Spain) `es_ES` (`docs/kids/v2/idiomas/plantillas-meta-kids-es-ES.md`; sin aprobar todavía), y las mismas 13 en
+catalán con `_ca` (`kids_bienvenida_ca`…), en Catalan `ca` (`docs/kids/v2/idiomas/plantillas-meta-kids-ca.md`;
+revisadas y aprobadas por Naza el 16/10, tanda 10). Son 39 en `PLANTILLAS_KIDS`. El motor ya pide el
+nombre con el sufijo del idioma del chico (`PLANTILLAS_KIDS` en `entrevistador/src/config.ts` dice en qué idioma de
+Meta va cada una; una plantilla que no es del idioma del chico no sale y se avisa). Se marcan como aprobadas en
+`WA_PLANTILLAS_KIDS_LISTAS` con el nombre entero (las `_es_es` y las `_ca` aparte de las rioplatenses, o `*`);
+mientras no estén, el chico no arranca (el primer mensaje siempre es plantilla) y se avisa a los socios.
+
+### Para decidir con Joaquín
+
+1. **Un mismo WhatsApp en dos chicos.** `narradores.telefono_whatsapp` es único: dos hermanos en canal B con el mismo
+   padre, o un padre que ya es narrador, chocan. Propuesta: por ahora la compra lo rechaza (ya existe el 409 de teléfono
+   repetido) y el formulario sugiere el canal A. Si hace falta, más adelante se busca por `kids_v2` y no por el teléfono.
+2. ~~**El padre que le escribe al número en canal A.**~~ **Resuelto (Naza, 15/10):** se le contesta una vez por chico
+   un texto fijo aprobado y nada más; su mensaje no entra al motor y va a los socios (detalle en «Respuestas, audios
+   y fotos»). Con dos chicos de canal A en el mismo número, no se contesta (no hay texto aprobado) y se avisa.
+3. **Dónde vive el motor.** Como la Viaje V2: copia byte a byte en `entrevistador/src/kids-v2/nucleo/` con un test que
+   compara contra `fabrica/src/kids-v2/`, y la web usa una copia de `validarFicha`.
+
+### El libro de Kids en la fábrica (16/10 — rama `kids-libro`)
+
+Decisiones 6 a 9 de `docs/kids/v2/libro-decisiones-2026-10-15.md`. Código: `fabrica/src/escritor-kids/produccion/`
+(la receta de `escritor-kids/` sobre la máquina del escritor de la casa: Batch, tope, checkpoints, `consumo_ia`).
+**No cambia ninguna tabla.** Corre en cada tick (`revisarLibrosKids`), en segundo plano, una cola propia.
+
+**Interruptor `ESCRITOR_KIDS` (fábrica, Railway), apagado por defecto.** Sin la variable (o con cualquier otro valor) no
+se llama a ningún modelo ni se sube nada: por cada chico terminado sale un log y un aviso a `MAIL_SOCIOS` («un chico
+terminó de contar y el escritor de Kids está apagado»), una vez por chico y por proceso (en memoria: se repite si la
+fábrica se reinicia). `ESCRITOR_KIDS=1` lo prende para todos; `ESCRITOR_KIDS=solo:<narrador_id>,<narrador_id>` solo
+para esos (el piloto real de Naza). Todo lo de abajo vale para los chicos prendidos.
+
+1. **Terminó de contar** (`kids_v2.termino_at` puesto y `narradores.estado = 'completado'`) → la Etapa A (leer todo),
+   una sola vez. Si marca algo preocupante: `real/frenado.json` y mail a `MAIL_SOCIOS`; **nada más** hasta que exista
+   `real/liberado.json`.
+2. **Sin freno (o liberado) y un pedido del chico `pagado`** → B, C y el armado. Sube a `paquete/` el libro, el sobre,
+   el HTML y `frases.json`, y escribe `listo.json`: **el libro está para que lo revise el padre**. El pedido **sigue
+   `pagado`**. Si no sale: `fallo-libro.json` y aviso (un error pasajero se reintenta solo, 3 veces cada 15 minutos).
+3. **Con `listo.json` y sin aprobar** → mail a la dueña (`familias.email`) con el link `kids_v2.ficha.linkPanel`, una vez.
+4. **El padre aprueba** → la web pone `narradores.libro_aprobado_at`. Para un chico de Kids quiere decir **«el padre
+   aprobó el libro ya escrito»** (no «cerró el libro» como en la casa) y **solo la pone la web desde el panel de Kids, y
+   solo con `listo.json`**. La fábrica pasa cada pedido `pagado` del chico a `entregado` (CAS `estado = 'pagado'`,
+   `libro_pdf_path = {id}/paquete/libro.pdf`) y manda el mail «libro listo» de Kids, una vez. Una entrega `lista` del
+   chico va a la imprenta (`entregas.ts`): copia `libro.pdf` → `libro-imprenta.pdf` y `sobre.pdf` → `sobre-imprenta.pdf`.
+5. **14 días después de `listo.json` sin `libro_aprobado_at`** → un aviso a `MAIL_SOCIOS`, una vez. La fábrica nunca
+   pone `libro_aprobado_at` a un chico (el cierre solo de los 30 días de la casa ya lo saltea).
+
+**El idioma del libro (16/10).** El de `ficha.idioma` o, si no, `kids_v2.idioma`. Los títulos de las partes y las
+preguntas salen del banco de ese idioma; los textos fijos que no están en el banco (los dos mails, «Su voz» y los
+números del PDF, la tapa y el álbum, la línea de la pregunta del padre) existen en es-AR, es-ES y ca (**16/10, tanda
+10**: los mails, «La seva veu» y el texto al padre, aprobados por Naza; los números de las partes, la tapa, el álbum y la
+línea del padre en catalán, propuesta marcada `TEXTO PARA NAZA` en el código). Cada paso del escritor recibe el idioma
+(`{{IDIOMA}}`: «castellano rioplatense», «castellano de España», «catalán») y escribe el libro en ese idioma. Si un
+idioma no tuviera esos textos, la fábrica no lee, no escribe el libro ni manda mails (nunca en castellano) y avisa a
+`MAIL_SOCIOS` una vez (candado `aviso-sin-textos-del-idioma.txt`; `faltanTextosKids` en `libro-kids.ts`).
+
+`{narrador_id}/escritor-kids/real/` (bucket `audios`; el almacén del escritor de Kids):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `pasos/`, `lotes/`, `fallas.json`, `costos.json` | fábrica | fábrica | Cada respuesta del modelo (retomar sin repagar), los lotes de Batch y el gasto. No se borran. |
+| `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **lectura hecha** (candado). |
+| `frenado.json` | fábrica | fábrica, socios | `{at, preocupante: [{ids, cita, por_que}], texto}`: el escritor encontró algo preocupante. |
+| `liberado.json` | **Naza a mano** | fábrica | Cualquier JSON, p. ej. `{"por": "Naza", "at": "2026-10-16", "nota": "…"}`. Con él, el libro sigue (lo marcado no va a «Su voz» y queda en el informe). Se sube desde el panel de Supabase, Storage → `audios` → `{id}/escritor-kids/real/`. |
+| `libro.md`, `sobre.md`, `informe.md` | fábrica | socios | El libro y el sobre en texto, y el informe interno (correcciones, dudas, veedor, fotos para mirar). La familia no ve el informe. |
+
+`{narrador_id}/escritor-kids/`:
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `listo.json` | fábrica | fábrica, **web (panel de Kids)** | `{at, paginas, sobrePaginas}`: el libro está escrito y los archivos de `paquete/` están. Es la señal para mostrarle al padre el libro y el botón de aprobar. |
+| `fallo-A.json`, `fallo-libro.json` | fábrica | socios | La lectura o el libro no salió (`{motivo, fecha}`). No se reintenta solo: se borra a mano para reintentar (retoma sin repagar). |
+| `frenado-avisado.txt`, `mail-revisar.txt`, `aviso-14-dias.txt`, `mail-libro-listo.txt`, `aviso-aprobado-sin-listo.txt`, `aviso-sin-textos-del-idioma.txt` | fábrica | fábrica | Candados de los avisos y mails (salen una vez; sin candado, el próximo tick reintenta). `aviso-sin-textos-del-idioma.txt`: el chico es de un idioma sin los textos fijos del libro aprobados (hoy ninguno: desde el 16/10 los tres idiomas los tienen). El último: el padre aprobó y falta `listo.json` (alguien lo borró); la fábrica **no reescribe el libro**, no entrega ni imprime, y avisa a los socios una vez. |
+| `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`. La copia de la fábrica que va a lanzar un trabajo (lectura o libro) **la toma antes** creándola sin pisar (upload sin `upsert`): de dos copias en el mismo tick solo una la consigue. La renueva cada minuto y la borra al terminar. Una de más de 10 minutos es de una copia muerta: se borra y se vuelve a crear. |
+
+`{narrador_id}/paquete/` (los de siempre, con el libro de Kids):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `libro.pdf`, `libro.html` | fábrica | web (panel de Kids, descarga, `/voz/<token>`) | El libro A5 con «Su voz» y sus QR. **Sin** el sobre. |
+| `sobre.pdf` | fábrica | web (panel de Kids), imprenta | El sobre cerrado, aparte (decisión 6). Nunca lleva QR. |
+| `frases.json` | fábrica (crea), worker de audio (completa) | web (`/voz/<token>`) | «Su voz» de Kids en el formato de siempre: una candidata por respuesta elegida, `elegida = true`, `confirmado_at` puesto, `estado = 'pendiente'`, **`entera: true`**, `inicio = 0`, `fin` y `audio_path` en null. Se publica con `publicarFrases` (el mismo camino que la casa), así que va con `frases_pedido.txt`. El worker (`voz/voz/procesar_frases.py`) ve `entera` y pasa la respuesta **de 0 al final** a `{id}/voz/frases/{R..}.mp3`, con la misma cadena de sonido que la casa pero **sin Whisper** (no ubica nada, no gasta); anota `estado = 'cortada'`, `audio_path`, `inicio`, `fin` y `segundos`. Mientras no estén, la web muestra que se están preparando. Cada QR del libro abre `/voz/<token>#f-<R..>`. |
+| `libro-imprenta.pdf`, `sobre-imprenta.pdf` | fábrica | imprenta | Copias de `libro.pdf` y `sobre.pdf` al pasar la entrega a `en_produccion`. |
+
+`consumo_ia`: una fila por llamada, `servicio = 'fabrica'`, `paso` = `escritor-kids-A`, `escritor-kids-B` o
+`escritor-kids-C`. Variables: `ESCRITOR_KIDS` (el interruptor, arriba), `ESCRITOR_KIDS_TOPE_USD` (8 por defecto, tope de gasto por trabajo),
+`ESCRITOR_LIBROS_EN_PARALELO` (la misma que la casa, pero los de Kids van en su propia cola), `MAIL_SOCIOS`.
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)
@@ -754,7 +998,9 @@ migración no está aplicada, el producto sigue andando: los servicios avisan po
 
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
-> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09). En git no quedó escrito si la migración `20260922000000_entregas.sql` se aplicó: verificarlo en el SQL Editor (`select to_regclass('public.entregas');` devuelve `entregas` si existe) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09).
+> **Verificado el 17/10 por Naza en el SQL Editor: la migración `20260922000000_entregas.sql` está aplicada**
+> (`to_regclass('public.entregas')` no es null). La tabla existe y la sección Envío de la web funciona.
 
 Diseño: `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`. Migración:
 `20260922000000_entregas.sql`. Una fila por pedido que lleva **libro impreso y/o marcos**
@@ -788,7 +1034,8 @@ para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
 
 ## «Sus objetos preciados» — el pedido de una foto concreta (PROPUESTA del 22/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09). En git no quedó escrito si se aplicaron `20260923000000` y `20260923000100`: verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'fotos' and column_name = 'pregunta_orden';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09).
+> **Verificado el 17/10 por Naza: aplicadas** (`fotos.pregunta_orden` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000000_preguntas_de_objeto.sql` y la aplica
 Naza en el SQL Editor. Mientras tanto el código funciona sin la columna: `fotos.pregunta_orden` se lee
@@ -826,7 +1073,8 @@ Reglas:
 
 ## Saber si el mensaje llegó — `envios.entrega` (PROPUESTA del 23/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main desde el 27/09. En git no quedó escrito si se aplicó `20260923000200_envios_entrega.sql` (el ROADMAP del 29/09 ya manda a mirar `envios.entrega`, lo que sugiere que sí): verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'envios' and column_name = 'entrega';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main desde el 27/09.
+> **Verificado el 17/10 por Naza: aplicada** (`envios.entrega` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000200_envios_entrega.sql`. Mientras tanto
 el código funciona sin las columnas: avisa por consola (los logs de Railway ya sirven para saber qué
