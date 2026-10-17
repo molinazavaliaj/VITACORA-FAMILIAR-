@@ -1,10 +1,20 @@
-/* ── /opiniones en la dirección «la web es un libro» ──────────────────────
-   Las clases dir- viven en globals.css y _direccion/direccion.css; acá va
-   solo lo de esta página, con prefijo opn-. Maqueta:
-   docs/rediseno-2026-10/opiniones/maqueta.html. */
+/* ── /opiniones, opción C «revista» (Naza, 17/10) ──────────────────────────
+   Las superficies (dir-papel, dir-tinta, dir-hoja, el grano y las capas)
+   son las de la portada, en globals.css y _direccion/direccion.css. Acá va
+   solo la composición de esta página, con prefijo opn-. Maqueta:
+   docs/rediseno-2026-10/opiniones/maqueta-c-revista.html. */
 
+.opn > section + section,
+.opn > main > section { margin-top: -1px; }
+
+.opn-titulo {
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 1.2rem + 7vw, 8rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
 .opn-bajada {
-  max-width: 36ch;
+  max-width: 30ch;
   font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
   font-weight: 300;
   line-height: 1.5;
@@ -12,100 +22,68 @@
   text-wrap: balance;
 }
 
-/* Una opinión debajo de otra, separadas por un hilo. Con una página de su
-   libro, dos columnas en pantallas anchas; sin ella, la frase sola. */
-.opn-lista { list-style: none; margin: 0; padding: 0; }
-.opn-opinion {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
-  padding: 56px 0;
-  border-top: 1px solid var(--dir-hilo-papel);
-}
-.opn-opinion:first-child { border-top: 0; padding-top: 0; }
+/* Un bloque por opinión: el número grande a un lado, la frase al otro. En
+   los de tinta el número pasa a la derecha. */
+.opn-rejilla { display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media (min-width: 900px) {
-  .opn-opinion { grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; padding: 80px 0; }
-  .opn-opinion--sola .opn-texto { max-width: 52rem; }
-  .opn-opinion--sola { grid-template-columns: 1fr; }
+  .opn-rejilla { grid-template-columns: 3fr 9fr; gap: 48px; align-items: start; }
+  .opn-bloque[data-superficie="tinta"] .opn-rejilla { grid-template-columns: 9fr 3fr; }
+  .opn-bloque[data-superficie="tinta"] .opn-numero { order: 2; text-align: right; }
 }
+.opn-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(5rem, 3rem + 9vw, 11rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  font-variant-numeric: lining-nums;
+}
+.opn-bloque[data-superficie="papel"] .opn-numero { color: var(--dir-dorado); opacity: 0.6; }
+.opn-bloque[data-superficie="tinta"] .opn-numero { color: var(--dir-sobre-tinta); opacity: 0.2; }
 
 .opn-texto { margin: 0; }
 .opn-frase {
   margin: 0;
   font-family: var(--fuente-titulo), Georgia, serif;
-  font-style: italic;
   font-weight: 500;
-  font-size: clamp(1.7rem, 1.15rem + 2.3vw, 3.1rem);
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  font-size: clamp(2rem, 1.1rem + 3.6vw, 4.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   text-wrap: balance;
-  color: var(--dir-sobre-papel);
 }
 .opn-frase::before { content: "«"; }
 .opn-frase::after { content: "»"; }
-.opn-quien {
-  font-family: var(--fuente-micro), sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--dir-sobre-papel);
-}
+
+.opn-meta { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+.opn-quien { font-family: var(--fuente-micro), sans-serif; font-size: 16px; line-height: 1.5; }
 .opn-quien b { font-weight: 600; }
-.opn-dato { margin-top: 6px; color: var(--dir-sobre-papel-suave); }
-.opn-producto { color: var(--dir-dorado); }
+.dir-papel .opn-dato { color: var(--dir-sobre-papel-suave); }
+.dir-tinta .opn-dato { color: var(--dir-sobre-tinta-suave); }
+.dir-papel .opn-producto { color: var(--dir-dorado); }
 
-/* Una página de su libro: la hoja de las páginas del libro de ejemplo, un
-   poco torcida, con los cantos de las hojas de abajo. */
-.opn-pagina {
-  justify-self: center;
-  width: min(100%, 340px);
-  padding: 30px 28px 34px;
-  border-radius: 0 3px 3px 0;
-  transform: rotate(1.4deg);
-  background-color: var(--dir-papel-pagina, #f7f2e6);
-  background-image: linear-gradient(270deg, transparent 82%, rgba(90, 70, 40, 0.13));
-  color: #26231e;
-  box-shadow: 1px 0 0 #ece5d6, 2px 1px 0 #d6cbb4, 3px 1px 0 #ece5d6, 4px 2px 0 #d6cbb4, 0 30px 50px -28px rgba(0, 0, 0, 0.45);
-}
-.opn-pagina-etiqueta { color: var(--dir-dorado); font-size: 10.5px; }
-.opn-pagina-texto {
-  margin-top: 14px;
+/* El trozo de su libro: una línea chica en cursiva, sin tarjeta. */
+.opn-fragmento {
+  margin-top: 26px;
+  max-width: 60ch;
   font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.6;
+  opacity: 0.8;
 }
-.opn-pagina-texto::first-letter {
-  float: left;
-  padding: 4px 6px 0 0;
-  font-size: 2.6em;
-  line-height: 0.9;
-}
+.opn-fragmento-etiqueta { display: block; margin-bottom: 6px; font-style: normal; font-size: 10.5px; }
 
-/* Al pie de la hoja: cómo se comprueban y, si existe, el enlace a Google. */
-.opn-comprobadas {
-  display: grid;
-  gap: 24px;
-  margin-top: 24px;
-  padding-top: 40px;
-  border-top: 1px solid var(--dir-hilo-papel);
-}
+/* Cómo se comprueban y el enlace a Google. */
+.opn-comprobadas { display: grid; gap: 28px; }
 @media (min-width: 900px) {
   .opn-comprobadas { grid-template-columns: 7fr 5fr; gap: 64px; align-items: start; }
+  .opn-boton-hilo { justify-self: end; }
 }
-.opn-comprobadas-texto {
-  margin-top: 12px;
-  max-width: 52ch;
-  font-size: 16px;
-  font-weight: 300;
-  line-height: 1.6;
-  color: var(--dir-sobre-papel-suave);
-}
-.opn-boton-papel {
-  justify-self: start;
-  border: 1px solid rgba(21, 20, 18, 0.35);
-  color: var(--dir-sobre-papel);
-  white-space: normal;
-  text-align: center;
-}
-.opn-boton-papel:hover { border-color: var(--dir-sobre-papel); background: rgba(21, 20, 18, 0.04); }
-.opn-boton-papel:focus-visible { outline: 2px solid var(--dir-sobre-papel); outline-offset: 3px; }
-@media (min-width: 900px) { .opn-boton-papel { justify-self: end; } }
+.opn-comprobadas-texto { margin-top: 12px; max-width: 52ch; font-size: 16px; font-weight: 300; line-height: 1.6; }
+.dir-papel .opn-comprobadas-texto { color: var(--dir-sobre-papel-suave); }
+.dir-tinta .opn-comprobadas-texto { color: #cfcbc1; }
+.opn-boton-hilo { justify-self: start; border: 1px solid currentColor; white-space: normal; text-align: center; }
+.dir-papel .opn-boton-hilo { color: var(--dir-sobre-papel); border-color: rgba(21, 20, 18, 0.35); }
+.dir-tinta .opn-boton-hilo { color: var(--dir-sobre-tinta); border-color: rgba(238, 234, 225, 0.36); }
+.opn-boton-hilo:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

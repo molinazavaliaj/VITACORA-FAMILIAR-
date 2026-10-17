@@ -138,6 +138,20 @@ describe("opiniones: con tres o más, se muestra", () => {
     expect(html("es")).toContain("Cómo las comprobamos");
     expect(html("es")).toContain(escapar("Comprobamos cada una con su pedido"));
     expect(html("ca")).toContain("Com les comprovem");
+    expect(html("es")).toContain(escapar("personas que hicieron su libro con Vitácora"));
+    expect(html("ca")).toContain(escapar("persones que han fet el seu llibre amb Vitácora"));
+  });
+
+  it("diseño revista: bloques numerados 01, 02… que alternan papel y tinta, sin borde cortado", () => {
+    const h = html("es");
+    expect(h.match(/data-superficie="(papel|tinta)"/g)).toEqual([
+      'data-superficie="papel"',
+      'data-superficie="tinta"',
+      'data-superficie="papel"',
+    ]);
+    for (const n of ["01", "02", "03"]) expect(h).toContain(`>${n}</span>`);
+    expect(h).not.toContain("dir-deckle");
+    expect(h).toContain("data-capa");
   });
 
   it("el botón de Google solo aparece si hay enlace", () => {

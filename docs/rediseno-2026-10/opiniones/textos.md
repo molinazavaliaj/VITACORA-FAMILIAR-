@@ -1,6 +1,6 @@
 # Textos de la página de opiniones, 17/10
 
-Para aprobar. Maqueta: `opiniones/maqueta.html` (los números rojos son los de esta tabla).
+Para aprobar. Maqueta elegida (17/10): `opiniones/maqueta-c-revista.html` (la primera, `maqueta.html`, y las opciones A y B quedan como historial). Los números rojos son los de esta tabla.
 Código: `web/src/app/_textos/opiniones.ts` (y #9 en `_textos/publico.ts`).
 
 Reglas: sin dos puntos, ninguna oración empieza con «Y» después de punto, sin «usted», no prometer
@@ -21,7 +21,7 @@ aprobado de la portada (#30), no se vuelve a aprobar.
 | 4 | Debajo de cada opinión, de qué producto es (va con el mes y el año, que salen solos) | Libro familiar · Libro del viaje | igual | Llibre familiar · Llibre del viatge | PARA APROBAR |
 | 5 | Encima del trozo del libro, cuando la persona dio permiso para mostrarlo | Una página de su libro | igual | Una pàgina del seu llibre | PARA APROBAR |
 | 6 | Título chico al pie de las opiniones | Cómo las comprobamos | igual | Com les comprovem | PARA APROBAR |
-| 7 | Texto al pie (en España es obligatorio decir si y cómo se comprueba que las opiniones son de clientes) | Solo publicamos opiniones de personas que compraron un libro en Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras. | igual | Només publiquem opinions de persones que han comprat un llibre a Vitácora. Comprovem cadascuna amb la seva comanda i la publiquem amb el seu permís, sense canviar les seves paraules. | PARA APROBAR |
+| 7 | Texto al pie (en España es obligatorio decir si y cómo se comprueba que las opiniones son de clientes) | Solo publicamos opiniones de personas que hicieron su libro con Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras. (Cambiado por Naza 17/10, antes «que compraron un libro en Vitácora».) | igual | Només publiquem opinions de persones que han fet el seu llibre amb Vitácora. Comprovem cadascuna amb la seva comanda i la publiquem amb el seu permís, sense canviar les seves paraules. | PARA APROBAR |
 | 8 | Botón al pie (solo cuando Google verifique la ficha; mientras, no se ve) | Ver todas las opiniones en Google | igual | Veure totes les opinions a Google | PARA APROBAR |
 | 9 | Enlace discreto en el pie de toda la web, junto a «Entrar» (solo con tres opiniones o más) | Opiniones | igual | Opinions | PARA APROBAR |
 | 10 | Título de la pestaña y descripción para Google | Opiniones · Lo que dicen las familias que ya tienen su libro de Vitácora. | igual | Opinions · El que diuen les famílies que ja tenen el seu llibre de Vitácora. | PARA APROBAR |

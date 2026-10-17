@@ -39,7 +39,7 @@ export const TEXTOS_OPINIONES: Textos<TextosOpiniones> = {
     pagina: "Una página de su libro",
     comprobadasTitulo: "Cómo las comprobamos",
     comprobadasTexto:
-      "Solo publicamos opiniones de personas que compraron un libro en Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.",
+      "Solo publicamos opiniones de personas que hicieron su libro con Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.",
     google: "Ver todas las opiniones en Google",
   },
   ca: {
@@ -51,7 +51,7 @@ export const TEXTOS_OPINIONES: Textos<TextosOpiniones> = {
     pagina: "Una pàgina del seu llibre",
     comprobadasTitulo: "Com les comprovem",
     comprobadasTexto:
-      "Només publiquem opinions de persones que han comprat un llibre a Vitácora. Comprovem cadascuna amb la seva comanda i la publiquem amb el seu permís, sense canviar les seves paraules.",
+      "Només publiquem opinions de persones que han fet el seu llibre amb Vitácora. Comprovem cadascuna amb la seva comanda i la publiquem amb el seu permís, sense canviar les seves paraules.",
     google: "Veure totes les opinions a Google",
   },
   ar: {
@@ -63,7 +63,7 @@ export const TEXTOS_OPINIONES: Textos<TextosOpiniones> = {
     pagina: "Una página de su libro",
     comprobadasTitulo: "Cómo las comprobamos",
     comprobadasTexto:
-      "Solo publicamos opiniones de personas que compraron un libro en Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.",
+      "Solo publicamos opiniones de personas que hicieron su libro con Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.",
     google: "Ver todas las opiniones en Google",
   },
 };
