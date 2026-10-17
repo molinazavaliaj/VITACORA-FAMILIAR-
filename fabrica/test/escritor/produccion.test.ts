@@ -3,6 +3,8 @@
 // falso (respuestas de Nélida) y una base falsa en memoria. El PDF no se arma (Playwright): se simula.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// El libro para Bookmundo levanta Chromium de verdad: tiene sus propios tests (bookmundo.test.ts).
+vi.mock('../../src/libro/bookmundo/narrador.js', () => ({ armarBookmundoSinFrenar: vi.fn(async () => undefined) }));
 vi.mock('../../src/libro/pdf.js', () => ({ htmlAPdf: vi.fn(async (html: string) => Buffer.from(`PDF:${html.length}`)) }));
 vi.mock('../../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave-prueba', urlBase: 'https://www.vitacorafamiliar.com', anthropicApiKey: 'x' }) }));
 

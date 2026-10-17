@@ -4,12 +4,15 @@
 //   131026 → no tiene WhatsApp, tiene una versión vieja o nos bloqueó.
 // Los demás errores son nuestros o se arreglan solos: esos solo van a los socios.
 // Una vez por semana por narrador (marca en Storage). No sale para «La mía»
-// (compró su propio libro): no tiene a quién pedirle que escriba.
+// (compró su propio libro): no tiene a quién pedirle que escriba. Tampoco para un chico de Kids (fila en kids_v2,
+// plan-conexion-bot.md de Kids, T4): el mail está escrito para un narrador adulto; lo que no le llega a un chico (o a
+// su padre) lo ven los socios. Si la base no deja saber si es un chico, no sale.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 import type { MandarMailFamilia } from '../flujo/regalo.js';
 import type { Marca } from '../v3/avisos.js';
+import { esChicoKids } from '../kids-v2/filas.js';
 
 export const CODIGOS_FAMILIA = [130472, 131026] as const;
 
@@ -55,6 +58,7 @@ export async function avisarFamiliaNoLlega(deps: DepsNoLlega, narradorId: string
     const narrador = n as { familia_id: string; como_le_dicen: string; contexto?: Record<string, unknown> | null } | null;
     if (!narrador) return false;
     if (narrador.contexto?.vinculoComprador === 'yo mismo') return false;
+    if (await esChicoKids(deps.db, narradorId)) return false; // tira si no se sabe: el catch de abajo no manda nada
     if ((await deps.marca(`semana-${semanaIso(deps.ahora ?? new Date())}`, `familia-no-llega:${narradorId}`)) === 'ya') return false;
     const { data: familia } = await deps.db.from('familias').select('region').eq('id', narrador.familia_id).maybeSingle();
     const t = NO_LLEGA[tratoDeComprador((familia as { region?: unknown } | null)?.region)];

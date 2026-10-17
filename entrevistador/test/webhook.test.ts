@@ -59,6 +59,12 @@ describe('el botón de la plantilla', () => {
     expect(parsearEntrante(entrante({ type: 'text', text: { body: 'Sí, tuve' } }))?.esBoton).toBeUndefined();
   });
 
+  it('trae el id del mensaje tocado (Kids V2: un botón de un mensaje viejo no hace nada)', () => {
+    expect(parsearEntrante(entrante({ type: 'button', button: { text: 'Dale, vamos' }, context: { id: 'wamid.salida.1' } }))?.citaA).toBe('wamid.salida.1');
+    expect(parsearEntrante(entrante({ type: 'interactive', interactive: { type: 'button_reply', button_reply: { id: 'b1', title: 'Paso' } }, context: { from: '1', id: 'wamid.salida.2' } }))?.citaA).toBe('wamid.salida.2');
+    expect(parsearEntrante(entrante({ type: 'button', button: { text: 'SI' } }))?.citaA).toBeUndefined();
+  });
+
   it('un botón vacío no inventa un mensaje', () => {
     expect(parsearEntrante(entrante({ type: 'button', button: { text: '   ' } }))).toBeNull();
     expect(parsearEntrante(entrante({ type: 'sticker', sticker: { id: 's1' } }))).toBeNull();
