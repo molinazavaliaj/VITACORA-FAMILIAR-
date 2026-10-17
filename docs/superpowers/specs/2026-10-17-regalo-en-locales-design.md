@@ -1,7 +1,9 @@
 # Regalo en locales (copisterías y librerías) — diseño
 
 > **Estado: diseño aprobado por Naza el 2026-10-17** (chat de brainstorming).
-> Falta: las 6 decisiones de §9, textos de la carta y del cartel (tanda de 10),
+> Las 6 decisiones de §9 quedaron cerradas el mismo día.
+> Falta: textos de la carta, del cartel y de la página «no activada» (tanda de 10),
+> aprobar la hoja para el local (`docs/regalo/locales/hoja-para-el-local.md`),
 > plan de implementación.
 > Imagen de referencia del stand: `Desktop\PLANIFICADOR-HIGGSFIELD\gift-card\stand\stand-mostrador-sobres-1.png`.
 
@@ -27,10 +29,13 @@ descartamos:
 
 ## 1. El objeto
 
-**Sobre.** Papel simple, cerrado con un sticker redondo. Afuera dice
-*El libro de su vida · Gift card*. Unos 0,15–0,25 € en la copistería.
+**Sobre.** Negro liso, C6, comprado hecho (unos 0,10–0,20 €). No se imprime:
+las copisterías comunes no tienen tinta blanca. Lo cierra un **sticker redondo
+blanco** con el toroide y *El libro de su vida · Gift card*, impreso en hoja de
+stickers en la copistería.
 
-**Carta adentro.** Papel de 250–300 g doblado al medio, tamaño A6 cerrado.
+**Carta adentro.** Blanca, tinta negra, papel de 250–300 g doblado al medio,
+tamaño A6 cerrado. **Sin precio** (termina en manos del narrador).
 Unos 0,20–0,40 €.
 
 - Tapa: la frase de marca y el título.
@@ -41,13 +46,15 @@ Unos 0,20–0,40 €.
 - Abajo, chico: *Se activa cuando la pagás en vitacorafamiliar.com*. Va en vos,
   tú o catalán según el lote.
 
-**Colores.** La imagen de referencia usa crema y dorado, pero
-`docs/identidad-de-marca.md` los dejó fuera de la marca (spec 2026-10-07 §2).
-Se decide en §9.
+**Colores.** Negro y blanco, como `docs/identidad-de-marca.md`. La imagen de
+referencia usa crema y dorado: solo mostraba la forma del stand.
 
-**Extra premium (pago).** Al comprar se ofrece *la tarjeta negra rígida en
-caja*. La imprimimos y la mandamos por correo, así que el costo solo existe
-cuando ya hubo venta.
+**Extra (pago): tarjeta negra.** Al comprar se ofrece la tarjeta negra rígida,
+**sin caja, en sobre negro, por correo como carta** a la casa de quien compra.
+**9 € en España y 15.000 ARS en Argentina, envío incluido.** Se puede pedir
+hasta el **15/12** para que llegue antes del 24; después la opción no aparece.
+Costo estimado 3–4 €. En Argentina todo (cartas, tarjetas, envíos) se imprime y
+se manda desde Argentina.
 
 ## 2. El stand
 
@@ -56,6 +63,7 @@ cuando ya hubo venta.
 - En el frente de la caja: *Gift card · Llevátela* (o el equivalente aprobado
   en tú o catalán).
 - Atrás, un cartel en un atril: *El libro de su vida*, la frase y la marca.
+  **Sin precio**: el precio aparece solo en la web.
 - Adelante, **la carta abierta como muestra** sobre un atril de acrílico. Tiene
   que ser lo mismo que se lleva la persona, no la tarjeta negra.
 - La caja y el cartel los hace la copistería de Berga o un encuadernador, en
@@ -71,8 +79,9 @@ cuando ya hubo venta.
    regalo que todavía no se activó* y un botón *Regalarla*.
 4. *Regalarla* abre la compra de regalo de hoy (`/regalar`) con el código ya
    puesto. Se completan el nombre del narrador, cómo le dice, el idioma, el
-   mensaje y el audio opcional. **No se elige día de entrega** porque la carta
-   se da en mano. Se puede sumar la tarjeta negra (extra).
+   mensaje y el audio opcional. **Se elige qué libro: digital, impreso o pack,
+   con el impreso marcado de entrada.** **No se elige día de entrega** porque la
+   carta se da en mano. Se puede sumar la tarjeta negra (extra).
 5. Al pagar, el regalo se crea **con el código de la carta**. Desde ese momento
    el QR abre la página del regalo de hoy, con el mensaje, el audio y el botón
    *Empezar*.
@@ -88,8 +97,14 @@ va igual.
 - Cada código impreso pertenece a un **lote**, y el lote a un **local**.
 - Cuando se paga una compra que arrancó desde ese código, el pedido queda
   marcado con el local.
-- La comisión es un **20 % del libro**, sin contar extras ni envíos (ver §9).
-- **Le pagamos una vez por mes**, a mano, por transferencia o Bizum.
+- La comisión es un **20 % del libro elegido**: 9,80 € (digital), 19,80 €
+  (impreso), 21,80 € (pack). Los extras (tarjeta negra, marcos, copias) y el
+  envío no cuentan.
+- **Lo de un mes se paga a principios del mes siguiente**, a mano, por
+  transferencia o Bizum (así una devolución no obliga a pedirle plata al local).
+- El acuerdo es **de palabra**; al local se le deja una hoja con lo acordado
+  (`docs/regalo/locales/hoja-para-el-local.md`). La factura de la comisión se
+  ve con el gestor cuando haya ventas.
 - Cada local tiene un **link privado de solo lectura**, sin login, con un token
   largo. Muestra los sobres que le dejamos, las cartas pagadas por mes y su
   comisión. Sirve para que confíe sin tener que preguntarnos.
@@ -139,11 +154,13 @@ Tablas nuevas. La migración se aplica después del OK de Joaquín y toca
 3. **Webhook de pago (Stripe y Mercado Pago).**
    - Crea el regalo con el código impreso y anota `pedido_id` y `local_id`.
    - Tiene que poder recibir el mismo aviso dos veces sin duplicar nada.
-4. **Extra *tarjeta negra en caja*.**
+4. **Extra *tarjeta negra*.**
    - Línea nueva en el carrito, con la dirección de envío.
-   - Precio con variables `PRECIO_TARJETA_FISICA_EUR` y `_ARS`. Si no están
-     cargadas, el extra no aparece.
-   - Avisa a los socios para imprimir y mandar.
+   - Precio con variables `PRECIO_TARJETA_FISICA_EUR` (9) y `_ARS` (15000). Si
+     no están cargadas, el extra no aparece.
+   - Después del 15/12 (hora del país) el extra no se ofrece.
+   - Avisa para imprimir y mandar a quien corresponde según el país (España o
+     Argentina).
 5. **Generador de lotes.** Es un script de la fábrica o un comando local, no una
    pantalla. Recibe el local, la cantidad y el idioma, crea los códigos y arma
    el PDF para la copistería: cartas en A4 imponible y una hoja de stickers de
@@ -179,23 +196,19 @@ spec).
   3. Escanearlo como narrador.
   4. Ver la comisión en el panel del local.
 
-## 9. Decisiones de Naza (una tanda)
+## 9. Decisiones de Naza (cerradas el 17/10)
 
-1. **¿Qué compra la carta?** Puede ser el digital (49 €), el libro impreso
-   (99 €) o el pack (109 €). Recomendado: **el libro impreso**, que es lo que se
-   entiende como regalo de Navidad. Se puede dejar elegir en la compra.
-2. **¿Va el precio impreso en la carta?** Recomendado: no. Va en el cartel del
-   stand, así un cambio de precio no tira las cartas impresas.
-3. **¿Sobre de qué color?** Recomendado: el **sobre negro** de la marca con el
-   toroide como sello. Si no, crema como en la imagen, pero eso es salirse de
-   la identidad.
-4. **¿Sobre qué base va el 20 %?** Recomendado: el precio del libro, sin extras
-   ni envío.
-5. **Precio del extra tarjeta negra en caja.** Costo estimado de 3–5 € más el
-   envío.
-6. **Contrato con el local.** Una página: el 20 %, que los sobres son nuestros,
-   el pago mensual y la salida. Lo revisa el gestor o el abogado, sobre todo el
-   IVA de la comisión.
+1. **Qué compra la carta:** se elige al pagar (digital 49 €, impreso 99 €,
+   pack 109 €), con el **impreso marcado de entrada**.
+2. **Precio:** ni en la carta ni en el cartel. **Solo en la web.**
+3. **Color:** sobre negro liso con sticker blanco del toroide; carta blanca con
+   tinta negra.
+4. **El 20 %:** del libro elegido, sin extras ni envío, pagado el mes siguiente.
+5. **Tarjeta negra:** sin caja, en sobre negro, por correo. 9 € / 15.000 ARS
+   con envío, hasta el 15/12. Argentina se hace desde Argentina.
+6. **Acuerdo:** de palabra, con una hoja para el local
+   (`docs/regalo/locales/hoja-para-el-local.md`, borrador por aprobar). La
+   factura de la comisión se ve con el gestor más adelante.
 
 Textos de la carta, del cartel, de la página *no activada* y del panel del
 local: los escribe Fable con voz cálida y se aprueban de a 10, en vos, tú y
