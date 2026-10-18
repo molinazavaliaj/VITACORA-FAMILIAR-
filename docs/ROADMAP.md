@@ -49,7 +49,7 @@ mirar si está prendido.**
 
 | Qué | Dueño | Estado |
 |---|---|---|
-| Mergear en 6 fases (Naza confirmó el 17/10 que arranca), en este orden: **0** `rediseno-web`→main · **1** #46→#47→#50 (Kids servidor) · **2** #48→#49 (Kids web) · **3** #51 (voz) · **4** #52 (viaje solo V2) · **5** #53 (viaje web) | Naza | ☐ |
+| **Al 18/10 están hechas las fases 1 y 3**: Kids servidor (#46, #47, #50) y voz (#51) en main, más la Action de tests (#54) y el lema (#55, #64). Quedan #52, #56, #53 y #70. Las 6 fases, en este orden: **0** `rediseno-web`→main · **1** #46→#47→#50 (Kids servidor) · **2** #48→#49 (Kids web) · **3** #51 (voz) · **4** #52 (viaje solo V2) · **5** #53 (viaje web) | Naza | ☐ |
 | `rediseno-web` necesita su PR. Un conflicto: `web/src/app/tablero/[narradorId]/page.tsx` (se resuelve con el lado del rediseño) | Naza | ☐ |
 | Actualizar `kids-compra` y `kids-panel` con `rediseno-web`: están 14 commits atrasadas y por eso falla el test `la biografía no cambia` | Naza | ☐ |
 | El conflicto de #52 contra Kids (`procesar.ts`, `scheduler.ts`, `worker.ts`): lo resuelve quien escribió las dos | Naza | ☐ |
@@ -138,6 +138,20 @@ mirar si está prendido.**
 | Programarlo en `fabrica/src/libro/imprenta.ts` + `plantilla-html.ts`, con test de que el `libro.pdf` entregado no cambia | Claude, con Naza | ☐ |
 | Textos de la hoja de firma en los tres idiomas, aprobados por Naza | Claude, con Naza | ☐ |
 
+### Bloque 4ter · Dos productos nuevos en el roster (nuevo, 18/10)
+
+> **Solo en la landing por ahora**, como «próximamente» o casi completos, ofreciendo el servicio.
+> No hay compra ni producción detrás: el objetivo es medir interés y abrir conversación.
+> Los dos los hace Naza.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **Vitácora Eventos** · página `/eventos` con formulario de contacto, en es / ar / ca | Naza | ✅ 18/10 (#67, #68, #69, en `rediseno-web`) |
+| **Vitácora Personalizada** · la página todavía no existe | Naza | ☐ |
+| Definir qué se promete en cada una: qué incluye, a quién le sirve, y si lleva precio o «consultanos» | Joaquín, con Naza | ☐ decisión |
+| Que las dos entren en el menú y en la portada sin desenfocar el producto principal | Naza | ☐ |
+| **Revisar que los legales cubran lo que prometen.** Hoy los términos solo definen PDF, impreso y marcos, y la revisión legal ya marcó como contradicción que §7 mencionara productos no definidos en el mismo papel | sesión de legales | ☐ |
+
 ### Bloque 5 · Contenido (se puede empezar hoy)
 
 | Qué | Dueño | Estado |
@@ -145,6 +159,7 @@ mirar si está prendido.**
 | **Editar el crudo de Dora** y dejarlo listo para subir | Joaquín | 🔄 grabado, sin editar |
 | Grabar el contenido en **catalán con Imma** (su libro se cierra esta semana) | Joaquín, Imma | ☐ sin grabar |
 | **Calendario de posteo**: qué sale cada día, del 17/10 en adelante | Joaquín | ☐ |
+| **Business plan, one-pager y deck** del préstamo F&F (USD 8.000, 1,2× a 360 días). Entregables en `business-plan/` | Joaquín | 🔄 terminándolo |
 
 ### Bloque 6 · Textos y conversión de las landings (depende del bloque 1)
 
@@ -187,7 +202,12 @@ mirar si está prendido.**
 | **A3 · Dos casillas en el paso 3 del checkout**, más registro por pedido (versión, fecha, IP, valores). Toca el formulario y su test: **después de #56** | sesión de legales | ☐ |
 | **A4 · Correo de confirmación de contrato** con el formulario del Anexo B (España) | sesión de legales | ☐ |
 | **A6 · No hay plazo de entrega.** «El 90 % de las reclamaciones vienen por el plazo» | **Joaquín decide el número** | ☐ **decisión** |
-| **B · Siete contradicciones internas** entre secciones de los propios términos | sesión de legales | ☐ |
+| **B · Siete contradicciones internas** entre secciones de los propios términos | sesión de legales | ✅ PR #70 |
+| **Naza aprueba las tandas L1, L2 y L3** del PR #70 (21 textos, los tres idiomas; el catalán con revisión nativa). Ojo: L2-06 y L3-01 tocan cuatro líneas de «En corto» que ya había aprobado el 15/10 | Naza | ☐ **traba #70** |
+| **Borrado automático de los audios originales** a los 3 meses de producido el libro: el texto nuevo lo promete y hoy no existe | Naza | ☐ |
+| **Borrado de ficha y fotos a los 15 días** si la narradora dice NO (a mano mientras tanto) | Naza | ☐ |
+| Tres preguntas para el abogado quedaron abiertas en #70 | Joaquín | ☐ |
+| **La Action de tests no llega a los PR contra `rediseno-web`**: #54 entró a main, pero esa rama no la tiene. #70 y #53 están sin check | Naza | ☐ |
 | **D3 · Qué pasa si la narradora muere o pierde capacidad.** El hueco más grande: se vende un servicio de un mes a personas de 80 años | sesión de legales, Joaquín decide | ☐ |
 | **G · Lo que necesita un abogado con matrícula**: contrato con la narradora, contrato entre los dos titulares, revisión contra el registro de tratamientos | Joaquín | ☐ |
 
