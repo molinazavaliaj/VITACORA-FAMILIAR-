@@ -41,7 +41,7 @@ export const TITULARES: Record<Region, Titular> = {
     nombre: "Joaquín Molina",
     pais: "Argentina",
     documento: { etiqueta: "CUIT", valor: "20-41835629-5" },
-    domicilio: "Vedia 2250, Ciudad Autónoma de Buenos Aires (C1429), Argentina",
+    domicilio: "",
     ley: "la ley argentina (ley 25.326 de Protección de los Datos Personales, ley 24.240 de Defensa del Consumidor y Resolución 424/2020 de la Secretaría de Comercio Interior)",
     autoridad: { nombre: "Agencia de Acceso a la Información Pública (AAIP)", url: "https://www.argentina.gob.ar/aaip" },
   },
