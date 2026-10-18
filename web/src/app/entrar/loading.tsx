@@ -1,18 +1,29 @@
+import "./entrar.css";
+
 // Mientras carga /entrar (RENDIMIENTO.md §3.1): la forma del formulario —
-// título, una línea, el campo y el botón — en gris, con el mismo fondo y ancho
-// que la página. Sin texto: solo un aviso para lectores de pantalla.
+// etiqueta, título, una línea, el campo y el botón — sobre la misma tinta que
+// la página. Sin texto: solo un aviso para lectores de pantalla.
 
 export default function CargandoEntrar() {
   return (
-    <div aria-busy="true" className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24">
+    <div aria-busy="true" className="dir-pagina dir-tinta ent">
       <p role="status" className="sr-only">
         Cargando…
       </p>
-      <div aria-hidden className="flex w-full max-w-sm flex-col items-center motion-safe:animate-pulse">
-        <div className="h-7 w-24 rounded-md bg-zinc-200" />
-        <div className="mt-3 h-4 w-64 max-w-full rounded-md bg-zinc-100" />
-        <div className="mt-8 h-12 w-full rounded-lg bg-zinc-100" />
-        <div className="mt-3 h-12 w-full rounded-full bg-zinc-200" />
+      <div aria-hidden className="ent-foto">
+        <div className="ent-foto-papel" />
+      </div>
+      <div className="ent-lado">
+        <div className="ent-cuerpo">
+          <div aria-hidden className="ent-form flex flex-col motion-safe:animate-pulse">
+            <div className="h-3 w-20 rounded bg-white/10" />
+            <div className="mt-5 h-9 w-full rounded-md bg-white/10" />
+            <div className="mt-2 h-9 w-2/3 rounded-md bg-white/10" />
+            <div className="mt-5 h-4 w-11/12 rounded bg-white/5" />
+            <div className="mt-10 h-[54px] w-full rounded-[14px] bg-white/5" />
+            <div className="mt-3 h-14 w-full rounded-full bg-white/10" />
+          </div>
+        </div>
       </div>
     </div>
   );

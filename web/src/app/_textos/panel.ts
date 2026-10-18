@@ -46,6 +46,18 @@ type TextosPanel = {
   lineaMarco: (marcos: number) => string;
   cambiarDireccion: string;
   anadirMarco: string;
+  /** La tarjeta del marco (arreglos chicos, maqueta Panel): título, texto y la foto. */
+  marcoTitulo: (q: Quien) => string;
+  marcoTexto: (q: Quien) => string;
+  altMarco: string;
+  /** La hoja «Cambiar la fecha de inicio» de un regalo sin abrir (arreglos chicos). */
+  cambiarFecha: string;
+  fechaTexto: string;
+  fechaCampo: string;
+  guardarFecha: string;
+  guardando: string;
+  guardado: string;
+  errorFecha: string;
   pausarOCerrar: string;
   cancelar: string;
   pausarTitulo: string;
@@ -125,6 +137,27 @@ const ES: TextosPanel = {
   lineaMarco: (m) => (m > 1 ? `Foto enmarcada · ${m} marcos` : "Foto enmarcada"),
   cambiarDireccion: "Cambiar la dirección de envío",
   anadirMarco: "Añadir el marco",
+  // La tarjeta del marco: el título y el texto son los de la maqueta Panel y
+  // del checkout (aprobados); las variantes de «tu libro» y del viaje, PROPUESTA
+  // (docs/rediseno-2026-10/arreglos-chicos/textos.md 3).
+  marcoTitulo: (q) => (q.propia || q.viaje ? "Tu foto enmarcada" : "Su foto enmarcada"),
+  marcoTexto: (q) =>
+    q.viaje
+      ? "Acercas el móvil al marco y se abre el libro del viaje, con tu voz."
+      : q.propia
+        ? "Acercas el móvil al marco y se abre tu libro, con tu voz."
+        : "Acercas el móvil al marco y se abre su libro, con su voz.",
+  altMarco: "Un marco negro pequeño con una foto, sobre un aparador junto a un libro y una lámpara encendida",
+  // «Cambiar la fecha de inicio», «Nueva fecha» y «Guardar la nueva fecha»
+  // son de la maqueta; «Guardado», del pedido de Naza (18/10). El resto,
+  // PROPUESTA (textos.md 2).
+  cambiarFecha: "Cambiar la fecha de inicio",
+  fechaTexto: "El día en que empieza su regalo. Puedes cambiarla mientras no lo haya abierto.",
+  fechaCampo: "Nueva fecha",
+  guardarFecha: "Guardar la nueva fecha",
+  guardando: "Guardando…",
+  guardado: "Guardado",
+  errorFecha: "No pudimos guardar la fecha. Intenta de nuevo.",
   pausarOCerrar: "Pausar o cerrar el libro",
   cancelar: "Cancelar el pedido",
   pausarTitulo: "Pausar por ahora",
@@ -182,6 +215,15 @@ const AR: TextosPanel = {
         : "Invitá a tus hermanos para que escuchen sus audios y propongan preguntas.",
   fotosTexto: (q) => `La de la portada es la que va a ver todo el mundo. Podés sumarla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
   anadirMarco: "Sumar el marco",
+  marcoTexto: (q) =>
+    q.viaje
+      ? "Acercás el celular al marco y se abre el libro del viaje, con tu voz."
+      : q.propia
+        ? "Acercás el celular al marco y se abre tu libro, con tu voz."
+        : "Acercás el celular al marco y se abre su libro, con su voz.",
+  altMarco: "Un marco negro chico con una foto, sobre un aparador junto a un libro y una lámpara prendida",
+  fechaTexto: "El día en que empieza su regalo. Podés cambiarla mientras no lo haya abierto.",
+  errorFecha: "No pudimos guardar la fecha. Intentá de nuevo.",
   dudas: "¿Dudas? Escribinos, te contesta una persona.",
 };
 

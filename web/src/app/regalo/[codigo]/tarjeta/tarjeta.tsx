@@ -1,12 +1,16 @@
 import type { RegaloPublico } from "@/lib/regalo-datos";
 import type { textosAbuelo } from "@/lib/regalo-textos";
 import { largoEnTarjeta } from "@/lib/regalo";
+import type { TextosTarjetaProducto } from "../../../_textos/tarjeta-regalo";
 import { Toroide } from "../../../marca";
 import { BotonImprimir, EscalaHojas } from "./imprimir";
 
 // La tarjeta del regalo para imprimir, sin base: la página (page.tsx) lee el
 // regalo y le pasa los textos ya armados. Las medidas y el porqué de cada
-// cosa, en page.tsx.
+// cosa, en page.tsx. Familiar (TarjetaImprimible) es la de siempre; Kids y
+// Viaje (TarjetaProductoImprimible, maquetas `TarjetaKids` y `TarjetaViaje`)
+// usan la misma hoja, las mismas marcas y el mismo QR con su código, con la
+// tapa de la maqueta y el mensaje en la cara de la derecha.
 
 const ESTILOS = `
 @page { size: A4 landscape; margin: 0; }
@@ -41,6 +45,34 @@ body:has(.tarjeta-pantalla) { background: #E7E7E3; }
 .qr { display: block; width: 40mm; height: 40mm; margin: 0 auto; image-rendering: pixelated; }
 .respaldo { margin: 0; font-size: 3.3mm; line-height: 1.45; text-align: center; }
 .codigo { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 600; font-size: 5.2mm; letter-spacing: .24em; text-align: center; border: 0.3mm solid #14140F; padding: 1.6mm 0 1.6mm .24em; margin-top: auto; }
+/* Kids y Viaje (arreglos chicos): la tapa de la maqueta, centrada, y el
+   interior al revés que Familiar (qué es a la izquierda, unas palabras a la
+   derecha). Tinta, el dorado de la marca para lo chico y un azul de tinta
+   para el mensaje: los tres salen bien también en blanco y negro. */
+.prd-sello { width: 10mm; height: 10mm; border: 0.25mm solid #8A7246; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--fuente-micro), Arial, sans-serif; font-size: 2.3mm; letter-spacing: .08em; color: #8A7246; }
+.prd-micro { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 500; font-size: 2.5mm; letter-spacing: .2em; text-transform: uppercase; color: #8A7246; margin: 0; }
+.prd-tapa { display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; padding: 13mm 9mm 11mm; }
+.prd-tapa-medio { display: flex; flex-direction: column; align-items: center; gap: 4mm; }
+.prd-titulo { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-size: 8.6mm; line-height: 1.12; margin: 0; }
+.prd-titulo span { display: block; }
+.prd-raya { width: 9mm; height: 0.25mm; background: #8A7246; }
+.prd-bajada { font-style: italic; font-size: 3.9mm; color: #4A463F; margin: 0; }
+.prd-contratapa { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2.4mm; padding-bottom: 12mm; }
+.prd-web { font-family: var(--fuente-micro), Arial, sans-serif; font-size: 2.6mm; color: #6A665E; margin: 0; }
+.prd-izq { display: flex; flex-direction: column; gap: 3.2mm; padding: 11mm 9mm 8mm; border-right: 0.2mm solid #E4E1D8; }
+.prd-que-titulo { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; font-size: 5.6mm; line-height: 1.2; margin: 0; }
+.prd-pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2.2mm; }
+.prd-pasos li { display: flex; gap: 2.6mm; font-size: 3.2mm; line-height: 1.4; }
+.prd-pasos li span:first-child { flex: none; width: 4.6mm; height: 4.6mm; border: 0.2mm solid #8A7246; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--fuente-micro), Arial, sans-serif; font-size: 2.2mm; color: #6A665E; }
+.prd-qr { display: flex; align-items: center; gap: 3mm; margin-top: auto; }
+.prd-qr img { width: 24mm; height: 24mm; flex: none; image-rendering: pixelated; }
+.prd-qr p { margin: 0; font-size: 2.8mm; line-height: 1.4; }
+.prd-codigo { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 600; font-size: 4.2mm; letter-spacing: .22em; text-align: center; border: 0.3mm solid #14140F; padding: 1.2mm 0 1.2mm .22em; }
+.prd-der { display: flex; flex-direction: column; gap: 4mm; padding: 11mm 9mm 9mm; }
+.prd-mensaje { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; color: #2B3566; line-height: 1.32; margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.prd-firma { font-family: var(--fuente-titulo), Georgia, serif; font-variation-settings: "wght" 400; color: #2B3566; font-size: 6mm; margin: 0; }
+.prd-renglones { flex: 1; min-height: 8mm; background: repeating-linear-gradient(180deg, transparent 0 7.6mm, #D9D5CA 7.6mm 7.85mm); }
+.prd-pie { font-style: italic; font-size: 3mm; color: #6A665E; text-align: center; margin: 0; }
 /* En pantalla, la hoja se achica para entrar en la ventana (EscalaHojas). */
 @media screen { .hoja { zoom: var(--escala, 1); } }
 @media print {
@@ -138,6 +170,113 @@ export function TarjetaImprimible({ regalo, qr, respaldo, textos, botonImprimir,
               <img className="qr" src={qr} alt="" width={512} height={512} />
               {respaldo && <p className="respaldo">{respaldo}</p>}
               <div className="codigo">{regalo.codigo}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/** El tamaño del mensaje de Kids y Viaje: va más grande (la maqueta lo escribe a mano), con lugar para los renglones. */
+function tamanoMensajeProducto(mensaje: string): string {
+  const largo = largoEnTarjeta(mensaje);
+  if (largo > 400) return "3.6mm";
+  if (largo > 250) return "4.2mm";
+  if (largo > 120) return "5.2mm";
+  return "6.4mm";
+}
+
+/** El sello «V·F» en un círculo, de las maquetas. */
+function Sello() {
+  return (
+    <div className="prd-sello" aria-hidden="true">
+      V·F
+    </div>
+  );
+}
+
+export function TarjetaProductoImprimible({ regalo, qr, respaldo, apunta, textos, botonImprimir, botonImagen, langTarjeta }: {
+  regalo: Pick<RegaloPublico, "codigo" | "comoLeDicen" | "quienRegala" | "mensaje">;
+  /** El QR como data URI. */
+  qr: string;
+  /** La línea con el número de respaldo, o null si no hay número. */
+  respaldo: string | null;
+  /** «Apuntá la cámara del celular acá para empezar» (textosAbuelo, en el idioma del regalo). */
+  apunta: string;
+  textos: TextosTarjetaProducto;
+  botonImprimir: string;
+  botonImagen: string;
+  langTarjeta: "es" | "ca";
+}) {
+  const [linea1, linea2, linea3] = textos.titulo(regalo.comoLeDicen);
+  return (
+    <div lang="es" className="tarjeta-pantalla">
+      <style dangerouslySetInnerHTML={{ __html: ESTILOS }} />
+      <div className="tarjeta-acciones no-imprimir">
+        <BotonImprimir className="tarjeta-boton" texto={botonImprimir} />
+        <a className="tarjeta-boton" href={`/regalo/${regalo.codigo}/imagen`} download={`regalo-${regalo.codigo}.png`}>
+          {botonImagen}
+        </a>
+      </div>
+
+      <EscalaHojas />
+      <div className="tarjeta-hojas">
+        <section className="hoja" aria-label="Lado de afuera">
+          <Marcas />
+          <div className="tarjeta" lang={langTarjeta}>
+            <div className="cara prd-contratapa">
+              <Sello />
+              <p className="prd-micro">{textos.marca}</p>
+              <p className="prd-web">vitacorafamiliar.com</p>
+            </div>
+            <div className="cara prd-tapa">
+              <Sello />
+              <div className="prd-tapa-medio">
+                <p className="prd-micro">{textos.etiqueta(regalo.quienRegala)}</p>
+                <h1 className="prd-titulo">
+                  <span>{linea1}</span>
+                  <span>{linea2}</span>
+                  <span>{linea3}</span>
+                </h1>
+                <div className="prd-raya" aria-hidden="true" />
+                <p className="prd-bajada">{textos.bajada}</p>
+              </div>
+              <p className="prd-micro">{textos.marca}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="hoja hoja-interior" aria-label="Lado de adentro">
+          <Marcas />
+          <div className="tarjeta" lang={langTarjeta}>
+            <div className="cara prd-izq">
+              <p className="prd-micro">{textos.queEs}</p>
+              <h2 className="prd-que-titulo">{textos.queEsTitulo}</h2>
+              <ol className="prd-pasos">
+                {textos.pasos.map((paso, i) => (
+                  <li key={paso}>
+                    <span aria-hidden="true">{i + 1}</span>
+                    <span>{paso}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="prd-qr">
+                {/* eslint-disable-next-line @next/next/no-img-element -- data URI generado en el server, sin optimizar */}
+                <img src={qr} alt="" width={512} height={512} />
+                <div>
+                  <p>{apunta}</p>
+                  {respaldo && <p style={{ marginTop: "1.4mm" }}>{respaldo}</p>}
+                </div>
+              </div>
+              <div className="prd-codigo">{regalo.codigo}</div>
+            </div>
+            <div className="cara prd-der">
+              <p className="prd-micro">{textos.unasPalabras}</p>
+              <p className="prd-mensaje" style={{ fontSize: tamanoMensajeProducto(regalo.mensaje) }}>{regalo.mensaje}</p>
+              <p className="prd-firma">{regalo.quienRegala}</p>
+              <div className="prd-renglones" aria-hidden="true" />
+              <p className="prd-pie">{textos.pie}</p>
             </div>
           </div>
         </section>

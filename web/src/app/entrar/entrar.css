@@ -1,0 +1,209 @@
+@import "../_direccion/tokens.css";
+
+/* /entrar en la dirección «la web es un libro» (maquetas `Entrar` y
+   `EntrarMovil`). Tinta de fondo; en escritorio, la foto de Osvaldo como una
+   copia de papel con su borde crema, y el formulario a la derecha. Todo con
+   prefijo ent-. Movimiento: el paso nuevo entra desde la derecha (MOTION 2,
+   translateX 18 px) y nada más; con «menos movimiento», quieto. */
+
+.ent {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background-image: var(--dir-tela);
+}
+@media (min-width: 1024px) {
+  .ent { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* La foto: solo en escritorio. */
+.ent-foto { display: none; }
+@media (min-width: 1024px) {
+  .ent-foto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: linear-gradient(180deg, #1c1c1a 0%, #0b0b0a 100%);
+  }
+}
+/* La foto ya es una copia de papel con su borde: se muestra entera, con su
+   proporción, apoyada sobre la tinta con sombra. */
+.ent-foto-papel {
+  position: relative;
+  height: 100%;
+  max-height: calc(100dvh - 32px);
+  max-width: 100%;
+  aspect-ratio: 700 / 870;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
+  transform: rotate(-0.4deg);
+}
+.ent-foto-imagen { position: absolute; inset: 0; overflow: hidden; border-radius: 3px; }
+/* El jpg trae un margen blanco alrededor de la copia: se agranda un poco para que no se vea. */
+.ent-foto-imagen img { transform: scale(1.045); filter: sepia(0.18) contrast(1.02) brightness(0.96); }
+/* La sombra de abajo, dentro del borde blanco de la copia, para leer la cita. */
+.ent-foto-imagen::after {
+  content: "";
+  position: absolute;
+  inset: 48% 4.5% 4% 4.5%;
+  background: linear-gradient(180deg, transparent, rgba(7, 7, 6, 0.85));
+}
+.ent-foto-pie {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 8%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--dir-sobre-tinta);
+}
+.ent-foto-cita {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.6rem, 1rem + 1.2vw, 2.15rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.ent-foto-quien {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13.5px;
+  color: rgba(238, 234, 225, 0.82);
+}
+
+/* La columna del formulario. */
+.ent-lado {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 20px 48px;
+}
+@media (min-width: 640px) { .ent-lado { padding: 0 32px 64px; } }
+.ent-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  color: var(--dir-sobre-tinta);
+}
+.ent-volver {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--dir-sobre-tinta-suave);
+  transition: color 160ms var(--dir-curva);
+}
+.ent-volver:hover { color: var(--dir-sobre-tinta); }
+.ent-cabecera :focus-visible,
+.ent-cuerpo :focus-visible { outline: 2px solid var(--dir-sobre-tinta); outline-offset: 3px; }
+
+.ent-cuerpo {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: clamp(56px, 14vh, 140px);
+}
+@media (min-width: 1024px) { .ent-cuerpo { padding-top: 0; } }
+.ent-form { width: 100%; max-width: 420px; }
+
+.ent-etiqueta {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b59a68; /* el dorado, un punto más claro sobre la tinta: 7,4:1 */
+}
+.ent-titulo {
+  margin-top: 16px;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.1rem, 1.6rem + 1.6vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--dir-sobre-tinta);
+}
+.ent-bajada {
+  margin-top: 16px;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: #c9c5bb;
+  text-wrap: pretty;
+}
+.ent-rotulo {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #c9c5bb;
+}
+.ent-campo {
+  height: 54px;
+  width: 100%;
+  border: 1px solid rgba(238, 234, 225, 0.22);
+  border-radius: 14px;
+  background: rgba(238, 234, 225, 0.03);
+  padding: 0 16px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 16px;
+  color: var(--dir-sobre-tinta);
+  outline: none;
+  transition: border-color 160ms var(--dir-curva);
+}
+.ent-campo::placeholder { color: #7d7970; }
+.ent-campo:focus { border-color: var(--dir-sobre-tinta); }
+.ent-campo--codigo { height: 60px; text-align: center; font-size: 24px; letter-spacing: 0.4em; font-variant-numeric: tabular-nums; }
+.ent-boton { width: 100%; margin-top: 6px; }
+.ent-boton:disabled { opacity: 0.6; cursor: default; }
+.ent-error { font-family: var(--fuente-micro), sans-serif; font-size: 14px; color: #f2b8ae; }
+.ent-enlace {
+  min-height: 44px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--dir-sobre-tinta-suave);
+  text-decoration: underline;
+  text-decoration-color: var(--dir-hilo-tinta);
+  text-underline-offset: 5px;
+}
+.ent-enlace:hover { color: var(--dir-sobre-tinta); }
+.ent-enlace:disabled { opacity: 0.6; }
+
+/* La nota para quien cuenta: una hoja suelta de tinta un punto más clara. */
+.ent-nota {
+  margin-top: 22px;
+  border: 1px solid rgba(238, 234, 225, 0.12);
+  border-radius: 16px;
+  background: #12120f;
+  padding: 18px 18px 20px;
+}
+.ent-nota-titulo {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--dir-sobre-tinta);
+}
+.ent-nota-texto {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--dir-sobre-tinta-suave);
+}
+
+/* El paso del código entra desde la derecha (MOTION 2). */
+@keyframes ent-entra {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: none; }
+}
+.ent-paso { animation: ent-entra 320ms var(--dir-curva) both; }
+@media (prefers-reduced-motion: reduce) {
+  .ent-paso { animation: none; }
+}

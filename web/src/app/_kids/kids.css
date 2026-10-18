@@ -317,3 +317,9 @@
   border-top: 1px solid rgba(20, 20, 15, 0.14);
   padding-top: 24px;
 }
+
+/* El video del libro de Nico (arreglos chicos): como una foto apoyada. */
+.kids-video {
+  border-radius: 18px;
+  box-shadow: 0 30px 60px -30px rgba(40, 30, 20, 0.45);
+}

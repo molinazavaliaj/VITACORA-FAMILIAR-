@@ -38,7 +38,8 @@ export type TextosKids = {
   /** El asunto y el cuerpo del correo de «Escríbenos», si no hay WhatsApp de dudas. */
   correo: { asunto: string; cuerpo: string };
   altHero: string;
-  dibujos: { frase: [string, string]; texto: string };
+  /** `altVideo`: el video del libro (arreglos chicos, PROPUESTA en arreglos-chicos/textos.md 4). */
+  dibujos: { frase: [string, string]; texto: string; altVideo: string };
   como: { titulo: string; paso: (n: number) => string; pasos: [PasoKids, PasoKids, PasoKids] };
   chat: {
     titulo: string;
@@ -84,6 +85,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     dibujos: {
       frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
       texto: "Guardamos sus fotos y sus notas del cole, pero no cómo pensaba a esa edad. Ni siquiera lo va a recordar.",
+      altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     como: {
       titulo: "Si sabe mandar un audio, ya puede contar su libro.",
@@ -196,6 +198,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     dibujos: {
       frase: ["Els dibuixos es perden.", "El que pensava, també."],
       texto: "Guardem les seves fotos i les notes de l'escola, però no com pensava a aquesta edat. Ni tan sols se'n recordarà.",
+      // ca: PENDIENTE REVISIÓN NATIVA
+      altVideo: "El llibre del Nico sobre un cobrellit de colors, entre els seus dibuixos",
     },
     como: {
       titulo: "Si sap enviar un àudio, ja pot explicar el seu llibre.",
@@ -307,6 +311,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     dibujos: {
       frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
       texto: "Guardamos sus fotos y sus boletines, pero no cómo pensaba a esa edad. Ni siquiera se va a acordar.",
+      altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     como: {
       titulo: "Si sabe mandar un audio, ya puede contar su libro.",

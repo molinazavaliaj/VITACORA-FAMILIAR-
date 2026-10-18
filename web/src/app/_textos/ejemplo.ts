@@ -17,6 +17,8 @@ export type TextosEjemplo = {
   inventada: string;
   titulo: string;
   bajada: string;
+  /** El texto alternativo del video del libro (arreglos chicos, PROPUESTA en arreglos-chicos/textos.md 4). */
+  altVideo: string;
   anterior: string;
   siguiente: string;
   /** «2 de 5 · Dedicatoria e índice» */
@@ -66,6 +68,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     inventada: "Historia inventada",
     titulo: "Así es su libro por dentro.",
     bajada: "Un libro de ejemplo, con una historia inventada, para que veas cómo queda. Pasa las páginas.",
+    altVideo: "El libro de Osvaldo sobre una mesa de madera, a la luz de una ventana",
     anterior: "Página anterior",
     siguiente: "Página siguiente",
     posicion: (a, n, nombre) => `${a} de ${n} · ${nombre}`,
@@ -104,6 +107,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     inventada: "Historia inventada",
     titulo: "Así es su libro por dentro.",
     bajada: "Un libro de ejemplo, con una historia inventada, para que veas cómo queda. Pasá las páginas.",
+    altVideo: "El libro de Osvaldo sobre una mesa de madera, a la luz de una ventana",
     anterior: "Página anterior",
     siguiente: "Página siguiente",
     posicion: (a, n, nombre) => `${a} de ${n} · ${nombre}`,
@@ -143,6 +147,8 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     inventada: "Història inventada",
     titulo: "Així és el seu llibre per dins.",
     bajada: "Un llibre d'exemple, amb una història inventada, perquè vegis com queda. Passa les pàgines.",
+    // ca: PENDIENTE REVISIÓN NATIVA
+    altVideo: "El llibre de l'Osvaldo sobre una taula de fusta, a la llum d'una finestra",
     anterior: "Pàgina anterior",
     siguiente: "Pàgina següent",
     posicion: (a, n, nombre) => `${a} de ${n} · ${nombre}`,
