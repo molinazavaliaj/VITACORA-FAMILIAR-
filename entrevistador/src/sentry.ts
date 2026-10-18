@@ -32,6 +32,8 @@ export function iniciarSentry(env: NodeJS.ProcessEnv = process.env): boolean {
     environment: 'produccion',
     release: env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 12),
     sendDefaultPii: false,
+    // El bot y la fábrica pueden compartir proyecto de Sentry: la etiqueta dice de cuál es.
+    initialScope: { tags: { servicio: 'bot' } },
     tracesSampleRate: 0,
     integrations: [Sentry.captureConsoleIntegration({ levels: ['error'] })],
     beforeBreadcrumb: () => null,
