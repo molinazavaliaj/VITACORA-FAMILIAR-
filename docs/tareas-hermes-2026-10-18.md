@@ -105,3 +105,11 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 ---
 
 ## Entregas (las completa hermes)
+
+### T1 · Dependabot — 18/10
+- **Rama:** `dependabot`, cortada de `main` (commit `d6603670`).
+- **PR:** #84 contra `main` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/84
+- **Qué entró:** `.github/dependabot.yml` (npm en `/web`, `/fabrica`, `/entrevistador` + `github-actions` en `/`; semanal los lunes, tope 5, menores y parches agrupados) y un paso `npm audit --omit=dev --audit-level=high` con `continue-on-error: true` en el job de Node de `tests.yml`.
+- **Tests:** CI en verde, los 4 jobs — entrevistador 1186 tests, fábrica 2861 (+1 salteado), web 974 (+1 salteado), voz 58. El paso de audit corre y no frena.
+- **Informe de avisos (`--omit=dev`, high/critical):** `web` 3 (1 critical en `next`, 2 high en `sharp` y `source-map-js`), `entrevistador` 2 high (`fastify` y `fast-uri`), `fabrica` 0. `next` pide salto mayor a 16.4.2: lo decide Joaquín.
+
