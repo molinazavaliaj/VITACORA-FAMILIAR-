@@ -148,6 +148,18 @@ function BloqueLegal({ bloque, idioma, t }: { bloque: Bloque; idioma: IdiomaWeb;
           </a>
         </p>
       );
+    case "formulario":
+      // El modelo del Anexo B, para copiar tal cual. Sin JS (la página es de
+      // servidor): un toque lo selecciona entero (user-select: all) y se copia.
+      return (
+        <div className="lgl-formulario">
+          {bloque.lineas.map((linea, i) => (
+            <p key={i}>
+              <Marcado texto={linea} idioma={idioma} t={t} />
+            </p>
+          ))}
+        </div>
+      );
   }
 }
 
