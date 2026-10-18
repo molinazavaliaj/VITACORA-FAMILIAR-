@@ -25,6 +25,7 @@ import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtap
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { avisarVariablesAlArrancar } from './variables.js';
+import { iniciarSentry } from './sentry.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -934,6 +935,7 @@ async function entregarConLosMismosArchivos(
 }
 
 export function iniciarWorker(): void {
+  iniciarSentry(); // los errores a Sentry (sentry.ts); sin SENTRY_DSN no hace nada
   // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
   // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
   void chequearClaveAlArrancar();
