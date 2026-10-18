@@ -1,6 +1,6 @@
 # De qué anuncio vino la compra: ya no se guarda nada en el navegador (19/10)
 
-Para el abogado y Naza. Contexto en `para-el-abogado.md` §4 y §6.3. Rama `rediseno-web-origen`.
+Para el abogado y Naza. Contexto en `para-el-abogado.md` §4 y §7.3. Rama `rediseno-web-origen`.
 
 ## Qué cambió
 

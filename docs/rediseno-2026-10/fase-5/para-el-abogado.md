@@ -91,7 +91,7 @@ falta banner ni página de cookies aparte**: basta la sección 12 de privacidad.
 duración en la sección 12? Si algún día se instala el píxel de Meta (B26), sí harán falta banner,
 página de cookies y consentimiento previo.
 
-**Cambiado el 19/10 (ver §6.3 y `cambios-origen.md`):** lo que sigue describe la versión del 14/10. Hoy no se escribe nada en `localStorage` ni en ningún otro almacenamiento del navegador: el origen se recuerda solo en la memoria de la página durante la misma visita y, si compra en esa visita, viaja con la compra a `pedidos.extras.origen`. No hay 30 días.
+**Cambiado el 19/10 (ver §7.3 y `cambios-origen.md`):** lo que sigue describe la versión del 14/10. Hoy no se escribe nada en `localStorage` ni en ningún otro almacenamiento del navegador: el origen se recuerda solo en la memoria de la página durante la misma visita y, si compra en esa visita, viaja con la compra a `pedidos.extras.origen`. No hay 30 días.
 
 **Origen de campaña (agregado el 14/10, F4-5).** Cuando alguien llega a la web desde un anuncio
 con parámetros en el enlace (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`,
@@ -156,12 +156,12 @@ compró nada**. No hay azar: a todos les sale el mismo 10 %, no es un sorteo.
 9. **Argentina.** ¿Rige el mismo estándar? No hay un equivalente al art. 21 de la LSSI; entendemos que
    sí por la ley 25.326 y por la posibilidad de revocar el consentimiento en cualquier momento.
 
-## 6. Propuestas para que confirme (19/10/2026)
+## 7. Propuestas para que confirme (19/10/2026)
 
 Naza consultó estos puntos por otra vía y nos llegaron estas propuestas. **No son la opinión del
 abogado**: las ponemos para que las confirme, corrija o descarte.
 
-**6.1 Popup «rasca y gana» (cupón del 10 %, VITACORA10, todavía no publicado). Textos y bases aprobados por Naza en `textos-legales-nuevos.md`, para que los revise.**
+**7.1 Popup «rasca y gana» (cupón del 10 %, VITACORA10, todavía no publicado). Textos y bases aprobados por Naza en `textos-legales-nuevos.md`, para que los revise.**
 - Dos casillas separadas, sin marcar por defecto (Planet49): una para recibir el cupón por mail
   (ejecución de lo pedido) y otra, aparte, para los 4 recordatorios (comunicación comercial, art. 21.1
   LSSI). Ninguna mezclada con la aceptación de términos. Que diga quién manda los correos.
@@ -174,7 +174,7 @@ abogado**: las ponemos para que las confirme, corrija o descarte.
 - Como todos ganan lo mismo (no hay azar) no sería sorteo y en España no necesitaría autorización.
   ¿Y en Argentina? Si se muestra precio tachado, regla de los 30 días del art. 20 LGDCU.
 
-**6.2 La garantía en una sola regla (reemplaza las contradicciones del §1).**
+**7.2 La garantía en una sola regla (reemplaza las contradicciones del §1).**
 (a) La ley arriba y sin tocar: 14 días España / 10 días Argentina.
 (b) Familiar: si no acepta, 100 %; si acepta y responde menos de diez preguntas, 100 % (gana sobre
 cualquier «sin devolución»); si responde diez o más, se cierra con lo que hay.
@@ -184,7 +184,7 @@ aceptó, se cierra con lo que haya.
 Y al final del §7: «Si dos reglas de este documento dicen cosas distintas, vale la que más te
 favorezca.»
 
-**6.3 Cookies.** Sesión, tema e idioma: exentas, sin banner. `vitacora-origen` (de qué anuncio vino,
+**7.3 Cookies.** Sesión, tema e idioma: exentas, sin banner. `vitacora-origen` (de qué anuncio vino,
 30 días en localStorage) NO estaría exenta: es medición publicitaria y el art. 22.2 cubre también
 localStorage. Lo cambiamos (19/10): el origen ya no se escribe en el navegador; se recuerda solo
 durante la misma visita, en la memoria de la página, y viaja con la compra. Si la persona compra otro
@@ -192,13 +192,13 @@ día, no queda registrado. Nota: la propuesta original decía «capturarlo en el
 atribución», pero eso necesita una cookie de sesión para reconocer a la misma persona otro día, que
 es justo lo que el art. 22.2 regula. Confirmar que lo que hicimos no necesita banner.
 
-**6.4 Catalán y mercados.** En Cataluña (Llei 22/2010, Decret 121/2013) en catalán: las tres
+**7.4 Catalán y mercados.** En Cataluña (Llei 22/2010, Decret 121/2013) en catalán: las tres
 páginas legales, checkout, confirmación de compra y formulario de desistimiento; los fulls de
 reclamació en catalán. Prevalencia: «prevalece la versión en el idioma en que se celebró el
 contrato». Separar mercados: «contratas con el titular de la región que eliges al pagar» (con la ley
 imperativa del domicilio del consumidor siempre a salvo, Roma I art. 6.2).
 
-**6.5 Datos.** NIF y domicilio: obligatorios antes de publicar. El enlace a la plataforma ODR de la
+**7.5 Datos.** NIF y domicilio: obligatorios antes de publicar. El enlace a la plataforma ODR de la
 UE se quita (la plataforma cerró). Hojas de reclamaciones: sí en España, y decir cómo se piden.
 Argentina: se mencionó una «Disp. 954/2025» que obligaría a publicar teléfono o canal alternativo
 con horario; no pudimos confirmarla, que la verifique. Hoy hay WhatsApp de dudas y dos correos.
