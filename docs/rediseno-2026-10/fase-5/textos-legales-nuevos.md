@@ -26,10 +26,10 @@ Popup rasca y gana (para cuando exista el cupón):
 14. Dónde vale: Vale para cualquier Vitácora que se venda en la web, en España y en Argentina.
 15. Hasta cuándo: Vale 30 días desde que te llega por mail. Después se vence solo.
 16. Cuántas veces: Se usa una sola vez por persona y por mail.
-17. Con otras ofertas: No se suma a otros descuentos ni promociones.
+17. Con otras ofertas: No se suma a otros cupones. (CAMBIADO por Naza 19/10: vale también con el pack)
 18. Cómo se usa: Escribes tu código al pagar y el descuento aparece en el total antes de confirmar.
 19. Devoluciones: Si te devolvemos una compra hecha con el cupón, te devolvemos lo que pagaste de verdad, con el descuento ya aplicado. El cupón no se cambia por dinero.
 20. Cambios: Si algún día cambiamos estas bases, los cupones que ya entregamos siguen valiendo como estaban.
 
-## Tanda 3 — Checkout con cupón — PROPUESTA
+## Tanda 3 — Checkout con cupón — APROBADA por Naza 19/10
 21. Línea del descuento en el resumen del pedido: «Cupón de bienvenida · 10 % del libro digital −4,90 €» (el importe sale solo del precio del digital).
