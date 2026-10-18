@@ -1,0 +1,93 @@
+# Tests de los cuatro servicios en cada PR (pedido de Joaquín, 17/10).
+#
+# Antes el único workflow era deploy-web.yml: ocho PR abiertos y ningún check.
+# Un test que se rompe al juntar ramas (como el del mail de acceso en #49) tiene
+# que saltar acá, en el PR, y no al probar a mano.
+#
+# No usa secretos ni toca la base: los tests corren con dobles (Supabase,
+# WhatsApp, modelos falsos). Cada servicio en su job, para ver cuál falló.
+
+name: Tests
+
+on:
+  # Sin filtro de ramas: corre en todo PR, también los que apuntan a ramas
+  # intermedias (las cadenas de Kids y Viaje). El filtro de abajo es solo push.
+  pull_request:
+  push:
+    branches: [main, rediseno-web]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: ${{ matrix.servicio }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        servicio: [entrevistador, fabrica, web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.servicio }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.servicio }}/package-lock.json
+
+      # La fábrica corta audio (ffmpeg) y arma PDF con Chromium (playwright).
+      - name: ffmpeg y Chromium (fábrica)
+        if: matrix.servicio == 'fabrica'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg
+
+      - name: Instalar
+        run: npm ci
+
+      - name: Chromium de playwright (fábrica)
+        if: matrix.servicio == 'fabrica'
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests
+        run: npm test
+
+  voz:
+    name: voz
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: voz
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: voz/requirements.txt
+
+      # El ffmpeg de Ubuntu (6.1) se cuelga y el estático de johnvansickle (7.x)
+      # aborta con silenceremove + areverse en
+      # test_a_wav_limpio_conserva_las_pausas_internas. La PC de la voz usa 9.0.
+      - name: ffmpeg 9.0 (el mismo que la PC)
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -sSL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-linux64-gpl-9.0.tar.xz | tar -xJ
+          echo "$(ls -d "$PWD"/ffmpeg-n9.0-*/bin)" >> "$GITHUB_PATH"
+          "$(ls -d "$PWD"/ffmpeg-n9.0-*/bin)/ffmpeg" -version | head -1
+
+      - name: Instalar
+        run: pip install -r requirements.txt pytest-timeout
+
+      - name: Tests
+        # Un test colgado corta a los 2 minutos y dice cuál fue.
+        run: python -m pytest -v --timeout=120

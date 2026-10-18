@@ -2,6 +2,8 @@
 
 Sigue a [`handoff-2026-10-01-libro.md`](handoff-2026-10-01-libro.md). Rama **`v3-escenas`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-escenas`, sale de `v3`), pusheada a `origin`. **Sin mergear a `v3`** (espera el OK de Naza). 1380 tests verdes, `tsc` limpio. `entrevistador/` sin tocar.
 
+> **Actualizado 15/10:** `v3-escenas` se mergeó a `v3` y `v3` está en main; la V3 corre en producción desde el 07/10.
+
 ## Qué quedó hecho (verificado)
 | Tema | Estado | Dónde |
 |---|---|---|

@@ -7,9 +7,21 @@ import { chequearClaveAlArrancar } from './ia/alarma.js';
 import { db } from './db/cliente.js';
 import { marcaEnStorage, usarMarcaPersistente } from './v3/avisos.js';
 import { avisarVariablesAlArrancar } from './variables.js';
+import { iniciarSentry, aSentryDesdeElLog } from './sentry.js';
 
 const config = cargarConfig();
-export const app = Fastify({ logger: true });
+iniciarSentry(); // sin SENTRY_DSN o en los tests no hace nada
+export const app = Fastify({
+  logger: {
+    // Los logs de nivel error también van a Sentry (sentry.ts, sin datos del narrador).
+    hooks: {
+      logMethod(args, metodo, nivel) {
+        aSentryDesdeElLog(args, nivel);
+        return metodo.apply(this, args);
+      },
+    },
+  },
+});
 
 app.get('/salud', async () => ({ ok: true }));
 

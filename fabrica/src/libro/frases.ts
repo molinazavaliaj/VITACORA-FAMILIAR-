@@ -59,6 +59,9 @@ export type FraseCandidata = {
   segundos: number | null;
   inicio: number | null;
   fin: number | null;
+  /** Solo Kids: la respuesta entera (de 0 al final), sin ubicar la frase. El worker la pasa a mp3
+   *  de punta a punta, sin Whisper. Sin la clave (la casa) es un tramo a ubicar. */
+  entera?: boolean;
 };
 
 export type CapituloConFrases = { numero: number; capitulo: string; candidatas: FraseCandidata[] };

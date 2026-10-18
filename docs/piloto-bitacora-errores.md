@@ -289,7 +289,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
       se puede recortar de una grabación.
     - Base: **propuesta** en `supabase/CONTRATO.md` + migración
       `20260920000100_respuestas_reservadas.sql` (`respuestas.reservada`,
-      `respuestas.reservado_tramo`), **sin aplicar**: la aplica Naza cuando Joaquín
+      `respuestas.reservado_tramo`), **sin aplicar**: la aplica Naza cuando Joaquín (**actualizado 15/10:** aplicada el 21/09)
       dé el OK. El código funciona igual sin las columnas (ausente = nada
       reservado), así que aplicarla no puede romper nada.
     - **Falta para Joaquín** (y es lo que hace que todo esto sirva): el `UPDATE` en el
@@ -844,5 +844,5 @@ en los tres archivos míos y están bien:
   `esPersonalizacionValida` como estaba, así que el guardrail del guion firmado sigue con piso.
 
 El hueco de arriba (ampliaciones y cierre) quedó cerrado el mismo 20/09 (J, `a95209d`). Falta que Naza aplique la migración
-`20260920000100_respuestas_reservadas.sql` — es el último paso para que el 19 funcione punta a
+`20260920000100_respuestas_reservadas.sql` — es el último paso para que el 19 funcione punta a (**actualizado 15/10:** aplicada el 21/09)
 punta.

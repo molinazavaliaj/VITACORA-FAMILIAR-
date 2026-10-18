@@ -22,6 +22,7 @@ Bienvenido. Este repo ya tiene el diseño aprobado y los planes de implementaci�
 | `ANTHROPIC_API_KEY` | Tu cuenta de [console.anthropic.com](https://console.anthropic.com) (o una compartida del proyecto). |
 | `OPENAI_API_KEY` | Cuenta de OpenAI (Whisper + voz del entrevistador). |
 | `WA_TOKEN`, `WA_PHONE_NUMBER_ID`, `WA_VERIFY_TOKEN` | Meta for Developers → app de WhatsApp Business (ver abajo). |
+| `WA_APP_SECRET` | Meta for Developers → la misma app → Configuración de la app → Básica → «Clave secreta de la app». Con ella el bot comprueba que cada mensaje lo manda Meta. |
 
 **Trámite lento — arrancarlo YA, en paralelo al código:** crear la app de WhatsApp Business en [developers.facebook.com](https://developers.facebook.com), verificar el negocio en Meta Business Manager, y cargar las 3 plantillas de `entrevistador/PLANTILLAS.md` (se crean en la Task 11 del plan, pero podés leerlas ahí desde el día uno). La aprobación de plantillas tarda de horas a días. Mientras tanto, el número de prueba que da Meta sirve para desarrollar.
 

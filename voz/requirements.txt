@@ -1,4 +1,4 @@
-# Base del worker y de la prueba de oído (sin los motores: cada uno tiene su venv).
+# El worker de «Su voz» (la restauración tiene su propio venv en herramientas/restaurar/).
 supabase>=2.0
 python-dotenv>=1.0
 httpx>=0.27

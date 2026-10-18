@@ -21,6 +21,8 @@ const {
   avisarCandadoV3Mock: vi.fn(),
 }));
 
+// Sin chicos de Kids (el candado de Kids se prueba en worker-kids.test.ts).
+vi.mock('../src/kids/candado.js', () => ({ narradoresConKids: vi.fn(async () => new Set<string>()) }));
 vi.mock('../src/v3/candado.js', () => ({
   idiomasV3: vi.fn(async () => new Map<string, string>()), narradoresConV3: narradoresConV3Mock, avisarCandadoV3: avisarCandadoV3Mock, exigirSinV3: vi.fn(async () => undefined) }));
 vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ trabajaOtraCopia: vi.fn(async () => false), alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: vi.fn(), hayLugarParaLibroV3: vi.fn(() => true), lanzarLibroV3: vi.fn(() => true) }));
