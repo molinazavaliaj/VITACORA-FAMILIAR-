@@ -6,8 +6,6 @@ name: Verificar la copia de archivos
 on:
   schedule:
     - cron: '0 10 1 * *'
-  push:
-    branches: [verificar-copia] # SOLO PARA PROBAR, se saca antes del merge
   workflow_dispatch:
     inputs:
       cuantos:

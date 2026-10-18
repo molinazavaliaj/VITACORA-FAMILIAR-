@@ -24,6 +24,13 @@ Secretos en GitHub (Settings → Secrets and variables → Actions): `SUPABASE_U
 `SUPABASE_SERVICE_ROLE_KEY`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `RESEND_API_KEY`, `MAIL_SOCIOS`.
 
+## La prueba de que sirve
+- **Archivos:** `verificar.py` compara 25 archivos al azar de R2 con Supabase, byte por
+  byte, el día 1 de cada mes (workflow «Verificar la copia de archivos»). Si alguno no
+  coincide, mail a los socios. Primera prueba, 18/10: 25 de 25 idénticos.
+- **Base:** Supabase → Database → Backups → «Restore to new project» restaura la copia en
+  un proyecto aparte, sin tocar el de verdad. Se compara la cantidad de filas y se borra.
+
 ## Volver atrás
 - **Se borró o rompió algo de la base:** Supabase → Database → Backups → Restore
   en el día anterior. Pisa la base entera: lo que entró después se pierde. Si es
