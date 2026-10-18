@@ -16,7 +16,7 @@
 //   - 45 días después del aviso: se borran los ZIP y queda `descarga_borrada.txt`.
 // Si el mail no sale, no se borra nada: primero la familia tiene que poder descargarlos.
 //
-// APAGADO hasta que Naza apruebe el texto del mail y Joaquín dé el OK: se prende con
+// APAGADO hasta el OK de Joaquín (Naza aprobó el texto del mail el 18/10): se prende con
 // BORRADO_AUDIOS_ORIGINALES=1 en Railway. Los chicos de Kids quedan afuera (su sección
 // legal todavía no existe).
 

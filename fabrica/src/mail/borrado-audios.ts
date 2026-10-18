@@ -4,8 +4,8 @@
 // descargarlos todos: para muchos es la voz de su abuela contando cada historia,
 // y no la puede perder sin saberlo (decisión de Naza, 18/10, opción A).
 //
-// ⏳ TEXTO PROPUESTO, ESPERA aprobación de Naza. Mientras tanto el borrado está
-// apagado (BORRADO_AUDIOS_ORIGINALES, ver audios-originales.ts).
+// ✅ TEXTO APROBADO POR NAZA (2026-10-18), tal cual. El borrado sigue apagado hasta
+// el OK de Joaquín (BORRADO_AUDIOS_ORIGINALES, ver audios-originales.ts).
 
 import { cargarConfig } from '../config.js';
 import { TIMEOUT_RESEND_MS } from './resend.js';
