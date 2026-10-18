@@ -25,6 +25,7 @@ import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
 import { cumplirPedido, pedidoDe } from './pedidos.js';
 import { esSaludo } from './saludo.js';
 import { aplicarTanda, hitosDe } from './tanda.js';
+import { encolarInfo, pideInfo } from './info.js';
 import { textoFijo } from './textos-fijos.js';
 import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type FilaV3, type NarradorV3 } from './tipos.js';
 import { anotarVisto, avanzar, cerrarYSeguir, encolar, sumarFamilia, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
@@ -72,6 +73,18 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
   // La pregunta abierta todavía no le llegó (Naza, 09/10, Imma): lo que mande no la contesta. Queda aparte
   // (∅), sin acuse, y la pregunta sale ahora, que la ventana se acaba de abrir. Un pedido escrito sigue su camino.
+  // El botón INFO de la bienvenida (18/10): la segunda capa de la información.
+  // Va antes que todo lo demás porque pedir información no es contestar ni
+  // reactivar: no toca la pregunta abierta ni saca a nadie de pausado.
+  if (pideInfo(m.texto ?? '')) {
+    await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), respuestaDeBoton(m.texto ?? ''), { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: m.esBoton === true });
+    if (await encolarInfo(deps.db, fila, m.waMessageId)) {
+      await drenar(deps, n.id);
+      return;
+    }
+    // Sin texto en su idioma no sale nada y el mensaje sigue su camino normal.
+  }
+
   if (abiertaSinEntregar(fila.estado) && !pedidoEscrito) {
     console.warn(`V3: ${n.id} escribió con la pregunta ${fila.estado.esperando} todavía sin entregar: queda aparte y la pregunta sale ahora`);
     await guardarAparte(deps, n, m, fila);
