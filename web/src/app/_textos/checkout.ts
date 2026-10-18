@@ -134,11 +134,11 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Còpia extra del llibre imprès",
       marco: "La seva foto emmarcada",
       marco_adicional: "Marc addicional",
-      pack: "Pack el regal complet", // ca: revisado con el corrector de Softcatalà (18/10)
+      pack: "Paquet el regal complet", // ca: revisado con el corrector de Softcatalà; «paquet» en vez de «pack» (Naza 18/10)
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
-    ahorras: (c) => `Estalvies ${c} amb el pack`, // ca: revisado con el corrector de Softcatalà (18/10)
+    ahorras: (c) => `Estalvies ${c} amb el paquet`, // ca: revisado con el corrector de Softcatalà (18/10)
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des de la pàgina de la teva història"]
