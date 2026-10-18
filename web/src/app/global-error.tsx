@@ -9,7 +9,7 @@ import { TEXTOS_AVISOS } from "./_textos/avisos";
 // globals.css, ni tokens, ni las letras de marca.
 //
 // Los textos son los mismos de app/error.tsx (TEXTOS_AVISOS.es.falla, marcados
-// TEXTO A APROBAR), en castellano neutro. El mensaje técnico del error no se
+// aprobados por Naza el 19/10), en castellano neutro. El mensaje técnico del error no se
 // pinta: el que lo lea en un log es el equipo, no la familia.
 
 const TINTA = "#070706";

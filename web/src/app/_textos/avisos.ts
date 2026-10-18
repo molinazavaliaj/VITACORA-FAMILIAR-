@@ -45,13 +45,13 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       titulo: "Esta página se ha perdido.",
       frase: "Como algunos recuerdos, si nadie los apunta.",
     },
-    // TEXTO A APROBAR (Naza). Castellano neutro: no dice «tú» ni «vos», así
+    // APROBADO por Naza el 19/10/2026. Castellano neutro: no dice «tú» ni «vos», así
     // sirve igual en España y en Argentina. Frases cortas, sin pedir perdón de
     // más.
     reintentar: "Probar de nuevo",
     falla: {
       etiqueta: "Error 500",
-      titulo: "Se nos cruzó un error.",
+      titulo: "Algo salió mal.",
       frase: "Fue un error nuestro.",
       bajada: "Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escríbenos y lo miramos.",
     },
@@ -79,11 +79,11 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       titulo: "Aquesta pàgina s'ha perdut.",
       frase: "Com alguns records, si ningú no els apunta.",
     },
-    // TEXTO A APROBAR (Naza). PENDIENTE REVISIÓN NATIVA (como el resto del ca).
+    // APROBADO por Naza el 19/10/2026. PENDIENTE REVISIÓN NATIVA (como el resto del ca).
     reintentar: "Tornar-ho a provar",
     falla: {
       etiqueta: "Error 500",
-      titulo: "Se'ns ha creuat un error.",
+      titulo: "Alguna cosa ha anat malament.",
       frase: "Ha estat un error nostre.",
       bajada: "Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.",
     },
@@ -111,11 +111,11 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       titulo: "Esta página se ha perdido.",
       frase: "Como algunos recuerdos, si nadie los apunta.",
     },
-    // TEXTO A APROBAR (Naza).
+    // APROBADO por Naza el 19/10/2026.
     reintentar: "Probar de nuevo",
     falla: {
       etiqueta: "Error 500",
-      titulo: "Se nos cruzó un error.",
+      titulo: "Algo salió mal.",
       frase: "Fue un error nuestro.",
       bajada: "Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.",
     },
