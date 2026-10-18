@@ -173,7 +173,6 @@ describe("nada que el producto ya no hace (D4, C4)", () => {
   const PROHIBIDO: [RegExp, string][] = [
     [/una pregunta (por|cada|al) d[ií]a|una pregunta per dia/i, "una pregunta por día"],
     [/(por|al|cada) d[ií]a\b|per dia\b|cada dia\b/i, "algo por día"],
-    [/\b30 d[ií]as\b|treinta d[ií]as|\b30 dies\b|trenta dies/i, "30 días"],
     [/anticipo|avan[çc]ament|bestreta/i, "anticipo"],
     [/audiolibro|audiollibre/i, "audiolibro"],
     [/\b9 d[ií]as\b|\b9 dies\b|nueve d[ií]as/i, "9 días"],
@@ -182,9 +181,34 @@ describe("nada que el producto ya no hace (D4, C4)", () => {
     [/cup[oó]n|VITACORA10|rasca/i, "cupón"],
     [/se suman a cualquiera|s'afegeixen a qualsevol/i, "marco sin impreso"],
   ];
+  // «30 días» se prohibió por el ritmo viejo («la entrevista dura 30 días»), que
+  // es hermano de «una pregunta por día» de arriba. No por los plazos de datos:
+  // desde el 18/10 la privacidad dice que las copias de seguridad se borran 30
+  // días después de que borramos el original (texto aprobado por Naza, y es
+  // cierto: PR #73 y #78). Eso sí se publica, así que la regla mira el texto sin
+  // esas frases — y sigue cazando cualquier «30 días» en otro lado.
   it.each(TODAS)("%s / %s", (idioma, doc) => {
     const t = texto(sinSolapas(html(idioma, doc)));
     for (const [patron, que] of PROHIBIDO) expect(t, que).not.toMatch(patron);
+  });
+
+  // «30 días» se prohibía por el ritmo viejo («la entrevista dura 30 días»),
+  // hermano de «una pregunta por día» de arriba. Desde el 18/10 la privacidad lo
+  // usa para otra cosa que sí es cierta: las copias de seguridad se borran 30
+  // días después del original (PR #73 y #78, texto aprobado por Naza). Así que en
+  // vez de prohibir la cifra, se fija dónde puede aparecer.
+  it.each(TODAS)("%s / %s: «30 días» solo habla de las copias", (idioma, doc) => {
+    const t = texto(sinSolapas(html(idioma, doc)));
+    for (const frase of t.split(/(?<=\.)\s+/)) {
+      if (!/\b30 d[ií]as\b|\b30 dies\b|treinta d[ií]as|trenta dies/i.test(frase)) continue;
+      expect(frase, "«30 días» fuera de las copias de seguridad").toMatch(/c[oò]pi|borr|esborr/i);
+    }
+  });
+
+  it("y las copias de seguridad están contadas en los tres idiomas", () => {
+    for (const idioma of ["es", "ar", "ca"] as const) {
+      expect(texto(sinSolapas(html(idioma, "privacidad")))).toMatch(/c[oò]pi[ae]s? de segur(idad|etat)/i);
+    }
   });
 });
 
