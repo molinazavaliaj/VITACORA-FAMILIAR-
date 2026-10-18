@@ -9,7 +9,8 @@ import type { Textos } from "@/lib/idioma-web";
 // hecho que es un hombre (la página es de cualquier familiar), «23 historias»
 // pasa a los audios que hay de verdad, y «Esta página es privada:» pierde los
 // dos puntos. Lo nuevo va en docs/rediseno-2026-10/su-voz/textos.md (las dos tandas
-// aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve).
+// aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve). El catalán se revisa con un
+// corrector online (Naza 18/10); hasta entonces, la marca de abajo.
 // Los que ya estaban en la página vieja siguen igual (aprobados).
 // ca: PENDIENTE REVISIÓN NATIVA
 

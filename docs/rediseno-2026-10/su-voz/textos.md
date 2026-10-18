@@ -8,7 +8,9 @@ escribir.», «Sus mejores frases, en su voz, se están preparando. Vuelve/Volv�
 libro», «El libro se está armando. Vuelve/Volvé en un rato.», «Mandar por WhatsApp», «Copiar el
 link», «Link copiado».
 
-Catalán: todo PENDIENTE REVISIÓN NATIVA (Imma).
+Catalán: Naza 18/10, «lo revisamos con el catalán online, olvidémonos de Imma». Se revisa
+pegando el bloque de abajo en un corrector online (Softcatalà, softcatala.org/corrector).
+Hasta que pase por ahí, el código sigue marcado `// ca: PENDIENTE REVISIÓN NATIVA`.
 
 ## Tanda 1 (1–10) — APROBADA por Naza 18/10 en es y ar (la 6, cambiada)
 
@@ -56,3 +58,22 @@ puede copiar solo).
 Lo que la página NO promete: no dice cuántas historias tiene el libro ni cuándo llega nada. «Esta
 página es privada» es cierto en el sentido de la maqueta: solo se entra con el link firmado (el
 del libro, el del marco o el que alguien reenvía), no hay forma de llegar sin él.
+
+## Catalán, para pegar en el corrector
+
+Todo el catalán de la página, de corrido. «Osvaldo» y los números son de ejemplo.
+
+```
+Privat. Toca i escolta la seva veu. Escoltar Osvaldo. El llibre de la seva vida.
+Explicat amb la seva veu · 9 àudios · 13 minuts. Comença per aquí. Llegir el seu llibre.
+La seva veu, capítol a capítol. Tal com ho va explicar. 1 àudio. 3 àudios. Veure els 8 capítols.
+Les seves frases de sempre. Per a la família.
+Aquesta pàgina és privada. Només hi entra qui té el llibre, el marc o l'enllaç. La pots compartir amb qui vulguis de la família.
+Compartir amb la família. Enllaç copiat. Osvaldo, amb la seva veu. Copia aquest enllaç.
+A cada família hi ha un llibre per escriure. Començar el llibre de la meva família. Fet per Vitácora.
+Les seves millors frases, amb la seva veu, s'estan preparant. Torna d'aquí a una estona.
+El llibre. El llibre s'està preparant. Torna d'aquí a una estona.
+Enviar per WhatsApp. Copiar l'enllaç. «En casa no sobrava res.» — Osvaldo, amb la seva veu.
+Escoltar. Pausar. La frase «En casa no sobrava res».
+```
+
