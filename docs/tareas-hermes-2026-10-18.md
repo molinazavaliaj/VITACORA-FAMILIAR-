@@ -113,3 +113,9 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 - **Tests:** CI en verde, los 4 jobs — entrevistador 1186 tests, fábrica 2861 (+1 salteado), web 974 (+1 salteado), voz 58. El paso de audit corre y no frena.
 - **Informe de avisos (`--omit=dev`, high/critical):** `web` 3 (1 critical en `next`, 2 high en `sharp` y `source-map-js`), `entrevistador` 2 high (`fastify` y `fast-uri`), `fabrica` 0. `next` pide salto mayor a 16.4.2: lo decide Joaquín.
 
+### T4 · plan de rollback — 18/10
+- **Rama:** `docs-rollback`, cortada de `main`. **PR:** contra `main`.
+- **Qué entró:** `docs/rollback.md` — tabla de una hojeada (pieza, dónde vive, cómo se vuelve, cuánto tarda) y un paso por pieza con los botones del panel: web en Vercel (Instant Rollback / Promote + `git revert` para que el próximo deploy no republique lo roto), fábrica y entrevistador en Railway (`fearless-kindness`, servicios `dazzling-friendship` y `VITACORA-FAMILIAR-`, «Redeploy»), base en Supabase (Restore que pisa todo vs. Restore to new project), archivos en R2, migraciones (siempre una nueva que deshaga, nunca editar la vieja) y cinco chequeos antes de publicar algo grande. Los nombres de los servicios salen de `fabrica/scripts/railway-logs.py`; la copia, de `copias/README.md`.
+- **Tests:** es documentación, no corre código: no hay tests nuevos. El CI del PR corre los cuatro jobs igual (los tests de la fábrica leen `docs/**/*.md` y el archivo va en LF, como pide `.gitattributes`).
+- **Lo que quedó marcado como no verificado:** los tiempos de restore de Supabase (estimados, nunca medidos) y la ruta exacta de los botones de Vercel (puede cambiar con la interfaz).
+
