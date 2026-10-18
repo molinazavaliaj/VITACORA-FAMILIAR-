@@ -201,14 +201,14 @@ mirar si está prendido.**
 | **A2 · El plazo de arrepentimiento en Argentina está mal contado.** Dice «10 días desde la compra»; la ley dice desde la entrega o el contrato, lo último que ocurra. Una cláusula que resta un derecho se tiene por no escrita | sesión de legales | ☐ |
 | **A3 · Dos casillas en el paso 3 del checkout**, más registro por pedido (versión, fecha, IP, valores). Toca el formulario y su test: **después de #56** | sesión de legales | ☐ |
 | **A4 · Correo de confirmación de contrato** con el formulario del Anexo B (España) | sesión de legales | ☐ |
-| **A6 · No hay plazo de entrega.** «El 90 % de las reclamaciones vienen por el plazo» | **Joaquín decide el número** | ☐ **decisión** |
+| **A6 · Plazo de entrega: 3 semanas desde que el comprador aprueba el libro** (decidido 18/10). Si nos pasamos, se devuelve el importe del impreso sin que lo pidan. Falta redactarlo en términos, arrepentimiento y la pantalla de pago | ✅ decidido · ☐ redactar | 🔄 |
 | **B · Siete contradicciones internas** entre secciones de los propios términos | sesión de legales | ✅ PR #70 |
 | **Naza aprueba las tandas L1, L2 y L3** del PR #70 (21 textos, los tres idiomas; el catalán con revisión nativa). Ojo: L2-06 y L3-01 tocan cuatro líneas de «En corto» que ya había aprobado el 15/10 | Naza | ☐ **traba #70** |
 | **Borrado automático de los audios originales** a los 3 meses de producido el libro: el texto nuevo lo promete y hoy no existe | Naza | ☐ |
 | **Borrado de ficha y fotos a los 15 días** si la narradora dice NO (a mano mientras tanto) | Naza | ☐ |
 | Tres preguntas para el abogado quedaron abiertas en #70 | Joaquín | ☐ |
 | **La Action de tests no llega a los PR contra `rediseno-web`**: #54 entró a main, pero esa rama no la tiene. #70 y #53 están sin check | Naza | ☐ |
-| **D3 · Qué pasa si la narradora muere o pierde capacidad.** El hueco más grande: se vende un servicio de un mes a personas de 80 años | sesión de legales, Joaquín decide | ☐ |
+| **D3 · Si la narradora muere o pierde capacidad, se devuelve el dinero** (decidido 18/10). Falta redactar dos cosas que eso no resuelve: que la familia pueda quedarse con el libro si lo prefiere, y quién puede pedir el borrado de la voz después | ✅ decidido · ☐ redactar | 🔄 |
 | **G · Lo que necesita un abogado con matrícula**: contrato con la narradora, contrato entre los dos titulares, revisión contra el registro de tratamientos | Joaquín | ☐ |
 
 > ⚠️ **Consecuencia de la decisión del 17/10: España no puede vender hasta que salga el alta de
