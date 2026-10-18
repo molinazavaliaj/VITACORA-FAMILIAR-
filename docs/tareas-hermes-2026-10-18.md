@@ -119,3 +119,11 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 - **Tests:** es documentación, no corre código: no hay tests nuevos. El CI del PR corre los cuatro jobs igual (los tests de la fábrica leen `docs/**/*.md` y el archivo va en LF, como pide `.gitattributes`).
 - **Lo que quedó marcado como no verificado:** los tiempos de restore de Supabase (estimados, nunca medidos) y la ruta exacta de los botones de Vercel (puede cambiar con la interfaz).
 
+### T5 · prueba de prompt injection — 18/10
+- **Rama:** `prueba-inyeccion`, cortada de `main` (commit `46fada03`).
+- **PR:** #88 contra `main` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/88
+- **Qué entró:** `entrevistador/scripts/prueba-inyeccion.ts` (+ `npm run prueba-inyeccion`). 12 ataques con narrador inventado («Prueba Inyección») en es-AR, es-ES y ca. Dos mitades: el flujo real (`avanzar`/`recibirAudio`/`cerrarYSeguir`, gratis, exige que cada línea del bot sea texto del banco) y el cazador real (`cazarBloque`, Opus 5.5, la única llamada al modelo). Sin `--correr --ok-naza` no llama a nadie.
+- **NO SE CORRIÓ.** El encabezado del script dice `OK de Naza para correrlo: PENDIENTE`. Para correrlo hace falta el OK anotado acá.
+- **Costo estimado por corrida:** entrada 50.782 tokens (12 llamadas, ≈4.170 cada una) → **USD 0,80 típico** (2.500 tokens de salida por ataque) y **USD 4,04 peor caso** (tope de 16.000 de salida). Precios de `src/costos.ts` (Opus 5.5: 4/20 USD por millón).
+- **Tests:** `entrevistador` 1186 pasan (76 archivos) y tipos limpios. Sin tests nuevos a propósito: no se automatiza en CI algo que gasta plata.
+
