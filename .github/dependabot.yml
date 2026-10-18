@@ -1,0 +1,66 @@
+# Dependabot: avisa cuando una librería que usamos tiene un agujero.
+#
+# Lo pidió Naza el 18/10, en la lista de «antes de vender»: hasta ahora nos
+# enterábamos de una vulnerabilidad abriendo el repo. Esto abre un PR solo, con
+# el cambio de versión a la vista, y lo revisamos como cualquier otro PR.
+#
+# Tres servicios de Node (web, fábrica, entrevistador) más las acciones del
+# propio GitHub. Semanal y los lunes, que es cuando Naza mira el repo.
+# Como mucho cinco PR abiertos por ecosistema: los menores y los parches se
+# agrupan en uno solo para no abrir treinta.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /fabrica
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /entrevistador
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  # Las acciones de .github/workflows no se ven en ningún package.json: si no
+  # las mira Dependabot, quedan viejas para siempre.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
