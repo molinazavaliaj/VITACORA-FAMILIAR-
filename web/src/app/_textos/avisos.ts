@@ -21,12 +21,16 @@ export type TextosAvisos = {
   comprar: string;
   escribirnos: string;
   entrar: string;
+  /** El botón de la página de error 500. */
+  reintentar: string;
   /** La página que no existe. */
   noExiste: TextosAviso;
   /** Un enlace firmado que no verifica: el libro, su voz, el anticipo. */
   enlace: TextosAviso;
   /** El código de un regalo que no existe o no está pagado. */
   regalo: TextosAviso;
+  /** Algo se rompió en el servidor (app/error.tsx, app/global-error.tsx). */
+  falla: TextosAviso;
 };
 
 export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
@@ -40,6 +44,16 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       etiqueta: "Error 404",
       titulo: "Esta página se ha perdido.",
       frase: "Como algunos recuerdos, si nadie los apunta.",
+    },
+    // TEXTO A APROBAR (Naza). Castellano neutro: no dice «tú» ni «vos», así
+    // sirve igual en España y en Argentina. Frases cortas, sin pedir perdón de
+    // más.
+    reintentar: "Probar de nuevo",
+    falla: {
+      etiqueta: "Error 500",
+      titulo: "Se nos cruzó un error.",
+      frase: "Fue un error nuestro.",
+      bajada: "Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escríbenos y lo miramos.",
     },
     enlace: {
       etiqueta: "Enlace caducado",
@@ -65,6 +79,14 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       titulo: "Aquesta pàgina s'ha perdut.",
       frase: "Com alguns records, si ningú no els apunta.",
     },
+    // TEXTO A APROBAR (Naza). PENDIENTE REVISIÓN NATIVA (como el resto del ca).
+    reintentar: "Tornar-ho a provar",
+    falla: {
+      etiqueta: "Error 500",
+      titulo: "Se'ns ha creuat un error.",
+      frase: "Ha estat un error nostre.",
+      bajada: "Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.",
+    },
     enlace: {
       etiqueta: "Enllaç caducat",
       titulo: "Aquest enllaç ja no serveix.",
@@ -88,6 +110,14 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       etiqueta: "Error 404",
       titulo: "Esta página se ha perdido.",
       frase: "Como algunos recuerdos, si nadie los apunta.",
+    },
+    // TEXTO A APROBAR (Naza).
+    reintentar: "Probar de nuevo",
+    falla: {
+      etiqueta: "Error 500",
+      titulo: "Se nos cruzó un error.",
+      frase: "Fue un error nuestro.",
+      bajada: "Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.",
     },
     enlace: {
       etiqueta: "Enlace caducado",
