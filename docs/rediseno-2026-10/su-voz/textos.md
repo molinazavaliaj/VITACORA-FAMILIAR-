@@ -48,7 +48,7 @@ Por qué cambian respecto de la maqueta:
 | 14 | SV-12 | Etiqueta del bloque | Para la familia | igual | Per a la família |
 | 15 | SV-09 | Al lado de cada capítulo | 1 audio · 3 audios | igual | 1 àudio · 3 àudios |
 | 16 | SV-10 | Debajo de los cuatro primeros capítulos (si hay más) | Ver los 8 capítulos → | igual | Veure els 8 capítols → |
-| 17 | SV-13 | Firma del final | Hecho con Vitácora | igual | Fet amb Vitácora |
+| 17 | SV-13 | Firma del final | **APROBADO 18/10** Hecho por Vitácora (la maqueta decía «con») | igual | Fet per Vitácora |
 
 No se ven (los lee el lector de pantalla o el teléfono al compartir): «Escuchar a Osvaldo»
 (SV-03), «Osvaldo, en su voz» (título del link que se comparte), «Copia este link» (si no se

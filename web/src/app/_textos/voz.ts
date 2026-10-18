@@ -100,11 +100,12 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     copiado: "Enlace copiado",
     compartirTitulo: (nombre) => `${nombre}, en su voz`,
     copiaEsteLink: "Copia este link",
-    // SV-13 · «En cada familia…» ya estaba (aprobado); la firma, PROPUESTA (maqueta, tal cual)
+    // SV-13 · «En cada familia…» ya estaba (aprobado)
     cierre: "En cada familia hay un libro sin escribir.",
     // APROBADO por Naza 18/10 (tanda 1, #6) · SV-13 el botón, en vez del de la maqueta, para invitar a comprar
     cierreBoton: "Empezar el libro de mi familia",
-    hechoCon: "Hecho con Vitácora",
+    // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
+    hechoCon: "Hecho por Vitácora",
     // Aprobados (página vieja)
     sinFrases: "Sus mejores frases, en su voz, se están preparando. Vuelve en un rato.",
     libro: "El libro",
@@ -142,7 +143,8 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     cierre: "En cada familia hay un libro sin escribir.",
     // APROBADO por Naza 18/10 (tanda 1, #6) · SV-13
     cierreBoton: "Empezar el libro de mi familia",
-    hechoCon: "Hecho con Vitácora",
+    // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
+    hechoCon: "Hecho por Vitácora",
     sinFrases: "Sus mejores frases, en su voz, se están preparando. Volvé en un rato.",
     libro: "El libro",
     libroNoEsta: "El libro se está armando. Volvé en un rato.",
@@ -176,7 +178,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     copiaEsteLink: "Copia aquest enllaç",
     cierre: "A cada família hi ha un llibre per escriure.",
     cierreBoton: "Començar el llibre de la meva família",
-    hechoCon: "Fet amb Vitácora",
+    hechoCon: "Fet per Vitácora",
     sinFrases: "Les seves millors frases, amb la seva veu, s'estan preparant. Torna d'aquí a una estona.",
     libro: "El llibre",
     libroNoEsta: "El llibre s'està preparant. Torna d'aquí a una estona.",
