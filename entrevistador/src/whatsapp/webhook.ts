@@ -1,6 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import { cargarConfig } from '../config.js';
 import { anotarEntrega, parsearEntregas } from './entregas.js';
+import { firmaValida } from './firma.js';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    /** El body tal cual llegó: la firma de Meta se calcula sobre estos bytes, no sobre el JSON ya leído. */
+    cuerpoCrudo?: Buffer;
+  }
+}
 
 export type MensajeEntrante = {
   telefono: string;
@@ -66,8 +74,30 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   return null; // stickers, reacciones, documentos, ubicaciones: se ignoran
 }
 
-export function registrarWebhook(app: FastifyInstance, procesar: (m: MensajeEntrante) => Promise<void>) {
+export function registrarWebhook(
+  app: FastifyInstance,
+  procesar: (m: MensajeEntrante) => Promise<void>,
+  o: { secreto?: string } = { secreto: process.env.WA_APP_SECRET },
+) {
   const config = cargarConfig();
+  const secreto = (o.secreto ?? '').trim();
+  if (!secreto) {
+    // Sin WA_APP_SECRET el webhook anda como antes (sin mirar la firma) para no
+    // cortar las entrevistas mientras se carga en Railway. La alarma de variables avisa.
+    app.log.warn('webhook: falta WA_APP_SECRET, los mensajes entran SIN comprobar la firma de Meta');
+  }
+
+  // El JSON se lee igual que antes, pero guardando los bytes crudos para la firma.
+  app.removeContentTypeParser('application/json');
+  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, cuerpo: Buffer, hecho) => {
+    req.cuerpoCrudo = cuerpo;
+    if (cuerpo.length === 0) return hecho(Object.assign(new Error('Body vacío'), { statusCode: 400 }), undefined);
+    try {
+      hecho(null, JSON.parse(cuerpo.toString('utf8')));
+    } catch {
+      hecho(Object.assign(new Error('JSON inválido'), { statusCode: 400 }), undefined);
+    }
+  });
 
   app.get('/webhook', async (req, reply) => {
     const q = req.query as Record<string, string>;
@@ -79,6 +109,12 @@ export function registrarWebhook(app: FastifyInstance, procesar: (m: MensajeEntr
 
   app.post('/webhook', async (req, reply) => {
     reply.send({ ok: true }); // 200 inmediato: Meta reintenta ante cualquier otra cosa
+    // La firma (18/10): con el secreto cargado, lo que no firmó Meta se tira sin
+    // leerlo. Igual se contesta 200: a quien prueba no le decimos si acertó.
+    if (secreto && !firmaValida(req.cuerpoCrudo ?? '', req.headers['x-hub-signature-256'], secreto)) {
+      app.log.warn({ ip: req.ip }, 'webhook: firma de Meta inválida o ausente, se descarta');
+      return;
+    }
     // Los avisos de entrega (23/09): Meta los manda por acá y hasta hoy los
     // tirábamos. Son la única forma de saber si el mensaje LLEGÓ.
     for (const aviso of parsearEntregas(req.body)) {
