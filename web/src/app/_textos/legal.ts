@@ -445,7 +445,7 @@ const ES: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. Si llegas a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si compras en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
         ],
       },
       {
@@ -832,7 +832,7 @@ const AR: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. Si llegás a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si comprás en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
         ],
       },
       {
@@ -1219,7 +1219,7 @@ const CA: TextosLegal = {
         id: "cookies",
         titulo: "12. Galetes",
         bloques: [
-          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
+          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. Si arribes a la web des d'un anunci, recordem de quin només mentre dura aquella visita, sense guardar res al teu navegador. Si compres en aquella mateixa visita, ho anotem amb la teva compra per saber quins anuncis funcionen. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
         ],
       },
       {

@@ -80,7 +80,7 @@ Revisado en el código el 14/10. La web usa solo:
 | `tema` | Recordar panel claro u oscuro, elegido a mano | Panel | 1 año |
 | `idioma` | Recordar el idioma elegido a mano en el selector (y no redirigir por país) | Web pública | 1 año |
 | `sessionStorage` (no es cookie) | Guardar el formulario de compra mientras se rellena | Checkout | Hasta cerrar la pestaña |
-| `localStorage` `vitacora-origen` (no es cookie) | De qué anuncio llegó la visita, para saber qué anuncio trajo cada compra (ver abajo) | Toda la web, solo si se llega con parámetros de campaña en el enlace | 30 días desde la primera visita |
+| ~~`localStorage` `vitacora-origen`~~ (desde el 19/10 ya no se guarda nada en el navegador) | De qué anuncio llegó la visita, para saber qué anuncio trajo cada compra (ver abajo). Ahora vive solo en la memoria de la página mientras dura la visita; si compra, se guarda con el pedido. A quien la tenía de antes se le borra al entrar | Toda la web, solo si se llega con parámetros de campaña en el enlace | Nada en el navegador: se olvida al recargar o cerrar la página |
 
 No hay analítica, ni píxel de Meta (B26), ni vídeos o mapas de terceros incrustados, ni fuentes de
 Google cargadas desde el navegador (van alojadas en la web). Los pagos se hacen en la página de
@@ -90,6 +90,8 @@ falta banner ni página de cookies aparte**: basta la sección 12 de privacidad.
 ¿la cookie `idioma` de 1 año entra en la exención? ¿Hace falta una tabla de cookies con nombre y
 duración en la sección 12? Si algún día se instala el píxel de Meta (B26), sí harán falta banner,
 página de cookies y consentimiento previo.
+
+**Cambiado el 19/10 (ver §6.3 y `cambios-origen.md`):** lo que sigue describe la versión del 14/10. Hoy no se escribe nada en `localStorage` ni en ningún otro almacenamiento del navegador: el origen se recuerda solo en la memoria de la página durante la misma visita y, si compra en esa visita, viaja con la compra a `pedidos.extras.origen`. No hay 30 días.
 
 **Origen de campaña (agregado el 14/10, F4-5).** Cuando alguien llega a la web desde un anuncio
 con parámetros en el enlace (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`,

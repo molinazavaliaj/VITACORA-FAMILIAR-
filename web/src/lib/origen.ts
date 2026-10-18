@@ -1,17 +1,22 @@
-// De qué anuncio vino cada compra (F4-5, aprobado por Naza 14/10). Sin
-// cookies, sin terceros, sin píxel: cuando alguien llega con parámetros de
-// campaña en la URL (utm_*, fbclid, gclid), se guarda en localStorage un
-// «primer toque» que dura 30 días. Una visita posterior SIN parámetros no lo
-// pisa; una CON parámetros se guarda aparte como «último toque». El checkout
-// lo manda a /api/compra y queda en `pedidos.extras.origen`.
+// De qué anuncio vino cada compra (F4-5, aprobado por Naza 14/10; cambiado el
+// 19/10). Sin cookies, sin terceros, sin píxel y SIN GUARDAR NADA EN EL
+// NAVEGADOR: cuando alguien llega con parámetros de campaña en la URL
+// (utm_*, fbclid, gclid), se recuerda en la memoria de la página (una variable
+// de este módulo) mientras navega por la web con los `Link` de Next. Si
+// recarga, abre otra pestaña o cierra, se olvida, y está bien. El checkout lo
+// manda a /api/compra y queda en `pedidos.extras.origen`.
 //
-// Lo mismo limpia en los dos lados: el navegador lo relee con `limpiarOrigen`
+// Antes (14/10) iba a localStorage 30 días con la clave `vitacora-origen`; eso
+// es medición publicitaria y pediría consentimiento (art. 22.2 LSSI). Ahora esa
+// clave solo se borra, una vez, si quedó de una visita vieja.
+//
+// Lo mismo limpia en los dos lados: el navegador lo pasa por `limpiarOrigen`
 // antes de mandarlo, y el servidor lo vuelve a limpiar porque el cuerpo lo
 // escribe cualquiera. Cualquier cosa rara se descarta en silencio: el origen
 // nunca rompe una compra.
 
-export const CLAVE_ORIGEN = "vitacora-origen";
-export const DURACION_ORIGEN_MS = 30 * 24 * 60 * 60 * 1000;
+/** La clave que usaba la versión del 14/10. Solo se borra; nunca se lee ni se escribe. */
+export const CLAVE_ORIGEN_VIEJA = "vitacora-origen";
 
 export const PARAMETROS_ORIGEN = [
   "utm_source",
@@ -27,9 +32,6 @@ export type ParametroOrigen = (typeof PARAMETROS_ORIGEN)[number];
 /** Un toque: los parámetros que trajo, la página donde cayó (sin query) y cuándo. */
 export type Toque = Partial<Record<ParametroOrigen, string>> & { pagina: string; fecha: string };
 export type OrigenVisita = { primero: Toque; ultimo?: Toque };
-
-/** Lo poco de Storage que se usa. */
-export type AlmacenOrigen = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 const LARGO_MAXIMO = 200;
 // Lo que sobra de un valor de campaña: marcas de HTML, comillas y controles.
@@ -86,44 +88,71 @@ export function toqueDeUrl(search: string, pathname: string, ahora: Date): Toque
   return limpiarToque(crudo, ahora);
 }
 
-/** Lo guardado, si es válido y el primer toque tiene menos de 30 días; si caducó o está roto, se borra. */
-export function leerOrigen(almacen: () => AlmacenOrigen, ahora: Date): OrigenVisita | null {
+// La memoria de esta visita. Vive lo que vive la página cargada: los cambios de
+// página del lado del cliente la conservan; recargar o cerrar la borra.
+let memoria: OrigenVisita | null = null;
+
+/** Anota la visita si la URL trae parámetros: primer toque si no había, si no, último toque. Solo en memoria. */
+export function registrarVisita(search: string, pathname: string, ahora: Date): void {
+  const toque = toqueDeUrl(search, pathname, ahora);
+  if (!toque) return;
+  if (!memoria) {
+    memoria = { primero: toque };
+    return;
+  }
+  // Recargar el checkout con el mismo enlace no cuenta como otro toque.
+  const ultimo = memoria.ultimo ?? memoria.primero;
+  if (mismosParametros(ultimo, toque)) return;
+  memoria = { primero: memoria.primero, ultimo: toque };
+}
+
+function mismosParametros(a: Toque, b: Toque): boolean {
+  return a.pagina === b.pagina && PARAMETROS_ORIGEN.every((p) => a[p] === b[p]);
+}
+
+/** Lo que se recuerda de esta visita, o null. */
+export function origenDeLaVisita(ahora: Date = new Date()): OrigenVisita | null {
+  return memoria ? limpiarOrigen(memoria, ahora) : null;
+}
+
+/** Solo para las pruebas: empieza una visita nueva. */
+export function olvidarOrigen(): void {
+  memoria = null;
+}
+
+/** Lo que el componente del layout necesita de `window`. */
+export type VentanaOrigen = {
+  location: { search: string; pathname: string };
+  localStorage: Pick<Storage, "removeItem">;
+};
+
+/** Al cargar la web: recuerda la URL de llegada y borra la clave vieja de localStorage (sin leerla). Nunca tira. */
+export function alCargarLaWeb(ventana: () => VentanaOrigen, ahora: Date): void {
   try {
-    const a = almacen();
-    const crudo = a.getItem(CLAVE_ORIGEN);
-    if (!crudo) return null;
-    let valor: unknown = null;
-    try {
-      valor = JSON.parse(crudo);
-    } catch {
-      // roto: se borra abajo
-    }
-    const origen = limpiarOrigen(valor, ahora);
-    if (!origen || ahora.getTime() - Date.parse(origen.primero.fecha) > DURACION_ORIGEN_MS) {
-      a.removeItem(CLAVE_ORIGEN);
-      return null;
-    }
-    return origen;
+    const v = ventana();
+    registrarVisita(v.location.search, v.location.pathname, ahora);
+  } catch {
+    // sin URL legible: la compra va sin origen
+  }
+  try {
+    ventana().localStorage.removeItem(CLAVE_ORIGEN_VIEJA);
+  } catch {
+    // almacenamiento bloqueado: no había nada que borrar
+  }
+}
+
+/**
+ * Para el checkout: lo recordado en esta visita. Si la URL actual trae
+ * parámetros (se llegó directo a /comprar desde un anuncio), cuenta también.
+ * Nunca tira.
+ */
+export function origenDelNavegador(): OrigenVisita | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const ahora = new Date();
+    registrarVisita(window.location.search, window.location.pathname, ahora);
+    return origenDeLaVisita(ahora);
   } catch {
     return null;
   }
-}
-
-/** Anota la visita si trae parámetros: primer toque si no había (o caducó), si no, último toque. */
-export function registrarVisita(almacen: () => AlmacenOrigen, search: string, pathname: string, ahora: Date): void {
-  const toque = toqueDeUrl(search, pathname, ahora);
-  if (!toque) return;
-  const previo = leerOrigen(almacen, ahora);
-  const nuevo: OrigenVisita = previo ? { primero: previo.primero, ultimo: toque } : { primero: toque };
-  try {
-    almacen().setItem(CLAVE_ORIGEN, JSON.stringify(nuevo));
-  } catch {
-    // Sin almacenamiento (modo privado, bloqueado): la compra va sin origen.
-  }
-}
-
-/** Para el checkout: lo guardado en este navegador, o null. Nunca tira. */
-export function origenDelNavegador(): OrigenVisita | null {
-  if (typeof window === "undefined") return null;
-  return leerOrigen(() => window.localStorage, new Date());
 }
