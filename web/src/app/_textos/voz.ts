@@ -9,10 +9,9 @@ import type { Textos } from "@/lib/idioma-web";
 // hecho que es un hombre (la página es de cualquier familiar), «23 historias»
 // pasa a los audios que hay de verdad, y «Esta página es privada:» pierde los
 // dos puntos. Lo nuevo va en docs/rediseno-2026-10/su-voz/textos.md (las dos tandas
-// aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve). El catalán se revisa con un
-// corrector online (Naza 18/10); hasta entonces, la marca de abajo.
+// aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve). El catalán, revisado con el
+// corrector de Softcatalà (Naza 18/10, sin errores).
 // Los que ya estaban en la página vieja siguen igual (aprobados).
-// ca: PENDIENTE REVISIÓN NATIVA
 
 export type TextosVoz = {
   /** SV-01 · la palabra de la cabecera, a la derecha del logo */
@@ -157,7 +156,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     pausar: "Pausar",
     etiquetaAudio: (texto) => `la frase «${texto.slice(0, 40)}»`,
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (Naza 18/10, sin errores)
   ca: {
     privado: "Privat",
     tocaYEscucha: "Toca i escolta la seva veu",

@@ -10,7 +10,7 @@ link», «Link copiado».
 
 Catalán: Naza 18/10, «lo revisamos con el catalán online, olvidémonos de Imma». Se revisa
 pegando el bloque de abajo en un corrector online (Softcatalà, softcatala.org/corrector).
-Hasta que pase por ahí, el código sigue marcado `// ca: PENDIENTE REVISIÓN NATIVA`.
+**Revisado 18/10**: Naza pasó el bloque de abajo por el corrector de Softcatalà y no marcó nada.
 
 ## Tanda 1 (1–10) — APROBADA por Naza 18/10 en es y ar (la 6, cambiada)
 
