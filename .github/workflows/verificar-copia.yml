@@ -1,0 +1,35 @@
+# La prueba de que la copia de los archivos en Cloudflare R2 sirve: 25 archivos al azar
+# comparados byte por byte con Supabase (copias/verificar.py). El día 1 de cada mes y a
+# mano desde GitHub → Actions → «Verificar la copia de archivos» → Run workflow.
+name: Verificar la copia de archivos
+
+on:
+  schedule:
+    - cron: '0 10 1 * *'
+  push:
+    branches: [verificar-copia] # SOLO PARA PROBAR, se saca antes del merge
+  workflow_dispatch:
+    inputs:
+      cuantos:
+        description: 'Cuántos archivos revisar'
+        default: '25'
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install boto3==1.35.99
+      - run: python copias/verificar.py --cuantos "${{ github.event.inputs.cuantos || '25' }}"
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_SOCIOS: ${{ secrets.MAIL_SOCIOS }}
