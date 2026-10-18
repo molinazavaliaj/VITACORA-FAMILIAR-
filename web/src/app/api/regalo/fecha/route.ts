@@ -24,17 +24,21 @@ export async function PATCH(request: NextRequest) {
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { soloDuena: true, mensajeError: GENERICO() });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const n = acceso.narrador;
-  const trato = await tratoDeLaFamilia(admin, n.familia_id);
 
-  let body: { fecha?: unknown };
+  let body: { fecha?: unknown } | null;
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return NextResponse.json({ error: "No llegó nada para guardar." }, { status: 400 });
+    body = null;
   }
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "No llegó nada para guardar." }, { status: 400 });
 
   // `*`: las columnas de la entrega llegaron con una migración aparte; sin ellas, el regalo se da en mano.
-  const { data, error: errorLectura } = await admin.from("regalos").select("*").eq("narrador_id", n.id).maybeSingle();
+  // El trato (solo para el error genérico) sale junto con el regalo, no antes.
+  const [{ data, error: errorLectura }, trato] = await Promise.all([
+    admin.from("regalos").select("*").eq("narrador_id", n.id).maybeSingle(),
+    tratoDeLaFamilia(admin, n.familia_id),
+  ]);
   if (errorLectura) {
     console.error("regalo/fecha: fallo la lectura", errorLectura);
     return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });

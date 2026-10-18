@@ -170,6 +170,7 @@ describe("PATCH /api/regalo/fecha", () => {
     expect(await r.json()).toEqual({ error: MENSAJE_FECHA_PASADA });
     expect((await PATCH(peticion({ fecha: "mañana" }))).status).toBe(400);
     expect((await PATCH(peticion({}))).status).toBe(400);
+    expect((await PATCH(peticion(null))).status).toBe(400);
     expect(escrituras).toEqual([]);
   });
 
