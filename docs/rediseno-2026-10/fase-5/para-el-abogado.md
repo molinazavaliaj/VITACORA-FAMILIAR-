@@ -161,7 +161,7 @@ compró nada**. No hay azar: a todos les sale el mismo 10 %, no es un sorteo.
 Naza consultó estos puntos por otra vía y nos llegaron estas propuestas. **No son la opinión del
 abogado**: las ponemos para que las confirme, corrija o descarte.
 
-**7.1 Popup «rasca y gana» (cupón del 10 %, VITACORA10, todavía no publicado). Textos y bases aprobados por Naza en `textos-legales-nuevos.md`, para que los revise.**
+**7.1 Popup «rasca y gana» (cupón del 10 % sobre el libro digital, un código distinto por mail, todavía no publicado). Textos y bases aprobados por Naza en `textos-legales-nuevos.md`, para que los revise.**
 - Dos casillas separadas, sin marcar por defecto (Planet49): una para recibir el cupón por mail
   (ejecución de lo pedido) y otra, aparte, para los 4 recordatorios (comunicación comercial, art. 21.1
   LSSI). Ninguna mezclada con la aceptación de términos. Que diga quién manda los correos.
