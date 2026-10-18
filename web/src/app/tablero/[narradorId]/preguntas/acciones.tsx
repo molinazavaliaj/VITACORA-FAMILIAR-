@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, chicaParaTapa, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -518,7 +518,11 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato
 type FotoElegida = { clave: string; archivo: File; medida: { ancho: number; alto: number } | null };
 const FOTOS_POR_VEZ = 20;
 
-export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto", trato = "vos" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra"; trato?: TratoComprador }) {
+// `paraTapa` (arreglos chicos, maqueta Panel): todavía no hay foto de tapa y
+// lo que se sube puede terminar ahí. Si alguna elegida no alcanza para la tapa
+// (`chicaParaTapa`), antes de subir sale el aviso «Esta foto es pequeña» con
+// dos salidas: elegir otra (saca las chicas) o usarla igualmente (sube todo).
+export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto", trato = "vos", paraTapa = false }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra"; trato?: TratoComprador; paraTapa?: boolean }) {
   const tu = trato === "tu";
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
@@ -533,16 +537,21 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [avisoChica, setAvisoChica] = useState(false);
   const unaSola = elegidas.length === 1;
+  const chicas = paraTapa ? elegidas.filter((f) => chicaParaTapa(f.medida)) : [];
 
   function agregar(archivo: File, medida: { ancho: number; alto: number } | null) {
     const clave = `${archivo.name}-${archivo.size}-${archivo.lastModified}`;
+    setAvisoChica(false);
     setElegidas((x) => (x.some((f) => f.clave === clave) || x.length >= FOTOS_POR_VEZ ? x : [...x, { clave, archivo, medida }]));
   }
 
-  async function guardar() {
+  async function guardar(usarIgual = false) {
     if (elegidas.length === 0) { setError(tu ? "Elige al menos una foto." : "Elegí al menos una foto."); return; }
     setError(null);
+    if (!usarIgual && chicas.length > 0) { setAvisoChica(true); return; }
+    setAvisoChica(false);
     const pendientes = [...elegidas];
     let subidas = 0;
     let ultimoAviso: string | null = null;
@@ -628,11 +637,28 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           </label>
         ) : null}
         <Error_ mensaje={error} />
+        {avisoChica && chicas.length > 0 ? (
+          <div role="alert" className="m-step-abajo flex flex-col gap-3 rounded-xl border border-[var(--alerta)] bg-[var(--alerta-fondo)] p-4">
+            <p className="text-[14px] leading-snug text-[var(--alerta)] [font-family:var(--fuente-micro)]">
+              {tu
+                ? "Esta foto es pequeña. Impresa en tapa dura saldría borrosa. Si tienes otra más grande, mejor."
+                : "Esta foto es chica. Impresa en tapa dura saldría borrosa. Si tenés otra más grande, mejor."}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={() => { setElegidas((x) => x.filter((f) => !chicaParaTapa(f.medida))); setAvisoChica(false); }}>
+                Elegir otra
+              </button>
+              <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => guardar(true)}>
+                Usarla igualmente
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={guardar}>
+          <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={() => guardar()}>
             {ocupado ?? (elegidas.length > 1 ? `Guardar las ${elegidas.length} fotos` : "Guardar la foto")}
           </button>
-          <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => { setAbierto(false); setError(null); setElegidas([]); }}>Cancelar</button>
+          <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => { setAbierto(false); setError(null); setAvisoChica(false); setElegidas([]); }}>Cancelar</button>
         </div>
       </div>
     </div>
