@@ -1,6 +1,8 @@
 # Arreglos chicos (18/10) — textos nuevos
 
-Todo lo de esta lista es **PROPUESTA**: está puesto en la web (rama `rediseno-web-arreglos-chicos`) para que se pueda ver, pero lo aprueba Naza. Lo demás que aparece en las pantallas es de las maquetas o ya estaba aprobado (se dice al lado de cada bloque).
+**Tanda 1 (1 a 10): aprobada por Naza el 18/10, tal cual.** Lo que sigue (11 a 26) sigue como PROPUESTA.
+
+Todo lo de esta lista era **PROPUESTA**: está puesto en la web (rama `rediseno-web-arreglos-chicos`) para que se pueda ver, pero lo aprueba Naza. Lo demás que aparece en las pantallas es de las maquetas o ya estaba aprobado (se dice al lado de cada bloque).
 
 Reglas que se cumplieron en cada línea: sin dos puntos, ninguna oración que empiece con «Y» después de un punto, España de tú, Argentina de vos, catalán marcado `// ca: PENDIENTE REVISIÓN NATIVA` en el código.
 

@@ -138,8 +138,8 @@ const ES: TextosPanel = {
   cambiarDireccion: "Cambiar la dirección de envío",
   anadirMarco: "Añadir el marco",
   // La tarjeta del marco: el título y el texto son los de la maqueta Panel y
-  // del checkout (aprobados); las variantes de «tu libro» y del viaje, PROPUESTA
-  // (docs/rediseno-2026-10/arreglos-chicos/textos.md 3).
+  // del checkout (aprobados); «Tu foto enmarcada» y el texto de «tu libro»,
+  // aprobados el 18/10 (tanda 1); el del viaje, PROPUESTA (textos.md 3, nº 11).
   marcoTitulo: (q) => (q.propia || q.viaje ? "Tu foto enmarcada" : "Su foto enmarcada"),
   marcoTexto: (q) =>
     q.viaje
@@ -150,7 +150,7 @@ const ES: TextosPanel = {
   altMarco: "Un marco negro pequeño con una foto, sobre un aparador junto a un libro y una lámpara encendida",
   // «Cambiar la fecha de inicio», «Nueva fecha» y «Guardar la nueva fecha»
   // son de la maqueta; «Guardado», del pedido de Naza (18/10). El resto,
-  // PROPUESTA (textos.md 2).
+  // aprobado por Naza el 18/10 (textos.md, tanda 1).
   cambiarFecha: "Cambiar la fecha de inicio",
   fechaTexto: "El día en que empieza su regalo. Puedes cambiarla mientras no lo haya abierto.",
   fechaCampo: "Nueva fecha",

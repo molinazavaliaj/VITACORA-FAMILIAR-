@@ -51,22 +51,22 @@ const ES: TextosEntrar = {
   otroCorreo: "Usar otro correo",
   volver: "Volver a la web",
   notaTitulo: "¿Te han regalado el libro y eres quien lo cuenta?",
-  // PROPUESTA (textos.md 1): la de la maqueta llevaba dos puntos.
+  // Aprobado por Naza el 18/10 (textos.md, tanda 1): la de la maqueta llevaba dos puntos.
   notaTexto: "No necesitas entrar aquí. Todo lo haces desde WhatsApp, y ahí te llega el enlace para escuchar tu libro.",
   citaFoto: "«Tocaba fatal, pero tocaba fuerte.»",
   pieFoto: "Osvaldo, en su libro",
-  // PROPUESTA (textos.md 1): el texto alternativo de la foto.
+  // Aprobado por Naza el 18/10 (textos.md, tanda 1): el texto alternativo de la foto.
   altFoto: "Osvaldo de joven, sentado en un muro de piedra, toca la guitarra en una calle de su pueblo",
 };
 
 const AR: TextosEntrar = {
   ...ES,
-  // PROPUESTA (textos.md 1): el título de la maqueta, de vos.
+  // Aprobado por Naza el 18/10 (textos.md, tanda 1): el título de la maqueta, de vos.
   titulo: "Entrá para ver cómo va su libro.",
   errorEnvio: "No pudimos enviar el código. Probá de nuevo en un momento.",
   escribiloAca: "Escribilo acá:",
   errorCodigo: "El código no es correcto o ya venció. Revisalo o pedí uno nuevo.",
-  // PROPUESTA (textos.md 1): la nota de la maqueta, de vos.
+  // Aprobado por Naza el 18/10 (textos.md, tanda 1): la nota de la maqueta, de vos.
   notaTitulo: "¿Te regalaron el libro y sos quien lo cuenta?",
   notaTexto: "No necesitás entrar acá. Todo lo hacés desde WhatsApp, y ahí te llega el enlace para escuchar tu libro.",
   altFoto: "Osvaldo de joven, sentado en un muro de piedra, toca la guitarra en una calle de su pueblo",

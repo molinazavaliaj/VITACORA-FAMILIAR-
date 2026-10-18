@@ -16,7 +16,7 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 // en el medio, no se pisa nada y se avisa.
 
 const GENERICO = (t: TratoComprador = "vos") => `No pudimos guardar la fecha. ${intenta(t)} de nuevo.`;
-// PROPUESTA (arreglos-chicos/textos.md 2): igual de tú y de vos.
+// Aprobado por Naza el 18/10 (arreglos-chicos/textos.md, tanda 1): igual de tú y de vos.
 const YA_NO = "Este regalo ya está en marcha y la fecha no se puede cambiar.";
 
 export async function PATCH(request: NextRequest) {
