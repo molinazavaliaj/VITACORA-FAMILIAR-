@@ -23,7 +23,7 @@ import type { Textos } from "@/lib/idioma-web";
 // (Res. 424/2020). Las tres rutas siguen siendo /legal/terminos,
 // /legal/privacidad y /legal/arrepentimiento (con /ca y /ar delante).
 //
-// ca: PENDIENTE REVISIÓN NATIVA Y ABOGADO. Además, confirmar con el abogado qué
+// ca: revisado con el corrector de Softcatalà (18/10) Y ABOGADO. Además, confirmar con el abogado qué
 // textos legales tienen que estar en catalán obligatoriamente (DECISIONES D2).
 //
 // Marcas dentro de los textos (las pinta legal/pagina.tsx):
@@ -907,7 +907,7 @@ const AR: TextosLegal = {
 };
 
 // ─── Catalán (tú) ─────────────────────────────────────────────────────────
-// ca: PENDIENTE REVISIÓN NATIVA Y ABOGADO. Traducción de ES hecha por Claude
+// ca: revisado con el corrector de Softcatalà (18/10) Y ABOGADO. Traducción de ES hecha por Claude
 // Code el 14/10. Los nombres de leyes y organismos van con su nombre oficial.
 
 const GARANTIA_CA = (id: string, titulo: string) =>
@@ -1006,7 +1006,7 @@ const CA: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te'n desdius",
         bloques: [
-          p("Pots desistir de la compra sense donar explicacions. Escriu-nos a {hola} o fes servir el [botó de desistiment](/legal/arrepentimiento); et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies. El termini per desistir depèn d'on vas comprar:"),
+          p("Pots desistir de la compra sense donar explicacions. Escriu-nos a {hola} o fes servir el [botó de desistiment](/legal/arrepentimiento); et confirmem que l'hem rebut en un termini de 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies. El termini per desistir depèn d'on vas comprar:"),
           lista(
             "**Espanya — 14 dies naturals** des de la compra (dret de desistiment, arts. 102 a 108 del RDL 1/2007). En pagar ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar aquests 14 dies; si te'n desdius amb l'entrevista ja en marxa, et retornem el preu menys la part proporcional a les preguntes ja fetes (art. 108.3). Un cop el llibre en PDF i les seves frases amb la seva veu són a la teva disposició al teu compte, amb el teu consentiment, el desistiment ja no s'hi aplica (art. 103 m); tampoc al llibre imprès ni als marcs, que es fan a mida (art. 103 c). Si alguna cosa arriba malmesa o amb un defecte, la reposem.",
             "**Argentina — 10 dies seguits** des de la compra (art. 34 de la llei 24.240). Pots revocar la compra sense cap cost i et retornem el total. El botó de penediment és a la pàgina d'inici, com exigeix la Resolució 424/2020.",
@@ -1252,7 +1252,7 @@ const CA: TextosLegal = {
     descripcion: "Com desistir d'una compra i demanar la devolució.",
     enCorto: [
       "Es demana amb un correu. No cal que expliquis per què.",
-      "Et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en 14 dies com a màxim.",
+      "Et confirmem que l'hem rebut en un termini de 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en 14 dies com a màxim.",
       "Espanya, 14 dies naturals des de la compra. Argentina, 10 dies seguits, sense cost.",
     ],
     secciones: [
@@ -1270,7 +1270,7 @@ const CA: TextosLegal = {
         titulo: "Què passa després",
         bloques: [
           lista(
-            "Et confirmem per correu que l'hem rebut, dins de les 24 hores.",
+            "Et confirmem per correu que l'hem rebut, en un termini de 24 hores.",
             "Si l'entrevista havia començat, l'aturem i l'hi expliquem al narrador amb cura.",
             "Et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies.",
           ),

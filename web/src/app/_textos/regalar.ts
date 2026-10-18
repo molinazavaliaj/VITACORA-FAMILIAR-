@@ -4,9 +4,9 @@ import { textosComprador, type TextosComprador } from "@/lib/regalo-textos";
 // Los textos de quien regala en /regalar (y en el regalo de /comprar), por la
 // versión de la web. es y ar son los aprobados de lib/regalo-textos.ts (de tú y
 // de vos, tal cual); ca es la traducción nueva, de tú.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
-const HORA_DE_CA = (pais: "AR" | "ES") => (pais === "AR" ? "És l'hora d'Argentina." : "És l'hora d'Espanya.");
+const HORA_DE_CA = (pais: "AR" | "ES") => (pais === "AR" ? "És l'hora de l'Argentina." : "És l'hora d'Espanya.");
 
 const CA: TextosComprador = {
   mailAsunto: (como) => `El teu regal per a ${como} està llest`,
@@ -28,7 +28,7 @@ const CA: TextosComprador = {
   cuando: "Quan li donaràs? (opcional)",
   tuNombre: "El teu nom, tal com sortirà a la targeta",
   queEsTuyo: "Què és teu?",
-  queEsTuyoPista: "néta, fill…",
+  queEsTuyoPista: "neta, fill…",
   tuCorreo: "El teu correu. Allà t'arriba la targeta.",
   botonPagar: "Pagar i descarregar la targeta",
   tituloPagina: "Regalar el llibre",
@@ -55,7 +55,7 @@ const CA: TextosComprador = {
   pagoSeguro: (pasarela) => `Pagament únic i segur amb ${pasarela}. En pagar acceptes les`,
   terminos: "condicions",
   idioma: "En quin idioma li parlem?",
-  idiomas: { "es-AR": "Castellà d'Argentina", "es-ES": "Castellà d'Espanya", ca: "Català" },
+  idiomas: { "es-AR": "Castellà de l'Argentina", "es-ES": "Castellà d'Espanya", ca: "Català" },
   entrega: {
     mandarloEseDia: "Vols que li enviem aquell dia?",
     canales: { nadie: "No, li dono jo", whatsapp: "Per WhatsApp", mail: "Per correu" },

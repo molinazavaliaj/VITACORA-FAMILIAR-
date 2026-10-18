@@ -269,7 +269,7 @@ export const CHECKOUT_KIDS: Textos<TextosCheckoutKids> = {
     legalAntes: "En pagar acceptes els ",
     terminos: "termes",
     legalDespues: ".",
-    proximamente: "Properament",
+    proximamente: "Aviat",
     proximamenteTexto: "Vitácora Kids encara no es ven. Escriu-nos i t'avisem quan obri.",
     escribir: "Escriu-nos",
     volver: "Tornar a Vitácora Kids",

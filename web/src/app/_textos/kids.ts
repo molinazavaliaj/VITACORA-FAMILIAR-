@@ -18,7 +18,7 @@ import type { Textos } from "@/lib/idioma-web";
 // (Kids es para chicos y chicas: pendientes.md de la rama), sin prometer
 // tiempos (ni días, ni semanas, ni «9 días»), sin reseñas, sin marco ni «Su
 // voz» (Kids no los define), y el bot nunca dice que algo le gusta o le alegra.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type PasoKids = { titulo: string; texto: string };
 export type DudaKids = { pregunta: string; respuesta: string };
@@ -177,7 +177,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
   },
 
   /* ─────────────────────────── Catalán, de tú ─────────────────────────── */
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "Vitácora Kids · El meu primer capítol",
@@ -188,11 +188,11 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     bajada: "Li fem preguntes per WhatsApp, respon amb àudios i amb fotos, i tot això es converteix en un llibre de debò.",
     empezar: "Començar el seu llibre",
     desde: (p) => `Un sol pagament, ${p}`,
-    proximamente: "Properament",
+    proximamente: "Aviat",
     proximamenteTexto: "Encara no es ven. Escriu-nos i t'avisem quan obri.",
     escribir: "Escriu-nos",
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Vull que m'aviseu quan obri Vitácora Kids." },
-    altHero: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un ós de peluix",
+    altHero: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un os de peluix",
     dibujos: {
       frase: ["Els dibuixos es perden.", "El que pensava, també."],
       texto: "Guardem les seves fotos i les notes de l'escola, però no com pensava a aquesta edat. Ni tan sols se'n recordarà.",
@@ -222,7 +222,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     libro: {
       titulo: "Cinc parts, i l'última tancada.",
       texto: "Amb les seves paraules i les seves fotos, explicat com un relat. La cinquena part és el que li diu a qui serà de gran, i va en un sobre tancat.",
-      capitulos: ["De petit", "La meva gent", "El meu món ara", "El que em va passar", "Per quan siguis gran"],
+      capitulos: ["De petit", "La meva gent", "El meu món ara", "El que em va passar", "Per a quan siguis gran"],
       sobre: "en un sobre tancat",
       altFoto: "Un llibre obert pel capítol 1, amb la foto d'un nen somrient, sobre un cobrellit de colors",
     },
@@ -280,10 +280,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
         },
       ],
     },
-    cierre: { titulo: ["El que avui li importa,", "guardat per quan creixi."], familiar: "Busques el llibre d'una vida? Vitácora Familiar" },
+    cierre: { titulo: ["El que avui li importa,", "guardat per a quan creixi."], familiar: "Busques el llibre d'una vida? Vitácora Familiar" },
     portada: {
       etiqueta: "Vitácora Kids · Per als onze",
-      texto: "El seu món d'ara, guardat per quan creixi.",
+      texto: "El seu món d'ara, guardat per a quan creixi.",
       alt: "Un nen assegut al llit grava un àudio amb el mòbil",
     },
   },

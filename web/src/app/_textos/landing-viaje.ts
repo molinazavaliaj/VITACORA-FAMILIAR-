@@ -13,7 +13,7 @@ import type { TextosLandingBase } from "./landings";
 // Sin «cada noche» ni «esa misma noche» (B24). es = vosotros a los que viajan,
 // tú a quien paga; ar = de vos; ca = vosaltres / tu.
 // Nuevo, para aprobar: fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosLandingViaje = TextosLandingBase & {
   queda: { titulo: string; items: [string, string, string] };
@@ -66,7 +66,7 @@ export const TEXTOS_LANDING_VIAJE: Textos<TextosLandingViaje> = {
     faqTitulo: "Antes de comprarlo.",
     cierre: "Que este viaje no se olvide.",
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "El llibre del viatge · Vitácora de Viatge",

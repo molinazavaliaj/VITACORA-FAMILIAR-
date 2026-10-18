@@ -3,7 +3,7 @@ import type { Textos } from "@/lib/idioma-web";
 // Los textos de la cabecera y el pie públicos (rediseño 2026-10), los que
 // comparten la portada, /ejemplo y el checkout. Los nuevos están listados para
 // aprobar en docs/rediseno-2026-10/fase-1/textos-portada.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosPublico = {
   inicio: string;

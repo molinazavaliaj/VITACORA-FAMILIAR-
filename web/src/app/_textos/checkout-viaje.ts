@@ -10,7 +10,7 @@ import type { ANGULOS, COMPANIAS, PROPOSITOS } from "@/lib/viaje";
 // se compra a sí mismo): lo de vos que ya existía va igual, salvo «cada noche»
 // y «una pregunta por noche», que salen hasta que Naza decida B24. ca = de
 // vosaltres a los que viajan, de tú a quien paga.
-// ca: PENDIENTE REVISIÓN NATIVA (el bloque ca).
+// ca: revisado con el corrector de Softcatalà (18/10) (el bloque ca).
 
 type Compania = (typeof COMPANIAS)[number];
 type Proposito = (typeof PROPOSITOS)[number];
@@ -291,11 +291,11 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     marcoDetalle: "Un marc amb la foto que trieu. Porta un xip amagat. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
     marcoFotoAlt: "Un marc amb la foto d'un viatge al costat del seu llibre",
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
-    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
+    // ca revisado con el corrector de Softcatalà, 18/10 (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
     marcoOpcionTitulo: "Imprès + digital + la vostra foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la vostra foto del viatge. Hi acosteu el mòbil i s'obre el llibre del viatge, amb la vostra veu.",
-    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
-    marcoPrimeroTitulo: "Marc amb la vostra foto", // ca: PENDIENTE REVISIÓN NATIVA
+    // ca revisado con el corrector de Softcatalà, 18/10 (es/ar aprobados por Naza el 14/10).
+    marcoPrimeroTitulo: "Marc amb la vostra foto", // ca: revisado con el corrector de Softcatalà (18/10)
     marcoRegaloDetalle: "Per regalar a la vostra família. Quan hi acosteu el mòbil s'obre el llibre del viatge, amb la vostra veu.",
 
     viajeTitulo: "El viatge",

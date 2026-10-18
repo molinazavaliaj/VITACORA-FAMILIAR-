@@ -6,7 +6,7 @@ import { idiomaWebDeKids, type IdiomaKids } from "@/lib/kids";
 // que el sistema no cumple (DECISIONES D4): sin anticipo, sin «9 días», sin
 // «lo lees mientras se escribe». Lo aprobado el 06/10 (G1, G2, #18, #19) va tal
 // cual; lo nuevo está en docs/rediseno-2026-10/fase-1/textos-checkout.md.
-// ca: PENDIENTE REVISIÓN NATIVA (el bloque ca).
+// ca: revisado con el corrector de Softcatalà (18/10) (el bloque ca).
 
 export type Momento = { cuando: string; que: string };
 
@@ -153,7 +153,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
         ? `El vostre biògraf de viatge es presenta per WhatsApp. Per començar ja, envieu-li un «hola» a ${numero}: us contesta i us demana el SÍ.`
         : "El vostre biògraf de viatge es presenta per WhatsApp. Quan us escrigui, responeu SÍ i comença.",
     irAlPanel: (propia) => (propia ? "Anar a la pàgina de la teva història" : "Anar a la pàgina de la seva història"),
-    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del teu viatge" : "Entrar a la pàgina de la història"), // ca: PENDIENTE REVISIÓN NATIVA
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del teu viatge" : "Entrar a la pàgina de la història"), // ca: revisado con el corrector de Softcatalà (18/10)
     sinContrasenas: "Amb el teu correu i un codi de 6 xifres. Sense contrasenyes.",
     descargarTarjeta: "Descarregar la targeta de regal",
     direccionGuardada: "Adreça d'enviament desada.",

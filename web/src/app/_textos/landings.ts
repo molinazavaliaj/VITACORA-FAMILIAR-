@@ -12,7 +12,7 @@ import type { IdiomaWeb, Textos } from "@/lib/idioma-web";
 // toma de _textos/portada.ts para no tener dos copias del mismo texto.
 //
 // Todo lo nuevo está en docs/rediseno-2026-10/fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 /** Lo que cada landing tiene sí o sí. */
 export type TextosLandingBase = {
@@ -37,7 +37,7 @@ export type TextosLandingComun = {
 export const TEXTOS_LANDING_COMUN: Textos<TextosLandingComun> = {
   es: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
   ar: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inicio", libroTitulo: "Así queda su libro." },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: { comprar: "Iniciar Vitácora", inicio: "Vitácora, inici", libroTitulo: "Així queda el seu llibre." },
 };
 

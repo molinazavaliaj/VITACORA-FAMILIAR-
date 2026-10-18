@@ -13,7 +13,7 @@ import type { PasoKids } from "./kids";
 // cada una es la opción recomendada; las otras dos están en `titulares`, para
 // que Naza elija. Las preguntas de ejemplo son del banco aprobado (K1, K24,
 // K44); en España y en catalán, adaptadas.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type LandingKids = "mundo" | "once";
 
@@ -108,7 +108,7 @@ const ES: PorLanding = {
   },
 };
 
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 const CA: PorLanding = {
   mundo: {
     meta: { titulo: "Vitácora Kids · El seu món, amb les seves paraules", descripcion: "Li preguntem per WhatsApp i contesta amb àudios. Amb això fem el seu llibre." },
@@ -148,7 +148,7 @@ const CA: PorLanding = {
     titulares: [
       "D'aquí a uns anys, ningú no recordarà com pensava als onze anys.",
       "Als onze anys es pensa diferent. Guarda-ho abans que canviï.",
-      "Com pensa avui, guardat per quan creixi.",
+      "Com pensa avui, guardat per a quan creixi.",
     ],
     bajada: "Li preguntem pel seu món i contesta amb àudios. Amb les seves respostes fem el seu llibre, amb les seves paraules.",
     seccion: {
@@ -166,12 +166,12 @@ const CA: PorLanding = {
       pasos: [
         { titulo: "Tries com arriben", texto: "Al seu WhatsApp o al teu, i a quina hora." },
         { titulo: "Contesta amb àudios", texto: "Des del mòbil, quan li ve de gust." },
-        { titulo: "Reps el seu llibre", texto: "Amb les seves paraules i les seves fotos, i un sobre tancat per quan sigui gran." },
+        { titulo: "Reps el seu llibre", texto: "Amb les seves paraules i les seves fotos, i un sobre tancat per a quan sigui gran." },
       ],
     },
     faqTitulo: "Abans de decidir.",
     cierre: "Guarda com és avui.",
-    altFoto: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un ós de peluix",
+    altFoto: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un os de peluix",
   },
 };
 

@@ -4,7 +4,7 @@ import type { Textos } from "@/lib/idioma-web";
 // 5): la página que no existe (404) y los enlaces que ya no sirven. La frase
 // del 404 es de la lista «se pueden usar tal cual» (TEXTOS-Y-REGLAS.md §5); el
 // resto está para aprobar en docs/rediseno-2026-10/fase-3/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosAviso = {
   /** La etiqueta chica de arriba; vacía, no se pinta. */

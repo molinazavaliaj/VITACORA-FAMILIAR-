@@ -21,7 +21,7 @@ import type { Textos } from "@/lib/idioma-web";
 //
 // Todo lo que no es copia literal de un aprobado está en
 // docs/rediseno-2026-10/fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 type Paso = { titulo: string; texto: string };
 type Duda = { pregunta: string; respuesta: string };
@@ -179,7 +179,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
   },
 
   /* ─────────── Catalán: vosaltres a los que viajan, tu a quien paga ─────────── */
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "Vitácora de Viatge — A cada viatge hi ha un llibre per escriure",

@@ -6,7 +6,7 @@ import type { ProductoOpinion } from "@/lib/opiniones";
 // en sí no van acá: salen de lib/opiniones.ts, en su idioma original. El
 // cierre (lema y «Iniciar Vitácora») es el aprobado de la portada (#30).
 //
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosOpiniones = {
   /** #10 */
