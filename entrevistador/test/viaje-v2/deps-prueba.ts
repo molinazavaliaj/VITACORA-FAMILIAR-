@@ -19,6 +19,7 @@ export type EnviadoViaje = {
 export function depsViajeDePrueba(base: BaseFalsa, o: { ahora?: Date; fallarEnvios?: number } = {}) {
   const enviados: EnviadoViaje[] = [];
   const avisos: { clave: string; asunto: string; detalle: string }[] = [];
+  const mailsSi: string[] = [];
   let reloj = o.ahora ?? new Date('2026-11-01T13:00:00Z');
   let fallas = o.fallarEnvios ?? 0;
   let n = 0;
@@ -47,10 +48,11 @@ export function depsViajeDePrueba(base: BaseFalsa, o: { ahora?: Date; fallarEnvi
       return { texto: t === 'VACIO' ? '' : t, duracionSegundos: 30 };
     },
     avisar: async (clave, asunto, detalle) => { avisos.push({ clave, asunto, detalle }); },
+    mailSi: async (narradorId) => { mailsSi.push(narradorId); },
     ahora: () => reloj,
   };
   return {
-    deps, enviados, avisos,
+    deps, enviados, avisos, mailsSi,
     pasar(ms: number) { reloj = new Date(reloj.getTime() + ms); },
     fijar(fecha: Date) { reloj = fecha; },
     fallar(veces: number) { fallas = veces; },

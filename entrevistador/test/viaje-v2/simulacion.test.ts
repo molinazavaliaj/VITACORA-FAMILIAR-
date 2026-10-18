@@ -22,6 +22,7 @@ describe.each(['es-AR', 'es-ES', 'ca'] as Idioma[])('viaje V2 en el bot: un viaj
       db: base.cliente, wa,
       transcribir: async (a) => ({ texto: a.toString('utf8') === 'VACIO' ? '' : a.toString('utf8'), duracionSegundos: 30 }),
       avisar: async () => {},
+      mailSi: async () => {},
       ahora: () => reloj,
     };
     const compra = compraDePrueba(idioma, reloj);

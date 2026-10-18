@@ -1,5 +1,7 @@
 # Estado del proyecto — actualizado 2026-10-09 (arriba lo nuevo; lo de abajo es del 20/09 y puede estar viejo)
 
+> **16/10/2026:** se sacó del worker de voz (`voz/`) el camino de la narración con voz clonada: ya no sondea `narraciones` ni pide `MOTOR`; solo corta las frases de «Su voz» y late. Lo de abajo sobre el audiolibro clonado es historia.
+
 ## 09/10: el libro V3 ya se escribe solo en producción
 
 - **Entrevista V3 por WhatsApp** en producción desde el 07/10. Narradores en V3: Naza (prueba), Dora, Imma
@@ -631,7 +633,7 @@ desincronizaba) con su fixture real, y de paso mejoró 3 tramos que estaban inco
 `respuestas.tema_de_orden`/`tema_motivo`). Con eso, el 19 y el recuerdo tardío quedan cerrados de punta a
 punta.
 
-**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo`
+**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo` (**actualizado 15/10:** las tres ramas se mergearon el 21/09 a la tarde.)
 (el audiolibro fuera del catálogo y del copy, el panel `/frases`, la página pública `/voz/<token>`, el
 contexto mínimo en el alta). **Bloqueante: la aprobación de los textos** (la revisión está hecha, con los
 cambios propuestos ya pasados a Joaquín).

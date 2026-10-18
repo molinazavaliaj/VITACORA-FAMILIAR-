@@ -249,6 +249,51 @@ describe('una imagen', () => {
   });
 });
 
+// Handoff 07/10, «Sin aviso al narrador si falla una foto». Textos de fotoFallo PROPUESTOS (15/10).
+describe('una foto que no se pudo guardar', () => {
+  const foto = (waMessageId: string): MensajeEntrante => ({ telefono: '+5491100000000', tipo: 'imagen', mediaId: 'img-x', mimeType: 'image/jpeg', waMessageId });
+  const FALLO_AR = 'La foto no me llegó bien, Prueba. ¿Me la mandás de nuevo cuando puedas? Sin apuro.';
+
+  it('con FO1 abierta: le pide que la mande de nuevo, avisa a los socios y FO1 sigue abierta', async () => {
+    const { deps, n1, fila, base, enviados, avisos } = await preparar({ ...estadoInicial(), esperando: 'FO1', ultimoEntranteAt: AHORA.toISOString() });
+    deps.wa.descargar = async () => { throw new Error('Meta no devolvió la imagen: prueba'); };
+    await procesarEntranteV3(deps, n1, foto('wamid.fo1-falla'));
+    expect(enviados.map((e) => e.texto)).toEqual([FALLO_AR]);
+    expect(avisos.map((a) => a.clave)).toEqual(['foto-fallo-wamid.fo1-falla']);
+    expect(avisos[0].detalle).toContain('Meta no devolvió la imagen');
+    const f = await fila();
+    expect(f?.estado.esperando).toBe('FO1');
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(base.tablas.fotos ?? []).toHaveLength(0);
+    expect(base.tablas.respuestas[0]).toMatchObject({ texto_directo: MARCA_FOTO, clave_v3: SIN_CLAVE_V3 });
+  });
+
+  it('el reintento de Meta del mismo mensaje no repite el pedido ni el aviso', async () => {
+    const { deps, n1, enviados, avisos } = await preparar({ ...estadoInicial(), esperando: 'FO1', ultimoEntranteAt: AHORA.toISOString() });
+    deps.wa.descargar = async () => { throw new Error('prueba'); };
+    await procesarEntranteV3(deps, n1, foto('wamid.fo1-dos'));
+    await procesarEntranteV3(deps, n1, foto('wamid.fo1-dos'));
+    expect(enviados).toHaveLength(1);
+    expect(avisos).toHaveLength(1);
+  });
+
+  it('suelta: si Storage la rechaza, no le dice «Guardada»: le pide que la mande de nuevo (en su idioma)', async () => {
+    const { deps, n1, enviados, avisos, base } = await preparar(enOR1(), { idioma: 'es-ES' });
+    base.fallarProxima.set('fotos', { code: 'XX000', message: 'la base no anda: prueba' });
+    await procesarEntranteV3(deps, n1, foto('wamid.suelta-falla'));
+    expect(enviados.map((e) => e.texto)).toEqual(['La foto no me ha llegado bien, Prueba. ¿Me la mandas de nuevo cuando puedas? Sin prisa.']);
+    expect(avisos.map((a) => a.clave)).toEqual(['foto-fallo-wamid.suelta-falla']);
+    expect(base.tablas.fotos ?? []).toHaveLength(0);
+  });
+
+  it('en catalán', async () => {
+    const { deps, n1, enviados } = await preparar(enOR1(), { idioma: 'ca' });
+    deps.wa.descargar = async () => { throw new Error('prueba'); };
+    await procesarEntranteV3(deps, n1, foto('wamid.ca-falla'));
+    expect(enviados.map((e) => e.texto)).toEqual(["La foto no m'ha arribat bé, Prueba. Me la tornes a enviar quan puguis? Sense pressa."]);
+  });
+});
+
 describe('la ventana de 24 h la abre cualquier mensaje del narrador', () => {
   const HACE_DOS_DIAS = new Date(AHORA.getTime() - 48 * 3600_000).toISOString();
   const cerrada = (e: EstadoV3): EstadoV3 => ({ ...e, ultimoEntranteAt: HACE_DOS_DIAS });
@@ -363,12 +408,40 @@ describe('la abierta salió por plantilla (sin botones)', () => {
     ultimoEntranteAt: new Date(AHORA.getTime() - 48 * 3600_000).toISOString(),
   });
 
-  it('al volver a escribir, se le reenvía la pregunta con sus botones (una vez)', async () => {
+  // Handoff 07/10, «Pregunta repetida tras una plantilla»: ya la leyó en la plantilla y la contestó.
+  it('si la contesta con audio, no se le repite la pregunta', async () => {
     const { deps, n1, enviados, fila } = await preparar(porPlantilla());
     await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
     await procesarEntranteV3(deps, n1, audio('Yo era la más chica.'));
+    expect(enviados).toEqual([]);
+    const f = await fila();
+    expect(f?.estado.abiertaPorPlantilla).toBeUndefined();
+    expect(f?.estado.esperando).toBe('CA6');
+    expect(f?.estado.borrador).toBe('Éramos cuatro. Yo era la más chica.');
+  });
+
+  it('si la contesta escribiendo, no se le repite la pregunta (sale solo M22, la primera vez)', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Sí, éramos cuatro'));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
+    expect(enviados.some((e) => e.tipo === 'botones')).toBe(false);
+    const f = await fila();
+    expect(f?.estado.abiertaPorPlantilla).toBeUndefined();
+    expect(f?.estado.borrador).toBe('Sí, éramos cuatro');
+  });
+
+  it('si toca el botón de otra plantilla (no la contesta), se le manda con sus botones, una vez', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Empecemos', true));
+    await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
     expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'botones', texto: '¿Tuviste hermanos?', botones: BOTONES }]);
     expect((await fila())?.estado.abiertaPorPlantilla).toBeUndefined();
+  });
+
+  it('si solo saluda, se le manda con sus botones', async () => {
+    const { deps, n1, enviados } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'botones', texto: '¿Tuviste hermanos?', botones: BOTONES }]);
   });
 
   it('si lo que manda es un botón que coincide, no se reenvía', async () => {

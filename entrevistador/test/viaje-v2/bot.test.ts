@@ -82,6 +82,15 @@ describe('viaje V2 en el bot: la bienvenida y el SÍ', () => {
     expect(r.base.tablas.respuestas).toEqual([]);
   });
 
+  it('el «dijo que sí» por mail va solo si el viaje es un regalo', async () => {
+    const propio = await preparar({ estado: { bienvenida: { en: AHORA.toISOString(), por: 'plantilla' } } });
+    await propio.entra({ waMessageId: 'w1', texto: 'sí' });
+    expect(propio.mailsSi).toEqual([]);
+    const regalo = await preparar({ compra: { ...COMPRA, regalo: { quienRegala: 'Tomás' } }, estado: { bienvenida: { en: AHORA.toISOString(), por: 'plantilla' } } });
+    await regalo.entra({ waMessageId: 'w1', texto: 'sí' });
+    expect(regalo.mailsSi).toEqual(['n1']);
+  });
+
   it('«Sii» también es SÍ; «hola» no', () => {
     expect(esSi('Sii', COMPRA)).toBe(true);
     expect(esSi('siii!!', COMPRA)).toBe(true);
