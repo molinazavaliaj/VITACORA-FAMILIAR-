@@ -1,17 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import type { TratoComprador } from "@/lib/regalo-textos";
+import { TEXTOS_VOZ } from "../../_textos/voz";
+import type { IdiomaWeb } from "@/lib/idioma-web";
 
-// El botón de compartir una frase (spec "Su voz": cada frase con su ancla para
-// mandar UNA por WhatsApp). Es el mecanismo que hace que esto se contagie: un
-// primo recibe la frase en su voz, escucha, y quiere el libro. En el celular
-// usa la hoja de compartir del sistema (WhatsApp está ahí); si no existe,
-// abre WhatsApp directo con el link; y siempre se puede copiar.
+// Compartir desde «Su voz». Dos cosas:
+// - Una frase (spec "Su voz": cada frase con su ancla para mandar UNA por
+//   WhatsApp). Es el mecanismo que hace que esto se contagie: un primo recibe
+//   la frase en su voz, escucha, y quiere el libro.
+// - La página entera, para la familia (maqueta SuVoz, «Compartir con la familia»).
+// En el celular usa la hoja de compartir del sistema (WhatsApp está ahí); si no
+// existe, la frase abre WhatsApp directo y la página copia el link.
 
-const boton = "inline-flex h-9 items-center justify-center rounded-full border border-[var(--linea-fuerte)] px-4 text-[13px] font-medium transition-colors [font-family:var(--fuente-micro)] hover:bg-[var(--bruma)]";
+async function copiar(link: string, aviso: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(link);
+    return true;
+  } catch {
+    window.prompt(aviso, link);
+    return false;
+  }
+}
 
-export function CompartirFrase({ texto, nombre, ancla, trato = "vos" }: { texto: string; nombre: string; ancla: string; trato?: TratoComprador }) {
+async function hojaDeCompartir(datos: ShareData): Promise<boolean> {
+  if (typeof navigator === "undefined" || !("share" in navigator)) return false;
+  try {
+    await navigator.share(datos);
+    return true;
+  } catch {
+    // Canceló, o el navegador no pudo: sigue con lo otro.
+    return false;
+  }
+}
+
+const enlace = "underline decoration-[var(--dir-hilo-tinta)] underline-offset-4 transition-colors hover:text-[var(--dir-sobre-tinta)] hover:decoration-[var(--dir-sobre-tinta)]";
+
+export function CompartirFrase({ texto, nombre, ancla, idioma }: { texto: string; nombre: string; ancla: string; idioma: IdiomaWeb }) {
+  const T = TEXTOS_VOZ[idioma];
   const [copiado, setCopiado] = useState(false);
 
   function url() {
@@ -20,39 +45,52 @@ export function CompartirFrase({ texto, nombre, ancla, trato = "vos" }: { texto:
     u.hash = ancla;
     return u.toString();
   }
-  const mensaje = () => `«${texto}» — ${nombre}, en su voz.`;
 
-  async function compartir() {
+  async function mandar() {
     const link = url();
-    if (typeof navigator !== "undefined" && "share" in navigator) {
-      try {
-        await navigator.share({ title: `${nombre}, en su voz`, text: mensaje(), url: link });
-        return;
-      } catch {
-        // Canceló, o el navegador no pudo: sigue con WhatsApp.
-      }
-    }
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${mensaje()}\n${link}`)}`, "_blank", "noopener");
+    const mensaje = T.mensajeFrase(texto, nombre);
+    if (await hojaDeCompartir({ title: T.compartirTitulo(nombre), text: mensaje, url: link })) return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${mensaje}\n${link}`)}`, "_blank", "noopener");
   }
 
-  async function copiar() {
-    try {
-      await navigator.clipboard.writeText(url());
+  async function copiarLink() {
+    if (await copiar(url(), T.copiaEsteLink)) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
-    } catch {
-      window.prompt(trato === "tu" ? "Copia este link:" : "Copiá este link:", url());
     }
   }
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <button type="button" className={`${boton} bg-[var(--texto)] text-[var(--fondo)] hover:opacity-90`} onClick={compartir}>
-        Mandar por WhatsApp
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[var(--dir-sobre-tinta-suave)] [font-family:var(--fuente-micro)]">
+      <button type="button" className={enlace} onClick={mandar}>
+        {T.mandarWhatsapp}
       </button>
-      <button type="button" className={boton} onClick={copiar}>
-        {copiado ? "Link copiado" : "Copiar el link"}
+      <button type="button" className={enlace} onClick={copiarLink}>
+        {copiado ? T.linkCopiado : T.copiarLink}
       </button>
     </div>
+  );
+}
+
+export function CompartirPagina({ nombre, idioma }: { nombre: string; idioma: IdiomaWeb }) {
+  const T = TEXTOS_VOZ[idioma];
+  const [copiado, setCopiado] = useState(false);
+
+  async function compartir() {
+    // La página sin ancla: entra por arriba, por la foto.
+    const u = new URL(window.location.href);
+    u.hash = "";
+    const link = u.toString();
+    if (await hojaDeCompartir({ title: T.compartirTitulo(nombre), url: link })) return;
+    if (await copiar(link, T.copiaEsteLink)) {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    }
+  }
+
+  return (
+    <button type="button" onClick={compartir} className="dir-boton dir-boton--hilo dir-boton--chico self-start" aria-live="polite">
+      {copiado ? T.copiado : T.compartir}
+    </button>
   );
 }
