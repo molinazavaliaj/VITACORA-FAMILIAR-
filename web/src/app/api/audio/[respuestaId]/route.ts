@@ -3,9 +3,26 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { intenta } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
+import { rutaCandado } from "@/lib/audio-borrado";
 
 const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos generar el audio. ${intenta(t)} de nuevo.`;
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
+/**
+ * Cuándo se borraron los audios originales de ese narrador, o null si siguen.
+ * El candado guarda la fecha en ISO. Si Storage falla, se devuelve null: ante la
+ * duda es mejor intentar reproducir que decirle a una familia que su audio no está.
+ */
+async function fechaDeBorrado(admin: ReturnType<typeof crearClienteServidor>, narradorId: string): Promise<string | null> {
+  try {
+    const { data, error } = await admin.storage.from("audios").download(rutaCandado(narradorId));
+    if (error || !data) return null;
+    const texto = (await data.text()).trim();
+    return texto || null;
+  } catch (err) {
+    console.error("audio: no pude leer el candado de borrado", err);
+    return null;
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -83,6 +100,16 @@ export async function GET(
 
   if (!datosRespuesta.audio_path) {
     return NextResponse.json({ error: "Esta respuesta no tiene audio." }, { status: 404 });
+  }
+
+  // Los audios originales se borran a los 3 meses del libro, avisando antes por
+  // mail (fabrica/src/audios-originales.ts). El archivo desaparece de Storage
+  // pero `respuestas.audio_path` queda: sin esto la URL se firma igual, el
+  // navegador no encuentra nada y el reproductor se queda mudo al tocar play.
+  // Mejor decir qué pasó, y cuándo.
+  const borradoEl = await fechaDeBorrado(admin, datosNarrador.id);
+  if (borradoEl) {
+    return NextResponse.json({ error: "Este audio ya no está.", borradoEl }, { status: 410 });
   }
 
   const { data: firmado, error: errorFirmado } = await admin.storage
