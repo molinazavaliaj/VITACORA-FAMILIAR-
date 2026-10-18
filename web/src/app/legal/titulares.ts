@@ -5,8 +5,10 @@
 // los pintan en amarillo para que no se olvide.
 //
 // El titular que le aplica a cada cliente lo decide la región que eligió en
-// el checkout (la misma que decide moneda y pasarela): España → Immaculada,
-// Argentina → Joaquín.
+// el checkout (la misma que decide moneda y pasarela). Desde el 17/10 (decisión
+// de Joaquín, docs/ROADMAP.md bloque 8) es la misma persona en los dos países,
+// Joaquín: en Argentina con su CUIT de monotributo, en España con su NIF de
+// autónomo (alta en trámite; hasta entonces España no vende).
 
 import type { Region } from "@/lib/precios";
 
@@ -27,7 +29,7 @@ export type Titular = {
 export const TITULARES: Record<Region, Titular> = {
   ES: {
     region: "ES",
-    nombre: "Immaculada Collel",
+    nombre: "Joaquín Molina",
     pais: "España",
     documento: { etiqueta: "NIF", valor: "" },
     domicilio: "",

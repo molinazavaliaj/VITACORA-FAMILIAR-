@@ -87,8 +87,57 @@ describe("las páginas legales", () => {
   it("los datos que faltan de los titulares se ven marcados", () => {
     expect(html("es", "terminos")).toContain("[a completar]");
     expect(html("ca", "terminos")).toContain("[per completar]");
-    expect(html("es", "terminos")).toContain("Immaculada Collel");
+    expect(html("es", "terminos")).not.toContain("Immaculada");
     expect(html("es", "terminos")).toContain("Joaquín Molina");
+  });
+});
+
+// La revisión del 17/10 (docs/legal/revision-textos-2026-10-17.md): lo que ya
+// quedó corregido no puede volver. Mira el texto visible de las tres versiones.
+describe("revisión legal del 17/10: lo corregido no vuelve", () => {
+  const visible = (idioma: IdiomaWeb, doc: DocumentoLegal) => texto(sinSolapas(html(idioma, doc)));
+
+  it.each(TODAS)("%s / %s: ni voz sintética (D4), ni dos titulares, ni «nunca se la mostramos» sin el código (B3)", (idioma, doc) => {
+    const t = visible(idioma, doc);
+    expect(t).not.toMatch(/voz sint[ée]tica|veu sint[èe]tica/i);
+    expect(t).not.toMatch(/dos personas|dues persones|una de las dos|una de les dues/i);
+    expect(t).not.toMatch(/se la mostramos a nadie fuera de tu familia\.|l'ensenyem a ningú de fora de la teva família\./);
+    expect(t).not.toMatch(/hasta el importe que pagaste|fins a l'import que vas pagar/);
+    expect(t).not.toMatch(/parte proporcional|part proporcional/);
+  });
+
+  it.each(IDIOMAS_WEB)("%s: el plazo de Argentina corre desde que se recibe el libro (A2), en términos y en el botón", (idioma) => {
+    const recibe = { es: "desde que recibes el libro", ar: "desde que recibís el libro", ca: "des que reps el llibre" }[idioma];
+    for (const doc of ["terminos", "arrepentimiento"] as const) {
+      const t = visible(idioma, doc);
+      expect(t).toContain(recibe);
+      expect(t).not.toMatch(/10 d[ií]as corridos desde la compra|10 dies seguits des de la compra/);
+    }
+  });
+
+  it.each(IDIOMAS_WEB)("%s: la voz se dice como es (D4) y el código de la contratapa es la excepción (B3)", (idioma) => {
+    const t = visible(idioma, "terminos");
+    expect(t).toMatch(/no se clona ni se imita su voz|no es clona ni s'imita la seva veu/);
+    expect(t).toMatch(/el código de la contratapa abre el libro completo|el codi de la contracoberta obre el llibre complet/);
+  });
+
+  it.each(IDIOMAS_WEB)("%s: privacidad pone plazo a los audios originales (B4)", (idioma) => {
+    expect(visible(idioma, "privacidad")).toMatch(/3 meses|3 mesos/);
+  });
+
+  it.each(IDIOMAS_WEB)("%s: el desistimiento trae el formulario del Anexo B, con el titular y el correo", (idioma) => {
+    const h = html(idioma, "arrepentimiento");
+    const formulario = h.split('class="lgl-formulario"')[1]?.split("</div>")[0] ?? "";
+    expect(formulario).toContain("Joaquín Molina");
+    expect(formulario).toContain("hola@vitacorafamiliar.com");
+    expect(formulario).toMatch(/Anexo B|Táchese|Ratlleu/);
+    expect(TEXTOS_LEGAL[idioma].arrepentimiento.secciones.some((s) => s.id === "formulario")).toBe(true);
+  });
+
+  it.each(IDIOMAS_WEB)("%s: factura e IVA incluido (C)", (idioma) => {
+    const t = visible(idioma, "terminos");
+    expect(t).toMatch(/factura electr[óò]nica/);
+    expect(t).toMatch(/IVA incluido|IVA inclòs/);
   });
 });
 
@@ -97,7 +146,7 @@ describe("la garantía de cada línea (DECISIONES D1) — PENDIENTE DE REVISIÓN
     const g = GARANTIAS[idioma];
     for (const doc of ["terminos", "arrepentimiento"] as const) {
       const t = texto(html(idioma, doc));
-      for (const frase of [g.familiar, g.familiarEmpezado, g.viaje, g.propia]) expect(t).toContain(frase);
+      for (const frase of [g.familiar, g.viaje, g.propia, g.regla]) expect(t).toContain(frase);
       const seccion = TEXTOS_LEGAL[idioma][doc].secciones.find((s) => s.id === "garantia");
       expect(seccion?.pendienteAbogado).toBe(true);
     }
