@@ -1,8 +1,7 @@
 # «Su voz» (`/voz/[token]`) — textos nuevos para aprobar
 
 Rediseño 18/10 con la maqueta `SuVoz`. Código: `web/src/app/_textos/voz.ts` (cada línea lleva su
-código SV-xx). La tanda 1 está aprobada (18/10, es y ar). La tanda 2 sigue como **PROPUESTA**
-hasta que Naza la apruebe en el chat.
+código SV-xx). Las dos tandas están aprobadas (18/10, es y ar).
 
 Lo que ya estaba en la página vieja sigue igual (aprobado): «En cada familia hay un libro sin
 escribir.», «Sus mejores frases, en su voz, se están preparando. Vuelve/Volvé en un rato.», «El
@@ -38,7 +37,7 @@ Por qué cambian respecto de la maqueta:
   familia hay un libro sin escribir.».
 - 4 · La maqueta tiene dos puntos («Esta página es privada:»). Se partió en dos oraciones.
 
-## Tanda 2 (11–17) — PROPUESTA
+## Tanda 2 (11–17) — APROBADA por Naza 18/10 en es y ar (la 17, cambiada)
 
 | # | Código | Dónde | España (tú) | Argentina (vos) | Catalán |
 |---|---|---|---|---|---|

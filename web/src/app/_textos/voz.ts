@@ -8,8 +8,8 @@ import type { Textos } from "@/lib/idioma-web";
 // Respecto de la maqueta: «Toca y escúchale» y «Así lo contaba él» dan por
 // hecho que es un hombre (la página es de cualquier familiar), «23 historias»
 // pasa a los audios que hay de verdad, y «Esta página es privada:» pierde los
-// dos puntos. Lo nuevo va en docs/rediseno-2026-10/su-voz/textos.md (tanda 1 aprobada el
-// 18/10 en es y ar; lo que dice PROPUESTA, todavía no).
+// dos puntos. Lo nuevo va en docs/rediseno-2026-10/su-voz/textos.md (las dos tandas
+// aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve).
 // Los que ya estaban en la página vieja siguen igual (aprobados).
 // ca: PENDIENTE REVISIÓN NATIVA
 
@@ -68,11 +68,11 @@ const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno
 
 export const TEXTOS_VOZ: Textos<TextosVoz> = {
   es: {
-    // PROPUESTA · SV-01 (maqueta, tal cual)
+    // APROBADO por Naza 18/10 (tanda 2, #11) · SV-01 (maqueta, tal cual)
     privado: "Privado",
     // APROBADO por Naza 18/10 (tanda 1, #1) · SV-02 (la maqueta decía «Toca y escúchale», que da por hecho que es un hombre)
     tocaYEscucha: "Toca y escucha su voz",
-    // PROPUESTA · SV-03 (no se ve)
+    // SV-03 (no se ve, lo lee el lector de pantalla)
     escucharA: (nombre) => `Escuchar a ${nombre}`,
     // APROBADO por Naza 18/10 (tanda 1, #7) · SV-04 (maqueta, tal cual)
     etiqueta: "El libro de su vida",
@@ -85,17 +85,17 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     // APROBADO por Naza 18/10 (tanda 1, #9 y #2) · SV-08 (etiqueta de la maqueta; el titular era «Así lo contaba él.»)
     capEtiqueta: "Su voz, capítulo a capítulo",
     capTitulo: "Tal como lo contó.",
-    // PROPUESTA · SV-09 (maqueta, tal cual)
+    // APROBADO por Naza 18/10 (tanda 2, #15) · SV-09 (maqueta, tal cual)
     audios: (n) => plural(n, "audio", "audios"),
-    // PROPUESTA · SV-10 (maqueta, tal cual)
+    // APROBADO por Naza 18/10 (tanda 2, #16) · SV-10 (maqueta, tal cual)
     verTodos: (n) => `Ver los ${n} capítulos`,
     // APROBADO por Naza 18/10 (tanda 1, #10) · SV-11 (maqueta, tal cual)
     frasesDeSiempre: "Sus frases de siempre",
-    // PROPUESTA · SV-12 (maqueta, tal cual)
+    // APROBADO por Naza 18/10 (tanda 2, #14) · SV-12 (maqueta, tal cual)
     familiaEtiqueta: "Para la familia",
     // APROBADO por Naza 18/10 (tanda 1, #4) · SV-12 (maqueta, sin los dos puntos)
     familiaTexto: "Esta página es privada. Solo entra quien tiene el libro, el marco o el enlace. Puedes compartirla con quien quieras de la familia.",
-    // PROPUESTA · SV-12 (maqueta, tal cual)
+    // APROBADO por Naza 18/10 (tanda 2, #12 y #13) · SV-12 (maqueta, tal cual)
     compartir: "Compartir con la familia",
     copiado: "Enlace copiado",
     compartirTitulo: (nombre) => `${nombre}, en su voz`,
