@@ -10,7 +10,9 @@ link», «Link copiado».
 
 Catalán: Naza 18/10, «lo revisamos con el catalán online, olvidémonos de Imma». Se revisa
 pegando el bloque de abajo en un corrector online (Softcatalà, softcatala.org/corrector).
-**Revisado 18/10**: Naza pasó el bloque de abajo por el corrector de Softcatalà y no marcó nada.
+**Revisado 18/10** con el corrector de Softcatalà, sobre los textos sacados del código. Corrigió
+una sola cosa, «Pausar» (no es catalán) por «Aturar». No se ve, es lo que lee el lector de pantalla en el botón
+de pausa. Los otros avisos eran nombres propios (Osvaldo, Vitácora).
 
 ## Tanda 1 (1–10) — APROBADA por Naza 18/10 en es y ar (la 6, cambiada)
 
@@ -74,6 +76,6 @@ A cada família hi ha un llibre per escriure. Començar el llibre de la meva fam
 Les seves millors frases, amb la seva veu, s'estan preparant. Torna d'aquí a una estona.
 El llibre. El llibre s'està preparant. Torna d'aquí a una estona.
 Enviar per WhatsApp. Copiar l'enllaç. «En casa no sobrava res.» — Osvaldo, amb la seva veu.
-Escoltar. Pausar. La frase «En casa no sobrava res».
+Escoltar. Aturar. La frase «En casa no sobrava res».
 ```
 

@@ -10,7 +10,7 @@ import type { Textos } from "@/lib/idioma-web";
 // pasa a los audios que hay de verdad, y «Esta página es privada:» pierde los
 // dos puntos. Lo nuevo va en docs/rediseno-2026-10/su-voz/textos.md (las dos tandas
 // aprobadas el 18/10 en es y ar; «Escuchar a…» no se ve). El catalán, revisado con el
-// corrector de Softcatalà (Naza 18/10, sin errores).
+// corrector de Softcatalà (18/10; cambió «Pausar» por «Aturar»).
 // Los que ya estaban en la página vieja siguen igual (aprobados).
 
 export type TextosVoz = {
@@ -156,7 +156,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     pausar: "Pausar",
     etiquetaAudio: (texto) => `la frase «${texto.slice(0, 40)}»`,
   },
-  // ca: revisado con el corrector de Softcatalà (Naza 18/10, sin errores)
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     privado: "Privat",
     tocaYEscucha: "Toca i escolta la seva veu",
@@ -187,7 +187,8 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     linkCopiado: "Enllaç copiat",
     mensajeFrase: (texto, nombre) => `«${texto}» — ${nombre}, amb la seva veu.`,
     escuchar: "Escoltar",
-    pausar: "Pausar",
+    // Softcatalà 18/10: «pausar» no es catalán
+    pausar: "Aturar",
     etiquetaAudio: (texto) => `la frase «${texto.slice(0, 40)}»`,
   },
 };
