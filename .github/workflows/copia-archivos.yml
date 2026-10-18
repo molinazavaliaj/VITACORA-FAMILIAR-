@@ -8,8 +8,6 @@ on:
   schedule:
     - cron: '30 8 * * *'
   workflow_dispatch:
-  push:
-    branches: [copia-audios] # SOLO PARA PROBAR, se saca antes del merge
 
 concurrency:
   group: copia-archivos
