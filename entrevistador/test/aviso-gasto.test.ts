@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { vigilarGastoDelDia } from '../src/aviso-gasto.js';
+import { registrarUso } from '../src/costos.js';
 
 // El aviso de gasto raro (18/10): el 24/09 un narrador gastó USD 11 de IA en un día
 // y nadie se enteró. Avisa al cruzar USD 2 por narrador por día; nunca corta nada.
@@ -56,5 +57,43 @@ describe('vigilarGastoDelDia', () => {
     const rota = { from: () => { throw new Error('boom'); } } as unknown as SupabaseClient;
     expect(await vigilarGastoDelDia(rota, 'nar-1', { ahora, avisar })).toBe(false);
     expect(avisar).not.toHaveBeenCalled();
+  });
+});
+
+describe('enganchado en registrarUso', () => {
+  const fila = {
+    servicio: 'entrevistador', paso: 'evaluar', modelo: 'claude-opus-5', proveedor: 'anthropic',
+    narradorId: 'nar-1', uso: { input_tokens: 2000, output_tokens: 300 },
+  } as const;
+  /** El insert sale bien; la consulta del aviso hace lo que diga `consulta`. */
+  function dbConConsulta(consulta: () => unknown) {
+    return {
+      from: () => ({ insert: async () => ({ error: null }), select: () => consulta() }),
+    } as unknown as SupabaseClient;
+  }
+
+  it('no espera a la vigilancia: con la consulta colgada para siempre, el narrador sigue igual', async () => {
+    const cadena = { eq: () => cadena, gte: () => new Promise(() => {}) };
+    const listo = await Promise.race([
+      registrarUso(dbConConsulta(() => cadena), fila, { timeoutMs: 50 }).then(() => 'terminó'),
+      new Promise((r) => setTimeout(() => r('colgado'), 500)),
+    ]);
+    expect(listo).toBe('terminó');
+  });
+
+  it('una vigilancia que tira no rompe al que llama ni deja una promesa rechazada suelta', async () => {
+    const sueltas: unknown[] = [];
+    const anotar = (e: unknown) => sueltas.push(e);
+    process.on('unhandledRejection', anotar);
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await expect(registrarUso(dbConConsulta(() => { throw new Error('boom'); }), fila)).resolves.toBeUndefined();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(sueltas).toEqual([]);
+      expect(aviso).toHaveBeenCalledWith('aviso-gasto: no pude revisar el gasto del día:', 'boom');
+    } finally {
+      process.off('unhandledRejection', anotar);
+      aviso.mockRestore();
+    }
   });
 });
