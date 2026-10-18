@@ -53,7 +53,7 @@ export const CONTACTO = {
 };
 
 /** La fecha de la última versión de los legales (la pinta _textos/legal.ts en cada idioma). */
-export const ACTUALIZADO = "14 de octubre de 2026";
+export const ACTUALIZADO = "19 de octubre de 2026";
 
 /** Campos del titular que todavía no se completaron (se pintan en amarillo). */
 export function faltan(t: Titular): string[] {
