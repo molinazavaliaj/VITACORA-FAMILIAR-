@@ -13,7 +13,7 @@ la siguiente.
 | Web (vitacorafamiliar.com) | Vercel, proyecto de Naza | «Instant Rollback» a un deploy viejo, y después `git revert` para que no vuelva | 1–2 min el rollback; 5–10 min el revert con su deploy |
 | Fábrica (la central) | Railway, proyecto `fearless-kindness`, servicio `dazzling-friendship` | «Redeploy» de un deploy viejo | 3–6 min |
 | Entrevistador (el bot) | Railway, mismo proyecto, servicio `VITACORA-FAMILIAR-` | «Redeploy» de un deploy viejo | 3–6 min |
-| Base de datos | Supabase (organización Vitácora) | «Restore» de la copia del día anterior, o «Restore to new project» | 10–40 min (no lo medimos todavía) |
+| Base de datos | Supabase (organización Vitácora, proyecto VITACORA FAMILIAR) | «Restore» de la copia del día anterior, o «Restore to new project» | ~15 min (medido el 19/10 con «Restore to new project») |
 | Archivos (audios, fotos, PDF) | Supabase Storage + copia en Cloudflare R2 | copiar el archivo desde R2 | minutos, uno por uno |
 | Migraciones | `supabase/migrations/*.sql`, las aplica Naza a mano | una migración NUEVA que deshaga | minutos de escribirla, segundos de aplicarla |
 
@@ -85,8 +85,7 @@ avisar antes de tocarlo.)
 
 ### Volver a un deploy viejo (3–6 minutos)
 
-1. Entrar a [railway.com](https://railway.com) con la cuenta de Joaquín (o pedirle
-   que lo haga: el proyecto es suyo).
+1. Entrar a [railway.com](https://railway.com). Entran Naza y Joaquín.
 2. Abrir el proyecto `fearless-kindness` y elegir el servicio.
 3. Pestaña **Deployments** (la lista de deploys, del más nuevo al más viejo).
 4. Abrir el deploy anterior bueno, menú **⋯** → **Redeploy**.
@@ -132,7 +131,7 @@ el proyecto de prueba.
 
 1. **Backups** → **Restore to new project**. Pide un nombre (por ejemplo,
    `vitacora-prueba-18oct`) y una contraseña de base cualquiera.
-2. Esperar a que termine (10–40 min).
+2. Esperar a que termine (el 19/10 tardó unos 15 minutos).
 3. Buscar ahí la fila que falta, copiarla y pegarla en el proyecto de verdad
    (Table Editor, o pedírselo a la central).
 4. Borrar el proyecto de prueba: **Settings** → **General** → **Delete project**.
@@ -141,7 +140,7 @@ el proyecto de prueba.
 
 ### Archivos borrados (audios, fotos, PDF)
 
-Están en la copia de Cloudflare R2 con la misma ruta (`audios/<familia>/…`)
+Están en la copia de Cloudflare R2 con la misma ruta (`audios/<narrador>/…`)
 **durante 30 días**. Pasados los 30 días ya no están: la copia borra lo que se
 borró en Supabase (es lo que prometen los términos). `copias/README.md` tiene el
 detalle y los nombres de los baldes.
@@ -203,10 +202,10 @@ Cinco chequeos, en este orden. Si alguno falla, no se publica.
 
 Para no inventar botones ni tiempos:
 
-- **Los tiempos de restore de Supabase** son una estimación: nunca medimos un
-  restore completo con datos de verdad.
+- **El restore que pisa todo** nunca se probó (por suerte). El «Restore to new
+  project» sí: el 19/10 tardó unos 15 minutos y la copia salió exacta.
 - **La ruta exacta de los botones de Vercel y Railway** puede cambiar cuando
   cambian la interfaz (ya pasó con Vercel). Si un botón de esta hoja no está
   donde dice, no buscarlo a ciegas: avisar y lo corregimos acá.
-- **Railway está a nombre de Joaquín.** Si hay que volver atrás un servicio de
-  Railway y Joaquín no está, se le pide a él. Naza no tiene acceso.
+- **Railway es de la cuenta de Joaquín, pero Naza también entra** (el 18/10 cargó
+  variables). Cualquiera de los dos puede hacer el «Redeploy».
