@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
+  avisarSocios: vi.fn(),
   enviarPlantilla: vi.fn(),
   enviarTexto: vi.fn(),
   enviarAudioPorLink: vi.fn(),
@@ -77,6 +78,8 @@ vi.mock('../src/db/cliente.js', () => {
     },
   };
 });
+
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 
 vi.mock('../src/whatsapp/enviar.js', () => ({
   enviarPlantilla: mocks.enviarPlantilla, enviarAudioPorLink: mocks.enviarAudioPorLink, enviarTexto: mocks.enviarTexto,
@@ -272,6 +275,64 @@ describe('tick', () => {
     const alerta = mocks.capturas.filter((c) => c.op === 'update' && c.tabla === 'narradores')
       .find((c) => c.p.alerta_silencio === true);
     expect(alerta).toBeTruthy();
+  });
+
+  // ── Los 30 días del «no aceptó» (Naza y Joaquín, 19/10) ────────────────
+  // El bot no tiene un «no acepto»: un «no» lo toma como «más tarde». Sin un
+  // plazo nadie deja de esperar nunca, y los términos prometen devolver todo.
+
+  const invitado = (extra: Record<string, any> = {}) => narrador({ estado: 'invitado', dia_actual: 0, ...extra });
+  const bienvenidaDe = (enviado_at: string, wa: string | null = 'wamid.b') =>
+    [{ tipo: 'bienvenida', pregunta_orden: null, enviado_at, wa_message_id: wa }];
+
+  it('(g) a los 30 días sin aceptar se avisa a los socios para devolver', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+    const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0] as string[];
+    expect(clave).toContain('n1');
+    expect(asunto).toMatch(/no aceptó/i);
+    expect(detalle).toMatch(/devolver/i);
+  });
+
+  it('(h) a los 28 todavía no: no se avisa nada', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-04T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(i) se avisa UNA vez: con la marca puesta, el tick siguiente no repite', async () => {
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-31T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(j) queda anotada la fecha: de ahí cuentan los 15 días del borrado', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const marca = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.contexto?.noAcepto);
+    expect(marca).toBeTruthy();
+    expect(marca.p.contexto.noAcepto.cuando).toBeTruthy();
+  });
+
+  // Una bienvenida sin id de Meta es un intento fallido: nunca le llegó. Eso es
+  // otro problema, y no se puede contar como que la persona no quiso.
+  it('(k) si la bienvenida nunca salió de verdad, no se da por no aceptado', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z', null);
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(l) a un narrador que ya aceptó no se lo toca', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 3 })];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
   });
 
   it('(f) si faltan las adaptativas, las regenera en vez de dejarlo clavado en el día 26', async () => {
