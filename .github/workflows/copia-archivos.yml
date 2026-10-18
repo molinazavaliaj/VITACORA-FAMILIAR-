@@ -1,6 +1,6 @@
 # La copia diaria de los archivos de Supabase (audios, fotos, PDF) en Cloudflare R2.
 # Supabase copia la base sola cerca de las 07:05 UTC, pero no los archivos: esto
-# corre después. Nunca borra nada en R2. Si falla, mail a los socios y queda en rojo.
+# corre después. Lo borrado en Supabase se borra de R2 a los 30 días. Si falla, mail a los socios.
 # Se puede correr a mano desde GitHub → Actions → «Copia diaria de archivos» → Run workflow.
 name: Copia diaria de archivos
 
@@ -23,6 +23,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install boto3==1.35.99
+      - run: python -m unittest discover -s copias
       - run: python copias/copiar.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
