@@ -38,7 +38,7 @@ export type TextosKids = {
   /** El asunto y el cuerpo del correo de «Escríbenos», si no hay WhatsApp de dudas. */
   correo: { asunto: string; cuerpo: string };
   altHero: string;
-  /** `altVideo`: el video del libro (arreglos chicos, PROPUESTA en arreglos-chicos/textos.md 4). */
+  /** `altVideo`: el video del libro (arreglos chicos, aprobado por Naza el 18/10, arreglos-chicos/textos.md 15). */
   dibujos: { frase: [string, string]; texto: string; altVideo: string };
   como: { titulo: string; paso: (n: number) => string; pasos: [PasoKids, PasoKids, PasoKids] };
   chat: {

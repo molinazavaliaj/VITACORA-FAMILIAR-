@@ -17,7 +17,7 @@ export type TextosEjemplo = {
   inventada: string;
   titulo: string;
   bajada: string;
-  /** El texto alternativo del video del libro (arreglos chicos, PROPUESTA en arreglos-chicos/textos.md 4). */
+  /** El texto alternativo del video del libro (arreglos chicos, aprobado por Naza el 18/10, arreglos-chicos/textos.md 14). */
   altVideo: string;
   anterior: string;
   siguiente: string;

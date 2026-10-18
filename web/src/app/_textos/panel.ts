@@ -139,7 +139,7 @@ const ES: TextosPanel = {
   anadirMarco: "Añadir el marco",
   // La tarjeta del marco: el título y el texto son los de la maqueta Panel y
   // del checkout (aprobados); «Tu foto enmarcada» y el texto de «tu libro»,
-  // aprobados el 18/10 (tanda 1); el del viaje, PROPUESTA (textos.md 3, nº 11).
+  // aprobados el 18/10 (tandas 1 y 2 de textos.md).
   marcoTitulo: (q) => (q.propia || q.viaje ? "Tu foto enmarcada" : "Su foto enmarcada"),
   marcoTexto: (q) =>
     q.viaje
