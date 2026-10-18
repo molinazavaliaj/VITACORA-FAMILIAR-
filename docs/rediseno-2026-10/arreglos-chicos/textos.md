@@ -1,6 +1,6 @@
 # Arreglos chicos (18/10) — textos nuevos
 
-**Tanda 1 (1 a 10) y tanda 2 (11 a 20): aprobadas por Naza el 18/10, tal cual** (el catalán de la 20 lo revisa Imma). Lo que sigue (21 a 26) sigue como PROPUESTA.
+**Todo aprobado por Naza el 18/10, tal cual, en tres tandas (1 a 10, 11 a 20 y 21 a 26).** Falta solo el catalán (20 y 26 y los alternativos), que lo revisa Imma.
 
 Todo lo de esta lista era **PROPUESTA**: está puesto en la web (rama `rediseno-web-arreglos-chicos`) para que se pueda ver, pero lo aprueba Naza. Lo demás que aparece en las pantallas es de las maquetas o ya estaba aprobado (se dice al lado de cada bloque).
 

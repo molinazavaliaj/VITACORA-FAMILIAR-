@@ -8,8 +8,8 @@ import type { IdiomaRegalo } from "@/lib/regalo-textos";
 // De las maquetas, tal cual: «¿Qué es esto?», «Unas palabras», «Vitácora
 // Kids», «Vitácora de viaje», «Un regalo para el viaje», los titulares de la
 // tapa y los pasos que el sistema cumple. Lo demás (los pasos sin fecha ni
-// «comunión», el trato en singular del viaje, el catalán) es PROPUESTA en
-// docs/rediseno-2026-10/arreglos-chicos/textos.md 5. Ninguna frase promete un
+// «comunión», el trato en singular del viaje) lo aprobó Naza el 18/10
+// (docs/rediseno-2026-10/arreglos-chicos/textos.md 16 a 26); el catalán, pendiente de Imma. Ninguna frase promete un
 // día ni «cada noche» (B24): el regalo empieza cuando quien lo recibe escribe.
 
 export type ProductoTarjeta = "viaje" | "kids";
