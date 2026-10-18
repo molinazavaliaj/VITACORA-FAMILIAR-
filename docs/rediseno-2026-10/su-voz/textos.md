@@ -19,7 +19,7 @@ Catalán: todo PENDIENTE REVISIÓN NATIVA (Imma).
 | 3 | SV-05 | Debajo del nombre | Contado con su voz · 9 audios · 13 minutos | igual | Explicat amb la seva veu · 9 àudios · 13 minuts |
 | 4 | SV-12 | Para la familia | Esta página es privada. Solo entra quien tiene el libro, el marco o el enlace. Puedes compartirla con quien quieras de la familia. | Esta página es privada. Solo entra quien tiene el libro, el marco o el link. Podés compartirla con quien quieras de la familia. | Aquesta pàgina és privada. Només hi entra qui té el llibre, el marc o l'enllaç. La pots compartir amb qui vulguis de la família. |
 | 5 | SV-06 | La tarjeta del primer audio | Empieza por aquí | Empezá por acá | Comença per aquí |
-| 6 | SV-13 | El botón del cierre (va a la portada) | ¿Quieres el libro de alguien de tu familia? | ¿Querés el libro de alguien de tu familia? | Vols el llibre d'algú de la teva família? |
+| 6 | SV-13 | El botón del cierre (va a la portada) | **APROBADO 18/10** Empezar el libro de mi familia | **APROBADO 18/10** Empezar el libro de mi familia | Començar el llibre de la meva família |
 | 7 | SV-04 | Arriba del nombre | El libro de su vida | igual | El llibre de la seva vida |
 | 8 | SV-07 | Botón que baja al libro online (solo si está) | Leer su libro | igual | Llegir el seu llibre |
 | 9 | SV-08 | Etiqueta de los capítulos | Su voz, capítulo a capítulo | igual | La seva veu, capítol a capítol |
@@ -32,6 +32,9 @@ Por qué cambian respecto de la maqueta:
 - 3 · La maqueta dice «23 historias · 41 minutos». Lo que hay de verdad son las frases con audio,
   así que cuenta audios. Los minutos salen de sumar la duración de cada audio y solo se muestran
   si llegan a uno.
+- 6 · Naza 18/10: en vez de la pregunta de la maqueta («¿Quieres el libro de alguien de tu
+  familia?»), algo que invite más a comprar. Elegido entre cuatro opciones; sigue a «En cada
+  familia hay un libro sin escribir.».
 - 4 · La maqueta tiene dos puntos («Esta página es privada:»). Se partió en dos oraciones.
 
 ## Tanda 2 (11–17)
