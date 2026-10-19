@@ -234,12 +234,12 @@ describe("la portada según el idioma", () => {
     for (const idioma of ["es", "ar"] as const) {
       const html = portada(idioma);
       expect(html).toContain(escapar("¿Y si no quiere hacerlo?"));
-      expect(html).toContain("te devolvemos el dinero");
+      expect(html).toContain(escapar("Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo."));
       expect(sinPreguntas(html), idioma).not.toContain("devolvemos");
     }
     const ca = portada("ca");
-    expect(ca).toContain("et tornem els diners");
-    expect(sinPreguntas(ca)).not.toContain("tornem");
+    expect(ca).toContain(escapar("Et retornem tot el que vas pagar."));
+    expect(sinPreguntas(ca)).not.toContain("retornem");
   });
 
   it("las preguntas: la primera cambiada, «No le gusta hablar de sí mismo» y las dos nuevas al final", () => {

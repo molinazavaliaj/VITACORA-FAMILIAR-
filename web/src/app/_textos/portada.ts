@@ -324,7 +324,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "¿Y si no quiere, o le da vergüenza?",
           respuesta: "Le pedimos permiso antes de empezar la entrevista. Puede parar cuando quiera y retomar cuando quiera.",
         },
-        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Si no quiere hacerlo, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 8
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
@@ -534,7 +535,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "¿Y si no quiere, o le da vergüenza?",
           respuesta: "Le pedimos permiso antes de empezar la entrevista. Puede parar cuando quiera y retomar cuando quiera.",
         },
-        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Si no quiere hacerlo, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 8
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
@@ -750,7 +752,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "I si no vol, o li fa vergonya?",
           respuesta: "Li demanem permís abans de començar l'entrevista. Pot parar quan vulgui i reprendre-ho quan vulgui.",
         },
-        { pregunta: "I si no ho vol fer?", respuesta: "Si no ho vol fer, et tornem els diners." },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, texto 8
+        { pregunta: "I si no ho vol fer?", respuesta: "Et retornem tot el que vas pagar. Si comença i contesta menys de deu preguntes, també t'ho retornem tot." },
         {
           pregunta: "Qui escolta els seus àudios?",
           respuesta: "Només la seva família. Els àudios són privats, s'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
