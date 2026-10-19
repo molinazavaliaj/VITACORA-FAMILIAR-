@@ -319,3 +319,66 @@ export function tratoDeRegion(region: RegionComprador): TratoComprador {
 export function idiomaPorDefecto(region: RegionComprador): IdiomaRegalo {
   return region === "ES" ? "es-ES" : "es-AR";
 }
+
+/**
+ * La tarjeta «El libro de tu vida» (versión negra con el título grande), la
+ * que Naza aprobó e imprimió el 16/10 (PLANIFICADOR-HIGGSFIELD/gift-card/
+ * formatos/1-tarjeta-sola-negra-titulo-grande.pdf). La web la completa con
+ * el regalo: Para y De con los nombres, el código en su recuadro.
+ */
+export type TextosTarjetaLibro = {
+  /** Arriba de la tapa, en mayúsculas chicas. */
+  regaloParaSiempre: string;
+  /** El título de la tapa, en dos renglones. */
+  titulo: readonly [string, string];
+  /** El título del lado de adentro. */
+  regalar: string;
+  /** Los tres párrafos del lado de adentro. */
+  parrafos: readonly string[];
+  para: string;
+  de: string;
+  codigo: string;
+};
+
+// Castellano: los del PDF (16/10). Los tres párrafos son el comunicado aprobado
+// en vos el 16/10; no tienen verbos de vos ni de tú, así que van igual en los dos.
+const TARJETA_LIBRO_ES: TextosTarjetaLibro = {
+  regaloParaSiempre: "UN REGALO PARA SIEMPRE",
+  titulo: ["El libro", "de tu vida"],
+  regalar: "Regalar una Vitácora",
+  parrafos: [
+    "Es el libro de su vida, contado con sus propias palabras.",
+    "Un biógrafo le hace preguntas por WhatsApp y contesta con audios, a su ritmo.",
+    "Con eso escribimos su libro en tapa dura. Sus mejores historias quedan guardadas con su propia voz, para escucharlas con un QR.",
+  ],
+  para: "Para",
+  de: "De",
+  codigo: "Código del regalo",
+};
+
+const TARJETA_LIBRO: Record<IdiomaRegalo, TextosTarjetaLibro> = {
+  "es-AR": TARJETA_LIBRO_ES,
+  "es-ES": TARJETA_LIBRO_ES,
+  // El PDF solo está en castellano. En catalán, lo ya aprobado: el título de la
+  // carta-libro (17/10), «Això és un regal.» y sus tres líneas (09/10, la
+  // tarjeta de antes), «Per a» (carta-libro, 17/10) y «Codi del regal»
+  // (gift-card en catalán, pendiente de revisión nativa).
+  ca: {
+    // PENDIENTE: aprobar (Naza / nativo). Es la única frase sin versión aprobada.
+    regaloParaSiempre: "UN REGAL PER SEMPRE",
+    titulo: ["El llibre", "de la teva vida"],
+    regalar: "Això és un regal.",
+    parrafos: [
+      "Un biògraf et farà preguntes sobre la teva vida per WhatsApp.",
+      "Tu li respons amb àudios, quan puguis.",
+      "Amb el que li expliquis s'escriu el llibre de la teva vida.",
+    ],
+    para: "Per a",
+    de: "De",
+    codigo: "Codi del regal",
+  },
+};
+
+export function textosTarjetaLibro(idioma: IdiomaRegalo): TextosTarjetaLibro {
+  return TARJETA_LIBRO[idioma];
+}

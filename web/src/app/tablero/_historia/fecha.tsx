@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Hoja } from "../../_ui/hoja";
 import { AvisoGuardado } from "../../_ui/aviso-guardado";
@@ -29,6 +29,44 @@ function hoyLocal(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/**
+ * Manda la fecha nueva (PATCH /api/regalo/fecha). Si el pedido no llega o el
+ * servidor no encuentra la sesión (401), prueba una vez más: la primera vez que
+ * se guardaba después de un rato, el token vencido se renovaba en el medio y
+ * esa respuesta volvía sin sesión aunque la sesión estuviera bien (19/10, la
+ * fecha que no se guardaba a la primera). El reintento ya sale con las cookies
+ * nuevas. Si igual falla, devuelve el error para mostrarlo y dejar reintentar:
+ * el del servidor cuando dice qué está mal (fecha pasada, regalo ya abierto),
+ * `errorGenerico` cuando no (sin sesión, caída, sin red).
+ */
+export async function pedirCambioDeFecha(
+  narradorId: string,
+  fecha: string,
+  errorGenerico: string,
+  pedir: typeof fetch = fetch,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const url = `/api/regalo/fecha?narrador=${encodeURIComponent(narradorId)}`;
+  const init: RequestInit = {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fecha }),
+  };
+  for (let intento = 1; ; intento++) {
+    let r: Response;
+    try {
+      r = await pedir(url, init);
+    } catch {
+      if (intento < 2) continue;
+      return { ok: false, error: errorGenerico };
+    }
+    if (r.ok) return { ok: true };
+    if (r.status === 401 && intento < 2) continue;
+    if (r.status === 401 || r.status >= 500) return { ok: false, error: errorGenerico };
+    const cuerpo = (await r.json().catch(() => null)) as { error?: string } | null;
+    return { ok: false, error: cuerpo?.error ?? errorGenerico };
+  }
+}
+
 export function CambiarFecha({ narradorId, fecha, textos }: { narradorId: string; fecha: string | null; textos: TextosFecha }) {
   const router = useRouter();
   const [abierta, setAbierta] = useState(false);
@@ -37,28 +75,23 @@ export function CambiarFecha({ narradorId, fecha, textos }: { narradorId: string
   const [error, setError] = useState<string | null>(null);
   const [guardados, setGuardados] = useState(0);
 
+  // Un toque doble (o Enter y el botón) mandaba dos pedidos a la vez antes de
+  // que el botón se deshabilitara: con uno en camino, el otro no sale.
+  const enCamino = useRef(false);
+
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (enCamino.current) return;
+    enCamino.current = true;
     setError(null);
     setGuardando(true);
-    try {
-      const r = await fetch(`/api/regalo/fecha?narrador=${encodeURIComponent(narradorId)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha: valor }),
-      });
-      if (!r.ok) {
-        const cuerpo = (await r.json().catch(() => null)) as { error?: string } | null;
-        setError(cuerpo?.error ?? textos.error);
-        setGuardando(false);
-        return;
-      }
-    } catch {
-      setError(textos.error);
-      setGuardando(false);
+    const resultado = await pedirCambioDeFecha(narradorId, valor, textos.error);
+    enCamino.current = false;
+    setGuardando(false);
+    if (!resultado.ok) {
+      setError(resultado.error);
       return;
     }
-    setGuardando(false);
     setAbierta(false);
     setGuardados((n) => n + 1);
     router.refresh();
