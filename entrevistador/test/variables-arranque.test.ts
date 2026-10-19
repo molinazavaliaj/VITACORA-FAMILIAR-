@@ -25,6 +25,7 @@ function envCompleto(): NodeJS.ProcessEnv {
     WHATSAPP_NUMERO_PUBLICO: '5491100000000',
     SUGERIDAS_CLAVE: 'clave-sugeridas-secreta',
     WA_PLANTILLAS_V3_LISTAS: 'es-AR:recordatorio,es-AR:bienvenida',
+    WA_PLANTILLAS_VIAJE_V2_LISTAS: 'es-AR:bienvenida,es-AR:mensaje',
   };
 }
 
@@ -55,12 +56,9 @@ describe('revisarVariables', () => {
   it('los interruptores apagados (o sin cargar) no son una falta', () => {
     const env = envCompleto();
     env.V3_PARA_NUEVOS = '0';
-    env.VIAJE_V2_PARA_NUEVOS = '';
     delete env.REGALO_ENTREGA_WHATSAPP;
     delete env.WA_BIENVENIDA_PIDE_VOZ;
     delete env.V3_CAZADOR;
-    // La lista de Viaje V2 no hace falta mientras el interruptor esté apagado.
-    delete env.WA_PLANTILLAS_VIAJE_V2_LISTAS;
     expect(revisarVariables(env)).toEqual([]);
   });
 
@@ -86,10 +84,14 @@ describe('revisarVariables', () => {
     expect(faltas[0].problema).toMatch(/es-AR:bienvenida/);
   });
 
-  it('VIAJE_V2_PARA_NUEVOS prendido sin la lista de Viaje V2: falta', () => {
+  it('la Viaje V2 es siempre (16/10): sin su lista de plantillas, o sin lo mínimo en es-AR, falta', () => {
     const env = envCompleto();
-    env.VIAJE_V2_PARA_NUEVOS = '1';
-    expect(nombres(env)).toContain('WA_PLANTILLAS_VIAJE_V2_LISTAS');
+    delete env.WA_PLANTILLAS_VIAJE_V2_LISTAS;
+    expect(nombres(env)).toEqual(['WA_PLANTILLAS_VIAJE_V2_LISTAS']);
+    env.WA_PLANTILLAS_VIAJE_V2_LISTAS = 'es-AR:bienvenida';
+    const faltas = revisarVariables(env);
+    expect(faltas).toHaveLength(1);
+    expect(faltas[0].problema).toMatch(/es-AR:mensaje/);
     env.WA_PLANTILLAS_VIAJE_V2_LISTAS = 'es-AR:bienvenida,es-AR:mensaje';
     expect(revisarVariables(env)).toEqual([]);
   });
@@ -97,7 +99,7 @@ describe('revisarVariables', () => {
   it('una entrada que el código no reconoce en una lista de plantillas es una falta (errores de tipeo)', () => {
     const env = envCompleto();
     env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio, es-AR:bienvenida,es-AR:regalo_entregaa,';
-    env.WA_PLANTILLAS_VIAJE_V2_LISTAS = 'es-AR:mensaje,es-MX:mensaje';
+    env.WA_PLANTILLAS_VIAJE_V2_LISTAS = 'es-AR:bienvenida,es-AR:mensaje,es-MX:mensaje';
     const faltas = revisarVariables(env);
     expect(faltas.map((f) => f.variable)).toEqual(['WA_PLANTILLAS_V3_LISTAS', 'WA_PLANTILLAS_VIAJE_V2_LISTAS']);
     expect(faltas[0].problema).toMatch(/es-AR:regalo_entregaa/);

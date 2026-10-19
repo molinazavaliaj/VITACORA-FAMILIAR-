@@ -12,11 +12,11 @@ import { epigrafeDe, extensionDe } from './fotos-texto.js';
 /*
  * Las fotos que llegan por WhatsApp.
  *
- * Hasta el 22/09 esto vivía entero en `viaje-db.ts` y `procesar.ts` tiraba a la
- * basura, en silencio, cualquier foto de un narrador del Familiar. Una señora
- * que manda la foto de su casamiento no recibía ni un acuse: el bot se hacía el
- * distraído. Acá queda lo común a los dos productos; lo que cambia entre ellos
- * es de qué capítulo es la foto, y eso lo decide cada uno.
+ * Hasta el 22/09 esto vivía entero en el flujo del viaje viejo y `procesar.ts`
+ * tiraba a la basura, en silencio, cualquier foto de un narrador del Familiar.
+ * Una señora que manda la foto de su casamiento no recibía ni un acuse: el bot
+ * se hacía el distraído. El viaje viejo se borró el 16/10 (la Viaje V2 guarda
+ * sus fotos por su lado); esto queda para el Familiar.
  */
 
 export { epigrafeDe, extensionDe };
@@ -24,8 +24,8 @@ export { epigrafeDe, extensionDe };
 /**
  * Baja la foto de Meta, la sube al storage y la anota en `fotos`.
  *
- * `capitulo` null = todavía no sabemos de qué capítulo es (el viaje antes de la
- * primera etapa, el Familiar antes de la primera pregunta). La familia lo
+ * `capitulo` null = todavía no sabemos de qué capítulo es (antes de la primera
+ * pregunta). La familia lo
  * acomoda desde el panel. Nunca se marca `principal`: esa la elige ella.
  *
  * Si la anotación falla se borra el archivo: una foto en el storage que no está

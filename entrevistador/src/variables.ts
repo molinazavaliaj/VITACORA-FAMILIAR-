@@ -12,9 +12,10 @@
 // única excepción son las entradas que no se reconocen en las dos listas de
 // plantillas (no son secretas y sin verlas no se encuentra el error de tipeo).
 //
-// Los interruptores apagados (V3_PARA_NUEVOS, VIAJE_V2_PARA_NUEVOS,
-// WA_BIENVENIDA_PIDE_VOZ, WA_PLANTILLA_BIENVENIDA_VIAJE, V3_CAZADOR=0,
-// BORRADO_NO_ACEPTO) están así a propósito: no son una falta. Prendidos, se revisa que tengan lo que necesitan.
+// Los interruptores apagados (V3_PARA_NUEVOS, WA_BIENVENIDA_PIDE_VOZ, V3_CAZADOR=0,
+// BORRADO_NO_ACEPTO) están así a propósito: no son una falta. La Vitácora de Viaje es
+// solo V2 desde el 16/10 (sin interruptor): su lista de plantillas se revisa siempre.
+// Prendidos, se revisa que tengan lo que necesitan.
 // SUGERIDAS_CLAVE es opcional a propósito (sin ella la ruta /sugeridas no existe) y
 // REGALO_ENTREGA_WHATSAPP vive solo en Vercel (CONTRATO.md): ninguna se revisa acá.
 
@@ -42,6 +43,7 @@ const NECESARIAS: ReadonlyArray<readonly [string, string]> = [
   ['RESEND_API_KEY', 'No sale ningún mail del entrevistador (hitos y regalos a las familias, avisos a los socios).'],
   ['MAIL_SOCIOS', 'Los avisos a los socios quedan solo en el log de Railway y nadie se entera.'],
   ['WA_PLANTILLAS_V3_LISTAS', 'Fuera de la ventana de 24 h no sale ninguna plantilla V3 salvo la pregunta en es-AR. Ni recordatorios, ni bienvenidas V3 y de regalo, ni preguntas en es-ES y ca, ni el regalo por WhatsApp el día elegido.'],
+  ['WA_PLANTILLAS_VIAJE_V2_LISTAS', 'A los viajeros no les sale ninguna plantilla de la Viaje V2 fuera de la ventana de 24 h: ni la bienvenida (sale recién si escriben primero), ni los mensajes del día, que quedan en la cola.'],
   ['WA_APP_SECRET', 'El webhook de WhatsApp acepta mensajes sin comprobar que los manda Meta. Cualquiera que sepa la dirección puede hacerse pasar por un narrador.'],
   ['WHATSAPP_NUMERO_PUBLICO', 'El mail del regalo del día elegido sale sin el código para escribirle al bot.'],
 ];
@@ -123,16 +125,13 @@ export function revisarVariables(env: Env = process.env): Falta[] {
 
   faltas.push(...faltanEnLista(env, 'V3_PARA_NUEVOS', 'WA_PLANTILLAS_V3_LISTAS', ['es-AR:bienvenida', 'es-AR:recordatorio'],
     'Los narradores nuevos entran a la V3 y sin esa plantilla no les sale la bienvenida o el recordatorio.'));
-  faltas.push(...faltanEnLista(env, 'VIAJE_V2_PARA_NUEVOS', 'WA_PLANTILLAS_VIAJE_V2_LISTAS', ['es-AR:bienvenida', 'es-AR:mensaje'],
-    'Los viajeros nuevos van a la Viaje V2 y sin esa plantilla no les sale la bienvenida o los mensajes.'));
-  // Si la lista de Viaje V2 falta del todo con el interruptor prendido, se dice una vez.
-  if (prendido(env, 'VIAJE_V2_PARA_NUEVOS') && vacia(env, 'WA_PLANTILLAS_VIAJE_V2_LISTAS')) {
-    const sinDuplicar = faltas.filter((f) => f.variable !== 'WA_PLANTILLAS_VIAJE_V2_LISTAS');
-    sinDuplicar.push({
-      variable: 'WA_PLANTILLAS_VIAJE_V2_LISTAS',
-      problema: 'No existe o está vacía y VIAJE_V2_PARA_NUEVOS está prendido. A los viajeros nuevos no les sale ninguna plantilla de la Viaje V2.',
-    });
-    return sinDuplicar;
+  // Viaje V2 (siempre prendida desde el 16/10): con la lista cargada, que tenga lo mínimo en es-AR. Vacía ya es una
+  // falta de NECESARIAS (se dice una vez).
+  if (!vacia(env, 'WA_PLANTILLAS_VIAJE_V2_LISTAS')) {
+    const hay = new Set(entradas(env, 'WA_PLANTILLAS_VIAJE_V2_LISTAS'));
+    for (const r of ['es-AR:bienvenida', 'es-AR:mensaje'].filter((x) => !hay.has(x))) {
+      faltas.push({ variable: 'WA_PLANTILLAS_VIAJE_V2_LISTAS', problema: `La lista no tiene «${r}». Los viajeros en es-AR no reciben la bienvenida o los mensajes fuera de la ventana de 24 h.` });
+    }
   }
   return faltas;
 }
