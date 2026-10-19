@@ -244,3 +244,13 @@
 @media (prefers-reduced-motion: reduce) {
   .lgl-solapa, .lgl-boton { transition: none; }
 }
+
+/* Los subtítulos dentro de una sección (la garantía: la ley, lo nuestro, el cierre). */
+.lgl-subtitulo {
+  margin-top: 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--dir-sobre-papel);
+}
