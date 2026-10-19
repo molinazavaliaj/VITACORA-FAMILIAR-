@@ -135,6 +135,16 @@ export function HistoriaV3({
           </div>
         ) : null}
 
+        {/* Primero: hora y ritmo de la entrevista (Naza, 19/10), después lo que se pregunta. */}
+        {!cerrado && PUEDE.cambiarRitmo(rol) && horario ? (
+          <section className="mt-10 border-b border-[var(--linea)] pb-10">
+            <Etiqueta>Ajustes de la entrevista</Etiqueta>
+            <div className="mt-6">
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 tratoPanel={trato} />
+            </div>
+          </section>
+        ) : null}
+
         {puedeSumar ? (
           <div className="mt-8">
             <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} />
@@ -209,15 +219,6 @@ export function HistoriaV3({
             </section>
           ) : null}
         </div>
-
-        {!cerrado && PUEDE.cambiarRitmo(rol) && horario ? (
-          <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Ajustes de la entrevista</Etiqueta>
-            <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 tratoPanel={trato} />
-            </div>
-          </section>
-        ) : null}
 
         {puedeCerrarAnticipado && !enMarco ? (
           <div className="mt-8">
