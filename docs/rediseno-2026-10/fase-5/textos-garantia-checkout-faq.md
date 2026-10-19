@@ -5,7 +5,7 @@ con la entrevista en marcha, se descuenta la parte ya hecha»). Estos textos los
 `textos-legales-nuevos.md` tanda 4 (22–31). es = España de tú; ar = de vos y 10 días. Catalán: se traduce cuando Naza
 apruebe y lo revisa Imma.
 
-## Tanda 6 — PENDIENTE de Naza
+## Tanda 6 — APROBADA por Naza 19/10 (falta el abogado; catalán traducido en el código, lo revisa Imma)
 
 Checkout Familiar y «Para mí» (`_textos/checkout.ts`, la letra chica debajo del botón de pagar):
 1. es, el trozo común después de «términos»: «y nos pides que la entrevista empiece enseguida, sin esperar los 14 días de desistimiento.»

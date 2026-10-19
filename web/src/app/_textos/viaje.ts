@@ -82,8 +82,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver eliges tus favoritas y van al álbum del final del libro." },
         { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de España, de Argentina o en catalán. Lo eliges al comprar." },
         { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando vuelves y mandas las fotos del álbum, lo escribimos. Lo revisas en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
-        // Aprobada (D1): la garantía de Viaje vive solo acá y en el pago.
-        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 9 (la garantía de Viaje vive solo acá y en el pago)
+        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     familiar: "¿Buscas el libro de una vida? Vitácora Familiar →",
@@ -126,7 +126,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver elegís tus favoritas y van al álbum del final del libro." },
         { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de Argentina, de España o en catalán. Lo elegís al comprar." },
         { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando volvés y mandás las fotos del álbum, lo escribimos. Lo revisás en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
-        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 10
+        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si nos avisás antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     familiar: "¿Buscás el libro de una vida? Vitácora Familiar →",
@@ -169,7 +170,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "Quantes fotos puc enviar?", respuesta: "Les que vulguis, durant tot el viatge. En tornar tries les preferides i van a l'àlbum del final del llibre." },
         { pregunta: "En quina llengua m'escriu?", respuesta: "En català, en castellà d'Espanya o d'Argentina. Ho tries en comprar." },
         { pregunta: "Quan arriba el llibre?", respuesta: "Quan tornes i envies les fotos de l'àlbum, l'escrivim. El revises a la pàgina del viatge abans de tancar-lo i, si és imprès, t'avisem quan surti d'impremta." },
-        { pregunta: "I si el viatge es cancel·la?", respuesta: "Si el viatge es cancel·la, et retornem els diners." },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, texto 9
+        { pregunta: "I si el viatge es cancel·la?", respuesta: "Si ens avises abans que la persona que viatja accepti l'entrevista, t'ho retornem tot. Si ja ha acceptat i contesta menys de deu preguntes, també t'ho retornem tot." },
       ],
     },
     familiar: "Busques el llibre d'una vida? Vitácora Familiar →",

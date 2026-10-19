@@ -48,7 +48,7 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain(escapar("¿Tengo que saber las ciudades?"));
     expect(html).not.toContain("Cada ciudad, un capítulo"); // Naza lo quitó (06/10 y 14/10)
     expect(html).toContain(escapar("Lo pagas una vez, antes de salir."));
-    expect(html).toContain(escapar("Si el viaje se cancela, te devolvemos el dinero."));
+    expect(html).toContain(escapar("Si nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo."));
     expect(html).toContain('href="/comprar/viaje"');
     expect(html).toContain("€");
     expect(html).not.toContain(escapar("¿Me trata de vos?"));
@@ -91,7 +91,7 @@ describe("la página de Viaje por idioma", () => {
   it("la garantía de Viaje va una sola vez, en las preguntas", () => {
     for (const p of [ViajeEs, ViajeAr]) {
       const html = renderToStaticMarkup(p());
-      expect(html.split(escapar("te devolvemos el dinero")).length - 1).toBe(1);
+      expect(html.split(escapar("menos de diez preguntas")).length - 1).toBe(1);
     }
   });
 
