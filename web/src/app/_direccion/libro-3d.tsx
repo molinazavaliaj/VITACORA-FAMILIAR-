@@ -45,7 +45,7 @@ function Qr({ url, className }: { url: string; className?: string }) {
 type Libro = TextosPortada["direccion"]["libro"];
 type Capitulo = TextosEjemplo["libro"];
 
-/** Las fotos y la variante del libro. Sin nada, el de Osvaldo; `viaje` es el libro de viaje (mockup de /prueba-heroes, 19/10): tapa con banda de tinta, lomo azul noche. */
+/** Las fotos y la variante del libro. Sin nada, el de Osvaldo; `viaje` es el libro de viaje del inicio de /viaje (19/10): tapa con banda de tinta, lomo azul noche. */
 export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje" };
 const OSVALDO: DisenoLibro = { tapa: "/rediseno/libro-tapa-foto.jpg", interior: "/rediseno/osvaldo-guitarra.jpg" };
 

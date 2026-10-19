@@ -1,11 +1,12 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { Cabecera, Pie } from "../_publico";
 import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Foto, Palabras, conVar } from "../_direccion/piezas";
-import { VideoLibro } from "../_direccion/video-libro";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
-import { TEXTOS_VIAJE } from "../_textos/viaje";
+import { CAPITULO_VIAJE_EJEMPLO, LIBRO_VIAJE_EJEMPLO, TEXTOS_VIAJE } from "../_textos/viaje";
+import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
+import { TEXTOS_PORTADA } from "../_textos/portada";
+import { Libro3D } from "../_direccion/libro-3d";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -22,17 +23,18 @@ import "../_direccion/direccion.css";
 // El precio es el de la región del idioma (obtenerPrecioViaje vía catalogo):
 // sin PRECIO_VIAJE_* cargado, la página no vende (sin botones, «Próximamente»).
 //
-// Orden: 1 inicio con la foto del hotel, 2 «Las fotos quedan», 3 cómo
+// Orden: 1 inicio como el de Familiar con el libro de viaje en 3D (19/10), 2 «Las fotos
+// quedan» con la foto del hotel, 3 cómo
 // funciona, 4 el precio con el libro sobre la mesa, 5 preguntas (la garantía
 // de Viaje, solo ahí: D1), 6 cierre con el logo y el pie.
 
 const FOTOS = {
   hotel: "/rediseno/viaje-audio-hotel.jpg",
+  tapa: "/rediseno/viaje-mirador-lisboa.jpg",
   libro: "/rediseno/viaje-libro-mesa.jpg",
 } as const;
 
-/** `hero`: otro inicio en lugar del de hoy (solo los mockups de /prueba-heroes, 19/10). */
-export function PaginaViaje({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactNode }) {
+export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
   const v = TEXTOS_VIAJE[idioma];
   const cat = catalogo(regionDeIdioma(idioma));
   const formatear = (n: number) =>
@@ -54,60 +56,55 @@ export function PaginaViaje({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactN
 
   return (
     <Pagina idioma={idioma} producto="viaje">
-      {/* ═══ 1 · INICIO: el lema enorme y la foto del hotel en arco ═══ */}
-      {hero ?? (
+      {/* ═══ 1 · INICIO, como el de Familiar (Naza, 19/10): el logo que se dibuja,
+          el lema enorme centrado, la bajada y el libro de viaje en 3D ═══ */}
       <section className="dir-tinta relative">
-        <div className="absolute inset-x-0 top-0">
-          <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
-        </div>
-        {/* En el teléfono, arriba y no centrado: centrado, cuando llega Playfair
-            y el bloque cambia de alto, todo se re-centra y el titular salta
-            (CLS 0,06 en Lighthouse). */}
-        <div className="mx-auto grid min-h-[100svh] max-w-[1360px] grid-cols-1 content-start items-start gap-14 md:content-center md:items-center px-4 pb-16 pt-44 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-40 lg:px-12">
-          <div className="flex flex-col items-start gap-7 md:col-span-8">
-            <span className="dir-micro dir-entra text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "0.3s" })}>
-              {v.etiqueta}
-            </span>
-            {/* Una línea por mitad, del tamaño justo para que cada una entre
-                entera también con la letra de reserva: si las palabras saltan
-                de línea al llegar Playfair, Lighthouse lo cuenta como CLS. */}
-            <h1 className="dir-titular dir-t-viaje dir-asienta">
-              <span className="block">{v.titulo[0]}</span>
-              <span className="block">{v.titulo[1]}</span>
-            </h1>
-            <p className="dir-entra dir-parrafo max-w-[40ch]" style={conVar({ "--e": "0.6s" })}>
-              {v.bajada}
-            </p>
-            <div className="dir-entra flex w-full flex-col items-start gap-5 sm:w-auto sm:flex-row sm:items-center" style={conVar({ "--e": "0.8s" })}>
-              {precio !== null ? (
-                <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno w-full max-w-[358px] sm:w-auto">
-                  {v.comprar}
-                </Link>
-              ) : null}
-              <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">
-                {precio !== null ? (
-                  <>
-                    <Promo />
-                    {v.precio(formatear(precio))}
-                  </>
-                ) : (
-                  v.proximamente
-                )}
-              </span>
-            </div>
+        <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
+          <div className="absolute inset-x-0 top-0">
+            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
           </div>
-          <Foto
-            src={FOTOS.hotel}
-            alt={v.altHotel}
-            forma="arco"
-            sizes="(min-width: 768px) 24vw, 70vw"
-            className="w-[70%] justify-self-end md:col-span-3 md:col-start-10 md:w-full"
-          />
+          <LogoTrazo id="trazo-viaje" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
+          <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-none">
+            {v.titulo[0]} <br className="hidden sm:block" />
+            {v.titulo[1]}
+          </h1>
+          <p className="dir-entra dir-bajada-hero mt-6 sm:mt-8" style={conVar({ "--e": "0.7s" })}>
+            {v.bajada}
+          </p>
+          {/* El libro de Sara y Dani: gira y se abre cuando está entero en el medio
+              de la pantalla (Coreografia, data-libro-3d); tocarlo lo repite. */}
+          <div data-libro-3d className="l3-seccion dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
+            <Libro3D
+              idioma={idioma}
+              b={LIBRO_VIAJE_EJEMPLO}
+              c={{ ...TEXTOS_EJEMPLO.es.libro, ...CAPITULO_VIAJE_EJEMPLO }}
+              diseno={{ tapa: FOTOS.tapa, interior: FOTOS.hotel, variante: "viaje" }}
+            />
+          </div>
+          <div className="dir-entra mt-10 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
+            {precio !== null ? (
+              <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno">
+                {v.comprar}
+              </Link>
+            ) : null}
+            <a href="#como-funciona" className="dir-boton dir-boton--hilo">
+              {TEXTOS_PORTADA[idioma].inicio.comoFunciona}
+            </a>
+          </div>
+          <p className="dir-dato dir-entra mt-6 text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "1.05s" })}>
+            {precio !== null ? (
+              <>
+                <Promo />
+                {v.precio(formatear(precio))}
+              </>
+            ) : (
+              v.proximamente
+            )}
+          </p>
         </div>
       </section>
-      )}
 
-      {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola ═══ */}
+      {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola y la foto del hotel en arco ═══ */}
       <section className="dir-tinta dir-hoja relative">
         <div
           data-revela
@@ -125,16 +122,12 @@ export function PaginaViaje({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactN
               <Palabras texto={frase2} desde={frase1.split(" ").length} total={nFrase} />
             </span>
           </h2>
-          {/* El libro del viaje en video (arreglos chicos, MOTION 14): al
-              costado en escritorio, abajo del texto en el celular. */}
-          <VideoLibro
-            src="/video/viaje-libro.mp4"
-            poster="/video/viaje-libro-poster.jpg"
-            alt={v.altLibro}
-            ancho={1120}
-            alto={640}
-            sizes="(min-width: 1024px) 40vw, 100vw"
-            className="viaje-video w-full lg:col-span-5"
+          <Foto
+            src={FOTOS.hotel}
+            alt={v.altHotel}
+            forma="arco"
+            sizes="(min-width: 1024px) 24vw, 70vw"
+            className="w-[70%] justify-self-end lg:col-span-3 lg:col-start-10 lg:w-full"
           />
         </div>
       </section>

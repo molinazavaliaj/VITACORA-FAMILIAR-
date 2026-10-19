@@ -10,6 +10,8 @@ import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } from "./piezas";
 import { VideoLibro } from "../_direccion/video-libro";
+import { LogoTrazo } from "../_direccion/logo-trazo";
+import { TEXTOS_PORTADA } from "../_textos/portada";
 
 // /kids, /ca/kids y /ar/kids: Vitácora Kids («Mi Primer Capítulo», 15/10). La
 // maqueta Kids y KidsMovil con la paleta de Kids de la guía (fondo #fbf8f3,
@@ -28,7 +30,8 @@ import { VideoLibro } from "../_direccion/video-libro";
 // conversación de ejemplo usa una pregunta del banco y un acuse aprobados: el
 // bot nunca dice que algo le gusta.
 //
-// Orden: 1 inicio, 2 los dibujos se pierden, 3 cómo funciona, 4 la
+// Orden: 1 inicio (como el de Familiar, 19/10: logo, lema centrado y el libro
+// que se abre), 2 los dibujos se pierden (con la foto del chico), 3 cómo funciona, 4 la
 // conversación, 5 el libro, 6 las preguntas, 7 tú lo ves todo y los temas,
 // 8 el precio o «Próximamente», 9 preguntas frecuentes, 10 cierre y pie.
 
@@ -44,8 +47,7 @@ export function preciosKids(idioma: IdiomaWeb) {
   return { vende, precio: vende ? precio : null, formatear, promo, lista };
 }
 
-/** `hero`: otro inicio en lugar del de hoy (solo los mockups de /prueba-heroes, 19/10). */
-export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactNode }) {
+export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_KIDS[idioma];
   const { vende, precio, formatear, promo, lista } = preciosKids(idioma);
   const comprar = ruta(idioma, "/comprar/kids");
@@ -80,50 +82,21 @@ export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?:
 
   return (
     <PaginaKids idioma={idioma}>
-      {/* ═══ 1 · INICIO: el titular enorme y el chico que graba, en arco ═══ */}
-      {hero ?? (
+      {/* ═══ 1 · INICIO, como el de Familiar (Naza, 19/10): el logo que se dibuja,
+          el lema enorme centrado, la bajada y el libro de Nico que se abre ═══ */}
       <section className="relative">
-        <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero />
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-8 sm:px-8 md:grid-cols-12 md:gap-8 md:pb-28 md:pt-14 lg:px-12">
-          <div className="flex flex-col items-start gap-7 md:col-span-8">
-            <span className="kids-micro kids-entra" style={conVar({ "--e": "0.2s" })}>
-              {t.etiqueta}
-            </span>
-            <h1 className="kids-titular kids-t1 kids-asienta">
-              <span className="block">{t.titulo[0]}</span>
-              <em className="block">{t.titulo[1]}</em>
-            </h1>
-            <p className="kids-bajada kids-entra max-w-[38ch]" style={conVar({ "--e": "0.45s" })}>
-              {t.bajada}
-            </p>
-            <div className="kids-entra flex w-full flex-col items-start gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-6" style={conVar({ "--e": "0.65s" })}>
-              <Accion className="w-full max-w-[358px] sm:w-auto" />
-              <span className="kids-dato">{dato}</span>
-            </div>
+        <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
+          <div className="absolute inset-x-0 top-0">
+            <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero />
           </div>
-          <FotoKids
-            src={FOTOS_KIDS.audio.src}
-            alt={t.altHero}
-            forma="arco"
-            priority
-            sizes="(min-width: 768px) 30vw, 78vw"
-            className="w-[78%] justify-self-end md:col-span-4 md:col-start-9 md:w-full"
-          />
-        </div>
-      </section>
-      )}
-
-      {/* ═══ 2 · LOS DIBUJOS SE PIERDEN: una frase sola, centrada ═══ */}
-      <section className="kids-hilo-arriba">
-        <div className="mx-auto flex max-w-[1100px] flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
-          <h2 className="kids-titular kids-t2 kids-aparece">
-            <span className="block">{t.dibujos.frase[0]}</span>
-            <em className="block">{t.dibujos.frase[1]}</em>
-          </h2>
-          <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
-          {/* El libro de Nico en video (arreglos chicos, MOTION 14): debajo del texto.
-              Con otro inicio (mockup de /prueba-heroes) el video ya está arriba: no se repite. */}
-          {!hero && (
+          <LogoTrazo id="trazo-kids" halo="var(--kids-fondo)" className="w-[124px] text-[var(--kids-texto)] sm:w-[180px]" />
+          <h1 className="kids-titular dir-t1 kids-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-[16ch]">
+            {t.titulo[0]} <em>{t.titulo[1]}</em>
+          </h1>
+          <p className="kids-bajada kids-entra mx-auto mt-6 max-w-[40ch] sm:mt-8" style={conVar({ "--e": "0.7s" })}>
+            {t.bajada}
+          </p>
+          {/* El libro de Nico en video (MOTION 14): va acá y solo acá. */}
           <VideoLibro
             src="/video/kids-libro.mp4"
             poster="/video/kids-libro-poster.jpg"
@@ -131,9 +104,35 @@ export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?:
             ancho={1120}
             alto={640}
             sizes="(min-width: 960px) 880px, 100vw"
-            className="kids-video mt-14 w-full max-w-[880px] md:mt-20"
+            className="kids-video kids-entra mt-10 w-full max-w-[880px] sm:mt-12"
           />
-          )}
+          <div className="kids-entra mt-10 flex w-full max-w-[358px] flex-col items-center gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
+            <Accion className="w-full sm:w-auto" />
+            <a href="#como-funciona" className="kids-boton kids-boton--hilo w-full sm:w-auto">
+              {TEXTOS_PORTADA[idioma].inicio.comoFunciona}
+            </a>
+          </div>
+          <p className="kids-dato kids-entra mt-6" style={conVar({ "--e": "1.05s" })}>
+            {dato}
+          </p>
+        </div>
+      </section>
+
+      {/* ═══ 2 · LOS DIBUJOS SE PIERDEN: una frase sola, centrada, y el chico que graba, en arco ═══ */}
+      <section className="kids-hilo-arriba">
+        <div className="mx-auto flex max-w-[1100px] flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
+          <h2 className="kids-titular kids-t2 kids-aparece">
+            <span className="block">{t.dibujos.frase[0]}</span>
+            <em className="block">{t.dibujos.frase[1]}</em>
+          </h2>
+          <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
+          <FotoKids
+            src={FOTOS_KIDS.audio.src}
+            alt={t.altHero}
+            forma="arco"
+            sizes="(min-width: 768px) 360px, 78vw"
+            className="mt-14 w-[78%] max-w-[360px] md:mt-20"
+          />
         </div>
       </section>
 
