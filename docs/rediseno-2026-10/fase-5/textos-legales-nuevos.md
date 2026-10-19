@@ -21,7 +21,7 @@ Popup rasca y gana (para cuando exista el cupón):
 9. Rasca y descubre tu descuento. / Tienes un 10 % de descuento en tu Vitácora. / Botón «Recibir mi cupón».
 10. Casillas sin marcar y separadas: «Quiero recibir el cupón en este mail.» / «Acepto que Vitácora me escriba hasta 4 veces para recordarme el descuento. Me doy de baja con un clic.» + enlace «Bases del cupón».
 
-## Tanda 2 — Bases del cupón VITACORA10 — APROBADA por Naza 19/10 (falta el abogado; 10 % sobre todo el pedido, 30 días)
+## Tanda 2 — Bases del cupón VITACORA10 — APROBADA por Naza 19/10 (falta el abogado; 10 % sobre el libro digital, 30 días, vale con el pack)
 11. Título: Bases del cupón de bienvenida [nota interna: cada mail recibe su propio código, tipo VITACORA10-K7Q2, de un uso y que vence solo]
 12. Quién lo da: El cupón lo da Vitácora Familiar, de [titulares, NIF y domicilio de titulares.ts].
 13. Qué es: Un 10 % de descuento sobre el libro digital. No se aplica al libro impreso, a los marcos ni a las copias. [nota interna: cambiado por Naza 19/10, el descuento no toca el impreso]
