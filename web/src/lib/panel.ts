@@ -237,6 +237,11 @@ export const PUEDE = {
 
 type ClienteSesion = { auth: { getUser(): Promise<{ data: { user: Usuario | null }; error: unknown }> } };
 
+/** El error de auth-js cuando descarta una renovación del token porque otra le ganó. */
+export function refrescoDescartado(error: unknown): boolean {
+  return typeof error === "object" && error !== null && (error as { name?: unknown }).name === "AuthRefreshDiscardedError";
+}
+
 export type NarradorDeSesion =
   | { ok: true; narrador: NarradorPanel; rol: Rol; user: Usuario }
   | { ok: false; status: number; error: string };
@@ -255,10 +260,17 @@ export async function narradorDeLaSesion(
   params: URLSearchParams | null,
   opciones: { soloDuena?: boolean; mensajeError?: string } = {},
 ): Promise<NarradorDeSesion> {
-  const {
+  let {
     data: { user },
     error: errorSesion,
   } = await sesion.auth.getUser();
+  // El token vencido se renovó dos veces a la vez y auth-js descartó una
+  // («AuthRefreshDiscardedError», la fecha del regalo que no se guardaba a la
+  // primera, 19/10): la otra ya dejó el token nuevo en las cookies, así que
+  // una segunda lectura encuentra la sesión.
+  if (refrescoDescartado(errorSesion)) {
+    ({ data: { user }, error: errorSesion } = await sesion.auth.getUser());
+  }
   if (errorSesion || !user) return { ok: false, status: 401, error: "No hay sesión activa." };
 
   const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intentá de nuevo.";

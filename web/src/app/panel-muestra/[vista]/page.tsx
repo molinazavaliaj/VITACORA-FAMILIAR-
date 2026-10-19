@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { fechaDelDia, type Viaje } from "@/lib/viaje";
+import type { ViajeVista } from "../../tablero/[narradorId]/viaje";
 import { Navegacion } from "../../tablero/nav";
 import { BotonTema } from "../../tablero/tema";
 import { HistoriaV3 } from "../../tablero/[narradorId]/v3";
@@ -12,7 +12,8 @@ import { CierreAnticipado } from "../../tablero/acciones";
 import { estadoEnHumano } from "../../tablero/ui";
 import { MarcoHistoria } from "../../tablero/_historia/marco";
 import { CifrasHistoria, PortadaHistoria } from "../../tablero/_historia/portada";
-import { EnlaceDudas, HojaFamilia, HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp } from "../../tablero/_historia/lateral";
+import { EnlaceDudas, HojaFamilia, HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp, TarjetaMarco } from "../../tablero/_historia/lateral";
+import { CambiarFecha } from "../../tablero/_historia/fecha";
 import { vozV3, vozViaje } from "../../tablero/_historia/voz";
 import { lineaDeTiempo, momentoDe, titularDe, type Momento } from "../../tablero/momento";
 import { LibroDelEstante } from "../../tablero/_historia/estante";
@@ -34,18 +35,19 @@ export const metadata: Metadata = { title: "Muestra del panel", robots: { index:
 
 const MOMENTOS: Momento[] = ["antes", "marcha", "listo"];
 
-/** El viaje de prueba: Sara, Lisboa, Sintra y Oporto. */
-function viajeDe(momento: Momento): Viaje {
+/** El viaje de prueba (V2): Sara, a Portugal, para ella, impreso y con álbum de 20. */
+function viajeDe(momento: Momento): ViajeVista {
   const salida = momento === "antes" ? 12 : momento === "marcha" ? -2 : -30;
   return {
+    v: 2,
     salida: hoyMas(salida),
     vuelta: hoyMas(salida + 7),
-    etapas: [
-      { nombre: "Lisboa", desde: hoyMas(salida), hasta: hoyMas(salida + 2) },
-      { nombre: "Sintra", desde: hoyMas(salida + 3), hasta: hoyMas(salida + 4) },
-      { nombre: "Oporto", desde: hoyMas(salida + 5), hasta: hoyMas(salida + 7) },
-    ],
-    angulos: ["comida", "lugar"],
+    zonaCasa: "Europe/Madrid",
+    zonaViaje: "Europe/Lisbon",
+    preguntasPropias: [],
+    formato: "impreso",
+    fotosAlbum: 20,
+    idioma: "es-ES",
   };
 }
 
@@ -131,11 +133,12 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
   ];
   const tapaFoto = momento === "antes" ? null : viaje ? "/rediseno/viaje-mirador-lisboa.jpg" : "/rediseno/libro-tapa-foto.jpg";
   const contacto = { whatsapp: null, correo: "hola@vitacorafamiliar.com" };
+  const T = PANEL[idioma];
 
   let cuerpo: ReactNode;
   let voz;
   const subir = !aprobado ? (
-    <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>
+    <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato} paraTapa={!tapaFoto}>
       Agregar fotos
     </SubirFoto>
   ) : undefined;
@@ -150,29 +153,21 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
       transcripcion: RESPUESTAS_VIAJE[i],
       duracion_segundos: [212, 175, 260][i],
       es_repregunta: false,
-      recibido_at: `${fechaDelDia(v, i + 1)}T21:40:00Z`,
+      recibido_at: `${hoyMas(-2 + i)}T21:40:00Z`,
     }));
-    voz = vozViaje(respuestas, 8, (o) => `Noche ${o} · ${new Date(`${fechaDelDia(v, o)}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" })}`);
+    voz = vozViaje(respuestas, (r) => new Date(`${r.recibido_at.slice(0, 10)}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" }));
     cuerpo = (
       <HistoriaViaje
-        enMarco
         n={n}
         rol="duena"
         viaje={v}
-        zonaHoraria="Europe/Lisbon"
         respuestas={respuestas}
         fotos={[]}
-        preguntasEnviadas={{ "2": "Segunda noche en Lisboa. ¿Qué comisteis hoy que no vais a olvidar?" }}
-        repreguntasEnviadas={{}}
         usuarioId="u1"
-        historiasRiel={historiasRiel}
         aprobado={aprobado}
         historiaCerrada={false}
-        linkPublico={null}
-        invitados={[]}
-        ritmo="diario"
-        evitar=""
-        horario={{ hora: "22:00", zona: "Europe/Lisbon" }}
+        puedeCambiarFechas={momento === "antes"}
+        trato={trato}
       />
     );
   } else {
@@ -243,10 +238,19 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
                 momento={momentoDe(estado, aprobado)}
                 lineas={{ impresos: pedido.impresos, marcos: pedido.marcos }}
                 hrefDireccion="#"
-                hrefMarco={pedido.marcos === 0 ? "#" : undefined}
+                fecha={
+                  estado === "regalo_pendiente" ? (
+                    <CambiarFecha
+                      narradorId={n.id}
+                      fecha={hoyMas(30)}
+                      textos={{ fila: T.cambiarFecha, titulo: T.cambiarFecha, texto: T.fechaTexto, campo: T.fechaCampo, guardar: T.guardarFecha, guardando: T.guardando, guardado: T.guardado, cerrar: T.cerrarHoja, error: T.errorFecha }}
+                    />
+                  ) : undefined
+                }
                 contacto={contacto}
                 cierre={momento === "marcha" ? <CierreAnticipado narradorId={n.id} trato={trato} /> : undefined}
               />
+              {pedido.impresos > 0 && pedido.marcos === 0 ? <TarjetaMarco idioma={idioma} quien={quien} href="#" /> : null}
               <EnlaceDudas idioma={idioma} contacto={contacto} />
             </>
           }

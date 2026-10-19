@@ -16,7 +16,7 @@ export function MarcoHistoria({
   cabecera: ReactNode;
   /** El lateral de arriba: lo último que contó, sus fotos, su WhatsApp. */
   arriba: ReactNode;
-  /** Lo contado: el guion, los bloques V3 o las etapas del viaje. */
+  /** Lo contado: el guion, los bloques V3 o lo contado en el viaje. */
   cuerpo: ReactNode;
   /** El lateral de abajo: la familia, tu pedido, las dudas. */
   abajo: ReactNode;

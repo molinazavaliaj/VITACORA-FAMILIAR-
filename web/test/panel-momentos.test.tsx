@@ -11,7 +11,7 @@ import { esElla, lineaDeTiempo, momentoDe, primerNombre, titularDe } from "../sr
 import { resumirPedido } from "../src/app/tablero/_historia/pedido";
 import { diasDesde, mmss, vozClasica, vozV3, vozViaje } from "../src/app/tablero/_historia/voz";
 import { CifrasHistoria, PortadaHistoria } from "../src/app/tablero/_historia/portada";
-import { HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp, HojaFamilia, EnlaceDudas } from "../src/app/tablero/_historia/lateral";
+import { HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp, HojaFamilia, EnlaceDudas, TarjetaMarco } from "../src/app/tablero/_historia/lateral";
 import { PANEL, type Quien } from "../src/app/_textos/panel";
 import { EditorGuion, SugerirPreguntas } from "../src/app/tablero/[narradorId]/preguntas/acciones";
 import { HistoriaV3 } from "../src/app/tablero/[narradorId]/v3";
@@ -122,10 +122,10 @@ describe("lo último que contó y las cifras", () => {
     expect(voz.ultimas[0].titulo).toBe("Pregunta 4");
   });
 
-  it("viaje: cuenta solo las noches del viaje", () => {
-    const voz = vozViaje([fila("a", 1, 3), fila("b", 2, 2), fila("c", 9, 1)], 8, (o) => `Noche ${o}`);
-    expect(voz.respuestas).toBe(2);
-    expect(voz.ultimas[0].titulo).toBe("Noche 9");
+  it("viaje V2: cuenta cada mensaje contado (sin repreguntas) y el título lo da quien llama", () => {
+    const voz = vozViaje([fila("a", 1, 3), fila("b", 2, 2), fila("c", 9, 1), fila("d", 9, 1, { es_repregunta: true })], (r) => `Mensaje ${r.id}`);
+    expect(voz.respuestas).toBe(3);
+    expect(voz.ultimas.map((u) => u.titulo)).toContain("Mensaje c");
   });
 
   it("V3: lo reservado cuenta para el cierre pero no suena ni se ve", () => {
@@ -182,8 +182,10 @@ describe("tu pedido: pausar y cancelar abren contacto, sin tocar la base", () =>
   });
 
   it("en marcha: pausar o cerrar; antes: cancelar. Sin garantía ni promesas", () => {
-    const marcha = renderToStaticMarkup(<HojaPedido idioma="es" quien={el} momento="marcha" lineas={{ impresos: 1, marcos: 0 }} hrefDireccion="/x#envio" hrefMarco="/x" contacto={contacto} />);
-    for (const t of ["Tu pedido", "Entrevista + libro digital", "Libro impreso, tapa dura", "Cambiar la dirección de envío", "Añadir el marco", "Pausar o cerrar el libro"]) expect(marcha, t).toContain(escapar(t));
+    const marcha = renderToStaticMarkup(<HojaPedido idioma="es" quien={el} momento="marcha" lineas={{ impresos: 1, marcos: 0 }} hrefDireccion="/x#envio" contacto={contacto} />);
+    for (const t of ["Tu pedido", "Entrevista + libro digital", "Libro impreso, tapa dura", "Cambiar la dirección de envío", "Pausar o cerrar el libro"]) expect(marcha, t).toContain(escapar(t));
+    // El marco ya no es un renglón de «Tu pedido»: es su propia tarjeta (TarjetaMarco).
+    expect(marcha).not.toContain("Añadir el marco");
     expect(marcha).not.toContain("Cancelar el pedido");
     expect(marcha).not.toMatch(PROHIBIDO);
     // Ningún botón del pedido llama a la API: solo abre la hoja.
@@ -202,7 +204,8 @@ describe("tu pedido: pausar y cancelar abren contacto, sin tocar la base", () =>
   it("España de tú y Argentina de vos en las hojas", () => {
     const todo = (idioma: "es" | "ar") =>
       [
-        renderToStaticMarkup(<HojaPedido idioma={idioma} quien={el} momento="marcha" lineas={{ impresos: 1, marcos: 0 }} hrefMarco="/x" contacto={contacto} />),
+        renderToStaticMarkup(<HojaPedido idioma={idioma} quien={el} momento="marcha" lineas={{ impresos: 1, marcos: 0 }} contacto={contacto} />),
+        renderToStaticMarkup(<TarjetaMarco idioma={idioma} quien={el} href="/x" />),
         renderToStaticMarkup(<HojaFotos idioma={idioma} quien={el} fotos={[]} hayPortada={false} />),
         renderToStaticMarkup(<HojaWhatsApp idioma={idioma} quien={el} telefono={null} hrefTarjeta="/t" />),
         renderToStaticMarkup(<HojaFamilia idioma={idioma} quien={el}>x</HojaFamilia>),

@@ -126,3 +126,14 @@
 .m-solapas[data-activa="viaje"]:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) > [data-solapa="viaje"] {
   color: #ffffff;
 }
+
+/* «Las fotos quedan» con el video del libro al costado (arreglos chicos): en
+   escritorio la frase comparte el ancho con el video, así que baja un punto
+   para que ninguna palabra se salga de sus 7 columnas. */
+@media (min-width: 1024px) {
+  .viaje-frase { font-size: clamp(3.4rem, 0.4rem + 6.2vw, 7.6rem); }
+}
+.viaje-video {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--dir-hilo-tinta), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+}

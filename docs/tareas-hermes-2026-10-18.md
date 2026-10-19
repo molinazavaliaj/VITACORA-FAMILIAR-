@@ -105,11 +105,9 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 ---
 
 ## Entregas (las completa hermes)
-
 ### T2 · robots.txt y JSON-LD — 18/10
 - **Rama:** `seo-robots`, cortada de `rediseno-web` (commit `ca35a258`).
 - **PR:** #85 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/85
 - **Qué entró:** `web/src/app/robots.ts` (permite todo, bloquea las nueve privadas, sitemap con la base de `metadataBase`), `web/src/lib/seo.ts` (`URL_BASE` única + `reglasRobots()` + `datosEstructurados()`), la portada imprime el JSON-LD en es/ar/ca, y `layout.tsx`/`lib/sitemap.ts` pasan a usar `URL_BASE`. Este archivo de tareas no existía en `rediseno-web`: entra con esta rama, copiado de `main`.
 - **Tests:** `web` 1424 pasan (+1 salteado, 112 archivos), 23 nuevos en `test/seo.test.tsx`; `npm run build` exit 0, `/robots.txt` estático.
 - **Pendiente de Naza:** el precio del marco en España está en dos lugares y no coinciden (el texto dice «a 19 €» y `.env.local` tiene `PRECIO_MARCO_EUR` en 20). Por eso el marco se anuncia solo en `ar`. Cuando la frase lea la variable, se suma a es y ca.
-

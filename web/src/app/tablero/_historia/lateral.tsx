@@ -140,7 +140,7 @@ export function HojaPedido({
   momento,
   lineas,
   hrefDireccion,
-  hrefMarco,
+  fecha,
   contacto,
   cierre,
 }: {
@@ -150,8 +150,8 @@ export function HojaPedido({
   lineas: LineasPedido;
   /** Encargar libro, donde está la dirección (solo si hay algo que viaja). */
   hrefDireccion?: string;
-  /** Encargar libro, donde se suma el marco (solo con impreso y sin marco). */
-  hrefMarco?: string;
+  /** «Cambiar la fecha de inicio» (CambiarFecha), si es un regalo que todavía no se abrió. */
+  fecha?: ReactNode;
   contacto: Contacto;
   /** El cierre anticipado (CierreAnticipado), si se puede: va adentro de «Pausar o cerrar». */
   cierre?: ReactNode;
@@ -176,15 +176,10 @@ export function HojaPedido({
         ) : null}
       </ul>
       <div className="mt-5 flex flex-col">
+        {fecha}
         {hrefDireccion ? (
           <Link href={hrefDireccion} className="pnl-fila">
             <span>{T.cambiarDireccion}</span>
-            <span aria-hidden>›</span>
-          </Link>
-        ) : null}
-        {hrefMarco ? (
-          <Link href={hrefMarco} className="pnl-fila">
-            <span>{T.anadirMarco}</span>
             <span aria-hidden>›</span>
           </Link>
         ) : null}
@@ -203,6 +198,32 @@ export function HojaPedido({
         ) : null}
       </div>
     </HojaLateral>
+  );
+}
+
+/**
+ * El marco, con su foto (arreglos chicos, maqueta Panel): en vez del renglón
+ * suelto «Añadir el marco» de «Tu pedido», una hoja con la foto del marco en
+ * casa, qué es y el enlace a Encargar libro. La página la pone solo si hay
+ * impreso y todavía no hay marco.
+ */
+export function TarjetaMarco({ idioma, quien, href }: { idioma: IdiomaPanel; quien: Quien; href: string }) {
+  const T = PANEL[idioma];
+  return (
+    <section aria-labelledby="el-marco" className="pnl-hoja overflow-hidden">
+      <div className="relative aspect-[16/10] w-full">
+        <Image src="/rediseno/marco-en-casa.jpg" alt={T.altMarco} fill sizes="(min-width: 1024px) 340px, 100vw" className="object-cover [object-position:center_40%]" />
+      </div>
+      <div className="flex flex-col gap-2 px-5 pb-5 pt-5 sm:px-6">
+        <h2 id="el-marco" className="text-[21px] font-medium leading-tight [font-family:var(--fuente-titulo)]">
+          {T.marcoTitulo(quien)}
+        </h2>
+        <p className="pnl-parrafo text-[15px]">{T.marcoTexto(quien)}</p>
+        <Link href={href} className="mt-1 self-start py-1.5 text-[14.5px] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:decoration-[var(--texto)] [font-family:var(--fuente-micro)]">
+          {T.anadirMarco} <span aria-hidden>→</span>
+        </Link>
+      </div>
+    </section>
   );
 }
 

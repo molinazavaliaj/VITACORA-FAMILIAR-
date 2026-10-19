@@ -9,6 +9,7 @@ import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
 import { PLANTILLAS_V3, entraALaV3, viajeV2ParaNuevos } from '../config.js';
 import { viajerosV2 } from '../viaje-v2/filas.js';
+import { chicosKids } from '../kids-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
@@ -34,14 +35,16 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 // ── Consultas cortas a la base ─────────────────────────────────────────
 
 /**
- * Los narradores en esos estados, SIN los de la Viaje V2 (con fila en viajes_v2): esos tienen su propio reloj
- * (viaje-v2/reloj.ts) y nada de lo viejo les sale. Si la base no deja saber quién es V2, tira: mejor no mandar nada
- * que mandarle el viaje viejo a uno nuevo.
+ * Los narradores en esos estados, SIN los de la Viaje V2 (con fila en viajes_v2) ni los chicos de Kids (con fila en
+ * kids_v2): esos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts) y nada de lo viejo les sale (ni la
+ * bienvenida, ni la pregunta, ni el recordatorio, ni el hito «silencio»). Si la base no deja saber quién es V2 o
+ * Kids, tira: mejor no mandar nada que mandarle el flujo viejo a uno nuevo.
  */
 async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   const { data } = await db.from('narradores').select('*').in('estado', estados);
   const v2 = await viajerosV2(db);
-  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id));
+  const kids = await chicosKids(db);
+  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id));
 }
 
 async function ultimoEnvio(narradorId: string, tipo: string, orden?: number) {
@@ -374,9 +377,29 @@ export function iniciarRelojViajeV2() {
   });
 }
 
+let corriendoKids = false;
+
+/** El reloj de Kids V2 (docs/kids/v2/plan-conexion-bot.md, T3): cada 1 minuto, junto al de la Viaje V2 y aparte de él. */
+export function iniciarRelojKids() {
+  return cron.schedule('* * * * *', async () => {
+    if (corriendoKids) return;
+    corriendoKids = true;
+    try {
+      const { tickKids } = await import('../kids-v2/reloj.js');
+      const { depsKidsReales } = await import('../kids-v2/deps-reales.js');
+      await tickKids(depsKidsReales());
+    } catch (err) {
+      console.error('Falló el tick del reloj de Kids:', err);
+    } finally {
+      corriendoKids = false;
+    }
+  });
+}
+
 export function iniciarScheduler() {
   iniciarRelojV3();
   iniciarRelojViajeV2();
+  iniciarRelojKids();
   return cron.schedule('*/15 * * * *', async () => {
     if (corriendo) return; // que dos ticks no se pisen
     corriendo = true;

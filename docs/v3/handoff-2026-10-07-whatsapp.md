@@ -2,6 +2,8 @@
 
 Rama **`v3-produccion`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-produccion`). Sale de `v3`, que ya tiene `main` adentro (merge `01329bb`, subido a `origin/v3`). Está pusheada y **sin mergear a `main`**.
 
+> **Actualizado 15/10:** `v3-produccion` está en main desde el 07/10 a la noche (`08d91f4`) y la migración `20261007000000` se aplicó el 07/10. La V3 corre en producción.
+
 - Diseño: [`docs/superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md`](../superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md).
 - Plan: [`docs/superpowers/plans/2026-10-07-entrevista-v3-whatsapp.md`](../superpowers/plans/2026-10-07-entrevista-v3-whatsapp.md), 15 tareas.
 
@@ -86,9 +88,9 @@ Las frases que disparan la pausa y la reserva están en `fabrica/src/v3/entrevis
 
 ## A vigilar en el piloto (anotado, no bloquea)
 - **Audio en la pregunta equivocada.** Si Railway se reinicia entre dos audios de la misma respuesta, el segundo puede caer en la pregunta siguiente. Igual es mejor que perderlo.
-- **Pregunta repetida tras una plantilla.** Si el narrador contesta con audio una pregunta que salió por plantilla, le vuelve a llegar la pregunta con botones.
+- **Pregunta repetida tras una plantilla.** Si el narrador contesta con audio una pregunta que salió por plantilla, le vuelve a llegar la pregunta con botones. **Arreglado 15/10 (rama `bot-arreglos`):** si la contesta (audio o texto escrito), no se repite; se reenvía con botones solo si lo que mandó no la contesta (un botón de otra plantilla, un saludo).
 - **Tráfico del reloj.** Cada minuto lee todas las filas V3 con el estado completo. Hay que achicarlo antes de prender `V3_PARA_NUEVOS`.
-- **Sin aviso al narrador si falla una foto.** Si falla la subida de FO1 o de una foto suelta, el narrador no recibe nada: el banco no tiene texto para eso.
+- **Sin aviso al narrador si falla una foto.** Si falla la subida de FO1 o de una foto suelta, el narrador no recibe nada: el banco no tiene texto para eso. **Arreglado 15/10 (rama `bot-arreglos`):** se le pide de nuevo (`fotoFallo` en textos-fijos.json, propuesto, falta OK de Naza) y se avisa a los socios.
 - **Aviso del candado.** El mail «no arma el libro viejo» les llega a los socios apenas hay un narrador V3 activo.
 
 ## Qué NO hacer

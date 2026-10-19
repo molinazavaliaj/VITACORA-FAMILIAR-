@@ -67,14 +67,20 @@ describe("el pie público", () => {
     }
   });
 
-  it("cada idioma enlaza a sus tres legales (fase 5)", () => {
+  it("cada idioma enlaza a sus legales y a reclamaciones (fase 5, tanda 5)", () => {
     for (const [idioma, prefijo] of [["es", ""], ["ca", "/ca"], ["ar", "/ar"]] as const) {
       const html = renderToStaticMarkup(<Pie idioma={idioma} camino="/" />);
-      for (const doc of ["terminos", "privacidad", "arrepentimiento"]) {
+      for (const doc of ["terminos", "privacidad", "arrepentimiento", "reclamaciones"]) {
         expect(html).toContain(`href="${prefijo}/legal/${doc}"`);
       }
     }
     expect(renderToStaticMarkup(<Pie idioma="ca" camino="/" />)).toContain("Desistiment");
+  });
+
+  it("el horario de atención, en los tres idiomas (tanda 5, texto 39)", () => {
+    expect(renderToStaticMarkup(<Pie idioma="es" camino="/" />)).toContain("Atención de lunes a viernes, de 10 a 18.");
+    expect(renderToStaticMarkup(<Pie idioma="ar" camino="/" />)).toContain("Atención de lunes a viernes, de 10 a 18.");
+    expect(renderToStaticMarkup(<Pie idioma="ca" camino="/" />)).toContain("Atenció de dilluns a divendres, de 10 a 18.");
   });
 
   it("el cambio de país va a la misma pantalla en la otra versión", () => {

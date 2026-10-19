@@ -30,6 +30,8 @@ export type TextosComprador = {
   estadoCorto: string;
   proximoPaso: string;
   botonImprimir: string;
+  /** Debajo del botón de imprimir: cómo dar vuelta la hoja (Naza, 19/10: el interior le salía al revés). */
+  avisoDobleFaz: string;
   botonImagen: string;
   aQuien: string;
   comoLeDecis: string;
@@ -174,6 +176,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
 
     // Aprobados por Naza el 08/10 (Task 0, tanda 3). Los botones de la tarjeta.
     botonImprimir: "Imprimir o guardar en PDF",
+    avisoDobleFaz: "Imprimila doble faz y elegí «dar vuelta por el borde largo». Si la parte de adentro sale al revés, probá con «borde corto».",
     botonImagen: "Descargar la imagen para WhatsApp",
 
     // Aprobados por Naza el 08/10 (Task 0, tanda 2). El formulario de /regalar, 11 a 20.
@@ -246,6 +249,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     estadoCorto: "esperando que abra el regalo",
     proximoPaso: "Descarga la tarjeta del regalo",
     botonImprimir: "Imprimir o guardar en PDF",
+    avisoDobleFaz: "Imprímela a doble cara y elige «dar la vuelta por el borde largo». Si la parte de dentro sale al revés, prueba con «borde corto».",
     botonImagen: "Descargar la imagen para WhatsApp",
     aQuien: "¿A quién se lo regalas?",
     comoLeDecis: "¿Cómo le dices?",
@@ -318,4 +322,79 @@ export function tratoDeRegion(region: RegionComprador): TratoComprador {
 
 export function idiomaPorDefecto(region: RegionComprador): IdiomaRegalo {
   return region === "ES" ? "es-ES" : "es-AR";
+}
+
+/**
+ * La tarjeta «El libro de tu vida» (versión negra con el título grande), la
+ * que Naza aprobó e imprimió el 16/10 (PLANIFICADOR-HIGGSFIELD/gift-card/
+ * formatos/1-tarjeta-sola-negra-titulo-grande.pdf). La web la completa con
+ * el regalo: Para y De con los nombres, el código en su recuadro.
+ */
+export type TextosTarjetaLibro = {
+  /** Arriba de la tapa, en mayúsculas chicas. */
+  regaloParaSiempre: string;
+  /** El título de la tapa, en dos renglones. */
+  titulo: readonly [string, string];
+  /** El título del lado de adentro. */
+  regalar: string;
+  /** Los tres párrafos del lado de adentro. */
+  parrafos: readonly string[];
+  para: string;
+  de: string;
+  codigo: string;
+};
+
+// Castellano: la tapa es la del PDF (16/10). El lado de adentro le habla a quien
+// recibe el regalo (Naza, 19/10): antes decía «Regalar una Vitácora» y «su vida»,
+// como un aviso para quien compra. Ahora «Te regalaron una Vitácora», de vos en
+// Argentina y de tú en España.
+const TARJETA_LIBRO_AR: TextosTarjetaLibro = {
+  regaloParaSiempre: "UN REGALO PARA SIEMPRE",
+  titulo: ["El libro", "de tu vida"],
+  regalar: "Te regalaron una Vitácora",
+  parrafos: [
+    "Es el libro de tu vida, contado con tus propias palabras.",
+    "Un biógrafo te hace preguntas por WhatsApp y vos contestás con audios, a tu ritmo.",
+    "Con eso escribimos tu libro en tapa dura. Tus mejores historias quedan guardadas con tu propia voz, para escucharlas con un QR.",
+  ],
+  para: "Para",
+  de: "De",
+  codigo: "Código del regalo",
+};
+
+const TARJETA_LIBRO_ES: TextosTarjetaLibro = {
+  ...TARJETA_LIBRO_AR,
+  regalar: "Te han regalado una Vitácora",
+  parrafos: [
+    "Es el libro de tu vida, contado con tus propias palabras.",
+    "Un biógrafo te hace preguntas por WhatsApp y tú contestas con audios, a tu ritmo.",
+    "Con eso escribimos tu libro en tapa dura. Tus mejores historias quedan guardadas con tu propia voz, para escucharlas con un QR.",
+  ],
+};
+
+const TARJETA_LIBRO: Record<IdiomaRegalo, TextosTarjetaLibro> = {
+  "es-AR": TARJETA_LIBRO_AR,
+  "es-ES": TARJETA_LIBRO_ES,
+  // El PDF solo está en castellano. En catalán, lo ya aprobado: el título de la
+  // carta-libro (17/10), «Això és un regal.» y sus tres líneas (09/10, la
+  // tarjeta de antes), «Per a» (carta-libro, 17/10) y «Codi del regal»
+  // (gift-card en catalán, pendiente de revisión nativa).
+  ca: {
+    // PENDIENTE: aprobar (Naza / nativo). Es la única frase sin versión aprobada.
+    regaloParaSiempre: "UN REGAL PER SEMPRE",
+    titulo: ["El llibre", "de la teva vida"],
+    regalar: "T'han regalat una Vitácora",
+    parrafos: [
+      "Un biògraf et farà preguntes sobre la teva vida per WhatsApp.",
+      "Tu li respons amb àudios, quan puguis.",
+      "Amb el que li expliquis s'escriu el llibre de la teva vida.",
+    ],
+    para: "Per a",
+    de: "De",
+    codigo: "Codi del regal",
+  },
+};
+
+export function textosTarjetaLibro(idioma: IdiomaRegalo): TextosTarjetaLibro {
+  return TARJETA_LIBRO[idioma];
 }

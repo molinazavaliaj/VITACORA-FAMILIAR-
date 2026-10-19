@@ -7,7 +7,7 @@ import { OPINIONES, hayOpiniones, type Opinion } from "@/lib/opiniones";
 import { EnlaceIdioma } from "./idioma-cliente";
 
 // El pie público del rediseño 2026-10: el lema de siempre, los legales que
-// existen hoy y el contacto. «Botón de arrepentimiento» en Argentina es
+// existen hoy (con Reclamaciones, 19/10) y el contacto con su horario. «Botón de arrepentimiento» en Argentina es
 // obligatorio y tiene que verse desde la portada (Res. 424/2020); en España la
 // misma página se llama «Desistimiento». Cada idioma enlaza a sus legales
 // (/legal/…, /ca/legal/…, /ar/legal/…; fase 5). El enlace a «Opiniones» solo
@@ -28,6 +28,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaW
             <Link prefetch={false} href={ruta(idioma, "/legal/terminos")} className={enlace}>{t.terminos}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className={enlace}>{t.privacidad}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/legal/reclamaciones")} className={enlace}>{t.reclamaciones}</Link>
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
@@ -37,6 +38,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaW
                 {t.escribirWhatsApp}
               </a>
             ) : null}
+            <span className="flex min-h-11 items-center normal-case tracking-normal text-[13px]">{t.horario}</span>
           </div>
           <div className="flex flex-col">
             <Link prefetch={false} href="/entrar" className={enlace}>{t.entrar}</Link>

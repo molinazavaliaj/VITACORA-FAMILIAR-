@@ -36,6 +36,7 @@ const COMPRADOR_VOS = {
   estadoCorto: "esperando que abra el regalo",
   proximoPaso: "Descargá la tarjeta del regalo",
   botonImprimir: "Imprimir o guardar en PDF",
+  avisoDobleFaz: "Imprimila doble faz y elegí «dar vuelta por el borde largo». Si la parte de adentro sale al revés, probá con «borde corto».",
   botonImagen: "Descargar la imagen para WhatsApp",
   aQuien: "¿A quién se lo regalás?",
   comoLeDecis: "¿Cómo le decís?",

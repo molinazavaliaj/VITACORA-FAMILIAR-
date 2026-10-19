@@ -199,6 +199,7 @@ async function main(args: string[]): Promise<void> {
       db, wa,
       transcribir: async (audio) => ({ texto: audio.toString('utf8') === 'VACIO' ? '' : audio.toString('utf8'), duracionSegundos: 30 }),
       avisar: async (clave, asunto) => { charla.push({ en: reloj, de: 'bot', texto: `[aviso que saldría a los socios] ${clave}: ${asunto}` }); },
+      mailSi: async () => {},
       ahora: () => reloj,
     };
     const { data: familia, error: errorFamilia } = await db.from('familias')

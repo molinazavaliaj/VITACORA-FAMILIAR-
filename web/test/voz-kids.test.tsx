@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
     throw new Error("NEXT_NOT_FOUND");
   },
 }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
+vi.mock("next/headers", () => ({ headers: async () => new Headers(), cookies: async () => ({ get: () => undefined }) }));
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -135,6 +135,7 @@ describe("«Su voz» de Kids: lo que muestra", () => {
     expect(html).toContain('data-producto="kids"');
     expect(html).not.toContain("La historia de");
     expect(html).not.toContain("El libro de una vida");
+    expect(html).not.toContain("El libro de su vida");
     expect(html).not.toContain(">Vitácora Familiar<");
     expect(html).not.toContain("Mandar por WhatsApp");
   });
@@ -163,8 +164,9 @@ describe("«Su voz» de la casa, igual que hoy", () => {
   it("con el libro cerrado abre con sus textos de siempre; listo.json no cambia nada", async () => {
     const { createSignedUrl } = base({ narrador: NARRADOR_CASA, archivos: { "n1/paquete/frases.json": JSON.stringify(FRASES_CASA), "n1/escritor-kids/listo.json": LISTO } });
     const html = await pagina(firmarTokenVoz("n1"));
-    expect(html).toContain("La historia de Osvaldo Gómez");
-    expect(html).toContain("El libro de una vida");
+    // Rediseño 18/10 (maqueta SuVoz): su nombre, la foto con el botón y cada frase con su WhatsApp.
+    expect(html).toContain("Osvaldo Gómez");
+    expect(html).toContain("El libro de su vida");
     expect(html).toContain("Mandar por WhatsApp");
     expect(html).not.toContain('data-producto="kids"');
     expect((await audio(firmarTokenVoz("n1"), "c01-01")).status).toBe(302);

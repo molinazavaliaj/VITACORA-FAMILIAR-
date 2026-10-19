@@ -43,6 +43,7 @@ import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/pl
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
+import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
 
 type Db = SupabaseClient;
 
@@ -70,7 +71,7 @@ export type Motor = {
   /** Un ejecutor por trabajo: la Etapa A y el libro de un pedido no comparten gasto ni tope. */
   ejecutor(a: { almacen: Almacen; narradorId: string; log: (s: string) => void }): { ej: Ejecutor; usarLote: boolean };
   /** De dónde sale el material. Sin esto, de la base (carpetaDeLaBase); los tests ponen una carpeta fija. */
-  material?: (db: Db, narradorId: string) => Promise<{ c: Carpeta; audios: AudioV3[] }>;
+  material?: (db: Db, narradorId: string) => Promise<{ c: Carpeta; audios: AudioV3[]; propia?: boolean }>;
 };
 
 /** Producción: Opus/Haiku por Batch (configuración económica), tope por libro y cada llamada a consumo_ia. */
@@ -125,7 +126,16 @@ export class SinMaterial extends Error {
 }
 
 /** La carpeta del escritor con entradas/ armadas desde la base. Los audios vuelven aparte (para «Su voz»). */
-export async function carpetaDeLaBase(db: Db, narradorId: string): Promise<{ c: Carpeta; audios: AudioV3[] }> {
+/** «Para mí» en la compra: el libro es de quien lo compró (mismo criterio que esPropia en web/src/lib/panel.ts). */
+export function esLibroPropio(contexto: unknown): boolean {
+  return (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
+}
+
+/**
+ * `propia` no va a la carpeta: cambiar entradas/ rehace la Etapa A de los libros que ya la tienen
+ * (mismasEntradas). Solo cambia a quién le hablan las dudas.
+ */
+export async function carpetaDeLaBase(db: Db, narradorId: string): Promise<{ c: Carpeta; audios: AudioV3[]; propia: boolean }> {
   const e = await leerEntrevistaV3(db, narradorId);
   if (!e) throw new Error(`${narradorId} no tiene fila en entrevistas_v3`);
   const { data, error } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
@@ -133,16 +143,16 @@ export async function carpetaDeLaBase(db: Db, narradorId: string): Promise<{ c: 
   const c = new Carpeta();
   const r = materialACarpeta(c, { estado: { ...e, ficha: fichaParaLibro(e.ficha as FichaParaXml, (data as { contexto?: unknown } | null)?.contexto) }, confirmadoNarrador: [] });
   if (!r.filas.some((f) => !f.paso)) throw new SinMaterial(narradorId);
-  return { c, audios: e.audios };
+  return { c, audios: e.audios, propia: esLibroPropio((data as { contexto?: unknown } | null)?.contexto) };
 }
 
 // ---------------------------------------------------------------- Etapa A (al terminar la entrevista)
 
-function armarContexto(db: Db, narradorId: string, motor: Motor, c: Carpeta): Contexto {
+function armarContexto(db: Db, narradorId: string, motor: Motor, c: Carpeta, propia = false): Contexto {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   const log = (s: string): void => console.log(`escritor ${narradorId}: ${s}`);
   const { ej, usarLote } = motor.ejecutor({ almacen, narradorId, log });
-  return { c, ej, almacen, log, usarLote };
+  return { c, ej, almacen, log, usarLote, propia };
 }
 
 /**
@@ -164,8 +174,8 @@ export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = 
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   let r: ResultadoEtapaA;
   try {
-    const { c } = await (motor.material ?? carpetaDeLaBase)(db, narradorId);
-    r = await etapaA(armarContexto(db, narradorId, motor, c));
+    const { c, propia } = await (motor.material ?? carpetaDeLaBase)(db, narradorId);
+    r = await etapaA(armarContexto(db, narradorId, motor, c, propia));
   } catch (err) {
     if (!(err instanceof TopeDeGasto) && !(err instanceof SinMaterial)) throw err;
     r = { ok: false, motivo: err.message };
@@ -441,7 +451,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       console.log(`escritor ${narradorId}: el material cambió desde la Etapa A; se rehace con el de hoy`);
       snapA = null;
     }
-    const x = armarContexto(db, narradorId, motor, snapA ?? desdeBase.c);
+    const x = armarContexto(db, narradorId, motor, snapA ?? desdeBase.c, desdeBase.propia);
     if (!snapA) {
       // Las dudas de una A nueva pueden ser otras: el aviso viejo deja de valer ANTES de pagar la A (si el
       // mail nuevo falla y el trabajo se reintenta, no se toma por avisado lo que nadie vio).
@@ -484,6 +494,8 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo dejar entregado el pedido ${pedido.id}: ${errorUpdate.message}`);
     erroresLibro.delete(pedido.id);
+    // El libro para Bookmundo tapa dura (interior, cubierta e informe en {id}/bookmundo/): después de entregar, y sin frenar nada.
+    await armarBookmundoSinFrenar(db, narradorId);
   } catch (err) {
     const motivo = err instanceof Error ? err.message : String(err);
     console.error(`escritor ${narradorId}: el libro del pedido ${pedido.id} falló:`, motivo);

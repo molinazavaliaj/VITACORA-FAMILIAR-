@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { textosAbuelo, textosComprador } from "../src/lib/regalo-textos";
+import { textosAbuelo, textosComprador, textosTarjetaLibro } from "../src/lib/regalo-textos";
 import type { RegaloPublico } from "../src/lib/regalo-datos";
 import { largoEnTarjeta } from "../src/lib/regalo";
 
@@ -54,6 +54,8 @@ import { GET } from "../src/app/regalo/[codigo]/imagen/route";
 
 const AR = textosAbuelo("es-AR");
 const VOS = textosComprador("vos");
+const LIBRO = textosTarjetaLibro("es-AR");
+const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 
 const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   codigo: "VF-7K3M2Q",
@@ -65,6 +67,7 @@ const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   mensaje: "Quiero tu historia para siempre.",
   tieneAudio: false,
   usado: false,
+  producto: "familiar",
   ...extra,
 });
 
@@ -91,14 +94,29 @@ describe("la tarjeta imprimible", () => {
     expect(impresion).not.toContain("zoom");
   });
 
-  it("lleva la tapa, el mensaje, las líneas aprobadas, el QR y el código", async () => {
+  it("lleva el diseño impreso «El libro de tu vida» (16/10), con Para, De y el código completados", async () => {
     const html = await render();
-    expect(html).toContain(AR.tapaSlogan);
-    expect(html).toContain("abuelo,");
+    expect(html).toContain(">UN REGALO PARA SIEMPRE<");
+    expect(html).toContain("<span>El libro</span><span>de tu vida</span>");
+    expect(html).toContain(">VITÁCORA FAMILIAR<");
+    expect(html).toContain(">Te regalaron una Vitácora<");
+    for (const parrafo of LIBRO.parrafos) expect(html).toContain(parrafo);
+    expect(html).toContain("<span>Para</span><span>abuelo</span>");
+    expect(html).toContain("<span>De</span><span>Lucía</span>");
+    expect(html).toContain(">Código del regalo<");
+    expect(html).toMatch(/class="lv-cod-c">VF-7K3M2Q</);
     expect(html).toContain("Quiero tu historia para siempre.");
-    expect(html).toContain(">Lucía<");
-    expect(html).toContain(AR.esUnRegalo);
-    for (const linea of AR.explica) expect(html).toContain(linea);
+    // El slogan de la tapa de antes queda en la contratapa.
+    expect(html).toContain(AR.tapaSlogan);
+  });
+
+  it("es negra también al imprimir (Chrome no imprime fondos si no se le pide)", async () => {
+    const html = await render();
+    expect(html).toMatch(/\.lv \{ background: #14140F;[^}]*print-color-adjust: exact;/);
+  });
+
+  it("lleva cómo empezar: lo que dice junto al QR, el QR y el respaldo", async () => {
+    const html = await render();
     expect(html).toContain(AR.apunta);
     expect(html).toContain(AR.respaldo("+54\u00A09\u00A011\u00A00000\u00A00000"));
     expect(html).toContain(">VF-7K3M2Q<");
@@ -127,11 +145,15 @@ describe("la tarjeta imprimible", () => {
   it("en catalán: las frases impresas en catalán y nada de vos", async () => {
     estado.regalo = regalo({ idioma: "ca" });
     const html = await render();
+    expect(html).toContain("<span>El llibre</span><span>de la teva vida</span>");
+    expect(html).toContain("<span>Per a</span>");
+    expect(html).toContain(">Codi del regal<");
+    expect(html).not.toContain("Te regalaron");
     expect(html).toContain("A cada família hi ha un llibre per escriure.");
     expect(html).toContain("Tu li respons amb àudios, quan puguis.");
     expect(html).toContain("Apunta la càmera del mòbil aquí per començar.");
     expect(html).toContain(textosAbuelo("ca").respaldo("+54 9 11 0000 0000"));
-    expect(html).toContain("Això és un regal.");
+    expect(html).toContain("han regalat una Vitácora");
     expect(html).not.toContain("Vos");
     expect(html).not.toContain(AR.apunta);
   });
@@ -140,7 +162,9 @@ describe("la tarjeta imprimible", () => {
     estado.regalo = regalo({ idioma: "es-ES" });
     const html = await render();
     expect(html).toContain("En cada familia hay un libro sin escribir.");
-    expect(html).toContain("Tú le contestas con audios, cuando puedas.");
+    expect(html).toContain(escapar(textosTarjetaLibro("es-ES").parrafos[1]));
+    expect(html).toContain("Te han regalado una Vitácora");
+    expect(html).not.toContain("contestás");
     expect(html).toContain("Apunta la cámara del móvil aquí para empezar.");
     expect(html).toContain(textosAbuelo("es-ES").respaldo("+54 9 11 0000 0000"));
     expect(html).not.toContain("Vos");
@@ -151,7 +175,7 @@ describe("la tarjeta imprimible", () => {
     estado.regalo = regalo({ idioma: "ca" });
     const html = await render();
     expect(html).toMatch(/^<div lang="es"/);
-    expect(html.match(/class="tarjeta" lang="ca"/g)).toHaveLength(2);
+    expect(html.match(/class="tarjeta lv" lang="ca"/g)).toHaveLength(2);
     expect(html).toContain('aria-label="Lado de afuera"');
   });
 
@@ -173,17 +197,18 @@ describe("la tarjeta imprimible", () => {
     });
   }
 
-  it("es-AR sigue idéntica a hoy, con las frases aprobadas literales", async () => {
+  it("es-AR con las frases aprobadas literales", async () => {
     const html = await render();
     expect(html).toContain("En cada familia hay un libro sin escribir.");
-    expect(html).toContain("Vos le contestás con audios, cuando puedas.");
+    expect(html).toContain("Un biógrafo te hace preguntas por WhatsApp y vos contestás con audios, a tu ritmo.");
+    expect(html).toContain("Imprimila doble faz y elegí «dar vuelta por el borde largo»");
     expect(html).toContain("Apuntá la cámara del celular acá para empezar.");
     expect(html).toContain("Si la cámara no te anda, mandá un WhatsApp al +54 9 11 0000 0000 con este código.");
     expect(html).toContain("Imprimir o guardar en PDF");
     expect(html).toContain("Descargar la imagen para WhatsApp");
   });
 
-  it("nada violeta: solo negro sobre blanco", async () => {
+  it("nada violeta: negro, blanco y grises", async () => {
     const html = (await render()).toLowerCase();
     expect(html).not.toContain("#5d3fd3");
     expect(html).not.toContain("violet");
@@ -232,25 +257,38 @@ describe("la imagen para WhatsApp", () => {
     estado.regalo = regalo({ idioma: "ca" });
     estado.numero = { digitos: "34600000000", legible: "+34 600 00 00 00" };
     const html = await textoDeLaImagen();
-    expect(html).toContain("Això és un regal.");
+    expect(html).toContain("han regalat una Vitácora");
     expect(html).toContain("Tu li respons amb àudios, quan puguis.");
     expect(html).toContain("Apunta la càmera del mòbil aquí per començar.");
     expect(html).toContain("envia un WhatsApp al");
+    expect(html).toContain("El llibre");
+    expect(html).toContain("Codi del regal");
     expect(html).not.toContain("Vos");
   });
 
   it("en castellano de España: las frases de tú", async () => {
     estado.regalo = regalo({ idioma: "es-ES" });
     const html = await textoDeLaImagen();
-    expect(html).toContain("Tú le contestas con audios, cuando puedas.");
+    expect(html).toContain("Te han regalado una Vitácora");
     expect(html).toContain("Apunta la cámara del móvil aquí para empezar.");
     expect(html).not.toContain("Vos");
   });
 
-  it("es-AR sigue con las frases aprobadas", async () => {
+  it("es-AR: la tarjeta negra «El libro de tu vida» con Para, De, el QR y el código", async () => {
     const html = await textoDeLaImagen();
-    expect(html).toContain("Vos le contestás con audios, cuando puedas.");
+    expect(html).toContain("UN REGALO PARA SIEMPRE");
+    expect(html).toContain("El libro");
+    expect(html).toContain("de tu vida");
+    expect(html).toContain(">Para<");
+    expect(html).toContain(">abuelo<");
+    expect(html).toContain(">De<");
+    expect(html).toContain(">Lucía<");
+    expect(html).toContain("Quiero tu historia para siempre.");
+    for (const parrafo of LIBRO.parrafos) expect(html).toContain(parrafo);
     expect(html).toContain("Apuntá la cámara del celular acá para empezar.");
+    expect(html).toContain("Código del regalo");
+    expect(html).toContain(">VF-7K3M2Q<");
+    expect(html).toContain("background-color:#14140F");
   });
 
   it("con un código inexistente devuelve 404", async () => {

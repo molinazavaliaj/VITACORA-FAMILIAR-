@@ -14,7 +14,15 @@ export type RegaloPublico = {
   idioma: IdiomaRegalo;
   /** La región de quien compró (familias.region): los botones de pantalla van con su trato. Null si no vino. */
   region: RegionComprador | null;
+  /** Qué se regaló (narradores.contexto.modo): elige la tarjeta. Sin modo o desconocido = familiar. */
+  producto: ProductoRegalo;
 };
+
+export type ProductoRegalo = "familiar" | "viaje" | "kids";
+
+export function productoDeModo(modo: unknown): ProductoRegalo {
+  return modo === "viaje" || modo === "kids" ? modo : "familiar";
+}
 
 export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Promise<RegaloPublico | null> {
   const codigo = normalizarCodigo(codigoCrudo);
@@ -31,7 +39,7 @@ export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Pr
   }
   const f = data as null | {
     codigo: string; quien_regala: string; mensaje: string; audio_path: string | null; usado_at: string | null;
-    narradores: { nombre: string; como_le_dicen: string; estado: string; contexto?: { idioma?: unknown } | null;
+    narradores: { nombre: string; como_le_dicen: string; estado: string; contexto?: { idioma?: unknown; modo?: unknown } | null;
       familias?: { region?: unknown } | null } | null;
   };
   if (!f?.narradores || f.narradores.estado === "pendiente_pago") return null;
@@ -42,6 +50,7 @@ export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Pr
     quienRegala: f.quien_regala, mensaje: f.mensaje, tieneAudio: !!f.audio_path, usado: !!f.usado_at,
     idioma: esIdiomaRegalo(idioma) ? idioma : "es-AR",
     region: region === "ES" || region === "AR" ? region : null,
+    producto: productoDeModo(f.narradores.contexto?.modo),
   };
 }
 

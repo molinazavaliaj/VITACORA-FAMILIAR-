@@ -1,13 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  CLAVE_ORIGEN,
-  leerOrigen,
+  CLAVE_ORIGEN_VIEJA,
+  alCargarLaWeb,
   limpiarOrigen,
+  olvidarOrigen,
+  origenDeLaVisita,
+  origenDelNavegador,
   registrarVisita,
   toqueDeUrl,
-  type AlmacenOrigen,
 } from "../src/lib/origen";
 import { OrigenVisita } from "../src/app/origen-visita";
 import { crearPagador } from "../src/app/_checkout/pagador";
@@ -22,39 +25,62 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearCheckout } from "@/lib/pagos";
 import { POST } from "../src/app/api/compra/route";
 
-// F4-5: de qué anuncio vino cada compra. Sin jsdom: el almacén es un Map.
-
-function almacenFalso() {
-  const datos = new Map<string, string>();
-  const a: AlmacenOrigen = {
-    getItem: (k) => datos.get(k) ?? null,
-    setItem: (k, v) => void datos.set(k, v),
-    removeItem: (k) => void datos.delete(k),
-  };
-  return { datos, almacen: () => a };
-}
+// F4-5: de qué anuncio vino cada compra. Desde el 19/10 solo en memoria,
+// durante la visita: nada en localStorage, sessionStorage ni cookies. Sin
+// jsdom: la ventana es un objeto falso con espías.
 
 const DIA = 24 * 60 * 60 * 1000;
 const HOY = new Date("2026-10-14T12:00:00Z");
 const despues = (dias: number) => new Date(HOY.getTime() + dias * DIA);
 
-describe("captura del origen", () => {
-  it("una visita sin parámetros de campaña no guarda nada", () => {
-    const { datos, almacen } = almacenFalso();
-    registrarVisita(almacen, "?ref=amigo&x=1", "/", HOY);
-    registrarVisita(almacen, "", "/comprar", HOY);
-    expect(datos.size).toBe(0);
+/** Un almacén que anota todo lo que se le pide. */
+function almacenEspia(inicial: Record<string, string> = {}) {
+  const datos = new Map(Object.entries(inicial));
+  return {
+    datos,
+    getItem: vi.fn((k: string) => datos.get(k) ?? null),
+    setItem: vi.fn((k: string, v: string) => void datos.set(k, v)),
+    removeItem: vi.fn((k: string) => void datos.delete(k)),
+  };
+}
+
+/** Una ventana falsa: URL que se puede cambiar (como un `Link`), almacenes y cookie con espías. */
+function ventanaFalsa(url: string, local: Record<string, string> = {}) {
+  const location = { search: "", pathname: "/" };
+  const ir = (u: string) => {
+    const x = new URL(u, "https://vitacorafamiliar.com");
+    location.search = x.search;
+    location.pathname = x.pathname;
+  };
+  ir(url);
+  const escrituraCookie = vi.fn();
+  const document = {};
+  Object.defineProperty(document, "cookie", { get: () => "", set: escrituraCookie });
+  const indexedDB = { open: vi.fn() };
+  return {
+    ventana: { location, localStorage: almacenEspia(local), sessionStorage: almacenEspia(), document, indexedDB },
+    ir,
+    escrituraCookie,
+  };
+}
+
+beforeEach(() => olvidarOrigen());
+afterEach(() => vi.unstubAllGlobals());
+
+describe("captura del origen (solo en memoria)", () => {
+  it("una visita sin parámetros de campaña no recuerda nada", () => {
+    registrarVisita("?ref=amigo&x=1", "/", HOY);
+    registrarVisita("", "/comprar", HOY);
+    expect(origenDeLaVisita(HOY)).toBeNull();
   });
 
-  it("guarda el primer toque con los parámetros, la página sin query y la fecha", () => {
-    const { datos, almacen } = almacenFalso();
+  it("recuerda el primer toque con los parámetros, la página sin query y la fecha", () => {
     registrarVisita(
-      almacen,
       "?utm_source=facebook&utm_medium=paid&utm_campaign=padre-oct&utm_content=video1&utm_term=libro&fbclid=AbC&gclid=G1&otro=no",
       "/regalo-para-tu-padre",
       HOY,
     );
-    expect(JSON.parse(datos.get(CLAVE_ORIGEN)!)).toEqual({
+    expect(origenDeLaVisita(HOY)).toEqual({
       primero: {
         utm_source: "facebook",
         utm_medium: "paid",
@@ -69,57 +95,28 @@ describe("captura del origen", () => {
     });
   });
 
-  it("una visita posterior sin parámetros no pisa el primer toque; una con parámetros queda como último", () => {
-    const { datos, almacen } = almacenFalso();
-    registrarVisita(almacen, "?utm_campaign=uno", "/", HOY);
-    registrarVisita(almacen, "", "/comprar", despues(1));
-    expect(leerOrigen(almacen, despues(1))).toEqual({ primero: { utm_campaign: "uno", pagina: "/", fecha: HOY.toISOString() } });
+  it("una página sin parámetros no pisa el primer toque; una con otros parámetros queda como último", () => {
+    registrarVisita("?utm_campaign=uno", "/", HOY);
+    registrarVisita("", "/comprar", HOY);
+    expect(origenDeLaVisita(HOY)).toEqual({ primero: { utm_campaign: "uno", pagina: "/", fecha: HOY.toISOString() } });
 
-    registrarVisita(almacen, "?gclid=xyz", "/ar/su-voz", despues(2));
-    registrarVisita(almacen, "?utm_campaign=tres", "/ca", despues(3));
-    const o = JSON.parse(datos.get(CLAVE_ORIGEN)!);
+    registrarVisita("?gclid=xyz", "/ar/su-voz", HOY);
+    registrarVisita("?utm_campaign=tres", "/ca", HOY);
+    const o = origenDeLaVisita(HOY)!;
     expect(o.primero).toMatchObject({ utm_campaign: "uno", pagina: "/" });
-    expect(o.ultimo).toEqual({ utm_campaign: "tres", pagina: "/ca", fecha: despues(3).toISOString() });
+    expect(o.ultimo).toEqual({ utm_campaign: "tres", pagina: "/ca", fecha: HOY.toISOString() });
   });
 
-  it("a los 30 días del primer toque caduca: se borra y la próxima visita con parámetros es el nuevo primero", () => {
-    const { datos, almacen } = almacenFalso();
-    registrarVisita(almacen, "?utm_campaign=viejo", "/", HOY);
-    expect(leerOrigen(almacen, despues(29))).not.toBeNull();
-    expect(leerOrigen(almacen, despues(31))).toBeNull();
-    expect(datos.has(CLAVE_ORIGEN)).toBe(false);
-
-    registrarVisita(almacen, "?utm_campaign=viejo", "/", HOY);
-    registrarVisita(almacen, "?utm_campaign=nuevo", "/viaje", despues(31));
-    expect(JSON.parse(datos.get(CLAVE_ORIGEN)!)).toEqual({
-      primero: { utm_campaign: "nuevo", pagina: "/viaje", fecha: despues(31).toISOString() },
-    });
+  it("volver a leer la misma URL no la cuenta como otro toque", () => {
+    registrarVisita("?utm_campaign=uno", "/comprar", HOY);
+    registrarVisita("?utm_campaign=uno", "/comprar", HOY);
+    expect(origenDeLaVisita(HOY)).toEqual({ primero: { utm_campaign: "uno", pagina: "/comprar", fecha: HOY.toISOString() } });
   });
 
-  it("con el almacenamiento roto no tira nunca", () => {
-    const roto = () => {
-      throw new Error("SecurityError");
-    };
-    expect(() => registrarVisita(roto, "?utm_source=x", "/", HOY)).not.toThrow();
-    expect(leerOrigen(roto, HOY)).toBeNull();
-
-    const tiraAlEscribir: AlmacenOrigen = {
-      getItem: () => null,
-      setItem: () => {
-        throw new Error("QuotaExceededError");
-      },
-      removeItem: () => {},
-    };
-    expect(() => registrarVisita(() => tiraAlEscribir, "?utm_source=x", "/", HOY)).not.toThrow();
-  });
-
-  it("lo guardado corrupto o manipulado se borra y no se manda", () => {
-    const { datos, almacen } = almacenFalso();
-    datos.set(CLAVE_ORIGEN, "{no es json");
-    expect(leerOrigen(almacen, HOY)).toBeNull();
-    expect(datos.has(CLAVE_ORIGEN)).toBe(false);
-    datos.set(CLAVE_ORIGEN, JSON.stringify({ primero: { pagina: "/", fecha: HOY.toISOString() } }));
-    expect(leerOrigen(almacen, HOY)).toBeNull();
+  it("una carga nueva de la página (recargar, otra pestaña) empieza sin origen", () => {
+    registrarVisita("?utm_campaign=uno", "/", HOY);
+    olvidarOrigen();
+    expect(origenDeLaVisita(despues(1))).toBeNull();
   });
 
   it("limpia los valores: sin HTML, recortados a 200", () => {
@@ -130,6 +127,93 @@ describe("captura del origen", () => {
 
   it("el componente no pinta nada (va en el layout raíz)", () => {
     expect(renderToStaticMarkup(createElement(OrigenVisita))).toBe("");
+  });
+});
+
+describe("en el navegador: nada guardado, sobrevive al cambio de página", () => {
+  it("al cargar y al pagar no escribe en localStorage, sessionStorage, cookies ni IndexedDB", () => {
+    const { ventana, ir, escrituraCookie } = ventanaFalsa("/regalo-para-tu-padre?utm_source=facebook&fbclid=AbC");
+    vi.stubGlobal("window", ventana);
+    vi.stubGlobal("document", ventana.document);
+    vi.stubGlobal("indexedDB", ventana.indexedDB);
+
+    alCargarLaWeb(() => ventana, HOY);
+    ir("/comprar?utm_campaign=otra");
+    expect(origenDelNavegador()).not.toBeNull();
+
+    expect(ventana.localStorage.setItem).not.toHaveBeenCalled();
+    expect(ventana.localStorage.getItem).not.toHaveBeenCalled();
+    expect(ventana.sessionStorage.setItem).not.toHaveBeenCalled();
+    expect(ventana.sessionStorage.getItem).not.toHaveBeenCalled();
+    expect(ventana.sessionStorage.removeItem).not.toHaveBeenCalled();
+    expect(escrituraCookie).not.toHaveBeenCalled();
+    expect(ventana.indexedDB.open).not.toHaveBeenCalled();
+  });
+
+  it("el código del origen no nombra sessionStorage, cookies ni IndexedDB, y localStorage solo para borrar", () => {
+    for (const archivo of ["../src/lib/origen.ts", "../src/app/origen-visita.tsx"]) {
+      const codigo = readFileSync(new URL(archivo, import.meta.url), "utf-8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/.*$/gm, "");
+      expect(codigo).not.toMatch(/sessionStorage|cookie|indexedDB|setItem|getItem/i);
+      expect(codigo.match(/localStorage\.\w+/g) ?? []).toEqual(archivo.endsWith("origen.ts") ? ["localStorage.removeItem"] : []);
+    }
+  });
+
+  it("lo que trajo la página de llegada sigue ahí al llegar al checkout por un Link (sin parámetros)", () => {
+    const { ventana, ir } = ventanaFalsa("/regalo-para-tu-padre?utm_campaign=padre-oct&gclid=G1");
+    vi.stubGlobal("window", ventana);
+    alCargarLaWeb(() => ventana, HOY);
+    ir("/como-funciona");
+    ir("/comprar");
+    const o = origenDelNavegador();
+    expect(o).toMatchObject({ primero: { utm_campaign: "padre-oct", gclid: "G1", pagina: "/regalo-para-tu-padre" } });
+    expect(o).not.toHaveProperty("ultimo");
+  });
+
+  it("si se llega directo al checkout desde un anuncio, toma la URL actual", () => {
+    const { ventana } = ventanaFalsa("/comprar?utm_source=google&gclid=G9");
+    vi.stubGlobal("window", ventana);
+    expect(origenDelNavegador()).toMatchObject({ primero: { utm_source: "google", gclid: "G9", pagina: "/comprar" } });
+  });
+
+  it("sin anuncio, el checkout no manda origen", () => {
+    const { ventana, ir } = ventanaFalsa("/");
+    vi.stubGlobal("window", ventana);
+    alCargarLaWeb(() => ventana, HOY);
+    ir("/comprar");
+    expect(origenDelNavegador()).toBeNull();
+  });
+
+  it("borra una vez la clave vieja vitacora-origen, sin leerla, y no la usa", () => {
+    const viejo = JSON.stringify({ primero: { utm_campaign: "viejo", pagina: "/", fecha: HOY.toISOString() } });
+    const { ventana } = ventanaFalsa("/", { [CLAVE_ORIGEN_VIEJA]: viejo });
+    vi.stubGlobal("window", ventana);
+    alCargarLaWeb(() => ventana, HOY);
+    expect(CLAVE_ORIGEN_VIEJA).toBe("vitacora-origen");
+    expect(ventana.localStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(ventana.localStorage.removeItem).toHaveBeenCalledWith("vitacora-origen");
+    expect(ventana.localStorage.datos.has("vitacora-origen")).toBe(false);
+    expect(ventana.localStorage.getItem).not.toHaveBeenCalled();
+    expect(origenDelNavegador()).toBeNull();
+  });
+
+  it("con el almacenamiento bloqueado o sin window no tira nunca", () => {
+    const roto = () => {
+      throw new Error("SecurityError");
+    };
+    expect(() => alCargarLaWeb(roto, HOY)).not.toThrow();
+    const bloqueado = {
+      location: { search: "?utm_source=x", pathname: "/" },
+      localStorage: {
+        removeItem: () => {
+          throw new Error("SecurityError");
+        },
+      },
+    };
+    expect(() => alCargarLaWeb(() => bloqueado, HOY)).not.toThrow();
+    expect(origenDeLaVisita(HOY)).toMatchObject({ primero: { utm_source: "x" } });
+    expect(origenDelNavegador()).toBeNull(); // en el servidor (sin window) no hay origen
   });
 });
 
@@ -185,6 +269,20 @@ describe("el checkout manda el origen", () => {
     const { fetch, cuerpos } = fetchFalso();
     await crearPagador({ fetch, asignar: () => {}, origen: () => ORIGEN }, T).pagar({ email: "a@b.com" }, []);
     expect(cuerpos[0]).toEqual({ email: "a@b.com", origen: ORIGEN });
+  });
+
+  it("pagador con origenDelNavegador: manda lo que se recordó en la página de llegada", async () => {
+    const { ventana, ir } = ventanaFalsa("/regalo-para-tu-padre?utm_campaign=padre");
+    vi.stubGlobal("window", ventana);
+    alCargarLaWeb(() => ventana, HOY);
+    ir("/comprar");
+    const { fetch, cuerpos } = fetchFalso();
+    await crearPagador({ fetch, asignar: () => {}, origen: origenDelNavegador }, T).pagar({ email: "a@b.com" }, []);
+    expect(cuerpos[0]).toEqual({
+      email: "a@b.com",
+      origen: { primero: { utm_campaign: "padre", pagina: "/regalo-para-tu-padre", fecha: HOY.toISOString() } },
+    });
+    expect(ventana.localStorage.setItem).not.toHaveBeenCalled();
   });
 
   it("pagador: sin origen, o si leerlo tira, el cuerpo es el de siempre", async () => {

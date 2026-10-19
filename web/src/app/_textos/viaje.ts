@@ -1,27 +1,18 @@
 import type { Textos } from "@/lib/idioma-web";
 
-// Los textos de /viaje, /ca/viaje y /ar/viaje (rediseño 2026-10, fase 4,
-// maquetas Viaje/ViajeMovil pasadas a la dirección «la web es un libro»).
+// Los textos de /viaje, /ca/viaje y /ar/viaje (rediseño 2026-10, dirección
+// «la web es un libro», paleta azul de Viaje).
 //
-// Describen el Viaje que reciben HOY los clientes (el V1: etapas por ciudad,
-// una pregunta por día, el libro en la web), no el V2, que está apagado para
-// nuevos (aprobados.md, tanda de Viaje del 11/10). Por eso NO va nada de la
-// maqueta que es del V2 o que no está decidido: «cada noche os escribimos»
-// (PENDIENTES B24: sale también de la versión ar, igual que en la compra de
-// Viaje), «podemos contestar los dos», «unos 9 días», reseñas, el popup.
+// 16/10: describen la Vitácora de Viaje V2, la única que se vende
+// (docs/viajes-v2/flujo-vigente.md): antes de salir, durante el viaje, la
+// vuelta y el libro con el álbum y el código QR. Nada del viaje viejo
+// (etapas, «cada ciudad un capítulo», «con quién viajás», «se lee en la web»).
+// Sin cadencia ni cantidad de preguntas, sin duración, sin «cada noche».
 //
-// es = España: de vosotros a los que viajan, de tú a quien paga. ar = de vos,
-// como hoy (lo de /viaje que ya existía va igual salvo «cada noche»). ca = de
-// vosaltres a los que viajan, de tú a quien paga.
-//
-// Ojo, es y ca: el bot de Viaje V1 escribe en castellano rioplatense («contame»,
-// «mandame») también a quien está en España. Por eso «¿Me trata de vos?» solo
-// va en ar y la página de España no promete ningún trato (PENDIENTES, fase 4).
-// En ca se dice que escribe en castellano.
-//
-// Todo lo que no es copia literal de un aprobado está en
-// docs/rediseno-2026-10/fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// es = España, de tú (viaja una persona). ar = de vos. ca = de tu.
+// TEXTO PARA NAZA: lo nuevo está en docs/rediseno-2026-10/viaje-v2/textos.md
+// (tandas 6 y 7). Lo que sigue igual de antes lo dice al lado.
+// ca: PENDIENTE DE IMMA (revisión nativa).
 
 type Paso = { titulo: string; texto: string };
 type Duda = { pregunta: string; respuesta: string };
@@ -38,7 +29,7 @@ export type TextosViajePagina = {
   proximamente: string;
   altHotel: string;
   altLibro: string;
-  como: { titulo: string; pasos: [Paso, Paso, Paso] };
+  como: { titulo: string; pasos: [Paso, Paso, Paso, Paso] };
   fotos: [string, string];
   precioBloque: { titulo: string; texto: string; nota: string };
   faq: { titulo: string; preguntas: Duda[] };
@@ -46,63 +37,52 @@ export type TextosViajePagina = {
 };
 
 export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
-  /* ─────────── España: vosotros a los que viajan, tú a quien paga ─────────── */
+  /* ─────────────────────────── España, de tú ─────────────────────────── */
   es: {
     meta: {
+      // Igual que antes (el lema de Viaje).
       titulo: "Vitácora de Viaje — En cada viaje hay un libro sin escribir",
-      descripcion: "Un biógrafo os acompaña por WhatsApp durante el viaje, guarda vuestras fotos con su historia y, al volver, vuestro viaje es un libro.",
+      // TEXTO PARA NAZA
+      descripcion: "Un biógrafo te pregunta por WhatsApp antes, durante y después del viaje. Al volver, tu viaje es un libro con tus fotos y tu voz.",
     },
     etiqueta: "Vitácora de Viaje",
     titulo: ["En cada viaje hay", "un libro sin escribir."],
-    bajada:
-      "Un biógrafo que viaja con vosotros por WhatsApp. Os pregunta por el día, guarda vuestras fotos con su historia y, al volver, vuestro viaje es un libro.",
+    // TEXTO PARA NAZA
+    bajada: "Un biógrafo te acompaña por WhatsApp. Tú le cuentas el viaje con audios y al volver tienes un libro con tus fotos y tu voz.",
     comprar: "Empezar el libro del viaje",
     precio: (p) => `${p} · el viaje entero`,
     proximamente: "Próximamente",
-    altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la maleta abierta y los tejados de Lisboa por la ventana",
-    altLibro: "El libro de un viaje a Lisboa y Oporto sobre una mesa, junto a una vela",
+    // TEXTO PARA NAZA: sin Lisboa.
+    altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la maleta abierta y los tejados de una ciudad por la ventana",
+    altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
     como: {
       titulo: "Cómo funciona.",
+      // TEXTO PARA NAZA
       pasos: [
-        {
-          titulo: "Os pregunta por el día",
-          texto:
-            "Cuando el día ha terminado, vuestro biógrafo os escribe por WhatsApp. Lo mejor del día, alguien que conocisteis, lo que salió distinto del plan. Le respondéis con un audio, como a un amigo.",
-        },
-        {
-          titulo: "Le mandáis la foto del día",
-          texto:
-            "Una foto y qué estaba pasando cuando la hicisteis. Queda guardada en su etapa, con vuestra historia al lado. Podéis mandar más cuando queráis.",
-        },
-        {
-          titulo: "Al volver, vuestro viaje es un libro",
-          texto: "Se lee y se escucha en la web, y tenéis un enlace para compartirlo con vuestra gente.",
-        },
+        { titulo: "Antes de salir", texto: "El biógrafo te escribe por WhatsApp para saber cómo planeaste el viaje. Le contestas con un audio cuando puedes." },
+        { titulo: "Durante el viaje", texto: "Te pregunta por el día y te pide alguna foto de lo que estás viendo. Si un día no tienes ganas, dices «paso» y seguimos." },
+        { titulo: "La vuelta", texto: "Al volver te pregunta por la llegada a casa. Eliges tus fotos favoritas y van al álbum del final." },
+        { titulo: "Tu libro", texto: "Tu viaje contado con tus palabras, con el álbum y un código QR para escuchar tus audios. Impreso o en PDF." },
       ],
     },
-    fotos: ["Las fotos quedan.", "Lo que vivisteis, también."],
+    // Igual que antes.
+    fotos: ["Las fotos quedan.", "Lo que viviste, también."],
     precioBloque: {
       titulo: "Un precio por viaje, no por día.",
-      texto:
-        "Lo pagas una vez, antes de salir. Incluye el viaje entero, vuestras fotos, el libro para leer y escuchar en la web y el enlace para compartirlo. El impreso y el marco se suman si queréis.",
+      // TEXTO PARA NAZA
+      texto: "Lo pagas una vez, antes de salir. Incluye el viaje entero, el libro en PDF con el álbum de fotos y el código para escuchar tu voz. El libro impreso se suma si quieres.",
       nota: "Pago único, sin suscripciones",
     },
     faq: {
       titulo: "Preguntas que nos hacen.",
+      // TEXTO PARA NAZA (menos la última, la garantía aprobada)
       preguntas: [
-        {
-          pregunta: "¿Y si todavía no tenemos todas las fechas?",
-          respuesta: "Ponéis lo que sabéis. Las etapas sin fecha se completan después desde la página de vuestro viaje, y si aparece una ciudad nueva, se añade ahí.",
-        },
-        {
-          pregunta: "¿Cuántas fotos podemos mandar?",
-          respuesta: "Las que queráis, por WhatsApp, cuando queráis. Para el libro impreso, al volver os pedimos las mejores en su tamaño original.",
-        },
-        {
-          pregunta: "¿Cuándo llega el libro?",
-          respuesta:
-            "Cuando volvéis, vuestro biógrafo os hace una última pregunta, por si faltó algo, y con eso escribe el libro. Lo leéis en la web a los pocos días.",
-        },
+        { pregunta: "¿Tengo que saber las ciudades?", respuesta: "No. Solo la fecha de salida, la de vuelta y el país principal. Las ciudades salen de lo que cuentas." },
+        { pregunta: "¿Se lo puedo regalar a alguien?", respuesta: "Sí. Nos dejas su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si quieres, le sumas hasta cinco preguntas tuyas." },
+        { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver eliges tus favoritas y van al álbum del final del libro." },
+        { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de España, de Argentina o en catalán. Lo eliges al comprar." },
+        { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando vuelves y mandas las fotos del álbum, lo escribimos. Lo revisas en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
+        // Aprobada (D1): la garantía de Viaje vive solo acá y en el pago.
         { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
       ],
     },
@@ -113,130 +93,82 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
   ar: {
     meta: {
       titulo: "Vitácora de Viaje — En cada viaje hay un libro sin escribir",
-      descripcion: "Tu biógrafo te acompaña por WhatsApp durante el viaje, guarda tus fotos con su historia y, al volver, tu viaje es un libro.",
+      descripcion: "Un biógrafo te pregunta por WhatsApp antes, durante y después del viaje. Al volver, tu viaje es un libro con tus fotos y tu voz.",
     },
     etiqueta: "Vitácora de Viaje",
     titulo: ["En cada viaje hay", "un libro sin escribir."],
-    bajada:
-      "Un biógrafo que viaja con vos por WhatsApp. Te pregunta por el día, guarda tus fotos con su historia, y al volver, tu viaje es un libro.",
+    bajada: "Un biógrafo te acompaña por WhatsApp. Vos le contás el viaje con audios y al volver tenés un libro con tus fotos y tu voz.",
     comprar: "Empezar mi Vitácora de viaje",
     precio: (p) => `${p} · el viaje entero`,
     proximamente: "Próximamente",
-    altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la valija abierta y los techos de Lisboa por la ventana",
-    altLibro: "El libro de un viaje a Lisboa y Oporto sobre una mesa, junto a una vela",
+    altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la valija abierta y los techos de una ciudad por la ventana",
+    altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
     como: {
       titulo: "Cómo funciona.",
       pasos: [
-        {
-          titulo: "Te pregunta por el día",
-          texto:
-            "Cuando el día terminó, tu biógrafo te escribe por WhatsApp. Lo mejor del día, alguien que conociste, lo que salió distinto del plan. Le respondés con un audio, como a un amigo.",
-        },
-        {
-          titulo: "Le mandás la foto del día",
-          texto:
-            "Una foto y qué estaba pasando cuando la sacaste. Queda guardada en su etapa, con tu historia al lado. Podés mandar más cuando quieras.",
-        },
-        {
-          titulo: "Al volver, tu viaje es un libro",
-          texto: "Se lee y se escucha en la web, y tenés un link para compartirlo con tu gente.",
-        },
+        { titulo: "Antes de salir", texto: "El biógrafo te escribe por WhatsApp para saber cómo planeaste el viaje. Le contestás con un audio cuando podés." },
+        { titulo: "Durante el viaje", texto: "Te pregunta por el día y te pide alguna foto de lo que estás viendo. Si un día no tenés ganas, decís «paso» y seguimos." },
+        { titulo: "La vuelta", texto: "Al volver te pregunta por la llegada a casa. Elegís tus fotos favoritas y van al álbum del final." },
+        { titulo: "Tu libro", texto: "Tu viaje contado con tus palabras, con el álbum y un código QR para escuchar tus audios. Impreso o en PDF." },
       ],
     },
     fotos: ["Las fotos quedan.", "Lo que viviste, también."],
     precioBloque: {
       titulo: "Un precio por viaje, no por día.",
-      texto:
-        "Lo pagás una vez, antes de salir. Incluye el viaje entero, tus fotos, el libro para leer y escuchar en la web, y el link para compartirlo. El impreso y el marco se suman si querés.",
+      texto: "Lo pagás una vez, antes de salir. Incluye el viaje entero, el libro en PDF con el álbum de fotos y el código para escuchar tu voz. El libro impreso se suma si querés.",
       nota: "Pago único, sin suscripciones",
     },
     faq: {
       titulo: "Preguntas que nos hacen.",
       preguntas: [
-        {
-          pregunta: "¿Y si todavía no tengo todas las fechas?",
-          respuesta:
-            "Cargás lo que sabés. Las etapas sin fecha se completan después desde la página de tu viaje, y si aparece una ciudad nueva la agregás ahí.",
-        },
-        {
-          pregunta: "¿Cuántas fotos puedo mandar?",
-          respuesta: "Las que quieras, por WhatsApp, cuando quieras. Para el libro impreso, al volver te pedimos las mejores en su tamaño original.",
-        },
-        // Aprobado por Naza el 11/10 (tanda de Viaje, #2).
-        {
-          pregunta: "¿Me trata de vos?",
-          respuesta: "Sí. Es tu biógrafo: te habla como te hablaría un amigo que viaja con vos. En castellano.",
-        },
-        {
-          pregunta: "¿Cuándo llega el libro?",
-          respuesta:
-            "Cuando volvés, tu biógrafo te hace una última pregunta, por si faltó algo, y con eso escribe el libro. Lo leés en la web a los pocos días.",
-        },
+        { pregunta: "¿Tengo que saber las ciudades?", respuesta: "No. Solo la fecha de salida, la de vuelta y el país principal. Las ciudades salen de lo que contás." },
+        { pregunta: "¿Se lo puedo regalar a alguien?", respuesta: "Sí. Nos dejás su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si querés, le sumás hasta cinco preguntas tuyas." },
+        { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver elegís tus favoritas y van al álbum del final del libro." },
+        { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de Argentina, de España o en catalán. Lo elegís al comprar." },
+        { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando volvés y mandás las fotos del álbum, lo escribimos. Lo revisás en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
         { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
       ],
     },
     familiar: "¿Buscás el libro de una vida? Vitácora Familiar →",
   },
 
-  /* ─────────── Catalán: vosaltres a los que viajan, tu a quien paga ─────────── */
-  // ca: PENDIENTE REVISIÓN NATIVA
+  /* ─────────────────────── Catalán, de tu (PENDIENTE DE IMMA) ─────────────────────── */
   ca: {
     meta: {
       titulo: "Vitácora de Viatge — A cada viatge hi ha un llibre per escriure",
-      descripcion: "Un biògraf us acompanya per WhatsApp durant el viatge, guarda les vostres fotos amb la seva història i, en tornar, el vostre viatge és un llibre.",
+      descripcion: "Un biògraf et pregunta per WhatsApp abans, durant i després del viatge. En tornar, el teu viatge és un llibre amb les teves fotos i la teva veu.",
     },
     etiqueta: "Vitácora de Viatge",
     titulo: ["A cada viatge hi ha", "un llibre per escriure."],
-    bajada:
-      "Un biògraf que viatja amb vosaltres per WhatsApp. Us pregunta pel dia, guarda les vostres fotos amb la seva història i, en tornar, el vostre viatge és un llibre.",
+    bajada: "Un biògraf t'acompanya per WhatsApp. Tu li expliques el viatge amb àudios i en tornar tens un llibre amb les teves fotos i la teva veu.",
     comprar: "Començar el llibre del viatge",
     precio: (p) => `${p} · el viatge sencer`,
     proximamente: "Aviat",
-    altHotel: "Una dona grava un àudio asseguda al llit d'un hotel, amb la maleta oberta i les teulades de Lisboa a la finestra",
-    altLibro: "El llibre d'un viatge a Lisboa i Porto sobre una taula, al costat d'una espelma",
+    altHotel: "Una dona grava un àudio asseguda al llit d'un hotel, amb la maleta oberta i les teulades d'una ciutat a la finestra",
+    altLibro: "El llibre d'un viatge sobre una taula, al costat d'una espelma",
     como: {
       titulo: "Com funciona.",
       pasos: [
-        {
-          titulo: "Us pregunta pel dia",
-          texto:
-            "Quan el dia s'ha acabat, el vostre biògraf us escriu per WhatsApp. El millor del dia, algú que heu conegut, el que ha sortit diferent del pla. Li responeu amb un àudio, com a un amic.",
-        },
-        {
-          titulo: "Li envieu la foto del dia",
-          texto:
-            "Una foto i què passava quan la vau fer. Queda guardada a la seva etapa, amb la vostra història al costat. En podeu enviar més quan vulgueu.",
-        },
-        {
-          titulo: "En tornar, el vostre viatge és un llibre",
-          texto: "Es llegeix i s'escolta al web, i teniu un enllaç per compartir-lo amb la vostra gent.",
-        },
+        { titulo: "Abans de sortir", texto: "El biògraf t'escriu per WhatsApp per saber com vas planejar el viatge. Li contestes amb un àudio quan pots." },
+        { titulo: "Durant el viatge", texto: "Et pregunta pel dia i et demana alguna foto del que estàs veient. Si un dia no en tens ganes, dius «passo» i seguim." },
+        { titulo: "La tornada", texto: "En tornar et pregunta per l'arribada a casa. Tries les teves fotos preferides i van a l'àlbum del final." },
+        { titulo: "El teu llibre", texto: "El teu viatge explicat amb les teves paraules, amb l'àlbum i un codi QR per escoltar els teus àudios. Imprès o en PDF." },
       ],
     },
-    fotos: ["Les fotos queden.", "El que heu viscut, també."],
+    fotos: ["Les fotos queden.", "El que has viscut, també."],
     precioBloque: {
       titulo: "Un preu per viatge, no per dia.",
-      texto:
-        "El pagues una vegada, abans de sortir. Inclou el viatge sencer, les vostres fotos, el llibre per llegir i escoltar al web i l'enllaç per compartir-lo. L'imprès i el marc s'hi sumen si voleu.",
+      texto: "El pagues una vegada, abans de sortir. Inclou el viatge sencer, el llibre en PDF amb l'àlbum de fotos i el codi per escoltar la teva veu. El llibre imprès s'hi suma si vols.",
       nota: "Pagament únic, sense subscripcions",
     },
     faq: {
       titulo: "Preguntes que ens fan.",
       preguntas: [
-        {
-          pregunta: "I si encara no tenim totes les dates?",
-          respuesta: "Hi poseu el que sabeu. Les etapes sense data es completen després des de la pàgina del vostre viatge, i si apareix una ciutat nova, s'hi afegeix.",
-        },
-        {
-          pregunta: "Quantes fotos podem enviar?",
-          respuesta: "Les que vulgueu, per WhatsApp, quan vulgueu. Per al llibre imprès, en tornar us demanem les millors a la seva mida original.",
-        },
-        { pregunta: "En quina llengua us escriu?", respuesta: "En castellà. El biògraf de viatge encara no escriu en català." },
-        {
-          pregunta: "Quan arriba el llibre?",
-          respuesta:
-            "Quan torneu, el vostre biògraf us fa una última pregunta, per si hi falta alguna cosa, i amb això escriu el llibre. El llegiu al web al cap de pocs dies.",
-        },
+        { pregunta: "He de saber les ciutats?", respuesta: "No. Només la data de sortida, la de tornada i el país principal. Les ciutats surten del que expliques." },
+        { pregunta: "Ho puc regalar a algú?", respuesta: "Sí. Ens deixes el seu WhatsApp i el biògraf li escriu per explicar-li que és el teu regal. Si vols, hi afegeixes fins a cinc preguntes teves." },
+        { pregunta: "Quantes fotos puc enviar?", respuesta: "Les que vulguis, durant tot el viatge. En tornar tries les preferides i van a l'àlbum del final del llibre." },
+        { pregunta: "En quina llengua m'escriu?", respuesta: "En català, en castellà d'Espanya o d'Argentina. Ho tries en comprar." },
+        { pregunta: "Quan arriba el llibre?", respuesta: "Quan tornes i envies les fotos de l'àlbum, l'escrivim. El revises a la pàgina del viatge abans de tancar-lo i, si és imprès, t'avisem quan surti d'impremta." },
         { pregunta: "I si el viatge es cancel·la?", respuesta: "Si el viatge es cancel·la, et retornem els diners." },
       ],
     },

@@ -49,7 +49,7 @@ export interface ContextoInput {
   /** Paso 5 de la compra (17/09): los ajustes de la entrevista, los mismos que el panel. */
   ritmo?: string;
   evitar?: string;
-  /** Vitácora de viaje (18/09): salida, vuelta, etapas, compañía, propósito, ángulos. */
+  /** Vitácora de Viaje V2 (16/10): lo de `CompraViaje` (lib/viaje.ts), sin `v` ni `nombre` (los pone el servidor). */
   viaje?: unknown;
 }
 
@@ -305,14 +305,23 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   if (esNoVacio(contexto.evitar)) {
     contextoFinal.evitar = contexto.evitar.trim().slice(0, EVITAR_MAXIMO);
   }
-  // Vitácora de viaje: modo viaje, trato de vos, y el itinerario validado.
+  // Vitácora de Viaje V2 (16/10): modo viaje y la compra validada, con los
+  // nombres del tipo `Compra` del bot (CONTRATO). El idioma de la compra manda
+  // el trato, como en el regalo: es-AR de vos (sin `idioma`); es-ES y ca con
+  // `idioma`. La fila de `viajes_v2` la crea el bot, no la web.
   if (contexto.viaje !== undefined) {
-    const v = validarViaje(contexto.viaje);
+    const v = validarViaje(contexto.viaje, { nombre: narrador.comoLeDicen, tu: region === 'ES' });
     if (!v.ok) return { ok: false, status: 400, mensaje: v.mensaje };
     contextoFinal.modo = 'viaje';
-    contextoFinal.trato = 'vos';
+    delete contextoFinal.trato;
+    delete contextoFinal.idioma;
+    if (v.viaje.idioma === 'es-AR') contextoFinal.trato = 'vos';
+    else contextoFinal.idioma = v.viaje.idioma;
     contextoFinal.viaje = v.viaje;
   }
+  // En un viaje, la hora y la zona del narrador son las del viaje validado (no las que
+  // mande el navegador): la noche y la casa del contrato.
+  const viajeFinal = contextoFinal.viaje as { horaNoche?: string; zonaCasa?: string } | undefined;
 
   return {
     ok: true,
@@ -324,8 +333,8 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
       nombre: narrador.nombre.trim(),
       como_le_dicen: narrador.comoLeDicen.trim(),
       telefono_whatsapp: telefono,
-      hora_preferida: horaPreferida,
-      zona_horaria: zonaHoraria,
+      hora_preferida: viajeFinal ? viajeFinal.horaNoche ?? '21:30' : horaPreferida,
+      zona_horaria: viajeFinal?.zonaCasa ?? zonaHoraria,
       contexto: contextoFinal,
       estado: 'invitado',
     },

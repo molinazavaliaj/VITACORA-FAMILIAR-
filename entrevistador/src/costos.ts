@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { vigilarGastoDelDia } from './aviso-gasto.js';
 
 // Cuánto costó de verdad cada llamada del entrevistador. Es el gemelo de
 // fabrica/src/costos.ts, con una diferencia: la fila va a la tabla `consumo_ia`
@@ -145,6 +146,9 @@ export async function registrarUso(
     ]);
     if (resultado.error) {
       console.warn(`costos: no se anotó el paso ${fila.paso} (${fila.modelo}): ${resultado.error.message}`);
+    } else if (fila.narradorId && usd > 0) {
+      // Sin await: el aviso de gasto raro (aviso-gasto.ts) nunca demora al narrador.
+      void vigilarGastoDelDia(db, fila.narradorId);
     }
   } catch (err) {
     console.warn(`costos: no se pudo anotar el paso ${fila.paso} (${fila.modelo}): ${(err as Error).message}`);

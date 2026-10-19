@@ -97,7 +97,7 @@ no lo escribas.
   `esperando_voz` — si lo dejara, la fábrica ensamblaría esa voz vieja como si fuera la nueva.
   Antes de correrlo en serio hay que decidir desde la central cómo se pide la fila nueva.
 - **Punto 3 · bitácora del piloto, hallazgos 38 y 39.** Rama
-  `docs-bitacora-hallazgos-38-39` (subida, sin mergear): `51e70cc`,
+  `docs-bitacora-hallazgos-38-39` (subida, sin mergear): `51e70cc`, (**actualizado 15/10:** en main)
   `docs/piloto-bitacora-errores.md` (+33 líneas, nada más). No hay tests para docs: el control
   fue que cada fecha, número y commit salga de `GASTOS.md`, `ESTADO.md` y los commits
   (`ee3d255`/`dc7fe8d`, `854cb93`, `c80e5ce`, `3d29d66`), sin inventar nada.
@@ -105,7 +105,7 @@ no lo escribas.
 ### 20/09 (tarde) — punto 2b y la corrida contra Joaquín
 
 - **Punto 2b · reemplazar la narración vieja (lo que faltaba para disparar la prueba).** Misma
-  rama `fabrica-script-narracion-v2` (subida, sin mergear): `6ddd406` (migración +
+  rama `fabrica-script-narracion-v2` (subida, sin mergear): `6ddd406` (migración + (**actualizado 15/10:** en main; la migración se aplicó el 21/09)
   `reemplazarNarracion` + CONTRATO + tests) y `f6a7006` (el script la usa en vez de
   `crearNarracion`). Tests: `cd fabrica && npx vitest run` → **319 pasan** (12 nuevos y `tsc`
   limpio). Migración `supabase/migrations/20260920000000_narraciones_reemplazada.sql`,

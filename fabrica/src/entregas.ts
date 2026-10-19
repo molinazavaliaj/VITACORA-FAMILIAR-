@@ -4,14 +4,31 @@
 // imprenta. Separados a propósito: uno decide CUÁNDO, el otro sabe CÓMO.
 
 import { obtenerClienteDb } from './db.js';
-import { armarLibroDeImprenta } from './libro/imprenta.js';
+import { armarLibroDeImprenta, armarLibroDeImprentaKids } from './libro/imprenta.js';
+import { libroKidsAprobado } from './escritor-kids/produccion/libro-kids.js';
 import { cargarConfig } from './config.js';
 import { enviarMailHito, type Hito } from './mail/hitos.js';
 import { productosDelPedido } from './libro/productos.js';
 import { calcularBulto } from './envio/bulto.js';
 import { proveedorDe } from './envio/proveedor.js';
+import { narradoresConKids } from './kids/candado.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
+
+/**
+ * Los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4): su impreso va a la imprenta solo
+ * con el libro de Kids escrito y aprobado por el padre, con sus propios PDF (CONTRATO, «El libro de Kids en la
+ * fábrica»); los mails de la entrega no les salen (dicen «el libro de tu {como_le_dicen}» y llevan al tablero de
+ * biografías). Sin la tabla, nadie es chico. Null si no se pudo leer: ese paso no corre este tick.
+ */
+async function chicosOFrenar(db: Db, paso: string): Promise<Set<string> | null> {
+  try {
+    return await narradoresConKids(db);
+  } catch (err) {
+    console.error(`${paso}: no pude leer kids_v2; no corre este tick:`, err);
+    return null;
+  }
+}
 
 /** Donde la familia deja la reseña cuando el libro llegó (Joaquín, 22/09). */
 export const URL_RESENA = 'https://es.trustpilot.com/evaluate/vitacorafamiliar.com';
@@ -61,9 +78,15 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
     return;
   }
 
+  const kids = await chicosOFrenar(db, 'imprenta');
+  if (!kids) return;
+
   for (const entrega of (data ?? []) as { id: string; narrador_id: string }[]) {
+    const esChico = kids.has(entrega.narrador_id);
     try {
-      const armado = await armarLibroDeImprenta(db, entrega.narrador_id);
+      // Un chico de Kids: solo con su libro escrito (listo.json) y aprobado por el padre; antes, la entrega espera.
+      if (esChico && !(await libroKidsAprobado(db, entrega.narrador_id))) continue;
+      const armado = esChico ? await armarLibroDeImprentaKids(db, entrega.narrador_id) : await armarLibroDeImprenta(db, entrega.narrador_id);
       // Todavía sin confirmar: la entrega espera, y el próximo tick vuelve a mirar.
       if (!armado) continue;
 
@@ -113,8 +136,11 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
   }
 
   const { urlBase } = cargarConfig();
+  const kids = await chicosOFrenar(db, 'entregas');
+  if (!kids) return;
 
   for (const entrega of entregas) {
+    if (kids.has(entrega.narrador_id)) continue;
     try {
       const hito = HITO_POR_ESTADO[entrega.estado];
       if (!hito) continue;

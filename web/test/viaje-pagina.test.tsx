@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// /viaje, /ca/viaje y /ar/viaje (rediseño 2026-10, fase 4). Describen el Viaje
-// V1, que es lo que reciben hoy los clientes (aprobados.md, tanda del 11/10):
-// nada del V2 y nada de «cada noche» (PENDIENTES B24). España: vosotros a los
-// que viajan; Argentina: de vos, como siempre. Precio de la región del idioma;
-// sin precio cargado, la página no vende.
+// /viaje, /ca/viaje y /ar/viaje. Desde el 16/10 describen la Vitácora de Viaje
+// V2, la única que se vende: nada del viaje viejo (etapas, ciudades, «con
+// quién viajás», «se lee en la web») y nada de «cada noche» (B24). España de
+// tú, Argentina de vos. Precio de la región del idioma; sin precio cargado, la
+// página no vende.
 
 import ViajeEs, { metadata as metaEs } from "../src/app/viaje/page";
 import ViajeCa from "../src/app/ca/viaje/page";
@@ -33,43 +33,44 @@ afterEach(() => {
 
 /** La cabecera pública lleva la solapa «Kids» desde el 15/10: el resto de la página no la nombra. */
 const sinSolapas = (h: string) => h.replace(/<nav[^>]*m-solapas[\s\S]*?<\/nav>/g, "");
-const PROHIBIDO = ["cada noche", "Cada noche", "cada nit", "9 días", "RESEÑA", "Kids", "los dos", "álbum de 20", "contigo"];
+const PROHIBIDO = ["cada noche", "Cada noche", "cada nit", "9 días", "RESEÑA", "Kids", "los dos", "álbum de 20", "contigo", "etapa", "Lisboa", "con quién viaj", "vosotros", "vuestro", "en la web"];
 
 describe("la página de Viaje por idioma", () => {
   it("es estática en las tres versiones", () => {
     for (const p of [ViajeEs, ViajeCa, ViajeAr]) expect(p()).not.toBeInstanceOf(Promise);
   });
 
-  it("en /viaje (España): vosotros a los que viajan, en euros, a /comprar/viaje", () => {
+  it("en /viaje (España): de tú, en euros, a /comprar/viaje", () => {
     const html = renderToStaticMarkup(ViajeEs());
     expect(html).toContain('lang="es-ES"');
-    expect(html).toContain(escapar("Un biógrafo que viaja con vosotros por WhatsApp."));
+    expect(html).toContain(escapar("Tú le cuentas el viaje con audios"));
+    expect(html).toContain(escapar("Antes de salir"));
+    expect(html).toContain(escapar("¿Tengo que saber las ciudades?"));
     expect(html).not.toContain("Cada ciudad, un capítulo"); // Naza lo quitó (06/10 y 14/10)
     expect(html).toContain(escapar("Lo pagas una vez, antes de salir."));
     expect(html).toContain(escapar("Si el viaje se cancela, te devolvemos el dinero."));
     expect(html).toContain('href="/comprar/viaje"');
     expect(html).toContain("€");
-    // El bot de Viaje V1 escribe en rioplatense: la página de España no promete trato.
     expect(html).not.toContain(escapar("¿Me trata de vos?"));
-    expect(html).not.toMatch(/con vos(?!otros)/);
+    expect(html).not.toMatch(/con vos/);
     for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
 
   it("en /ar/viaje: de vos, como siempre, en pesos, a /ar/comprar/viaje", () => {
     const html = renderToStaticMarkup(ViajeAr());
     expect(html).toContain('lang="es-AR"');
-    expect(html).toContain(escapar("Un biógrafo que viaja con vos por WhatsApp."));
-    expect(html).toContain(escapar("Sí. Es tu biógrafo: te habla como te hablaría un amigo que viaja con vos. En castellano."));
+    expect(html).toContain(escapar("Vos le contás el viaje con audios"));
+    expect(html).toContain(escapar("En castellano de Argentina, de España o en catalán."));
     expect(html).toContain(escapar("Empezar mi Vitácora de viaje"));
     expect(html).toContain('href="/ar/comprar/viaje"');
     expect(html).not.toContain("€");
     for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
 
-  it("en /ca/viaje: en catalán, dice que el biógrafo escribe en castellano, a /ca/comprar/viaje", () => {
+  it("en /ca/viaje: en catalán, el biógrafo también escribe en catalán, a /ca/comprar/viaje", () => {
     const html = renderToStaticMarkup(ViajeCa());
     expect(html).toContain('lang="ca-ES"');
-    expect(html).toContain(escapar("En castellà."));
+    expect(html).toContain(escapar("En català, en castellà d'Espanya o d'Argentina."));
     expect(html).toContain('href="/ca/comprar/viaje"');
     for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
   });
