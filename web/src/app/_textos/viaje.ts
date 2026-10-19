@@ -177,3 +177,30 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     familiar: "Busques el llibre d'una vida? Vitácora Familiar →",
   },
 };
+
+// El libro de viaje de ejemplo que gira en el inicio de /viaje (Libro3D con la
+// variante «viaje», como el de Osvaldo en Familiar). APROBADO por Naza el 19/10
+// (los 10 textos del libro). Es inventado y va en castellano en los tres
+// idiomas, como el libro de Osvaldo.
+export const LIBRO_VIAJE_EJEMPLO = {
+  etiqueta: "El libro de nuestro viaje",
+  nombre: ["Lisboa ·", "Oporto"] as [string, string],
+  paraSiempre: "Sara y Dani",
+  iniciales: "S · D",
+  lomo: "Lisboa · Oporto · El libro de nuestro viaje",
+  contra: "Estas páginas guardan el viaje de Sara y Dani a Lisboa y Oporto, contado con sus propias palabras y sus fotos. En este QR, sus audios del viaje.",
+  escucha: "Escucha el viaje",
+  web: "vitacorafamiliar.com",
+};
+
+export const CAPITULO_VIAJE_EJEMPLO = {
+  capitulo: "Día 1",
+  tituloCapitulo: "Alfama",
+  citaCapitulo: "«Nos perdimos tres veces antes de encontrar el mirador.»",
+  parrafos: [
+    "Llegamos con las mochilas y sin reserva para cenar. Dani quería subir caminando y yo quería el tranvía. Subimos caminando.",
+    "Arriba había un señor tocando la guitarra y el río se ponía naranja. Nos quedamos hasta que no se veía nada.",
+  ] as [string, string],
+  altFoto: "Sara grabando un audio en la cama del hotel",
+  pieFoto: "La primera tarde en el hotel, contando el día.",
+};
