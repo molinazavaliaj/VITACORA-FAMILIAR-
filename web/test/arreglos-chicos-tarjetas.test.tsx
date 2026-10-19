@@ -164,12 +164,12 @@ describe("la tarjeta de Viaje", () => {
   });
 });
 
-describe("Familiar no cambia", () => {
-  it("con producto familiar sale la tarjeta de siempre", async () => {
+describe("Familiar tiene su propia tarjeta", () => {
+  it("con producto familiar sale la tarjeta negra «El libro de tu vida» (19/10), no la de Kids ni Viaje", async () => {
     estado.regalo = regalo({ producto: "familiar", idioma: "es-AR", region: "AR" });
     const html = await render();
     expect(html).toContain("FAMILIAR");
-    expect(html).toContain("Esto es un regalo.");
+    expect(html).toContain("Regalar una Vitácora");
     expect(html).not.toContain('class="cara prd-');
   });
 });
