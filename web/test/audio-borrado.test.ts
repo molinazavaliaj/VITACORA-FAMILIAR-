@@ -10,18 +10,27 @@ describe("el aviso del audio borrado", () => {
 
   it("con fecha, la cuenta en castellano y sin tecnicismos", () => {
     expect(textoAudioBorrado("2027-01-12T09:30:00.000Z")).toBe(
-      "Este audio se borró el 12 de enero de 2027. Sus frases en «Su voz» siguen acá.",
+      "Este audio se borró el 12 de enero de 2027. Sus frases de «Su voz» se pueden seguir escuchando.",
     );
   });
 
   // Decirle a una familia una fecha inventada sería peor que no decir ninguna.
   it("con una fecha ilegible no inventa ninguna", () => {
-    expect(textoAudioBorrado("cualquier cosa")).toBe("Este audio ya no está. Sus frases en «Su voz» siguen acá.");
+    expect(textoAudioBorrado("cualquier cosa")).toBe("Este audio ya no está. Sus frases de «Su voz» se pueden seguir escuchando.");
   });
 
   // Lo que más importa del mensaje: que no crean que perdieron su voz.
   it("siempre aclara que «Su voz» sigue", () => {
     for (const v of ["2027-01-12T09:30:00.000Z", "roto"]) expect(textoAudioBorrado(v)).toContain("Su voz");
+  });
+
+  // La pantalla la ven en España y en Argentina: nada de «acá», ni de tú/vos.
+  it("no usa deícticos ni trato: la misma frase sirve en los dos países", () => {
+    for (const v of ["2027-01-12T09:30:00.000Z", "roto"]) {
+      const t = textoAudioBorrado(v) ?? "";
+      expect(t).not.toMatch(/\bac[áa]\b|\baqu[íi]\b/i);
+      expect(t).not.toMatch(/\b(podés|puedes|tenés|tienes)\b/i);
+    }
   });
 
   it("la ruta del candado es la que escribe la fábrica", () => {
