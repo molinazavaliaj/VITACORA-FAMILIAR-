@@ -2,9 +2,9 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, chicaParaTapa, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
-import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
+import { HORAS_FAMILIAR, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
@@ -137,8 +137,8 @@ function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archiv
 // ── editar / sacar / reordenar (solo dueña) ────────────────────────────
 
 export function EditorGuion({
-  narradorId, futuras, puedeEditar, puedeSaltar, capitulo, trato = "vos",
-}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string; trato?: TratoComprador }) {
+  narradorId, futuras, puedeEditar, puedeSaltar, capitulo, trato = "vos", ella = false,
+}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string; trato?: TratoComprador; /** La que cuenta es mujer (contexto.genero): «ella», no «él». */ ella?: boolean }) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
@@ -222,7 +222,7 @@ export function EditorGuion({
           p.tipo === "familia" ? "la sumó la familia" : null,
           p.tipo === "sugerida" ? "sugerida por el biógrafo" : null,
           p.foto_id ? "con foto" : null,
-          esAdaptativa ? "la escribe el biógrafo con lo que él haya contado" : null,
+          esAdaptativa ? `la escribe el biógrafo con lo que ${ella ? "ella" : "él"} haya contado` : null,
         ].filter(Boolean).join(" · ");
         return (
           <li
@@ -415,7 +415,7 @@ export function AgregarPregunta({
 
 type Sugerida = { texto: string; capitulo: string };
 
-export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato = "vos" }: { narradorId: string; lugarLibre: number; propia?: boolean; trato?: TratoComprador }) {
+export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato = "vos", ella = false }: { narradorId: string; lugarLibre: number; propia?: boolean; trato?: TratoComprador; /** La que cuenta es mujer (contexto.genero). */ ella?: boolean }) {
   const tu = trato === "tu";
   const router = useRouter();
   const [sugeridas, setSugeridas] = useState<Sugerida[] | null>(null);
@@ -481,7 +481,7 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato
               ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.")
               : pidiendo
                 ? `El biógrafo está releyendo todo lo que ${propia ? "contaste" : "contó"}. Tarda medio minuto.`
-                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : "él contó"} hasta hoy. ${tu ? "Tú eliges" : "Vos elegís"} cuáles entran.`}
+                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : ella ? "ella contó" : "él contó"} hasta hoy. ${tu ? "Tú eliges" : "Vos elegís"} cuáles entran.`}
           </span>
         </span>
       </button>
@@ -518,7 +518,11 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato
 type FotoElegida = { clave: string; archivo: File; medida: { ancho: number; alto: number } | null };
 const FOTOS_POR_VEZ = 20;
 
-export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto", trato = "vos" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra"; trato?: TratoComprador }) {
+// `paraTapa` (arreglos chicos, maqueta Panel): todavía no hay foto de tapa y
+// lo que se sube puede terminar ahí. Si alguna elegida no alcanza para la tapa
+// (`chicaParaTapa`), antes de subir sale el aviso «Esta foto es pequeña» con
+// dos salidas: elegir otra (saca las chicas) o usarla igualmente (sube todo).
+export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto", trato = "vos", paraTapa = false }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra"; trato?: TratoComprador; paraTapa?: boolean }) {
   const tu = trato === "tu";
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
@@ -533,16 +537,21 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [avisoChica, setAvisoChica] = useState(false);
   const unaSola = elegidas.length === 1;
+  const chicas = paraTapa ? elegidas.filter((f) => chicaParaTapa(f.medida)) : [];
 
   function agregar(archivo: File, medida: { ancho: number; alto: number } | null) {
     const clave = `${archivo.name}-${archivo.size}-${archivo.lastModified}`;
+    setAvisoChica(false);
     setElegidas((x) => (x.some((f) => f.clave === clave) || x.length >= FOTOS_POR_VEZ ? x : [...x, { clave, archivo, medida }]));
   }
 
-  async function guardar() {
+  async function guardar(usarIgual = false) {
     if (elegidas.length === 0) { setError(tu ? "Elige al menos una foto." : "Elegí al menos una foto."); return; }
     setError(null);
+    if (!usarIgual && chicas.length > 0) { setAvisoChica(true); return; }
+    setAvisoChica(false);
     const pendientes = [...elegidas];
     let subidas = 0;
     let ultimoAviso: string | null = null;
@@ -628,11 +637,28 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           </label>
         ) : null}
         <Error_ mensaje={error} />
+        {avisoChica && chicas.length > 0 ? (
+          <div role="alert" className="m-step-abajo flex flex-col gap-3 rounded-xl border border-[var(--alerta)] bg-[var(--alerta-fondo)] p-4">
+            <p className="text-[14px] leading-snug text-[var(--alerta)] [font-family:var(--fuente-micro)]">
+              {tu
+                ? "Esta foto es pequeña. Impresa en tapa dura saldría borrosa. Si tienes otra más grande, mejor."
+                : "Esta foto es chica. Impresa en tapa dura saldría borrosa. Si tenés otra más grande, mejor."}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={() => { setElegidas((x) => x.filter((f) => !chicaParaTapa(f.medida))); setAvisoChica(false); }}>
+                Elegir otra
+              </button>
+              <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => guardar(true)}>
+                Usarla igualmente
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={guardar}>
+          <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={() => guardar()}>
             {ocupado ?? (elegidas.length > 1 ? `Guardar las ${elegidas.length} fotos` : "Guardar la foto")}
           </button>
-          <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => { setAbierto(false); setError(null); setElegidas([]); }}>Cancelar</button>
+          <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => { setAbierto(false); setError(null); setAvisoChica(false); setElegidas([]); }}>Cancelar</button>
         </div>
       </div>
     </div>
@@ -641,25 +667,23 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 
 // ── ritmo y temas a evitar (solo dueña) ────────────────────────────────
 
-// `sinRitmo`: en viaje (3t.19) el bot escribe una vez por noche, no hay ritmo que elegir.
 // `horario` (3t.23): a qué hora y en qué zona le llega la pregunta; se ve y se
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
 // `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
 // se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false, tratoPanel = "vos" }: {
+export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false, tratoPanel = "vos" }: {
   narradorId: string;
   /** Entrevista V3 (10/10): sin ritmo (si contesta, le llega la siguiente siempre) ni «Temas que no se
    *  preguntan» (el bot V3 no lo lee todavía). Queda la hora. */
   v3?: boolean;
   ritmo: Ritmo;
   evitar: string;
-  sinRitmo?: boolean;
-  /** «Sus objetos preciados» (3t.30). undefined = no se ofrece (Vitácora de viaje). */
+  /** «Sus objetos preciados» (3t.30). undefined = no se ofrece. */
   pedirFotos?: boolean;
   /** Los ocho pedidos, para que la familia vea exactamente qué se le va a pedir. */
   objetos?: { orden: number; capitulo: string; texto: string }[];
   horario?: { hora: string; zona: string };
-  /** "te llega" en vez de "le llega": autobiografía o viaje. */
+  /** "te llega" en vez de "le llega": autobiografía. */
   propia?: boolean;
   trato?: { valor: "usted" | "vos" | null; editable: boolean };
   /** El trato de los textos del panel (vos/tú), no el del biógrafo. */
@@ -674,7 +698,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
   const [zona, setZona] = useState(horario?.zona ?? "");
   // La lista base según el producto; si la hora guardada no está en la lista
   // (un piloto a mano, o la compra vieja), se agrega para que se vea tal cual.
-  const horasBase: Hora[] = sinRitmo ? HORAS_VIAJE : HORAS_FAMILIAR;
+  const horasBase: Hora[] = HORAS_FAMILIAR;
   const horas: Hora[] = horario && !horasBase.some((h) => h.valor === horario.hora) ? [{ valor: horario.hora, nombre: `${horario.hora} (la actual)` }, ...horasBase] : horasBase;
   const zonas: [string, string][] = horario && !ZONAS.some(([z]) => z === horario.zona) ? [[horario.zona, horario.zona], ...ZONAS] : ZONAS;
   const horarioCambio = Boolean(horario) && (hora !== horario!.hora || zona !== horario!.zona);
@@ -699,7 +723,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
 
   return (
     <div className="flex flex-col gap-8">
-      {sinRitmo || v3 ? null : (
+      {v3 ? null : (
       <fieldset>
         <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Ritmo</legend>
         <div className="mt-3 flex flex-col gap-2">

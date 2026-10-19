@@ -48,7 +48,7 @@ function construirBuilder(resultado: unknown, onCall?: (metodo: string, args: un
 
 function crearAdminFake(
   secuencia: Record<string, unknown[]>,
-  opciones: { signedUrl?: { data: unknown; error: unknown } } = {},
+  opciones: { signedUrl?: { data: unknown; error: unknown }; borradoEl?: string } = {},
 ) {
   const contadores: Record<string, number> = {};
   const llamadas: Record<string, unknown[][]> = {};
@@ -64,8 +64,15 @@ function crearAdminFake(
   const createSignedUrl = vi
     .fn()
     .mockResolvedValue(opciones.signedUrl ?? { data: { signedUrl: 'https://signed.example/x' }, error: null });
-  const storage = { from: vi.fn(() => ({ createSignedUrl })) };
-  return { from, storage, llamadas, createSignedUrl };
+  // El candado `audios_borrados.txt`: por defecto no existe (los audios siguen).
+  // Un test puede pasar `opciones.borradoEl` para simular que ya se borraron.
+  const download = vi.fn().mockResolvedValue(
+    opciones.borradoEl
+      ? { data: { text: async () => opciones.borradoEl }, error: null }
+      : { data: null, error: { message: 'Object not found' } },
+  );
+  const storage = { from: vi.fn(() => ({ createSignedUrl, download })) };
+  return { from, storage, llamadas, createSignedUrl, download };
 }
 
 function mockSesion(usuario: { id: string; email: string } | null) {
@@ -109,6 +116,31 @@ describe('GET /api/audio/[respuestaId]', () => {
     const respuesta = await GET(request, { params: Promise.resolve({ respuestaId: 'resp-1' }) });
 
     expect(respuesta.status).toBe(403);
+    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+  });
+
+  // Los audios originales se borran a los 3 meses del libro. El archivo se va de
+  // Storage pero `respuestas.audio_path` queda, así que sin esto la URL se firma
+  // igual y el reproductor se queda mudo (fabrica/src/audios-originales.ts).
+  it('si los audios ya se borraron devuelve 410 con la fecha, sin firmar nada', async () => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const admin = crearAdminFake(
+      {
+        familias: [{ data: { id: 'familia-1' }, error: null }],
+        respuestas: [
+          { data: { id: 'resp-1', audio_path: 'narrador-1/dia_01.ogg', narrador_id: 'narrador-1' }, error: null },
+        ],
+        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+      },
+      { borradoEl: '2027-01-12T09:30:00.000Z' },
+    );
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const request = { url: 'https://tablero.test/api/audio/resp-1' } as never;
+    const respuesta = await GET(request, { params: Promise.resolve({ respuestaId: 'resp-1' }) });
+
+    expect(respuesta.status).toBe(410);
+    expect(await respuesta.json()).toMatchObject({ borradoEl: '2027-01-12T09:30:00.000Z' });
     expect(admin.createSignedUrl).not.toHaveBeenCalled();
   });
 

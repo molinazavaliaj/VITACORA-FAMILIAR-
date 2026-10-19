@@ -1,0 +1,256 @@
+/* ── Las páginas legales en la dirección «la web es un libro» (fase 5) ─────
+   La cabecera pública en tinta y el texto en una hoja de papel crema con el
+   borde cortado a mano (dir-deckle, globals.css), como el checkout. Todo con
+   prefijo lgl- y bajo .lgl: este archivo no va en una capa y le gana a las
+   utilidades de Tailwind, así que nada de reglas sueltas sobre etiquetas.
+   Sin violeta: tinta, papel y el dorado solo para la etiqueta de «En corto». */
+
+.lgl {
+  --lgl-texto: #1f1d19;
+  --lgl-suave: #5a564e;          /* 6,3:1 sobre el papel */
+  --lgl-hilo: rgba(21, 20, 18, 0.14);
+  --lgl-hilo-fuerte: rgba(21, 20, 18, 0.32);
+}
+
+/* La cabecera: tinta con 14 px de más abajo para que la hoja la tape con sus dientes. */
+.lgl-cabecera { padding-bottom: 14px; border-bottom: 0; }
+.lgl-hoja {
+  position: relative;
+  margin-top: -14px;
+  flex: 1 1 auto;
+  color: var(--lgl-texto);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+.lgl-hoja :focus-visible { outline: 2px solid var(--dir-sobre-papel); outline-offset: 2px; }
+
+/* ── Las tres solapas: píldoras de hilo; la actual, llena de tinta. En el
+   teléfono se deslizan de costado sin barra. ── */
+.lgl-solapas {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -16px;
+  padding: 2px 16px 4px;
+}
+.lgl-solapas::-webkit-scrollbar { display: none; }
+.lgl-solapa {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 44px;
+  align-items: center;
+  border: 1px solid var(--lgl-hilo-fuerte);
+  border-radius: 999px;
+  padding: 0 18px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--lgl-texto);
+  transition: background-color var(--d-rapido, 150ms) var(--dir-curva), border-color var(--d-rapido, 150ms) var(--dir-curva);
+}
+.lgl-solapa:hover { border-color: var(--dir-sobre-papel); }
+.lgl-solapa[aria-current="page"] {
+  background: var(--dir-sobre-papel);
+  border-color: var(--dir-sobre-papel);
+  color: var(--dir-papel);
+}
+
+/* ── La rejilla: en el teléfono, cabeza → índice → cuerpo, uno debajo del
+   otro; en pantallas anchas el índice va al costado y se queda a la vista. ── */
+.lgl-rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "cabeza" "indice" "cuerpo";
+  margin-top: 36px;
+}
+.lgl-cabeza { grid-area: cabeza; max-width: 68ch; }
+.lgl-indice { grid-area: indice; }
+.lgl-cuerpo { grid-area: cuerpo; max-width: 68ch; }
+@media (min-width: 1024px) {
+  .lgl-rejilla {
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-areas: "indice cabeza" "indice cuerpo";
+    column-gap: 72px;
+    margin-top: 48px;
+  }
+  .lgl-indice {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding-top: 10px;
+  }
+}
+
+.lgl-titulo {
+  font-size: clamp(2.3rem, 1.6rem + 3vw, 3.9rem);
+  line-height: 1.05;
+  color: var(--dir-sobre-papel);
+}
+.lgl-bajada {
+  margin-top: 16px;
+  font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--lgl-suave);
+}
+.lgl-fecha {
+  margin-top: 12px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13px;
+  color: var(--lgl-suave);
+}
+
+/* «En corto»: una ficha de hilo fino, como una nota pegada en la página. */
+.lgl-corto {
+  margin-top: 32px;
+  border: 1px solid var(--lgl-hilo-fuerte);
+  border-radius: 4px;
+  padding: 22px 22px 20px;
+  background: rgba(255, 253, 248, 0.45);
+}
+.lgl-corto-titulo { color: var(--dir-dorado); }
+.lgl-corto ul { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.lgl-corto li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 17px;
+  line-height: 1.55;
+}
+.lgl-corto li::before {
+  content: "·";
+  position: absolute;
+  left: 2px;
+  color: var(--lgl-suave);
+}
+
+/* El índice: números y títulos de las secciones, en letra de sistema. */
+.lgl-indice {
+  margin-top: 36px;
+  border-top: 1px solid var(--lgl-hilo);
+  border-bottom: 1px solid var(--lgl-hilo);
+  padding: 18px 0 14px;
+}
+@media (min-width: 1024px) {
+  .lgl-indice { margin-top: 0; border-bottom: 0; }
+}
+.lgl-indice-titulo { color: var(--lgl-suave); }
+.lgl-indice ol { margin-top: 8px; }
+.lgl-indice a {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--lgl-texto);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+}
+.lgl-indice a:hover { text-decoration-color: var(--lgl-hilo-fuerte); }
+
+/* ── El texto: letra de libro, 18 px, interlineado amplio. ── */
+.lgl-cuerpo { margin-top: 16px; }
+.lgl-seccion {
+  scroll-margin-top: 24px;
+  border-bottom: 1px solid var(--lgl-hilo);
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 18px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+.lgl-seccion-titulo {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.45rem, 1.25rem + 0.7vw, 1.8rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--dir-sobre-papel);
+  margin-bottom: 2px;
+}
+.lgl-seccion strong, .lgl-corto strong { font-weight: 600; color: var(--dir-sobre-papel); }
+.lgl-lista { display: flex; flex-direction: column; gap: 10px; padding-left: 22px; list-style: disc; }
+.lgl-lista li::marker { color: var(--lgl-suave); }
+.lgl-enlace {
+  text-decoration: underline;
+  text-decoration-color: var(--lgl-hilo-fuerte);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.lgl-enlace:hover { text-decoration-color: var(--dir-sobre-papel); }
+.lgl-pendiente { background: #f1e2a6; padding: 0 4px; white-space: nowrap; }
+
+.lgl-cierre {
+  margin-top: 32px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--lgl-suave);
+}
+
+/* El botón del desistimiento: la píldora de la dirección, en tinta sobre papel. */
+.lgl-boton {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 30px;
+  background: var(--dir-sobre-papel);
+  color: var(--dir-papel);
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform var(--d-rapido, 150ms) var(--dir-curva), background-color var(--d-rapido, 150ms) var(--dir-curva);
+}
+.lgl-boton:hover { background: #000; }
+.lgl-boton:active { transform: scale(0.98); }
+
+/* El formulario de desistimiento (Anexo B): texto para copiar, en una ficha con borde. */
+.lgl-formulario {
+  border: 1px solid var(--lgl-hilo-fuerte);
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  user-select: all;
+  -webkit-user-select: all;
+}
+.lgl-formulario p + p { margin-top: 6px; }
+
+/* La tabla de proveedores. */
+.lgl-tabla { width: 100%; border-collapse: collapse; text-align: left; font-size: 16px; line-height: 1.55; }
+.lgl-tabla th {
+  border-bottom: 1px solid var(--lgl-hilo-fuerte);
+  padding: 0 8px 10px 0;
+  vertical-align: bottom;
+  color: var(--lgl-suave);
+}
+.lgl-tabla td { border-bottom: 1px solid var(--lgl-hilo); padding: 10px 12px 10px 0; vertical-align: top; }
+.lgl-tabla td:first-child { font-weight: 600; color: var(--dir-sobre-papel); white-space: nowrap; }
+.lgl-tabla-movil { display: flex; flex-direction: column; gap: 16px; font-size: 16px; line-height: 1.55; }
+.lgl-tabla-movil > div { border-bottom: 1px solid var(--lgl-hilo); padding-bottom: 14px; }
+.lgl-tabla-quien { font-weight: 600; color: var(--dir-sobre-papel); }
+.lgl-tabla-movil p + p { margin-top: 4px; }
+.lgl-tabla-etiqueta { color: var(--lgl-suave); font-size: 11px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lgl-solapa, .lgl-boton { transition: none; }
+}
+
+/* Los subtítulos dentro de una sección (la garantía: la ley, lo nuestro, el cierre). */
+.lgl-subtitulo {
+  margin-top: 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--dir-sobre-papel);
+}

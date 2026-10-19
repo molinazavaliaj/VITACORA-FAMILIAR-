@@ -30,12 +30,13 @@ const ABUELO_AR = {
 const COMPRADOR_VOS = {
   mailAsunto: "Tu regalo para abuela está listo",
   mailCuerpo:
-    "Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando abuela la escanee, empieza su entrevista y lo vas a ver en tu tablero.",
+    "Ya podés descargar la tarjeta. Imprimila o mandala por WhatsApp. Cuando abuela la escanee, empieza su entrevista y lo vas a ver en la página de su historia.",
   mailBoton: "Ver la tarjeta",
   estadoPanel: "Esperando que abra su regalo",
   estadoCorto: "esperando que abra el regalo",
   proximoPaso: "Descargá la tarjeta del regalo",
   botonImprimir: "Imprimir o guardar en PDF",
+  avisoDobleFaz: "Imprimila doble faz y elegí «dar vuelta por el borde largo». Si la parte de adentro sale al revés, probá con «borde corto».",
   botonImagen: "Descargar la imagen para WhatsApp",
   aQuien: "¿A quién se lo regalás?",
   comoLeDecis: "¿Cómo le decís?",

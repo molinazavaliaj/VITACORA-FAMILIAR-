@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Checkout en móvil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0a0a0a}
+a{color:#ededed}a:hover{color:#ffffff}
+input::placeholder{color:#6f6c66}
+.m-btn{transition:transform 160ms cubic-bezier(.2,.7,.2,1),box-shadow 200ms cubic-bezier(.2,.7,.2,1),filter 200ms}
+.m-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.28);filter:brightness(1.05)}
+.m-btn:active{transform:scale(.97);box-shadow:none;transition-duration:80ms}
+.m-ghost{transition:border-color 200ms,background-color 200ms,transform 160ms}
+.m-ghost:active{transform:scale(.97)}
+.m-card{transition:border-color 200ms cubic-bezier(.2,.7,.2,1),background-color 200ms cubic-bezier(.2,.7,.2,1),color 200ms,transform 200ms cubic-bezier(.2,.7,.2,1)}
+.m-card:active{transform:scale(.985)}
+.m-dot{transition:border-width 200ms cubic-bezier(.2,.7,.2,1),border-color 200ms}
+@keyframes stepIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.m-step{animation:stepIn 320ms cubic-bezier(.2,.7,.2,1) both}
+@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:1ms!important;transition-duration:1ms!important}}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #b9a8f5;outline-offset:2px}
+
+/* versión móvil (390 px) */
+header nav > *:not(:last-child){display:none!important}
+header > div, header{padding-left:20px!important;padding-right:20px!important}
+h1{font-size:40px!important;line-height:1.08!important}
+h2{font-size:32px!important;line-height:1.12!important}
+h3{font-size:22px!important}
+section > div{padding-left:20px!important;padding-right:20px!important}
+section > div[style*="padding: 1"]{padding-top:64px!important;padding-bottom:64px!important}
+[style*="grid-template-columns: repeat("]{grid-template-columns:minmax(0,1fr)!important}
+[style*="padding: 52px"],[style*="padding: 48px"]{padding:26px!important}
+[style*="gap: 64px"],[style*="gap: 56px"],[style*="gap: 48px"]{gap:36px!important}
+[style*="width: 320px"]{width:100%!important;max-width:320px}
+[style*="font-size: 64px"],[style*="font-size: 72px"],[style*="font-size: 80px"],[style*="font-size: 96px"]{font-size:48px!important}
+[style*="grid-column: span 2"]{grid-column:auto!important}
+[style*="repeat(4, minmax(0, 1fr)); gap: 10px"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+[aria-label="Pasos de la compra"] span[style*="white-space: nowrap"][style*="#8f8c85"]{display:none!important}
+[aria-label="Pasos de la compra"] > div{flex:0 0 auto!important}
+[aria-label="Pasos de la compra"]{gap:6px!important;flex-wrap:nowrap!important}
+section[data-hero]{height:auto!important;padding-bottom:430px!important}
+section[data-hero] video{top:auto!important;bottom:0!important;height:430px!important}
+section[data-hero] > div[style*="linear-gradient"]{background:linear-gradient(180deg,#0a0a0a 0%,#0a0a0a 55%,rgba(10,10,10,0.75) 66%,rgba(10,10,10,0) 76%,rgba(10,10,10,0) 90%,#0a0a0a 100%)!important}
+</style>
+
+<div style="background: #0a0a0a; color: #ededed; min-height: 100vh;">
+<header style="border-bottom: 1px solid #1f1e1b;"><div style="max-width: 1180px; margin: 0 auto; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <a href="#" aria-label="Vitácora, inicio" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #ededed;">
+        <svg viewBox="-78 31 356 228" style="height: 28px; width: auto;" aria-hidden="true">
+          <ellipse cx="86.14" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="113.86" cy="145" rx="13.86" ry="17.63" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="73.23" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="126.77" cy="145" rx="26.77" ry="34.07" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="60.65" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="139.35" cy="145" rx="39.35" ry="50.08" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="48.29" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="151.71" cy="145" rx="51.71" ry="65.82" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="36.08" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="163.92" cy="145" rx="63.92" ry="81.36" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="23.99" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="176.01" cy="145" rx="76.01" ry="96.74" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="12" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+          <ellipse cx="188" cy="145" rx="88" ry="112" fill="none" stroke="currentColor" stroke-width="1.35"></ellipse>
+        </svg>
+        <span style="font-family: Archivo, sans-serif; font-size: 13px; letter-spacing: 0.22em; font-weight: 500;">VITÁCORA</span>
+      </a>
+  <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; font-family: Archivo, sans-serif; font-size: 14px; color: #b4b1a9;">
+    <span style="display: flex; align-items: center; gap: 8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg> Pago seguro y cifrado</span>
+    <a href="#" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #ededed;"><span style="color: #25a560; display: flex;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2s.2-1.1.1-1.2-.2-.2-.4-.3z"></path></svg></span>¿Dudas? Escríbenos</a>
+  </div>
+</div></header>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: 36px 24px 90px; box-sizing: border-box;">
+
+<div style="display: flex; gap: 14px; margin-bottom: 36px; flex-wrap: wrap;" aria-label="Pasos de la compra"><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="width: 30px; height: 30px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 13px; font-weight: 600; background: #a08ce8; color: #14140f; border: 1px solid #a08ce8;">1</span><span style="font-family: Archivo, sans-serif; font-size: 14px; white-space: nowrap; color: #ffffff;">Su libro</span></div><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="width: 30px; height: 30px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 13px; font-weight: 600; background: transparent; color: #8f8c85; border: 1px solid #3a3833;">2</span><span style="font-family: Archivo, sans-serif; font-size: 14px; white-space: nowrap; color: #8f8c85;">Pago</span></div><div style="display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0;"><span style="width: 30px; height: 30px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 13px; font-weight: 600; background: transparent; color: #8f8c85; border: 1px solid #3a3833;">3</span><span style="font-family: Archivo, sans-serif; font-size: 14px; white-space: nowrap; color: #8f8c85;">Para quién</span></div></div>
+
+
+<div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px;">
+
+<div class="m-step" style="display: flex; flex-direction: column; gap: 28px;">
+  <div style="display: flex; flex-direction: column; gap: 12px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.18em; color: #b4b1a9;">PASO 1 DE 3</span><h1 style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; margin: 0; font-size: 38px; line-height: 1.1; color: #ffffff;">¿Cómo quieres su libro?</h1><p style="font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 17px; line-height: 1.55; color: #c9c6be;">Todas las opciones incluyen la entrevista completa y el libro en PDF con su voz.</p></div>
+  <div style="display: flex; flex-direction: column; gap: 12px;"><button type="button" class="m-card" onClick="" style="display: flex; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; padding: 20px 22px; border-radius: 18px; cursor: pointer; text-align: left; background: #12120f; border: 1px solid #2a2925;"><span class="m-dot" style="width: 20px; height: 20px; flex: none; border-radius: 999px; box-sizing: border-box; border: 1.5px solid #5a5850;"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Libro digital</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">PDF para leer en cualquier pantalla, con «Su voz»: sus audios a un toque.</span></span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; white-space: nowrap;">49 €</span></button><button type="button" class="m-card" onClick="" style="display: flex; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; padding: 20px 22px; border-radius: 18px; cursor: pointer; text-align: left; background: #1a1726; border: 1px solid #a08ce8;"><span class="m-dot" style="width: 20px; height: 20px; flex: none; border-radius: 999px; box-sizing: border-box; border: 6px solid #a08ce8;"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; text-align: left;"><span style="align-self: flex-start; font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: 0.12em; color: #14140f; background: #b9a8f5; border-radius: 999px; padding: 4px 10px;">PARA REGALAR</span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff;">Libro impreso en tapa dura + digital</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #b4b1a9;">El mismo libro, impreso y encuadernado, y también en PDF con su voz. Llega a casa unos 9 días después de cerrar el libro.</span></span><span style="font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; white-space: nowrap;">99 €</span></button></div>
+  <div class="m-card" style="display: flex; flex-wrap: wrap; gap: 22px; align-items: center; padding: 22px; border-radius: 22px; background: #12120f; border: 1px dashed #4a4840;">
+    <img src="assets/e6e4ac807ead763b8872cdfc67cb1da7.jpg" alt="Marco negro pequeño con la foto de Osvaldo junto a su libro, sobre un aparador" style="width: 170px; flex: none; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 14px; display: block;">
+    <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-family: Archivo, sans-serif; font-size: 11px; letter-spacing: 0.16em; color: #b9a8f5;">AÑADE UN DETALLE</span>
+      <span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 26px; line-height: 1.15; color: #ffffff;">Su foto enmarcada, junto a su libro.</span>
+      <span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.5; color: #c9c6be;">Marco negro de 13 × 18 cm con la foto que elijas. Por dentro lleva un chip que no se ve: acercas el móvil al marco y se abre su libro, con su voz.</span>
+      <button type="button" class="m-card" onClick="" style="align-self: flex-start; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px 0 12px; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; background: transparent; color: #ededed; border: 1px solid #5a5850;"><span style="width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: transparent; border: 1.5px solid #5a5850;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>Añadir el marco · +20 €</button>
+    </div>
+  </div>
+  <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;"><button type="button" onClick="" class="m-btn" style="height: 56px; padding: 0 34px; border-radius: 999px; border: none; background: #a08ce8; color: #14140f; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer;">Continuar al pago</button></div>
+</div>
+
+
+
+
+
+
+</main>
+
+<aside aria-label="Resumen del pedido" style="flex: 1 1 340px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 16px;">
+  <div style="border: 1px solid #2a2925; border-radius: 22px; background: #12120f; padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; gap: 16px; align-items: center;"><img src="assets/665ec8b045160a78ad512c596459a38b.jpg" alt="Portada del libro de Osvaldo" style="width: 72px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 6px; flex: none; box-shadow: 0 10px 24px rgba(0,0,0,0.5);"><div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-family: Archivo, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #b9a8f5;">VITÁCORA FAMILIAR</span><span style="font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: 22px; color: #ffffff;">El libro de Osvaldo</span><span style="font-family: Archivo, sans-serif; font-size: 13px; color: #8f8c85;">Para tu padre</span></div></div>
+    <div style="display: flex; flex-direction: column; gap: 10px; font-family: Archivo, sans-serif; font-size: 15px; color: #c9c6be; border-top: 1px solid #23221e; padding-top: 16px;">
+      <div style="display: flex; justify-content: space-between; gap: 12px;"><span>Entrevista + libro digital</span><span style="color: #ffffff;">49 €</span></div>
+      <div style="display: flex; justify-content: space-between; gap: 12px;"><span>Libro impreso, tapa dura</span><span style="color: #ffffff;">+50 €</span></div>
+      
+      
+      <div style="display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #23221e; padding-top: 14px; font-family: Archivo, sans-serif; font-size: 18px; font-weight: 600; color: #ffffff;"><span>Total</span><span>99 €</span></div>
+      <span style="font-family: Archivo, sans-serif; font-size: 12px; color: #8f8c85;">IVA incluido. Un solo pago, sin suscripciones.</span>
+    </div>
+    <button type="button" onClick="" style="align-self: flex-start; border: none; background: transparent; padding: 0; color: #b4b1a9; font-family: Archivo, sans-serif; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer;">¿Tienes un código? Aplicar VITACORA10</button>
+  </div>
+  <div style="border: 1px solid #2a2925; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 1.45; color: #c9c6be;">
+    <div style="display: flex; gap: 10px;"><span style="color: #b9a8f5; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>La entrevista por WhatsApp, a su ritmo y con audios</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #b9a8f5; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>El anticipo tras su tercera respuesta</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #b9a8f5; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>El libro en PDF con «Su voz»</div>
+    <div style="display: flex; gap: 10px;"><span style="color: #b9a8f5; flex: none; margin-top: 2px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></span>Si él no acepta participar, te devolvemos el dinero</div>
+  </div>
+</aside>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2010},"precioImpreso":{"editor":"int","default":50,"min":0,"max":200,"unit":"€","section":"Precios"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 1, para: 'padre', nombre: 'Osvaldo', regalo: true, cuando: 'navidad', formato: 'impreso', marco: false, cupon: false, errNombre: false, gen: 'el' };
+  }
+  renderVals() {
+    var st = this.state, self = this;
+    var ACC = '#a08ce8';
+    var pi = Number(this.props.precioImpreso ?? 50);
+    function eur(n) { return n.toFixed(2).replace('.', ',').replace(',00', '') + ' €'; }
+    var known = 49 + (st.marco ? 20 : 0) + (st.formato === 'impreso' ? pi : 0);
+    var unknownImp = st.formato === 'impreso' && !pi;
+    var desc = st.cupon ? known * 0.10 : 0;
+    var totalTxt = eur(known - desc) + (unknownImp ? ' + [precio]' : '');
+    function cardSt(on) { return 'display: flex; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; padding: 20px 22px; border-radius: 18px; cursor: pointer; text-align: left; background: ' + (on ? '#1a1726' : '#12120f') + '; border: 1px solid ' + (on ? ACC : '#2a2925') + ';'; }
+    function dotSt(on) { return 'width: 20px; height: 20px; flex: none; border-radius: 999px; box-sizing: border-box; border: ' + (on ? '6px solid ' + ACC : '1.5px solid #5a5850') + ';'; }
+    function chipSt(on) { return 'height: 46px; padding: 0 20px; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 15px; background: ' + (on ? ACC : 'transparent') + '; color: ' + (on ? '#14140f' : '#ededed') + '; border: 1px solid ' + (on ? ACC : '#3a3833') + ';'; }
+    var v = { yes: true };
+    function top() { try { window.scrollTo(0, 0); } catch (e) {} }
+    var DEMO = { padre: 'Osvaldo', madre: 'Carmen', abuelo: 'Osvaldo', abuela: 'Carmen', otra: 'Osvaldo', yo: 'Laura' };
+    var demoNames = Object.keys(DEMO).map(function (k) { return DEMO[k]; });
+    ['padre','madre','abuelo','abuela','otra','yo'].forEach(function (k) { v['st_' + k] = chipSt(st.para === k); v['pick_' + k] = function () { var o = { para: k }; if (DEMO[k] && (!st.nombre || demoNames.indexOf(st.nombre) > -1)) o.nombre = DEMO[k]; if (k === 'yo') o.cuando = 'hoy'; else if (st.para === 'yo') o.cuando = 'navidad'; self.setState(o); }; });
+    ['el','ella'].forEach(function (g) { v['st_g_' + g] = chipSt((st.gen || 'el') === g); v['pick_g_' + g] = function () { self.setState({ gen: g }); }; });
+    ['navidad','padres','cumple','fecha','hoy','manana','fechayo'].forEach(function (k) { v['st_' + k] = chipSt(st.cuando === k); v['pick_' + k] = function () { self.setState({ cuando: k }); }; });
+    v.st_regalo = cardSt(st.regalo); v.dot_regalo = dotSt(st.regalo); v.pick_regalo = function () { self.setState({ regalo: true }); };
+    v.st_ya = cardSt(!st.regalo); v.dot_ya = dotSt(!st.regalo); v.pick_ya = function () { self.setState({ regalo: false }); };
+    v.st_digital = cardSt(st.formato === 'digital'); v.dot_digital = dotSt(st.formato === 'digital'); v.pick_digital = function () { self.setState({ formato: 'digital' }); };
+    v.st_impreso = cardSt(st.formato === 'impreso'); v.dot_impreso = dotSt(st.formato === 'impreso'); v.pick_impreso = function () { self.setState({ formato: 'impreso' }); };
+    v.st_marco = 'display: flex; flex-wrap: wrap; gap: 22px; align-items: center; padding: 22px; border-radius: 22px; background: ' + (st.marco ? '#1a1726' : '#12120f') + '; border: 1px ' + (st.marco ? 'solid ' + ACC : 'dashed #4a4840') + ';';
+    v.marcoBtn = 'align-self: flex-start; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 18px 0 12px; border-radius: 999px; cursor: pointer; font-family: Archivo, sans-serif; font-size: 15px; font-weight: 600; background: ' + (st.marco ? ACC : 'transparent') + '; color: ' + (st.marco ? '#14140f' : '#ededed') + '; border: 1px solid ' + (st.marco ? ACC : '#5a5850') + ';';
+    v.marcoBox = 'width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: ' + (st.marco ? '#14140f' : 'transparent') + '; border: 1.5px solid ' + (st.marco ? '#14140f' : '#5a5850') + ';';
+    v.marcoTxt = st.marco ? 'Añadido · +20 €' : 'Añadir el marco · +20 €';
+    v.toggleMarco = function () { self.setState({ marco: !st.marco }); };
+    for (var i = 1; i <= 3; i++) {
+      var done = st.step > i, cur = st.step === i;
+      v['sb' + i] = 'width: 30px; height: 30px; flex: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 13px; font-weight: 600; background: ' + (done || cur ? ACC : 'transparent') + '; color: ' + (done || cur ? '#14140f' : '#8f8c85') + '; border: 1px solid ' + (done || cur ? ACC : '#3a3833') + ';';
+      v['sl' + i] = 'font-family: Archivo, sans-serif; font-size: 14px; white-space: nowrap; color: ' + (cur ? '#ffffff' : '#8f8c85') + ';';
+    }
+    var paraMap = { padre: 'Para tu padre', madre: 'Para tu madre', abuelo: 'Para tu abuelo', abuela: 'Para tu abuela', otra: 'Para alguien especial', yo: 'Para ti' };
+    var cuandoMap = { navidad: 'el 24 de diciembre', padres: 'el 19 de marzo', cumple: 'el día de su cumpleaños', fecha: 'el día que elegiste', hoy: 'hoy mismo', manana: 'mañana', fechayo: 'el día que elegiste' };
+    var yo = st.para === 'yo';
+    var fem = st.para === 'madre' || st.para === 'abuela' || (st.para === 'otra' && st.gen === 'ella');
+    var pron = yo ? 'ti' : (fem ? 'ella' : 'él');
+    if (fem) cuandoMap.padres = 'el Día de la Madre';
+    var nom = st.nombre || pron;
+    var regalo = st.regalo && !yo;
+    var cuandoTxt = yo ? cuandoMap[st.cuando] || 'hoy mismo' : (st.regalo ? cuandoMap[st.cuando] : 'en cuanto confirmes su número');
+    var garTxt = yo ? 'Si cambias de idea antes de contestar la primera pregunta, te devolvemos el dinero' : 'Si ' + pron + ' no acepta participar, te devolvemos el dinero';
+    var TX = {
+      intro3: yo ? 'Tu propio libro: sin sorpresa ni tarjeta. Las preguntas te llegan a ti.' : 'Solo necesitamos su nombre para empezar. Su número de WhatsApp lo puedes añadir ahora o después.',
+      nomLbl: yo ? '¿Cómo te llamas?' : '¿Cómo se llama?',
+      cuandoH: yo ? '¿Cuándo empezamos?' : '¿Cuándo empieza ' + nom + '?',
+      cuandoP: yo ? 'Ese día te llega la primera pregunta por WhatsApp. Contestas cuando puedas, con audios.' : (st.regalo ? 'Ese día le llega su primera pregunta por WhatsApp. Antes no recibe nada, así que la sorpresa queda intacta.' : 'Le llega la primera pregunta en cuanto confirmes su número.'),
+      doneH: yo ? 'Ya está. Tu libro empieza ' + cuandoTxt + '.' : 'Ya está. El libro de ' + nom + ' empieza ' + cuandoTxt + '.',
+      doneP: regalo ? 'Te hemos mandado el recibo y la tarjeta de regalo a tu email.' : 'Te hemos mandado el recibo a tu email.',
+      t1: regalo ? 'Imprime la tarjeta y guárdala hasta el día del regalo.' : (yo ? 'Guarda el contacto «Vitácora» en tu móvil: te escribimos desde ahí.' : 'Avísale de que le va a escribir «Vitácora» por WhatsApp.'),
+      t2: yo ? 'Recibes tu primera pregunta por WhatsApp y contestas con un audio.' : nom + ' recibe su primera pregunta por WhatsApp y contesta con un audio.',
+      t3: yo ? 'Te llega el anticipo: las primeras páginas de tu libro, para que veas cómo queda.' : 'Te llega el anticipo: las primeras páginas de su libro, para que veas cómo queda.',
+      t4: yo ? 'Tu libro completo, con tu voz. Y si elegiste el impreso, en casa unos 9 días después.' : 'Su libro completo, con su voz. Y si elegiste el impreso, en casa unos 9 días después.',
+      padresLbl: fem ? 'Día de la Madre · mayo' : 'Día del Padre · 19 mar',
+      needsDate: st.cuando === 'cumple' || st.cuando === 'fecha' || st.cuando === 'fechayo',
+      fechaLbl: st.cuando === 'cumple' ? 'Su cumpleaños' : 'Fecha de inicio',
+      l2: yo ? (st.cuando === 'hoy' ? 'Hoy' : (st.cuando === 'manana' ? 'Mañana' : 'El día elegido')) : (st.regalo ? 'El día elegido' : 'Al confirmar su número'),
+      telLbl: 'Su WhatsApp',
+      garTxt: garTxt
+    };
+    Object.assign(v, TX, { esYo: yo, noYo: !yo, esOtra: st.para === 'otra' });
+    Object.assign(v, {
+      is1: st.step === 1, is2: st.step === 2, is3: st.step === 3, is4: st.step === 4, notDone: st.step < 4,
+      nombre: nom, errNombre: st.errNombre, esRegalo: regalo, esImpreso: st.formato === 'impreso', marco: st.marco,
+      cupon: st.cupon, noCupon: !st.cupon, descTxt: '−' + eur(desc), totalTxt: totalTxt,
+      precioImpresoTxt: pi ? '+' + eur(pi) : '+[precio] €', precioOpcionImpreso: pi ? eur(49 + pi) : '[precio] €', paraTxt: paraMap[st.para],
+      cuandoTxt: cuandoTxt,
+      onNombre: function (e) { self.setState({ nombre: e.target.value, errNombre: false }); },
+      next: function () { if (st.step === 3 && !st.nombre.trim()) { self.setState({ errNombre: true }); return; } self.setState({ step: st.step + 1 }); top(); },
+      back: function () { self.setState({ step: Math.max(1, st.step - 1) }); top(); },
+      pay: function () { self.setState({ step: 3 }); top(); },
+      later: function () { self.setState({ step: 4 }); top(); },
+      applyCupon: function () { self.setState({ cupon: true }); },
+      reset: function () { self.setState({ step: 1, marco: false, cupon: false, para: 'padre', nombre: 'Osvaldo', cuando: 'navidad', regalo: true, gen: 'el' }); }
+    });
+    return v;
+  }
+}
+</script>
+</body>
+</html>

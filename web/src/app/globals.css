@@ -59,6 +59,66 @@
   color-scheme: dark;
 }
 
+/* ── Rediseño 2026-10: tema oscuro de marketing ────────────────────────────
+   Sacado de las maquetas (docs/rediseno-2026-10/maquetas, tablero «Guía» y
+   «Motion»; conflicto C18 de PASO-DE-MANOS.md). No reemplaza a los tokens de
+   arriba: se suma. Ninguna pantalla de hoy los usa; los usan los componentes
+   de web/src/app/_ui/ y las pantallas que se vayan pasando al rediseño.
+
+   El sufijo «-oscuro» quiere decir «del tema oscuro», no «un color oscuro»:
+   --texto-oscuro es el texto claro que va sobre el fondo oscuro.
+
+   No van en @theme a propósito: el resto del archivo tampoco lo usa, y en las
+   clases se escriben como hoy, bg-[var(--tarjeta)]. */
+:root {
+  /* Familiar (el defecto) */
+  --fondo-oscuro:         #0a0a0a;
+  --tarjeta:              #12120f;
+  --tarjeta-alta:         #23221e;  /* una superficie arriba de la tarjeta */
+  --texto-oscuro:         #ededed;  /* cuerpo */
+  --texto-oscuro-fuerte:  #ffffff;  /* titulares y nombres de opciones */
+  --texto-oscuro-suave:   #c9c6be;  /* bajadas, párrafos largos */
+  --texto-oscuro-menor:   #8f8c85;  /* metadatos, «Paso 1 de 3» */
+  --linea-oscura:         #1f1e1b;  /* separadores */
+  --borde-oscuro:         #2a2925;  /* borde de tarjetas */
+  --borde-oscuro-fuerte:  #3a3833;  /* borde de botones fantasma y campos */
+  --punto-vacio:          #5a5850;  /* el punto de una opción sin elegir */
+  --acento-oscuro:        #b9a8f5;  /* etiquetas, enlaces, foco, opción elegida */
+  --boton:                #a08ce8;  /* el botón primario */
+  --sobre-boton:          #14140f;  /* el texto encima del botón */
+  --elegido-fondo:        #1a1726;  /* fondo de la opción elegida y hover del fantasma */
+  --sombra-boton:         rgba(160, 140, 232, 0.28);
+  --velo:                 rgba(0, 0, 0, 0.6);  /* el fondo detrás de una hoja */
+
+  /* Movimiento (MOTION.md §1) */
+  --d-instante: 120ms;  /* tocar, pasar el ratón */
+  --d-rapido:   200ms;  /* elegir una opción, hover de tarjeta */
+  --d-base:     320ms;  /* pasos, solapas, acordeón, hojas */
+  --d-lento:    480ms;  /* aparecer al bajar, popups */
+  --d-libro:    700ms;  /* pasar una página: el ÚNICO movimiento lento */
+  /* Ojo: Tailwind también tiene un --ease-out; este lo pisa a propósito, así
+     la clase ease-out de Tailwind usa la curva de la marca. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);   /* salida suave: lo que entra o aparece */
+  --ease-io:  cubic-bezier(0.65, 0, 0.35, 1);   /* ida y vuelta: lo que se desplaza */
+}
+
+/* Viaje: mismo fondo y tarjeta, otro acento. Se pone junto a .tema-oscuro. */
+.tema-viaje {
+  --texto-oscuro:  #ffffff;
+  --acento-oscuro: #9dbdff;
+  --boton:         #7aa7ff;
+  --elegido-fondo: #141d30;
+  --sombra-boton:  rgba(122, 167, 255, 0.28);
+}
+
+/* El contenedor de una pantalla del rediseño. Hoy no lo usa ninguna. */
+.tema-oscuro {
+  background: var(--fondo-oscuro);
+  color: var(--texto-oscuro);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  color-scheme: dark;
+}
+
 /* El cuerpo del sitio queda como estaba a propósito: las tipografías de marca
    se aplican SOLO en la landing (web/src/app/page.tsx), que es la única
    pantalla pasada al sistema visual. Cambiarlas acá tocaría todas las páginas
@@ -68,12 +128,9 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Sin modo oscuro (Naza, 19/10): la web tiene un solo color, esté como esté el
+   celular. Antes, con el teléfono en modo oscuro, las pantallas que usan el fondo
+   del cuerpo (panel, entrar) pasaban a negro. */
 
 body {
   background: var(--background);
@@ -85,16 +142,20 @@ body {
    Todo falla hacia visible: si el navegador no soporta algo, o la persona
    pidió menos movimiento, se ve el estado final, quieto y completo. */
 
+/* Valores de la maqueta (rediseño 2026-10, MOTION.md patrón 6): sube 16 px y
+   termina al 30 % de la entrada. Una sola vez por bloque: al volver hacia
+   arriba ya está en su estado final. Afuera del @supports no hay animación,
+   así que sin animation-timeline el bloque se ve quieto y completo. */
 @supports (animation-timeline: view()) {
   .aparece {
-    animation: aparecer both;
+    animation: revealUp linear both;
     animation-timeline: view();
-    animation-range: entry 5% entry 45%;
+    animation-range: entry 0% entry 30%;
   }
-  @keyframes aparecer {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: none; }
-  }
+}
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* La conversación del hero: cada paso entra después del anterior, una sola
@@ -129,3 +190,1238 @@ body {
     animation: none;
   }
 }
+
+/* ── Rediseño 2026-10: patrones de movimiento (MOTION.md §2) ───────────────
+   Solo animan transform y opacity (y colores o borde en transiciones cortas).
+   Las usan los componentes de web/src/app/_ui/; ninguna pantalla de hoy.
+   Todo falla hacia visible: el estado por defecto es el final y las
+   animaciones de entrada van con fill-mode both. */
+
+/* 1 · Botón primario (pastilla): sube 2 px con sombra; al pulsar se hunde. */
+.m-btn {
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow var(--d-rapido) var(--ease-out),
+    filter var(--d-rapido),
+    background-color var(--d-rapido);
+}
+@media (hover: hover) {
+  .m-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px var(--sombra-boton);
+    filter: brightness(1.05);
+  }
+}
+.m-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+  transition-duration: 80ms;
+}
+
+/* 1b · Botón fantasma: solo cambia borde y fondo; al pulsar se encoge. */
+.m-ghost {
+  transition:
+    border-color var(--d-rapido),
+    background-color var(--d-rapido),
+    color var(--d-rapido),
+    transform 160ms;
+}
+@media (hover: hover) {
+  .m-ghost:hover {
+    border-color: var(--acento-oscuro);
+    background-color: var(--elegido-fondo);
+  }
+}
+.m-ghost:active {
+  transform: scale(0.97);
+}
+
+/* 2 · Paso nuevo: entra desde la derecha (checkout) o desde abajo (panel y
+   hojas, sumando .m-step-abajo). */
+.m-step {
+  animation: stepIn var(--d-base) var(--ease-out) both;
+}
+.m-step-abajo {
+  animation-name: stepInAbajo;
+}
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes stepInAbajo {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 2b · Barra de progreso: se llena con scaleX (el valor va en el style). */
+.m-progreso {
+  transform-origin: left center;
+  transition: transform var(--d-base) var(--ease-io);
+}
+
+/* 3 · Opción elegible: borde y fondo cambian, el punto se rellena; al tocar
+   se encoge. Se elige con un input nativo adentro (:has(:checked)), sin JS. */
+.m-card {
+  transition:
+    border-color var(--d-rapido) var(--ease-out),
+    background-color var(--d-rapido) var(--ease-out),
+    color var(--d-rapido),
+    transform var(--d-rapido) var(--ease-out);
+}
+.m-card:active {
+  transform: scale(0.985);
+}
+.m-card:has(:checked) {
+  border-color: var(--acento-oscuro);
+  background-color: var(--elegido-fondo);
+}
+.m-card:has(:focus-visible) {
+  outline: 2px solid var(--acento-oscuro);
+  outline-offset: 2px;
+}
+.m-dot {
+  border: 1.5px solid var(--punto-vacio);
+  transition:
+    border-width var(--d-rapido) var(--ease-out),
+    border-color var(--d-rapido);
+}
+.m-card:has(:checked) .m-dot {
+  border: 6px solid var(--boton);
+}
+
+/* 3b · Pastilla elegible (la variante chica de la opción): elegida, se pinta
+   del color del botón. Va después de .m-card:has(:checked) para ganarle. */
+.m-chip:has(:checked) {
+  border-color: var(--boton);
+  background-color: var(--boton);
+  color: var(--sobre-boton);
+}
+
+/* 4 · Solapas: la pastilla de color se desliza. Solo transform: se mide la
+   solapa una vez y se anima translateX() scaleX(), nunca width. */
+.m-pill {
+  transform-origin: left center;
+  transition: transform var(--d-base) var(--ease-io);
+}
+/* Las solapas Familiar · Kids · De viaje de la cabecera pública
+   (_publico/cabecera): tres solapas iguales, así la pastilla va de una a otra
+   con translateX(100%) y (200%). Se queda bajo la activa y se desliza hasta la
+   que se señala. */
+.m-solapas[data-activa="kids"] .m-pill {
+  transform: translateX(100%);
+}
+.m-solapas[data-activa="viaje"] .m-pill {
+  transform: translateX(200%);
+}
+/* En /eventos ninguna solapa es la de la página: la pastilla aparece solo al señalar una. */
+.m-solapas[data-activa="eventos"] .m-pill { opacity: 0; transition: opacity 0.2s, transform var(--d-base) var(--ease-io); }
+.m-solapas[data-activa="eventos"]:has(> [data-solapa]:hover, > [data-solapa]:focus-visible) .m-pill { opacity: 1; }
+.m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
+  transform: none;
+}
+.m-solapas:has(> [data-solapa="kids"]:hover, > [data-solapa="kids"]:focus-visible) .m-pill {
+  transform: translateX(100%);
+}
+.m-solapas:has(> [data-solapa="viaje"]:hover, > [data-solapa="viaje"]:focus-visible) .m-pill {
+  transform: translateX(200%);
+}
+
+/* 5 · Acordeón con <details> nativo. La respuesta crece de 0fr a 1fr (sin
+   conocer el alto) y el «+» gira a «×». Al abrir, @starting-style le da un
+   punto de partida; al cerrar, ::details-content se queda visible lo que
+   dura la transición. Donde no hay soporte, abre y cierra al instante. */
+.m-acc-item > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.m-acc-item > summary::-webkit-details-marker {
+  display: none;
+}
+.m-acc-item::details-content {
+  transition: content-visibility var(--d-base) allow-discrete;
+}
+.m-acc {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--d-base) var(--ease-io),
+    opacity 240ms;
+}
+.m-acc > * {
+  overflow: hidden;
+  min-height: 0;
+}
+.m-acc-item[open] > .m-acc {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+@starting-style {
+  .m-acc-item[open] > .m-acc {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+.m-plus {
+  transition: transform var(--d-base) var(--ease-io);
+}
+.m-acc-item[open] .m-plus {
+  transform: rotate(45deg);
+}
+
+/* 6 · Aparecer por tiempo, para lo que ya está en pantalla al cargar (el de
+   scroll es .aparece, arriba). Escalonado de 70 ms dentro de un grupo. */
+.m-up {
+  animation: revealUp var(--d-lento) var(--ease-out) both;
+}
+.m-up:nth-child(2) { animation-delay: 70ms; }
+.m-up:nth-child(3) { animation-delay: 140ms; }
+.m-up:nth-child(4) { animation-delay: 210ms; }
+.m-up:nth-child(5) { animation-delay: 280ms; }
+
+/* 7 · Cambia el total: el precio nuevo baja y se tiñe un instante. Para que
+   se repita en cada cambio, key={total} en React. */
+.m-price {
+  display: inline-block;
+  animation: flash 360ms var(--ease-out) both;
+}
+@keyframes flash {
+  0% { color: var(--acento-oscuro); transform: translateY(-6px); opacity: 0; }
+  100% { color: var(--texto-oscuro-fuerte); transform: none; opacity: 1; }
+}
+
+/* 7b · «Pagar» procesando (MOTION.md §3, checkout): un punto que late con
+   opacidad mientras llega la pasarela. */
+.m-latido {
+  animation: latido 900ms ease-in-out infinite;
+}
+@keyframes latido {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* 8 · Hoja o popup: el velo se oscurece y la tarjeta aparece desde un poco
+   más chica. .m-pop es para algo centrado con translate(-50%,-50%); .m-hoja
+   es la hoja del componente: desde abajo en el móvil, centrada en escritorio.
+   Cerrar es lo mismo al revés en 200 ms ([data-cerrando]). */
+.m-overlay {
+  background: var(--velo);
+  animation: fadeIn 240ms both;
+}
+.m-overlay[data-cerrando="true"] {
+  animation: fadeOut var(--d-rapido) both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.m-pop {
+  animation: popIn var(--d-lento) var(--ease-out) both;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.m-hoja {
+  border-radius: 24px 24px 0 0;
+  animation: hojaIn var(--d-lento) var(--ease-out) both;
+}
+.m-hoja[data-cerrando="true"] {
+  animation: hojaOut var(--d-rapido) var(--ease-io) both;
+}
+@keyframes hojaIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hojaOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(24px); }
+}
+@keyframes hojaInCentro {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hojaOutCentro {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+@media (min-width: 700px) {
+  .m-hoja {
+    border-radius: 24px;
+    animation-name: hojaInCentro;
+  }
+  .m-hoja[data-cerrando="true"] {
+    animation-name: hojaOutCentro;
+  }
+}
+
+/* 8b · Aviso «✓ Guardado» (MOTION 3, Panel: `hasToast`): entra subiendo
+   8 px en 240 ms y a los 3 s se va con opacidad en 200 ms. Abajo al centro,
+   encima de todo, sin tapar nada que se toque (pointer-events: none). */
+.m-aviso {
+  animation: avisoIn 240ms var(--ease-out) both;
+}
+.m-aviso[data-saliendo="true"] {
+  animation: fadeOut 200ms both;
+}
+@keyframes avisoIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 9 · Su voz sonando: las barras se mueven como una onda mientras suena y se
+   calman al pausar. Es decorativa, no la forma de onda real. */
+.m-bar {
+  transform-origin: center;
+  transition: transform var(--d-rapido);
+  opacity: 0.8;
+}
+[data-playing="true"] .m-bar {
+  animation: bar 900ms ease-in-out infinite;
+}
+[data-playing="true"] .m-bar:nth-child(3n) { animation-delay: -300ms; }
+[data-playing="true"] .m-bar:nth-child(3n + 1) { animation-delay: -600ms; }
+@keyframes bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+/* 11 · Hero: titular, bajada y botón entran escalonados, una vez, al cargar. */
+.m-hero-1,
+.m-hero-2,
+.m-hero-3 {
+  animation: heroIn var(--d-libro) var(--ease-out) both;
+}
+.m-hero-2 { animation-delay: 120ms; }
+.m-hero-3 { animation-delay: 240ms; }
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 10 · Pasar la página del libro de /ejemplo: la hoja gira sobre el lomo, el
+   único movimiento lento. Adelante, la página derecha entra girando desde el
+   lomo y la izquierda aparece; atrás, al revés. Con «menos movimiento» la
+   regla global de abajo la deja en 1 ms: cambio instantáneo. */
+.m-libro {
+  perspective: 2400px;
+}
+.m-hoja-der {
+  transform-origin: left center;
+}
+.m-hoja-izq {
+  transform-origin: right center;
+}
+.m-pasa-der {
+  animation: flipR var(--d-libro) var(--ease-io) both;
+}
+.m-pasa-izq {
+  animation: flipL var(--d-libro) var(--ease-io) both;
+}
+.m-aparece-hoja {
+  animation: hojaAparece 500ms 200ms both;
+}
+@keyframes flipR {
+  from { transform: rotateY(-95deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes flipL {
+  from { transform: rotateY(95deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes hojaAparece {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
+}
+
+/* 13 · La demo del marco con chip de la portada (_portada/demo-marco): bucle
+   de 7 s, decorativo. Fuera de pantalla se pausa ([data-pausado]); con «menos
+   movimiento» el componente ni lo pinta. */
+.nfc-phone { animation: nfcPhone 7s var(--ease-out) infinite; }
+.nfc-ring { animation: nfcRing 7s ease-out infinite; pointer-events: none; }
+.nfc-ring2 { animation-delay: 0.35s; }
+.nfc-open { animation: nfcOpen 7s var(--ease-out) infinite; }
+.nfc-bar { animation: nfcBar 0.9s ease-in-out infinite; }
+.nfc-bar:nth-child(3n) { animation-delay: -0.3s; }
+.nfc-bar:nth-child(3n + 1) { animation-delay: -0.6s; }
+.nfc-s1 { animation: nfcS1 7s infinite; }
+.nfc-s2 { animation: nfcS2 7s infinite; }
+.nfc-s3 { animation: nfcS3 7s infinite; }
+.nfc-demo[data-pausado="true"] :is(.nfc-phone, .nfc-ring, .nfc-open, .nfc-bar, .nfc-s) {
+  animation-play-state: paused;
+}
+@keyframes nfcPhone {
+  0%, 8% { transform: translate(70%, 60%) rotate(8deg); opacity: 0; }
+  22%, 88% { transform: translate(0, 0) rotate(-4deg); opacity: 1; }
+  100% { transform: translate(70%, 60%) rotate(8deg); opacity: 0; }
+}
+@keyframes nfcRing {
+  0%, 24% { transform: scale(0.4); opacity: 0; }
+  28% { opacity: 0.9; }
+  44%, 100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes nfcOpen {
+  0%, 34% { opacity: 0; transform: translateY(8px); }
+  42%, 90% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes nfcBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+@keyframes nfcS1 { 0%, 34% { opacity: 1; } 40%, 100% { opacity: 0.35; } }
+@keyframes nfcS2 { 0%, 34% { opacity: 0.35; } 40%, 58% { opacity: 1; } 64%, 100% { opacity: 0.35; } }
+@keyframes nfcS3 { 0%, 58% { opacity: 0.35; } 64%, 92% { opacity: 1; } 100% { opacity: 0.35; } }
+
+/* Foco visible del tema nuevo (MOTION.md §4). Va adentro de .tema-oscuro y en
+   la capa base para no pisar los focos que ya tienen las pantallas de hoy ni
+   las clases focus-visible: de Tailwind. */
+@layer base {
+  .tema-oscuro :focus-visible {
+    outline: 2px solid var(--acento-oscuro);
+    outline-offset: 2px;
+  }
+}
+
+/* Movimiento reducido para todo el sitio, exactamente como en las maquetas
+   (MOTION.md §4): 1 ms y no «none», así fill-mode both deja el estado final y
+   nada queda invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Cursiva que se pide tarde (RENDIMIENTO.md §3.8). La cara itálica de Playfair
+   pesa ~39 kB y, si algo la usa en la primera maquetación, entra en la cola de
+   la tipografía de arriba del pliegue aunque el texto esté 1800 px más abajo.
+   Estas marcas (los números 01 · 02 · 03 de «Cómo funciona», que ni se ven al
+   cargar) arrancan derechas y pasan a cursiva a los 3 s, ya con la página
+   quieta. Es font-style discreto: no mueve nada, y la cursiva ocupa casi lo
+   mismo que la recta en estos dígitos. */
+.italica-tardia {
+  font-style: normal;
+  animation: italicaTardia 1ms linear 3s both;
+}
+@keyframes italicaTardia {
+  to { font-style: italic; }
+}
+
+/* Letra de reserva de las tipografías de marca (layout.tsx). Son los mismos
+   valores que calculaba next/font/google con las letras completas: ajustan el
+   tamaño y el interlineado de la letra del sistema para que, mientras llega la
+   de marca, el texto ocupe lo mismo y no salte nada. Con las letras propias
+   (src/app/fuentes) Next los calcularía sobre el subset y los movería unos
+   puntos, por eso se fijan a mano. */
+@font-face {
+  font-family: "Fallback Titulo";
+  src: local("Times New Roman");
+  ascent-override: 97.25%;
+  descent-override: 22.56%;
+  line-gap-override: 0%;
+  size-adjust: 111.26%;
+}
+@font-face {
+  font-family: "Fallback Micro";
+  src: local("Arial");
+  ascent-override: 88.96%;
+  descent-override: 21.28%;
+  line-gap-override: 0%;
+  size-adjust: 98.7%;
+}
+@font-face {
+  font-family: "Fallback Cuerpo";
+  src: local("Times New Roman");
+  ascent-override: 87.87%;
+  descent-override: 28.41%;
+  line-gap-override: 0%;
+  size-adjust: 117.91%;
+}
+
+/* ── Prototipo de dirección visual (/prueba-direccion, 13/10) ───────────────
+   La web como un libro: tinta y papel que se alternan como capítulos, letra
+   enorme, fotos en blanco y negro recortadas como retrato antiguo, grano de
+   papel. Sin violeta. Todo con prefijo dir- para no tocar nada de lo de arriba.
+   Movimiento: transform y opacity (y el trazo del logo). Falla hacia visible:
+   sin animation-timeline o con «menos movimiento», todo quieto y completo. */
+.dir-pagina {
+  --dir-tinta: #070706;
+  --dir-papel: #f4f0e7;
+  --dir-sobre-tinta: #eeeae1;
+  --dir-sobre-tinta-suave: #a39f96;
+  --dir-sobre-papel: #151412;
+  --dir-sobre-papel-suave: #5a564e;
+  --dir-hilo-tinta: rgba(238, 234, 225, 0.16);
+  --dir-hilo-papel: rgba(21, 20, 18, 0.2);
+  --dir-curva: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  isolation: isolate;
+  background: var(--dir-tinta);
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+
+/* El grano de papel: una capa fija, quieta y que no se toca (no repinta al
+   bajar). Ruido de luminancia con contraste estirado (granos, no niebla), de
+   180 px, en un SVG en línea, al 5 %. Aclara el negro y oscurece el papel unos
+   6 niveles: por eso la tinta y el papel de abajo están corridos para que lo
+   que se VE sea #0d0d0c y #eeeae1. */
+.dir-pagina::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.05;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncG type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncB type='linear' slope='3.5' intercept='-1.25'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* Los capítulos de abajo no se pintan hasta que se acercan: menos trabajo al
+   cargar y la cursiva de Playfair (solo la usan ellos) se pide después. */
+.dir-diferido {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1400px;
+}
+
+.dir-tinta {
+  background: var(--dir-tinta);
+  color: var(--dir-sobre-tinta);
+  color-scheme: dark;
+}
+.dir-papel {
+  background: var(--dir-papel);
+  color: var(--dir-sobre-papel);
+  color-scheme: light;
+}
+
+/* Escala tipográfica: Playfair 500, interlineado apretado, tracking negativo. */
+.dir-titular {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.dir-t1 { font-size: clamp(2.6rem, 1.2rem + 6vw, 7.25rem); line-height: 1.02; }
+.dir-t2 { font-size: clamp(2.45rem, 1.5rem + 4vw, 5.25rem); line-height: 1.04; }
+.dir-txl { font-size: clamp(3.4rem, 0.8rem + 10.6vw, 11rem); line-height: 0.98; letter-spacing: -0.04em; }
+.dir-nombre { font-style: italic; letter-spacing: -0.01em; }
+.dir-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(4.4rem, 2.4rem + 8vw, 9.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+}
+.dir-pie {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.3rem, 1.05rem + 0.8vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.dir-micro {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.dir-dato {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Botones: píldora, sin color. Lleno = papel sobre tinta; hilo = solo borde. */
+.dir-boton {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 30px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition:
+    transform var(--d-rapido) var(--dir-curva),
+    background-color var(--d-rapido) var(--dir-curva),
+    border-color var(--d-rapido) var(--dir-curva);
+}
+.dir-boton:active { transform: scale(0.98); }
+.dir-boton:focus-visible { outline: 2px solid var(--dir-sobre-tinta); outline-offset: 3px; }
+.dir-boton--lleno { background: var(--dir-papel); color: var(--dir-tinta); font-weight: 600; }
+.dir-boton--lleno:hover { background: #ffffff; }
+.dir-boton--hilo { border: 1px solid rgba(238, 234, 225, 0.36); color: var(--dir-sobre-tinta); }
+.dir-boton--hilo:hover { border-color: var(--dir-sobre-tinta); background: rgba(238, 234, 225, 0.06); }
+
+/* Retratos: óvalo, arco o círculo, como el marco de una foto de la abuela.
+   Blanco y negro con un punto de sepia. El marco de afuera es un hilo fino
+   que repite la forma, como los anillos del logo. */
+.dir-marco { position: relative; }
+.dir-marco::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border: 1px solid var(--dir-hilo-papel);
+  pointer-events: none;
+}
+.dir-tinta .dir-marco::before { border-color: var(--dir-hilo-tinta); }
+.dir-foto { position: relative; overflow: hidden; background: #d9d4c9; }
+.dir-tinta .dir-foto { background: #1b1a17; }
+/* El estado final (y el de siempre sin animación): sepia cálido, no color
+   pleno. Al bajar, las fotos llegan a esto desde el blanco y negro. */
+.dir-foto img { filter: grayscale(0.15) sepia(0.45) saturate(0.9) contrast(1.02); }
+.dir-foto--ovalo, .dir-marco--ovalo::before { border-radius: 50%; }
+.dir-foto--ovalo { aspect-ratio: 4 / 5; }
+.dir-foto--arco, .dir-marco--arco::before { border-radius: 999px 999px 0 0; }
+.dir-foto--arco { aspect-ratio: 3 / 4.2; }
+.dir-foto--circulo, .dir-marco--circulo::before { border-radius: 50%; }
+.dir-foto--circulo { aspect-ratio: 1; }
+
+/* El logo: los trazos son del color del texto, el repaso más tenue. */
+.dir-logo { display: block; height: auto; overflow: visible; }
+.dir-anillo { stroke-width: 1.25; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.dir-repaso { stroke-width: 0.7; opacity: 0.45; }
+.dir-letra { fill: currentColor; stroke: currentColor; stroke-width: 0.9; stroke-dasharray: 340; stroke-dashoffset: 0; }
+
+@keyframes dir-trazar {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes dir-letra-trazo {
+  from { stroke-dashoffset: 340; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes dir-letra-relleno {
+  from { fill-opacity: 0; }
+  to { fill-opacity: 1; }
+}
+@keyframes dir-tiza {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dir-subir {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dir-asentar {
+  from { transform: translateY(10px); }
+  to { transform: none; }
+}
+@keyframes dir-iluminar {
+  from { opacity: 0.13; transform: translateY(0.05em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dir-irse {
+  from { opacity: 1; }
+  to { opacity: 0.32; }
+}
+@keyframes dir-revelar-color {
+  from { filter: grayscale(1) sepia(0) saturate(1) contrast(1.06); }
+  to { filter: grayscale(0.15) sepia(0.45) saturate(0.9) contrast(1.02); }
+}
+@keyframes dir-hundirse {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0.35; transform: scale(0.95); }
+}
+@keyframes dir-acercar {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Al entrar: cada anillo de adentro hacia afuera (0,12 s entre uno y otro),
+     el repaso 0,2 s detrás; después las letras se repasan y se rellenan, y al
+     final el eje. Unos 2,4 s en total. El texto no espera: el titular está
+     desde el principio y el resto entra a partir de los 0,7 s. */
+  .dir-logo--carga .dir-anillo {
+    animation: dir-trazar 1.1s cubic-bezier(0.55, 0.05, 0.25, 1) both;
+    animation-delay: calc(0.15s + var(--k) * 0.12s);
+  }
+  .dir-logo--carga .dir-repaso { animation-delay: calc(0.35s + var(--k) * 0.12s); }
+  .dir-logo--carga .dir-letra {
+    animation:
+      dir-letra-trazo 1s cubic-bezier(0.55, 0.05, 0.25, 1) 1.15s both,
+      dir-letra-relleno 0.7s ease-out 1.7s both;
+  }
+  .dir-logo--carga .dir-letra--f { animation-delay: 1.3s, 1.85s; }
+  .dir-logo--carga .dir-eje { animation: dir-tiza 0.8s ease-out 1.8s both; }
+
+  .dir-entra { animation: dir-subir 0.9s var(--dir-curva) both; animation-delay: var(--e, 0s); }
+  /* El titular se ve desde el primer pintado (es el LCP: un texto que arranca
+     en opacidad 0 no cuenta y el LCP pasa a ser la V del logo, a los 1,2 s);
+     solo se asienta unos px. */
+  .dir-asienta { animation: dir-asentar 1.1s var(--dir-curva) both; }
+}
+
+/* ── 2.ª vuelta (13–14/10): capas, frases que se completan solas, dibujos y
+   fotos que se revelan en sepia ─────────────────────────────────────────── */
+
+/* Las capas: una sección con [data-capa] queda fija detrás cuando su borde de
+   abajo llega al de la pantalla, y la siguiente (más arriba en z) sube y la
+   tapa como una hoja. --alto lo mide Coreografia; sin JS no hay
+   data-capa-lista y todo baja normal. Es scroll nativo: igual con «menos
+   movimiento». */
+[data-capa][data-capa-lista] {
+  position: sticky;
+  top: min(0px, calc(100dvh - var(--alto, 0px)));
+}
+/* El borde de la hoja que sube: una sombra hacia arriba y, sobre negro, un
+   hilo de luz apenas visible. */
+.dir-hoja { box-shadow: 0 -28px 60px -24px rgba(0, 0, 0, 0.55); }
+.dir-tinta.dir-hoja { box-shadow: 0 -1px 0 rgba(238, 234, 225, 0.07), 0 -28px 60px -24px rgba(0, 0, 0, 0.9); }
+
+/* Las frases: con JS, «espera» las deja tenues hasta que entran en pantalla y
+   «visto» las enciende por tiempo, una detrás de otra (--paso entre palabra y
+   palabra). «Los recuerdos se van.» se apaga después. Sin JS, completas. */
+.dir-palabra { display: inline-block; }
+[data-revela="espera"] .dir-palabra { opacity: 0.13; }
+
+/* Los dibujos de «Cómo funciona»: trazo fino, el tenue más claro. Se dibujan
+   al entrar el paso. */
+.dir-dibujo { color: var(--dir-sobre-papel); }
+.dir-linea { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.dir-linea--tenue { opacity: 0.5; }
+[data-revela="espera"] .dir-linea { stroke-dashoffset: 1; }
+
+/* La bajada del hero: la marca en una línea, más presencia que antes pero
+   por debajo del titular. */
+.dir-bajada-hero {
+  max-width: min(30ch, 100%);
+  font-size: clamp(1.25rem, 1.02rem + 0.9vw, 1.7rem);
+  font-weight: 300;
+  line-height: 1.42;
+  color: #cfcbc1;
+  text-wrap: balance;
+}
+@media (min-width: 640px) { .dir-bajada-hero { max-width: 40ch; } }
+@media (min-width: 1024px) { .dir-bajada-hero { max-width: 46ch; } }
+
+/* La cabecera: enlace de texto y la píldora chica. */
+.dir-enlace {
+  font-family: var(--fuente-micro), sans-serif;
+  color: var(--dir-sobre-tinta);
+  text-decoration: underline;
+  text-decoration-color: rgba(238, 234, 225, 0.3);
+  text-underline-offset: 4px;
+}
+.dir-enlace:hover { text-decoration-color: var(--dir-sobre-tinta); }
+.dir-pie-enlace {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--dir-sobre-tinta-suave);
+}
+.dir-pie-enlace:hover { color: var(--dir-sobre-tinta); }
+.dir-boton--chico { min-height: 44px; padding: 0 18px; font-size: 13.5px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-revela="visto"] .dir-palabra {
+    animation: dir-iluminar 0.8s var(--dir-curva) both;
+    animation-delay: calc(var(--i) * var(--paso, 0.17s));
+  }
+  [data-revela="visto"] .dir-palabra--se-va {
+    animation:
+      dir-iluminar 0.8s var(--dir-curva) both,
+      dir-irse 1.4s ease-in-out forwards;
+    animation-delay:
+      calc(var(--i) * var(--paso, 0.17s)),
+      calc(var(--n) * var(--paso, 0.17s) + 1.1s);
+  }
+  [data-revela="visto"] .dir-linea {
+    animation: dir-trazar 1s cubic-bezier(0.55, 0.05, 0.25, 1) both;
+    animation-delay: calc(0.15s + var(--k, 0) * 0.12s);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* La sección de abajo se hunde un poco mientras la de arriba la tapa: la
+       hoja que sube (dir-sobre-N) es el reloj. */
+    .dir-pagina { timeline-scope: --dir-sobre-1, --dir-sobre-2, --dir-sobre-3, --dir-sobre-4, --dir-sobre-5; }
+    .dir-sobre-1 { view-timeline-name: --dir-sobre-1; }
+    .dir-sobre-2 { view-timeline-name: --dir-sobre-2; }
+    .dir-sobre-3 { view-timeline-name: --dir-sobre-3; }
+    .dir-sobre-4 { view-timeline-name: --dir-sobre-4; }
+    .dir-sobre-5 { view-timeline-name: --dir-sobre-5; }
+    .dir-hunde { transform-origin: 50% 30%; animation: dir-hundirse linear both; animation-range: entry 0% entry 100%; }
+    .dir-hunde--1 { animation-timeline: --dir-sobre-1; }
+    .dir-hunde--2 { animation-timeline: --dir-sobre-2; }
+    .dir-hunde--3 { animation-timeline: --dir-sobre-3; }
+    .dir-hunde--4 { animation-timeline: --dir-sobre-4; }
+    .dir-hunde--5 { animation-timeline: --dir-sobre-5; }
+
+    /* Las fotos se alejan un poco y, mientras entran, pasan del blanco y negro
+       a un sepia cálido, como una foto vieja que se revela. Solo transform y
+       filter, con will-change: son cuatro fotos, cada una en su capa. */
+    .dir-revela {
+      will-change: transform, filter;
+      animation: dir-acercar linear both, dir-revelar-color linear both;
+      animation-timeline: view(), view();
+      animation-range: entry 0% cover 55%, entry 10% cover 45%;
+    }
+
+    /* El logo del cierre se dibuja atado al desplazamiento (el reloj es el
+       svg entero: los elementos de adentro no tienen caja propia). */
+    .dir-logo--scroll { view-timeline-name: --dir-logo; }
+    .dir-logo--scroll .dir-anillo {
+      animation: dir-trazar linear both;
+      animation-timeline: --dir-logo;
+      animation-range: entry calc(20% + var(--k) * 8%) cover calc(38% + var(--k) * 4%);
+    }
+    .dir-logo--scroll .dir-letra {
+      animation: dir-letra-trazo linear both, dir-letra-relleno linear both;
+      animation-timeline: --dir-logo, --dir-logo;
+      animation-range: cover 30% cover 48%, cover 42% cover 55%;
+    }
+    .dir-logo--scroll .dir-eje {
+      animation: dir-tiza linear both;
+      animation-timeline: --dir-logo;
+      animation-range: cover 45% cover 58%;
+    }
+  }
+}
+
+/* ── 3.ª vuelta (14/10): texturas, deckle, carta y el libro en 3D ─────────── */
+
+/* Texturas. El negro como tela de encuadernar: una trama de hilos casi
+   invisible (dos degradados repetidos, 0 bytes). El crema como papel: fibras
+   cortas de un SVG de 260 px en mosaico (~0,6 kB). Las dos se pintan una vez
+   y se mueven con el scroll como cualquier fondo. */
+.dir-tinta {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px);
+}
+.dir-papel {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+}
+
+/* Deckle: el borde de arriba de una hoja crema que tapa a otra, irregular
+   como papel de algodón cortado a mano. La hoja empieza 14 px más abajo y en
+   esa franja va una tira de papel recortada con una máscara (SVG de 420 px en
+   mosaico): se ve la sección de atrás entre los dientes. */
+.dir-deckle {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E"), linear-gradient(var(--dir-papel), var(--dir-papel));
+  background-size: 260px 260px, 100% calc(100% - 13px);
+  background-position: 0 0, 0 13px;
+  background-repeat: repeat, no-repeat;
+}
+.dir-deckle::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 14px;
+  background: var(--dir-papel);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px;
+  pointer-events: none;
+}
+
+.dir-t15 { font-size: clamp(2.5rem, 1.3rem + 5.2vw, 6.4rem); line-height: 1.04; }
+
+.dir-enlace-papel {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  color: var(--dir-sobre-papel);
+  text-decoration: underline;
+  text-decoration-color: var(--dir-hilo-papel);
+  text-underline-offset: 5px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.dir-enlace-papel:hover { text-decoration-color: var(--dir-sobre-papel); }
+
+/* La carta de los fundadores: una hoja de algodón con los bordes de arriba y
+   de abajo cortados a mano, apenas torcida, apoyada sobre la tela negra. La
+   sombra va en un filtro del contenedor porque la máscara se la comería. */
+.dir-carta {
+  --dir-carta-suave: #6a655c;
+  position: relative;
+  transform: rotate(-0.6deg);
+  filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.55));
+}
+.dir-carta-hoja {
+  padding: clamp(36px, 7vw, 72px) clamp(26px, 6vw, 72px);
+  background-color: #f2ede1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  background-size: 260px 260px;
+  color: #1f1d19;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath transform='matrix%281 0 0 -1 0 14%29' d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 100% / 420px 14px,
+    linear-gradient(#000 0 0) 0 14px / 100% calc(100% - 28px) no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 0 / 420px 14px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath transform='matrix%281 0 0 -1 0 14%29' d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E") repeat-x 0 100% / 420px 14px,
+    linear-gradient(#000 0 0) 0 14px / 100% calc(100% - 28px) no-repeat;
+}
+.dir-carta-texto {
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+  font-size: clamp(1.15rem, 1rem + 0.55vw, 1.42rem);
+  font-weight: 400;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+.dir-firma {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  padding-bottom: 0.1em;
+}
+.dir-firma-trazo { width: min(240px, 70%); height: auto; color: #1f1d19; opacity: 0.75; margin-top: -2px; }
+
+/* ── El libro en 3D (libro-3d.tsx) ─────────────────────────────────────────
+   Medidas: --l3-w es el ancho de la tapa; alto = ancho / 0,68 (el del libro
+   real); lomo = 16 % del ancho. --l3-s es cuánto crece el libro abierto para
+   que el pliego (dos páginas) entre en la pantalla. Cada cara es un
+   contenedor: sus letras van en cqw y se ven nítidas a cualquier tamaño. */
+.l3-pegado {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(40px, 7svh, 72px);
+  padding: 96px 16px 64px;
+  overflow: hidden;
+}
+.l3-escena {
+  --l3-w: min(62vw, calc(50svh * 0.68));
+  /* Abierto, el pliego mide 2 tapas: 2 × 62vw × 0,66 ≈ 82vw, con margen. */
+  --l3-s: 0.66;
+  --l3-h: calc(var(--l3-w) / 0.68);
+  --l3-d: calc(var(--l3-w) * 0.16);
+  --l3-in: calc(var(--l3-w) * 0.018);
+  position: relative;
+  width: var(--l3-w);
+  height: var(--l3-h);
+  flex: none;
+  perspective: calc(var(--l3-w) * 7);
+  perspective-origin: 50% 35%;
+}
+@media (min-width: 768px) {
+  .l3-escena { --l3-w: min(380px, calc(58svh * 0.68)); --l3-s: 0.95; }
+}
+@media (min-width: 1200px) {
+  .l3-escena { --l3-s: 1; }
+}
+.l3-leyenda { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+
+/* Mientras está lejos, el libro no se arma (Coreografia saca el atributo). */
+[data-lejos] { content-visibility: hidden; contain-intrinsic-size: auto 100svh; }
+
+/* El piso: una sombra suave debajo del libro. */
+.l3-sombra {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: calc(var(--l3-w) * 1.3);
+  height: calc(var(--l3-w) * 0.22);
+  margin-left: calc(var(--l3-w) * -0.65);
+  margin-top: calc(var(--l3-w) * -0.07);
+  background: radial-gradient(closest-side, rgba(52, 40, 24, 0.34), rgba(52, 40, 24, 0));
+}
+
+/* La pose quieta (sin soporte o con «menos movimiento»): 3/4, tapa y lomo. */
+/* El libro se arma 1,5 veces más grande y se muestra a 2/3 (scale .6667 en
+   cada pose): Chrome rasteriza las capas 3D animadas a escala 1 de su propio
+   espacio, así que sin esto las letras se verían borrosas en pantallas 2x o
+   al agrandar el pliego. Con 2x se veía igual de nítido pero costaba más
+   pintarlo (medido con la CPU x4: peor fotograma ~230 ms con 2x, ~150–180
+   con 1,5x). --l3-W/D/IN son las medidas de ese libro agrandado. */
+.l3-libro {
+  --l3-k: 1.5;
+  --l3-ki: 0.6667;
+  --l3-W: calc(var(--l3-w) * var(--l3-k));
+  --l3-H: calc(var(--l3-h) * var(--l3-k));
+  --l3-D: calc(var(--l3-d) * var(--l3-k));
+  --l3-IN: calc(var(--l3-in) * var(--l3-k));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--l3-W);
+  height: var(--l3-H);
+  margin: calc(var(--l3-H) / -2) 0 0 calc(var(--l3-W) / -2);
+  transform-style: preserve-3d;
+  transform: scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg);
+}
+.l3-cara {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  container-type: inline-size;
+}
+.l3-tapa {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / 2));
+}
+.l3-frente { border-radius: 0 3px 3px 0; box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.18); }
+.l3-dentro { transform: rotateY(180deg); border-radius: 3px 0 0 3px; }
+.l3-contra { transform: translateZ(calc(var(--l3-D) / -2)) rotateY(180deg); border-radius: 3px 0 0 3px; }
+.l3-lomo {
+  inset: 0 auto 0 0;
+  width: var(--l3-D);
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / -2)) rotateY(-90deg);
+  container-type: size;
+  border-radius: 2px;
+}
+.l3-hoja-derecha {
+  inset: var(--l3-IN) var(--l3-IN) var(--l3-IN) 0;
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.016));
+}
+/* La primera hoja, sobre el bloque, con bisagra en el lomo. Va un pelín por
+   encima de la página de la foto; al pasar queda delante de la tapa abierta
+   (que al final se corre hacia atrás, ver l3-abrir). */
+.l3-hoja {
+  position: absolute;
+  inset: var(--l3-IN) var(--l3-IN) var(--l3-IN) 0;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008));
+}
+.l3-hoja-dorso { transform: rotateY(180deg); }
+/* La guarda: negra lisa como el lomo, con la trama de tela apenas visible. */
+.l3-guarda {
+  height: 100%;
+  background-color: #141413;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
+    linear-gradient(270deg, rgba(0, 0, 0, 0.35), transparent 22%);
+}
+.l3-portadilla-nombre { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 6.4cqw; color: #26231e; }
+.l3-portadilla-toroide { width: 12cqw; height: auto; color: #5a5750; }
+.l3-canto { position: absolute; background-color: #eee8da; backface-visibility: hidden; }
+.l3-canto--lado {
+  left: calc(var(--l3-W) - var(--l3-IN));
+  top: var(--l3-IN);
+  bottom: var(--l3-IN);
+  width: calc(var(--l3-D) * 0.94);
+  transform-origin: left center;
+  transform: translateZ(calc(var(--l3-D) * 0.47)) rotateY(90deg);
+  background-image:
+    linear-gradient(90deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(90deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
+.l3-canto--arriba,
+.l3-canto--abajo {
+  left: 0;
+  width: calc(var(--l3-W) - var(--l3-IN));
+  height: calc(var(--l3-D) * 0.94);
+  transform-origin: center top;
+  background-image:
+    linear-gradient(0deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(0deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
+.l3-canto--arriba { top: var(--l3-IN); transform: translateZ(calc(var(--l3-D) * -0.47)) rotateX(90deg); }
+.l3-canto--abajo {
+  top: calc(100% - var(--l3-IN));
+  transform: translateZ(calc(var(--l3-D) * 0.47)) rotateX(-90deg);
+  /* Más oscuro que el de arriba (le da menos luz), sin filter: dentro del 3D
+     un filtro obliga a pintar aparte. */
+  background-image:
+    linear-gradient(rgba(60, 45, 25, 0.22), rgba(60, 45, 25, 0.22)),
+    linear-gradient(0deg, rgba(60, 45, 25, 0.16), transparent 14%, transparent 86%, rgba(60, 45, 25, 0.2)),
+    repeating-linear-gradient(0deg, #f7f2e7 0 1.1px, #d9d0bc 1.1px 1.5px);
+}
+
+/* El brillo de la tapa: una franja de luz que cruza con el giro. */
+.l3-brillo {
+  position: absolute;
+  inset: 0 -60%;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.3) 50%, transparent 62%);
+  transform: translateX(-30%);
+  pointer-events: none;
+}
+
+/* Caras impresas. Tapa y contratapa: cartón blanco con apenas grano. */
+.l3-papel-tapa {
+  background-color: #f3f2ee;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.035));
+  color: #1b1a17;
+}
+.l3-etiqueta {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.5cqw;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #77736a;
+}
+.l3-nombre { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 11.4cqw; line-height: 1.02; letter-spacing: -0.01em; }
+.l3-siempre { font-family: var(--fuente-cuerpo), Georgia, serif; font-style: italic; font-size: 4.3cqw; }
+.l3-marca {
+  display: flex;
+  align-items: center;
+  gap: 1.8cqw;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.6cqw;
+  letter-spacing: 0.2em;
+  color: #77736a;
+}
+.l3-marca-toroide { width: 8cqw; height: auto; color: #5a5750; }
+.l3-contra .l3-papel-tapa { background-image: linear-gradient(200deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.06)); }
+.l3-contra-toroide { width: 30cqw; height: auto; }
+.l3-iniciales { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 7cqw; letter-spacing: 0.08em; }
+.l3-contra-texto { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 3.4cqw; line-height: 1.45; color: #26231e; }
+.l3-qr { display: block; width: 18cqw; aspect-ratio: 1; border: 0.45cqw solid #161513; padding: 0.4cqw; background: #fff; }
+.l3-escucha {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 2.4cqw;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #8a7246;
+}
+.l3-lema { font-family: var(--fuente-cuerpo), Georgia, serif; font-style: italic; font-size: 3.6cqw; }
+.l3-web { font-family: var(--fuente-micro), sans-serif; font-size: 2.3cqw; letter-spacing: 0.26em; text-transform: uppercase; color: #77736a; }
+.l3-lomo-cara { background: linear-gradient(90deg, #0b0b0b, #1e1e1d 45%, #0f0f0e); color: #f1efe9; }
+.l3-lomo-texto {
+  writing-mode: vertical-rl;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 28cqw;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.l3-lomo-toroide { width: 64cqw; height: auto; }
+
+/* Las páginas del capítulo 1: papel crema, la sombra del lomo en el centro. */
+.l3-pagina { background-color: #f7f2e6; color: #26231e; font-family: var(--fuente-cuerpo), Georgia, serif; }
+.l3-pagina--izq { background-image: linear-gradient(90deg, transparent 78%, rgba(90, 70, 40, 0.16)); }
+.l3-pagina--der { background-image: linear-gradient(270deg, transparent 80%, rgba(90, 70, 40, 0.14)); }
+.l3-cap-numero { font-family: var(--fuente-titulo), Georgia, serif; font-style: italic; font-size: 4.4cqw; color: #8a7246; text-align: center; }
+.l3-cap-titulo { font-family: var(--fuente-titulo), Georgia, serif; font-weight: 600; font-size: 8.4cqw; line-height: 1.1; text-align: center; margin-top: 1.4cqw; }
+.l3-cap-cita { font-style: italic; font-size: 3.3cqw; line-height: 1.4; text-align: center; color: #5e584d; margin-top: 3cqw; }
+.l3-cap-texto { font-size: 2.95cqw; line-height: 1.52; text-align: justify; hyphens: auto; }
+.l3-cap-texto p:first-child::first-letter {
+  float: left;
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-size: 3.3em;
+  line-height: 0.82;
+  padding: 0.05em 0.08em 0 0;
+}
+.l3-pie-foto { font-style: italic; font-size: 2.8cqw; line-height: 1.45; text-align: center; color: #5e584d; }
+.l3-folio { align-self: center; font-size: 2.4cqw; color: #8a8375; }
+.l3-pagina--der img { filter: grayscale(1) sepia(0.25) contrast(1.05); }
+
+/* El pliego plano, solo cuando el libro no gira. */
+.l3-plano {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 96px;
+  filter: drop-shadow(0 18px 24px rgba(52, 40, 24, 0.16));
+}
+.l3-plano-hoja { container-type: inline-size; aspect-ratio: 0.68; }
+
+/* ── El giro, por tiempo (v3c, 14/10) ─────────────────────────────────────
+   Antes iba atado al scroll con la sección fija; en el teléfono de Naza el
+   libro se desplazaba mientras giraba y no se llegaba a ver. Ahora la sección
+   mide lo que mide y el libro gira QUIETO en su lugar: Coreografia pone
+   data-libro="anda" cuando el libro está entero y centrado en pantalla, la
+   secuencia dura ~4 s (--l3-t) y al terminar queda en "abierto". «Ver otra
+   vez» o tocar el libro la repiten. Solo se anima transform (y la sombra del
+   piso, que está fuera del 3D, en escala y opacidad); will-change solo
+   mientras anda. Con «menos movimiento» o sin JS no hay data-libro: el libro
+   queda en 3/4 y el pliego plano se ve debajo. */
+.l3-seccion { --l3-t: 4s; }
+.l3-escena { cursor: pointer; }
+.l3-otra-vez {
+  display: none;
+  min-height: 44px;
+  align-items: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13.5px;
+  color: var(--dir-sobre-papel-suave);
+  text-decoration: underline;
+  text-decoration-color: var(--dir-hilo-papel);
+  text-underline-offset: 4px;
+}
+.l3-otra-vez:hover { color: var(--dir-sobre-papel); }
+.l3-seccion[data-libro] .l3-otra-vez { display: inline-flex; }
+.l3-seccion[data-libro] .l3-plano { display: none; }
+/* Cuando gira, la sección ocupa una pantalla (el pliego abierto entra entero). */
+.l3-seccion[data-libro] .l3-pegado { min-height: 100svh; }
+
+@keyframes l3-girar {
+  0% { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg); }
+  36% { transform: translateX(0) scale(var(--l3-ki)) rotateX(6deg) rotateY(-165deg); }
+  46% { transform: translateX(0) scale(var(--l3-ki)) rotateX(5deg) rotateY(-195deg); }
+  66% { transform: translateX(0) scale(var(--l3-ki)) rotateX(0deg) rotateY(-360deg); }
+  82%, 100% {
+    transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+  }
+}
+@keyframes l3-abrir {
+  from { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg) translateZ(0); }
+  to { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg) translateZ(calc(var(--l3-W) * 0.03)); }
+}
+@keyframes l3-pasar {
+  from { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(0deg); }
+  to { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(-180deg); }
+}
+@keyframes l3-brillar {
+  from { transform: translateX(-30%); }
+  to { transform: translateX(30%); }
+}
+@keyframes l3-piso {
+  0%, 66% { transform: scaleX(1); opacity: 1; }
+  82%, 100% { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
+}
+
+/* Andando: la secuencia, una vez. La tapa se abre del 62 % al 78 % y la hoja
+   pasa del 80 % al 94 %. */
+.l3-seccion[data-libro="anda"] .l3-libro {
+  will-change: transform;
+  animation: l3-girar var(--l3-t) var(--ease-io) both;
+}
+.l3-seccion[data-libro="anda"] .l3-tapa {
+  will-change: transform;
+  animation: l3-abrir calc(var(--l3-t) * 0.16) var(--ease-io) calc(var(--l3-t) * 0.62) both;
+}
+.l3-seccion[data-libro="anda"] .l3-hoja {
+  will-change: transform;
+  animation: l3-pasar calc(var(--l3-t) * 0.14) var(--ease-io) calc(var(--l3-t) * 0.8) both;
+}
+.l3-seccion[data-libro="anda"] .l3-brillo { animation: l3-brillar calc(var(--l3-t) * 0.6) var(--ease-io) both; }
+.l3-seccion[data-libro="anda"] .l3-sombra { animation: l3-piso var(--l3-t) var(--ease-io) both; }
+
+/* Abierto: el estado final, quieto (sin animación ni will-change). */
+.l3-seccion[data-libro="abierto"] .l3-libro {
+  transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(-360deg);
+}
+.l3-seccion[data-libro="abierto"] .l3-tapa {
+  transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg) translateZ(calc(var(--l3-W) * 0.03));
+}
+.l3-seccion[data-libro="abierto"] .l3-hoja {
+  transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(-180deg);
+}
+.l3-seccion[data-libro="abierto"] .l3-brillo { transform: translateX(30%); }
+.l3-seccion[data-libro="abierto"] .l3-sombra { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }

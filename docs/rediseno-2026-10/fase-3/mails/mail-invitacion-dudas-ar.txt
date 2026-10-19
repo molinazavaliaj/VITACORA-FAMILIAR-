@@ -1,0 +1,17 @@
+Asunto: Marta te pide ayuda con la historia de Dora
+
+INVITACIÓN
+
+Dora terminó de contar su vida y estamos por escribir su libro.
+
+Marta te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.
+
+Entrá con este mismo correo:
+Ver las dudas
+http://localhost:3123/entrar
+Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
+
+¿Dudas? Contestá este mail.
+
+Vitácora Familiar · En cada familia hay un libro sin escribir.
+Recibís este mail porque te invitaron a una historia.

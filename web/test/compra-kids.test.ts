@@ -1,0 +1,572 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { verificarTokenFotos } from "../src/lib/token-fotos";
+
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos
+
+vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
+vi.mock("@/lib/pagos", () => ({ crearCheckout: vi.fn() }));
+
+import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { crearCheckout } from "@/lib/pagos";
+import { POST } from "../src/app/api/compra/route";
+import { KIDS_TODAVIA_NO, KIDS_REGIONES, cuerpoKids, estadoKidsInicial, type EstadoKids } from "../src/lib/kids";
+import { validarFichaKids, type FichaKids } from "../src/lib/kids-compra";
+import { CHECKOUT_KIDS } from "../src/app/_textos/checkout-kids";
+
+// La compra de Vitácora Kids (K4, 15/10): /api/compra con `producto: "kids"`
+// crea familia, narrador (pendiente_pago, contexto.modo = "kids"), la fila de
+// kids_v2 con la ficha y el pedido (extras.tipo = "kids"), como dice el
+// CONTRATO («Vitácora Kids V2 por WhatsApp»).
+
+// Fake del admin: cada tabla tiene una cola de resultados (uno por llamada a
+// from()) y se registra cada escritura, para asegurar lo que nace y lo que se borra.
+function crearAdmin(secuencia: Record<string, unknown[]>) {
+  const contadores: Record<string, number> = {};
+  const inserts: Record<string, unknown[]> = {};
+  const updates: Record<string, unknown[]> = {};
+  const upserts: Record<string, unknown[]> = {};
+  const borrados: Record<string, string[]> = {};
+  const from = vi.fn((tabla: string) => {
+    const idx = contadores[tabla] ?? 0;
+    contadores[tabla] = idx + 1;
+    const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
+    let borrando = false;
+    const b: Record<string, unknown> = {};
+    for (const m of ["select", "ilike", "is", "single", "maybeSingle"]) b[m] = () => b;
+    b.eq = (_col: string, valor: string) => {
+      if (borrando) (borrados[tabla] ??= []).push(valor);
+      return b;
+    };
+    b.insert = (v: unknown) => ((inserts[tabla] ??= []).push(v), b);
+    b.update = (v: unknown) => ((updates[tabla] ??= []).push(v), b);
+    b.upsert = (v: unknown) => ((upserts[tabla] ??= []).push(v), b);
+    b.delete = () => ((borrando = true), b);
+    b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) =>
+      Promise.resolve(borrando ? { error: null } : resultado).then(res, rej);
+    return b;
+  });
+  return { from, inserts, updates, upserts, borrados };
+}
+
+const peticion = (body: unknown) => ({ json: async () => body }) as never;
+const usar = (admin: ReturnType<typeof crearAdmin>) =>
+  (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+const LLENO: EstadoKids = {
+  ...estadoKidsInicial(),
+  tuNombre: "Laura Gómez",
+  tuWhatsapp: "11 5555 1234",
+  email: "Laura@Ejemplo.com",
+  nombre: "Nico Rivas",
+  apodo: "Nico",
+  genero: "chico",
+  edad: "11",
+  quien: "papas",
+  canal: "B",
+  temas: ["escuela", "mama"],
+};
+
+/** Familia nueva, sin pendiente, narrador y pedido creados. */
+const compraNueva = (extra: Record<string, unknown[]> = {}) =>
+  crearAdmin({
+    familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
+    narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
+    kids_v2: [{ data: null, error: null }],
+    pedidos: [{ data: { id: "ped-1" }, error: null }],
+    ...extra,
+  });
+
+const CLAVES = ["KIDS_VENTA", "PRECIO_KIDS_EUR", "PRECIO_KIDS_ARS", "URL_BASE"] as const;
+const viejos: Record<string, string | undefined> = {};
+beforeEach(() => {
+  vi.clearAllMocks();
+  for (const k of CLAVES) viejos[k] = process.env[k];
+  process.env.KIDS_VENTA = "1";
+  process.env.PRECIO_KIDS_ARS = "90000";
+  process.env.PRECIO_KIDS_EUR = "59";
+  process.env.URL_BASE = "https://vitacora.test";
+  (crearCheckout as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ urlPago: "https://pago.example/k" });
+});
+afterEach(() => {
+  for (const k of CLAVES) {
+    if (viejos[k] === undefined) delete process.env[k];
+    else process.env[k] = viejos[k];
+  }
+});
+
+describe("POST /api/compra con producto kids", () => {
+  it("canal B: el número de las preguntas es el del padre; narrador, kids_v2 y pedido como dice el CONTRATO", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ar")));
+
+    expect(r.status).toBe(200);
+    const json = await r.json();
+    expect(json).toMatchObject({ urlPago: "https://pago.example/k", narradorId: "nar-1" });
+    expect(verificarTokenFotos(json.tokenFotos, "nar-1")).toBe(true);
+
+    expect(admin.inserts.familias[0]).toEqual({ nombre: "Laura Gómez", region: "AR", email: "laura@ejemplo.com" });
+    expect(admin.inserts.narradores[0]).toEqual({
+      nombre: "Nico Rivas",
+      como_le_dicen: "Nico",
+      telefono_whatsapp: "+5491155551234",
+      hora_preferida: "18:00",
+      zona_horaria: "America/Argentina/Buenos_Aires",
+      contexto: { modo: "kids" },
+      familia_id: "fam-1",
+      estado: "pendiente_pago",
+    });
+    expect(admin.upserts.kids_v2[0]).toEqual({
+      narrador_id: "nar-1",
+      idioma: "es-AR",
+      canal: "B",
+      telefono_padre: "+5491155551234",
+      ficha: {
+        nombre: "Nico Rivas",
+        apodo: "Nico",
+        genero: "chico",
+        edad: 11,
+        quienRegala: "tus papás",
+        canal: "B",
+        nombrePadre: "Laura Gómez",
+        linkPanel: "https://vitacora.test/tablero/nar-1",
+        hora: "18:00",
+        zona: "America/Argentina/Buenos_Aires",
+        temasSacados: ["mama", "escuela"],
+        fotosConOtrosChicos: false,
+        preguntasPadre: [],
+        idioma: "es-AR",
+      },
+    });
+    expect(admin.inserts.pedidos[0]).toMatchObject({
+      familia_id: "fam-1",
+      narrador_id: "nar-1",
+      proveedor: "mercadopago",
+      estado: "pendiente",
+      monto: 90000,
+      moneda: "ARS",
+      extras: { tipo: "kids", pdf: true, impreso: null, copias: 0, marcos: 0 },
+    });
+    // La pasarela cobra el precio de Kids y, si no cobra, vuelve a /ar/comprar/kids.
+    const [, compra, origen] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra).toMatchObject({ total: 90000, moneda: "ARS", lineas: [{ cantidad: 1, precioUnitario: 90000 }] });
+    expect(origen).toEqual({ idioma: "ar", pantalla: "kids" });
+  });
+
+  it("canal A: las preguntas van al WhatsApp del chico y el del padre queda en kids_v2", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "011 15 4444-9876" }, "AR", "ar")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: "+5491144449876" });
+    expect(admin.upserts.kids_v2[0]).toMatchObject({ canal: "A", telefono_padre: "+5491155551234", ficha: { canal: "A" } });
+  });
+
+  it("el servidor no cree lo que manda el cliente: zona, nombre del padre y preguntas del padre salen de la compra", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const cuerpo = cuerpoKids(LLENO, "AR", "ar");
+    const trucho = {
+      ...cuerpo,
+      kids: { ...cuerpo.kids, zona: "Asia/Tokyo", nombrePadre: "Otro", preguntasPadre: [{ texto: "¿Hola?", conLinea: true }], linkPanel: "https://malo.example", extra: 1 },
+    };
+
+    const r = await POST(peticion(trucho));
+
+    expect(r.status).toBe(200);
+    const { ficha } = admin.upserts.kids_v2[0] as { ficha: FichaKids & { extra?: unknown } };
+    expect(ficha.zona).toBe("America/Argentina/Buenos_Aires");
+    expect(ficha.nombrePadre).toBe("Laura Gómez");
+    expect(ficha.preguntasPadre).toEqual([]);
+    expect(ficha.linkPanel).toBe("https://vitacora.test/tablero/nar-1");
+    expect(ficha.extra).toBeUndefined();
+  });
+
+  it("teléfono repetido (otro libro en marcha) responde 409 y borra la familia recién creada", async () => {
+    const admin = compraNueva({
+      narradores: [{ data: null, error: null }, { data: null, error: { code: "23505", message: "duplicate key" } }],
+    });
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ar")));
+
+    expect(r.status).toBe(409);
+    expect((await r.json()).error).toBe("Ese WhatsApp ya tiene un libro en marcha. Si es tuyo, entrá con tu correo.");
+    expect(admin.borrados.familias).toEqual(["fam-1"]);
+    expect(admin.upserts.kids_v2).toBeUndefined();
+    expect(admin.inserts.pedidos).toBeUndefined();
+  });
+
+  it("un pendiente de Kids de la misma familia se retoma; uno de biografía no", async () => {
+    const deKids = crearAdmin({
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [
+        { data: { id: "nar-viejo", familia_id: "fam-1", estado: "pendiente_pago", contexto: { modo: "kids" } }, error: null },
+        { data: { id: "nar-viejo" }, error: null },
+      ],
+      pedidos: [{ data: { id: "ped-2" }, error: null }],
+    });
+    usar(deKids);
+    expect((await POST(peticion(cuerpoKids(LLENO, "AR", "ar")))).status).toBe(200);
+    expect(deKids.updates.narradores[0]).toMatchObject({ estado: "pendiente_pago", contexto: { modo: "kids" } });
+    expect(deKids.inserts.narradores).toBeUndefined();
+    expect(deKids.upserts.kids_v2[0]).toMatchObject({ narrador_id: "nar-viejo" });
+
+    const deBiografia = crearAdmin({
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [
+        { data: { id: "nar-adulto", familia_id: "fam-1", estado: "pendiente_pago", contexto: {} }, error: null },
+        { data: null, error: { code: "23505", message: "duplicate key" } },
+      ],
+    });
+    usar(deBiografia);
+    expect((await POST(peticion(cuerpoKids(LLENO, "AR", "ar")))).status).toBe(409);
+    expect(deBiografia.updates.narradores).toBeUndefined();
+    // La familia ya existía: no se borra.
+    expect(deBiografia.borrados.familias).toBeUndefined();
+  });
+
+  it("España vende Kids (KIDS_REGIONES): idioma es-ES en kids_v2 y en la ficha, hora 20:00 por defecto, «tus padres», Madrid y precio en euros", async () => {
+    expect(KIDS_REGIONES).toEqual(["AR", "ES"]);
+    const admin = compraNueva();
+    usar(admin);
+    const ES: EstadoKids = { ...estadoKidsInicial(undefined, "ES"), ...LLENO, hora: estadoKidsInicial(undefined, "ES").hora, tuWhatsapp: "+34 612 34 56 78" };
+    expect(ES.hora).toBe("20:00");
+
+    const r = await POST(peticion(cuerpoKids(ES, "ES", "es")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.familias[0]).toEqual({ nombre: "Laura Gómez", region: "ES", email: "laura@ejemplo.com" });
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: "+34612345678", hora_preferida: "20:00", zona_horaria: "Europe/Madrid" });
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    // Los dos iguales: si no, el bot no arranca.
+    expect(fila.idioma).toBe("es-ES");
+    expect(fila.ficha.idioma).toBe("es-ES");
+    expect(fila.ficha).toMatchObject({ hora: "20:00", zona: "Europe/Madrid", quienRegala: "tus padres" });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ proveedor: "stripe", monto: 59, moneda: "EUR" });
+    const [, compra, origen] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra).toMatchObject({ total: 59, moneda: "EUR" });
+    expect(origen).toEqual({ idioma: "es", pantalla: "kids" });
+  });
+
+  it("el idioma lo decide la región, no el cliente: un idioma raro en la ficha no pasa", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const cuerpo = cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "es");
+    const r = await POST(peticion({ ...cuerpo, kids: { ...cuerpo.kids, idioma: "es-AR" } }));
+    expect(r.status).toBe(200);
+    expect((admin.upserts.kids_v2[0] as { ficha: FichaKids }).ficha.idioma).toBe("es-ES");
+  });
+
+  it("catalán vende Kids (tanda 10): idioma ca en kids_v2 y en la ficha, «els teus pares», Madrid, 20:00 y el precio de España", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const CA: EstadoKids = { ...estadoKidsInicial(undefined, "ES"), ...LLENO, hora: estadoKidsInicial(undefined, "ES").hora, tuWhatsapp: "+34 612 34 56 78" };
+    expect(CA.hora).toBe("20:00");
+
+    const r = await POST(peticion(cuerpoKids(CA, "ES", "ca")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.familias[0]).toEqual({ nombre: "Laura Gómez", region: "ES", email: "laura@ejemplo.com" });
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: "+34612345678", hora_preferida: "20:00", zona_horaria: "Europe/Madrid" });
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    // Los dos iguales: si no, el bot no arranca.
+    expect(fila.idioma).toBe("ca");
+    expect(fila.ficha.idioma).toBe("ca");
+    expect(fila.ficha).toMatchObject({ hora: "20:00", zona: "Europe/Madrid", quienRegala: "els teus pares" });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ proveedor: "stripe", monto: 59, moneda: "EUR" });
+    const [, , origen] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(origen).toEqual({ idioma: "ca", pantalla: "kids" });
+  });
+
+  it("en catalán el idioma también lo decide la web: un idioma de otra región en la ficha no pasa", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const cuerpo = cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca");
+    const r = await POST(peticion({ ...cuerpo, kids: { ...cuerpo.kids, idioma: "es-ES" } }));
+    expect(r.status).toBe(200);
+    const fila = admin.upserts.kids_v2[0] as { idioma: string; ficha: FichaKids };
+    expect([fila.idioma, fila.ficha.idioma]).toEqual(["ca", "ca"]);
+  });
+
+  it("en catalán, los avisos del servidor en catalán (mismo número, correo, WhatsApp)", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const mismo = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78", canal: "A", suWhatsapp: "612 34 56 78" }, "ES", "ca")));
+    expect(mismo.status).toBe(400);
+    expect((await mismo.json()).error).toBe("El WhatsApp de qui ho explica ha de ser diferent del teu. Si les preguntes t'arriben a tu, tria «Ho faig jo».");
+    const correo = await POST(peticion({ ...cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78" }, "ES", "ca"), email: "laura@" }));
+    expect((await correo.json()).error).toBe(CHECKOUT_KIDS.ca.errores.correoMal);
+    const tel = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "abc" }, "ES", "ca")));
+    expect((await tel.json()).error).toBe("El WhatsApp no sembla un número vàlid. Revisa'l i torna-ho a provar.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("/ca con la región de Argentina no vende", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ca")));
+    expect(r.status).toBe(409);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("España con el mismo WhatsApp en el canal A: el aviso en tú", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, tuWhatsapp: "+34 612 34 56 78", canal: "A", suWhatsapp: "612 34 56 78" }, "ES", "es")));
+    expect(r.status).toBe(400);
+    expect((await r.json()).error).toBe("El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a ti, elige «Lo hago yo».");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("con KIDS_VENTA apagado responde 409 de vos y no toca la base", async () => {
+    delete process.env.KIDS_VENTA;
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ar")));
+
+    expect(r.status).toBe(409);
+    expect((await r.json()).error).toBe(CHECKOUT_KIDS.ar.proximamenteTexto);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("ficha inválida (hora de noche, tema que no existe, sin género, edad rara, sin canal A con número) responde 400 sin tocar la base", async () => {
+    const malos: unknown[] = [
+      cuerpoKids({ ...LLENO, hora: "22:00" }, "AR", "ar"),
+      cuerpoKids({ ...LLENO, hora: "08:59" }, "AR", "ar"),
+      { ...cuerpoKids(LLENO, "AR", "ar"), kids: { ...cuerpoKids(LLENO, "AR", "ar").kids, temasSacados: ["futbol"] } },
+      cuerpoKids({ ...LLENO, genero: "" }, "AR", "ar"),
+      cuerpoKids({ ...LLENO, edad: "40" }, "AR", "ar"),
+      cuerpoKids({ ...LLENO, apodo: "  " }, "AR", "ar"),
+      { ...cuerpoKids(LLENO, "AR", "ar"), kids: "no" },
+    ];
+    for (const cuerpo of malos) {
+      const admin = compraNueva();
+      usar(admin);
+      const r = await POST(peticion(cuerpo));
+      expect(r.status, JSON.stringify(cuerpo)).toBe(400);
+      expect((await r.json()).error).toBe("El pedido llegó mal formado.");
+      expect(admin.from).not.toHaveBeenCalled();
+    }
+    // Canal A sin el número del chico, o un número que no es un WhatsApp: 400 con el aviso del número.
+    for (const cuerpo of [cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "" }, "AR", "ar"), cuerpoKids({ ...LLENO, tuWhatsapp: "abc" }, "AR", "ar")]) {
+      const admin = compraNueva();
+      usar(admin);
+      const r = await POST(peticion(cuerpo));
+      expect(r.status).toBe(400);
+      expect((await r.json()).error).toBe("El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.");
+      expect(admin.from).not.toHaveBeenCalled();
+    }
+  });
+
+  it("canal A con el mismo WhatsApp que el padre responde 400 sin tocar la base", async () => {
+    const admin = compraNueva();
+    usar(admin);
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+54 9 11 5555 1234" }, "AR", "ar")));
+    expect(r.status).toBe(400);
+    // Aprobado por Naza el 15/10 (punto 7).
+    expect((await r.json()).error).toBe("El WhatsApp de quien lo cuenta tiene que ser distinto del tuyo. Si las preguntas te llegan a vos, elegí «Lo hago yo».");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("nombre, apodo, quién se lo regala y tu nombre de más de 60 caracteres: 400 mal formado", async () => {
+    const largo = "a".repeat(61);
+    for (const e of [{ nombre: largo }, { apodo: largo }, { quien: "otra" as const, quienOtra: largo }, { tuNombre: largo }]) {
+      const admin = compraNueva();
+      usar(admin);
+      const r = await POST(peticion(cuerpoKids({ ...LLENO, ...e }, "AR", "ar")));
+      expect(r.status, JSON.stringify(e)).toBe(400);
+      expect((await r.json()).error).toBe("El pedido llegó mal formado.");
+      expect(admin.from).not.toHaveBeenCalled();
+    }
+    // 60 justos entran.
+    const admin = compraNueva();
+    usar(admin);
+    expect((await POST(peticion(cuerpoKids({ ...LLENO, nombre: "a".repeat(60) }, "AR", "ar")))).status).toBe(200);
+  });
+
+  it("busca la familia por el correo exacto en minúsculas (eq, no ilike)", async () => {
+    const admin = compraNueva();
+    const eqs: [string, unknown][] = [];
+    const original = admin.from.getMockImplementation()!;
+    admin.from.mockImplementation((tabla: string) => {
+      const b = original(tabla) as Record<string, unknown>;
+      const eq = b.eq as (c: string, v: unknown) => unknown;
+      b.ilike = () => {
+        throw new Error("ilike en Kids");
+      };
+      b.eq = (c: string, v: unknown) => {
+        if (tabla === "familias") eqs.push([c, v]);
+        return eq(c, v);
+      };
+      return b;
+    });
+    usar(admin);
+    expect((await POST(peticion(cuerpoKids(LLENO, "AR", "ar")))).status).toBe(200);
+    expect(eqs[0]).toEqual(["email", "laura@ejemplo.com"]);
+  });
+
+  it("sin la tabla kids_v2 (migración sin aplicar): borra narrador y familia y responde 409", async () => {
+    const admin = compraNueva({ kids_v2: [{ data: null, error: { code: "PGRST205", message: "Could not find the table 'public.kids_v2'" } }] });
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ar")));
+
+    expect(r.status).toBe(409);
+    expect((await r.json()).error).toBe(CHECKOUT_KIDS.ar.proximamenteTexto);
+    expect(admin.borrados.narradores).toEqual(["nar-1"]);
+    expect(admin.borrados.familias).toEqual(["fam-1"]);
+    expect(admin.inserts.pedidos).toBeUndefined();
+    expect(crearCheckout).not.toHaveBeenCalled();
+  });
+
+  it("si falla el pedido, se borran la fila de kids_v2, el narrador y la familia (500)", async () => {
+    const admin = compraNueva({ pedidos: [{ data: null, error: { code: "XX000", message: "boom" } }] });
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(LLENO, "AR", "ar")));
+
+    expect(r.status).toBe(500);
+    expect(admin.borrados.kids_v2).toEqual(["nar-1"]);
+    expect(admin.borrados.narradores).toEqual(["nar-1"]);
+    expect(admin.borrados.familias).toEqual(["fam-1"]);
+  });
+});
+
+describe("validarFichaKids (copia de validarFicha del motor)", () => {
+  const base: FichaKids = {
+    nombre: " Nico ",
+    apodo: "Nico",
+    genero: "chico",
+    edad: 11,
+    quienRegala: "Tu madrina",
+    canal: "A",
+    nombrePadre: "Laura",
+    linkPanel: "https://x/tablero/1",
+    hora: "09:00",
+    zona: "America/Argentina/Buenos_Aires",
+    temasSacados: ["mama", "mama"],
+    fotosConOtrosChicos: true,
+    preguntasPadre: [
+      { texto: " ¿Qué querés ser? ", conLinea: true, quien: "Tu papá" },
+      { texto: "  ", conLinea: false },
+    ],
+  };
+
+  it("normaliza como el motor", () => {
+    const f = validarFichaKids(base);
+    expect(f.nombre).toBe("Nico");
+    expect(f.quienRegala).toBe("tu madrina");
+    expect(f.temasSacados).toEqual(["mama"]);
+    expect(f.preguntasPadre).toEqual([{ texto: "¿Qué querés ser?", conLinea: true, quien: "tu papá" }]);
+  });
+
+  it("tira con los mismos mensajes que el motor", () => {
+    expect(() => validarFichaKids({ ...base, linkPanel: "" })).toThrow("Ficha: falta linkPanel");
+    expect(() => validarFichaKids({ ...base, hora: "21:59" })).not.toThrow();
+    expect(() => validarFichaKids({ ...base, hora: "22:00" })).toThrow("Ficha: hora 22:00 fuera de 09:00–21:59");
+    expect(() => validarFichaKids({ ...base, zona: "Marte/Olympus" })).toThrow("Ficha: zona desconocida Marte/Olympus");
+    const cuatro = Array.from({ length: 4 }, (_, i) => ({ texto: `p${i}`, conLinea: true }));
+    expect(() => validarFichaKids({ ...base, preguntasPadre: cuatro })).toThrow("Ficha: hasta 3 preguntas del padre");
+  });
+});
+
+// El libro impreso en Kids (Naza 15/10, tanda 3, punto 10): «El mismo precio
+// de la casa, con el impreso arriba como en la casa». El impreso y sus copias
+// valen lo del catálogo de la casa (PRECIO_IMPRESO_*, PRECIO_COPIA_*) y se
+// suman al precio de Kids; el precio lo calcula el servidor.
+describe("POST /api/compra con producto kids y el libro impreso", () => {
+  const IMPRESO = ["PRECIO_IMPRESO_ARS", "PRECIO_COPIA_ARS", "PRECIO_MARCO_ARS"] as const;
+  const antes: Record<string, string | undefined> = {};
+  beforeEach(() => {
+    for (const k of IMPRESO) antes[k] = process.env[k];
+    process.env.PRECIO_IMPRESO_ARS = "85750";
+    process.env.PRECIO_COPIA_ARS = "40000";
+    process.env.PRECIO_MARCO_ARS = "30000";
+  });
+  afterEach(() => {
+    for (const k of IMPRESO) {
+      if (antes[k] === undefined) delete process.env[k];
+      else process.env[k] = antes[k];
+    }
+  });
+
+  const CON_IMPRESO: EstadoKids = { ...LLENO, formato: "impreso", copias: 1 };
+
+  it("con impreso: el precio de Kids más el impreso y la copia de la casa, y extras con impreso", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const cuerpo = cuerpoKids(CON_IMPRESO, "AR", "ar");
+    expect(cuerpo.productos).toEqual({ impresos: 2 });
+    const r = await POST(peticion(cuerpo));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({
+      monto: 90000 + 85750 + 40000,
+      moneda: "ARS",
+      extras: { tipo: "kids", pdf: true, impreso: "color", copias: 2, marcos: 0 },
+    });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra).toMatchObject({
+      total: 215750,
+      lineas: [
+        { id: "pdf", nombre: "Vitácora Kids", cantidad: 1, precioUnitario: 90000 },
+        { id: "impreso", cantidad: 1, precioUnitario: 85750 },
+        { id: "copia", cantidad: 1, precioUnitario: 40000 },
+      ],
+    });
+    // Lo demás nace igual que sin impreso.
+    expect(admin.inserts.narradores[0]).toMatchObject({ contexto: { modo: "kids" }, estado: "pendiente_pago" });
+    expect(admin.upserts.kids_v2[0]).toMatchObject({ narrador_id: "nar-1", canal: "B" });
+  });
+
+  it("sin impreso: igual que hoy, solo el precio de Kids y extras sin impreso", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids({ ...LLENO, formato: "digital", copias: 3 }, "AR", "ar")));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 90000, extras: { tipo: "kids", pdf: true, impreso: null, copias: 0, marcos: 0 } });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra.lineas).toHaveLength(1);
+  });
+
+  it("el precio que manda el cliente no cuenta, y Kids nunca lleva marco", async () => {
+    const admin = compraNueva();
+    usar(admin);
+
+    const manipulado = {
+      ...cuerpoKids({ ...LLENO, formato: "impreso", copias: 0 }, "AR", "ar"),
+      monto: 1,
+      total: 1,
+      precio: 1,
+      productos: { impresos: 1, marcos: 4, precio: 1, total: 1 },
+      compra: { total: 1, lineas: [{ id: "pdf", cantidad: 1, precioUnitario: 1 }] },
+    };
+    const r = await POST(peticion(manipulado));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 90000 + 85750, extras: { impreso: "color", copias: 1, marcos: 0 } });
+    const [, compra] = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(compra.total).toBe(175750);
+    expect(compra.lineas.map((l: { id: string }) => l.id)).toEqual(["pdf", "impreso"]);
+  });
+
+  it("sin precio del impreso en la región, pedir el impreso responde 400 sin tocar la base", async () => {
+    delete process.env.PRECIO_IMPRESO_ARS;
+    const admin = compraNueva();
+    usar(admin);
+
+    const r = await POST(peticion(cuerpoKids(CON_IMPRESO, "AR", "ar")));
+
+    expect(r.status).toBe(400);
+    expect((await r.json()).error).toBe("El libro impreso todavía no está disponible en tu región.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+});

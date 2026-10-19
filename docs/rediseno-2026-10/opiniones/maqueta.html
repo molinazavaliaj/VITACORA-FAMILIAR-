@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Opiniones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Maqueta, no código de la web. Mismos tokens que amigo/maquetas/1-arriba.html
+     (copiados de _direccion/tokens.css). Las opiniones son de EJEMPLO, con
+     nombres inventados: ninguna se publica. Los números rojos son los textos
+     de opiniones/textos.md. */
+  :root {
+    --tinta: #0d0d0c; --papel: #eeeae1; --pagina: #f7f2e6; --sobre-tinta: #eeeae1; --sobre-tinta-suave: #a39f96;
+    --sobre-papel: #151412; --sobre-papel-suave: #5a564e; --hilo-papel: rgba(21,20,18,.2);
+    --hilo-tinta: rgba(238,234,225,.16); --dorado: #8a7246;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--tinta); font-family: Archivo, system-ui, sans-serif; color: var(--sobre-papel); }
+  .num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
+         background: #d23c2c; color: #fff; font: 600 11px Archivo; font-style: normal; vertical-align: middle; margin-right: 6px; flex: none; }
+  .ejemplo { display: inline-block; background: #d23c2c; color: #fff; font: 600 10.5px Archivo; letter-spacing: .12em;
+             text-transform: uppercase; padding: 4px 9px; border-radius: 3px; }
+  .envoltura { max-width: 1104px; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .envoltura { padding: 0 32px; } }
+
+  /* cabecera */
+  .cab { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; color: var(--sobre-tinta); }
+  .cab b { font: 600 12px Archivo; letter-spacing: .18em; }
+  .cab span { font-size: 13px; border: 1px solid var(--hilo-tinta); border-radius: 99px; padding: 7px 14px; }
+
+  /* arriba, sobre tinta */
+  .arriba { color: var(--sobre-tinta); text-align: center; padding: 56px 0 96px; }
+  .etq { font: 500 11.5px Archivo; letter-spacing: .14em; text-transform: uppercase; color: var(--sobre-tinta-suave); }
+  h1 { margin: 18px auto 0; max-width: 14ch; font: 500 clamp(2.45rem, 1.5rem + 4vw, 5.25rem)/1.04 "Playfair Display", serif; letter-spacing: -.025em; }
+  .bajada { margin: 22px auto 0; max-width: 36ch; font-size: clamp(1.1rem, 1rem + .5vw, 1.35rem); font-weight: 300; line-height: 1.5; color: #cfcbc1; }
+
+  /* la hoja de papel, con el borde cortado */
+  .hoja { background: var(--papel); position: relative; padding: 72px 0 80px; }
+  .hoja::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 12px; background: var(--papel);
+          clip-path: polygon(0 60%,4% 40%,9% 55%,14% 30%,21% 45%,28% 20%,36% 40%,44% 25%,52% 45%,60% 30%,69% 50%,77% 35%,85% 55%,92% 30%,100% 45%,100% 100%,0 100%); }
+
+  /* una opinión: la frase grande, quién la dijo y, si hay, una página de su libro */
+  .opinion { display: grid; grid-template-columns: 1fr; gap: 36px; padding: 56px 0; border-top: 1px solid var(--hilo-papel); }
+  .opinion:first-child { border-top: 0; padding-top: 0; }
+  @media (min-width: 900px) {
+    .opinion { grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; padding: 80px 0; }
+    .opinion.sin-pagina { grid-template-columns: 9fr 3fr; }
+  }
+  .frase { font: italic 500 clamp(1.7rem, 1.15rem + 2.3vw, 3.1rem)/1.2 "Playfair Display", serif; letter-spacing: -.015em; text-wrap: balance; }
+  .frase::before { content: "«"; } .frase::after { content: "»"; }
+  .quien { margin-top: 22px; font-size: 16px; line-height: 1.5; }
+  .quien b { font-weight: 600; }
+  .dato { margin-top: 6px; font: 500 11.5px Archivo; letter-spacing: .14em; text-transform: uppercase; color: var(--sobre-papel-suave); }
+  .dato .prod { color: var(--dorado); }
+  .marca { margin-top: 16px; }
+
+  .pagina { justify-self: center; width: min(100%, 340px); background: var(--pagina); color: #26231e; padding: 30px 28px 34px;
+            border-radius: 0 3px 3px 0; transform: rotate(1.4deg);
+            background-image: linear-gradient(270deg, transparent 82%, rgba(90,70,40,.13));
+            box-shadow: 1px 0 0 #ece5d6, 2px 1px 0 #d6cbb4, 3px 1px 0 #ece5d6, 4px 2px 0 #d6cbb4, 0 30px 50px -28px rgba(0,0,0,.45); }
+  .pagina .etq { color: var(--dorado); font-size: 10.5px; }
+  .pagina p { margin-top: 14px; font: 400 16px/1.65 "Playfair Display", serif; }
+  .pagina p::first-letter { font-size: 2.6em; float: left; line-height: .9; padding: 4px 6px 0 0; }
+  .folio { margin-top: 16px; text-align: center; font: italic 400 13px "Playfair Display", serif; color: var(--sobre-papel-suave); }
+
+  /* al pie de la hoja: cómo se comprueban y el enlace a Google */
+  .comprobadas { margin-top: 24px; padding-top: 40px; border-top: 1px solid var(--hilo-papel); display: grid; gap: 22px; }
+  @media (min-width: 900px) { .comprobadas { grid-template-columns: 7fr 5fr; gap: 64px; align-items: start; } }
+  .comprobadas h2 { font: 500 11.5px Archivo; letter-spacing: .14em; text-transform: uppercase; color: var(--dorado); }
+  .comprobadas p { margin-top: 12px; max-width: 52ch; font-size: 16px; font-weight: 300; line-height: 1.6; color: var(--sobre-papel-suave); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 30px; border-radius: 99px;
+         font: 500 15px Archivo; text-decoration: none; }
+  .btn.papel { border: 1px solid rgba(21,20,18,.35); color: var(--sobre-papel); justify-self: start; }
+  @media (min-width: 900px) { .btn.papel { justify-self: end; } }
+  .btn.lleno { background: var(--papel); color: var(--tinta); font-weight: 600; }
+  .nota { font-size: 13px; color: var(--sobre-papel-suave); margin-top: 10px; }
+
+  /* cierre, sobre tinta */
+  .cierre { color: var(--sobre-tinta); text-align: center; padding: 110px 0; }
+  .cierre h2 { margin: 0 auto; max-width: 14ch; font: 500 clamp(2.45rem, 1.5rem + 4vw, 5.25rem)/1.04 "Playfair Display", serif; letter-spacing: -.025em; }
+  .cierre .btn { margin-top: 44px; width: 100%; max-width: 358px; }
+  @media (min-width: 640px) { .cierre .btn { width: auto; } }
+  .pie { border-top: 1px solid var(--hilo-tinta); color: var(--sobre-tinta-suave); padding: 44px 0 56px; display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; }
+  .pie em { font: italic 400 15px "Playfair Display", serif; }
+  .pie ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font: 500 12px Archivo; letter-spacing: .18em; text-transform: uppercase; }
+  .pie li.nuevo { color: var(--sobre-tinta); }
+  .aviso { background: #2a2925; color: #f1d9a8; font: 13px/1.5 Archivo; padding: 12px 16px; text-align: center; }
+</style>
+</head>
+<body>
+<p class="aviso">Maqueta para aprobar. Las cinco opiniones son de EJEMPLO, con nombres inventados. La página real arranca vacía y no se ve hasta que haya al menos tres opiniones reales con permiso.</p>
+
+<section>
+  <div class="envoltura">
+    <div class="cab"><b>VITÁCORA</b><span>Entrar</span></div>
+    <div class="arriba">
+      <p class="etq"><span class="num">1</span>Opiniones</p>
+      <h1><span class="num">2</span>Lo que dicen las familias.</h1>
+      <p class="bajada"><span class="num">3</span>Opiniones de quienes ya tienen su libro en casa.</p>
+    </div>
+  </div>
+</section>
+
+<section class="hoja">
+  <div class="envoltura">
+
+    <article class="opinion">
+      <div>
+        <span class="ejemplo">Ejemplo, no se publica</span>
+        <p class="frase" style="margin-top:16px">Mi madre nunca había contado lo del pueblo. Ahora está en su libro y mis hijos lo leen en voz alta.</p>
+        <p class="quien"><b>Lucía</b>, hija de Carmen · Zaragoza</p>
+        <p class="dato"><span class="prod"><span class="num">4</span>Libro familiar</span> · noviembre de 2026</p>
+      </div>
+      <figure class="pagina">
+        <p class="etq"><span class="num">5</span>Una página de su libro</p>
+        <p>En el pueblo no había reloj en la plaza. La hora la daba el panadero, que abría a las seis, y la campana de la ermita, que tocaba cuando le parecía al cura.</p>
+        <p class="folio">· 23 ·</p>
+      </figure>
+    </article>
+
+    <article class="opinion sin-pagina">
+      <div>
+        <span class="ejemplo">Ejemplo, no se publica</span>
+        <p class="frase" style="margin-top:16px">Al principio no quería. Después era yo el que esperaba la pregunta para contestar.</p>
+        <p class="quien"><b>Ramón</b>, narrador · Valladolid</p>
+        <p class="dato"><span class="prod">Libro familiar</span> · octubre de 2026</p>
+      </div>
+    </article>
+
+    <article class="opinion" lang="ca">
+      <div>
+        <span class="ejemplo">Ejemplo, no se publica</span>
+        <p class="frase" style="margin-top:16px">La iaia ho explicava tot amb una gràcia que no sabíem que tenia.</p>
+        <p class="quien"><b>Laia</b>, néta de Montserrat · Girona</p>
+        <p class="dato"><span class="prod">Libro familiar</span> · octubre de 2026</p>
+        <p class="nota">(En catalán: las opiniones se muestran en el idioma en que se escribieron, sin traducir.)</p>
+      </div>
+      <figure class="pagina">
+        <p class="etq">Una página de su libro</p>
+        <p>A casa sempre hi havia gent. La meva mare deia que on mengen quatre en mengen cinc, i el cinquè sempre era algú que passava per allà.</p>
+        <p class="folio">· 41 ·</p>
+      </figure>
+    </article>
+
+    <article class="opinion sin-pagina" lang="es-AR">
+      <div>
+        <span class="ejemplo">Ejemplo, no se publica</span>
+        <p class="frase" style="margin-top:16px">Lo escuchamos todos juntos en Navidad. Mi viejo no podía creer que esa era su voz.</p>
+        <p class="quien"><b>Martín</b>, hijo de Rubén · Rosario</p>
+        <p class="dato"><span class="prod">Libro familiar</span> · diciembre de 2026</p>
+      </div>
+    </article>
+
+    <article class="opinion sin-pagina">
+      <div>
+        <span class="ejemplo">Ejemplo, no se publica</span>
+        <p class="frase" style="margin-top:16px">Volvimos de Japón y el libro nos devolvió cosas que ya habíamos olvidado.</p>
+        <p class="quien"><b>Elena</b>, viajera · Valencia</p>
+        <p class="dato"><span class="prod">Libro del viaje</span> · septiembre de 2026</p>
+      </div>
+    </article>
+
+    <div class="comprobadas">
+      <div>
+        <h2><span class="num">6</span>Cómo las comprobamos</h2>
+        <p><span class="num">7</span>Solo publicamos opiniones de personas que compraron un libro en Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.</p>
+      </div>
+      <a class="btn papel" href="#"><span class="num">8</span>Ver todas las opiniones en Google</a>
+    </div>
+    <p class="nota">El botón de Google solo aparece cuando Google verifique la ficha de Vitácora. Mientras, no se ve.</p>
+  </div>
+</section>
+
+<section>
+  <div class="envoltura">
+    <div class="cierre">
+      <h2>Todas las vidas merecen su propio libro.</h2>
+      <a class="btn lleno" href="#">Iniciar Vitácora</a>
+      <p class="nota" style="color:var(--sobre-tinta-suave);margin-top:18px">(Cierre y botón aprobados, #30 de la portada.)</p>
+    </div>
+    <div class="pie">
+      <em>Todas las vidas merecen su propio libro</em>
+      <ul><li>Términos</li><li>Privacidad</li><li>Desistimiento</li></ul>
+      <ul><li>Entrar</li><li class="nuevo"><span class="num">9</span>Opiniones</li></ul>
+    </div>
+  </div>
+</section>
+</body>
+</html>

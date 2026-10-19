@@ -14,9 +14,10 @@ export const SIN_ENTREGA: EleccionEntrega = { canal: null, contacto: "", hora: n
 
 const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
-const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
-const pista = "mt-1 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light";
+// Rediseño 2026-10: los mismos campos que el checkout (tokens de papel en .chk).
+const campo = "h-[52px] w-full rounded-[6px] border border-[var(--borde-oscuro-fuerte)] bg-[var(--fondo-oscuro)] px-4 text-[16px] text-[var(--texto-oscuro-fuerte)] outline-none transition-colors focus:border-[var(--acento-oscuro)] aria-invalid:border-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]";
+const etiqueta = "block text-[13px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]";
+const pista = "mt-2 text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]";
 
 /** El problema de la elección, con el campo a marcar; null si está bien o si no eligió canal. */
 export function errorDeEleccion(
@@ -66,9 +67,9 @@ export function CamposEntrega({
         <legend className={etiqueta}>{T.mandarloEseDia}</legend>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {opciones.map((o) => (
-            <label key={o.valor} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${elegido === o.valor ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
+            <label key={o.valor} className="m-card m-chip inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-5 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)] [touch-action:manipulation]">
               <input
-                type="radio" name="entrega" value={o.valor} checked={elegido === o.valor}
+                type="radio" name="entrega" value={o.valor} checked={elegido === o.valor} className="sr-only"
                 onChange={() => onCambio(o.valor === "nadie" ? SIN_ENTREGA : { ...eleccion, canal: o.valor, contacto: o.valor === eleccion.canal ? eleccion.contacto : "" })}
               />
               {o.texto}

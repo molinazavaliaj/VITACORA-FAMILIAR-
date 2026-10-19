@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { productosDelPedido, NOMBRE_VOZ } from "@/lib/productos";
@@ -23,10 +23,7 @@ type Pedido = { id: string; estado: string; extras: unknown; audiolibro_paths: A
 export default async function PaginaLeer({ params }: PageProps<"/tablero/[narradorId]/leer">) {
   const { narradorId } = await params;
 
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioDeLaSesion();
   if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();

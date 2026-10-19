@@ -119,7 +119,11 @@ export function Upsells({ cat, region, carrito, setCarrito, propia = false, trat
   const reglaMarco = cat.marco
     ? marcosPrevios > 0
       ? cat.marco.precioAdicional !== null ? `Cada marco +${f(cat.marco.precioAdicional)}.` : `${voz.tenes} tu marco.`
-      : cat.marco.precioAdicional !== null ? `El primero +${f(cat.marco.precio)}; los siguientes +${f(cat.marco.precioAdicional)}.` : `+${f(cat.marco.precio)}.`
+      : cat.marco.precioAdicional !== null && cat.marco.precioAdicional !== cat.marco.precio
+        ? `El primero +${f(cat.marco.precio)}; los siguientes +${f(cat.marco.precioAdicional)}.`
+        : cat.marco.precioAdicional !== null
+          ? `Cada marco +${f(cat.marco.precio)}.`
+          : `+${f(cat.marco.precio)}.`
     : "";
   const maxImpresos = cat.impreso?.precioCopia === null ? (impresosPrevios > 0 ? 0 : 1) : 20;
   const maxMarcos = cat.marco?.precioAdicional === null ? (marcosPrevios > 0 ? 0 : 1) : 20;

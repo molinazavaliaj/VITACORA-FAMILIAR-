@@ -1,339 +1,405 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ANGULOS, COMPANIAS, NOMBRE_ANGULO, NOMBRE_COMPANIA, NOMBRE_PROPOSITO, PROPOSITOS, ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
-import { NOMBRE_VIAJE, DETALLE_VIAJE, armarCompra, type Catalogo, type Carrito } from "@/lib/productos";
-import { Ticket, Upsells, formatearPrecio as formatear, listaDe } from "../productos-ui";
-import { Tachado } from "../tachado";
-import { HORAS_VIAJE as HORAS, ZONAS } from "@/lib/horario";
+import Image from "next/image";
+import { origenDelNavegador } from "@/lib/origen";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { HORAS_NOCHE, IDIOMAS_VIAJE, MAX_PREGUNTAS_PROPIAS, PAISES, PREGUNTA_PROPIA_MAXIMO } from "@/lib/viaje";
+import { armarCompra, type Catalogo } from "@/lib/productos";
+import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../../_ui";
+import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
+import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
+import { AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
+import { CamposDireccion } from "../../_checkout/direccion";
+import { PasosLibro } from "../../_checkout/pasos-libro";
+import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
+import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
+import { formatearPrecio, listaDe } from "../productos-ui";
+import { cuerpoViaje, diasDe, estadoViajeInicial, fallaViaje, hoyLocal, type EstadoViaje, type PasoViaje } from "./compra-viaje";
 
-// La compra de la Vitácora de viaje, en tres pasos. Las etapas pueden ir sin
-// fechas: el viajero no siempre las tiene (después se completan desde el
-// panel y se abren ciudades nuevas). Un solo POST a /api/compra al pagar,
-// con `productos.viaje` y `narrador.contexto.viaje`. Desde el 21/09 (2.10) el
-// impreso y los marcos se suman en el paso de pagar, con las mismas piezas del
-// checkout Familiar; el total lo recalcula el servidor.
-//
-// ⚠️ Textos a aprobar por Naza (regla de la casa). En vos: el viajero se compra a sí mismo.
+// La compra de la Vitácora de Viaje V2 (16/10; docs/viajes-v2/flujo-vigente.md
+// §1) con el cascarón del rediseño, en la hoja azul noche de Viaje
+// (checkout.css), en tres pasos: 1 el libro (impreso o PDF, álbum de 20 o 40),
+// 2 el viaje (para mí o regalo, quién viaja, fechas, país, dónde vive, hora de
+// la noche, idioma, preguntas propias) y 3 tus datos y el pago. Un solo POST a
+// /api/compra con `productos.viaje` y `narrador.contexto.viaje` (los nombres
+// del tipo `Compra` del bot). Nada de ciudades ni de «con quién viajás».
+// Lo puro vive en ./compra-viaje.ts.
 
-/** El catálogo de cada región, resuelto en el servidor (la base del viaje es `viaje`). */
-export type CatalogoViaje = Record<"ES" | "AR", Catalogo>;
-type Region = "ES" | "AR";
-type Paso = 1 | 2 | 3;
+const sesion = () => window.sessionStorage;
+/** El formulario del pago: la barra del teléfono lo envía desde afuera. */
+const FORM_PAGO = "pago-viaje";
+const BOTON_PRIMARIO =
+  "m-btn inline-flex min-h-14 items-center rounded-full bg-[var(--boton)] px-9 text-[16px] font-semibold text-[var(--sobre-boton)] [font-family:var(--fuente-micro)] [touch-action:manipulation]";
+const BOTON_FANTASMA =
+  "m-ghost inline-flex min-h-14 items-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] disabled:opacity-60 [font-family:var(--fuente-micro)]";
+const BOTON_CHICO =
+  "m-ghost inline-flex min-h-12 items-center self-start rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)]";
 
-const PASOS: { n: Paso; nombre: string }[] = [
-  { n: 1, nombre: "Vos" },
-  { n: 2, nombre: "El viaje" },
-  { n: 3, nombre: "Pagar" },
-];
+export function CheckoutViaje({
+  idioma,
+  catalogo: cat,
+  promo = null,
+  pasoInicial = 1,
+}: {
+  idioma: IdiomaWeb;
+  catalogo: Catalogo;
+  promo?: number | null;
+  /** Para probar cada paso sin navegador. */
+  pasoInicial?: PasoViaje;
+}) {
+  const V = CHECKOUT_VIAJE[idioma];
+  const T = CHECKOUT[idioma];
+  const R = RESUMEN[idioma];
+  const region = regionDeIdioma(idioma);
+  const clave = `viaje-${idioma}`;
+  const lengua = idioma === "ca" ? "ca" : "es";
+  // Los países en el orden de su nombre en la lengua de la página.
+  const paises = useMemo(() => [...PAISES].sort((a, b) => a[lengua].localeCompare(b[lengua], lengua)), [lengua]);
 
-
-const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
-const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
-const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
-
-export function CheckoutViaje({ catalogo, regionInicial = "AR", promo = null }: { catalogo: CatalogoViaje; regionInicial?: Region; promo?: number | null }) {
-  const [paso, setPaso] = useState<Paso>(1);
-  const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
-  const [nombre, setNombre] = useState("");
-  const [comoLeDicen, setComoLeDicen] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [email, setEmail] = useState("");
-  const [salida, setSalida] = useState("");
-  const [vuelta, setVuelta] = useState("");
-  const [etapas, setEtapas] = useState<Etapa[]>([{ nombre: "" }]);
-  const [compania, setCompania] = useState<Viaje["compania"]>("solo");
-  const [proposito, setProposito] = useState<Viaje["proposito"]>("recuerdo");
-  const [angulos, setAngulos] = useState<string[]>([]);
-  const [hora, setHora] = useState("21:30");
-  const [zona, setZona] = useState<string>("Europe/Madrid");
-  const [evitar, setEvitar] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [paso, setPaso] = useState<PasoViaje>(pasoInicial);
+  const [e, setE] = useState<EstadoViaje>(() => estadoViajeInicial(idioma, cat.impreso !== null));
+  const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
-  // El viaje siempre va; el impreso y los marcos se suman.
-  // El carrito (21/09): la base es el viaje, siempre; se suman impresos y marcos.
-  const [carritoElegido, setCarrito] = useState<Carrito>({ base: "viaje", impresos: 0, marcos: 0 });
-  const cat = catalogo[region];
+  const [fallo, setFallo] = useState<null | "guardado" | "solo">(null);
+  const titulo = useRef<HTMLHeadingElement>(null);
+  const primerPaso = useRef(true);
+  // El primer paso llega pintado del servidor: se anima recién al cambiar de paso.
+  const [animar, setAnimar] = useState(false);
+  const antesDeIr = useRef<(c: RespuestaCompra) => void>(() => {});
+
+  const cambiar = (cambios: Partial<EstadoViaje>) => setE((x) => ({ ...x, ...cambios }));
   const precio = cat.viaje;
-  const moneda = cat.moneda;
-  // El ticket en vivo, con la misma función que cobra el servidor.
-  const carrito = useMemo(() => armarCompra(cat, region, carritoElegido), [cat, region, carritoElegido]);
-  const total = carrito.total;
-  const dias = useMemo(() => {
-    const a = Date.parse(`${salida}T00:00:00Z`), b = Date.parse(`${vuelta}T00:00:00Z`);
-    return Number.isFinite(a) && Number.isFinite(b) && b >= a ? Math.round((b - a) / 86_400_000) + 1 : null;
-  }, [salida, vuelta]);
+  const impreso = e.formato === "impreso";
+  // Sin precio del álbum de 40 (PRECIO_VIAJE_ALBUM40_*), solo existe el de 20.
+  const hay40 = cat.viajeAlbum40 !== null;
+  const album = hay40 ? e.album : 20;
+  const compra = useMemo(() => armarCompra(cat, region, { base: "viaje", impresos: impreso ? 1 : 0, marcos: 0, album }), [cat, region, impreso, album]);
+  const f = (n: number) => formatearPrecio(n, cat.moneda, region);
+  const dias = diasDe(e);
+  const yo = e.paraMi ? "yo" : "regalo";
 
-  function avanzar(siguiente: Paso) {
-    setError(null);
+  useEffect(() => {
+    antesDeIr.current = (c) => {
+      guardar(sesion, CLAVE_COMPRA_VIAJE, clave, e);
+      if (impreso) guardar(sesion, CLAVE_DIRECCION, c.narradorId, { destinatarioNombre: e.recibe.trim(), destinatarioTelefono: e.telefonoRecibe.trim(), direccion: e.direccion });
+      else olvidar(sesion, CLAVE_DIRECCION);
+    };
+  });
+
+  const pagador = useMemo(
+    () => crearPagador({ fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), antesDeIr: (c) => antesDeIr.current(c), origen: origenDelNavegador }, T),
+    [T],
+  );
+
+  // Vuelta de un pago que no se cobró (Casos 2): lo elegido aparece de nuevo en el paso del pago.
+  useEffect(() => {
+    if (!vieneDePagoFallido(window.location.search)) return;
+    const guardado = leer<EstadoViaje>(sesion, CLAVE_COMPRA_VIAJE, clave);
+    setFallo(guardado ? "guardado" : "solo");
+    if (guardado) {
+      setE({ ...estadoViajeInicial(idioma, cat.impreso !== null), ...guardado });
+      setPaso(3);
+    }
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [idioma, clave]);
+
+  useEffect(() => {
+    const alVolver = (ev: PageTransitionEvent) => {
+      if (!ev.persisted) return;
+      pagador.liberar();
+      setEnviando(false);
+    };
+    window.addEventListener("pageshow", alVolver);
+    return () => window.removeEventListener("pageshow", alVolver);
+  }, [pagador]);
+
+  useEffect(() => {
+    if (primerPaso.current) {
+      primerPaso.current = false;
+      return;
+    }
+    arriba();
+    titulo.current?.focus({ preventScroll: true });
+  }, [paso]);
+
+  // Con la barra del teléfono el botón queda lejos del aviso: si el paso tiene
+  // un problema, el aviso se trae a la vista (solo si no se ve).
+  useEffect(() => {
+    if (falla) document.getElementById(ID_ERROR)?.scrollIntoView({ block: "nearest" });
+  }, [falla]);
+
+  function irA(siguiente: PasoViaje) {
+    setFalla(null);
+    setAnimar(true);
+    if (siguiente < 3) pagador.olvidar();
     setPaso(siguiente);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function editarEtapa(i: number, cambios: Partial<Etapa>) {
-    setEtapas((x) => x.map((e, j) => (j === i ? { ...e, ...cambios } : e)));
+  function seguir(desde: PasoViaje) {
+    const problema = fallaViaje(desde, e, V, T);
+    if (problema) return setFalla(problema);
+    irA((desde + 1) as PasoViaje);
   }
 
-  async function pagar(evento: React.FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    if (precio === null) { setError("La Vitácora de viaje todavía no está disponible en tu región."); return; }
+  const marca = (campo: string) => (falla?.campo === campo ? { "aria-invalid": true, "aria-describedby": ID_ERROR } : {});
+
+  function editarPregunta(i: number, texto: string) {
+    cambiar({ preguntas: e.preguntas.map((p, j) => (j === i ? texto : p)) });
+  }
+
+  async function pagar(ev: FormEvent<HTMLFormElement>) {
+    ev.preventDefault();
+    if (pagador.ocupado) return;
+    if (precio === null) return setFalla({ texto: V.noDisponible });
+    const problema = fallaViaje(2, e, V, T) ?? fallaViaje(3, e, V, T);
+    if (problema) return setFalla(problema);
+    setFalla(null);
     setEnviando(true);
-    setError(null);
-    try {
-      const respuesta = await fetch("/api/compra", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombreComprador: nombre.trim(),
-          vinculoComprador: "yo mismo",
-          region,
-          email: email.trim(),
-          narrador: {
-            nombre: nombre.trim(),
-            comoLeDicen: comoLeDicen.trim() || nombre.trim().split(" ")[0],
-            telefonoWhatsapp: telefono.trim(),
-            horaPreferida: hora,
-            zonaHoraria: zona,
-            contexto: {
-              ritmo: "diario",
-              evitar: evitar.trim(),
-              viaje: { salida, vuelta, etapas: etapas.filter((e) => e.nombre.trim()), compania, proposito, angulos },
-            },
-          },
-          productos: { viaje: true, impresos: carritoElegido.impresos, marcos: carritoElegido.marcos },
-        }),
-      });
-      const datos = (await respuesta.json()) as { urlPago?: string; error?: string };
-      if (!respuesta.ok || !datos.urlPago) {
-        setError(datos.error ?? "No pudimos iniciar el pago. Intentá de nuevo.");
-        setEnviando(false);
-        return;
-      }
-      window.location.assign(datos.urlPago);
-    } catch {
-      setError("No pudimos iniciar el pago. Revisá tu conexión e intentá de nuevo.");
+    const r = await pagador.pagar(cuerpoViaje({ ...e, album }, idioma), []);
+    if ("error" in r) {
+      setFalla({ texto: r.error });
       setEnviando(false);
     }
   }
 
-  return (
-    <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-12 lg:grid-cols-[1fr_380px] lg:py-16">
-      <div>
-        <ol className="flex gap-4 sm:gap-8">
-          {PASOS.map((p) => (
-            <li key={p.n} className="flex-1">
-              <p className={`text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.24em] ${p.n === paso ? "text-[#14140F]" : "text-[#AEAEA6]"}`}>{p.n}. {p.nombre}</p>
-              <div className={`mt-2 h-[3px] rounded-full ${p.n <= paso ? "bg-[#14140F]" : "bg-[#D4D4CE]"}`} />
-            </li>
-          ))}
-        </ol>
+  const tachado = promo && precio !== null ? listaDe(compra.total, cat.moneda, region, promo).texto : null;
 
-        {/* ── 1 · Vos ── */}
-        {paso === 1 && (
-          <section className="mt-12">
-            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">Tu biógrafo de viaje.</h1>
-            <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Cada noche te escribe por WhatsApp, vos le contás el día con un audio y le mandás la foto. Al volver, tu viaje es un libro.
-            </p>
-            <p className="mt-8 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Precios en {region === "ES" ? "euros" : "pesos argentinos"}.{/* 2.12: la región la decide el país de quien compra (por IP) */}
-            </p>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className={etiqueta} htmlFor="nombre">Tu nombre</label>
-                <input id="nombre" className={`${campo} mt-2`} value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" autoComplete="name" />
-              </div>
-              <div>
-                <label className={etiqueta} htmlFor="apodo">Cómo te dicen</label>
-                <input id="apodo" className={`${campo} mt-2`} value={comoLeDicen} onChange={(e) => setComoLeDicen(e.target.value)} placeholder="Así te va a saludar" />
-              </div>
-              <div>
-                <label className={etiqueta} htmlFor="tel">Tu WhatsApp</label>
-                <input id="tel" className={`${campo} mt-2`} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={region === "AR" ? "11 5555 1234" : "612 345 678"} inputMode="tel" autoComplete="tel" />
-              </div>
-              <div>
-                <label className={etiqueta} htmlFor="email">Tu correo</label>
-                <input id="email" type="email" className={`${campo} mt-2`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vos@ejemplo.com" autoComplete="email" />
-              </div>
-            </div>
-            <Botones
-              siguiente={() => {
-                if (!nombre.trim()) return setError("Decinos tu nombre.");
-                if (!telefono.trim()) return setError("Falta tu WhatsApp: ahí te escribe el biógrafo.");
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return setError("Necesitamos un correo válido: con ese entrás a tu panel.");
-                avanzar(2);
-              }}
-              error={error}
-            />
-          </section>
-        )}
-
-        {/* ── 2 · El viaje ── */}
-        {paso === 2 && (
-          <section className="mt-12">
-            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">El viaje.</h1>
-            <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Lo que sepas hoy. Las etapas que no tengan fecha se completan después desde tu panel, y si aparece una ciudad nueva, la agregás ahí.
-            </p>
-
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className={etiqueta} htmlFor="salida">Salís el</label>
-                <input id="salida" type="date" className={`${campo} mt-2`} value={salida} onChange={(e) => setSalida(e.target.value)} />
-              </div>
-              <div>
-                <label className={etiqueta} htmlFor="vuelta">Volvés el</label>
-                <input id="vuelta" type="date" className={`${campo} mt-2`} value={vuelta} min={salida || undefined} onChange={(e) => setVuelta(e.target.value)} />
-                {dias ? <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-micro)]">{dias} {dias === 1 ? "día" : "días"} · una pregunta por noche</p> : null}
-              </div>
-            </div>
-
-            <div className="mt-10">
-              <p className={etiqueta}>Las etapas</p>
-              <p className="mt-2 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Ciudad o tramo, y las fechas si las tenés. Cada etapa es un capítulo del libro.</p>
-              <ul className="mt-4 flex flex-col gap-3">
-                {etapas.map((e, i) => (
-                  <li key={i} className="grid gap-2 rounded-lg border border-[#EBEBE7] bg-white p-3 sm:grid-cols-[1fr_150px_150px_auto] sm:items-center">
-                    <input aria-label={`Etapa ${i + 1}`} className={campo} value={e.nombre} onChange={(ev) => editarEtapa(i, { nombre: ev.target.value })} placeholder={i === 0 ? "Lisboa" : "Otra ciudad o tramo"} />
-                    <input aria-label="Desde" type="date" className={campo} value={e.desde ?? ""} min={salida || undefined} max={vuelta || undefined} onChange={(ev) => editarEtapa(i, { desde: ev.target.value || undefined })} />
-                    <input aria-label="Hasta" type="date" className={campo} value={e.hasta ?? ""} min={e.desde || salida || undefined} max={vuelta || undefined} onChange={(ev) => editarEtapa(i, { hasta: ev.target.value || undefined })} />
-                    <button type="button" aria-label="Sacar etapa" onClick={() => setEtapas((x) => (x.length > 1 ? x.filter((_, j) => j !== i) : [{ nombre: "" }]))} className="h-10 w-10 rounded-full border border-[#D4D4CE] text-lg [touch-action:manipulation]">×</button>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" disabled={etapas.length >= ETAPAS_MAXIMO} onClick={() => setEtapas((x) => [...x, { nombre: "" }])} className="mt-3 text-[15px] text-[#14140F] underline underline-offset-4 disabled:opacity-60 [font-family:var(--fuente-micro)]">+ Agregar etapa</button>
-            </div>
-
-            <div className="mt-10">
-              <p className={etiqueta}>¿Con quién viajás?</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {COMPANIAS.map((c) => <button key={c} type="button" onClick={() => setCompania(c)} className={chip(compania === c)}>{NOMBRE_COMPANIA[c]}</button>)}
-              </div>
-            </div>
-
-            <fieldset className="mt-10">
-              <legend className={etiqueta}>¿Para qué es el libro?</legend>
-              <div className="mt-3 flex flex-col gap-2">
-                {PROPOSITOS.map((p) => (
-                  <label key={p} className={`flex cursor-pointer items-start gap-3 rounded-lg border bg-white p-4 ${proposito === p ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
-                    <input type="radio" name="proposito" checked={proposito === p} onChange={() => setProposito(p)} className="mt-1" />
-                    <span>
-                      <span className="block text-[17px] [font-family:var(--fuente-titulo)]">{NOMBRE_PROPOSITO[p].titulo}</span>
-                      <span className="block text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{NOMBRE_PROPOSITO[p].detalle}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <div className="mt-10">
-              <p className={etiqueta}>¿Qué querés que te pregunte siempre?</p>
-              <p className="mt-2 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Elegí dos o tres. El resto lo va rotando el biógrafo.</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {ANGULOS.map((a) => (
-                  <button key={a} type="button" onClick={() => setAngulos((x) => (x.includes(a) ? x.filter((y) => y !== a) : [...x, a]))} className={chip(angulos.includes(a))}>{NOMBRE_ANGULO[a]}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-10 grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className={etiqueta} htmlFor="hora">¿A qué hora te escribe?</label>
-                <select id="hora" className={`${campo} mt-2`} value={hora} onChange={(e) => setHora(e.target.value)}>
-                  {HORAS.map((h) => <option key={h.valor} value={h.valor}>{h.nombre}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={etiqueta} htmlFor="zona">Hora de dónde</label>
-                <select id="zona" className={`${campo} mt-2`} value={zona} onChange={(e) => setZona(e.target.value)}>
-                  {ZONAS.map(([z, n]) => <option key={z} value={z}>{n}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-10">
-              <label className={etiqueta} htmlFor="evitar">Temas que no se preguntan (opcional)</label>
-              <textarea id="evitar" className={`${campo} mt-2`} rows={2} value={evitar} onChange={(e) => setEvitar(e.target.value)} maxLength={1000} placeholder="Por ejemplo: no preguntar por el trabajo." />
-            </div>
-
-            <Botones
-              atras={() => avanzar(1)}
-              siguiente={() => {
-                if (!salida || !vuelta) return setError("Necesitamos la fecha de salida y la de vuelta.");
-                if (vuelta < salida) return setError("La vuelta no puede ser antes de la salida.");
-                avanzar(3);
-              }}
-              etiquetaSiguiente="Ir a pagar"
-              error={error}
-            />
-          </section>
-        )}
-
-        {/* ── 3 · Pagar ── */}
-        {paso === 3 && (
-          <form onSubmit={pagar} className="mt-12">
-            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">Listo para salir.</h1>
-            <div className="mt-8 rounded-2xl border-2 border-[#14140F] bg-white p-6">
-              <p className="text-[10px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">en la nube · {dias ?? "—"} noches</p>
-              <p className="mt-2 text-[24px] leading-tight [font-family:var(--fuente-titulo)] font-medium">{NOMBRE_VIAJE}</p>
-              <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{DETALLE_VIAJE} Se lee y se escucha en la web, cuando quieras.</p>
-              <p className="mt-4 text-[28px] tabular-nums [font-family:var(--fuente-titulo)]">
-                {precio !== null && promo ? <Tachado lista={listaDe(precio, moneda, region, promo).texto} porcentaje={promo} className="mr-2" /> : null}
-                {precio !== null ? formatear(precio, moneda, region) : "Próximamente en tu región"}
-              </p>
-            </div>
-
-            {/* Lo que se suma (catálogo base + upsells, 21/09). ⚠️ Textos a revisar por Naza. */}
-            {cat.impreso || cat.marco ? (
-              <div className="mt-8">
-                <p className={etiqueta}>Si querés, sumale</p>
-                <div className="mt-3">
-                  <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia />
-                </div>
-              </div>
-            ) : null}
-
-            <div className="mt-6 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              <p><strong className="font-normal text-[#14140F]">Qué pasa después de pagar:</strong> te llega un correo para entrar a tu panel, y el biógrafo te escribe por WhatsApp para presentarse. Respondés SÍ y arranca la primera noche.</p>
-            </div>
-            {error && <p className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
-            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button type="button" onClick={() => avanzar(2)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
-              <button type="submit" disabled={enviando || precio === null} className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]">
-                {enviando ? "Un momento…" : precio !== null ? `Pagar ${formatear(total, moneda, region)}` : "No disponible"}
-              </button>
-            </div>
-            <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptás los{" "}
-              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>.
-            </p>
-          </form>
-        )}
+  const cabezaResumen = (
+    <div className="flex items-center gap-4">
+      <div className="dir-foto dir-foto--ovalo w-[64px] shrink-0">
+        <Image src="/rediseno/viaje-libro-mesa.jpg" alt="" fill sizes="64px" className="object-cover" />
       </div>
-
-      <aside className="lg:sticky lg:top-8 lg:self-start">
-        <div className="rounded-lg border border-[#EBEBEE] bg-white p-6">
-          <Ticket compra={carrito} region={region} nota={dias ? `${dias} noches` : undefined} />
-          <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-            <li>✓ Una pregunta cada noche, por WhatsApp</li>
-            <li>✓ Tus fotos, con su historia, guardadas por día</li>
-            <li>✓ Cada etapa, un capítulo del libro</li>
-            <li>✓ Lo leés y lo compartís desde la web</li>
-          </ul>
-        </div>
-      </aside>
+      <div className="flex min-w-0 flex-col gap-1">
+        <Etiqueta>{V.marca}</Etiqueta>
+        <span className="chk-ficha-titulo">{V.libroDelViaje}</span>
+        {dias ? <span className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.dias(dias)}</span> : null}
+      </div>
     </div>
   );
-}
 
-function Botones({ atras, siguiente, etiquetaSiguiente = "Continuar", error }: { atras?: () => void; siguiente: () => void; etiquetaSiguiente?: string; error: string | null }) {
   return (
-    <>
-      {error && <p className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]">{error}</p>}
-      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {atras ? <button type="button" onClick={atras} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button> : <span />}
-        <button type="button" onClick={siguiente} className="inline-flex h-13 items-center justify-center rounded-full bg-[#14140F] px-8 text-base font-medium text-white transition-colors hover:bg-[#2B2B24] [font-family:var(--fuente-micro)]">{etiquetaSiguiente}</button>
+    <div className="chk-con-barra mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
+      <div className="mb-10 sm:mb-14">
+        <PasosLibro pasos={V.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
       </div>
-    </>
+      <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
+        <div className="min-w-0">
+          {/* ── 1 · El libro ── */}
+          {paso === 1 && (
+            <ContenidoPaso key="v1" animar={animar} className="flex flex-col gap-7">
+              <TituloPaso ref={titulo} antetitulo={V.pasoDe(1, 3)} titulo={V.libroTitulo} bajada={V.libroBajada} />
+              {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
+              {precio === null ? (
+                <p className="text-[16px] text-[var(--texto-oscuro-suave)]">{V.noDisponible}</p>
+              ) : (
+                <>
+                  <fieldset className="flex flex-col gap-3">
+                    <legend className="sr-only">{V.libroTitulo}</legend>
+                    {cat.impreso ? (
+                      <Opcion name="formato" value="impreso" checked={impreso} onChange={() => cambiar({ formato: "impreso" })}
+                        titulo={V.impresoTitulo} detalle={V.impresoDetalle} precio={f(precio + cat.impreso.precio)} />
+                    ) : null}
+                    <Opcion name="formato" value="pdf" checked={!impreso} onChange={() => cambiar({ formato: "pdf" })}
+                      titulo={V.pdfTitulo} detalle={V.pdfDetalle} precio={f(precio)} />
+                  </fieldset>
+
+                  <fieldset>
+                    <legend className={`${ETIQUETA} mb-1`}>{V.albumTitulo}</legend>
+                    <p className="mb-3 text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.albumBajada}</p>
+                    <div className="flex flex-wrap gap-2.5">
+                      <Pastilla name="album" value="20" checked={album === 20} onChange={() => cambiar({ album: 20 })}>
+                        {V.album(20)}
+                      </Pastilla>
+                      {hay40 ? (
+                        <Pastilla name="album" value="40" checked={album === 40} onChange={() => cambiar({ album: 40 })}>
+                          {V.album(40)} <span className="ml-2 opacity-70 tabular-nums">{V.mas(f(cat.viajeAlbum40! - precio))}</span>
+                        </Pastilla>
+                      ) : null}
+                    </div>
+                  </fieldset>
+                </>
+              )}
+
+              <div className="chk-solo-escritorio">
+                <button type="button" disabled={precio === null} onClick={() => seguir(1)} className={`${BOTON_PRIMARIO} disabled:opacity-60`}>
+                  {V.continuar}
+                </button>
+              </div>
+            </ContenidoPaso>
+          )}
+
+          {/* ── 2 · El viaje ── */}
+          {paso === 2 && (
+            <ContenidoPaso key="v2" animar={animar} className="flex flex-col gap-7">
+              <TituloPaso ref={titulo} antetitulo={V.pasoDe(2, 3)} titulo={V.viajeTitulo} bajada={V.viajeBajada} />
+
+              <fieldset>
+                <legend className={`${ETIQUETA} mb-3`}>{V.paraQuien}</legend>
+                <div className="flex flex-wrap gap-2.5">
+                  <Pastilla name="para" value="yo" checked={e.paraMi} onChange={() => cambiar({ paraMi: true })}>{V.paraMi}</Pastilla>
+                  <Pastilla name="para" value="regalo" checked={!e.paraMi} onChange={() => cambiar({ paraMi: false })}>{V.esRegalo}</Pastilla>
+                </div>
+              </fieldset>
+
+              {e.paraMi ? null : (
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className={ETIQUETA} htmlFor="tu-nombre">{V.tuNombre}</label>
+                    <input id="tu-nombre" {...marca("tu-nombre")} className={`${CAMPO} mt-2`} value={e.tuNombre} onChange={(ev) => cambiar({ tuNombre: ev.target.value })} placeholder={V.tuNombrePista} autoComplete="name" />
+                  </div>
+                  <div>
+                    <label className={ETIQUETA} htmlFor="quien-regala">{V.quienRegala}</label>
+                    <input id="quien-regala" {...marca("quien-regala")} className={`${CAMPO} mt-2`} value={e.quienRegala} onChange={(ev) => cambiar({ quienRegala: ev.target.value })} maxLength={60} />
+                    <p className={AYUDA}>{V.quienRegalaAyuda}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className={ETIQUETA} htmlFor="nombre">{V.nombre[yo]}</label>
+                  <input id="nombre" {...marca("nombre")} className={`${CAMPO} mt-2`} value={e.nombre} onChange={(ev) => cambiar({ nombre: ev.target.value })} placeholder={V.nombrePista} autoComplete={e.paraMi ? "name" : "off"} />
+                </div>
+                <div>
+                  <label className={ETIQUETA} htmlFor="apodo">{V.comoLeDicen[yo]}</label>
+                  <input id="apodo" className={`${CAMPO} mt-2`} value={e.comoLeDicen} onChange={(ev) => cambiar({ comoLeDicen: ev.target.value })} />
+                  <p className={AYUDA}>{V.comoLeDicenAyuda[yo]}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={ETIQUETA} htmlFor="tel">{V.whatsapp[yo]}</label>
+                  <input id="tel" {...marca("telefono")} className={`${CAMPO} mt-2`} value={e.telefono} onChange={(ev) => cambiar({ telefono: ev.target.value })} placeholder={T.whatsappPista} inputMode="tel" autoComplete={e.paraMi ? "tel" : "off"} />
+                  <p className={AYUDA}>{V.whatsappAyuda[yo]}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className={ETIQUETA} htmlFor="salida">{V.salida}</label>
+                  <input id="salida" type="date" {...marca("fechas")} className={`${CAMPO} mt-2`} value={e.salida} min={hoyLocal()} onChange={(ev) => cambiar({ salida: ev.target.value })} />
+                </div>
+                <div>
+                  <label className={ETIQUETA} htmlFor="vuelta">{V.vuelta}</label>
+                  <input id="vuelta" type="date" {...marca("fechas")} className={`${CAMPO} mt-2`} value={e.vuelta} min={e.salida || hoyLocal()} onChange={(ev) => cambiar({ vuelta: ev.target.value })} />
+                  {dias ? <p className={AYUDA}>{V.dias(dias)}</p> : null}
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className={ETIQUETA} htmlFor="pais-viaje">{V.paisViaje}</label>
+                  <select id="pais-viaje" {...marca("pais-viaje")} className={`${CAMPO} mt-2`} value={e.paisViaje} onChange={(ev) => cambiar({ paisViaje: ev.target.value })}>
+                    <option value="" disabled>{V.elegir}</option>
+                    {paises.map((p) => (
+                      <option key={p.id} value={p.id}>{p[lengua]}</option>
+                    ))}
+                  </select>
+                  <p className={AYUDA}>{V.paisViajeAyuda}</p>
+                </div>
+                <div>
+                  <label className={ETIQUETA} htmlFor="pais-casa">{V.paisCasa[yo]}</label>
+                  <select id="pais-casa" {...marca("pais-casa")} className={`${CAMPO} mt-2`} value={e.paisCasa} onChange={(ev) => cambiar({ paisCasa: ev.target.value })}>
+                    <option value="" disabled>{V.elegir}</option>
+                    {paises.map((p) => (
+                      <option key={p.id} value={p.id}>{p[lengua]}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label className={ETIQUETA} htmlFor="hora">{V.hora[yo]}</label>
+                  <select id="hora" className={`${CAMPO} mt-2`} value={e.hora} onChange={(ev) => cambiar({ hora: ev.target.value })}>
+                    {HORAS_NOCHE.map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={ETIQUETA} htmlFor="idioma">{V.idioma}</label>
+                  <select id="idioma" className={`${CAMPO} mt-2`} value={e.idioma} onChange={(ev) => cambiar({ idioma: ev.target.value as EstadoViaje["idioma"] })}>
+                    {IDIOMAS_VIAJE.map((i) => (
+                      <option key={i} value={i}>{V.idiomas[i]}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <p className={ETIQUETA}>{V.preguntas}</p>
+                <p className="text-[14px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{V.preguntasAyuda[yo]}</p>
+                <ul className="flex flex-col gap-3">
+                  {e.preguntas.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <textarea aria-label={`${V.preguntas} ${i + 1}`} {...marca("preguntas")} className={`${CAMPO} min-h-[56px] flex-1`} rows={2} value={p}
+                        maxLength={PREGUNTA_PROPIA_MAXIMO} onChange={(ev) => editarPregunta(i, ev.target.value)} placeholder={i === 0 ? V.preguntaPista : undefined} />
+                      <button type="button" aria-label={V.sacarPregunta} onClick={() => cambiar({ preguntas: e.preguntas.length > 1 ? e.preguntas.filter((_, j) => j !== i) : [""] })}
+                        className="m-ghost h-11 w-11 shrink-0 rounded-full border border-[var(--borde-oscuro-fuerte)] text-lg text-[var(--texto-oscuro-fuerte)] [touch-action:manipulation]">
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button type="button" disabled={e.preguntas.length >= MAX_PREGUNTAS_PROPIAS} onClick={() => cambiar({ preguntas: [...e.preguntas, ""] })} className={BOTON_CHICO}>
+                  {V.otraPregunta}
+                </button>
+              </div>
+
+              <ErrorPaso texto={falla?.texto ?? null} />
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => seguir(2)} className={`chk-solo-escritorio ${BOTON_PRIMARIO}`}>{V.continuar}</button>
+                <button type="button" onClick={() => irA(1)} className={BOTON_FANTASMA}>{V.atras}</button>
+              </div>
+            </ContenidoPaso>
+          )}
+
+          {/* ── 3 · Tus datos y el pago ── */}
+          {paso === 3 && (
+            <ContenidoPaso key="v3" animar={animar}>
+              <form id={FORM_PAGO} onSubmit={pagar} noValidate className="flex flex-col gap-7">
+                <TituloPaso ref={titulo} antetitulo={V.pasoDe(3, 3)} titulo={V.pagoTitulo} bajada={V.pagoBajada} />
+                {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
+                <div>
+                  <label className={ETIQUETA} htmlFor="email">{V.email}</label>
+                  <input id="email" type="email" {...marca("email")} className={`${CAMPO} mt-2`} value={e.email} onChange={(ev) => cambiar({ email: ev.target.value })} placeholder={V.emailPista} autoComplete="email" inputMode="email" spellCheck={false} />
+                </div>
+                {impreso ? <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} /> : null}
+                <p className="border-l-2 border-[var(--texto-oscuro-fuerte)] py-1 pl-5 text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">
+                  <strong className="font-medium text-[var(--texto-oscuro-fuerte)]">{V.despues}</strong> {V.despuesTexto[yo]}
+                </p>
+                <ErrorPaso texto={falla?.texto ?? null} />
+                <div className="chk-solo-escritorio">
+                  <BotonPagar enviando={enviando} texto={T.pagar(f(compra.total))} procesando={T.procesando} />
+                </div>
+                <p className="text-[12px] leading-relaxed text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">
+                  {V.legalAntes}
+                  <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+                    {T.terminos}
+                  </a>
+                  {V.legalDespues} {V.garantia}
+                </p>
+                <div>
+                  <button type="button" disabled={enviando} onClick={() => irA(2)} className={BOTON_FANTASMA}>{V.atras}</button>
+                </div>
+              </form>
+            </ContenidoPaso>
+          )}
+        </div>
+
+        <Resumen compra={compra} region={region} textos={R} cabeza={cabezaResumen} incluye={V.incluye} tachado={tachado} />
+      </div>
+
+      {/* En el teléfono: el total y el botón del paso, abajo y después del resumen. */}
+      <BarraPaso etiqueta={R.total} total={f(compra.total)}>
+        {paso === 3 ? (
+          <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.pagar(f(compra.total))} procesando={T.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
+        ) : (
+          <button type="button" disabled={precio === null} onClick={() => seguir(paso)} className={BOTON_BARRA}>
+            {V.continuar}
+          </button>
+        )}
+      </BarraPaso>
+    </div>
   );
 }

@@ -5,8 +5,10 @@
 // los pintan en amarillo para que no se olvide.
 //
 // El titular que le aplica a cada cliente lo decide la región que eligió en
-// el checkout (la misma que decide moneda y pasarela): España → Immaculada,
-// Argentina → Joaquín.
+// el checkout (la misma que decide moneda y pasarela). Desde el 17/10 (decisión
+// de Joaquín, docs/ROADMAP.md bloque 8) es la misma persona en los dos países,
+// Joaquín: en Argentina con su CUIT de monotributo, en España con su NIF de
+// autónomo (alta en trámite; hasta entonces España no vende).
 
 import type { Region } from "@/lib/precios";
 
@@ -27,7 +29,7 @@ export type Titular = {
 export const TITULARES: Record<Region, Titular> = {
   ES: {
     region: "ES",
-    nombre: "Immaculada Collel",
+    nombre: "Joaquín Molina",
     pais: "España",
     documento: { etiqueta: "NIF", valor: "" },
     domicilio: "",
@@ -38,7 +40,7 @@ export const TITULARES: Record<Region, Titular> = {
     region: "AR",
     nombre: "Joaquín Molina",
     pais: "Argentina",
-    documento: { etiqueta: "CUIT", valor: "" },
+    documento: { etiqueta: "CUIT", valor: "20-41835629-5" },
     domicilio: "",
     ley: "la ley argentina (ley 25.326 de Protección de los Datos Personales, ley 24.240 de Defensa del Consumidor y Resolución 424/2020 de la Secretaría de Comercio Interior)",
     autoridad: { nombre: "Agencia de Acceso a la Información Pública (AAIP)", url: "https://www.argentina.gob.ar/aaip" },
@@ -50,7 +52,8 @@ export const CONTACTO = {
   soporte: "soporte@vitacorafamiliar.com",
 };
 
-export const ACTUALIZADO = "16 de septiembre de 2026";
+/** La fecha de la última versión de los legales (la pinta _textos/legal.ts en cada idioma). */
+export const ACTUALIZADO = "19 de octubre de 2026";
 
 /** Campos del titular que todavía no se completaron (se pintan en amarillo). */
 export function faltan(t: Titular): string[] {

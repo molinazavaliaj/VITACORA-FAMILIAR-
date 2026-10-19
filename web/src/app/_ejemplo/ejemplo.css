@@ -1,0 +1,83 @@
+/* ── /ejemplo en la dirección «la web es un libro» (14/10) ─────────────────
+   La tinta arriba y abajo (cabecera y pie públicos), el libro sobre la hoja
+   de papel (.chk, en _checkout/checkout.css). Las clases dir- y l3- viven en
+   globals.css; acá va solo lo del ejemplo, con prefijo ejm-. */
+
+/* La cabecera y el pie públicos pintan con los tokens del tema oscuro: sobre
+   la tela, sin fondo propio (se ve la trama) y sin el violeta. */
+.ejm-tinta {
+  --fondo-oscuro: transparent;
+  --linea-oscura: var(--dir-hilo-tinta);
+  --texto-oscuro: var(--dir-sobre-tinta);
+  --texto-oscuro-fuerte: #ffffff;
+  --texto-oscuro-suave: #cfcbc1;
+  --texto-oscuro-menor: var(--dir-sobre-tinta-suave);
+  --borde-oscuro-fuerte: rgba(238, 234, 225, 0.36);
+  --acento-oscuro: var(--dir-sobre-tinta);
+  --tarjeta: #141412;
+}
+.ejm-tinta :focus-visible { outline: 2px solid var(--dir-sobre-tinta); outline-offset: 2px; }
+
+.ejm-bajada {
+  max-width: 40ch;
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  font-weight: 300;
+  line-height: 1.5;
+  color: #cfcbc1;
+  text-wrap: balance;
+}
+.ejm-inventada {
+  margin-top: 4px;
+  border: 1px solid rgba(238, 234, 225, 0.3);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--dir-sobre-tinta-suave);
+}
+
+/* ── Las páginas: el papel del libro 3D (l3-pagina), con la sombra del lomo
+   hacia el centro y los cantos de las hojas de abajo. ── */
+.ejm-papel {
+  background-color: var(--dir-papel-pagina, #f7f2e6);
+  color: #26231e;
+  font-family: var(--fuente-cuerpo), Georgia, serif;
+}
+.ejm-papel--izq {
+  border-radius: 3px 0 0 3px;
+  background-image: linear-gradient(90deg, transparent 80%, rgba(90, 70, 40, 0.16));
+  box-shadow: -1px 0 0 #ece5d6, -2px 1px 0 #d6cbb4, -3px 1px 0 #ece5d6, -4px 2px 0 #d6cbb4, -5px 2px 0 #ece5d6, -6px 3px 0 #d6cbb4;
+}
+.ejm-papel--der {
+  border-radius: 0 3px 3px 0;
+  background-image: linear-gradient(270deg, transparent 80%, rgba(90, 70, 40, 0.14));
+  box-shadow: 1px 0 0 #ece5d6, 2px 1px 0 #d6cbb4, 3px 1px 0 #ece5d6, 4px 2px 0 #d6cbb4, 5px 2px 0 #ece5d6, 6px 3px 0 #d6cbb4;
+}
+.ejm-cap-numero {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--dir-dorado, #8a7246);
+}
+.ejm-foto img { filter: grayscale(1) sepia(0.25) contrast(1.05); }
+
+/* ── La tapa y la contratapa: el libro 3D del prototipo, quieto. La página
+   es su contenedor (cqw): el libro mide lo mismo a 420 y a 350 px. Nada se
+   arma por scroll ni por tiempo; tocarlo no hace nada (el puntero, normal). */
+.ejm-pose { display: flex; height: 100%; width: 100%; align-items: center; justify-content: center; }
+.ejm-pose .l3-escena { --l3-w: 62cqw; cursor: default; }
+.ejm-pose--espalda .l3-libro { transform: scale(var(--l3-ki)) rotateX(10deg) rotateY(148deg); }
+/* De espaldas el brillo cruza la contratapa, no la tapa. */
+.ejm-pose--espalda .l3-brillo { transform: translateX(30%); }
+/* Cerrado, las hojas de adentro (portadilla, capítulo y foto) no se ven:
+   fuera del todo, así sus fotos (perezosas) ni se piden. */
+.ejm-pose .l3-hoja,
+.ejm-pose .l3-hoja-derecha { display: none; }
+
+/* El video del libro (arreglos chicos): una foto apoyada sobre la tela, con
+   el borde fino de las fotos del rediseño y sombra de mesa. */
+.ejm-video {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--dir-hilo-tinta), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+}

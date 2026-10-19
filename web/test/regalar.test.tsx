@@ -7,19 +7,21 @@ import { catalogo } from "../src/lib/productos";
 const VOS = textosComprador("vos");
 
 // Gift card: la compra del regalo en /regalar (Task 8). Render estático: la
-// página con la región del visitante y el paso de pagar con el botón final.
+// página de cada versión de la web y el paso de pagar con el botón final.
+// Rediseño 2026-10: la región ya no sale de la cabecera del país sino de la
+// ruta (/regalar es España; /ar/regalar, Argentina; /ca/regalar, catalán).
 const estado = vi.hoisted(() => ({ pais: null as string | null }));
 
 vi.mock("next/font/google", () => {
   const fuente = () => ({ variable: "fuente", className: "fuente", style: {} });
   return { Playfair_Display: fuente, Archivo: fuente, Source_Serif_4: fuente };
 });
-vi.mock("next/headers", () => ({
-  headers: async () => new Headers(estado.pais ? { "x-vercel-ip-country": estado.pais } : {}),
-}));
 
-import PaginaRegalar from "../src/app/regalar/page";
+import PaginaRegalarEs from "../src/app/regalar/page";
+import PaginaRegalarAr from "../src/app/ar/regalar/page";
+import PaginaRegalarCa from "../src/app/ca/regalar/page";
 import { FormularioRegalo } from "../src/app/regalar/formulario";
+import { COMPRADOR_WEB } from "../src/app/_textos/regalar";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const precioBase = (region: "AR" | "ES") => {
@@ -27,15 +29,25 @@ const precioBase = (region: "AR" | "ES") => {
   return escapar(new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(cat.base.precio));
 };
 
+/** La página que ve quien llega desde ese país: fuera de Europa, el CDN lo manda a /ar/regalar. */
 async function renderPagina(pais: string | null) {
   estado.pais = pais;
-  const el = await (PaginaRegalar as unknown as () => Promise<ReactElement>)();
-  return renderToStaticMarkup(el);
+  const Pagina = pais === "ES" ? PaginaRegalarEs : PaginaRegalarAr;
+  return renderToStaticMarkup((Pagina as unknown as () => ReactElement)());
 }
 
 describe("/regalar", () => {
   beforeEach(() => {
     estado.pais = null;
+  });
+
+  it("en el teléfono «Seguir» va en la barra de abajo, después del resumen, con el precio (Naza 14/10)", async () => {
+    const html = await renderPagina("ES");
+    const barra = html.indexOf("data-barra-paso");
+    expect(barra).toBeGreaterThan(html.indexOf("<aside"));
+    expect(html.slice(barra)).toContain(`>${escapar(COMPRADOR_WEB.es.seguir)}<`);
+    expect(html.slice(barra)).toContain(precioBase("ES"));
+    expect(html).toContain("chk-solo-escritorio");
   });
 
   it("desde Argentina arranca en el paso 1, con la etiqueta 11 y en pesos", async () => {
@@ -74,7 +86,9 @@ describe("/regalar", () => {
       const t = textosComprador(region === "ES" ? "tu" : "vos");
       const pago = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo(region)} region={region} pasoInicial={4} />);
       expect(pago).toContain(escapar(t.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")));
-      expect(pago).toMatch(new RegExp(`<a href="/legal/terminos"[^>]*>${escapar(t.terminos)}</a>\\.`));
+      // Los términos del idioma de la página: Argentina va a /ar/legal/terminos.
+      const terminos = region === "AR" ? "/ar/legal/terminos" : "/legal/terminos";
+      expect(pago).toMatch(new RegExp(`<a href="${terminos}"[^>]*>${escapar(t.terminos)}</a>\\.`));
     }
   });
 
@@ -149,6 +163,26 @@ describe("/regalar por región: trato de quien compra e idioma del regalo", () =
     expect(paso2).not.toContain(escapar(textosComprador("vos").audio));
     const paso4 = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("ES")} region="ES" pasoInicial={4} />);
     expect(paso4).toContain(escapar(tu.pagoSeguro("Stripe")));
+  });
+});
+
+describe("/ca/regalar", () => {
+  it("todo en catalán, de tú, en euros, y el idioma del regalo arranca en català", () => {
+    const CA = COMPRADOR_WEB.ca;
+    const html = renderToStaticMarkup((PaginaRegalarCa as unknown as () => ReactElement)());
+    expect(html).toContain('lang="ca-ES"');
+    expect(html).toContain(escapar(CA.aQuien));
+    expect(html).toContain(escapar(CA.comoLeDecis));
+    expect(html).toContain(precioBase("ES"));
+    expect((html.match(/<input[^>]*name="idioma"[^>]*>/g) ?? []).some((i) => i.includes('value="ca"') && i.includes('checked=""'))).toBe(true);
+    expect(html).not.toContain(escapar(textosComprador("tu").aQuien));
+  });
+
+  it("el logo vuelve a la portada de su idioma", () => {
+    const ca = renderToStaticMarkup((PaginaRegalarCa as unknown as () => ReactElement)());
+    expect(ca).toMatch(/<a(?=[^>]*href="\/ca")(?=[^>]*aria-label="Vitácora, inici")[^>]*>/);
+    const ar = renderToStaticMarkup((PaginaRegalarAr as unknown as () => ReactElement)());
+    expect(ar).toMatch(/<a(?=[^>]*href="\/ar")(?=[^>]*aria-label="Vitácora, inicio")[^>]*>/);
   });
 });
 

@@ -66,7 +66,8 @@ export function Envio({ narradorId, entrega, queViaja, trato = "vos" }: { narrad
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    // id="envio": «Cambiar la dirección de envío» de Tu pedido (la historia) trae hasta acá.
+    <div id="envio" className="flex scroll-mt-24 flex-col gap-6">
       <div>
         <p className={etiqueta}>Envío</p>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">

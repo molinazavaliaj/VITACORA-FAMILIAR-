@@ -1,0 +1,22 @@
+Asunto: Listo. Hoy le escribimos a tu abuela.
+
+PEDIDO CONFIRMADO
+
+Gracias por confiar. Ya está en marcha.
+
+En un rato le llega un mensaje nuestro por WhatsApp a tu abuela, contándole de qué se trata. Arranca cuando quiera.
+
+Para ir escuchando lo que cuenta, entra a la página con este mismo correo:
+
+Entrar a mi tablero
+http://localhost:3123/entrar
+Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
+
+QUÉ PASA AHORA
+Mientras cuenta. Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde tu panel.
+Al terminar. Cuando termina de contar, el biógrafo escribe su libro.
+
+¿Dudas? Contesta a este email.
+
+Vitácora Familiar · En cada familia hay un libro sin escribir.
+Recibes este email porque has hecho un pedido.

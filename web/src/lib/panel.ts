@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { familiaDelUsuario, type FamiliaResumen } from "./familia";
 
@@ -56,7 +57,29 @@ function rolDe(fila: Invitacion): Exclude<Rol, "duena"> {
   return fila.rol === "visitante" ? "visitante" : "invitado";
 }
 
-async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<Map<string, Exclude<Rol, "duena">>> {
+type RolesInvitado = Map<string, Exclude<Rol, "duena">>;
+type ResultadoPanel = { panel: Panel; error: string | null };
+
+// Una memoria por request y por usuario, igual que familiaDelUsuario
+// (lib/familia.ts): la clave es id + mail (texto), porque `cache` compara por
+// identidad y el cliente admin y el user cambian de objeto en cada página. El
+// layout del panel y la página comparten así una sola carga de historias.
+// Fuera de un render de servidor no memoriza nada.
+const memoriaPanel = cache(
+  (_userId: string, _email: string | null): { invitados?: Promise<RolesInvitado>; historias?: Promise<ResultadoPanel> } => ({}),
+);
+
+function memoriaDe(user: Usuario) {
+  return memoriaPanel(user.id, user.email ?? null);
+}
+
+function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<RolesInvitado> {
+  const memoria = memoriaDe(user);
+  memoria.invitados ??= buscarInvitados(admin, user);
+  return memoria.invitados;
+}
+
+async function buscarInvitados(admin: SupabaseClient, user: Usuario): Promise<RolesInvitado> {
   const roles = new Map<string, Exclude<Rol, "duena">>();
 
   const { data: propias, error: errorPropias } = await admin
@@ -91,37 +114,48 @@ async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promis
 }
 
 /** Todas las historias que ve el usuario: primero las suyas, después las compartidas. */
-export async function historiasDelUsuario(
-  admin: SupabaseClient,
-  user: Usuario,
-): Promise<{ panel: Panel; error: string | null }> {
+export function historiasDelUsuario(admin: SupabaseClient, user: Usuario): Promise<ResultadoPanel> {
+  const memoria = memoriaDe(user);
+  memoria.historias ??= cargarHistorias(admin, user);
+  return memoria.historias;
+}
+
+async function cargarHistorias(admin: SupabaseClient, user: Usuario): Promise<ResultadoPanel> {
   const vacio: Panel = { familia: null, historias: [] };
 
-  const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
+  // Familia e invitaciones no dependen una de la otra: van juntas
+  // (RENDIMIENTO.md §3.4). Antes eran cuatro rondas en serie (familia →
+  // sus narradores → invitados → los narradores invitados); ahora son dos.
+  const [{ familia, error: errorFamilia }, roles] = await Promise.all([
+    familiaDelUsuario(admin, user),
+    narradoresInvitados(admin, user),
+  ]);
   if (errorFamilia) return { panel: vacio, error: errorFamilia };
 
+  // Las dos consultas de narradores, también juntas. Un narrador de su familia
+  // al que además la invitaron cuenta una sola vez, como dueña: se descarta de
+  // la lista de invitados (antes se filtraba por id contra las propias; es lo mismo).
+  const idsInvitados = [...roles.keys()];
+  const [propias, invitadas] = await Promise.all([
+    familia
+      ? admin.from("narradores").select(CAMPOS_NARRADOR).eq("familia_id", familia.id).order("created_at", { ascending: false })
+      : null,
+    idsInvitados.length > 0
+      ? admin.from("narradores").select(CAMPOS_NARRADOR).in("id", idsInvitados).order("created_at", { ascending: false })
+      : null,
+  ]);
+
   const historias: Historia[] = [];
-
-  if (familia) {
-    const { data, error } = await admin
-      .from("narradores")
-      .select(CAMPOS_NARRADOR)
-      .eq("familia_id", familia.id)
-      .order("created_at", { ascending: false });
-    if (error) return { panel: vacio, error: error.message };
-    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "duena" });
+  if (propias) {
+    if (propias.error) return { panel: vacio, error: propias.error.message };
+    for (const n of (propias.data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "duena" });
   }
-
-  const roles = await narradoresInvitados(admin, user);
-  const idsInvitados = [...roles.keys()].filter((id) => !historias.some((h) => h.narrador.id === id));
-  if (idsInvitados.length > 0) {
-    const { data, error } = await admin
-      .from("narradores")
-      .select(CAMPOS_NARRADOR)
-      .in("id", idsInvitados)
-      .order("created_at", { ascending: false });
-    if (error) return { panel: vacio, error: error.message };
-    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: roles.get(n.id) ?? "invitado" });
+  if (invitadas) {
+    if (invitadas.error) return { panel: vacio, error: invitadas.error.message };
+    for (const n of (invitadas.data as NarradorPanel[] | null) ?? []) {
+      if (familia && n.familia_id === familia.id) continue;
+      historias.push({ narrador: n, rol: roles.get(n.id) ?? "invitado" });
+    }
   }
 
   return { panel: { familia, historias }, error: null };
@@ -136,6 +170,24 @@ export async function historiaAccesible(
   user: Usuario,
   narradorId: string,
 ): Promise<{ historia: Historia | null; error: string | null }> {
+  // Primero, el panel ya cargado (RENDIMIENTO.md §3.3): en una página del
+  // tablero el layout lo pide en el mismo request y queda en la memoria de
+  // historiasDelUsuario, así que la respuesta sale sin ir a la base. El panel
+  // tiene la misma regla que abajo (las de su familia como dueña, las invitadas
+  // con su rol): si la historia está, el rol es el mismo. Si no está o la carga
+  // falló, se consulta como antes.
+  //
+  // Solo dentro de un render de servidor, donde hay memoria por request (dos
+  // pedidos a memoriaDe devuelven el mismo objeto). En un route handler no hay
+  // memoria y cargar el panel entero sería más caro que estas tres consultas.
+  if (memoriaDe(user) === memoriaDe(user)) {
+    const { panel, error: errorPanel } = await historiasDelUsuario(admin, user);
+    if (!errorPanel) {
+      const delPanel = panel.historias.find((h) => h.narrador.id === narradorId);
+      if (delPanel) return { historia: delPanel, error: null };
+    }
+  }
+
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
     .select(CAMPOS_NARRADOR)
@@ -185,6 +237,11 @@ export const PUEDE = {
 
 type ClienteSesion = { auth: { getUser(): Promise<{ data: { user: Usuario | null }; error: unknown }> } };
 
+/** El error de auth-js cuando descarta una renovación del token porque otra le ganó. */
+export function refrescoDescartado(error: unknown): boolean {
+  return typeof error === "object" && error !== null && (error as { name?: unknown }).name === "AuthRefreshDiscardedError";
+}
+
 export type NarradorDeSesion =
   | { ok: true; narrador: NarradorPanel; rol: Rol; user: Usuario }
   | { ok: false; status: number; error: string };
@@ -203,10 +260,17 @@ export async function narradorDeLaSesion(
   params: URLSearchParams | null,
   opciones: { soloDuena?: boolean; mensajeError?: string } = {},
 ): Promise<NarradorDeSesion> {
-  const {
+  let {
     data: { user },
     error: errorSesion,
   } = await sesion.auth.getUser();
+  // El token vencido se renovó dos veces a la vez y auth-js descartó una
+  // («AuthRefreshDiscardedError», la fecha del regalo que no se guardaba a la
+  // primera, 19/10): la otra ya dejó el token nuevo en las cookies, así que
+  // una segunda lectura encuentra la sesión.
+  if (refrescoDescartado(errorSesion)) {
+    ({ data: { user }, error: errorSesion } = await sesion.auth.getUser());
+  }
   if (errorSesion || !user) return { ok: false, status: 401, error: "No hay sesión activa." };
 
   const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intentá de nuevo.";

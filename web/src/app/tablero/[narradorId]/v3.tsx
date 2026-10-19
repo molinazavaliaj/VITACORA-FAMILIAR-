@@ -24,8 +24,14 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos",
+  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false,
 }: {
+  /**
+   * Rediseño 2026-10 (fase 2): la historia va adentro del marco nuevo (MarcoHistoria), que ya trae la
+   * cabecera (tapa, saludo, línea de tiempo) y el lateral (la familia con Compartir, tu pedido con el
+   * cierre anticipado). Acá queda lo contado, sin el riel ni el título. Sin esto, la vista de antes.
+   */
+  enMarco?: boolean;
   /** El trato de los textos del panel: el de la familia dueña de la historia. */
   trato?: TratoComprador;
   /** Ya llegó a la foto del final (FO1): las preguntas de la familia ya no le llegan. */
@@ -59,10 +65,23 @@ export function HistoriaV3({
   const suya = propia ? "tu" : "su";
   const tu = trato === "tu";
 
-  return (
-    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
-      <Riel historias={historiasRiel} actual={n.id} />
+  const acciones = (
+    <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
+      {/* En el marco, subir fotos va en «Sus fotos», en el lateral. */}
+      {puedeAgregarFotos && !enMarco ? (
+        <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>Agregar fotos</SubirFoto>
+      ) : null}
+      {PUEDE.invitar(rol) && !enMarco ? (
+        <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
+          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} trato={trato} />
+        </span>
+      ) : null}
+      {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={trato} /> : null}
+    </div>
+  );
+  const hayAcciones = (puedeAgregarFotos && !enMarco) || (PUEDE.invitar(rol) && !enMarco) || (cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol));
 
+  const contenido = (
       <div className="min-w-0 flex-1">
         {n.alerta_silencio && rol === "duena" ? (
           <div className="mb-8">
@@ -70,6 +89,9 @@ export function HistoriaV3({
           </div>
         ) : null}
 
+        {enMarco ? (
+          hayAcciones ? acciones : null
+        ) : (
         <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 md:pr-14">
           <div className="min-w-0">
             <Etiqueta>{rol === "invitado" ? "Te invitaron a esta historia" : "Historia"}</Etiqueta>
@@ -83,18 +105,9 @@ export function HistoriaV3({
               </p>
             ) : null}
           </div>
-          <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
-            {puedeAgregarFotos ? (
-              <SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>Agregar fotos</SubirFoto>
-            ) : null}
-            {PUEDE.invitar(rol) ? (
-              <span className={historiaCerrada && !aprobado && !dudasAbiertas ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado && !dudasAbiertas ? true : undefined}>
-                <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados} trato={trato} />
-              </span>
-            ) : null}
-            {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? <CerrarEdicion narradorId={n.id} propia={propia} trato={trato} /> : null}
-          </div>
+          {acciones}
         </header>
+        )}
 
         {dudasPendientes ? (
           <div className="mt-8">
@@ -120,6 +133,16 @@ export function HistoriaV3({
               </div>
             ) : null}
           </div>
+        ) : null}
+
+        {/* Primero: hora y ritmo de la entrevista (Naza, 19/10), después lo que se pregunta. */}
+        {!cerrado && PUEDE.cambiarRitmo(rol) && horario ? (
+          <section className="mt-10 border-b border-[var(--linea)] pb-10">
+            <Etiqueta>Ajustes de la entrevista</Etiqueta>
+            <div className="mt-6">
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 tratoPanel={trato} />
+            </div>
+          </section>
         ) : null}
 
         {puedeSumar ? (
@@ -197,21 +220,19 @@ export function HistoriaV3({
           ) : null}
         </div>
 
-        {!cerrado && PUEDE.cambiarRitmo(rol) && horario ? (
-          <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Ajustes de la entrevista</Etiqueta>
-            <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar="" horario={horario} propia={propia} v3 tratoPanel={trato} />
-            </div>
-          </section>
-        ) : null}
-
-        {puedeCerrarAnticipado ? (
+        {puedeCerrarAnticipado && !enMarco ? (
           <div className="mt-8">
             <CierreAnticipado narradorId={n.id} trato={trato} />
           </div>
         ) : null}
       </div>
+  );
+
+  if (enMarco) return contenido;
+  return (
+    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
+      <Riel historias={historiasRiel} actual={n.id} />
+      {contenido}
     </div>
   );
 }

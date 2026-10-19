@@ -14,14 +14,6 @@ export const HORAS_FAMILIAR: Hora[] = [
   { valor: "19:00", nombre: "Al final del día (19:00)" },
 ];
 
-/** El viaje: la pregunta es de la noche, cuando terminó el día. */
-export const HORAS_VIAJE: Hora[] = [
-  { valor: "20:30", nombre: "Después de cenar (20:30)" },
-  { valor: "21:30", nombre: "A la noche (21:30)" },
-  { valor: "22:30", nombre: "Tarde en la noche (22:30)" },
-  { valor: "08:30", nombre: "A la mañana siguiente (8:30)" },
-];
-
 export const ZONAS: [string, string][] = [
   ["Europe/Madrid", "España, Francia, Italia, Alemania (Europa central)"],
   ["Europe/Lisbon", "Portugal, Reino Unido, Irlanda"],

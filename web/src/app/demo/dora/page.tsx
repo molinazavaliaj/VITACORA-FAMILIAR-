@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { Toroide } from "../../marca";
 import { Etiqueta, Tarjeta, Titulo } from "../../tablero/ui";
 
@@ -7,10 +6,6 @@ import { Etiqueta, Tarjeta, Titulo } from "../../tablero/ui";
 // ve "Encargar libro" de Dora con el libro ya terminado. Es una maqueta
 // estática del panel — no lee la base ni pide sesión (Dora es piloto real y
 // todavía no tiene pedido). El PDF es un libro modelo, no el real.
-
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--fuente-titulo", display: "swap" });
-const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], style: ["normal", "italic"], variable: "--fuente-cuerpo", display: "swap" });
 
 export const metadata: Metadata = {
   title: "El libro de Dora",
@@ -36,7 +31,7 @@ const PESTANAS = [
 
 export default function DemoDora() {
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex min-h-dvh flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]`}>
+    <div className="flex min-h-dvh flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
       {/* Cabecera como la del panel en el celular */}
       <header className="sticky top-0 z-20 border-b border-[var(--linea)] bg-[var(--fondo)]">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 md:px-10">

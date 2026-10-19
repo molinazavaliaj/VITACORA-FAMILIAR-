@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
+import { esKids } from "@/lib/kids-panel";
 import { enviarMailInvitacion } from "@/lib/mail";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
@@ -13,7 +14,7 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 // respuestas. La invitación es por mail; entra con el login de siempre y
 // lib/panel.ts la vincula al usuario cuando aparece.
 
-export const MAXIMO_INVITADOS = 3;
+const MAXIMO_INVITADOS = 3;
 const GENERICO = (t: TratoComprador = "vos") => `No pudimos mandar la invitación. ${intenta(t)} de nuevo.`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
@@ -26,6 +27,8 @@ export async function POST(request: NextRequest) {
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const { narrador, user } = acceso;
+  // Vitácora Kids (K5): la historia de un chico la ve solo quien compró; no se invita a nadie.
+  if (esKids(acceso.narrador)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
 
   let body: { email?: string };
   try {

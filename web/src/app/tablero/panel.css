@@ -1,0 +1,521 @@
+/* ── El panel en la dirección «la web es un libro» (fase 2, 14/10) ─────────
+   /tablero y todo /tablero/**. Mismo patrón que el checkout (checkout.css):
+   en vez de reescribir cada pantalla, .pnl les da a los roles de color de
+   siempre (--fondo, --texto, --linea, --acento…, globals.css) valores de papel
+   y tinta. Las ~40 pantallas y piezas de adentro (dudas, frases, nombres,
+   preguntas, libro, leer, cuenta, hojas) cambian de piel sin tocar su lógica.
+
+   Los dos temas del botón (tema.tsx, cookie) son ahora:
+     claro  → papel crema con fibra, cabecera de tinta y hoja con borde cortado
+     oscuro → tinta con la trama de tela de encuadernar
+   Nada violeta: el «acento» es tinta sobre papel y papel sobre tinta.
+
+   Ojo: este archivo no va en una capa, así que le gana a las utilidades de
+   Tailwind (que sí van en @layer). Todo va bajo .pnl, sin reglas sueltas. */
+
+/* Papel (tema claro). :not(.oscuro) para ganarle a .oscuro de globals.css. */
+.pnl:not(.oscuro) {
+  --fondo: #f4f0e7;
+  --texto: #151412;
+  --texto-suave: #45413a;
+  --texto-menor: #625d54;           /* 5,6:1 sobre el papel */
+  --linea: rgba(21, 20, 18, 0.13);
+  --linea-fuerte: rgba(21, 20, 18, 0.32);
+  --acento: #151412;
+  --sobre-acento: #f4f0e7;
+  --relieve: #fbf9f4;               /* una hoja más clara sobre el papel */
+  --hueco: rgba(21, 20, 18, 0.07);
+  --alerta: #8a2a1e;
+  --alerta-fondo: #f6e8e1;
+  /* Las piezas de _ui (hoja, reproductor con onda) pintan con los tokens del
+     tema oscuro de marketing: acá valen papel y tinta, como en .chk. */
+  --tarjeta: #fbf9f4;
+  --texto-oscuro: #1f1d19;
+  --texto-oscuro-fuerte: #151412;
+  --texto-oscuro-suave: #45413a;
+  --texto-oscuro-menor: #625d54;
+  --borde-oscuro: rgba(21, 20, 18, 0.15);
+  --acento-oscuro: #151412;
+  --boton: #151412;
+  --sobre-boton: #f4f0e7;
+  --velo: rgba(21, 20, 18, 0.45);
+  --pnl-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -28px rgba(52, 40, 24, 0.45);
+  --pnl-sombra-libro: 0 1px 1px rgba(52, 40, 24, 0.12), 0 18px 30px -12px rgba(52, 40, 24, 0.42), 0 2px 6px rgba(52, 40, 24, 0.12);
+  background-color: var(--fondo);
+  color-scheme: light;
+}
+
+/* Tinta con tela (tema oscuro). */
+.pnl.oscuro {
+  --fondo: #0b0b0a;
+  --texto: #eeeae1;
+  --texto-suave: #cdc8bd;
+  --texto-menor: #a39f96;           /* 7,6:1 sobre la tinta */
+  --linea: rgba(238, 234, 225, 0.12);
+  --linea-fuerte: rgba(238, 234, 225, 0.3);
+  --acento: #eeeae1;
+  --sobre-acento: #0b0b0a;
+  --relieve: #141412;
+  --hueco: rgba(238, 234, 225, 0.08);
+  --alerta: #f2b8ae;
+  --alerta-fondo: #2a1512;
+  --tarjeta: #141412;
+  --texto-oscuro: #e6e2d8;
+  --texto-oscuro-fuerte: #eeeae1;
+  --texto-oscuro-suave: #cdc8bd;
+  --texto-oscuro-menor: #a39f96;
+  --borde-oscuro: rgba(238, 234, 225, 0.14);
+  --acento-oscuro: #eeeae1;
+  --boton: #eeeae1;
+  --sobre-boton: #0b0b0a;
+  --velo: rgba(0, 0, 0, 0.66);
+  --pnl-sombra: 0 1px 0 rgba(238, 234, 225, 0.05) inset, 0 22px 44px -30px rgba(0, 0, 0, 0.9);
+  --pnl-sombra-libro: 0 1px 1px rgba(0, 0, 0, 0.5), 0 22px 36px -14px rgba(0, 0, 0, 0.95);
+  background-color: var(--fondo);
+  color-scheme: dark;
+}
+
+/* La textura del fondo: fibra de papel o trama de tela. Se pinta una vez y se
+   mueve con el scroll como cualquier fondo (sin capas fijas que repinten). */
+.pnl:not(.oscuro) {
+  background-image: var(--dir-fibra);
+  background-size: var(--dir-fibra-tamano);
+}
+.pnl.oscuro { background-image: var(--dir-tela); }
+
+.pnl :focus-visible { outline-color: var(--texto); }
+
+/* Una sola escala de esquinas (shape lock): hojas y tarjetas a 6 px, los
+   botones siguen en píldora. Las pantallas viejas usan rounded-xl/lg. */
+.pnl .rounded-xl { border-radius: 6px; }
+.pnl .rounded-lg { border-radius: 4px; }
+
+/* ── La cabecera: tinta con tela en los dos temas. En papel, la hoja de
+   abajo la tapa con su borde cortado a mano (como el checkout). ── */
+.pnl-cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--dir-tinta);
+  background-image: var(--dir-tela);
+  color: var(--dir-sobre-tinta);
+  color-scheme: dark;
+  --texto: #eeeae1;
+  --texto-suave: #cdc8bd;
+  --texto-menor: #a39f96;
+  --linea: rgba(238, 234, 225, 0.14);
+  --linea-fuerte: rgba(238, 234, 225, 0.32);
+  --fondo: #0b0b0a;
+  --hueco: rgba(238, 234, 225, 0.1);
+}
+.pnl.oscuro .pnl-cabecera { border-bottom: 1px solid rgba(238, 234, 225, 0.1); }
+.pnl-cabecera :focus-visible { outline-color: var(--dir-sobre-tinta); }
+/* El borde de la hoja: en papel, los dientes del papel tapan el pie de la
+   cabecera (como el checkout) y viajan con ella al bajar. En tinta no hay hoja. */
+.pnl-cabecera { padding-bottom: 10px; }
+.pnl:not(.oscuro) .pnl-cabecera::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: var(--dir-deckle-alto);
+  background: var(--dir-papel); /* el papel del panel (adentro de la cabecera, --fondo es tinta) */
+  -webkit-mask: var(--dir-deckle-arriba) repeat-x 0 0 / var(--dir-deckle-tamano);
+  mask: var(--dir-deckle-arriba) repeat-x 0 0 / var(--dir-deckle-tamano);
+  pointer-events: none;
+}
+
+
+.pnl-marca { font-family: var(--fuente-micro), sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.22em; }
+.pnl-nav-enlace {
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--dir-sobre-tinta-suave);
+  transition: color var(--d-rapido) var(--dir-curva);
+}
+.pnl-nav-enlace:hover { color: var(--dir-sobre-tinta); }
+.pnl-nav-enlace[aria-current="page"] { color: var(--dir-sobre-tinta); }
+.pnl-nav-enlace[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 1px;
+  background: currentColor;
+}
+.pnl-avatar {
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(238, 234, 225, 0.32);
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--dir-sobre-tinta);
+  transition: border-color var(--d-rapido) var(--dir-curva), background-color var(--d-rapido) var(--dir-curva);
+}
+.pnl-avatar:hover, .pnl-avatar[aria-expanded="true"] { border-color: var(--dir-sobre-tinta); background: rgba(238, 234, 225, 0.06); }
+.pnl-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  min-width: 260px;
+  border: 1px solid rgba(238, 234, 225, 0.14);
+  border-radius: 6px;
+  background: #121210;
+  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.8);
+  animation: stepInAbajo var(--d-rapido) var(--ease-out) both;
+}
+
+/* La barra de abajo en el móvil: papel o tinta según el tema, con su hilo. */
+.pnl-pestanas {
+  background-color: var(--fondo);
+  border-top: 1px solid var(--linea);
+}
+
+/* ── Tipografía ── */
+.pnl-titular {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.85rem, 1.3rem + 2.5vw, 3.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  padding-bottom: 0.06em;
+}
+.pnl-titular em { font-style: italic; letter-spacing: -0.015em; }
+.pnl-h2 {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.45rem, 1.25rem + 0.7vw, 1.85rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.pnl-h3 {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.pnl-micro {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--texto-menor);
+}
+.pnl-dato { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-menor); font-variant-numeric: tabular-nums; }
+.pnl-parrafo { font-size: 16.5px; font-weight: 300; line-height: 1.6; color: var(--texto-suave); text-wrap: pretty; }
+/* En las hojas angostas, «pretty» corta las líneas de más: ahí, el corte de siempre. */
+.pnl-hoja .pnl-parrafo { text-wrap: wrap; }
+.pnl-cifra {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.2rem, 1.8rem + 1.2vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.pnl-num {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--texto-menor);
+  font-variant-numeric: lining-nums;
+}
+
+/* ── La tapa del libro, apoyada en la mesa ── */
+.pnl-libro {
+  position: relative;
+  flex: none;
+  border-radius: 2px 4px 4px 2px;
+  overflow: hidden;
+  box-shadow: var(--pnl-sombra-libro);
+  transform: rotate(-1.5deg);
+  transition: transform var(--d-base) var(--dir-curva);
+}
+@media (hover: hover) {
+  a:hover > .pnl-libro, .pnl-libro:hover { transform: rotate(0deg) translateY(-2px); }
+}
+
+/* ── La línea de tiempo: un hilo por paso que se llena en orden al cargar
+   (scaleX, MOTION «Panel»). El actual, a medias. ── */
+.pnl-linea { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 10px; }
+.pnl-paso { display: flex; min-width: 0; flex-direction: column; gap: 9px; }
+.pnl-paso-hilo { position: relative; height: 2px; overflow: hidden; border-radius: 2px; background: var(--linea); }
+.pnl-paso-hilo > span {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--texto);
+  transform: scaleX(0);
+}
+.pnl-paso[data-estado="hecho"] .pnl-paso-hilo > span { transform: scaleX(1); }
+.pnl-paso[data-estado="actual"] .pnl-paso-hilo > span { transform: scaleX(0.5); }
+.pnl-paso-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12.5px;
+  color: var(--texto-menor);
+}
+.pnl-paso[data-estado="hecho"] .pnl-paso-nombre { color: var(--texto-suave); }
+.pnl-paso[data-estado="actual"] .pnl-paso-nombre { color: var(--texto); font-weight: 500; }
+@media (max-width: 639px) {
+  .pnl-paso-nombre { white-space: normal; font-size: 11px; line-height: 1.25; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pnl-paso[data-estado="hecho"] .pnl-paso-hilo > span,
+  .pnl-paso[data-estado="actual"] .pnl-paso-hilo > span {
+    animation: pnl-llenar var(--d-base) var(--ease-out) both;
+    animation-delay: calc(120ms + var(--i, 0) * 110ms);
+  }
+  .pnl-paso[data-estado="actual"] .pnl-paso-hilo > span { animation-name: pnl-llenar-medio; }
+}
+@keyframes pnl-llenar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pnl-llenar-medio { from { transform: scaleX(0); } to { transform: scaleX(0.5); } }
+
+/* ── Las hojas del lateral (Tu pedido, sus fotos, lo último, la familia):
+   una hoja suelta, más clara que el papel, con su hilo y una sombra cálida.
+   No es una caja de cada cosa: van pocas, y cada una con su título. ── */
+.pnl-hoja {
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  background-color: var(--relieve);
+  box-shadow: var(--pnl-sombra);
+}
+.pnl-fila {
+  display: flex;
+  min-height: 48px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--linea);
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  color: var(--texto);
+  text-align: left;
+  transition: color var(--d-rapido) var(--dir-curva);
+}
+.pnl-fila:hover { color: var(--texto-suave); }
+.pnl-fila > [aria-hidden] { color: var(--texto-menor); transition: transform var(--d-rapido) var(--dir-curva); }
+.pnl-fila:hover > [aria-hidden] { transform: translateX(3px); }
+.pnl-renglon { position: relative; padding-left: 22px; font-family: var(--fuente-micro), sans-serif; font-size: 14px; color: var(--texto-suave); }
+.pnl-renglon::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 12px; height: 1px; background: currentColor; opacity: 0.6; }
+.pnl-guia { flex: 1 1 auto; min-width: 12px; border-bottom: 1px dotted var(--linea-fuerte); transform: translateY(-4px); }
+
+/* Botones del panel nuevo: píldora, tinta llena o hilo. */
+.pnl-boton {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 22px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: transform var(--d-rapido) var(--dir-curva), background-color var(--d-rapido) var(--dir-curva), border-color var(--d-rapido) var(--dir-curva), opacity var(--d-rapido);
+  touch-action: manipulation;
+}
+.pnl-boton:active { transform: scale(0.98); }
+.pnl-boton--lleno { background: var(--texto); color: var(--fondo); }
+.pnl-boton--lleno:hover { opacity: 0.88; }
+.pnl-boton--hilo { border: 1px solid var(--linea-fuerte); color: var(--texto); }
+.pnl-boton--hilo:hover { border-color: var(--texto); }
+
+/* ── Lo último que contó: la onda (MOTION 9) con el color del tema ── */
+.pnl-onda { display: flex; height: 26px; align-items: center; gap: 2px; }
+.pnl-onda > span { display: block; width: 2px; border-radius: 2px; background: currentColor; }
+.pnl-play {
+  display: flex;
+  height: 44px;
+  width: 44px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--texto);
+  color: var(--fondo);
+  transition: transform var(--d-rapido) var(--dir-curva);
+  touch-action: manipulation;
+}
+.pnl-play:active { transform: scale(0.95); }
+
+/* ── Las fotos del lateral: miniaturas cuadradas en sepia leve, como el álbum ── */
+.pnl-miniatura { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 3px; background: var(--hueco); }
+.pnl-miniatura img { filter: sepia(0.18) saturate(0.92); }
+
+/* ── Los bloques entran en orden, desde abajo (MOTION 2, 320 ms, 70 ms) ── */
+@media (prefers-reduced-motion: no-preference) {
+  /* backwards y no both: con «both» la animación queda vigente para siempre y el
+     transform convierte al bloque en el marco de los position: fixed de adentro
+     (las hojas de «Pausar o cerrar» quedaban metidas en el lateral). */
+  .pnl-entra > * { animation: stepInAbajo var(--d-base) var(--ease-out) backwards; }
+  .pnl-entra > *:nth-child(2) { animation-delay: 70ms; }
+  .pnl-entra > *:nth-child(3) { animation-delay: 140ms; }
+  .pnl-entra > *:nth-child(4) { animation-delay: 210ms; }
+  .pnl-entra > *:nth-child(5) { animation-delay: 280ms; }
+  .pnl-entra > *:nth-child(n + 6) { animation-delay: 320ms; }
+}
+
+/* El cierre anticipado de siempre, adentro de la hoja «Pausar o cerrar»: sin
+   el margen grande que traía de cuando iba suelto al final de la página. */
+.pnl-cierre > * { margin-top: 0.75rem; }
+
+/* ── Lo que ya existía, en la letra del libro ──
+   Los títulos de capítulo de la historia (h2 en Playfair) y los números en
+   cursiva; las etiquetas de sección, un poco más quietas. */
+.pnl-cuerpo h2 { letter-spacing: -0.015em; }
+
+/* Adentro del marco nuevo, lo contado empieza arriba de todo: el primer bloque
+   de cada vista traía su margen de cuando iba debajo del título. */
+#lo-contado > div > :first-child { margin-top: 0; }
+
+/* ── Las historias de Viaje con su color (15/10) ───────────────────────────
+   La paleta de la guía (tokens --viaje-*, _direccion/tokens.css). Una historia
+   de Viaje (MarcoHistoria con data-producto="viaje") pinta la página entera:
+     oscuro → la noche #0a0a0a, texto blanco, acento #9dbdff
+     claro  → un papel gris azulado muy claro y el acento en azul tinta (el
+              #9dbdff no se lee sobre claro: 2,1:1)
+   El botón principal es el de la guía en los dos temas: #7aa7ff con texto
+   oscuro (8,3:1). En el Inicio, el libro de Viaje del estante lleva solo el
+   acento (la etiqueta y su línea de tiempo): la página es de todos. */
+.pnl.oscuro:has(.pnl-marco[data-producto="viaje"]) {
+  --fondo: var(--viaje-fondo);
+  --texto: var(--viaje-texto);
+  --texto-suave: #c9c6be;
+  --texto-menor: var(--viaje-texto-menor);   /* 5,9:1 */
+  --linea: var(--viaje-hilo);
+  --linea-fuerte: rgba(255, 255, 255, 0.3);
+  --acento: var(--viaje-acento);
+  --sobre-acento: var(--viaje-sobre-boton);
+  --relieve: var(--viaje-tarjeta);
+  --hueco: rgba(157, 189, 255, 0.1);
+  --tarjeta: var(--viaje-tarjeta);
+  --texto-oscuro: var(--viaje-texto);
+  --texto-oscuro-fuerte: var(--viaje-texto);
+  --texto-oscuro-suave: #c9c6be;
+  --texto-oscuro-menor: var(--viaje-texto-menor);
+  --borde-oscuro: var(--viaje-hilo);
+  --acento-oscuro: var(--viaje-acento);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --pnl-acento: var(--viaje-acento);
+}
+.pnl:not(.oscuro):has(.pnl-marco[data-producto="viaje"]) {
+  --dir-papel: var(--viaje-papel);           /* el borde cortado de la cabecera */
+  --fondo: var(--viaje-papel);
+  --texto: #10141d;
+  --texto-suave: #3a4252;
+  --texto-menor: #5a6274;                    /* 5,4:1 */
+  --linea: rgba(16, 20, 29, 0.13);
+  --linea-fuerte: rgba(16, 20, 29, 0.32);
+  --acento: var(--viaje-acento-papel);
+  --sobre-acento: #ffffff;
+  --relieve: #f8f9fc;
+  --hueco: rgba(43, 79, 150, 0.08);
+  --tarjeta: #f8f9fc;
+  --texto-oscuro: #1a1f2b;
+  --texto-oscuro-fuerte: #10141d;
+  --texto-oscuro-suave: #3a4252;
+  --texto-oscuro-menor: #5a6274;
+  --borde-oscuro: rgba(16, 20, 29, 0.15);
+  --acento-oscuro: var(--viaje-acento-papel);
+  --boton: var(--viaje-boton);
+  --sobre-boton: var(--viaje-sobre-boton);
+  --pnl-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -28px rgba(24, 36, 64, 0.4);
+  --pnl-sombra-libro: 0 1px 1px rgba(24, 36, 64, 0.12), 0 18px 30px -12px rgba(24, 36, 64, 0.4), 0 2px 6px rgba(24, 36, 64, 0.12);
+  --pnl-acento: var(--viaje-acento-papel);
+  /* Sin la fibra parda del papel crema: el gris azulado va liso. */
+  background-image: none;
+}
+/* El acento suelto (el libro de Viaje del estante, adentro de una página de
+   Familiar): el del tema. */
+.pnl.oscuro [data-producto="viaje"] { --pnl-acento: var(--viaje-acento); }
+.pnl:not(.oscuro) [data-producto="viaje"] { --pnl-acento: var(--viaje-acento-papel); }
+
+/* Lo que se tiñe: etiquetas, números de etapa, el hilo de la línea de tiempo
+   y el botón principal. */
+.pnl [data-producto="viaje"] .pnl-micro,
+.pnl [data-producto="viaje"] .pnl-num { color: var(--pnl-acento); }
+.pnl [data-producto="viaje"] .pnl-paso-hilo > span { background: var(--pnl-acento); }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-boton--lleno {
+  background: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-boton--lleno:hover { background: var(--viaje-boton-encima); opacity: 1; }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-play { background: var(--viaje-boton); color: var(--viaje-sobre-boton); }
+.pnl:has(.pnl-marco[data-producto="viaje"]) .pnl-onda { color: var(--pnl-acento); }
+/* Las pantallas de adentro (etapas, temas, ajustes) pintan su botón lleno y
+   lo elegido con bg-[var(--texto)] + text-[var(--fondo)]: en Viaje, el azul
+   de la guía con texto oscuro (en el tema claro el --fondo no se leería
+   sobre el azul). */
+.pnl .pnl-marco[data-producto="viaje"] .bg-\[var\(--texto\)\] {
+  background-color: var(--viaje-boton);
+  border-color: var(--viaje-boton);
+  color: var(--viaje-sobre-boton);
+}
+
+/* ── El panel de Vitácora Kids con su color (K5, 15/10) ────────────────────
+   La paleta de Kids de la guía (la misma de _kids/kids.css: fondo #fbf8f3,
+   tarjeta #ffffff, texto #14140f, acento #c4502e, botón #ff8a6b con texto en
+   tinta, 8,2:1). Kids es claro de punta a punta, como su página: el panel de
+   un chico (PanelKids, data-producto="kids") pinta la página en papel aunque
+   el tema elegido sea el oscuro. En el Inicio, el libro de un chico lleva solo
+   el acento. */
+.pnl:has(.pnl-marco[data-producto="kids"]) {
+  --dir-papel: #fbf8f3;
+  --fondo: #fbf8f3;
+  --texto: #14140f;
+  --texto-suave: #57534b;           /* 7,4:1 */
+  --texto-menor: #6f6a61;           /* 5,2:1 */
+  --linea: rgba(20, 20, 15, 0.14);
+  --linea-fuerte: rgba(20, 20, 15, 0.32);
+  --acento: #c4502e;
+  --sobre-acento: #ffffff;
+  --relieve: #ffffff;
+  --hueco: rgba(196, 80, 46, 0.08);
+  --alerta: #8a2a1e;
+  --alerta-fondo: #f6e8e1;
+  --tarjeta: #ffffff;
+  --texto-oscuro: #14140f;
+  --texto-oscuro-fuerte: #14140f;
+  --texto-oscuro-suave: #57534b;
+  --texto-oscuro-menor: #6f6a61;
+  --borde-oscuro: rgba(20, 20, 15, 0.14);
+  --acento-oscuro: #c4502e;
+  --boton: #ff8a6b;
+  --sobre-boton: #14140f;
+  --pnl-acento: #c4502e;
+  --pnl-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 18px 40px -28px rgba(120, 60, 30, 0.35);
+  background-color: #fbf8f3;
+  background-image: var(--dir-fibra);
+  background-size: var(--dir-fibra-tamano);
+  color-scheme: light;
+}
+.pnl [data-producto="kids"] { --pnl-acento: #c4502e; }
+.pnl [data-producto="kids"] .pnl-micro,
+.pnl [data-producto="kids"] .pnl-num { color: var(--pnl-acento); }
+.pnl [data-producto="kids"] .pnl-paso-hilo > span { background: var(--pnl-acento); }
+.pnl:has(.pnl-marco[data-producto="kids"]) .pnl-boton--lleno { background: #ff8a6b; color: #14140f; }
+.pnl:has(.pnl-marco[data-producto="kids"]) .pnl-boton--lleno:hover { background: #ff7a57; opacity: 1; }
+.pnl .pnl-marco[data-producto="kids"] .pnl-hoja { background-color: #ffffff; }

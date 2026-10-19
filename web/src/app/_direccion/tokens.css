@@ -1,0 +1,81 @@
+/* Tokens de la dirección visual nueva («la web como un libro»), 14/10.
+   Los comparten la portada (_direccion/*) y cualquier pantalla que se pase a
+   este lenguaje (el checkout, por ejemplo). Importar desde el componente:
+     import "@/app/_direccion/tokens.css";
+   Están en :root, así que valen en toda la página que lo importe. Solo
+   variables: ninguna regla de estilo vive acá.
+
+   Los colores son los que se PINTAN; el grano fijo (--dir-grano, al 5 %)
+   aclara la tinta y oscurece el papel unos 6 niveles, así que lo que se VE
+   es ~#0d0d0c y ~#eeeae1. */
+:root {
+  /* Tinta y papel */
+  --dir-tinta: #070706;
+  --dir-papel: #f4f0e7;
+  --dir-papel-carta: #f2ede1;         /* una hoja suelta sobre la tinta */
+  --dir-papel-pagina: #f7f2e6;        /* las páginas del libro */
+  --dir-sobre-tinta: #eeeae1;         /* texto sobre tinta */
+  --dir-sobre-tinta-suave: #a39f96;   /* bajadas y datos sobre tinta */
+  --dir-sobre-papel: #151412;         /* texto sobre papel */
+  --dir-sobre-papel-suave: #5a564e;   /* bajadas sobre papel */
+  --dir-hilo-tinta: rgba(238, 234, 225, 0.16);  /* líneas finas sobre tinta */
+  --dir-hilo-papel: rgba(21, 20, 18, 0.2);      /* líneas finas sobre papel */
+  --dir-dorado: #8a7246;              /* el único acento: «Escucha su voz», «Capítulo 1» */
+
+  /* Movimiento */
+  --dir-curva: cubic-bezier(0.22, 1, 0.36, 1);  /* lo que entra o aparece */
+  --dir-curva-io: cubic-bezier(0.65, 0, 0.35, 1); /* ida y vuelta (= --ease-io) */
+
+  /* Formas */
+  --dir-radio-boton: 999px;           /* botones: píldora */
+  --dir-alto-boton: 56px;
+  --dir-sombra-hoja: 0 -28px 60px -24px rgba(0, 0, 0, 0.55);   /* borde de una hoja que sube */
+  --dir-sombra-hoja-tinta: 0 -1px 0 rgba(238, 234, 225, 0.07), 0 -28px 60px -24px rgba(0, 0, 0, 0.9);
+
+  /* Texturas (como valor de background-image o mask-image) */
+  /* Tela de encuadernar, para fondos de tinta. Va sobre background-color. */
+  --dir-tela:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px);
+  /* Fibra de papel, mosaico de 260 px (background-size: 260px 260px). */
+  --dir-fibra: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .55' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .2  2.4 0 0 0 -1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23f%29'/%3E%3C/svg%3E");
+  --dir-fibra-tamano: 260px 260px;
+  /* Grano fijo de toda la página, mosaico de 180 px, opacidad 0,05. */
+  --dir-grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncG type='linear' slope='3.5' intercept='-1.25'/%3E%3CfeFuncB type='linear' slope='3.5' intercept='-1.25'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  /* Borde de hoja cortado a mano (deckle). Máscaras de 420 x 14 px en
+     repeat-x: arriba para el borde superior, abajo para el inferior. */
+  --dir-deckle-arriba: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E");
+  --dir-deckle-abajo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='14'%3E%3Cpath transform='matrix%281 0 0 -1 0 14%29' d='M0 14 L0 6.0 L2.6 7.0 L5.0 7.0 L7.7 6.2 L10.2 6.5 L13.3 5.5 L15.4 4.4 L18.5 4.9 L20.1 6.2 L23.5 6.6 L26.2 5.7 L27.8 5.7 L29.5 4.9 L31.5 3.7 L34.0 3.6 L37.1 3.6 L39.8 3.6 L42.6 3.5 L44.7 4.8 L48.1 5.7 L51.0 5.2 L53.0 4.6 L54.7 5.3 L57.1 6.2 L59.4 7.4 L62.5 6.1 L64.5 7.2 L66.9 8.4 L69.2 7.3 L72.0 8.1 L74.0 7.0 L76.2 8.2 L79.2 7.2 L81.3 6.2 L83.0 6.9 L84.9 7.1 L87.3 6.3 L90.2 5.3 L93.0 4.3 L95.3 3.6 L97.4 4.8 L100.5 4.3 L103.6 3.5 L106.0 4.5 L108.7 3.4 L112.1 2.7 L114.2 3.4 L116.3 2.9 L118.1 1.8 L120.7 1.5 L123.4 1.5 L125.8 2.7 L128.3 2.9 L131.5 2.1 L133.3 3.1 L136.4 2.5 L138.3 3.1 L141.6 2.3 L145.0 3.3 L147.6 3.1 L149.4 1.9 L152.8 1.5 L155.6 1.5 L158.7 1.8 L160.8 1.5 L163.7 1.5 L165.7 1.7 L168.9 2.0 L171.0 3.0 L173.0 1.8 L175.0 1.6 L176.7 1.5 L179.0 1.7 L180.8 1.5 L184.0 2.7 L186.8 3.2 L189.5 2.3 L191.1 1.5 L194.4 2.0 L197.7 1.5 L200.5 1.5 L203.4 1.5 L206.8 1.5 L209.4 2.1 L212.6 2.7 L215.4 3.5 L218.7 3.1 L221.5 4.2 L224.7 3.9 L227.7 4.9 L230.3 5.2 L232.6 5.4 L235.3 4.3 L238.1 5.6 L241.3 6.2 L243.6 6.8 L246.2 6.7 L249.3 5.6 L252.3 4.4 L255.0 4.3 L257.0 4.8 L259.5 5.1 L262.7 4.5 L264.3 4.0 L267.2 3.2 L269.1 4.3 L271.9 4.1 L275.1 3.7 L277.9 2.9 L280.2 3.7 L283.5 4.7 L285.8 4.9 L287.9 3.9 L290.4 4.8 L293.6 5.3 L296.9 4.8 L298.8 4.6 L300.9 3.9 L303.2 4.2 L305.7 3.7 L308.8 5.0 L311.2 3.9 L312.9 4.9 L314.6 5.4 L317.2 4.9 L320.2 3.7 L322.1 3.5 L323.7 4.4 L325.7 3.5 L327.4 3.8 L329.8 4.1 L332.6 4.9 L335.9 5.4 L337.9 5.3 L339.8 4.1 L342.3 4.6 L344.2 4.0 L346.4 4.6 L348.9 4.9 L351.9 4.6 L354.9 5.6 L356.7 6.8 L359.6 5.8 L362.0 6.1 L365.2 5.8 L367.9 6.8 L370.9 7.9 L373.3 8.3 L375.3 8.9 L378.4 9.3 L381.3 8.5 L384.5 9.5 L387.8 9.5 L390.9 9.0 L394.1 9.5 L396.3 8.4 L398.7 8.5 L401.7 8.5 L403.4 8.8 L405.1 8.5 L407.0 7.8 L410.0 6.9 L411.9 6.6 L414.8 6.4 L420 6.0 L420 14Z'/%3E%3C/svg%3E");
+  --dir-deckle-tamano: 420px 14px;
+  --dir-deckle-alto: 14px;
+
+  /* ── Vitácora de Viaje (15/10, Naza: «no cambian los colores a como está
+     en el brief») ── La paleta de la guía de las maquetas («EL SISTEMA»,
+     capturas Viaje y Paletas, opción C «Azul noche»): el mismo lenguaje del
+     libro (letra grande, tela, hojas que se tapan), pero de noche. Donde
+     Familiar tiene papel crema, Viaje tiene la hoja azul noche de la maqueta
+     (el bloque «Para regalar», #141d30). Se aplican con el alcance
+     [data-producto="viaje"] (viaje.css): Familiar no cambia. */
+  --viaje-fondo: #0a0a0a;             /* la noche: lo que se VE */
+  --viaje-fondo-pintado: #020202;     /* lo que se pinta: la tela y el grano lo aclaran a ~#0b0b0b */
+  --viaje-tarjeta: #12120f;
+  --viaje-hoja: #10192c;              /* la hoja azul noche (donde Familiar tiene papel); con el grano se ve #141d30 */
+  --viaje-hoja-honda: #0e1424;        /* un campo o una ficha hundidos en la hoja */
+  --viaje-hoja-alta: #1b2742;         /* lo elegido sobre la hoja */
+  --viaje-texto: #ffffff;
+  --viaje-texto-suave: #b4b1a9;       /* bajadas sobre la noche: 9,2:1 */
+  --viaje-texto-menor: #8f8c85;       /* datos sobre la noche: 5,9:1 */
+  --viaje-hoja-suave: #c9d6f5;        /* bajadas sobre la hoja: 11,5:1 */
+  --viaje-hoja-menor: #a9b6d4;        /* datos sobre la hoja: 8,3:1 */
+  --viaje-hilo: rgba(255, 255, 255, 0.14);
+  --viaje-hilo-hoja: rgba(201, 214, 245, 0.2);
+  --viaje-acento: #9dbdff;            /* etiquetas, números, hilos, la palabra destacada */
+  --viaje-boton: #7aa7ff;             /* el botón principal */
+  --viaje-boton-encima: #9dbdff;      /* el mismo botón con el ratón encima */
+  --viaje-sobre-boton: #0a0a0a;       /* texto del botón: 8,3:1 sobre #7aa7ff (AA) */
+  --viaje-sombra-boton: rgba(122, 167, 255, 0.28);
+  /* Sobre papel claro (el panel en tema claro): el azul de la guía no se lee
+     (2,1:1), así que el acento baja a un azul tinta y el fondo se enfría. */
+  --viaje-papel: #eef1f6;             /* gris azulado muy claro */
+  --viaje-acento-papel: #2b4f96;      /* 7:1 sobre ese papel */
+}

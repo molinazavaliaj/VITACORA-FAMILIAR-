@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/navegador";
 import { normalizarCodigo, esCodigoCompleto } from "@/lib/codigo-otp";
 import { destinoSeguro } from "@/lib/destino";
 import type { TratoComprador } from "@/lib/regalo-textos";
+import { textosEntrar } from "../_textos/entrar";
 
 // Entrada por código de 6 dígitos (OTP), en dos pasos: correo → código.
 // Reemplaza al enlace mágico, que exigía abrirse en el mismo navegador donde
@@ -16,7 +16,7 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 // devuelva al panel en vez de dejarte en el carrito (T3.7).
 
 export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoComprador }) {
-  const tu = trato === "tu";
+  const t = textosEntrar(trato);
   const router = useRouter();
   const destino = destinoSeguro(useSearchParams().get("volver"));
   const [email, setEmail] = useState("");
@@ -24,6 +24,7 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
   const [paso, setPaso] = useState<"correo" | "codigo">("correo");
   const [trabajando, setTrabajando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reenviado, setReenviado] = useState(false);
 
   async function pedirCodigo(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -36,7 +37,7 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
     setTrabajando(false);
 
     if (errorEnvio) {
-      setError(tu ? "No pudimos enviar el código. Prueba de nuevo en un momento." : "No pudimos enviar el código. Probá de nuevo en un momento.");
+      setError(t.errorEnvio);
       return;
     }
 
@@ -58,7 +59,7 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
 
     if (errorVerificacion) {
       setTrabajando(false);
-      setError(tu ? "El código no es correcto o ya venció. Revísalo o pide uno nuevo." : "El código no es correcto o ya venció. Revisalo o pedí uno nuevo.");
+      setError(t.errorCodigo);
       return;
     }
 
@@ -66,80 +67,98 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
     router.refresh();
   }
 
-  function pedirOtroCodigo() {
+  // Un código vencido se arregla con otro al mismo correo, sin volver a
+  // escribirlo (maqueta `Casos` 5, fase 3). Para cambiar de correo, «Usar
+  // otro correo» vuelve al primer paso como antes.
+  async function pedirOtroCodigo() {
     setError(null);
+    setReenviado(false);
+    setCodigo("");
+    setTrabajando(true);
+    const { error: errorEnvio } = await crearClienteNavegador().auth.signInWithOtp({ email });
+    setTrabajando(false);
+    if (errorEnvio) {
+      setError(t.errorEnvio);
+      return;
+    }
+    setReenviado(true);
+  }
+
+  function usarOtroCorreo() {
+    setError(null);
+    setReenviado(false);
     setCodigo("");
     setPaso("correo");
   }
 
+  // Rediseño 2026-10 (maquetas `Entrar` y `EntrarMovil`): la columna de la
+  // derecha, en tinta y papel. La foto de Osvaldo la pone la página (page.tsx).
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-zinc-900">
-      <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900">{tu ? "Entra" : "Entrá"}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-          Te mandamos un código de 6 números a tu correo. Sin contraseñas.
-        </p>
+    <div className="ent-form">
+      <p className="ent-etiqueta">{t.etiqueta}</p>
+      <h1 className="ent-titulo">{t.titulo}</h1>
+      <p className="ent-bajada">{t.bajada}</p>
 
-        {paso === "correo" ? (
-          <form onSubmit={pedirCodigo} className="mt-8 flex flex-col gap-3">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(evento) => setEmail(evento.target.value)}
-              placeholder="tu@correo.com"
-              autoComplete="email"
-              className="h-12 rounded-lg border border-zinc-300 px-4 text-base text-zinc-900 outline-none focus:border-zinc-900"
-            />
-            <button
-              type="submit"
-              disabled={trabajando}
-              className="h-12 rounded-full bg-zinc-900 text-base font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
-            >
-              {trabajando ? "Enviando..." : "Enviarme el código"}
-            </button>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          </form>
-        ) : (
-          <form onSubmit={verificarCodigo} className="mt-8 flex flex-col gap-3">
-            <p className="text-sm text-zinc-700">
-              Te mandamos un código a <strong>{email}</strong>. {tu ? "Escríbelo aquí:" : "Escribilo acá:"}
+      {paso === "correo" ? (
+        <form onSubmit={pedirCodigo} className="ent-paso mt-8 flex flex-col gap-3">
+          <label htmlFor="ent-correo" className="ent-rotulo">
+            {t.correoEtiqueta}
+          </label>
+          <input
+            id="ent-correo"
+            type="email"
+            required
+            value={email}
+            onChange={(evento) => setEmail(evento.target.value)}
+            placeholder={t.correoPista}
+            autoComplete="email"
+            className="ent-campo"
+          />
+          <button type="submit" disabled={trabajando} className="dir-boton dir-boton--lleno ent-boton">
+            {trabajando ? t.enviando : t.enviar}
+          </button>
+          {error ? <p role="alert" className="ent-error">{error}</p> : null}
+        </form>
+      ) : (
+        <form key="codigo" onSubmit={verificarCodigo} className="ent-paso mt-8 flex flex-col gap-3">
+          <p className="ent-rotulo">
+            {t.codigoEnviado} <strong className="font-medium text-[var(--dir-sobre-tinta)]">{email}</strong>. {t.escribiloAca}
+          </p>
+          <input
+            type="text"
+            required
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            aria-label={t.entrar}
+            value={codigo}
+            onChange={(evento) => setCodigo(evento.target.value)}
+            placeholder="123456"
+            className="ent-campo ent-campo--codigo"
+          />
+          <button type="submit" disabled={trabajando || !esCodigoCompleto(codigo)} className="dir-boton dir-boton--lleno ent-boton">
+            {trabajando ? t.entrando : t.entrar}
+          </button>
+          {error ? <p role="alert" className="ent-error">{error}</p> : null}
+          {reenviado && !error ? (
+            <p role="status" className="ent-rotulo">
+              {t.otroEnviado} <strong className="font-medium text-[var(--dir-sobre-tinta)]">{email}</strong>.
             </p>
-            <input
-              type="text"
-              required
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              value={codigo}
-              onChange={(evento) => setCodigo(evento.target.value)}
-              placeholder="123456"
-              className="h-14 rounded-lg border border-zinc-300 px-4 text-center text-2xl tracking-[0.4em] text-zinc-900 outline-none focus:border-zinc-900"
-            />
-            <button
-              type="submit"
-              disabled={trabajando || !esCodigoCompleto(codigo)}
-              className="h-12 rounded-full bg-zinc-900 text-base font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
-            >
-              {trabajando ? "Entrando..." : "Entrar"}
+          ) : null}
+          <div className="mt-1 flex flex-wrap gap-x-6">
+            <button type="button" onClick={pedirOtroCodigo} disabled={trabajando} className="ent-enlace">
+              {t.pedirOtro}
             </button>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <button
-              type="button"
-              onClick={pedirOtroCodigo}
-              className="text-sm text-zinc-500 hover:text-zinc-700"
-            >
-              Pedir otro código
+            <button type="button" onClick={usarOtroCorreo} className="ent-enlace">
+              {t.otroCorreo}
             </button>
-          </form>
-        )}
+          </div>
+        </form>
+      )}
 
-        <Link
-          href="/"
-          className="mt-8 inline-block text-sm text-zinc-500 hover:text-zinc-700"
-        >
-          Volver al inicio
-        </Link>
-      </div>
+      <aside className="ent-nota">
+        <p className="ent-nota-titulo">{t.notaTitulo}</p>
+        <p className="ent-nota-texto">{t.notaTexto}</p>
+      </aside>
     </div>
   );
 }

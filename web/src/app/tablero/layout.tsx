@@ -1,47 +1,46 @@
+import { Suspense, type ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario } from "@/lib/panel";
 import { Navegacion } from "./nav";
 import { BotonTema, COOKIE_TEMA, type Tema } from "./tema";
+import { estadoCorto } from "./riel";
+import { CascaronHueco } from "./esqueleto";
+import { esKids } from "@/lib/kids-panel";
+import { estadoCortoKids } from "../_textos/panel-kids";
+import { esIdiomaKids, idiomaKidsDeRegion, type IdiomaKids } from "@/lib/kids";
+import "../_direccion/tokens.css";
+import "./panel.css";
 
 // El panel del usuario (docs/panel-usuario.md). Este layout hace tres cosas
 // para todas las pantallas de adentro: exige sesión, carga las historias que
-// ve este usuario (propias e invitadas) y pinta el cascarón — sidebar en
-// desktop, pestañas abajo en el celular — con el tema que eligió (cookie:
-// el servidor ya pinta claro u oscuro, sin parpadeo).
+// ve este usuario (propias e invitadas) y pinta el cascarón —la cabecera de
+// tinta arriba, las pestañas abajo en el celular— con el tema que eligió
+// (cookie: el servidor ya pinta papel o tinta, sin parpadeo).
 //
-// Las tipografías se cargan acá igual que en la landing (web/src/app/page.tsx):
-// el panel es la segunda pantalla pasada al sistema visual de docs/design.md.
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--fuente-titulo",
-  display: "swap",
-});
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--fuente-micro",
-  display: "swap",
-});
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
-  variable: "--fuente-cuerpo",
-  display: "swap",
-});
+// Rediseño 2026-10 (fase 2): la sesión y las historias van adentro de un
+// Suspense. Al entrar desde afuera (carga completa) el navegador recibe al
+// instante el cascarón vacío con su esqueleto, y la cabecera de verdad y la
+// página llegan después por streaming. Antes, la pantalla quedaba en blanco
+// hasta tener todo. Los colores, en ./panel.css (clase .pnl).
+//
+// Las tipografías vienen del layout raíz (web/src/app/layout.tsx).
 
 export default async function LayoutPanel({ children }: LayoutProps<"/tablero">) {
-  const supabase = await crearClienteSesion();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const tema: Tema = (await cookies()).get(COOKIE_TEMA)?.value === "oscuro" ? "oscuro" : "claro";
+  return (
+    <div id="panel" className={`pnl ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col text-[var(--texto)] [font-family:var(--fuente-cuerpo)]`}>
+      <Suspense fallback={<CascaronHueco />}>
+        <Cascaron tema={tema}>{children}</Cascaron>
+      </Suspense>
+    </div>
+  );
+}
+
+async function Cascaron({ tema, children }: { tema: Tema; children: ReactNode }) {
+  const user = await usuarioDeLaSesion();
 
   if (!user) redirect("/entrar");
 
@@ -55,7 +54,9 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
   // Sin familia y sin invitaciones: entró con un mail que nunca compró nada.
   if (!panel.familia && panel.historias.length === 0) redirect("/comprar");
 
-  const tema: Tema = (await cookies()).get(COOKIE_TEMA)?.value === "oscuro" ? "oscuro" : "claro";
+  // El idioma de cada chico de Kids (kids_v2.idioma: es-AR, es-ES o ca); sin él, el de la región.
+  const idiomasKids = await idiomasDeKids(admin, panel.historias.filter((h) => esKids(h.narrador)).map((h) => h.narrador.id));
+  const idiomaDeRegion = idiomaKidsDeRegion(panel.familia?.region ?? "AR");
 
   const historias = panel.historias.map((h) => ({
     id: h.narrador.id,
@@ -63,25 +64,33 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
     comoLeDicen: h.narrador.como_le_dicen,
     rol: h.rol,
     propia: esPropia(h.narrador),
+    // Vitácora Kids (K5): sus estados se dicen de otra forma (no hay invitación que aceptar).
+    estadoCorto: esKids(h.narrador) ? estadoCortoKids(h.narrador.estado, idiomasKids.get(h.narrador.id) ?? idiomaDeRegion) : estadoCorto(h.narrador.estado, esPropia(h.narrador)),
   }));
+  // La letra del círculo de la cuenta: la del nombre de quien compró, o la del correo.
+  const inicial = (panel.familia?.nombre?.trim() || user.email || "").charAt(0).toLocaleUpperCase("es");
 
   return (
-    <div
-      id="panel"
-      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
-    >
-      <Navegacion historias={historias} tema={<BotonTema inicial={tema} />} />
+    <>
+      <Navegacion historias={historias} tema={<BotonTema inicial={tema} />} correo={user.email} inicial={inicial} />
       {/* min-w-0: sin esto, una fila ancha de adentro (las miniaturas del
           álbum, que scrollean de costado) estira el main más allá de la
-          pantalla y la página entera se corre — el fondo del panel termina
-          y se ve el del body al costado. */}
-      <main className="relative min-w-0 flex-1 pb-24 md:pb-0">
-        {/* El botón del tema, opuesto al logo: arriba a la derecha, siempre. */}
-        <div className="absolute right-4 top-4 z-10 hidden md:block">
-          <BotonTema inicial={tema} />
-        </div>
-        {children}
-      </main>
-    </div>
+          pantalla y la página entera se corre. */}
+      <main className="relative min-w-0 flex-1 pb-24 md:pb-0">{children}</main>
+    </>
   );
+}
+
+/** `kids_v2.idioma` de estos chicos. Si la lectura falla, ninguno (va el de la región). */
+async function idiomasDeKids(admin: ReturnType<typeof crearClienteServidor>, ids: string[]): Promise<Map<string, IdiomaKids>> {
+  const idiomas = new Map<string, IdiomaKids>();
+  if (ids.length === 0) return idiomas;
+  try {
+    const { data, error } = await admin.from("kids_v2").select("narrador_id, idioma").in("narrador_id", ids);
+    if (error) throw error;
+    for (const f of (data ?? []) as { narrador_id: string; idioma?: unknown }[]) if (esIdiomaKids(f.idioma)) idiomas.set(f.narrador_id, f.idioma);
+  } catch (err) {
+    console.error("panel: no pude leer el idioma de Kids", err);
+  }
+  return idiomas;
 }

@@ -223,6 +223,48 @@ describe('crearCheckout', () => {
     };
     expect(args.line_items[0].price_data.unit_amount).toBe(1999);
   });
+
+  // Pago fallido (rediseño 2026-10, Casos 2): con el origen de la compra, la
+  // pasarela vuelve a la compra del idioma correcto con ?pago=fallido, y la
+  // vuelta pagada lleva el idioma para «Pedido confirmado».
+  it('con el origen, Stripe vuelve a la compra de su idioma con ?pago=fallido y la vuelta lleva el idioma', async () => {
+    const mockCreate = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/xyz' });
+    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { checkout: { sessions: { create: mockCreate } } };
+    });
+
+    await crearCheckout({ id: 'pedido-5', email: 'martina@test.com' }, calcularCompra('ES', SOLO_PDF), { idioma: 'ca' });
+    const args = mockCreate.mock.calls[0][0] as { success_url: string; cancel_url: string };
+    expect(args.cancel_url).toBe('https://vitacorafamiliar.com/ca/comprar?pago=fallido');
+    expect(new URL(args.success_url).searchParams.get('idioma')).toBe('ca');
+
+    await crearCheckout({ id: 'pedido-6', email: 'martina@test.com' }, calcularCompra('ES', SOLO_PDF), { idioma: 'es', pantalla: 'regalar' });
+    expect((mockCreate.mock.calls[1][0] as { cancel_url: string }).cancel_url).toBe('https://vitacorafamiliar.com/regalar?pago=fallido');
+  });
+
+  it('con el origen, Mercado Pago vuelve a /ar/comprar (o /ar/comprar/viaje) con ?pago=fallido', async () => {
+    const mockPreferenceCreate = vi.fn().mockResolvedValue({ init_point: 'https://mp.example/pref' });
+    (Preference as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { create: mockPreferenceCreate };
+    });
+
+    await crearCheckout({ id: 'pedido-7', email: 'juan@test.com' }, calcularCompra('AR', SOLO_PDF), { idioma: 'ar' });
+    const args = mockPreferenceCreate.mock.calls[0][0] as { body: { back_urls: { success: string; failure: string } } };
+    expect(args.body.back_urls.failure).toBe('https://vitacorafamiliar.com/ar/comprar?pago=fallido');
+    expect(new URL(args.body.back_urls.success).searchParams.get('idioma')).toBe('ar');
+
+    process.env.PRECIO_VIAJE_ARS = '70000';
+    await crearCheckout({ id: 'pedido-8', email: 'juan@test.com' }, calcularCompra('AR', { base: 'viaje', impresos: 0, marcos: 0 }), { idioma: 'ar' });
+    const viaje = mockPreferenceCreate.mock.calls[1][0] as { body: { back_urls: { success: string; failure: string } } };
+    expect(viaje.body.back_urls.failure).toBe('https://vitacorafamiliar.com/ar/comprar/viaje?pago=fallido');
+    expect(new URL(viaje.body.back_urls.success).searchParams.get('viaje')).toBe('1');
+    delete process.env.PRECIO_VIAJE_ARS;
+
+    // Vitácora Kids (K4): de vuelta a /ar/comprar/kids.
+    await crearCheckout({ id: 'pedido-9', email: 'juan@test.com' }, calcularCompra('AR', SOLO_PDF), { idioma: 'ar', pantalla: 'kids' });
+    const kids = mockPreferenceCreate.mock.calls[2][0] as { body: { back_urls: { failure: string } } };
+    expect(kids.body.back_urls.failure).toBe('https://vitacorafamiliar.com/ar/comprar/kids?pago=fallido');
+  });
 });
 
 // --- POST /api/webhooks/stripe -------------------------------------------

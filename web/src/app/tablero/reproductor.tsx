@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { textoAudioBorrado } from "@/lib/audio-borrado";
+
 // El reproductor de una respuesta. Reemplaza al <audio controls> nativo, que
 // se ve distinto en cada navegador y no respeta la marca. Es un botón de
 // play, una barra para moverse (un <input type="range">: accesible con
@@ -30,6 +32,11 @@ export function ReproductorRespuesta({
   const [cargando, setCargando] = useState(false);
   const [tiempo, setTiempo] = useState(0);
   const [total, setTotal] = useState(duracion ?? 0);
+  // Los audios originales se borran a los 3 meses del libro, avisando antes por
+  // mail (fabrica/src/audios-originales.ts). Hasta hoy, al tocar play no pasaba
+  // nada: el archivo ya no estaba, play() fallaba y el catch se lo tragaba.
+  // Ahora la ruta devuelve 410 con la fecha y acá se cuenta qué pasó.
+  const [borradoEl, setBorradoEl] = useState<string | null>(null);
 
   useEffect(() => {
     const a = audio.current;
@@ -78,16 +85,38 @@ export function ReproductorRespuesta({
       setSonando(true);
     } catch {
       setSonando(false);
+      await mirarSiSeBorro();
     } finally {
       setCargando(false);
     }
   }
 
+  /** Si el audio no suena, la ruta dice por qué: 410 es «ya no está», con la fecha. */
+  async function mirarSiSeBorro() {
+    try {
+      const r = await fetch(src, { cache: "no-store" });
+      if (r.status !== 410) return;
+      const { borradoEl: cuando } = (await r.json()) as { borradoEl?: string };
+      if (cuando) setBorradoEl(cuando);
+    } catch {
+      // Sin red no se puede saber: se deja el reproductor como estaba.
+    }
+  }
+
   const porcentaje = total > 0 ? Math.min(100, (tiempo / total) * 100) : 0;
+
+  const aviso = textoAudioBorrado(borradoEl);
+  if (aviso) {
+    return (
+      <p className="rounded-full border border-dashed border-[var(--linea)] px-4 py-1.5 text-[13px] text-[var(--texto-menor)]">
+        {aviso}
+      </p>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3 rounded-full border border-[var(--linea)] bg-[var(--relieve)] py-1.5 pl-1.5 pr-4">
-      <audio ref={audio} src={src} preload="none" data-respuesta onPause={() => setSonando(false)} onPlay={() => setSonando(true)} />
+      <audio ref={audio} src={src} preload="none" data-respuesta onPause={() => setSonando(false)} onPlay={() => setSonando(true)} onError={() => void mirarSiSeBorro()} />
       <button
         type="button"
         onClick={alternar}

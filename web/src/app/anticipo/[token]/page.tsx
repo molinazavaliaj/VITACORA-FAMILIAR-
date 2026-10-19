@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenAnticipo } from "@/lib/token-anticipo";
 import { CampoVF, Toroide } from "../../marca";
@@ -8,6 +7,7 @@ import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { tratoDeLaFamilia } from "@/lib/trato";
+import { EnlaceQueNoSirve, HojaAviso } from "../../_publico/hoja-aviso";
 
 // Las primeras páginas del libro, con su voz. Llega acá desde el correo que
 // manda la fábrica cuando su narrador contestó la tercera pregunta.
@@ -18,29 +18,7 @@ import { tratoDeLaFamilia } from "@/lib/trato";
 // antes de dejarla escuchar a su padre sería arruinar el momento. El token
 // firmado es la autorización.
 //
-// Tipografías cargadas acá, como en la landing: son las dos únicas pantallas
-// pasadas al sistema visual de docs/design.md.
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-  variable: "--fuente-titulo",
-  display: "swap",
-});
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--fuente-micro",
-  display: "swap",
-});
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  style: ["normal", "italic"],
-  variable: "--fuente-cuerpo",
-  display: "swap",
-});
+// Las tipografías vienen del layout raíz (web/src/app/layout.tsx).
 
 // El enlace es privado: llega por correo y muestra material de una familia.
 // Que ningún buscador lo indexe.
@@ -127,7 +105,7 @@ export default async function PaginaAnticipo({
 
   return (
     <div
-      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}
+      className="flex flex-1 flex-col bg-white text-[#14140F]"
     >
       {/* ─── Su voz: lo primero, porque es lo que convence ─────────────── */}
       <div className="bg-[#14140F] text-white">
@@ -213,7 +191,7 @@ export default async function PaginaAnticipo({
             <div className="mt-12 border-t border-[#EBEBE7] pt-8 text-center">
               <p className="text-[26px] tracking-[0.4em] text-[#AEAEA6]">…</p>
               <p className="mt-3 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light italic">
-                Y sigue contando.
+                Sigue contando.
               </p>
             </div>
           </div>
@@ -227,9 +205,9 @@ export default async function PaginaAnticipo({
           Va a seguir contando, a su ritmo.
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-          Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
+          Desde la página de su historia vas a ver el libro crecer capítulo a capítulo. Cuando
           esté terminado, te avisamos por correo y {tu ? "lo lees y lo escuchas" : "lo leés y lo escuchás"} desde
-          tu panel: el libro en PDF y sus mejores frases, en su voz.
+          la página de su historia: el libro en PDF y sus mejores frases, en su voz.
         </p>
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
@@ -247,7 +225,7 @@ export default async function PaginaAnticipo({
       <footer className="mt-auto border-t border-[#EBEBE7]">
         <div className="mx-auto w-full max-w-2xl px-6 py-8 text-center">
           <p className="text-[15px] italic text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-            Para las vidas que merecen su propio libro
+            Todas las vidas merecen su propio libro
           </p>
         </div>
       </footer>
@@ -255,42 +233,25 @@ export default async function PaginaAnticipo({
   );
 }
 
-function Marco({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-center text-[#14140F]">
-      <div className="w-full max-w-md">{children}</div>
-    </div>
-  );
-}
-
+// Las dos salidas sin anticipo, con la hoja de aviso del rediseño (fase 3,
+// `Casos` 5). El texto de «Todavía se está escribiendo» es el de siempre.
 function EstadoInvalido({ trato }: { trato: TratoComprador }) {
-  return (
-    <Marco>
-      <h1 className="text-2xl font-semibold">Este enlace no es válido</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        Puede que esté incompleto. {trato === "tu" ? "Prueba" : "Probá"} abrirlo otra vez desde el correo que
-        te mandamos.
-      </p>
-      <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
-        Ir al inicio
-      </Link>
-    </Marco>
-  );
+  return <EnlaceQueNoSirve idioma={trato === "tu" ? "es" : "ar"} />;
 }
 
 function EstadoEnCamino({ trato }: { trato: TratoComprador }) {
+  const tu = trato === "tu";
   return (
-    <Marco>
-      <h1 className="text-2xl font-semibold">Todavía se está escribiendo</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        {trato === "tu"
-          ? "Las primeras páginas aparecen aquí en cuanto estén listas. Vuelve a abrir "
-          : "Las primeras páginas aparecen acá en cuanto estén listas. Volvé a abrir "}
-        este enlace en un rato.
-      </p>
-      <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
-        Ir al inicio
-      </Link>
-    </Marco>
+    <HojaAviso
+      idioma={tu ? "es" : "ar"}
+      aviso={{
+        etiqueta: "",
+        titulo: "Todavía se está escribiendo",
+        bajada: tu
+          ? "Las primeras páginas aparecen aquí en cuanto estén listas. Vuelve a abrir este enlace en un rato."
+          : "Las primeras páginas aparecen acá en cuanto estén listas. Volvé a abrir este enlace en un rato.",
+      }}
+      salidas={[{ tipo: "entrar" }, { tipo: "inicio" }]}
+    />
   );
 }
