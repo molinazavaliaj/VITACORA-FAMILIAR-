@@ -99,7 +99,7 @@ describe("la tarjeta imprimible", () => {
     expect(html).toContain(">UN REGALO PARA SIEMPRE<");
     expect(html).toContain("<span>El libro</span><span>de tu vida</span>");
     expect(html).toContain(">VITÁCORA FAMILIAR<");
-    expect(html).toContain(">Regalar una Vitácora<");
+    expect(html).toContain(">Te regalaron una Vitácora<");
     for (const parrafo of LIBRO.parrafos) expect(html).toContain(parrafo);
     expect(html).toContain("<span>Para</span><span>abuelo</span>");
     expect(html).toContain("<span>De</span><span>Lucía</span>");
@@ -148,12 +148,12 @@ describe("la tarjeta imprimible", () => {
     expect(html).toContain("<span>El llibre</span><span>de la teva vida</span>");
     expect(html).toContain("<span>Per a</span>");
     expect(html).toContain(">Codi del regal<");
-    expect(html).not.toContain("Regalar una Vitácora");
+    expect(html).not.toContain("Te regalaron");
     expect(html).toContain("A cada família hi ha un llibre per escriure.");
     expect(html).toContain("Tu li respons amb àudios, quan puguis.");
     expect(html).toContain("Apunta la càmera del mòbil aquí per començar.");
     expect(html).toContain(textosAbuelo("ca").respaldo("+54 9 11 0000 0000"));
-    expect(html).toContain("Això és un regal.");
+    expect(html).toContain("han regalat una Vitácora");
     expect(html).not.toContain("Vos");
     expect(html).not.toContain(AR.apunta);
   });
@@ -162,7 +162,9 @@ describe("la tarjeta imprimible", () => {
     estado.regalo = regalo({ idioma: "es-ES" });
     const html = await render();
     expect(html).toContain("En cada familia hay un libro sin escribir.");
-    expect(html).toContain(escapar(LIBRO.parrafos[1]));
+    expect(html).toContain(escapar(textosTarjetaLibro("es-ES").parrafos[1]));
+    expect(html).toContain("Te han regalado una Vitácora");
+    expect(html).not.toContain("contestás");
     expect(html).toContain("Apunta la cámara del móvil aquí para empezar.");
     expect(html).toContain(textosAbuelo("es-ES").respaldo("+54 9 11 0000 0000"));
     expect(html).not.toContain("Vos");
@@ -198,7 +200,8 @@ describe("la tarjeta imprimible", () => {
   it("es-AR con las frases aprobadas literales", async () => {
     const html = await render();
     expect(html).toContain("En cada familia hay un libro sin escribir.");
-    expect(html).toContain("Un biógrafo le hace preguntas por WhatsApp y contesta con audios, a su ritmo.");
+    expect(html).toContain("Un biógrafo te hace preguntas por WhatsApp y vos contestás con audios, a tu ritmo.");
+    expect(html).toContain("Imprimila doble faz y elegí «dar vuelta por el borde largo»");
     expect(html).toContain("Apuntá la cámara del celular acá para empezar.");
     expect(html).toContain("Si la cámara no te anda, mandá un WhatsApp al +54 9 11 0000 0000 con este código.");
     expect(html).toContain("Imprimir o guardar en PDF");
@@ -254,7 +257,7 @@ describe("la imagen para WhatsApp", () => {
     estado.regalo = regalo({ idioma: "ca" });
     estado.numero = { digitos: "34600000000", legible: "+34 600 00 00 00" };
     const html = await textoDeLaImagen();
-    expect(html).toContain("Això és un regal.");
+    expect(html).toContain("han regalat una Vitácora");
     expect(html).toContain("Tu li respons amb àudios, quan puguis.");
     expect(html).toContain("Apunta la càmera del mòbil aquí per començar.");
     expect(html).toContain("envia un WhatsApp al");
@@ -266,7 +269,7 @@ describe("la imagen para WhatsApp", () => {
   it("en castellano de España: las frases de tú", async () => {
     estado.regalo = regalo({ idioma: "es-ES" });
     const html = await textoDeLaImagen();
-    expect(html).toContain("Regalar una Vitácora");
+    expect(html).toContain("Te han regalado una Vitácora");
     expect(html).toContain("Apunta la cámara del móvil aquí para empezar.");
     expect(html).not.toContain("Vos");
   });

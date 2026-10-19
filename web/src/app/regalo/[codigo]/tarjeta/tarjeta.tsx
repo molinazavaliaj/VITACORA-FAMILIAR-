@@ -23,6 +23,7 @@ body:has(.tarjeta-pantalla) { background: #E7E7E3; }
 .tarjeta-boton { font-family: var(--fuente-micro), Arial, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; background: #FFFFFF; color: #14140F; border: 1px solid #14140F; border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
 .tarjeta-boton:hover { background: #14140F; color: #FFFFFF; }
 .tarjeta-boton:focus-visible { outline: 2px solid #14140F; outline-offset: 3px; }
+.tarjeta-aviso { flex-basis: 100%; max-width: 46ch; margin: 0 auto; text-align: center; font-size: 15px; line-height: 1.45; color: #4A463F; }
 .tarjeta-hojas { overflow-x: auto; }
 .hoja { position: relative; width: 297mm; height: 210mm; margin: 0 auto 24px; background: #FFFFFF; box-shadow: 0 18px 34px -20px rgba(20,20,15,.4); overflow: hidden; }
 .hoja-marcas { position: absolute; inset: 0; width: 297mm; height: 210mm; }
@@ -127,7 +128,7 @@ function tamanoMensaje(mensaje: string): string {
   return "5.4mm";
 }
 
-export function TarjetaImprimible({ regalo, qr, respaldo, textos, libro, botonImprimir, botonImagen, langTarjeta }: {
+export function TarjetaImprimible({ regalo, qr, respaldo, textos, libro, botonImprimir, avisoDobleFaz, botonImagen, langTarjeta }: {
   regalo: Pick<RegaloPublico, "codigo" | "comoLeDicen" | "quienRegala" | "mensaje">;
   /** El QR como data URI. */
   qr: string;
@@ -138,6 +139,7 @@ export function TarjetaImprimible({ regalo, qr, respaldo, textos, libro, botonIm
   /** Los textos del diseño impreso (textosTarjetaLibro). */
   libro: TextosTarjetaLibro;
   botonImprimir: string;
+  avisoDobleFaz: string;
   botonImagen: string;
   langTarjeta: "es" | "ca";
 }) {
@@ -149,6 +151,7 @@ export function TarjetaImprimible({ regalo, qr, respaldo, textos, libro, botonIm
         <a className="tarjeta-boton" href={`/regalo/${regalo.codigo}/imagen`} download={`regalo-${regalo.codigo}.png`}>
           {botonImagen}
         </a>
+        <p className="tarjeta-aviso">{avisoDobleFaz}</p>
       </div>
 
       <EscalaHojas />
@@ -228,7 +231,7 @@ function Sello() {
   );
 }
 
-export function TarjetaProductoImprimible({ regalo, qr, respaldo, apunta, textos, botonImprimir, botonImagen, langTarjeta }: {
+export function TarjetaProductoImprimible({ regalo, qr, respaldo, apunta, textos, botonImprimir, avisoDobleFaz, botonImagen, langTarjeta }: {
   regalo: Pick<RegaloPublico, "codigo" | "comoLeDicen" | "quienRegala" | "mensaje">;
   /** El QR como data URI. */
   qr: string;
@@ -238,6 +241,7 @@ export function TarjetaProductoImprimible({ regalo, qr, respaldo, apunta, textos
   apunta: string;
   textos: TextosTarjetaProducto;
   botonImprimir: string;
+  avisoDobleFaz: string;
   botonImagen: string;
   langTarjeta: "es" | "ca";
 }) {
@@ -250,6 +254,7 @@ export function TarjetaProductoImprimible({ regalo, qr, respaldo, apunta, textos
         <a className="tarjeta-boton" href={`/regalo/${regalo.codigo}/imagen`} download={`regalo-${regalo.codigo}.png`}>
           {botonImagen}
         </a>
+        <p className="tarjeta-aviso">{avisoDobleFaz}</p>
       </div>
 
       <EscalaHojas />

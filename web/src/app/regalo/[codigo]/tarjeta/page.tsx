@@ -63,6 +63,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
         apunta={textos.apunta}
         textos={textosTarjetaProducto(regalo.producto, regalo.idioma)}
         botonImprimir={botones.botonImprimir}
+        avisoDobleFaz={botones.avisoDobleFaz}
         botonImagen={botones.botonImagen}
         langTarjeta={langTarjeta}
       />
@@ -77,6 +78,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
       textos={textos}
       libro={textosTarjetaLibro(regalo.idioma)}
       botonImprimir={botones.botonImprimir}
+        avisoDobleFaz={botones.avisoDobleFaz}
       botonImagen={botones.botonImagen}
       langTarjeta={langTarjeta}
     />
