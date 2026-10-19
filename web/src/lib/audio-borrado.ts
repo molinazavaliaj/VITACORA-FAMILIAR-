@@ -22,12 +22,13 @@ export const rutaCandado = (narradorId: string) => `${narradorId}/paquete/${CAND
  * Sin trato de por medio (ni tú ni vos): el reproductor se usa en seis
  * pantallas y ninguna le pasa la región.
  *
- * TEXTO PROPUESTO, falta el OK de Naza.
+ * APROBADO por Naza el 19/10, con su redacción.
  */
 export function textoAudioBorrado(borradoEl: string | null | undefined): string | null {
   if (!borradoEl) return null;
   const fecha = new Date(borradoEl);
-  const cola = "Sus frases en «Su voz» siguen acá.";
+  // «acá» no va: la misma pantalla la ven en España (Naza, 19/10).
+  const cola = "Sus frases de «Su voz» se pueden seguir escuchando.";
   // Una fecha que no se entiende no se inventa: se dice lo que sí sabemos.
   if (Number.isNaN(fecha.getTime())) return `Este audio ya no está. ${cola}`;
   const cuando = fecha.toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
