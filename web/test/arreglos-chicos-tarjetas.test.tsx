@@ -169,7 +169,7 @@ describe("Familiar tiene su propia tarjeta", () => {
     estado.regalo = regalo({ producto: "familiar", idioma: "es-AR", region: "AR" });
     const html = await render();
     expect(html).toContain("FAMILIAR");
-    expect(html).toContain("Regalar una Vitácora");
+    expect(html).toContain("Te regalaron una Vitácora");
     expect(html).not.toContain('class="cara prd-');
   });
 });

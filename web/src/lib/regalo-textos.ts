@@ -30,6 +30,8 @@ export type TextosComprador = {
   estadoCorto: string;
   proximoPaso: string;
   botonImprimir: string;
+  /** Debajo del botón de imprimir: cómo dar vuelta la hoja (Naza, 19/10: el interior le salía al revés). */
+  avisoDobleFaz: string;
   botonImagen: string;
   aQuien: string;
   comoLeDecis: string;
@@ -174,6 +176,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
 
     // Aprobados por Naza el 08/10 (Task 0, tanda 3). Los botones de la tarjeta.
     botonImprimir: "Imprimir o guardar en PDF",
+    avisoDobleFaz: "Imprimila doble faz y elegí «dar vuelta por el borde largo». Si la parte de adentro sale al revés, probá con «borde corto».",
     botonImagen: "Descargar la imagen para WhatsApp",
 
     // Aprobados por Naza el 08/10 (Task 0, tanda 2). El formulario de /regalar, 11 a 20.
@@ -246,6 +249,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     estadoCorto: "esperando que abra el regalo",
     proximoPaso: "Descarga la tarjeta del regalo",
     botonImprimir: "Imprimir o guardar en PDF",
+    avisoDobleFaz: "Imprímela a doble cara y elige «dar la vuelta por el borde largo». Si la parte de dentro sale al revés, prueba con «borde corto».",
     botonImagen: "Descargar la imagen para WhatsApp",
     aQuien: "¿A quién se lo regalas?",
     comoLeDecis: "¿Cómo le dices?",
@@ -340,24 +344,36 @@ export type TextosTarjetaLibro = {
   codigo: string;
 };
 
-// Castellano: los del PDF (16/10). Los tres párrafos son el comunicado aprobado
-// en vos el 16/10; no tienen verbos de vos ni de tú, así que van igual en los dos.
-const TARJETA_LIBRO_ES: TextosTarjetaLibro = {
+// Castellano: la tapa es la del PDF (16/10). El lado de adentro le habla a quien
+// recibe el regalo (Naza, 19/10): antes decía «Regalar una Vitácora» y «su vida»,
+// como un aviso para quien compra. Ahora «Te regalaron una Vitácora», de vos en
+// Argentina y de tú en España.
+const TARJETA_LIBRO_AR: TextosTarjetaLibro = {
   regaloParaSiempre: "UN REGALO PARA SIEMPRE",
   titulo: ["El libro", "de tu vida"],
-  regalar: "Regalar una Vitácora",
+  regalar: "Te regalaron una Vitácora",
   parrafos: [
-    "Es el libro de su vida, contado con sus propias palabras.",
-    "Un biógrafo le hace preguntas por WhatsApp y contesta con audios, a su ritmo.",
-    "Con eso escribimos su libro en tapa dura. Sus mejores historias quedan guardadas con su propia voz, para escucharlas con un QR.",
+    "Es el libro de tu vida, contado con tus propias palabras.",
+    "Un biógrafo te hace preguntas por WhatsApp y vos contestás con audios, a tu ritmo.",
+    "Con eso escribimos tu libro en tapa dura. Tus mejores historias quedan guardadas con tu propia voz, para escucharlas con un QR.",
   ],
   para: "Para",
   de: "De",
   codigo: "Código del regalo",
 };
 
+const TARJETA_LIBRO_ES: TextosTarjetaLibro = {
+  ...TARJETA_LIBRO_AR,
+  regalar: "Te han regalado una Vitácora",
+  parrafos: [
+    "Es el libro de tu vida, contado con tus propias palabras.",
+    "Un biógrafo te hace preguntas por WhatsApp y tú contestas con audios, a tu ritmo.",
+    "Con eso escribimos tu libro en tapa dura. Tus mejores historias quedan guardadas con tu propia voz, para escucharlas con un QR.",
+  ],
+};
+
 const TARJETA_LIBRO: Record<IdiomaRegalo, TextosTarjetaLibro> = {
-  "es-AR": TARJETA_LIBRO_ES,
+  "es-AR": TARJETA_LIBRO_AR,
   "es-ES": TARJETA_LIBRO_ES,
   // El PDF solo está en castellano. En catalán, lo ya aprobado: el título de la
   // carta-libro (17/10), «Això és un regal.» y sus tres líneas (09/10, la
@@ -367,7 +383,7 @@ const TARJETA_LIBRO: Record<IdiomaRegalo, TextosTarjetaLibro> = {
     // PENDIENTE: aprobar (Naza / nativo). Es la única frase sin versión aprobada.
     regaloParaSiempre: "UN REGAL PER SEMPRE",
     titulo: ["El llibre", "de la teva vida"],
-    regalar: "Això és un regal.",
+    regalar: "T'han regalat una Vitácora",
     parrafos: [
       "Un biògraf et farà preguntes sobre la teva vida per WhatsApp.",
       "Tu li respons amb àudios, quan puguis.",
