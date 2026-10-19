@@ -198,6 +198,9 @@ describe("la garantía de cada libro (tanda 4, 19/10) — PENDIENTE DE REVISIÓN
       const t = texto(html(idioma, doc));
       expect(t).not.toMatch(/sin devoluci[oó]n|sense devoluci[oó]/i);
       expect(t).not.toMatch(/108\.3/);
+      // Naza 19/10: manda la regla de las diez preguntas, no «mientras dura la entrevista te devolvemos todo».
+      expect(t).not.toMatch(/mientras dura,? (la entrevista,? )?te devolvemos todo|mentre dura,? (l'entrevista,? )?t'ho retornem tot/i);
+      expect(t).not.toMatch(/Mientras dura la entrevista|Mentre dura l'entrevista/);
       expect(t).not.toMatch(/\(ver la sección 8|\(vegeu la secció 8/);
     }
   });
@@ -206,7 +209,14 @@ describe("la garantía de cada libro (tanda 4, 19/10) — PENDIENTE DE REVISIÓN
 describe("reclamaciones y atención (tanda 5, 19/10)", () => {
   afterEach(() => vi.unstubAllEnvs());
 
-  it.each(IDIOMAS_WEB)("%s: correo de soporte, horario, 30 días y la Junta Arbitral", (idioma) => {
+  it("en /ar no salen la hoja oficial (36) ni la Junta Arbitral (37), que son de España", () => {
+    const t = texto(html("ar", "reclamaciones").split("<main")[1].split("</main>")[0]);
+    expect(t).not.toMatch(/hoja oficial|Junta Arbitral/);
+    expect(t).toContain("Te respondemos en un plazo máximo de 30 días.");
+    expect(t).toContain("en menos de 24 horas te mandamos un número para seguirlo");
+  });
+
+  it.each(["es", "ca"] as const)("%s: correo de soporte, horario, 30 días y la Junta Arbitral", (idioma) => {
     const t = texto(html(idioma, "reclamaciones"));
     expect(t).toContain("soporte@vitacorafamiliar.com");
     expect(t).toMatch(/de 10 a 18, hora d(e España|'Espanya)/);
@@ -232,7 +242,6 @@ describe("reclamaciones y atención (tanda 5, 19/10)", () => {
   it("la hoja oficial: sin el PDF, se pide por correo", () => {
     expect(hayHojaReclamaciones()).toBe(false); // PENDIENTES: conseguir el PDF oficial
     expect(texto(html("es", "reclamaciones"))).toContain("Pídenos la hoja oficial de reclamaciones por correo y te la mandamos.");
-    expect(texto(html("ar", "reclamaciones"))).toContain("Pedinos la hoja oficial de reclamaciones por correo y te la mandamos.");
     expect(html("es", "reclamaciones")).not.toContain("hoja-reclamaciones.pdf");
   });
 

@@ -66,15 +66,11 @@ afegim nosaltres», «Quan tanquem el llibre». Etiquetas **Familiar.**, **De vi
 - Términos, línea 2 (es): «… Si no acepta, o si te arrepientes mientras dura la entrevista, te devolvemos todo.» → «… Si no acepta, o si contesta menos de diez preguntas, te devolvemos todo.» (ar «te arrepentís» → igual; ca «si te'n desdius mentre dura l'entrevista» → «si contesta menys de deu preguntes»).
 - Desistimiento, línea 3 (es): «Mientras dura la entrevista, te devolvemos todo. Con el libro ya escrito, 14 días naturales…» → «Si el narrador contesta menos de diez preguntas, te devolvemos todo. Por ley, 14 días naturales…» (ar y ca lo mismo).
 
-### Lo que todavía contradice la regla nueva (NO lo toqué: son textos aprobados; decide Naza)
-Con la regla final («vale la que más te favorezca»), estos textos ganan sobre la garantía nueva y dejan sin efecto la
-regla de las diez preguntas. Hay que reescribirlos o quitarlos:
-1. **Términos §6, segundo párrafo** (L1-01, es/ar/ca): «**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagas y hasta que el libro está listo en tu cuenta […] si lo pides te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada.»
-2. **Términos §6, lista, España** (L1-03): «… aun así, mientras dura, te devolvemos todo.»
-3. **Desistimiento, «Plazos», primer punto** (L1-10, es/ar/ca): «**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.»
-4. **Desistimiento, «Plazos», «Aunque no lo pidas»**: promete devolver «sin que lo pidas» si la entrevista «termina sin material para un libro». La garantía nueva no dice que sea automático. No contradice, pero promete algo que §7 ya no explica.
-5. **Términos §6, «Por último, lo que no se devuelve»** (L1-04): dice que el PDF ya entregado no se devuelve (art. 103 m). El texto 30 nuevo dice que dentro de los 14 días se devuelve «menos la parte del trabajo ya hecho». Conviene que el abogado diga cuál de los dos vale.
-6. **Checkout y FAQ de la portada**: siguen con las frases cortas viejas («Si no quiere hacerlo, te devolvemos el dinero.», «Si el viaje se cancela…», «Si cambias de idea antes de contestar la primera pregunta…»). No las toqué (checkout frenado hasta #56). Antes un test exigía que fueran idénticas a la garantía de los legales; ese test se fue con la garantía vieja.
+### Lo que quedaba contradiciendo la regla nueva
+Los puntos 1 a 3 se arreglaron después (ver «Alineado a la regla de las diez preguntas», al final). Quedan:
+- **Desistimiento, «Plazos», «Aunque no lo pidas»**: promete devolver «sin que lo pidas» si el narrador no acepta o la entrevista «termina sin material para un libro». No contradice la regla (es lo mismo y además automático), así que quedó igual. §7 no dice que sea automático.
+- **PARA EL ABOGADO. Términos §6, «Por último, lo que no se devuelve»** (L1-04): dice que el PDF ya entregado no se devuelve (art. 103 m). El texto 30 dice que dentro de los 14 días se devuelve «menos la parte del trabajo ya hecho». Quedó como estaba, hasta que el abogado diga cuál vale.
+- **Checkout y FAQ de la portada**: siguen con las frases cortas viejas («Si no quiere hacerlo, te devolvemos el dinero.», «Si el viaje se cancela…», «Si cambias de idea antes de contestar la primera pregunta…»). No las toqué (el checkout está frenado hasta #56). Antes un test exigía que fueran idénticas a la garantía de los legales; ese test se fue con la garantía vieja.
 
 ## 2. Reclamaciones y atención (tanda 5, textos 32–39)
 
@@ -88,16 +84,15 @@ página ya es eso).
 | 33 (bajada) | Si algo no salió bien, escríbenos. Te contesta una persona del equipo de Vitácora. | … escribinos. … | Si alguna cosa no ha sortit bé, escriu-nos. Et respon una persona de l'equip de Vitácora. |
 | 34 | Por WhatsApp al {número} o por correo a soporte@vitacorafamiliar.com, de lunes a viernes de 10 a 18, hora de España. | igual | Per WhatsApp al {número} o per correu a soporte@…, de dilluns a divendres de 10 a 18, hora d'Espanya. |
 | 35 | Te respondemos en un plazo máximo de 30 días. | igual | Et responem en un termini màxim de 30 dies. |
-| 36 | (ver abajo) | (ver abajo) | (ver abajo) |
-| 37 | No estamos adheridos a la Junta Arbitral de Consumo. Si tu reclamación no se resuelve, te diremos qué organismo puede revisarla. | igual | No estem adherits a la Junta Arbitral de Consum. Si la teva reclamació no es resol, et direm quin organisme la pot revisar. |
+| 36 | (ver abajo) | — (es de España) | (ver abajo) |
+| 37 | No estamos adheridos a la Junta Arbitral de Consumo. Si tu reclamación no se resuelve, te diremos qué organismo puede revisarla. | — (es de España) | No estem adherits a la Junta Arbitral de Consum. Si la teva reclamació no es resol, et direm quin organisme la pot revisar. |
 | 38 | — | Cuando nos escribas por un reclamo, en menos de 24 horas te mandamos un número para seguirlo. | — |
 
 - **Texto 34 sin WhatsApp**: el número sale de `NEXT_PUBLIC_WHATSAPP_DUDAS` (el mismo del botón de dudas), con enlace a wa.me. Si la variable no está, la línea queda «Por correo a soporte@vitacorafamiliar.com, de lunes a viernes de 10 a 18, hora de España.» (ca «Per correu a …»).
 - **Texto 36**: `web/public/legal/hoja-reclamaciones.pdf` no existe, así que hoy se ve el reemplazo:
   - es: «Pídenos la hoja oficial de reclamaciones por correo y te la mandamos.»
-  - ar: «Pedinos la hoja oficial de reclamaciones por correo y te la mandamos.»
   - ca: «Demana'ns el full oficial de reclamació per correu i te l'enviem.»
-  - Cuando se suba el PDF, sale solo el texto aprobado con su enlace: es «Si prefieres una hoja oficial de reclamaciones, descárgala aquí, rellénala y mándanosla por correo.»; ar «Si preferís una hoja oficial de reclamaciones, descargala aquí, completala y mandánosla por correo.»; ca «Si prefereixes un full oficial de reclamació, descarrega'l aquí, omple'l i envia'ns-el per correu.» Apuntado en `PENDIENTES.md`.
+  - Cuando se suba el PDF, sale solo el texto aprobado con su enlace: es «Si prefieres una hoja oficial de reclamaciones, descárgala aquí, rellénala y mándanosla por correo.»; ca «Si prefereixes un full oficial de reclamació, descarrega'l aquí, omple'l i envia'ns-el per correu.» Apuntado en `PENDIENTES.md`.
 
 ### Pie de toda la web
 - Columna de legales: Términos · Privacidad · Desistimiento → Términos · Privacidad · Desistimiento · **Reclamaciones** (ca «Reclamacions»; ar después de «Botón de arrepentimiento»).
@@ -105,10 +100,36 @@ página ya es eso).
 
 ### Lo que agregué yo y no estaba literal en la tanda (para que Naza lo mire)
 - La palabra «Reclamaciones» / «Reclamacions» del enlace del pie (el título entero no entra en esa columna).
-- ar, texto 36: «descargala aquí, completala» (de vos; «completala» en lugar de «rellenala»).
-- Los reemplazos del texto 36 de ar y ca, y la línea 34 sin WhatsApp.
+- El reemplazo del texto 36 en ca, y la línea 34 sin WhatsApp.
 - Toda la traducción catalana.
 
 ### Para revisar (no son errores del código)
 - En `/ar` el pie dice «de 10 a 18» sin «hora de España», como pidió el encargo. Un cliente argentino lo va a leer en su hora. La página de reclamaciones sí dice «hora de España».
-- En `/ar` salen también el texto 36 (hoja oficial de reclamaciones) y el 37 (Junta Arbitral de Consumo), que son cosas de España. La tanda solo marcaba el 38 como exclusivo de `/ar`.
+- En `/ar` NO salen el texto 36 (hoja oficial) ni el 37 (Junta Arbitral de Consumo): son de España (coordinador, 19/10). `/ar` tiene 32, 33, 34, 35 y 38.
+
+## 3. Alineado a la regla de las diez preguntas (Naza 19/10)
+
+Naza eligió la regla de las diez preguntas (tanda 4) en lugar de la del 17/10 («mientras dura la entrevista, te devolvemos
+todo»). Cambié lo mínimo para que los tres textos remitan a la garantía de la sección 7. En el código cada uno lleva la
+marca «alineado a la regla de las diez preguntas (Naza 19/10)».
+
+1. **Términos §6, segundo párrafo (L1-01)**
+   - es, antes: «**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagas y hasta que el libro está listo en tu cuenta para que lo revises —mientras el narrador contesta, o mientras dura el viaje—, si lo pides te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada. Es más de lo que pide la ley.»
+   - es, después: «**Primero, lo que te damos nosotros.** Además de lo que te da la ley, cada libro tiene su garantía, que explicamos en la [sección 7](/legal/terminos#garantia). Es más de lo que pide la ley.»
+   - ar: igual que es. ca: «**Primer, el que et donem nosaltres.** A més del que et dona la llei, cada llibre té la seva garantia, que expliquem a la secció 7. És més del que demana la llei.»
+2. **Términos §6, línea de España (L1-03)**
+   - es/ar, antes: «… sin esperar esos 14 días; aun así, mientras dura, te devolvemos todo. …»
+   - es/ar, después: «… sin esperar esos 14 días; aun así, vale la garantía de la sección 7. …»
+   - ca: «… tot i això, mentre dura, t'ho retornem tot.» → «… tot i això, val la garantia de la secció 7.»
+3. **Desistimiento / arrepentimiento, «Plazos», primer punto (L1-10)**
+   - es/ar, antes: «**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.»
+   - es/ar, después: «**La garantía de cada libro.** Si el narrador no acepta, o si contesta menos de diez preguntas, te devolvemos todo. El detalle está al final de esta página.»
+   - ca: «**La garantia de cada llibre.** Si el narrador no accepta, o si contesta menys de deu preguntes, t'ho retornem tot. El detall és al final d'aquesta pàgina.»
+
+Revisado sin cambios:
+- **«Aunque no lo pidas»**: no contradice la regla, así que quedó igual.
+- **«En corto»**: ya estaba ajustado en el punto 1 (términos línea 2, desistimiento línea 3). La línea «Con el libro ya escrito vale el plazo de la ley…» de términos no contradice la regla y quedó igual.
+- **§6, «Después, lo que te da la ley, cuando el libro ya está escrito.»**: no contradice, pero da a entender que la ley solo corre con el libro escrito. Que lo mire el abogado.
+- **§6 «lo que no se devuelve» (art. 103 m) contra el texto 30**: queda como está, anotado arriba para el abogado.
+
+Test nuevo: en términos y desistimiento, en los tres idiomas, ya no puede aparecer «mientras dura la entrevista, te devolvemos todo».

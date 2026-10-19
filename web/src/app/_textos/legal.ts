@@ -331,13 +331,13 @@ const ES: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te arrepientes",
         bloques: [
-          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           p("Puedes arrepentirte sin dar explicaciones: escríbenos a {hola} o usa el [botón de desistimiento](/legal/arrepentimiento). Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. Funciona en tres capas, en este orden:"),
-          p("**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagas y hasta que el libro está listo en tu cuenta para que lo revises —mientras el narrador contesta, o mientras dura el viaje—, si lo pides te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada. Es más de lo que pide la ley."),
+          p("**Primero, lo que te damos nosotros.** Además de lo que te da la ley, cada libro tiene su garantía, que explicamos en la [sección 7](/legal/terminos#garantia). Es más de lo que pide la ley."),
           p("**Después, lo que te da la ley, cuando el libro ya está escrito.** Depende de la región en la que compraste:"),
           lista(
-            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
-            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, mientras dura, te devolvemos todo. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
+            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, vale la garantía de la sección 7. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
             // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
             "**Si compraste en Argentina (en pesos) — 10 días corridos** desde que recibes el libro, o desde la compra si el libro es solo digital, lo que ocurra último (art. 34 de la ley 24.240). Puedes revocar la compra sin costo alguno: te devolvemos el total, y si hay que devolver el libro impreso o el marco, el envío de vuelta lo pagamos nosotros. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
           ),
@@ -628,9 +628,9 @@ const ES: TextosLegal = {
         id: "plazos",
         titulo: "Plazos",
         bloques: [
-          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           lista(
-            "**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.",
+            "**La garantía de cada libro.** Si el narrador no acepta, o si contesta menos de diez preguntas, te devolvemos todo. El detalle está al final de esta página.",
             "**España**: 14 días naturales desde la compra. El libro en PDF (con sus frases en su voz) ya entregado en tu cuenta y los productos a medida (impreso, marcos) no se pueden devolver, salvo que lleguen dañados o con un defecto.",
             "**Argentina**: 10 días corridos desde que recibes el libro, o desde la compra si el libro es solo digital, lo que ocurra último, sin costo (art. 34 de la ley 24.240). Si hay que devolver el libro impreso o el marco, el envío lo pagamos nosotros.",
             "**Aunque no lo pidas**: si el narrador no acepta participar, o la entrevista termina sin material para un libro (ver la sección 7 de los términos), te escribimos y te devolvemos todo en un plazo máximo de 14 días.",
@@ -792,15 +792,15 @@ const AR: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te arrepentís",
         bloques: [
-          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           p("Podés arrepentirte sin dar explicaciones: escribinos a {hola} o usá el [botón de arrepentimiento](/legal/arrepentimiento). Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. Funciona en tres capas, en este orden:"),
-          p("**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagás y hasta que el libro está listo en tu cuenta para que lo revises —mientras el narrador contesta, o mientras dura el viaje—, si lo pedís te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada. Es más de lo que pide la ley."),
+          p("**Primero, lo que te damos nosotros.** Además de lo que te da la ley, cada libro tiene su garantía, que explicamos en la [sección 7](/legal/terminos#garantia). Es más de lo que pide la ley."),
           p("**Después, lo que te da la ley, cuando el libro ya está escrito.** Depende de la región en la que compraste:"),
           lista(
             // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
             "**Si compraste en Argentina (en pesos) — 10 días corridos** desde que recibís el libro, o desde la compra si el libro es solo digital, lo que ocurra último (art. 34 de la ley 24.240). Podés revocar la compra sin costo alguno: te devolvemos el total, y si hay que devolver el libro impreso o el marco, el envío de vuelta lo pagamos nosotros. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
-            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
-            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, mientras dura, te devolvemos todo. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
+            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, vale la garantía de la sección 7. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
           ),
           // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
           p("**Por último, lo que no se devuelve.** Si compraste en España: el libro en PDF ya entregado en tu cuenta (art. 103 m), y el libro impreso y los marcos, que se hacen a medida con la historia y las fotos de tu familia y que aprobás antes de imprimir (art. 103 c). En las dos regiones, si algo llega dañado o con un defecto, lo reponemos sin costo."),
@@ -1089,9 +1089,9 @@ const AR: TextosLegal = {
         id: "plazos",
         titulo: "Plazos",
         bloques: [
-          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           lista(
-            "**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.",
+            "**La garantía de cada libro.** Si el narrador no acepta, o si contesta menos de diez preguntas, te devolvemos todo. El detalle está al final de esta página.",
             "**Argentina**: 10 días corridos desde que recibís el libro, o desde la compra si el libro es solo digital, lo que ocurra último, sin costo (art. 34 de la ley 24.240). Si hay que devolver el libro impreso o el marco, el envío lo pagamos nosotros.",
             "**España**: 14 días naturales desde la compra. El libro en PDF (con sus frases en su voz) ya entregado en tu cuenta y los productos a medida (impreso, marcos) no se pueden devolver, salvo que lleguen dañados o con un defecto.",
             "**Aunque no lo pidas**: si el narrador no acepta participar, o la entrevista termina sin material para un libro (ver la sección 7 de los términos), te escribimos y te devolvemos todo en un plazo máximo de 14 días.",
@@ -1120,7 +1120,7 @@ const AR: TextosLegal = {
       seccionGarantia("ar"),
     ],
   },
-  // APROBADO por Naza el 19/10 · tanda 5, textos 32–38, de vos (falta el abogado)
+  // APROBADO por Naza el 19/10 · tanda 5, textos 32–35 y 38, de vos (falta el abogado)
   reclamaciones: {
     titulo: "Reclamaciones y atención",
     bajada: "Si algo no salió bien, escribinos. Te contesta una persona del equipo de Vitácora.",
@@ -1136,11 +1136,7 @@ const AR: TextosLegal = {
             "Por correo a {soporte}, de lunes a viernes de 10 a 18, hora de España.",
           ),
           p("Te respondemos en un plazo máximo de 30 días."),
-          hoja(
-            "Si preferís una hoja oficial de reclamaciones, [descargala aquí](/legal/hoja-reclamaciones.pdf), completala y mandánosla por correo.",
-            "Pedinos la hoja oficial de reclamaciones por correo y te la mandamos.",
-          ),
-          p("No estamos adheridos a la Junta Arbitral de Consumo. Si tu reclamación no se resuelve, te diremos qué organismo puede revisarla."),
+          // Sin los textos 36 (hoja oficial) y 37 (Junta Arbitral): son de España.
           // Solo /ar: Disp. 954/2025 art. 5. El número de seguimiento se manda a mano.
           p("Cuando nos escribas por un reclamo, en menos de 24 horas te mandamos un número para seguirlo."),
         ],
@@ -1255,13 +1251,13 @@ const CA: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te'n desdius",
         bloques: [
-          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           p("Pots desistir sense donar explicacions: escriu-nos a {hola} o fes servir el [botó de desistiment](/legal/arrepentimiento). Et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies. Funciona en tres capes, en aquest ordre:"),
-          p("**Primer, el que et donem nosaltres: mentre dura l'entrevista, t'ho retornem tot.** Des que pagues i fins que el llibre està a punt al teu compte perquè el revisis —mentre el narrador contesta, o mentre dura el viatge—, si ho demanes, et retornem tot el que vas pagar, encara que ja hagi començat a contestar i sense descomptar res. És més del que demana la llei."),
+          p("**Primer, el que et donem nosaltres.** A més del que et dona la llei, cada llibre té la seva garantia, que expliquem a la [secció 7](/legal/terminos#garantia). És més del que demana la llei."),
           p("**Després, el que et dona la llei, quan el llibre ja està escrit.** Depèn de la regió on vas comprar:"),
           lista(
-            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
-            "**Si vas comprar a Espanya (en euros) — 14 dies naturals** des de la compra (dret de desistiment, arts. 102 a 108 del RDL 1/2007). En pagar ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar aquests 14 dies; tot i això, mentre dura, t'ho retornem tot. Un cop el llibre en PDF i les seves frases amb la seva veu són a la teva disposició al teu compte, amb el teu consentiment, el desistiment ja no s'hi aplica (art. 103 m).",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
+            "**Si vas comprar a Espanya (en euros) — 14 dies naturals** des de la compra (dret de desistiment, arts. 102 a 108 del RDL 1/2007). En pagar ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar aquests 14 dies; tot i això, val la garantia de la secció 7. Un cop el llibre en PDF i les seves frases amb la seva veu són a la teva disposició al teu compte, amb el teu consentiment, el desistiment ja no s'hi aplica (art. 103 m).",
             // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
             "**Si vas comprar a l'Argentina (en pesos) — 10 dies seguits** des que reps el llibre, o des de la compra si el llibre és només digital, el que passi més tard (art. 34 de la llei 24.240). Pots revocar la compra sense cap cost: et retornem el total, i si cal retornar el llibre imprès o el marc, l'enviament de tornada el paguem nosaltres. El botó de penediment és a la pàgina d'inici, com exigeix la Resolució 424/2020.",
           ),
@@ -1552,9 +1548,9 @@ const CA: TextosLegal = {
         id: "plazos",
         titulo: "Terminis",
         bloques: [
-          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones) · alineado a la regla de las diez preguntas (Naza 19/10)
           lista(
-            "**Mentre dura l'entrevista** (o el viatge), fins que el llibre està a punt al teu compte: t'ho retornem tot, sempre, encara que ja hagi començat a contestar.",
+            "**La garantia de cada llibre.** Si el narrador no accepta, o si contesta menys de deu preguntes, t'ho retornem tot. El detall és al final d'aquesta pàgina.",
             "**Espanya**: 14 dies naturals des de la compra. El llibre en PDF (amb les seves frases amb la seva veu) ja lliurat al teu compte i els productes a mida (imprès, marcs) no es poden retornar, tret que arribin malmesos o amb un defecte.",
             "**Argentina**: 10 dies seguits des que reps el llibre, o des de la compra si el llibre és només digital, el que passi més tard, sense cost (art. 34 de la llei 24.240). Si cal retornar el llibre imprès o el marc, l'enviament el paguem nosaltres.",
             "**Encara que no ho demanis**: si el narrador no accepta participar, o l'entrevista acaba sense material per a un llibre (vegeu la secció 7 dels termes), t'escrivim i t'ho retornem tot en un termini màxim de 14 dies.",
