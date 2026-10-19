@@ -30,7 +30,11 @@ function storageFalso(o: { falla?: boolean } = {}) {
     subidos.add(path);
     return { data: { path }, error: null };
   });
-  return { subidos, upload, db: { storage: { from: () => ({ upload }) } } };
+  const remove = vi.fn(async (paths: string[]) => {
+    for (const p of paths) subidos.delete(p);
+    return { data: null, error: null };
+  });
+  return { subidos, upload, remove, db: { storage: { from: () => ({ upload, remove }) } } };
 }
 
 describe('el aviso a los socios sobrevive a los reinicios', () => {
@@ -75,6 +79,48 @@ describe('el aviso a los socios sobrevive a los reinicios', () => {
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     expect(await avisarSocios('x', 'a', 'b', { ahora: AHORA, fetch })).toBe(true);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('unaVez: la marca no depende del día (avisos/siempre/) y no se repite nunca', async () => {
+    const s = storageFalso();
+    usarMarcaPersistente(marcaEnStorage(s.db as never));
+    const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    expect(await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { ahora: AHORA, fetch, unaVez: true })).toBe(true);
+    olvidarAvisos();
+    expect(await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { ahora: new Date('2026-12-01T00:00:00Z'), fetch, unaVez: true })).toBe(false);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect([...s.subidos][0]).toMatch(/^avisos\/siempre\//);
+  });
+
+  it('unaVez: si Resend falla o tira, se borra la marca y el próximo intento lo vuelve a mandar', async () => {
+    const s = storageFalso();
+    usarMarcaPersistente(marcaEnStorage(s.db as never));
+    const rechaza = vi.fn(async () => new Response('{}', { status: 500 }));
+    await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { fetch: rechaza, unaVez: true });
+    expect(s.subidos.size).toBe(0);
+    const tira = vi.fn(async () => { throw new Error('red caída'); });
+    await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { fetch: tira as never, unaVez: true });
+    expect(s.subidos.size).toBe(0);
+    const anda = vi.fn(async () => new Response('{}', { status: 200 }));
+    expect(await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { fetch: anda, unaVez: true })).toBe(true);
+    expect(anda).toHaveBeenCalledTimes(1);
+    expect(s.subidos.size).toBe(1);
+  });
+
+  it('unaVez sin Resend configurado: no queda la marca en Storage (sale cuando se configure), pero no se repite en el mismo proceso', async () => {
+    vi.stubEnv('RESEND_API_KEY', '');
+    const s = storageFalso();
+    usarMarcaPersistente(marcaEnStorage(s.db as never));
+    await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { unaVez: true });
+    expect(s.subidos.size).toBe(0);
+    expect(await avisarSocios('viaje-sin-datos:n1', 'a', 'b', { unaVez: true })).toBe(false);
+  });
+
+  it('un aviso por día común no cambia: si Resend falla, la marca del día queda', async () => {
+    const s = storageFalso();
+    usarMarcaPersistente(marcaEnStorage(s.db as never));
+    await avisarSocios('x', 'a', 'b', { ahora: AHORA, fetch: vi.fn(async () => new Response('{}', { status: 500 })) });
+    expect(s.subidos.size).toBe(1);
   });
 
   it('sin marca persistente configurada (tests, scripts), se queda con la memoria como antes', async () => {

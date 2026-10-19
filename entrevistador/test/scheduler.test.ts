@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   generarPreguntaReemplazo: vi.fn(),
   armarHistoria: vi.fn(),
   ultimaTranscripcion: vi.fn(),
+  asegurarAltaViajeV2: vi.fn(),
   // Filas que devuelve la base falsa, configurables por test.
   filas: {
     narradores: [] as any[],
@@ -104,6 +105,12 @@ vi.mock('../src/db/guion.js', () => ({
   capitulosDe: async () => [...new Set(mocks.filas.preguntas.map((p: any) => p.capitulo))],
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: vi.fn() }));
+// Vitácora de Viaje (solo V2, 16/10): el alta se prueba en test/viaje-v2/alta.test.ts; acá, que el tick la llama.
+vi.mock('../src/viaje-v2/alta.js', async (importar) => ({
+  ...(await importar<typeof import('../src/viaje-v2/alta.js')>()),
+  asegurarAltaViajeV2: mocks.asegurarAltaViajeV2,
+}));
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
 }));
@@ -351,41 +358,53 @@ describe('tick', () => {
   });
 });
 
-// Vitácora de viaje (12/10, pedido de Joaquín): la noche N no sale antes de su
-// fecha. Hoy (A_LAS_10_05) es 2026-09-01 en Buenos Aires.
-describe('tick en viaje: la pregunta espera a su noche', () => {
-  const viajero = (salida: string, extra: Record<string, any> = {}) => narrador({
-    contexto: { modo: 'viaje', viaje: { salida, vuelta: '2026-09-20', etapas: [] } }, ...extra,
+// Vitácora de Viaje: solo V2 desde el 16/10. El tick le da el alta al viajero nuevo y al que quedó en el viaje
+// viejo no le manda nada (ni Familiar ni viaje viejo): se avisa a los socios una sola vez.
+describe('tick con viajeros (solo V2)', () => {
+  const viajero = (extra: Record<string, any> = {}) => narrador({
+    contexto: { modo: 'viaje', trato: 'vos', viaje: { salida: '2026-09-05', vuelta: '2026-09-20', etapas: [] } }, ...extra,
   });
 
-  it('dijo SÍ antes de viajar: la primera pregunta no sale hasta el día de la salida', async () => {
-    mocks.filas.narradores = [viajero('2026-09-05', { estado: 'acepto', dia_actual: 0 })];
+  it('un viajero nuevo (invitado) recibe el alta V2 y ninguna bienvenida vieja', async () => {
+    mocks.filas.narradores = [viajero({ estado: 'invitado' })];
+    mocks.asegurarAltaViajeV2.mockResolvedValue('creada');
+    await tick(A_LAS_10_05);
+    expect(mocks.asegurarAltaViajeV2).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: 'n1' }));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(inserts('envios')).toEqual([]);
+  });
+
+  it('sin datos para el alta, tampoco le sale nada del Familiar', async () => {
+    mocks.filas.narradores = [viajero({ estado: 'invitado' })];
+    mocks.asegurarAltaViajeV2.mockResolvedValue('faltan-datos');
     await tick(A_LAS_10_05);
     expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
-    expect(update('narradores')).toBeUndefined();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 
-  it('el día de la salida, a su hora, sale la primera', async () => {
-    mocks.filas.narradores = [viajero('2026-09-01', { estado: 'acepto', dia_actual: 0 })];
+  it('el que quedó en el viaje viejo (activo, sin fila) no recibe pregunta ni recordatorio; los socios reciben UN aviso con la lista', async () => {
+    mocks.filas.narradores = [
+      viajero({ id: 'nako', como_le_dicen: 'Ñako', estado: 'activo', dia_actual: 3, ultima_respuesta_at: '2026-08-01T00:00:00Z' }),
+      viajero({ id: 'otro', como_le_dicen: 'Otro', estado: 'acepto' }),
+    ];
     await tick(A_LAS_10_05);
-    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
-    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
-  });
-
-  it('nunca se adelanta: con la noche 2 contestada, la 3 espera a su fecha', async () => {
-    // Salió el 31/08: hoy es el día 2. Ya contestó la 2 → la 3 es del 02/09.
-    mocks.filas.narradores = [viajero('2026-08-31', { estado: 'activo', dia_actual: 2 })];
-    mocks.filas.respuestas = [{ pregunta_orden: 2 }];
-    await tick(A_LAS_10_05);
+    expect(mocks.asegurarAltaViajeV2).not.toHaveBeenCalled();
     expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined(); // ni alerta de silencio
+    const avisos = mocks.avisarSocios.mock.calls.filter((c) => String(c[0]).startsWith('viaje-v1-quedaron'));
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0][0]).toBe('viaje-v1-quedaron:nako,otro');
+    expect(avisos[0][2]).toMatch(/Ñako \(nako\)/);
+    expect(avisos[0][2]).toMatch(/ya no les escribe/);
+    expect(avisos[0][3]).toEqual({ unaVez: true });
   });
 
-  it('atrasado no espera: si la noche ya pasó, sale', async () => {
-    // Salió el 25/08 y va por la 3 (contestada): la 4 era del 28/08, sale hoy.
-    mocks.filas.narradores = [viajero('2026-08-25', { estado: 'activo', dia_actual: 3 })];
-    mocks.filas.respuestas = [{ pregunta_orden: 3 }];
+  it('un narrador del Familiar no pasa por el alta del viaje', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'invitado' })];
     await tick(A_LAS_10_05);
-    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 4 });
+    expect(mocks.asegurarAltaViajeV2).not.toHaveBeenCalled();
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'bienvenida', expect.anything());
   });
 });
 
