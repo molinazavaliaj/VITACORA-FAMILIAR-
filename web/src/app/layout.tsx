@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { OrigenVisita } from "./origen-visita";
+import { URL_BASE } from "@/lib/seo";
 
 // Las tipografías de marca (Playfair Display, Archivo, Source Serif 4, las mismas
 // de siempre) se sirven desde web/src/app/fuentes: subsets propios con solo los
@@ -65,7 +66,7 @@ const sourceSerif = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.vitacorafamiliar.com"),
+  metadataBase: new URL(URL_BASE),
   title: {
     default: "Vitácora Familiar — En cada familia hay un libro sin escribir",
     // La marca paraguas (19/09): Vitácora, con dos productos. La home sigue siendo Familiar.

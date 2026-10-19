@@ -9,6 +9,7 @@ import { LinkRegalarLanding } from "../link-regalar";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import { catalogo } from "@/lib/productos";
+import { datosEstructurados } from "@/lib/seo";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { LogoTrazo } from "../_direccion/logo-trazo";
@@ -72,6 +73,9 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   // El libro impreso con el PDF: la base más el primer impreso.
   const precioLibro = cat.impreso ? formatear(cat.base.precio + cat.impreso.precio) : null;
   const precioMarco = cat.marco ? formatear(cat.marco.precio) : null;
+  // Los datos estructurados (schema.org) de esta portada: la marca y los dos
+  // productos con su precio, del mismo catálogo de arriba (lib/seo.ts).
+  const jsonLd = datosEstructurados(idioma, { libro: FOTOS.portada, marco: FOTOS.marco });
   const comprar = ruta(idioma, "/comprar");
   const whatsapp = urlWhatsAppDudas();
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO || AUDIO_DE_EJEMPLO;
@@ -87,6 +91,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
   return (
     <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada flex flex-1 flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Coreografia />
 
       {/* ═══ 1 · INICIO, sobre tinta. Capa: queda fija detrás cuando termina. ═══ */}
