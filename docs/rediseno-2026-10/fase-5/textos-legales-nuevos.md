@@ -36,7 +36,7 @@ Popup rasca y gana (para cuando exista el cupón):
 ## Tanda 3 — Checkout con cupón — APROBADA por Naza 19/10
 21. Línea del descuento en el resumen del pedido: «Cupón de bienvenida · 10 % del libro digital −{importe}» [nota interna: el checkout calcula el importe con el precio del digital de cada región; en España hoy son 4,90 €].
 
-## Tanda 4 — Garantía reescrita (términos §7 y desistimiento) — PROPUESTA 19/10
+## Tanda 4 — Garantía reescrita (términos §7 y final de desistimiento) — APROBADA por Naza 19/10 (reemplaza la tanda 1; sin la devolución automática a los 90 días)
 Reemplaza la tanda 1 (1–8) siguiendo `respuesta-19-10.md` §2.2: la ley primero, la garantía nuestra debajo. es de tú; ar de vos con 10 días y «arrepentirte».
 22. Título: La garantía de cada libro
 23. Subtítulo: Lo que te da la ley
@@ -48,3 +48,14 @@ Reemplaza la tanda 1 (1–8) siguiendo `respuesta-19-10.md` §2.2: la ley primer
 29. Para mí: Si el libro es el tuyo, te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.
 30. Subtítulo «Cuándo cerramos el libro»: Cuando contesta diez preguntas o más, cerramos su libro con lo que contó. Si todavía estás dentro de los 14 días y desistes, te devolvemos el importe menos la parte del trabajo ya hecho.
 31. Si dos reglas de este documento dicen cosas distintas, vale la que más te favorezca.
+
+## Tanda 5 — Reclamaciones y atención — PROPUESTA 19/10
+Página nueva `/legal/reclamaciones` (+ `/ca`, `/ar`), enlazada desde el pie. Sale de `respuesta-19-10.md` §5.3–5.5.
+32. Título: Reclamaciones y atención
+33. Si algo no salió bien, escríbenos. Te contesta una persona del equipo de Vitácora.
+34. Por WhatsApp al [número de dudas] o por correo a [correo de atención], de lunes a viernes de 10 a 18, hora de España.
+35. Te respondemos en un plazo máximo de 30 días.
+36. Si prefieres una hoja oficial de reclamaciones, descárgala aquí, rellénala y mándanosla por correo. [nota interna: PDF del modelo oficial; en Cataluña, el full de reclamació en catalán]
+37. No estamos adheridos a la Junta Arbitral de Consumo. Si tu reclamación no se resuelve, te diremos qué organismo puede revisarla.
+38. Solo /ar: Cuando nos escribas por un reclamo, en menos de 24 horas te mandamos un número para seguirlo. [nota interna: Disp. 954/2025 art. 5; se hace a mano]
+39. Pie de toda la web: Atención de lunes a viernes, de 10 a 18.
