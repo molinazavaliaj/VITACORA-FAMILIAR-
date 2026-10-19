@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 // Las fechas vivas del viaje (12/10) y el guion espejo del bot.
 import { guionDelViaje, planDeGuion, validarFechas, type Viaje } from "../src/lib/viaje";
-// El guion del bot: la web lo rearma cuando cambian las fechas, así que tienen que dar lo mismo.
-import { guionDelViaje as guionDelBot } from "../../entrevistador/src/flujo/viaje";
 
 const viaje: Viaje = {
   salida: "2026-10-20",
@@ -14,16 +12,7 @@ const viaje: Viaje = {
   angulos: ["comida", "persona"],
 };
 
-describe("el guion de la web es el mismo que arma el bot", () => {
-  it.each([
-    viaje,
-    { ...viaje, vuelta: "2026-11-02" },
-    { salida: "2026-10-20", vuelta: "2026-10-20", etapas: [] },
-    { salida: "2026-10-01", vuelta: "2026-10-12", etapas: [{ nombre: "Japón" }] },
-  ] as Viaje[])("viaje del %#", (v) => {
-    expect(guionDelViaje(v)).toEqual(guionDelBot(v));
-  });
-});
+// El espejo con el guion del bot viejo (entrevistador/src/flujo/viaje.ts) se fue con el viaje V1 (#52).
 
 describe("validarFechas", () => {
   it("antes de la primera pregunta, se mueven las dos", () => {
