@@ -46,7 +46,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     correoRegalo: "Te mandamos la tarjeta por correo. Si no la ves, mira en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
-      { cuando: "Antes", que: `Avisa a ${n} de que le va a escribir «Vitácora» por WhatsApp.` },
+      { cuando: "Antes", que: `Avísale a ${n} que le va a escribir «Vitácora» por WhatsApp.` }, // sin «de que» (Naza 20/10)
       { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
@@ -182,8 +182,8 @@ export const CONFIRMADO_KIDS_IDIOMA: Record<IdiomaKids, { canalA: (apodo: string
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando toquen el botón, juntos.",
   },
   "es-ES": {
-    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido», «Avísale de que»)
-    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale de que le va a escribir «Vitácora».`,
+    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido»); 20/10: «Avísale que», sin «de»
+    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale que le va a escribir «Vitácora».`,
     // APROBADO por Naza 16/10 (tanda 8) · canalB («pulséis»)
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando pulséis el botón, juntos.",
   },
