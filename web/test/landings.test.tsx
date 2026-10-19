@@ -66,7 +66,8 @@ const PROHIBIDO = [
   "connect.facebook.net",
 ];
 
-const GARANTIA = ["te devolvemos el dinero", "et tornem els diners", "et retornem els diners"];
+// La garantía de las diez preguntas (tanda 6, 19/10): una vez por respuesta de la FAQ.
+const GARANTIA = ["menos de diez preguntas", "menys de deu preguntes"];
 
 function contar(html: string, frase: string): number {
   return html.split(escapar(frase)).length - 1;
@@ -111,7 +112,7 @@ describe("las landings de anuncio del libro de una vida", () => {
         // La garantía, una sola vez: en la mini FAQ.
         const veces = GARANTIA.reduce((n, g) => n + contar(html, g), 0);
         expect(veces).toBe(1);
-        expect(html.indexOf(escapar(t.faqTitulo))).toBeLessThan(html.search(/te devolvemos el dinero|et tornem els diners/));
+        expect(html.indexOf(escapar(t.faqTitulo))).toBeLessThan(html.search(/menos de diez preguntas|menys de deu preguntes/));
       });
     }
   }

@@ -463,9 +463,10 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     subiendoFoto: (i, n) => `Subiendo foto ${i} de ${n}…`,
     terminos: "términos",
     legalAntes: "Pago único y seguro con Stripe. Al pagar aceptas los ",
-    legalDespues: " y nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento. Si te arrepientes con la entrevista en marcha, se descuenta la parte ya hecha.",
-    garantiaFamiliar: "Si no quiere hacerlo, te devolvemos el dinero.",
-    garantiaPropia: "Si cambias de idea antes de contestar la primera pregunta, te devolvemos el dinero.",
+    // APROBADO por Naza el 19/10 · tanda 6, textos 1–3 (garantía de las diez preguntas)
+    legalDespues: " y nos pides que la entrevista empiece enseguida, sin esperar los 14 días de desistimiento.",
+    garantiaFamiliar: "Si no acepta la entrevista o contesta menos de diez preguntas, te devolvemos todo. Desde la décima respuesta, si desistes dentro de esos 14 días, se descuenta la parte ya hecha.",
+    garantiaPropia: "Si contestas menos de diez preguntas, te devolvemos todo. Desde la décima respuesta, si desistes dentro de esos 14 días, se descuenta la parte ya hecha.",
 
     faltaPara: "Elige para quién es.",
     faltaRegalo: "Elige si es un regalo.",
@@ -634,8 +635,9 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     terminos: "términos",
     legalAntes: "Pago único y seguro con Mercado Pago. Al pagar aceptás los ",
     legalDespues: ".",
-    garantiaFamiliar: "Si no quiere hacerlo, te devolvemos el dinero.",
-    garantiaPropia: "Si cambiás de idea antes de contestar la primera pregunta, te devolvemos el dinero.",
+    // APROBADO por Naza el 19/10 · tanda 6, textos 4–5
+    garantiaFamiliar: "Si no acepta la entrevista o contesta menos de diez preguntas, te devolvemos todo. Desde la décima respuesta, si te arrepentís dentro de los 10 días, se descuenta la parte ya hecha.",
+    garantiaPropia: "Si contestás menos de diez preguntas, te devolvemos todo. Desde la décima respuesta, si te arrepentís dentro de los 10 días, se descuenta la parte ya hecha.",
 
     faltaPara: "Elegí para quién es.",
     faltaRegalo: "Elegí si es un regalo.",
@@ -802,9 +804,10 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     subiendoFoto: (i, n) => `Pujant la foto ${i} de ${n}…`,
     terminos: "condicions",
     legalAntes: "Pagament únic i segur amb Stripe. En pagar acceptes les ",
-    legalDespues: " i ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar els 14 dies de desistiment. Si te'n desdius amb l'entrevista en marxa, es descompta la part ja feta.",
-    garantiaFamiliar: "Si no ho vol fer, et retornem els diners.",
-    garantiaPropia: "Si canvies d'idea abans de contestar la primera pregunta, et retornem els diners.",
+    // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, textos 1–3
+    legalDespues: " i ens demanes que l'entrevista comenci de seguida, sense esperar els 14 dies de desistiment.",
+    garantiaFamiliar: "Si no accepta l'entrevista o contesta menys de deu preguntes, t'ho retornem tot. A partir de la desena resposta, si desisteixes dins d'aquests 14 dies, es descompta la part ja feta.",
+    garantiaPropia: "Si contestes menys de deu preguntes, t'ho retornem tot. A partir de la desena resposta, si desisteixes dins d'aquests 14 dies, es descompta la part ja feta.",
 
     faltaPara: "Tria per a qui és.",
     faltaRegalo: "Tria si és un regal.",

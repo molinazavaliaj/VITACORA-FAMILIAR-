@@ -172,9 +172,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
       regalo: "te llega un correo para entrar a la página del viaje, y el biógrafo le escribe por WhatsApp para contarle que es tu regalo. Responde SÍ y empieza.",
     },
     legalAntes: "Pago único y seguro con Stripe. Al pagar aceptas los ",
-    legalDespues: ".",
-    // Aprobada (D1): la garantía de Viaje, solo en la letra pequeña del pago.
-    garantia: "Si el viaje se cancela, te devolvemos el dinero.",
+    // APROBADO por Naza el 19/10 · tanda 6, texto 6 (garantía de las diez preguntas; solo en la letra pequeña del pago)
+    legalDespues: " y nos pides que la entrevista empiece enseguida, sin esperar los 14 días de desistimiento.",
+    garantia: "Si el viaje no se hace y nos avisas antes de que acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo.",
     incluye: ["Las preguntas por WhatsApp, antes, durante y después del viaje", "El álbum con las fotos favoritas", "Un código QR para escuchar los audios"],
     libroDelViaje: "El libro del viaje",
 
@@ -265,7 +265,8 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     },
     legalAntes: "Pago único y seguro con Mercado Pago. Al pagar aceptás los ",
     legalDespues: ".",
-    garantia: "Si el viaje se cancela, te devolvemos el dinero.",
+    // APROBADO por Naza el 19/10 · tanda 6, texto 7
+    garantia: "Si el viaje no se hace y nos avisás antes de que acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo.",
     incluye: ["Las preguntas por WhatsApp, antes, durante y después del viaje", "El álbum con las fotos favoritas", "Un código QR para escuchar los audios"],
     libroDelViaje: "El libro del viaje",
 
@@ -355,8 +356,9 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
       regalo: "t'arriba un correu per entrar a la pàgina del viatge, i el biògraf li escriu per WhatsApp per explicar-li que és el teu regal. Respon SÍ i comença.",
     },
     legalAntes: "Pagament únic i segur amb Stripe. En pagar acceptes les ",
-    legalDespues: ".",
-    garantia: "Si el viatge es cancel·la, et retornem els diners.",
+    // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, texto 6
+    legalDespues: " i ens demanes que l'entrevista comenci de seguida, sense esperar els 14 dies de desistiment.",
+    garantia: "Si el viatge no es fa i ens avises abans que accepti l'entrevista, t'ho retornem tot. Si ja ha acceptat i contesta menys de deu preguntes, també t'ho retornem tot.",
     incluye: ["Les preguntes per WhatsApp, abans, durant i després del viatge", "L'àlbum amb les fotos preferides", "Un codi QR per escoltar els àudios"],
     libroDelViaje: "El llibre del viatge",
 
