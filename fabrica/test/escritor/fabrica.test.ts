@@ -31,6 +31,19 @@ describe('dudas de datos para la familia', () => {
     expect(llamadaDudas(ca, []).instr).toContain('en catalán');
   });
 
+  // «Para mí» (15/10): el libro es de quien lo compró; las preguntas las lee el mismo que contó.
+  it('si el libro es propio, la llamada usa el prompt que le habla a quien narra', () => {
+    const dudas = dudasDelRegistro(reg, respuestas(c));
+    const propia = llamadaDudas(c, dudas, { propia: true });
+    expect(propia.instr).toContain('las preguntas las lee la misma persona que contó');
+    expect(propia.instr).toContain('segunda persona');
+    expect(propia.instr).not.toContain('la familia de Nélida');
+    expect(propia.instr).toContain('en castellano rioplatense');
+    expect(propia.instr).toContain('Esquema de salida');
+    expect(propia.docs).toEqual(llamadaDudas(c, dudas).docs);
+    expect(llamadaDudas(c, dudas, { propia: false }).instr).toContain('la familia de Nélida');
+  });
+
   it('validarDudas exige una pregunta por duda', () => {
     const dudas = dudasDelRegistro(reg, respuestas(c));
     expect(validarDudas(dudas, { dudas: [{ id: 'D01', pregunta: ' ¿Cómo se llamaba la Negra? ', opciones: ['', 'Ofelia'] }] })[0]).toMatchObject({ pregunta: '¿Cómo se llamaba la Negra?', opciones: ['Ofelia'] });

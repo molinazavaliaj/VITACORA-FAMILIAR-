@@ -45,7 +45,7 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
       // Las dudas tienen plazo: pasado el rato de espera el libro se escribe con
       // o sin ellas. Elegir la tapa no vence, así que las dudas van primero.
       if (r.dudasPendientes) {
-        return { href: `/tablero/${id}/dudas`, texto: textoDudas(propia, h.narrador.como_le_dicen, tu) };
+        return { href: `/tablero/${id}/dudas`, texto: textoDudas(propia && esDuena, h.narrador.como_le_dicen, tu) };
       }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: tu
         ? (propia ? "Ya terminaste de contar. Elige la tapa y encarga tu libro" : "Ya terminó de contar. Elige la tapa y encarga su libro")

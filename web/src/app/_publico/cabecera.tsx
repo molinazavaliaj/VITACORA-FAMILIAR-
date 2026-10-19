@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Toroide } from "../marca";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import { kidsVende } from "@/lib/kids";
+import { kidsVendeEn } from "@/lib/kids";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { EnlaceIdioma, SugerenciaCatalan } from "./idioma-cliente";
 
@@ -14,7 +14,9 @@ import { EnlaceIdioma, SugerenciaCatalan } from "./idioma-cliente";
 // Es de servidor: lo único que corre en el navegador es el selector de idioma
 // (deja la cookie antes de navegar) y la sugerencia de catalán.
 
-export type Producto = "familiar" | "kids" | "viaje";
+// "eventos" (Vitácora Eventos, 17/10) no tiene solapa ni se compra: ninguna
+// va marcada y no hay botón de comprar.
+export type Producto = "familiar" | "kids" | "viaje" | "eventos";
 
 export type PropsCabecera = {
   idioma: IdiomaWeb;
@@ -32,7 +34,7 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
   const t = TEXTOS_PUBLICO[idioma];
   const comprar = ruta(idioma, producto === "viaje" ? "/comprar/viaje" : producto === "kids" ? "/comprar/kids" : "/comprar");
   // En Kids, «Comprar» solo si se vende (KIDS_VENTA y precio): si no, no hay botón.
-  const conComprar = !compacta && (producto !== "kids" || kidsVende(regionDeIdioma(idioma)));
+  const conComprar = !compacta && producto !== "eventos" && (producto !== "kids" || kidsVendeEn(idioma));
   return (
     <header
       className={`relative z-20 text-[var(--texto-oscuro)] ${sobreHero ? "" : "border-b border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)]"}`}

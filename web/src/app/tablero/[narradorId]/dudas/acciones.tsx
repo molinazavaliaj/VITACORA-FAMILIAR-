@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { DudaFamilia } from "@/lib/dudas";
 import { pedidosDeLoQueCambio } from "@/lib/dudas-formulario";
 import type { TratoComprador } from "@/lib/regalo-textos";
+import { textosPantallaDudas, type TextosPantallaDudas } from "@/lib/dudas-textos";
 
 export type DudaPrefill = DudaFamilia & {
   /**
@@ -20,11 +21,14 @@ export function FormularioDudas({
   narradorId,
   soloLectura,
   trato = "vos",
+  textos = textosPantallaDudas(false, ""),
 }: {
   dudas: DudaPrefill[];
   narradorId: string;
   soloLectura: boolean;
   trato?: TratoComprador;
+  /** Tercera persona, o primera si el libro es de quien mira («Para mí»). */
+  textos?: TextosPantallaDudas;
 }) {
   const tu = trato === "tu";
   const router = useRouter();
@@ -69,7 +73,7 @@ export function FormularioDudas({
   if (dudas.length === 0) {
     return (
       <p className="text-sm text-[var(--texto-suave)]">
-        No quedó ninguna duda. El biógrafo entendió todo lo que contó.
+        {textos.ningunaDuda}
       </p>
     );
   }
@@ -88,7 +92,7 @@ export function FormularioDudas({
           {duda.citas && duda.citas.length > 0 ? (
             <div className="flex flex-col gap-2 border-l-2 border-[var(--linea-fuerte)] pl-3">
               <p className="text-xs text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                Lo que dijo
+                {textos.loQueDijo}
               </p>
               {duda.citas.map((cita) => (
                 <p key={cita.id} className="text-sm italic leading-relaxed text-[var(--texto-suave)]">

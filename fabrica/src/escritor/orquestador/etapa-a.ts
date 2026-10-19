@@ -24,7 +24,7 @@ async function etapaASinCostos(x: Contexto): Promise<ResultadoEtapaA> {
   const dudas = dudasDelRegistro(leerJSON(x.c, salida('registro.json')), respuestas(x.c));
   let paraFamilia: DudaParaLaFamilia[] = [];
   if (dudas.length) {
-    const llamada = llamadaDudas(x.c, dudas);
+    const llamada = llamadaDudas(x.c, dudas, { propia: x.propia });
     try {
       paraFamilia = validarDudas(dudas, parseJSONTolerante(await x.ej.uno({ clave: 'A/dudas', llamada, json: true })));
     } catch (err) {

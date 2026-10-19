@@ -1,6 +1,8 @@
 # Pase de manos: Viaje V2 al bot, segunda parte (10/10/2026)
 
 Rama **`viaje-v2-envio`** (sale de `origin/viaje-v2-bot` + main del 10/10; subida, **sin mergear**). Worktree:
+
+> **Actualizado 15/10:** mergeada a main por el PR #7 (10/10). Lo que sigue abierto es el punto 3 (plantillas de Meta) y prender `VIAJE_V2_PARA_NUEVOS`.
 `Desktop/VITACORA FAMILIAR-viaje-bot`. Plan: [`plan-conexion-bot.md`](plan-conexion-bot.md). Ñako no pasa.
 
 ## Hecho y verificado
@@ -26,7 +28,7 @@ bienvenida a la despedida, con cero preguntas vencidas y toda respuesta con su `
 2. ✅ `npm run viaje-v2-simular -- --real` el 10/10: los 3 idiomas terminan (despedida, completado), 22 respuestas
    con clave y 0 sin clave, 0 vencidos, 3-4 plantillas y 5 ❤️ por viaje; la base quedó limpia (verificado).
 3. Joaquín carga las plantillas de viaje en Meta (`plantillas-meta.md`) y las marca en `WA_PLANTILLAS_VIAJE_V2_LISTAS`.
-4. Mergear `viaje-v2-envio` a main (con el OK de Naza; deploy automático en Railway). Sin migración ni plantillas no
+4. Mergear `viaje-v2-envio` a main (con el OK de Naza; deploy automático en Railway). Sin migración ni plantillas no **Actualizado 15/10:** hecho (PR #7).
    cambia nada para nadie.
 5. Prender `VIAJE_V2_PARA_NUEVOS` solo con el OK de Naza y las bienvenidas aprobadas.
 6. Pendiente chico: el mail de hito «dijo que sí» a la familia no sale en la V2 (en un regalo puede importar).

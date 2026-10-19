@@ -62,7 +62,7 @@ from .masterizar import (
     nivelar,
 )
 from .muestras import Respuesta
-from .narrar import subir_con_reintentos
+from .subir import subir_con_reintentos
 from .restaurar import restaurar
 from .supabase_cliente import BUCKET, descargar_audio, respuestas_de
 from .transcribir import palabras_con_tiempos
@@ -270,10 +270,15 @@ def cortar_una(
     audio = leer(origen)
     if len(audio) == 0:
         raise NoSePuedeCortar(f"el audio de la respuesta {frase.respuesta_id} vino vacío")
-    ubicada = ubicar_frase(frase.texto, (transcriptor(origen).get("palabras")) or [])
-    if ubicada is None:
-        raise NoSePuedeCortar(f"no se encontró «{frase.texto[:80]}» en el audio de la respuesta {respuesta.id}")
-    desde, hasta = recorte_con_aire(ubicada[0], ubicada[1], len(audio) / TASA)
+    if frase.entera:
+        # La respuesta entera (Kids): no hay frase que ubicar, así que tampoco se
+        # escucha con Whisper (no se gasta). De 0 al final del audio real.
+        desde, hasta = 0.0, len(audio) / TASA
+    else:
+        ubicada = ubicar_frase(frase.texto, (transcriptor(origen).get("palabras")) or [])
+        if ubicada is None:
+            raise NoSePuedeCortar(f"no se encontró «{frase.texto[:80]}» en el audio de la respuesta {respuesta.id}")
+        desde, hasta = recorte_con_aire(ubicada[0], ubicada[1], len(audio) / TASA)
     muestras = audio[int(desde * TASA) : int(hasta * TASA)]
     if len(muestras) == 0:
         raise NoSePuedeCortar(f"el tramo de {frase.id} quedó vacío (el audio dura {len(audio) / TASA:.1f} s)")

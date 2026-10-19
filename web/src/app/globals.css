@@ -316,6 +316,9 @@ body {
 .m-solapas[data-activa="viaje"] .m-pill {
   transform: translateX(200%);
 }
+/* En /eventos ninguna solapa es la de la página: la pastilla aparece solo al señalar una. */
+.m-solapas[data-activa="eventos"] .m-pill { opacity: 0; transition: opacity 0.2s, transform var(--d-base) var(--ease-io); }
+.m-solapas[data-activa="eventos"]:has(> [data-solapa]:hover, > [data-solapa]:focus-visible) .m-pill { opacity: 1; }
 .m-solapas:has(> [data-solapa="familiar"]:hover, > [data-solapa="familiar"]:focus-visible) .m-pill {
   transform: none;
 }
@@ -457,6 +460,20 @@ body {
   .m-hoja[data-cerrando="true"] {
     animation-name: hojaOutCentro;
   }
+}
+
+/* 8b · Aviso «✓ Guardado» (MOTION 3, Panel: `hasToast`): entra subiendo
+   8 px en 240 ms y a los 3 s se va con opacidad en 200 ms. Abajo al centro,
+   encima de todo, sin tapar nada que se toque (pointer-events: none). */
+.m-aviso {
+  animation: avisoIn 240ms var(--ease-out) both;
+}
+.m-aviso[data-saliendo="true"] {
+  animation: fadeOut 200ms both;
+}
+@keyframes avisoIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* 9 · Su voz sonando: las barras se mueven como una onda mientras suena y se

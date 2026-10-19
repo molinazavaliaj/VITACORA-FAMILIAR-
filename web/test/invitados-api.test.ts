@@ -94,6 +94,15 @@ describe("POST /api/invitados", () => {
     expect(enviarMailInvitacion).toHaveBeenCalledWith({ para: "tia@mail.com", nombreNarrador: "Alfredo", quienInvita: "Martina", region: "AR", paraDudas: false });
   });
 
+  it("a la historia de un chico de Kids no se invita → 403, sin fila ni mail", async () => {
+    sesion(martina);
+    const inserts = armar([], { ...alfredo, contexto: { modo: "kids" } });
+    const r = await POST(request({ email: "tia@mail.com" }));
+    expect(r.status).toBe(403);
+    expect(inserts).toEqual([]);
+    expect(enviarMailInvitacion).not.toHaveBeenCalled();
+  });
+
   it("un invitado no puede invitar → 403", async () => {
     sesion(primo);
     armar([{ id: "i1", narrador_id: "n1", auth_user_id: "u-primo", email: "primo@mail.com" }]);

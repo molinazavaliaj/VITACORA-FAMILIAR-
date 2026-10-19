@@ -5,7 +5,7 @@ resemble-enhance (denoise + enhance a 44,1 kHz) ANTES de todo lo demás (EQ,
 loudnorm, lecho de ruido).
 
 El modelo corre en su propio venv (`herramientas/restaurar/.venv`), por
-subprocess, como los motores. `RESTAURACION_NIVEL` (0..1, en `.env`) gradúa
+subprocess. `RESTAURACION_NIVEL` (0..1, en `.env`) gradúa
 cuánto trabaja el modelo (la fuerza de denoise): la voz tiene que seguir siendo
 la de él, no "de locutor". 0 = no se toca. La salida es siempre 100 % restaurada:
 mezclarla en el tiempo con el original (vocoder, sin fase) suena doblada.

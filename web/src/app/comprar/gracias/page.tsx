@@ -3,10 +3,11 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { esIdiomaWeb, type IdiomaWeb } from "@/lib/idioma-web";
+import { idiomaKidsDe, type IdiomaKids } from "@/lib/kids";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible } from "@/lib/panel";
-import { CONFIRMADO, type Momento } from "../../_textos/pedido-confirmado";
+import { CONFIRMADO, momentosKids, type CanalConfirmadoKids, type Momento } from "../../_textos/pedido-confirmado";
 import { CascaronCheckout } from "../../_checkout/cascaron";
 import { clasesBoton } from "../../_ui";
 import { AlConfirmar } from "./al-confirmar";
@@ -36,6 +37,10 @@ type Confirmado = {
   impreso: boolean;
   /** La entrega todavía sin dirección (para guardar la del checkout). */
   entregaSinDireccion: string | null;
+  /** Vitácora Kids: el canal de su fila en kids_v2 (A = su WhatsApp, B = «Lo hago yo»); null si no es de Kids. */
+  kids: CanalConfirmadoKids | null;
+  /** Su castellano (kids_v2.idioma): vos en Argentina, tú en España. */
+  idiomaKids: IdiomaKids;
 };
 
 /** Lo que se muestra de la compra, si la sesión es de la dueña de ese narrador; si no, null. */
@@ -47,11 +52,15 @@ async function leerConfirmado(narradorId: string): Promise<Confirmado | null> {
     const { historia } = await historiaAccesible(admin, user, narradorId);
     if (!historia || historia.rol !== "duena") return null;
     const n = historia.narrador;
-    // Las dos consultas no dependen una de la otra.
-    const [{ data: regalo }, { data: entrega }] = await Promise.all([
+    // Las tres consultas no dependen una de la otra. kids_v2 puede no existir
+    // todavía (migración sin aplicar): entonces no es de Kids.
+    const [{ data: regalo }, { data: entrega }, { data: kids }] = await Promise.all([
       admin.from("regalos").select("codigo").eq("narrador_id", n.id).maybeSingle(),
       admin.from("entregas").select("id, estado").eq("narrador_id", n.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      admin.from("kids_v2").select("canal, idioma").eq("narrador_id", n.id).maybeSingle(),
     ]);
+    const canal = (kids as { canal?: unknown } | null)?.canal;
+    const idiomaKids = idiomaKidsDe((kids as { idioma?: unknown } | null)?.idioma);
     const e = entrega as { id: string; estado: string } | null;
     return {
       narradorId: n.id,
@@ -60,6 +69,8 @@ async function leerConfirmado(narradorId: string): Promise<Confirmado | null> {
       regalo: Boolean((regalo as { codigo?: string } | null)?.codigo) || n.estado === "regalo_pendiente",
       impreso: Boolean(e),
       entregaSinDireccion: e && e.estado === "sin_direccion" ? e.id : null,
+      kids: canal === "A" || canal === "B" ? canal : null,
+      idiomaKids,
     };
   } catch (err) {
     console.error("gracias: no pude leer la compra confirmada", err);
@@ -83,7 +94,9 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
     : confirmado
       ? confirmado.propia
         ? T.propio(confirmado.impreso)
-        : confirmado.regalo
+        : confirmado.kids
+          ? momentosKids(confirmado.nombre, confirmado.kids, confirmado.impreso, confirmado.idiomaKids)
+          : confirmado.regalo
           ? T.regalo(confirmado.nombre, confirmado.impreso)
           : T.otro(confirmado.nombre, confirmado.impreso)
       : T.generico;

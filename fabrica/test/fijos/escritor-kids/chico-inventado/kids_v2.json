@@ -1,0 +1,72 @@
+{
+  "narrador_id": "3f6a2c1e-8b4d-4c7a-9e21-6d5b0a7c4e19",
+  "idioma": "es-AR",
+  "canal": "A",
+  "telefono_padre": "+5491100000001",
+  "ficha": {
+    "nombre": "Benjamín Sosa",
+    "apodo": "Benja",
+    "genero": "chico",
+    "edad": 11,
+    "quienRegala": "tu mamá",
+    "canal": "A",
+    "nombrePadre": "Carolina Ríos",
+    "linkPanel": "https://vitacorafamiliar.com/kids/panel/fijo-benja-3f6a2c1e",
+    "hora": "18:30",
+    "zona": "America/Argentina/Buenos_Aires",
+    "temasSacados": [
+      "mudanza"
+    ],
+    "fotosConOtrosChicos": false,
+    "preguntasPadre": [
+      {
+        "texto": "¿Qué es lo que más te gusta de tu hermana Delfi, aunque se peleen?",
+        "conLinea": true
+      },
+      {
+        "texto": "¿Qué te acordás del día que nació Simón?",
+        "conLinea": false
+      },
+      {
+        "texto": "¿Qué es lo que más te gusta hacer con el abuelo Héctor en Chivilcoy?",
+        "conLinea": true,
+        "quien": "tu papá"
+      }
+    ]
+  },
+  "estado": null,
+  "cambios_panel": null,
+  "cambios_error": null,
+  "avance": {
+    "capitulo": 5,
+    "preguntasPadreAbiertas": false,
+    "terminado": true
+  },
+  "marcas": [
+    {
+      "motivo": "escribio-despues-del-final",
+      "detalle": "cuando llega el libro??",
+      "at": "2026-10-11T21:31:00.000Z"
+    }
+  ],
+  "correcciones": [
+    {
+      "respuesta_id": "87d1515a-3083-5d24-8636-11ec3174df35",
+      "dice": "Oriel",
+      "es": "Uriel",
+      "at": "2026-10-10T18:00:08.000Z"
+    },
+    {
+      "respuesta_id": "0eb6c8b7-dd82-5a63-b9ad-5af1d48476e0",
+      "dice": "Mate",
+      "es": "Maite",
+      "at": "2026-10-10T18:03:08.000Z"
+    }
+  ],
+  "version": 412,
+  "enviando_hasta": null,
+  "despertar_at": null,
+  "creada_at": "2026-09-06T18:30:00.000Z",
+  "empezo_at": "2026-09-08T21:25:00.000Z",
+  "termino_at": "2026-10-09T22:00:08.000Z"
+}

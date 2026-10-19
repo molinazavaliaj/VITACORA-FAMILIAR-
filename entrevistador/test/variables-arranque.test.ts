@@ -21,6 +21,7 @@ function envCompleto(): NodeJS.ProcessEnv {
     WA_VERIFY_TOKEN: 'verifica-secreto',
     RESEND_API_KEY: 're_secreta',
     MAIL_SOCIOS: 'uno@ejemplo.com',
+    WA_APP_SECRET: 'secreto',
     WHATSAPP_NUMERO_PUBLICO: '5491100000000',
     SUGERIDAS_CLAVE: 'clave-sugeridas-secreta',
     WA_PLANTILLAS_V3_LISTAS: 'es-AR:recordatorio,es-AR:bienvenida',

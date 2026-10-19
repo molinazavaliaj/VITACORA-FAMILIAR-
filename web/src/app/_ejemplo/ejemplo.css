@@ -74,3 +74,10 @@
    fuera del todo, así sus fotos (perezosas) ni se piden. */
 .ejm-pose .l3-hoja,
 .ejm-pose .l3-hoja-derecha { display: none; }
+
+/* El video del libro (arreglos chicos): una foto apoyada sobre la tela, con
+   el borde fino de las fotos del rediseño y sombra de mesa. */
+.ejm-video {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--dir-hilo-tinta), 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+}

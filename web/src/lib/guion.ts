@@ -239,6 +239,18 @@ export function calidadDeFoto(ancho: number, alto: number): CalidadFoto {
   return "baja";
 }
 
+/**
+ * Si una foto no alcanza para la tapa (arreglos chicos, maqueta Panel: «Esta
+ * foto es pequeña»). El mismo umbral que Encargar libro pide para la tapa
+ * (`exige="libro"`): por debajo de `libro`, impresa en tapa dura se ve
+ * borrosa. Sin medida (el navegador no la pudo leer), no se avisa.
+ */
+export function chicaParaTapa(medida: { ancho: number; alto: number } | null): boolean {
+  if (!medida) return false;
+  const calidad = calidadDeFoto(medida.ancho, medida.alto);
+  return calidad === "chica" || calidad === "baja";
+}
+
 /** Solo `baja` es una alerta; el resto informa. */
 export const AVISO_CALIDAD: Record<CalidadFoto, string> = {
   marco: "Sirve para el libro y para un marco.",

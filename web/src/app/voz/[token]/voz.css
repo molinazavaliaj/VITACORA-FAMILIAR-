@@ -1,0 +1,132 @@
+/* «Su voz» (/voz/[token], maqueta SuVoz) en el lenguaje de la web: tinta con
+   tela, papel crema, Playfair. Lo común (dir-*) viene de globals.css y
+   _direccion/direccion.css; acá solo lo propio de esta página: la foto a
+   pantalla entera con los anillos que laten, la onda que se mueve mientras
+   suena, el acordeón y el carrusel. Falla hacia quieto: con «menos
+   movimiento», nada late ni se mueve. */
+
+.voz-pagina {
+  /* El dorado de la marca, más claro para etiquetas chicas sobre la tinta (5,8:1). */
+  --dir-dorado-claro: #b39a6b;
+}
+
+/* Una columna de lectura: la de la maqueta en el teléfono, un poco más ancha
+   en el escritorio. La del libro, más ancha todavía. */
+.voz-columna {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (min-width: 640px) { .voz-columna { padding-inline: 32px; } }
+.voz-columna--ancha { max-width: 960px; }
+
+/* ── La foto ──────────────────────────────────────────────────────────────── */
+.voz-portada {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  overflow: hidden;
+}
+.voz-portada-foto {
+  position: absolute;
+  inset: 0;
+  /* Si no hay portada (404), queda la tela: la imagen que falla no pinta nada. */
+  background: var(--foto) center 28% / cover no-repeat;
+  filter: grayscale(0.2) sepia(0.25) brightness(0.62);
+  /* Un poco agrandada: muchas fotos viejas traen borde de papel. */
+  transform: scale(1.08);
+}
+.voz-portada::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7, 7, 6, 0.45) 0%, rgba(7, 7, 6, 0.08) 22%, rgba(7, 7, 6, 0.12) 46%, rgba(7, 7, 6, 0.88) 86%, var(--dir-tinta) 100%);
+}
+.voz-portada-boton:focus-visible { outline: 2px solid #fff; outline-offset: 8px; border-radius: 24px; }
+
+.voz-anillo {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1.5px solid rgba(244, 240, 231, 0.75);
+  opacity: 0;
+}
+
+/* ── Los botones de play ──────────────────────────────────────────────────── */
+.voz-play {
+  background: var(--dir-papel);
+  color: var(--dir-tinta);
+  transition: transform 160ms var(--dir-curva), background-color 200ms var(--dir-curva);
+  touch-action: manipulation;
+}
+.voz-play:hover { background: #fff; }
+.voz-play:active { transform: scale(0.94); }
+.voz-play:focus-visible { outline: 2px solid var(--dir-sobre-tinta); outline-offset: 3px; }
+.voz-play[data-sonando="true"] { background: #fff; }
+.voz-play--tinta { background: var(--dir-sobre-papel); color: var(--dir-papel); }
+.voz-play--tinta:hover, .voz-play--tinta[data-sonando="true"] { background: #000; }
+.voz-play--tinta:focus-visible { outline-color: var(--dir-sobre-papel); }
+
+/* ── La onda ──────────────────────────────────────────────────────────────── */
+.voz-barra {
+  display: block;
+  flex: none;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--dir-sobre-tinta);
+  opacity: 0.45;
+  transform-origin: center;
+  transition: opacity 200ms linear;
+}
+.voz-barra[data-hecha="true"] { opacity: 1; }
+
+/* ── El acordeón ──────────────────────────────────────────────────────────── */
+.voz-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms var(--dir-curva-io);
+}
+.voz-panel[data-abierto="true"] { grid-template-rows: 1fr; padding-bottom: 8px; }
+.voz-flecha { transition: transform 320ms var(--dir-curva-io); }
+
+/* ── El carrusel de sus frases de siempre ─────────────────────────────────── */
+.voz-carrusel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* Arranca alineado con la columna y se va por el borde derecho, como en la maqueta. */
+  padding-inline: max(20px, calc((100% - 720px) / 2 + 32px));
+  scroll-padding-inline: max(20px, calc((100% - 720px) / 2 + 32px));
+}
+.voz-carrusel::-webkit-scrollbar { display: none; }
+.voz-tarjeta {
+  flex: 0 0 min(82%, 340px);
+  min-height: 210px;
+  scroll-snap-align: start;
+}
+
+/* ── Movimiento ───────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  .voz-portada-foto { animation: voz-acerca 18s ease-out both; }
+  .voz-anillo { animation: voz-late 1800ms var(--dir-curva) infinite; }
+  .voz-anillo--2 { animation-delay: 600ms; }
+  .voz-onda[data-sonando="true"] .voz-barra { animation: voz-barra 900ms ease-in-out infinite; }
+  .voz-onda[data-sonando="true"] .voz-barra:nth-child(3n) { animation-delay: -300ms; }
+  .voz-onda[data-sonando="true"] .voz-barra:nth-child(3n + 1) { animation-delay: -600ms; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voz-panel, .voz-flecha { transition: none; }
+  .voz-anillo--2 { display: none; }
+  .voz-anillo { opacity: 0.4; transform: scale(1.25); }
+}
+@keyframes voz-acerca { from { transform: scale(1.08); } to { transform: scale(1.14); } }
+@keyframes voz-late {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes voz-barra { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }

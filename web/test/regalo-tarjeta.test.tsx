@@ -65,6 +65,7 @@ const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   mensaje: "Quiero tu historia para siempre.",
   tieneAudio: false,
   usado: false,
+  producto: "familiar",
   ...extra,
 });
 

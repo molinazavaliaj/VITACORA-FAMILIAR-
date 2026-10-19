@@ -14,7 +14,7 @@ import { BotonEscribir, FOTOS_KIDS, FotoKids, PaginaKids, conVar } from "./pieza
 // propia (lo que queda o tres preguntas del banco), cómo funciona, tres dudas
 // de /kids y el cierre. Cabecera mínima: el logo y, si se vende, el botón.
 //
-// ESTÁTICAS. Sin KIDS_VENTA y precio, ningún botón lleva a la compra: dicen
+// ESTÁTICAS. Si no se vende (kidsVende), ningún botón lleva a la compra: dicen
 // «Próximamente» y ofrecen escribirnos, como /kids.
 
 export function LandingKidsPagina({ idioma, landing }: { idioma: IdiomaWeb; landing: LandingKids }) {

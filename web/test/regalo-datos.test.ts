@@ -67,6 +67,8 @@ describe("leerRegalo", () => {
       usado: false,
       idioma: "es-AR",
       region: null,
+      // Sin contexto.modo, la tarjeta de Familiar (arreglos chicos: Kids y Viaje tienen la suya).
+      producto: "familiar",
     });
     expect(consultas[0].tabla).toBe("regalos");
     expect(consultas[0].filtros).toEqual({ codigo: "VF-7K3M2Q" });

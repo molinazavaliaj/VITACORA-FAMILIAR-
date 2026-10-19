@@ -4,12 +4,17 @@ import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
 import { textosAbuelo } from "@/lib/regalo-textos";
 import { largoEnTarjeta, numeroSinCortes } from "@/lib/regalo";
+import { textosTarjetaProducto } from "../../../_textos/tarjeta-regalo";
 
 // La tarjeta del regalo como imagen vertical (1080 × 1920) para mandar por
 // WhatsApp: el interior de la tarjeta en una columna. Negro sobre blanco.
+// Kids y Viaje (arreglos chicos, maquetas `TarjetaKids` y `TarjetaViaje`):
+// arriba la etiqueta y el titular de su tapa, y en vez de «Esto es un regalo»
+// y sus tres líneas, el «¿Qué es esto?» de su producto.
 // Si el regalo no existe o no se pagó, 404 (no revela nada).
 
 const TINTA = "#14140F";
+const DORADO = "#8A7246";
 
 type Fuente = { name: string; data: ArrayBuffer; weight: 300 | 400 | 500 | 600; style: "normal" | "italic" };
 
@@ -75,48 +80,64 @@ export async function GET(request: Request, { params }: { params: Promise<{ codi
   const cuerpo = "Source Serif 4";
   const micro = "Archivo";
   const largo = largoEnTarjeta(regalo.mensaje);
-  const tamanoMensaje = largo > 400 ? 32 : largo > 250 ? 38 : 46;
+  const producto = regalo.producto === "kids" || regalo.producto === "viaje" ? textosTarjetaProducto(regalo.producto, regalo.idioma) : null;
+  // Kids y Viaje suman el titular de la tapa arriba: todo lo demás va un punto
+  // más chico para que hasta 600 letras entren en los 1920 px.
+  const c = producto !== null;
+  const tamanoMensaje = c ? (largo > 400 ? 26 : largo > 250 ? 31 : 40) : largo > 400 ? 32 : largo > 250 ? 38 : 46;
 
   return new ImageResponse(
     (
       <div
         style={{
           width: "100%", height: "100%", display: "flex", flexDirection: "column",
-          backgroundColor: "#FFFFFF", color: TINTA, padding: "110px 96px 90px", fontFamily: cuerpo,
+          backgroundColor: "#FFFFFF", color: TINTA, padding: c ? "80px 96px 72px" : "110px 96px 90px", fontFamily: cuerpo,
         }}
       >
-        <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: 64 }}>{`${regalo.comoLeDicen},`}</div>
+        {producto ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", marginBottom: 32 }}>
+            <div style={{ display: "flex", fontFamily: micro, fontWeight: 500, fontSize: 24, letterSpacing: 5, textTransform: "uppercase", color: DORADO }}>
+              {producto.etiqueta(regalo.quienRegala)}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 20, fontFamily: titulo, fontWeight: 500, fontSize: 64, lineHeight: 1.1 }}>
+              {producto.titulo(regalo.comoLeDicen).map((linea) => <div key={linea} style={{ display: "flex" }}>{linea}</div>)}
+            </div>
+            <div style={{ display: "flex", width: 80, height: 2, backgroundColor: DORADO, marginTop: 24 }} />
+          </div>
+        ) : (
+          <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: 64 }}>{`${regalo.comoLeDicen},`}</div>
+        )}
         <div
           style={{
-            display: "flex", marginTop: 32, fontFamily: titulo, fontStyle: "italic", fontWeight: 400,
+            display: "flex", marginTop: c ? 0 : 32, fontFamily: titulo, fontStyle: "italic", fontWeight: 400,
             fontSize: tamanoMensaje, lineHeight: 1.45, whiteSpace: "pre-wrap",
           }}
         >
           {regalo.mensaje}
         </div>
-        <div style={{ display: "flex", alignSelf: "flex-end", marginTop: 28, fontFamily: titulo, fontStyle: "italic", fontSize: 52 }}>
+        <div style={{ display: "flex", alignSelf: "flex-end", marginTop: c ? 16 : 28, fontFamily: titulo, fontStyle: "italic", fontSize: c ? 44 : 52 }}>
           {regalo.quienRegala}
         </div>
 
-        <div style={{ display: "flex", height: 1, backgroundColor: TINTA, marginTop: 56, marginBottom: 56 }} />
+        <div style={{ display: "flex", height: 1, backgroundColor: TINTA, marginTop: c ? 36 : 56, marginBottom: c ? 36 : 56 }} />
 
-        <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: 50 }}>{textos.esUnRegalo}</div>
-        <div style={{ display: "flex", flexDirection: "column", marginTop: 16, fontSize: 34, lineHeight: 1.45 }}>
-          {textos.explica.map((linea) => <div key={linea} style={{ display: "flex" }}>{linea}</div>)}
+        <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: c ? 44 : 50 }}>{producto ? producto.queEsTitulo : textos.esUnRegalo}</div>
+        <div style={{ display: "flex", flexDirection: "column", marginTop: 16, fontSize: c ? 30 : 34, lineHeight: 1.45 }}>
+          {(producto ? producto.pasos : textos.explica).map((linea) => <div key={linea} style={{ display: "flex" }}>{linea}</div>)}
         </div>
 
         <div style={{ display: "flex", flex: 1 }} />
 
         <div
           style={{
-            display: "flex", justifyContent: "center", textAlign: "center", marginTop: 48, fontFamily: micro, fontWeight: 500,
+            display: "flex", justifyContent: "center", textAlign: "center", marginTop: c ? 32 : 48, fontFamily: micro, fontWeight: 500,
             fontSize: 26, letterSpacing: 3.6, textTransform: "uppercase",
           }}
         >
           {textos.apunta}
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element -- Satori solo entiende <img> */}
-        <img src={qr} alt="" width={420} height={420} style={{ alignSelf: "center", marginTop: 24 }} />
+        <img src={qr} alt="" width={c ? 340 : 420} height={c ? 340 : 420} style={{ alignSelf: "center", marginTop: 24 }} />
         {numero && (
           <div style={{ display: "flex", justifyContent: "center", textAlign: "center", marginTop: 20, fontSize: 28, lineHeight: 1.4 }}>
             {textos.respaldo(numeroSinCortes(numero.legible))}

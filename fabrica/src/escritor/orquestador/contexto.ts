@@ -10,7 +10,15 @@ import { ErrorJSON, type Ejecutor } from '../ejecutor.js';
 import { salida } from '../lectura.js';
 import { llamadaPlan, llamadaRegistro } from '../llamadas/armar.js';
 
-export type Contexto = { c: Carpeta; ej: Ejecutor; almacen: Almacen; log: (s: string) => void; usarLote: boolean };
+export type Contexto = {
+  c: Carpeta;
+  ej: Ejecutor;
+  almacen: Almacen;
+  log: (s: string) => void;
+  usarLote: boolean;
+  /** El libro lo compró quien narra, para sí («Para mí»): las dudas le hablan a él (15/10). */
+  propia?: boolean;
+};
 export type Etapa = 'A' | 'B' | 'C';
 
 /** La carpeta entera al terminar una etapa: la siguiente arranca de acá (y un retomo también). */

@@ -21,7 +21,7 @@ type Pedido = { id: string; email: string };
  * lleva el idioma para que «Pedido confirmado» hable igual. Sin esto (el panel,
  * Encargar libro), todo queda como antes.
  */
-export type OrigenCompra = { idioma: IdiomaWeb; pantalla?: "comprar" | "regalar" };
+export type OrigenCompra = { idioma: IdiomaWeb; pantalla?: "comprar" | "regalar" | "kids" };
 
 export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: OrigenCompra): Promise<{ urlPago: string }> {
   // Vitácora de viaje: la pantalla de gracias explica cómo arrancar por WhatsApp, y "atrás" vuelve a su compra.
@@ -33,8 +33,9 @@ export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: Ori
   // confirma el pedido aunque el webhook falle, y se abre la sesión.
   const urlVuelta = `${urlBase}/api/pago/vuelta?pedido=${encodeURIComponent(pedido.id)}&t=${firmarToken("vuelta", pedido.id)}${esViaje ? "&viaje=1" : ""}${origen ? `&idioma=${origen.idioma}` : ""}`;
   // Si no se cobró (cancelar, tarjeta rechazada): de vuelta a la compra de donde salió.
+  const pantalla = origen?.pantalla === "regalar" ? "/regalar" : origen?.pantalla === "kids" ? "/comprar/kids" : `/comprar${vuelta}`;
   const urlCancelada = origen
-    ? `${urlBase}${ruta(origen.idioma, origen.pantalla === "regalar" ? "/regalar" : `/comprar${vuelta}`)}?pago=fallido`
+    ? `${urlBase}${ruta(origen.idioma, pantalla)}?pago=fallido`
     : `${urlBase}/comprar${vuelta}`;
 
   if (compra.region === "ES") {

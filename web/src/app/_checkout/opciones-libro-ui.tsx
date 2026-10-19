@@ -51,7 +51,8 @@ export type TextosOpciones = {
   unoMas: (t: string) => string;
 };
 
-type Tapa = { titulo: string; idioma: IdiomaLibro };
+/** `foto`: la foto de la tapa chica; sin la clave, la de la casa; null, el toroide sobre tinta (Kids). */
+type Tapa = { titulo: string; idioma: IdiomaLibro; foto?: string | null };
 
 /** La foto de tapa chica, ya optimizada (la tapa de las miniaturas mide ~60 px). */
 // q=75: la única calidad que acepta el optimizador de imágenes (Next 16, sin `images.qualities`).
@@ -61,7 +62,7 @@ const TAPA_CHICA = "/_next/image?url=%2Frediseno%2Flibro-tapa-foto.jpg&w=128&q=7
 function Miniatura({ tipo, tapa }: { tipo: OpcionLibro | "copia" | "marco-solo"; tapa: Tapa }) {
   const libro = (
     <span className="chk-mini-libro">
-      <TapaLibro titulo={tapa.titulo} fotoSrc={TAPA_CHICA} idioma={tapa.idioma} />
+      <TapaLibro titulo={tapa.titulo} fotoSrc={tapa.foto === undefined ? TAPA_CHICA : tapa.foto} idioma={tapa.idioma} />
     </span>
   );
   // El marco dibujado (como el libro): moldura, paspartú y su foto, no la foto de un cuadro.
@@ -74,7 +75,7 @@ function Miniatura({ tipo, tapa }: { tipo: OpcionLibro | "copia" | "marco-solo";
     return (
       <span aria-hidden className="chk-mini chk-mini--pantalla">
         <span className="chk-mini-pantalla">
-          <TapaLibro titulo={tapa.titulo} fotoSrc={TAPA_CHICA} idioma={tapa.idioma} llenar />
+          <TapaLibro titulo={tapa.titulo} fotoSrc={tapa.foto === undefined ? TAPA_CHICA : tapa.foto} idioma={tapa.idioma} llenar />
         </span>
       </span>
     );

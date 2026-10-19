@@ -3,6 +3,7 @@
 // (import dinámico desde procesar.ts y el scheduler).
 
 import { db } from '../db/cliente.js';
+import { mandarHito } from '../mail/hitos.js';
 import { transcribir } from '../ia/transcribir.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { TIMEOUT_ENVIO_V3_MS } from '../v3/deps-reales.js';
@@ -23,6 +24,14 @@ export function depsViajeReales(): DepsViaje {
     },
     transcribir: (audio, o) => transcribir(audio, promptDeTranscripcion(o.nombre, o.idioma), o.narradorId, IDIOMA_OPENAI[o.idioma]),
     avisar: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle); },
+    mailSi: async (narradorId) => {
+      try {
+        const { data } = await db.from('narradores').select('*').eq('id', narradorId).maybeSingle();
+        if (data) await mandarHito(data as Parameters<typeof mandarHito>[0], 'acepto', { viaje: true });
+      } catch (err) {
+        console.error(`viaje V2: no pude mandar el «dijo que sí» de ${narradorId}:`, err instanceof Error ? err.message : err);
+      }
+    },
     ahora: () => new Date(),
   };
 }

@@ -28,6 +28,10 @@ export type TextosPublico = {
   arrepentimiento: string;
   contacto: string;
   escribirWhatsApp: string;
+  /** El enlace discreto del pie a /opiniones (solo con 3 opiniones o más). */
+  opiniones: string;
+  /** El enlace del pie a /eventos (Vitácora Eventos, 17/10). */
+  eventos: string;
 };
 
 export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
@@ -52,6 +56,8 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     arrepentimiento: "Desistimiento",
     contacto: "Contacto",
     escribirWhatsApp: "Escríbenos por WhatsApp",
+    opiniones: "Opiniones",
+    eventos: "Eventos",
   },
   ca: {
     inicio: "Vitácora, inici",
@@ -73,6 +79,8 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     arrepentimiento: "Desistiment",
     contacto: "Contacte",
     escribirWhatsApp: "Escriu-nos per WhatsApp",
+    opiniones: "Opinions",
+    eventos: "Esdeveniments",
   },
   ar: {
     inicio: "Vitácora, inicio",
@@ -94,5 +102,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     arrepentimiento: "Botón de arrepentimiento",
     contacto: "Contacto",
     escribirWhatsApp: "Escribinos por WhatsApp",
+    opiniones: "Opiniones",
+    eventos: "Eventos",
   },
 };

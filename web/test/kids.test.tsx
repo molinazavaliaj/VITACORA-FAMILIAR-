@@ -3,9 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextRequest } from "next/server";
 
 // Vitácora Kids en la web nueva (15/10): /kids, la compra (/comprar/kids) y
-// las dos landings, en los tres idiomas. Kids aparece, pero solo vende con
-// KIDS_VENTA="1" y PRECIO_KIDS_* válido; y aun así /api/compra rechaza el
-// pedido hasta que la base sepa guardarlo (lib/kids.ts, PENDIENTES).
+// las dos landings, en los tres idiomas. Kids vende en Argentina y en España
+// (KIDS_REGIONES, desde el 16/10: el bot ya habla es-ES), nunca en catalán,
+// con KIDS_VENTA="1" y PRECIO_KIDS_* válido. La compra en sí se prueba en
+// compra-kids.test.ts.
 
 import KidsEs, { metadata as metaEs } from "../src/app/kids/page";
 import KidsCa from "../src/app/ca/kids/page";
@@ -24,15 +25,22 @@ import { TEXTOS_LANDING_KIDS } from "../src/app/_textos/landing-kids";
 import { POST } from "../src/app/api/compra/route";
 import {
   KIDS_TODAVIA_NO,
+  catalogoKids,
+  compraKids,
   cuerpoKids,
+  fallaEnvioKids,
   estadoKidsInicial,
   fallaKids,
   fichaDeCompra,
   kidsVende,
+  kidsVendeEn,
   quienRegalaTexto,
   type EstadoKids,
 } from "../src/lib/kids";
 import { obtenerPrecioKids } from "../src/lib/precios";
+import { CHECKOUT } from "../src/app/_textos/checkout";
+import { KIDS_IMPRESO } from "../src/app/_textos/checkout-kids";
+import type { Catalogo } from "../src/lib/productos";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const pagina = (p: () => React.ReactElement) => renderToStaticMarkup(p());
@@ -73,13 +81,19 @@ const LLENO: EstadoKids = {
 };
 
 describe("lib/kids: cuándo se vende y qué ficha arma", () => {
-  it("se vende solo con KIDS_VENTA=1 y un precio válido", () => {
+  it("se vende en Argentina y en España (nunca en catalán), con KIDS_VENTA=1 y un precio válido", () => {
+    expect(kidsVende("AR")).toBe(false);
+    process.env.PRECIO_KIDS_ARS = "90000";
+    expect(kidsVende("AR")).toBe(false);
+    process.env.KIDS_VENTA = "1";
+    expect(kidsVende("AR")).toBe(true);
+    // España sin precio no; con precio sí (Naza 16/10, tanda 8). Catalán, con el precio de España (tanda 10).
     expect(kidsVende("ES")).toBe(false);
     process.env.PRECIO_KIDS_EUR = "59";
-    expect(kidsVende("ES")).toBe(false);
-    process.env.KIDS_VENTA = "1";
     expect(kidsVende("ES")).toBe(true);
-    expect(kidsVende("AR")).toBe(false);
+    expect(kidsVendeEn("es")).toBe(true);
+    expect(kidsVendeEn("ar")).toBe(true);
+    expect(kidsVendeEn("ca")).toBe(true);
     process.env.PRECIO_KIDS_ARS = "85.750,00";
     expect(obtenerPrecioKids("AR")).toBeNull();
     expect(kidsVende("AR")).toBe(false);
@@ -99,13 +113,30 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
   it("quién se lo regala va como lo lee el motor («tu mamá», «tus abuelos»)", () => {
     expect(quienRegalaTexto({ quien: "papas", quienOtra: "" })).toBe("tus papás");
     expect(quienRegalaTexto({ quien: "otra", quienOtra: "Tus padrinos" })).toBe("tus padrinos");
+    // En España, «tu madre», «tu padre», «tus padres» (Naza 16/10, tanda 8).
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "ES")).toBe("tu madre");
+    expect(quienRegalaTexto({ quien: "papa", quienOtra: "" }, "ES")).toBe("tu padre");
+    expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ES")).toBe("tus padres");
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "AR")).toBe("tu mamá");
+    // En catalán, «la teva mare», «els teus pares» (Naza 16/10, tanda 10), y «Otra persona» con el posesivo en minúscula.
+    expect(quienRegalaTexto({ quien: "mama", quienOtra: "" }, "ca")).toBe("la teva mare");
+    expect(quienRegalaTexto({ quien: "papas", quienOtra: "" }, "ca")).toBe("els teus pares");
+    expect(quienRegalaTexto({ quien: "abuela", quienOtra: "" }, "ca")).toBe("la teva àvia");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "El teu padrí" }, "ca")).toBe("el teu padrí");
+    expect(quienRegalaTexto({ quien: "otra", quienOtra: "Les teves ties" }, "ca")).toBe("les teves ties");
   });
 
-  it("la ficha es la del motor: temas en el orden de la pantalla, zona del país, hora por defecto 18:00", () => {
+  it("la ficha es la del motor: temas en el orden de la pantalla, zona e idioma del país, hora por defecto 18:00 en Argentina y 20:00 en España", () => {
     const f = fichaDeCompra(LLENO, "ES");
-    expect(f).toMatchObject({ nombre: "Nico Rivas", apodo: "Nico", genero: "chico", edad: 11, quienRegala: "tus papás", canal: "B", nombrePadre: "Laura Gómez", hora: "18:00", zona: "Europe/Madrid", fotosConOtrosChicos: false });
+    expect(f).toMatchObject({ nombre: "Nico Rivas", apodo: "Nico", genero: "chico", edad: 11, quienRegala: "tus padres", canal: "B", nombrePadre: "Laura Gómez", hora: "18:00", zona: "Europe/Madrid", fotosConOtrosChicos: false, idioma: "es-ES" });
     expect(f.temasSacados).toEqual(["mama", "escuela"]);
-    expect(fichaDeCompra(LLENO, "AR").zona).toBe("America/Argentina/Buenos_Aires");
+    expect(fichaDeCompra(LLENO, "AR")).toMatchObject({ zona: "America/Argentina/Buenos_Aires", idioma: "es-AR", quienRegala: "tus papás" });
+    expect(estadoKidsInicial().hora).toBe("18:00");
+    expect(estadoKidsInicial(undefined, "AR").hora).toBe("18:00");
+    expect(estadoKidsInicial(undefined, "ES").hora).toBe("20:00");
+    // Desde /ca: región ES (zona de Madrid, 20:00 por defecto), idioma ca (tanda 10).
+    expect(fichaDeCompra(LLENO, "ES", "ca")).toMatchObject({ zona: "Europe/Madrid", idioma: "ca", quienRegala: "els teus pares" });
+    expect(cuerpoKids(LLENO, "ES", "ca").kids).toMatchObject({ idioma: "ca", quienRegala: "els teus pares" });
   });
 
   it("el cuerpo lleva producto kids y el WhatsApp del chico solo con el canal A", () => {
@@ -113,11 +144,11 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
     expect(cuerpoKids({ ...LLENO, canal: "A", suWhatsapp: "+34 600 00 00 00" }, "ES", "es").whatsappChico).toBe("+34 600 00 00 00");
   });
 
-  it("/api/compra rechaza un pedido de Kids (la base todavía no sabe guardarlo)", async () => {
+  it("/api/compra no vende Kids con un idioma de web que no es el de la región", async () => {
     vender();
-    const r = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "es")) }));
-    expect(r.status).toBe(409);
-    expect((await r.json()).error).toBe(KIDS_TODAVIA_NO);
+    const r2 = await POST(new NextRequest("http://localhost/api/compra", { method: "POST", body: JSON.stringify(cuerpoKids(LLENO, "ES", "ar")) }));
+    expect(r2.status).toBe(409);
+    expect((await r2.json()).error).toBe(KIDS_TODAVIA_NO);
   });
 });
 
@@ -141,12 +172,14 @@ describe("/kids por idioma", () => {
     expect(pagina(KidsAr)).toContain('href="https://wa.me/34611222333"');
   });
 
-  it("con KIDS_VENTA y precio, los botones llevan a la compra de su idioma con el precio", () => {
+  it("con KIDS_VENTA y precio, /ar, España y /ca llevan a su compra (KIDS_IDIOMAS_WEB, tanda 10)", () => {
     vender();
-    expect(pagina(KidsEs)).toMatch(/href="\/comprar\/kids"[^>]*>Empezar su libro</);
-    expect(pagina(KidsEs)).toContain("59");
     expect(pagina(KidsAr)).toContain('href="/ar/comprar/kids"');
+    expect(pagina(KidsAr)).toContain("90");
+    expect(pagina(KidsEs)).toContain('href="/comprar/kids"');
+    expect(pagina(KidsEs)).toContain("59");
     expect(pagina(KidsCa)).toContain('href="/ca/comprar/kids"');
+    expect(pagina(KidsCa)).toContain("59");
   });
 
   it("los textos aprobados de la rama de Kids, en vos, en /ar", () => {
@@ -206,6 +239,65 @@ describe("/comprar/kids", () => {
     const paso3 = renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" escribir={{ href: "#", externo: false }} pasoInicial={3} />);
     for (const s of [K.temasTitulo, K.temasBajada, K.temasDebajo, K.fotos, K.fotosAyuda, K.despuesTexto, ...Object.values(K.temas)]) expect(paso3, s).toContain(escapar(s));
     expect(paso3).toMatch(/Pagar \$\s?90\.000/);
+  });
+});
+
+// El libro impreso en Kids (Naza 15/10, tanda 3, punto 10): las opciones y la
+// dirección de la casa, en el paso 3, con el impreso arriba y elegido.
+describe("/comprar/kids con el libro impreso", () => {
+  const CASA: Catalogo = {
+    moneda: "ARS",
+    base: { nombre: "El libro en PDF + Su voz", detalle: "", precio: 85750 },
+    viaje: null,
+    impreso: { precio: 85750, precioCopia: 40000 },
+    marco: { precio: 30000, precioAdicional: 20000 },
+    pack: { precio: 180000 },
+  };
+  const cat = catalogoKids(CASA, 90000);
+  const paso3 = () =>
+    renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" catalogo={cat} escribir={{ href: "#", externo: false }} pasoInicial={3} />);
+
+  it("el catálogo de Kids es su precio con el impreso de la casa, sin marco ni pack", () => {
+    expect(cat).toMatchObject({ base: { precio: 90000 }, impreso: { precio: 85750, precioCopia: 40000 }, marco: null, pack: null, viaje: null });
+    expect(compraKids(cat, "AR", 2).total).toBe(90000 + 85750 + 40000);
+    expect(compraKids(cat, "AR", 0).lineas).toEqual([{ id: "pdf", nombre: "Vitácora Kids", cantidad: 1, precioUnitario: 90000 }]);
+  });
+
+  it("arranca con el impreso elegido y arriba, pide la dirección de la casa y cobra la suma", () => {
+    const html = paso3();
+    const T = CHECKOUT.ar;
+    expect(html).toContain(escapar(T.libroTitulo));
+    // El impreso primero y elegido; después el digital; ningún marco.
+    const impreso = html.indexOf('value="impreso"');
+    const digital = html.indexOf('value="digital"');
+    expect(impreso).toBeGreaterThan(-1);
+    expect(digital).toBeGreaterThan(impreso);
+    expect(html).not.toContain('value="marco"');
+    expect(html).toMatch(/checked="" value="impreso"/);
+    expect(html).toContain(escapar(KIDS_IMPRESO.impresoDetalle));
+    for (const s of [T.direccionTitulo, T.direccionAyuda, T.recibe, T.copiasTitulo]) expect(html, s).toContain(escapar(s));
+    expect(html).not.toContain(escapar("Su voz"));
+    // Los textos aprobados del paso 3 siguen.
+    for (const s of [CHECKOUT_KIDS.ar.temasTitulo, CHECKOUT_KIDS.ar.despuesTexto]) expect(html, s).toContain(escapar(s));
+    expect(html).toMatch(/Pagar \$\s?175\.750/);
+  });
+
+  it("sin catálogo (o sin impreso en la región), el paso 3 de siempre", () => {
+    const html = renderToStaticMarkup(<CheckoutKids idioma="ar" precio={90000} moneda="ARS" escribir={{ href: "#", externo: false }} pasoInicial={3} />);
+    expect(html).not.toContain('value="impreso"');
+    expect(html).not.toContain(escapar(CHECKOUT.ar.direccionTitulo));
+    expect(html).toMatch(/Pagar \$\s?90\.000/);
+  });
+
+  it("con el impreso, el paso 3 pide quién recibe, un teléfono y la dirección, con los avisos de la casa", () => {
+    const T = CHECKOUT.ar;
+    const conImpreso = { ...estadoKidsInicial(cat), ...LLENO, formato: "impreso" as const };
+    expect(fallaEnvioKids(conImpreso, T)).toEqual({ texto: T.faltaRecibe, campo: "recibe" });
+    expect(fallaEnvioKids({ ...conImpreso, recibe: "Laura" }, T)).toEqual({ texto: T.faltaTelefonoRecibe, campo: "telefono-recibe" });
+    expect(fallaEnvioKids({ ...conImpreso, recibe: "Laura", telefonoRecibe: "11 5555 1234" }, T)?.campo).toBe("direccion");
+    const completo = { ...conImpreso, recibe: "Laura", telefonoRecibe: "11 5555 1234", direccion: { linea1: "Pelliza 1234", ciudad: "Vicente López", cp: "1638", pais: "Argentina" } };
+    expect(fallaEnvioKids(completo, T)).toBeNull();
+    expect(fallaEnvioKids({ ...conImpreso, formato: "digital" }, T)).toBeNull();
   });
 });
 

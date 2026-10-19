@@ -26,6 +26,21 @@ import type { Textos } from "@/lib/idioma-web";
 // ca: PENDIENTE REVISIÓN NATIVA Y ABOGADO. Además, confirmar con el abogado qué
 // textos legales tienen que estar en catalán obligatoriamente (DECISIONES D2).
 //
+// REVISIÓN DEL 17/10 (docs/legal/revision-textos-2026-10-17.md): corregidos los
+// seis puntos de «hoy mismo» (sección F), las contradicciones B1-B7 que son
+// solo texto y, de «lo que falta», factura, IVA incluido y el formulario del
+// Anexo B. Con las decisiones de Joaquín del 17/10: un solo titular en los dos
+// países; devolución total mientras dura la entrevista, hasta que el libro está
+// listo en la cuenta; audios originales 3 meses desde que se produce el libro;
+// Kids fuera de los legales hasta que exista su sección. Los textos nuevos están
+// en docs/rediseno-2026-10/fase-5/textos-legal-revision-2026-10-17.md, en tres
+// tandas (L1, L2, L3) para Naza. Cada texto cambiado lleva la marca
+//   // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
+// con su número de la tanda; cuando Naza lo apruebe pasa a
+//   // APROBADO por Naza el <fecha> · L1-03
+// Hasta entonces no se publica (DECISIONES: los textos que ve una persona los
+// aprueba Naza).
+//
 // Marcas dentro de los textos (las pinta legal/pagina.tsx):
 //   **negrita**   [texto](/ruta o https://…)   {hola} {soporte} (correos)
 //   {titular:ES} {titular:AR} (nombre, documento y domicilio, en amarillo si falta)
@@ -39,7 +54,9 @@ export type Bloque =
   | { tipo: "lista"; items: string[] }
   | { tipo: "tabla"; columnas: string[]; filas: string[][] }
   /** El botón del correo de desistimiento / arrepentimiento (solo en esa página). */
-  | { tipo: "boton" };
+  | { tipo: "boton" }
+  /** Un texto para copiar tal cual: el formulario del Anexo B (solo en la página de desistimiento). */
+  | { tipo: "formulario"; lineas: string[] };
 
 export type SeccionLegal = {
   id: string;
@@ -82,6 +99,7 @@ const p = (texto: string): Bloque => ({ tipo: "parrafo", texto });
 const lista = (...items: string[]): Bloque => ({ tipo: "lista", items });
 const tabla = (columnas: string[], filas: string[][]): Bloque => ({ tipo: "tabla", columnas, filas });
 const BOTON: Bloque = { tipo: "boton" };
+const formulario = (...lineas: string[]): Bloque => ({ tipo: "formulario", lineas });
 
 /**
  * La garantía de cada línea (DECISIONES D1), con el texto EXACTO del checkout
@@ -89,25 +107,34 @@ const BOTON: Bloque = { tipo: "boton" };
  * garantia) y de la FAQ de la portada. Va igual en términos §7 y en la página de
  * desistimiento: legales y política de devoluciones dicen lo mismo.
  * PENDIENTE DE REVISIÓN DEL ABOGADO.
+ *
+ * `regla` reemplaza a la vieja «si ya ha empezado a contestar, el libro se cierra
+ * con lo que haya, sin devolución», que contradecía §8 (revisión B1) y ya no es
+ * verdad: desde el 17/10 (Joaquín) se devuelve todo mientras dura la entrevista.
+ * Las tres frases del checkout quedan igual (no se puede tocar el checkout hasta
+ * después de #56): son la versión corta y verdadera de la regla.
  */
-export const GARANTIAS: Textos<{ familiar: string; familiarEmpezado: string; viaje: string; propia: string }> = {
+export const GARANTIAS: Textos<{ familiar: string; viaje: string; propia: string; regla: string }> = {
   es: {
     familiar: "Si no quiere hacerlo, te devolvemos el dinero.",
-    familiarEmpezado: "Si ya ha empezado a contestar, el libro se cierra con lo que haya, sin devolución.",
     viaje: "Si el viaje se cancela, te devolvemos el dinero.",
     propia: "Si cambias de idea antes de contestar la primera pregunta, te devolvemos el dinero.",
+    // APROBADO por Naza · L1-05 (18/10, con sus correcciones)
+    regla: "Las tres dicen en corto lo mismo. Mientras dura la entrevista —o el viaje— y hasta que el libro está listo en tu cuenta, si lo pides te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar.",
   },
   ca: {
     familiar: "Si no ho vol fer, et retornem els diners.",
-    familiarEmpezado: "Si ja ha començat a contestar, el llibre es tanca amb el que hi hagi, sense devolució.",
     viaje: "Si el viatge es cancel·la, et retornem els diners.",
     propia: "Si canvies d'idea abans de contestar la primera pregunta, et retornem els diners.",
+    // APROBADO por Naza · L1-05 (18/10, con sus correcciones)
+    regla: "Totes tres diuen en resum el mateix. Mentre dura l'entrevista —o el viatge— i fins que el llibre està a punt al teu compte, si ho demanes, et retornem tot el que vas pagar, encara que ja hagi començat a contestar.",
   },
   ar: {
     familiar: "Si no quiere hacerlo, te devolvemos el dinero.",
-    familiarEmpezado: "Si ya empezó a contestar, el libro se cierra con lo que haya, sin devolución.",
     viaje: "Si el viaje se cancela, te devolvemos el dinero.",
     propia: "Si cambiás de idea antes de contestar la primera pregunta, te devolvemos el dinero.",
+    // APROBADO por Naza · L1-05 (18/10, con sus correcciones)
+    regla: "Las tres dicen en corto lo mismo. Mientras dura la entrevista —o el viaje— y hasta que el libro está listo en tu cuenta, si lo pedís te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar.",
   },
 };
 
@@ -117,6 +144,7 @@ function seccionGarantia(
   titulo: string,
   intro: string,
   nombres: { familiar: string; viaje: string; propia: string },
+  detalle: string,
 ): SeccionLegal {
   const g = GARANTIAS[idioma];
   return {
@@ -126,10 +154,12 @@ function seccionGarantia(
     bloques: [
       p(intro),
       lista(
-        `**${nombres.familiar}**: ${g.familiar} ${g.familiarEmpezado}`,
+        `**${nombres.familiar}**: ${g.familiar}`,
         `**${nombres.viaje}**: ${g.viaje}`,
         `**${nombres.propia}**: ${g.propia}`,
       ),
+      p(g.regla),
+      p(detalle),
     ],
   };
 }
@@ -141,11 +171,11 @@ const GARANTIA_ES = (id: string, titulo: string) =>
     familiar: "Familiar (el libro de otra persona)",
     viaje: "De viaje",
     propia: "Para ti (tu propio libro)",
-  });
+  }, "El detalle está en la sección [«Si te arrepientes» de los términos](/legal/terminos#arrepentimiento).");
 
 const ES: TextosLegal = {
   actualizado: "Última actualización",
-  fecha: "14 de octubre de 2026",
+  fecha: "19 de octubre de 2026",
   enCorto: "En corto",
   indice: "En esta página",
   documentos: "Textos legales",
@@ -168,34 +198,44 @@ const ES: TextosLegal = {
     titulo: "Términos del servicio",
     bajada: "Qué te damos, qué te cobramos y cuándo. En castellano, sin letra chica.",
     descripcion: "Qué te damos, qué te cobramos, cuándo puedes desistir y de quién es la historia.",
+    // APROBADO por Naza · L2-06 (18/10, con sus correcciones)
     enCorto: [
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
-      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, te devolvemos el dinero completo.",
+      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, o si te arrepientes mientras dura la entrevista, te devolvemos todo.",
       "Antes de cerrar el libro lo revisas tú. Lo que se imprime es lo que apruebas.",
-      "Puedes desistir en 14 días naturales en España, o en 10 días corridos en Argentina.",
-      "La historia, los audios y la voz son de tu familia. Nunca los publicamos.",
+      "Con el libro ya escrito vale el plazo de la ley, 14 días naturales desde la compra en España y 10 días corridos desde que recibes el libro en Argentina (desde la compra, si es solo digital).",
+      "La historia, los audios y la voz son de tu familia. Nunca los publicamos. El libro entero solo se abre con el código del libro impreso, o con el enlace que tú compartas.",
     ],
     secciones: [
       {
         id: "quienes-somos",
         titulo: "1. Quiénes somos",
         bloques: [
-          p("Vitácora Familiar lo prestan dos personas, una en cada país donde vendemos. Con quién contratas depende de la región que eliges al comprar (la misma que decide la moneda y el medio de pago):"),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("Vitácora Familiar lo presta una sola persona en los dos países donde vendemos, con un alta fiscal en cada uno. Qué datos y qué ley se aplican a tu compra depende de la región que eliges al comprar (la misma que decide la moneda y el medio de pago):"),
           lista(
             "Si compras desde **España** (en euros): {titular:ES}.",
             "Si compras desde **Argentina** (en pesos): {titular:AR}.",
           ),
-          p("En estos términos, «nosotros» es el titular que te corresponde. Para cualquier cosa escribe a {hola} (o a {soporte} si es un problema con la web) y te contestamos."),
+          p("En estos términos, «nosotros» es esa persona, con los datos de tu región. Para cualquier cosa escribe a {hola} (o a {soporte} si es un problema con la web) y te contestamos."),
         ],
       },
       {
         id: "que-es",
         titulo: "2. Qué es el servicio",
         bloques: [
-          p("Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro de su vida, en primera persona y con sus propias palabras."),
+          p("Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro, en primera persona y con sus propias palabras."),
+          // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
+          p("Hay tres libros:"),
+          lista(
+            "**Familiar**: el libro de una vida, la de otra persona, que tú le regalas. El narrador es esa persona.",
+            "**Para ti**: tu propio libro. El narrador eres tú, y las preguntas te llegan a tu WhatsApp.",
+            "**De viaje**: el libro de un viaje. Las preguntas le llegan al viajero por WhatsApp antes de salir y durante el viaje, las contesta con audios cuando quiere, y al volver nos manda las fotos para el álbum. Con eso escribimos el libro del viaje, con el álbum al final. Puede ser para ti o un regalo.",
+          ),
           p("Lo que puedes comprar:"),
           lista(
-            "**El libro en PDF**: se lee en la web, capítulo por capítulo, con las fotos que suba la familia. Incluye **«Su voz»**: sus mejores frases, recortadas de sus audios originales tal como las dijo, para escuchar en la web y con un código impreso. Está siempre disponible en tu cuenta.",
+            // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+            "**El libro en PDF**: se lee en la web, capítulo por capítulo, con las fotos que suba la familia. Incluye **«Su voz»**: sus mejores frases, recortes de sus audios originales con el sonido limpio y parejo (no se clona ni se imita su voz), para escuchar en la web y con un código impreso. Está siempre disponible en tu cuenta.",
             "**El libro impreso**, en blanco y negro o a color: tapa dura, con un código en la contratapa que hace sonar su voz.",
             "**Marcos con su voz**: un marco con su foto y un chip; se acerca el teléfono y suena su voz.",
           ),
@@ -209,14 +249,17 @@ const ES: TextosLegal = {
         titulo: "3. Cómo se compra",
         bloques: [
           p("Es un **pago único, por adelantado**. No hay suscripción, no hay renovación automática y no guardamos tu tarjeta: el cobro lo hace Stripe (España) o Mercado Pago (Argentina) y ellos son los únicos que ven tus datos de pago."),
-          p("El precio de cada producto aparece antes de pagar, en euros o en pesos según la región que elijas, y es el precio final que pagas. Después del pago te llega un correo para entrar a tu cuenta con un código (sin contraseña) y anotar a tu narrador: su nombre, su WhatsApp y unos pocos datos para que las preguntas le suenen a él."),
+          // APROBADO por Naza · L2-04 (18/10, con sus correcciones)
+          p("El precio de cada producto aparece antes de pagar, en euros o en pesos según la región que elijas, y es el precio final que pagas (en España, con el IVA incluido). Después del pago te llega un correo para entrar a tu cuenta con un código (sin contraseña) y anotar a tu narrador: su nombre, su WhatsApp y unos pocos datos para que las preguntas le suenen a él."),
+          p("Por cada compra te mandamos la factura por correo: en Argentina, la factura electrónica, dentro de los 5 días hábiles después del pago; en España, la factura con el IVA desglosado."),
         ],
       },
       {
         id: "permiso",
         titulo: "4. Nada empieza sin su permiso",
         bloques: [
-          p("Al anotar a alguien nos confirmas que puedes hacerlo y que le va a parecer bien. Antes de la primera pregunta le escribimos por WhatsApp contándole quién lo anotó y le pedimos permiso. **Si no acepta, no empieza nada y te devolvemos el dinero completo** (ver la sección 8)."),
+          // APROBADO por Naza · L2-05 (18/10, con sus correcciones)
+          p("Al anotar a alguien nos confirmas que puedes hacerlo y que le va a parecer bien. Antes de la primera pregunta le escribimos por WhatsApp contándole quién lo anotó y le pedimos permiso. **Si no acepta, no empieza nada y te devolvemos el dinero completo** (ver la sección 8). En ese caso, en 15 días borramos su nombre, su número, su ficha y sus fotos, y solo guardamos lo necesario para la factura y la devolución."),
           p("El narrador manda en su historia: puede parar cuando quiera, retomar cuando quiera, responder solo lo que quiera, y pedir que borremos todo lo que grabó. Si deja de responder unos días, te avisamos por correo."),
         ],
       },
@@ -232,11 +275,18 @@ const ES: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te arrepientes",
         bloques: [
-          p("Puedes arrepentirte de la compra sin dar explicaciones. Escríbenos a {hola} o usa el [botón de desistimiento](/legal/arrepentimiento); te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. El plazo para arrepentirte depende de dónde compraste:"),
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          p("Puedes arrepentirte sin dar explicaciones: escríbenos a {hola} o usa el [botón de desistimiento](/legal/arrepentimiento). Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. Funciona en tres capas, en este orden:"),
+          p("**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagas y hasta que el libro está listo en tu cuenta para que lo revises —mientras el narrador contesta, o mientras dura el viaje—, si lo pides te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada. Es más de lo que pide la ley."),
+          p("**Después, lo que te da la ley, cuando el libro ya está escrito.** Depende de la región en la que compraste:"),
           lista(
-            "**España — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; si te arrepientes con la entrevista ya en marcha, te devolvemos el precio menos la parte proporcional a las preguntas ya hechas (art. 108.3). Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m); tampoco sobre el libro impreso ni los marcos, que se hacen a medida (art. 103 c). Si algo llega dañado o con un defecto, lo reponemos.",
-            "**Argentina — 10 días corridos** desde la compra (art. 34 de la ley 24.240). Puedes revocar la compra sin costo alguno y te devolvemos el total. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
+            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, mientras dura, te devolvemos todo. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
+            // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
+            "**Si compraste en Argentina (en pesos) — 10 días corridos** desde que recibes el libro, o desde la compra si el libro es solo digital, lo que ocurra último (art. 34 de la ley 24.240). Puedes revocar la compra sin costo alguno: te devolvemos el total, y si hay que devolver el libro impreso o el marco, el envío de vuelta lo pagamos nosotros. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
           ),
+          // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
+          p("**Por último, lo que no se devuelve.** Si compraste en España: el libro en PDF ya entregado en tu cuenta (art. 103 m), y el libro impreso y los marcos, que se hacen a medida con la historia y las fotos de tu familia y que apruebas antes de imprimir (art. 103 c). En las dos regiones, si algo llega dañado o con un defecto, lo reponemos sin coste."),
           p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos que los que te corresponden como consumidor donde vives."),
         ],
       },
@@ -245,15 +295,22 @@ const ES: TextosLegal = {
         id: "sin-libro",
         titulo: "8. Si no hay libro",
         bloques: [
-          p("Si el narrador no acepta participar, o responde menos de diez preguntas y por eso no hay material para un libro, te devolvemos el importe completo, sin plazo y sin descuento: no te entregamos lo que compraste, así que no te lo cobramos. Preferimos un libro breve y verdadero antes que uno largo y relleno, pero por debajo de diez respuestas no hay libro."),
+          // APROBADO por Naza · L1-06 (18/10, con sus correcciones)
+          lista(
+            "**En el libro de una vida** (Familiar o Para ti): si el narrador no acepta participar, o la entrevista termina con menos de diez respuestas a preguntas principales distintas —sin contar las repreguntas que le hacemos para profundizar en lo que contó—. Preferimos un libro breve y verdadero antes que uno largo y relleno, pero por debajo de diez respuestas no hay libro.",
+            "**En el libro de viaje**: si el viajero no acepta participar o no contesta ninguna pregunta.",
+          ),
+          p("En los dos casos te escribimos y te devolvemos el importe completo sin que tengas que pedirlo, en un plazo máximo de 14 días y sin descuento. Si no te entregamos lo que compraste, no te lo cobramos."),
         ],
       },
       {
         id: "historia",
         titulo: "9. La historia es de tu familia",
         bloques: [
-          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca publicamos su historia, nunca la usamos como ejemplo y nunca se la mostramos a nadie fuera de tu familia. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
-          p("Sus frases en su voz son recortes de sus propios audios, sin ninguna voz sintética. No se usan para ningún otro fin y se borran cuando el narrador o tú lo pidan."),
+          // APROBADO por Naza · L1-07 (18/10, con sus correcciones)
+          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca la usamos como ejemplo, nunca publicamos su historia ni se la mostramos a nadie fuera de tu familia, salvo la muestra que tú decidas compartir y quien tenga el libro en la mano: el código de la contratapa abre el libro completo, y ese enlace se puede reenviar. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("Sus frases en su voz son recortes de sus audios originales, con el sonido limpio y parejo; no se clona ni se imita su voz. No se usan para ningún otro fin y se borran cuando el narrador o tú lo pidan."),
         ],
       },
       {
@@ -274,7 +331,8 @@ const ES: TextosLegal = {
           p("Te prometemos que el libro se escribe con las palabras de tu narrador, que para él va a ser fácil —un audio de WhatsApp cuando quiera— y que si algo sale mal lo arreglamos o te devolvemos el dinero."),
           p("Para transcribir los audios y para redactar los capítulos usamos inteligencia artificial, y puede equivocarse: un nombre mal oído, una fecha, un giro que no le pertenece. Por eso el libro no se cierra hasta que lo revisas tú, y por eso te pedimos que lo leas antes de aprobarlo. Lo que se imprime es lo que aprobaste."),
           p("No podemos prometerte cuánto va a querer contar tu narrador ni cuántas preguntas va a responder. Si cuenta poco, el libro sale más corto."),
-          p("Si algo falla por nuestra culpa, respondemos hasta el importe que pagaste. Esto no limita ningún derecho que la ley de tu país no permita limitar, ni nuestra responsabilidad por dolo o por daños a las personas."),
+          // APROBADO por Naza · L1-09 (18/10, con sus correcciones)
+          p("Si algo falla por nuestra culpa, respondemos conforme a la ley. No limitamos nuestra responsabilidad por dolo ni por daños a las personas, ni ningún derecho que te dé la ley de tu país."),
         ],
       },
       {
@@ -319,7 +377,8 @@ const ES: TextosLegal = {
     enCorto: [
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
       "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
-      "Los audios originales se borran en cuanto tú o el narrador lo pidan.",
+      // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
+      "Los audios originales se borran 3 meses después de producir el libro, o antes si lo pide el narrador o lo pides tú. Quedan solo los recortes de «Su voz».",
       "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, basta un correo a {hola}.",
     ],
@@ -328,7 +387,8 @@ const ES: TextosLegal = {
         id: "responsables",
         titulo: "1. Quién responde por tus datos",
         bloques: [
-          p("El responsable del tratamiento es el titular del servicio en tu región, la que elegiste al comprar:"),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("El responsable del tratamiento es el titular del servicio, una sola persona, con los datos de la región que elegiste al comprar:"),
           lista("**España**: {titular:ES}.", "**Argentina**: {titular:AR}."),
           p("Para cualquier cosa sobre tus datos escribe a {hola}. No hace falta formulario ni formalidad: un correo alcanza."),
         ],
@@ -351,8 +411,13 @@ const ES: TextosLegal = {
         titulo: "3. Qué datos guardamos",
         bloques: [
           p("**De ti**: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos llega solo la confirmación. Cuando entras a tu cuenta guardamos los registros técnicos normales de cualquier web (dirección IP, navegador, hora)."),
+          // APROBADO por Naza · L3-03 (18/10, con sus correcciones)
+          p("**La dirección de envío**: si compras el libro impreso o un marco, la dirección y el nombre de quien lo recibe. Solo la usamos para mandarlo: se la pasamos a la imprenta y a la mensajería, y después queda con los datos de la compra."),
           p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
-          p("**Su voz**: sus mejores frases se recortan de sus propios audios, tal como las dijo, para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz sintética. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
+          // APROBADO por Naza · L3-02 (18/10, con sus correcciones)
+          p("**Del viajero**, en el libro de viaje: además de lo anterior, las fechas de salida y de vuelta y el país principal del viaje (para mandarle los mensajes a una hora razonable allí donde esté), las preguntas propias que escribe quien regala, si las hay, y las fotos del álbum que nos manda por WhatsApp, en las que pueden aparecer otras personas que viajan con él."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("**Su voz**: sus mejores frases son recortes de sus audios originales, con el sonido limpio y parejo, para escucharlas en la web y con el código impreso en el libro. No se clona ni se imita su voz. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
           p("**De los invitados**: su correo (para invitarlos), su nombre si entran, y las fotos que suben."),
           p("**De quien visita**: nada que lo identifique. Solo los registros técnicos del servidor y las cookies de la sección 12."),
         ],
@@ -387,7 +452,9 @@ const ES: TextosLegal = {
               ["Anthropic", "Redacta los capítulos a partir de las transcripciones, con las palabras del narrador. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
               ["Stripe / Mercado Pago", "Cobran. Son los únicos que ven tu tarjeta.", "Stripe: UE y EE. UU. · Mercado Pago: Argentina"],
               ["Resend", "Manda los correos: el código para entrar y los avisos.", "Brasil (región de América del Sur)"],
-              ["Imprenta y mensajería", "Solo si compras el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "En tu país; te decimos cuál antes de mandar a producir"],
+              ["Imprenta y mensajería", "Solo si compras el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "Bookmundo, en Países Bajos (Unión Europea), para los libros de España. En Argentina te decimos cuál antes de mandar a imprimir"],
+              ["Sentry", "Avisa de los errores técnicos de la web y del entrevistador. No recibe nombres, mensajes ni audios.", "Unión Europea (Alemania)"],
+              ["Cloudflare", "Guarda una copia de seguridad de los audios, las fotos y los libros, por si se pierden. Lo que borramos se borra también de la copia a los 30 días.", "Unión Europea"],
             ],
           ),
         ],
@@ -396,19 +463,28 @@ const ES: TextosLegal = {
         id: "transferencias",
         titulo: "6. Datos que salen de tu país",
         bloques: [
-          p("Como ves en la tabla, algunos de esos servicios están en Estados Unidos. Si estás en la Unión Europea, esas transferencias se hacen bajo el Marco de Privacidad de Datos UE-EE. UU. o con las cláusulas contractuales tipo aprobadas por la Comisión Europea, según el proveedor. Argentina tiene decisión de adecuación de la Unión Europea, así que los datos pueden circular entre los dos países sin garantías adicionales. Si quieres ver los contratos con un proveedor concreto, pídelos por correo."),
+          // APROBADO por Naza · L3-04 (18/10, con sus correcciones)
+          p("Como ves en la tabla, algunos de esos servicios están fuera de tu país: en Estados Unidos y, en el caso de los correos, en Brasil."),
+          lista(
+            "**Si estás en la Unión Europea**: las transferencias a Estados Unidos se hacen bajo el Marco de Privacidad de Datos UE-EE. UU. o con las cláusulas contractuales tipo aprobadas por la Comisión Europea, según el proveedor. Brasil no tiene decisión de adecuación de la Unión Europea: los correos van con las garantías contractuales del proveedor.",
+            "**Si estás en Argentina**: tus datos viajan a Estados Unidos (y los correos, a Brasil) para que estos proveedores hagan su parte, bajo sus contratos de tratamiento de datos. La decisión de adecuación de la Unión Europea sobre Argentina sirve para los datos que van de Europa a Argentina; no cubre los que salen de Argentina hacia Estados Unidos, y por eso lo contamos aparte.",
+          ),
+          p("Si quieres ver los contratos con un proveedor concreto, pídelos por correo."),
         ],
       },
       {
         id: "cuanto-tiempo",
         titulo: "7. Cuánto tiempo los guardamos",
         bloques: [
+          // APROBADO por Naza · L3-05 (18/10, con sus correcciones)
           lista(
-            "**El libro, sus frases en su voz, las fotos y los audios**: mientras el libro esté en tu cuenta. Están ahí para que la familia vuelva a ellos cuando quiera.",
-            "**Los audios originales**: además, se borran en cuanto tú o el narrador lo pidan, aunque el libro siga en tu cuenta. Sus frases en su voz son recortes de esos mismos audios: si pides borrar los originales, también se borran los recortes, y los códigos del libro impreso dejan de sonar.",
+            "**Los audios originales**: 3 meses desde que producimos el libro. Después los borramos y quedan solo los recortes de «Su voz». Si lo pide el narrador, o lo pides tú, se borran antes.",
+            "**El libro, sus frases en su voz y las fotos**: mientras exista tu cuenta, para que la familia vuelva a ellos cuando quiera. Si pides borrar sus frases en su voz, se borran, y los códigos del libro impreso dejan de sonar.",
+            "**Si el narrador no acepta participar**: en 15 días borramos su nombre, su número, su ficha y sus fotos.",
             "**Tu cuenta**: hasta que pidas cerrarla. Si la cierras, borramos todo lo de arriba.",
-            "**Los datos de la compra** (qué, cuándo, cuánto, a nombre de quién): el tiempo que exige la ley fiscal de cada país, aunque cierres la cuenta.",
+            "**Los datos de la compra** (qué, cuándo, cuánto, a nombre de quién y adónde lo mandamos): el tiempo que exige la ley fiscal de cada país, aunque cierres la cuenta.",
             "**Los registros técnicos**: unos meses, solo para seguridad.",
+            "**Las copias de seguridad**: se borran solas. Las de la base de datos, a los 7 días; las de los audios, las fotos y los libros, 30 días después de que los borramos.",
           ),
         ],
       },
@@ -445,7 +521,7 @@ const ES: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. Si llegas a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si compras en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
         ],
       },
       {
@@ -466,7 +542,8 @@ const ES: TextosLegal = {
         id: "contacto",
         titulo: "15. Contacto",
         bloques: [
-          p("{hola} para todo lo que tenga que ver con tus datos, los del narrador o los de un invitado. Te contesta una de las dos personas de la sección 1, no un sistema."),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("{hola} para todo lo que tenga que ver con tus datos, los del narrador o los de un invitado. Te contesta una persona, no un sistema."),
         ],
       },
     ],
@@ -479,7 +556,8 @@ const ES: TextosLegal = {
     enCorto: [
       "Se pide con un correo. No hace falta que expliques por qué.",
       "Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en 14 días como máximo.",
-      "España, 14 días naturales desde la compra. Argentina, 10 días corridos, sin costo.",
+      // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+      "Mientras dura la entrevista, te devolvemos todo. Con el libro ya escrito, 14 días naturales desde la compra en España y 10 días corridos desde que recibes el libro en Argentina, sin coste.",
     ],
     secciones: [
       {
@@ -506,12 +584,32 @@ const ES: TextosLegal = {
         id: "plazos",
         titulo: "Plazos",
         bloques: [
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
           lista(
-            "**Argentina**: 10 días corridos desde la compra, sin costo (art. 34 de la ley 24.240).",
-            "**España**: 14 días naturales desde la compra. Si la entrevista ya empezó a tu pedido, se descuenta la parte ya hecha; el PDF (con sus frases en su voz) ya entregado y los productos a medida (impreso, marcos) no se pueden devolver.",
-            "**Sin plazo**: si el narrador no acepta participar o responde menos de diez preguntas, te devolvemos todo, siempre.",
+            "**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.",
+            "**España**: 14 días naturales desde la compra. El libro en PDF (con sus frases en su voz) ya entregado en tu cuenta y los productos a medida (impreso, marcos) no se pueden devolver, salvo que lleguen dañados o con un defecto.",
+            "**Argentina**: 10 días corridos desde que recibes el libro, o desde la compra si el libro es solo digital, lo que ocurra último, sin costo (art. 34 de la ley 24.240). Si hay que devolver el libro impreso o el marco, el envío lo pagamos nosotros.",
+            "**Aunque no lo pidas**: si el narrador no acepta participar, o la entrevista termina sin material para un libro (ver la sección 8 de los términos), te escribimos y te devolvemos todo en un plazo máximo de 14 días.",
           ),
           p("El detalle está en la sección [«Si te arrepientes» de los términos](/legal/terminos#arrepentimiento)."),
+        ],
+      },
+      {
+        // APROBADO por Naza · L2-01 (18/10, con sus correcciones)
+        id: "formulario",
+        titulo: "Formulario de desistimiento",
+        bloques: [
+          p("Si prefieres el modelo oficial de formulario de desistimiento (anexo B del RDL 1/2007), copia este texto, rellénalo y mándalo a {hola}. No es obligatorio: el botón de arriba vale lo mismo."),
+          formulario(
+            "A la atención de {titular:ES}, correo {hola}:",
+            "Por la presente le comunico/comunicamos (*) que desisto de mi/desistimos de nuestro (*) contrato de venta del siguiente bien/prestación del siguiente servicio (*):",
+            "Pedido el/recibido el (*):",
+            "Nombre del consumidor o de los consumidores:",
+            "Domicilio del consumidor o de los consumidores:",
+            "Firma del consumidor o de los consumidores (solo si el presente formulario se presenta en papel):",
+            "Fecha:",
+            "(*) Táchese lo que no proceda.",
+          ),
         ],
       },
       GARANTIA_ES("garantia", "La garantía de cada libro"),
@@ -528,11 +626,11 @@ const GARANTIA_AR = (id: string, titulo: string) =>
     familiar: "Familiar (el libro de otra persona)",
     viaje: "De viaje",
     propia: "Para vos (tu propio libro)",
-  });
+  }, "El detalle está en la sección [«Si te arrepentís» de los términos](/legal/terminos#arrepentimiento).");
 
 const AR: TextosLegal = {
   actualizado: "Última actualización",
-  fecha: "14 de octubre de 2026",
+  fecha: "19 de octubre de 2026",
   enCorto: "En corto",
   indice: "En esta página",
   documentos: "Textos legales",
@@ -555,34 +653,44 @@ const AR: TextosLegal = {
     titulo: "Términos del servicio",
     bajada: "Qué te damos, qué te cobramos y cuándo. En castellano, sin letra chica.",
     descripcion: "Qué te damos, qué te cobramos, cuándo podés arrepentirte y de quién es la historia.",
+    // APROBADO por Naza · L2-06 (18/10, con sus correcciones)
     enCorto: [
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
-      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, te devolvemos el dinero completo.",
+      "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, o si te arrepentís mientras dura la entrevista, te devolvemos todo.",
       "Antes de cerrar el libro lo revisás vos. Lo que se imprime es lo que aprobás.",
-      "Podés arrepentirte en 10 días corridos en Argentina, o en 14 días naturales en España.",
-      "La historia, los audios y la voz son de tu familia. Nunca los publicamos.",
+      "Con el libro ya escrito vale el plazo de la ley, 10 días corridos desde que recibís el libro en Argentina (desde la compra, si es solo digital) y 14 días naturales desde la compra en España.",
+      "La historia, los audios y la voz son de tu familia. Nunca los publicamos. El libro entero solo se abre con el código del libro impreso, o con el enlace que vos compartas.",
     ],
     secciones: [
       {
         id: "quienes-somos",
         titulo: "1. Quiénes somos",
         bloques: [
-          p("Vitácora Familiar lo prestan dos personas, una en cada país donde vendemos. Con quién contratás depende de la región que elegís al comprar (la misma que decide la moneda y el medio de pago):"),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("Vitácora Familiar lo presta una sola persona en los dos países donde vendemos, con un alta fiscal en cada uno. Qué datos y qué ley se aplican a tu compra depende de la región que elegís al comprar (la misma que decide la moneda y el medio de pago):"),
           lista(
-            "Si comprás desde **España** (en euros): {titular:ES}.",
             "Si comprás desde **Argentina** (en pesos): {titular:AR}.",
+            "Si comprás desde **España** (en euros): {titular:ES}.",
           ),
-          p("En estos términos, «nosotros» es el titular que te corresponde. Para cualquier cosa escribí a {hola} (o a {soporte} si es un problema con la web) y te contestamos."),
+          p("En estos términos, «nosotros» es esa persona, con los datos de tu región. Para cualquier cosa escribí a {hola} (o a {soporte} si es un problema con la web) y te contestamos."),
         ],
       },
       {
         id: "que-es",
         titulo: "2. Qué es el servicio",
         bloques: [
-          p("Entrevistamos por WhatsApp a la persona que nos indicás (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro de su vida, en primera persona y con sus propias palabras."),
+          p("Entrevistamos por WhatsApp a la persona que nos indicás (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro, en primera persona y con sus propias palabras."),
+          // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
+          p("Hay tres libros:"),
+          lista(
+            "**Familiar**: el libro de una vida, la de otra persona, que vos le regalás. El narrador es esa persona.",
+            "**Para vos**: tu propio libro. El narrador sos vos, y las preguntas te llegan a tu WhatsApp.",
+            "**De viaje**: el libro de un viaje. Las preguntas le llegan al viajero por WhatsApp antes de salir y durante el viaje, las contesta con audios cuando quiere, y al volver nos manda las fotos para el álbum. Con eso escribimos el libro del viaje, con el álbum al final. Puede ser para vos o un regalo.",
+          ),
           p("Lo que podés comprar:"),
           lista(
-            "**El libro en PDF**: se lee en la web, capítulo por capítulo, con las fotos que suba la familia. Incluye **«Su voz»**: sus mejores frases, recortadas de sus audios originales tal como las dijo, para escuchar en la web y con un código impreso. Está siempre disponible en tu cuenta.",
+            // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+            "**El libro en PDF**: se lee en la web, capítulo por capítulo, con las fotos que suba la familia. Incluye **«Su voz»**: sus mejores frases, recortes de sus audios originales con el sonido limpio y parejo (no se clona ni se imita su voz), para escuchar en la web y con un código impreso. Está siempre disponible en tu cuenta.",
             "**El libro impreso**, en blanco y negro o a color: tapa dura, con un código en la contratapa que hace sonar su voz.",
             "**Marcos con su voz**: un marco con su foto y un chip; se acerca el celular y suena su voz.",
           ),
@@ -596,14 +704,17 @@ const AR: TextosLegal = {
         titulo: "3. Cómo se compra",
         bloques: [
           p("Es un **pago único, por adelantado**. No hay suscripción, no hay renovación automática y no guardamos tu tarjeta: el cobro lo hace Stripe (España) o Mercado Pago (Argentina) y ellos son los únicos que ven tus datos de pago."),
-          p("El precio de cada producto aparece antes de pagar, en euros o en pesos según la región que elijas, y es el precio final que pagás. Después del pago te llega un correo para entrar a tu cuenta con un código (sin contraseña) y anotar a tu narrador: su nombre, su WhatsApp y unos pocos datos para que las preguntas le suenen a él."),
+          // APROBADO por Naza · L2-04 (18/10, con sus correcciones)
+          p("El precio de cada producto aparece antes de pagar, en euros o en pesos según la región que elijas, y es el precio final que pagás (en España, con el IVA incluido). Después del pago te llega un correo para entrar a tu cuenta con un código (sin contraseña) y anotar a tu narrador: su nombre, su WhatsApp y unos pocos datos para que las preguntas le suenen a él."),
+          p("Por cada compra te mandamos la factura por correo: en Argentina, la factura electrónica, dentro de los 5 días hábiles después del pago; en España, la factura con el IVA desglosado."),
         ],
       },
       {
         id: "permiso",
         titulo: "4. Nada empieza sin su permiso",
         bloques: [
-          p("Al anotar a alguien nos confirmás que podés hacerlo y que le va a parecer bien. Antes de la primera pregunta le escribimos por WhatsApp contándole quién lo anotó y le pedimos permiso. **Si no acepta, no empieza nada y te devolvemos el dinero completo** (ver la sección 8)."),
+          // APROBADO por Naza · L2-05 (18/10, con sus correcciones)
+          p("Al anotar a alguien nos confirmás que podés hacerlo y que le va a parecer bien. Antes de la primera pregunta le escribimos por WhatsApp contándole quién lo anotó y le pedimos permiso. **Si no acepta, no empieza nada y te devolvemos el dinero completo** (ver la sección 8). En ese caso, en 15 días borramos su nombre, su número, su ficha y sus fotos, y solo guardamos lo necesario para la factura y la devolución."),
           p("El narrador manda en su historia: puede parar cuando quiera, retomar cuando quiera, responder solo lo que quiera, y pedir que borremos todo lo que grabó. Si deja de responder unos días, te avisamos por correo."),
         ],
       },
@@ -619,11 +730,18 @@ const AR: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te arrepentís",
         bloques: [
-          p("Podés arrepentirte de la compra sin dar explicaciones. Escribinos a {hola} o usá el [botón de arrepentimiento](/legal/arrepentimiento); te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. El plazo para arrepentirte depende de dónde compraste:"),
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          p("Podés arrepentirte sin dar explicaciones: escribinos a {hola} o usá el [botón de arrepentimiento](/legal/arrepentimiento). Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en un plazo máximo de 14 días. Funciona en tres capas, en este orden:"),
+          p("**Primero, lo que te damos nosotros: mientras dura la entrevista, te devolvemos todo.** Desde que pagás y hasta que el libro está listo en tu cuenta para que lo revises —mientras el narrador contesta, o mientras dura el viaje—, si lo pedís te devolvemos todo lo que pagaste, aunque ya haya empezado a contestar y sin descontar nada. Es más de lo que pide la ley."),
+          p("**Después, lo que te da la ley, cuando el libro ya está escrito.** Depende de la región en la que compraste:"),
           lista(
-            "**España — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; si te arrepentís con la entrevista ya en marcha, te devolvemos el precio menos la parte proporcional a las preguntas ya hechas (art. 108.3). Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m); tampoco sobre el libro impreso ni los marcos, que se hacen a medida (art. 103 c). Si algo llega dañado o con un defecto, lo reponemos.",
-            "**Argentina — 10 días corridos** desde la compra (art. 34 de la ley 24.240). Podés revocar la compra sin costo alguno y te devolvemos el total. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
+            // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
+            "**Si compraste en Argentina (en pesos) — 10 días corridos** desde que recibís el libro, o desde la compra si el libro es solo digital, lo que ocurra último (art. 34 de la ley 24.240). Podés revocar la compra sin costo alguno: te devolvemos el total, y si hay que devolver el libro impreso o el marco, el envío de vuelta lo pagamos nosotros. El botón de arrepentimiento está en la página de inicio, como exige la Resolución 424/2020.",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
+            "**Si compraste en España (en euros) — 14 días naturales** desde la compra (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; aun así, mientras dura, te devolvemos todo. Una vez que el libro en PDF y sus frases en su voz están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no aplica sobre ellos (art. 103 m).",
           ),
+          // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
+          p("**Por último, lo que no se devuelve.** Si compraste en España: el libro en PDF ya entregado en tu cuenta (art. 103 m), y el libro impreso y los marcos, que se hacen a medida con la historia y las fotos de tu familia y que aprobás antes de imprimir (art. 103 c). En las dos regiones, si algo llega dañado o con un defecto, lo reponemos sin costo."),
           p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos que los que te corresponden como consumidor donde vivís."),
         ],
       },
@@ -632,15 +750,22 @@ const AR: TextosLegal = {
         id: "sin-libro",
         titulo: "8. Si no hay libro",
         bloques: [
-          p("Si el narrador no acepta participar, o responde menos de diez preguntas y por eso no hay material para un libro, te devolvemos el importe completo, sin plazo y sin descuento: no te entregamos lo que compraste, así que no te lo cobramos. Preferimos un libro breve y verdadero antes que uno largo y relleno, pero por debajo de diez respuestas no hay libro."),
+          // APROBADO por Naza · L1-06 (18/10, con sus correcciones)
+          lista(
+            "**En el libro de una vida** (Familiar o Para vos): si el narrador no acepta participar, o la entrevista termina con menos de diez respuestas a preguntas principales distintas —sin contar las repreguntas que le hacemos para profundizar en lo que contó—. Preferimos un libro breve y verdadero antes que uno largo y relleno, pero por debajo de diez respuestas no hay libro.",
+            "**En el libro de viaje**: si el viajero no acepta participar o no contesta ninguna pregunta.",
+          ),
+          p("En los dos casos te escribimos y te devolvemos el importe completo sin que tengas que pedirlo, en un plazo máximo de 14 días y sin descuento. Si no te entregamos lo que compraste, no te lo cobramos."),
         ],
       },
       {
         id: "historia",
         titulo: "9. La historia es de tu familia",
         bloques: [
-          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca publicamos su historia, nunca la usamos como ejemplo y nunca se la mostramos a nadie fuera de tu familia. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
-          p("Sus frases en su voz son recortes de sus propios audios, sin ninguna voz sintética. No se usan para ningún otro fin y se borran cuando el narrador o vos lo pidan."),
+          // APROBADO por Naza · L1-07 (18/10, con sus correcciones)
+          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca la usamos como ejemplo, nunca publicamos su historia ni se la mostramos a nadie fuera de tu familia, salvo la muestra que vos decidas compartir y quien tenga el libro en la mano: el código de la contratapa abre el libro completo, y ese enlace se puede reenviar. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("Sus frases en su voz son recortes de sus audios originales, con el sonido limpio y parejo; no se clona ni se imita su voz. No se usan para ningún otro fin y se borran cuando el narrador o vos lo pidan."),
         ],
       },
       {
@@ -661,7 +786,8 @@ const AR: TextosLegal = {
           p("Te prometemos que el libro se escribe con las palabras de tu narrador, que para él va a ser fácil —un audio de WhatsApp cuando quiera— y que si algo sale mal lo arreglamos o te devolvemos el dinero."),
           p("Para transcribir los audios y para redactar los capítulos usamos inteligencia artificial, y puede equivocarse: un nombre mal oído, una fecha, un giro que no le pertenece. Por eso el libro no se cierra hasta que lo revisás vos, y por eso te pedimos que lo leas antes de aprobarlo. Lo que se imprime es lo que aprobaste."),
           p("No podemos prometerte cuánto va a querer contar tu narrador ni cuántas preguntas va a responder. Si cuenta poco, el libro sale más corto."),
-          p("Si algo falla por nuestra culpa, respondemos hasta el importe que pagaste. Esto no limita ningún derecho que la ley de tu país no permita limitar, ni nuestra responsabilidad por dolo o por daños a las personas."),
+          // APROBADO por Naza · L1-09 (18/10, con sus correcciones)
+          p("Si algo falla por nuestra culpa, respondemos conforme a la ley. No limitamos nuestra responsabilidad por dolo ni por daños a las personas, ni ningún derecho que te dé la ley de tu país."),
         ],
       },
       {
@@ -706,7 +832,8 @@ const AR: TextosLegal = {
     enCorto: [
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
       "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
-      "Los audios originales se borran en cuanto vos o el narrador lo pidan.",
+      // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
+      "Los audios originales se borran 3 meses después de producir el libro, o antes si lo pide el narrador o lo pedís vos. Quedan solo los recortes de «Su voz».",
       "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, alcanza un correo a {hola}.",
     ],
@@ -715,8 +842,9 @@ const AR: TextosLegal = {
         id: "responsables",
         titulo: "1. Quién responde por tus datos",
         bloques: [
-          p("El responsable del tratamiento es el titular del servicio en tu región, la que elegiste al comprar:"),
-          lista("**España**: {titular:ES}.", "**Argentina**: {titular:AR}."),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("El responsable del tratamiento es el titular del servicio, una sola persona, con los datos de la región que elegiste al comprar:"),
+          lista("**Argentina**: {titular:AR}.", "**España**: {titular:ES}."),
           p("Para cualquier cosa sobre tus datos escribí a {hola}. No hace falta formulario ni formalidad: un correo alcanza."),
         ],
       },
@@ -738,8 +866,13 @@ const AR: TextosLegal = {
         titulo: "3. Qué datos guardamos",
         bloques: [
           p("**De vos**: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos llega solo la confirmación. Cuando entrás a tu cuenta guardamos los registros técnicos normales de cualquier web (dirección IP, navegador, hora)."),
+          // APROBADO por Naza · L3-03 (18/10, con sus correcciones)
+          p("**La dirección de envío**: si comprás el libro impreso o un marco, la dirección y el nombre de quien lo recibe. Solo la usamos para mandarlo: se la pasamos a la imprenta y a la mensajería, y después queda con los datos de la compra."),
           p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
-          p("**Su voz**: sus mejores frases se recortan de sus propios audios, tal como las dijo, para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz sintética. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
+          // APROBADO por Naza · L3-02 (18/10, con sus correcciones)
+          p("**Del viajero**, en el libro de viaje: además de lo anterior, las fechas de salida y de vuelta y el país principal del viaje (para mandarle los mensajes a una hora razonable donde esté), las preguntas propias que escribe quien regala, si las hay, y las fotos del álbum que nos manda por WhatsApp, en las que pueden aparecer otras personas que viajan con él."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("**Su voz**: sus mejores frases son recortes de sus audios originales, con el sonido limpio y parejo, para escucharlas en la web y con el código impreso en el libro. No se clona ni se imita su voz. Si algún día ofreciéramos un producto con su voz clonada —un **dato biométrico**—, solo lo haríamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin concreto."),
           p("**De los invitados**: su correo (para invitarlos), su nombre si entran, y las fotos que suben."),
           p("**De quien visita**: nada que lo identifique. Solo los registros técnicos del servidor y las cookies de la sección 12."),
         ],
@@ -774,7 +907,9 @@ const AR: TextosLegal = {
               ["Anthropic", "Redacta los capítulos a partir de las transcripciones, con las palabras del narrador. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
               ["Stripe / Mercado Pago", "Cobran. Son los únicos que ven tu tarjeta.", "Stripe: UE y EE. UU. · Mercado Pago: Argentina"],
               ["Resend", "Manda los correos: el código para entrar y los avisos.", "Brasil (región de América del Sur)"],
-              ["Imprenta y mensajería", "Solo si comprás el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "En tu país; te decimos cuál antes de mandar a producir"],
+              ["Imprenta y mensajería", "Solo si comprás el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "Bookmundo, en Países Bajos (Unión Europea), para los libros de España. En Argentina te decimos cuál antes de mandar a imprimir"],
+              ["Sentry", "Avisa de los errores técnicos de la web y del entrevistador. No recibe nombres, mensajes ni audios.", "Unión Europea (Alemania)"],
+              ["Cloudflare", "Guarda una copia de seguridad de los audios, las fotos y los libros, por si se pierden. Lo que borramos se borra también de la copia a los 30 días.", "Unión Europea"],
             ],
           ),
         ],
@@ -783,19 +918,28 @@ const AR: TextosLegal = {
         id: "transferencias",
         titulo: "6. Datos que salen de tu país",
         bloques: [
-          p("Como ves en la tabla, algunos de esos servicios están en Estados Unidos. Si estás en la Unión Europea, esas transferencias se hacen bajo el Marco de Privacidad de Datos UE-EE. UU. o con las cláusulas contractuales tipo aprobadas por la Comisión Europea, según el proveedor. Argentina tiene decisión de adecuación de la Unión Europea, así que los datos pueden circular entre los dos países sin garantías adicionales. Si querés ver los contratos con un proveedor concreto, pedilos por correo."),
+          // APROBADO por Naza · L3-04 (18/10, con sus correcciones)
+          p("Como ves en la tabla, algunos de esos servicios están fuera de tu país: en Estados Unidos y, en el caso de los correos, en Brasil."),
+          lista(
+            "**Si estás en Argentina**: tus datos viajan a Estados Unidos (y los correos, a Brasil) para que estos proveedores hagan su parte, bajo sus contratos de tratamiento de datos. La decisión de adecuación de la Unión Europea sobre Argentina sirve para los datos que van de Europa a Argentina; no cubre los que salen de Argentina hacia Estados Unidos, y por eso lo contamos aparte.",
+            "**Si estás en la Unión Europea**: las transferencias a Estados Unidos se hacen bajo el Marco de Privacidad de Datos UE-EE. UU. o con las cláusulas contractuales tipo aprobadas por la Comisión Europea, según el proveedor. Brasil no tiene decisión de adecuación de la Unión Europea: los correos van con las garantías contractuales del proveedor.",
+          ),
+          p("Si querés ver los contratos con un proveedor concreto, pedilos por correo."),
         ],
       },
       {
         id: "cuanto-tiempo",
         titulo: "7. Cuánto tiempo los guardamos",
         bloques: [
+          // APROBADO por Naza · L3-05 (18/10, con sus correcciones)
           lista(
-            "**El libro, sus frases en su voz, las fotos y los audios**: mientras el libro esté en tu cuenta. Están ahí para que la familia vuelva a ellos cuando quiera.",
-            "**Los audios originales**: además, se borran en cuanto vos o el narrador lo pidan, aunque el libro siga en tu cuenta. Sus frases en su voz son recortes de esos mismos audios: si pedís borrar los originales, también se borran los recortes, y los códigos del libro impreso dejan de sonar.",
+            "**Los audios originales**: 3 meses desde que producimos el libro. Después los borramos y quedan solo los recortes de «Su voz». Si lo pide el narrador, o lo pedís vos, se borran antes.",
+            "**El libro, sus frases en su voz y las fotos**: mientras exista tu cuenta, para que la familia vuelva a ellos cuando quiera. Si pedís borrar sus frases en su voz, se borran, y los códigos del libro impreso dejan de sonar.",
+            "**Si el narrador no acepta participar**: en 15 días borramos su nombre, su número, su ficha y sus fotos.",
             "**Tu cuenta**: hasta que pidas cerrarla. Si la cerrás, borramos todo lo de arriba.",
-            "**Los datos de la compra** (qué, cuándo, cuánto, a nombre de quién): el tiempo que exige la ley fiscal de cada país, aunque cierres la cuenta.",
+            "**Los datos de la compra** (qué, cuándo, cuánto, a nombre de quién y adónde lo mandamos): el tiempo que exige la ley fiscal de cada país, aunque cierres la cuenta.",
             "**Los registros técnicos**: unos meses, solo para seguridad.",
+            "**Las copias de seguridad**: se borran solas. Las de la base de datos, a los 7 días; las de los audios, las fotos y los libros, 30 días después de que los borramos.",
           ),
         ],
       },
@@ -832,7 +976,7 @@ const AR: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. Si llegás a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si comprás en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
         ],
       },
       {
@@ -853,7 +997,8 @@ const AR: TextosLegal = {
         id: "contacto",
         titulo: "15. Contacto",
         bloques: [
-          p("{hola} para todo lo que tenga que ver con tus datos, los del narrador o los de un invitado. Te contesta una de las dos personas de la sección 1, no un sistema."),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("{hola} para todo lo que tenga que ver con tus datos, los del narrador o los de un invitado. Te contesta una persona, no un sistema."),
         ],
       },
     ],
@@ -866,7 +1011,8 @@ const AR: TextosLegal = {
     enCorto: [
       "Se pide con un correo. No hace falta que expliques por qué.",
       "Te confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el mismo medio con el que pagaste, en 14 días como máximo.",
-      "Argentina, 10 días corridos desde la compra, sin costo. España, 14 días naturales.",
+      // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+      "Mientras dura la entrevista, te devolvemos todo. Con el libro ya escrito, 10 días corridos desde que recibís el libro en Argentina, sin costo, y 14 días naturales desde la compra en España.",
     ],
     secciones: [
       {
@@ -893,12 +1039,32 @@ const AR: TextosLegal = {
         id: "plazos",
         titulo: "Plazos",
         bloques: [
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
           lista(
-            "**Argentina**: 10 días corridos desde la compra, sin costo (art. 34 de la ley 24.240).",
-            "**España**: 14 días naturales desde la compra. Si la entrevista ya empezó a tu pedido, se descuenta la parte ya hecha; el PDF (con sus frases en su voz) ya entregado y los productos a medida (impreso, marcos) no se pueden devolver.",
-            "**Sin plazo**: si el narrador no acepta participar o responde menos de diez preguntas, te devolvemos todo, siempre.",
+            "**Mientras dura la entrevista** (o el viaje), hasta que el libro está listo en tu cuenta: te devolvemos todo, siempre, aunque ya haya empezado a contestar.",
+            "**Argentina**: 10 días corridos desde que recibís el libro, o desde la compra si el libro es solo digital, lo que ocurra último, sin costo (art. 34 de la ley 24.240). Si hay que devolver el libro impreso o el marco, el envío lo pagamos nosotros.",
+            "**España**: 14 días naturales desde la compra. El libro en PDF (con sus frases en su voz) ya entregado en tu cuenta y los productos a medida (impreso, marcos) no se pueden devolver, salvo que lleguen dañados o con un defecto.",
+            "**Aunque no lo pidas**: si el narrador no acepta participar, o la entrevista termina sin material para un libro (ver la sección 8 de los términos), te escribimos y te devolvemos todo en un plazo máximo de 14 días.",
           ),
           p("El detalle está en la sección [«Si te arrepentís» de los términos](/legal/terminos#arrepentimiento)."),
+        ],
+      },
+      {
+        // APROBADO por Naza · L2-01 (18/10, con sus correcciones)
+        id: "formulario",
+        titulo: "Si compraste en España: el formulario de desistimiento",
+        bloques: [
+          p("La ley española (anexo B del RDL 1/2007) tiene un modelo oficial de formulario de desistimiento. Si compraste en euros y preferís usarlo, copiá este texto, completalo y mandalo a {hola}. No es obligatorio: el botón de arriba vale lo mismo."),
+          formulario(
+            "A la atención de {titular:ES}, correo {hola}:",
+            "Por la presente le comunico/comunicamos (*) que desisto de mi/desistimos de nuestro (*) contrato de venta del siguiente bien/prestación del siguiente servicio (*):",
+            "Pedido el/recibido el (*):",
+            "Nombre del consumidor o de los consumidores:",
+            "Domicilio del consumidor o de los consumidores:",
+            "Firma del consumidor o de los consumidores (solo si el presente formulario se presenta en papel):",
+            "Fecha:",
+            "(*) Táchese lo que no proceda.",
+          ),
         ],
       },
       GARANTIA_AR("garantia", "La garantía de cada libro"),
@@ -915,11 +1081,11 @@ const GARANTIA_CA = (id: string, titulo: string) =>
     familiar: "Familiar (el llibre d'una altra persona)",
     viaje: "De viatge",
     propia: "Per a tu (el teu propi llibre)",
-  });
+  }, "El detall és a la secció [«Si te'n desdius» dels termes](/legal/terminos#arrepentimiento).");
 
 const CA: TextosLegal = {
   actualizado: "Darrera actualització",
-  fecha: "14 d'octubre de 2026",
+  fecha: "19 d'octubre de 2026",
   enCorto: "En resum",
   indice: "En aquesta pàgina",
   documentos: "Textos legals",
@@ -942,34 +1108,44 @@ const CA: TextosLegal = {
     titulo: "Termes del servei",
     bajada: "Què et donem, què et cobrem i quan. Sense lletra petita.",
     descripcion: "Què et donem, què et cobrem, quan pots desistir i de qui és la història.",
+    // APROBADO por Naza · L2-06 (18/10, con sus correcciones)
     enCorto: [
       "Pagament únic, per avançat. Sense subscripció i sense renovació automàtica.",
-      "L'entrevista és per WhatsApp, amb àudios, al ritme del narrador. No comença res sense el seu permís. Si no accepta, et retornem tots els diners.",
+      "L'entrevista és per WhatsApp, amb àudios, al ritme del narrador. No comença res sense el seu permís. Si no accepta, o si te'n desdius mentre dura l'entrevista, t'ho retornem tot.",
       "Abans de tancar el llibre el revises tu. El que s'imprimeix és el que aproves.",
-      "Pots desistir en 14 dies naturals a Espanya, o en 10 dies seguits a l'Argentina.",
-      "La història, els àudios i la veu són de la teva família. No els publiquem mai.",
+      "Amb el llibre ja escrit val el termini de la llei, 14 dies naturals des de la compra a Espanya i 10 dies seguits des que reps el llibre a l'Argentina (des de la compra, si és només digital).",
+      "La història, els àudios i la veu són de la teva família. No els publiquem mai. El llibre sencer només s'obre amb el codi del llibre imprès, o amb l'enllaç que tu comparteixis.",
     ],
     secciones: [
       {
         id: "quienes-somos",
         titulo: "1. Qui som",
         bloques: [
-          p("Vitácora Familiar el presten dues persones, una a cada país on venem. Amb qui contractes depèn de la regió que tries en comprar (la mateixa que decideix la moneda i el mitjà de pagament):"),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("Vitácora Familiar el presta una sola persona als dos països on venem, amb una alta fiscal a cadascun. Quines dades i quina llei s'apliquen a la teva compra depèn de la regió que tries en comprar (la mateixa que decideix la moneda i el mitjà de pagament):"),
           lista(
             "Si compres des d'**Espanya** (en euros): {titular:ES}.",
             "Si compres des de l'**Argentina** (en pesos): {titular:AR}.",
           ),
-          p("En aquests termes, «nosaltres» és el titular que et correspon. Per a qualsevol cosa escriu a {hola} (o a {soporte} si és un problema amb la web) i et contestem."),
+          p("En aquests termes, «nosaltres» és aquesta persona, amb les dades de la teva regió. Per a qualsevol cosa escriu a {hola} (o a {soporte} si és un problema amb la web) i et contestem."),
         ],
       },
       {
         id: "que-es",
         titulo: "2. Què és el servei",
         bloques: [
-          p("Entrevistem per WhatsApp la persona que ens indiques (el «narrador»): li arriba una pregunta, la respon amb un àudio quan vol, sense instal·lar res, i quan acaba d'explicar li arriba la següent. Amb les seves respostes escrivim el llibre de la seva vida, en primera persona i amb les seves pròpies paraules."),
+          p("Entrevistem per WhatsApp la persona que ens indiques (el «narrador»): li arriba una pregunta, la respon amb un àudio quan vol, sense instal·lar res, i quan acaba d'explicar li arriba la següent. Amb les seves respostes escrivim el llibre, en primera persona i amb les seves pròpies paraules."),
+          // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
+          p("Hi ha tres llibres:"),
+          lista(
+            "**Familiar**: el llibre d'una vida, la d'una altra persona, que tu li regales. El narrador és aquesta persona.",
+            "**Per a tu**: el teu propi llibre. El narrador ets tu, i les preguntes t'arriben al teu WhatsApp.",
+            "**De viatge**: el llibre d'un viatge. Les preguntes arriben al viatger per WhatsApp abans de sortir i durant el viatge, les contesta amb àudios quan vol, i en tornar ens envia les fotos per a l'àlbum. Amb això escrivim el llibre del viatge, amb l'àlbum al final. Pot ser per a tu o un regal.",
+          ),
           p("El que pots comprar:"),
           lista(
-            "**El llibre en PDF**: es llegeix a la web, capítol per capítol, amb les fotos que pugi la família. Inclou **«La seva veu»**: les seves millors frases, retallades dels seus àudios originals tal com les va dir, per escoltar a la web i amb un codi imprès. Sempre està disponible al teu compte.",
+            // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+            "**El llibre en PDF**: es llegeix a la web, capítol per capítol, amb les fotos que pugi la família. Inclou **«La seva veu»**: les seves millors frases, retalls dels seus àudios originals amb el so net i uniforme (no es clona ni s'imita la seva veu), per escoltar a la web i amb un codi imprès. Sempre està disponible al teu compte.",
             "**El llibre imprès**, en blanc i negre o en color: tapa dura, amb un codi a la contracoberta que fa sonar la seva veu.",
             "**Marcs amb la seva veu**: un marc amb la seva foto i un xip; s'hi apropa el mòbil i sona la seva veu.",
           ),
@@ -983,14 +1159,17 @@ const CA: TextosLegal = {
         titulo: "3. Com es compra",
         bloques: [
           p("És un **pagament únic, per avançat**. No hi ha subscripció, no hi ha renovació automàtica i no guardem la teva targeta: el cobrament el fa Stripe (Espanya) o Mercado Pago (Argentina) i són els únics que veuen les teves dades de pagament."),
-          p("El preu de cada producte apareix abans de pagar, en euros o en pesos segons la regió que triïs, i és el preu final que pagues. Després del pagament t'arriba un correu per entrar al teu compte amb un codi (sense contrasenya) i apuntar el teu narrador: el seu nom, el seu WhatsApp i unes quantes dades perquè les preguntes li sonin properes."),
+          // APROBADO por Naza · L2-04 (18/10, con sus correcciones)
+          p("El preu de cada producte apareix abans de pagar, en euros o en pesos segons la regió que triïs, i és el preu final que pagues (a Espanya, amb l'IVA inclòs). Després del pagament t'arriba un correu per entrar al teu compte amb un codi (sense contrasenya) i apuntar el teu narrador: el seu nom, el seu WhatsApp i unes quantes dades perquè les preguntes li sonin properes."),
+          p("Per cada compra t'enviem la factura per correu: a l'Argentina, la factura electrònica, dins dels 5 dies feiners després del pagament; a Espanya, la factura amb l'IVA desglossat."),
         ],
       },
       {
         id: "permiso",
         titulo: "4. No comença res sense el seu permís",
         bloques: [
-          p("En apuntar algú ens confirmes que ho pots fer i que li semblarà bé. Abans de la primera pregunta li escrivim per WhatsApp explicant-li qui l'ha apuntat i li demanem permís. **Si no accepta, no comença res i et retornem tots els diners** (vegeu la secció 8)."),
+          // APROBADO por Naza · L2-05 (18/10, con sus correcciones)
+          p("En apuntar algú ens confirmes que ho pots fer i que li semblarà bé. Abans de la primera pregunta li escrivim per WhatsApp explicant-li qui l'ha apuntat i li demanem permís. **Si no accepta, no comença res i et retornem tots els diners** (vegeu la secció 8). En aquest cas, en 15 dies esborrem el seu nom, el seu número, la seva fitxa i les seves fotos, i només guardem el necessari per a la factura i la devolució."),
           p("El narrador mana en la seva història: pot parar quan vulgui, reprendre-ho quan vulgui, respondre només el que vulgui, i demanar que esborrem tot el que ha gravat. Si deixa de respondre uns dies, t'avisem per correu."),
         ],
       },
@@ -1006,11 +1185,18 @@ const CA: TextosLegal = {
         id: "arrepentimiento",
         titulo: "6. Si te'n desdius",
         bloques: [
-          p("Pots desistir de la compra sense donar explicacions. Escriu-nos a {hola} o fes servir el [botó de desistiment](/legal/arrepentimiento); et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies. El termini per desistir depèn d'on vas comprar:"),
+          // APROBADO por Naza · L1-01 (18/10, con sus correcciones)
+          p("Pots desistir sense donar explicacions: escriu-nos a {hola} o fes servir el [botó de desistiment](/legal/arrepentimiento). Et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en un termini màxim de 14 dies. Funciona en tres capes, en aquest ordre:"),
+          p("**Primer, el que et donem nosaltres: mentre dura l'entrevista, t'ho retornem tot.** Des que pagues i fins que el llibre està a punt al teu compte perquè el revisis —mentre el narrador contesta, o mentre dura el viatge—, si ho demanes, et retornem tot el que vas pagar, encara que ja hagi començat a contestar i sense descomptar res. És més del que demana la llei."),
+          p("**Després, el que et dona la llei, quan el llibre ja està escrit.** Depèn de la regió on vas comprar:"),
           lista(
-            "**Espanya — 14 dies naturals** des de la compra (dret de desistiment, arts. 102 a 108 del RDL 1/2007). En pagar ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar aquests 14 dies; si te'n desdius amb l'entrevista ja en marxa, et retornem el preu menys la part proporcional a les preguntes ja fetes (art. 108.3). Un cop el llibre en PDF i les seves frases amb la seva veu són a la teva disposició al teu compte, amb el teu consentiment, el desistiment ja no s'hi aplica (art. 103 m); tampoc al llibre imprès ni als marcs, que es fan a mida (art. 103 c). Si alguna cosa arriba malmesa o amb un defecte, la reposem.",
-            "**Argentina — 10 dies seguits** des de la compra (art. 34 de la llei 24.240). Pots revocar la compra sense cap cost i et retornem el total. El botó de penediment és a la pàgina d'inici, com exigeix la Resolució 424/2020.",
+            // APROBADO por Naza · L1-03 (18/10, con sus correcciones)
+            "**Si vas comprar a Espanya (en euros) — 14 dies naturals** des de la compra (dret de desistiment, arts. 102 a 108 del RDL 1/2007). En pagar ens demanes que l'entrevista comenci tan bon punt el narrador accepti, sense esperar aquests 14 dies; tot i això, mentre dura, t'ho retornem tot. Un cop el llibre en PDF i les seves frases amb la seva veu són a la teva disposició al teu compte, amb el teu consentiment, el desistiment ja no s'hi aplica (art. 103 m).",
+            // APROBADO por Naza · L1-02 (18/10, con sus correcciones)
+            "**Si vas comprar a l'Argentina (en pesos) — 10 dies seguits** des que reps el llibre, o des de la compra si el llibre és només digital, el que passi més tard (art. 34 de la llei 24.240). Pots revocar la compra sense cap cost: et retornem el total, i si cal retornar el llibre imprès o el marc, l'enviament de tornada el paguem nosaltres. El botó de penediment és a la pàgina d'inici, com exigeix la Resolució 424/2020.",
           ),
+          // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
+          p("**Finalment, el que no es retorna.** Si vas comprar a Espanya: el llibre en PDF ja lliurat al teu compte (art. 103 m), i el llibre imprès i els marcs, que es fan a mida amb la història i les fotos de la teva família i que aproves abans d'imprimir (art. 103 c). A les dues regions, si alguna cosa arriba malmesa o amb un defecte, la reposem sense cost."),
           p("Aquests terminis són els que marca la llei de cada país; mai no et donaran menys drets dels que et corresponen com a consumidor on vius."),
         ],
       },
@@ -1019,15 +1205,22 @@ const CA: TextosLegal = {
         id: "sin-libro",
         titulo: "8. Si no hi ha llibre",
         bloques: [
-          p("Si el narrador no accepta participar, o respon menys de deu preguntes i per això no hi ha material per a un llibre, et retornem l'import complet, sense termini i sense descompte: no et lliurem el que vas comprar, així que no t'ho cobrem. Preferim un llibre breu i veritable abans que un de llarg i farcit, però per sota de deu respostes no hi ha llibre."),
+          // APROBADO por Naza · L1-06 (18/10, con sus correcciones)
+          lista(
+            "**En el llibre d'una vida** (Familiar o Per a tu): si el narrador no accepta participar, o l'entrevista acaba amb menys de deu respostes a preguntes principals diferents —sense comptar les repreguntes que li fem per aprofundir en el que ha explicat—. Preferim un llibre breu i veritable abans que un de llarg i farcit, però per sota de deu respostes no hi ha llibre.",
+            "**En el llibre de viatge**: si el viatger no accepta participar o no contesta cap pregunta.",
+          ),
+          p("En tots dos casos t'escrivim i et retornem l'import complet sense que l'hagis de demanar, en un termini màxim de 14 dies i sense descompte. Si no et lliurem el que vas comprar, no t'ho cobrem."),
         ],
       },
       {
         id: "historia",
         titulo: "9. La història és de la teva família",
         bloques: [
-          p("El que explica el teu narrador és seu i de la teva família. No ens quedem cap dret sobre la seva història, els seus àudios, les seves fotos ni la seva veu: ens dones únicament el permís necessari per transcriure, escriure, maquetar, retallar les seves frases i imprimir el teu llibre. Mai no publiquem la seva història, mai no la fem servir com a exemple i mai no l'ensenyem a ningú de fora de la teva família. Si algun dia volguéssim mostrar una pàgina com a mostra de la nostra feina, t'ho demanaríem per escrit i podries dir que no."),
-          p("Les seves frases amb la seva veu són retalls dels seus propis àudios, sense cap veu sintètica. No es fan servir per a cap altra finalitat i s'esborren quan el narrador o tu ho demaneu."),
+          // APROBADO por Naza · L1-07 (18/10, con sus correcciones)
+          p("El que explica el teu narrador és seu i de la teva família. No ens quedem cap dret sobre la seva història, els seus àudios, les seves fotos ni la seva veu: ens dones únicament el permís necessari per transcriure, escriure, maquetar, retallar les seves frases i imprimir el teu llibre. Mai no la fem servir com a exemple, mai no publiquem la seva història ni l'ensenyem a ningú de fora de la teva família, tret de la mostra que tu decideixis compartir i de qui tingui el llibre a la mà: el codi de la contracoberta obre el llibre complet, i aquest enllaç es pot reenviar. Si algun dia volguéssim mostrar una pàgina com a mostra de la nostra feina, t'ho demanaríem per escrit i podries dir que no."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("Les seves frases amb la seva veu són retalls dels seus àudios originals, amb el so net i uniforme; no es clona ni s'imita la seva veu. No es fan servir per a cap altra finalitat i s'esborren quan el narrador o tu ho demaneu."),
         ],
       },
       {
@@ -1048,7 +1241,8 @@ const CA: TextosLegal = {
           p("Et prometem que el llibre s'escriu amb les paraules del teu narrador, que per a ell serà fàcil —un àudio de WhatsApp quan vulgui— i que si alguna cosa surt malament ho arreglem o et retornem els diners."),
           p("Per transcriure els àudios i per redactar els capítols fem servir intel·ligència artificial, i es pot equivocar: un nom mal entès, una data, un gir que no és seu. Per això el llibre no es tanca fins que el revises tu, i per això et demanem que el llegeixis abans d'aprovar-lo. El que s'imprimeix és el que vas aprovar."),
           p("No et podem prometre quant voldrà explicar el teu narrador ni quantes preguntes respondrà. Si explica poc, el llibre surt més curt."),
-          p("Si alguna cosa falla per culpa nostra, en responem fins a l'import que vas pagar. Això no limita cap dret que la llei del teu país no permeti limitar, ni la nostra responsabilitat per dol o per danys a les persones."),
+          // APROBADO por Naza · L1-09 (18/10, con sus correcciones)
+          p("Si alguna cosa falla per culpa nostra, en responem d'acord amb la llei. No limitem la nostra responsabilitat per dol ni per danys a les persones, ni cap dret que et doni la llei del teu país."),
         ],
       },
       {
@@ -1093,7 +1287,8 @@ const CA: TextosLegal = {
     enCorto: [
       "Fem servir les teves dades i les de la teva família només per fer el llibre.",
       "No les venem, no les fem servir per a publicitat i no entrenem cap model d'intel·ligència artificial amb elles.",
-      "Els àudios originals s'esborren tan bon punt tu o el narrador ho demaneu.",
+      // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
+      "Els àudios originals s'esborren 3 mesos després de produir el llibre, o abans si ho demana el narrador o ho demanes tu. Només en queden els retalls de «La seva veu».",
       "Només fem servir galetes tècniques, ni de publicitat ni d'analítica.",
       "Per a qualsevol cosa sobre les teves dades, n'hi ha prou amb un correu a {hola}.",
     ],
@@ -1102,7 +1297,8 @@ const CA: TextosLegal = {
         id: "responsables",
         titulo: "1. Qui respon de les teves dades",
         bloques: [
-          p("El responsable del tractament és el titular del servei a la teva regió, la que vas triar en comprar:"),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("El responsable del tractament és el titular del servei, una sola persona, amb les dades de la regió que vas triar en comprar:"),
           lista("**Espanya**: {titular:ES}.", "**Argentina**: {titular:AR}."),
           p("Per a qualsevol cosa sobre les teves dades escriu a {hola}. No cal cap formulari ni formalitat: n'hi ha prou amb un correu."),
         ],
@@ -1125,8 +1321,13 @@ const CA: TextosLegal = {
         titulo: "3. Quines dades guardem",
         bloques: [
           p("**De tu**: el teu nom, el teu correu, la regió que vas triar, i què vas comprar, quan i per quin mitjà. La teva targeta no la veiem mai: la cobra Stripe o Mercado Pago i a nosaltres només ens arriba la confirmació. Quan entres al teu compte guardem els registres tècnics normals de qualsevol web (adreça IP, navegador, hora)."),
+          // APROBADO por Naza · L3-03 (18/10, con sus correcciones)
+          p("**L'adreça d'enviament**: si compres el llibre imprès o un marc, l'adreça i el nom de qui el rep. Només la fem servir per enviar-lo: la passem a la impremta i a la missatgeria, i després queda amb les dades de la compra."),
           p("**Del narrador**: el seu nom i com li agrada que li diguin, el seu número de WhatsApp, la seva zona horària, i les dades que ens dones perquè les preguntes li sonin properes (on i quan va néixer, a què es va dedicar, qui és qui a la seva família), i el més important: els **àudios** que grava, les **transcripcions** que en fem, els **textos** del llibre i les **fotos** que puja la família."),
-          p("**La seva veu**: les seves millors frases es retallen dels seus propis àudios, tal com les va dir, per escoltar-les a la web i amb el codi imprès al llibre. No creem cap veu sintètica. Si algun dia oferíssim un producte amb la seva veu clonada —una **dada biomètrica**—, només ho faríem amb el consentiment explícit del narrador, demanat per WhatsApp per a aquesta finalitat concreta."),
+          // APROBADO por Naza · L3-02 (18/10, con sus correcciones)
+          p("**Del viatger**, en el llibre de viatge: a més del que s'ha dit, les dates de sortida i de tornada i el país principal del viatge (per enviar-li els missatges a una hora raonable allà on sigui), les preguntes pròpies que escriu qui regala, si n'hi ha, i les fotos de l'àlbum que ens envia per WhatsApp, en què poden sortir altres persones que viatgen amb ell."),
+          // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
+          p("**La seva veu**: les seves millors frases són retalls dels seus àudios originals, amb el so net i uniforme, per escoltar-les a la web i amb el codi imprès al llibre. No es clona ni s'imita la seva veu. Si algun dia oferíssim un producte amb la seva veu clonada —una **dada biomètrica**—, només ho faríem amb el consentiment explícit del narrador, demanat per WhatsApp per a aquesta finalitat concreta."),
           p("**Dels convidats**: el seu correu (per convidar-los), el seu nom si entren, i les fotos que pugen."),
           p("**De qui visita**: res que l'identifiqui. Només els registres tècnics del servidor i les galetes de la secció 12."),
         ],
@@ -1138,7 +1339,7 @@ const CA: TextosLegal = {
           lista(
             "**Per fer el teu llibre**: entrevistar, transcriure, escriure, maquetar, retallar les seves frases dels seus àudios, imprimir i mostrar-te el resultat. És el contracte que vas acceptar en comprar.",
             "**Per parlar amb el narrador per WhatsApp**, fer-li les preguntes i guardar les seves respostes: amb el seu consentiment, que li demanem abans de la primera pregunta i que pot retirar quan vulgui.",
-            "**Per avisar-te** per correu de com va (quan accepta, quan respon la primera, a mig camí, si es queda en silenci, quan el llibre és a punt). És part del servei.",
+            "**Per avisar-te** per correu de com va (quan accepta, quan respon la primera, a mig camí, si es queda en silenci, quan el llibre està a punt). És part del servei.",
             "**Per facturar i complir la llei**: guardar les dades de la compra el temps que exigeix la normativa fiscal.",
             "**Perquè la web funcioni i sigui segura**: registres tècnics i galetes de sessió, per interès legítim que ningú no entri en un compte aliè.",
           ),
@@ -1161,7 +1362,9 @@ const CA: TextosLegal = {
               ["Anthropic", "Redacta els capítols a partir de les transcripcions, amb les paraules del narrador. Per API: no fa servir el que li enviem per entrenar els seus models.", "Estats Units"],
               ["Stripe / Mercado Pago", "Cobren. Són els únics que veuen la teva targeta.", "Stripe: UE i EUA · Mercado Pago: Argentina"],
               ["Resend", "Envia els correus: el codi per entrar i els avisos.", "Brasil (regió d'Amèrica del Sud)"],
-              ["Impremta i missatgeria", "Només si compres el llibre imprès o els marcs: reben l'arxiu, el teu nom i l'adreça d'enviament.", "Al teu país; et diem quina abans d'enviar-ho a produir"],
+              ["Impremta i missatgeria", "Només si compres el llibre imprès o els marcs: reben l'arxiu, el teu nom i l'adreça d'enviament.", "Bookmundo, als Països Baixos (Unió Europea), per als llibres d'Espanya. A l'Argentina et diem quina abans d'enviar a imprimir"],
+              ["Sentry", "Avisa dels errors tècnics del web i de l'entrevistador. No rep noms, missatges ni àudios.", "Unió Europea (Alemanya)"],
+              ["Cloudflare", "Guarda una còpia de seguretat dels àudios, les fotos i els llibres, per si es perden. El que esborrem s'esborra també de la còpia al cap de 30 dies.", "Unió Europea"],
             ],
           ),
         ],
@@ -1170,19 +1373,28 @@ const CA: TextosLegal = {
         id: "transferencias",
         titulo: "6. Dades que surten del teu país",
         bloques: [
-          p("Com veus a la taula, alguns d'aquests serveis són als Estats Units. Si ets a la Unió Europea, aquestes transferències es fan sota el Marc de Privacitat de Dades UE-EUA o amb les clàusules contractuals tipus aprovades per la Comissió Europea, segons el proveïdor. L'Argentina té decisió d'adequació de la Unió Europea, així que les dades poden circular entre els dos països sense garanties addicionals. Si vols veure els contractes amb un proveïdor concret, demana'ls per correu."),
+          // APROBADO por Naza · L3-04 (18/10, con sus correcciones)
+          p("Com veus a la taula, alguns d'aquests serveis són fora del teu país: als Estats Units i, en el cas dels correus, al Brasil."),
+          lista(
+            "**Si ets a la Unió Europea**: les transferències als Estats Units es fan sota el Marc de Privacitat de Dades UE-EUA o amb les clàusules contractuals tipus aprovades per la Comissió Europea, segons el proveïdor. El Brasil no té decisió d'adequació de la Unió Europea: els correus van amb les garanties contractuals del proveïdor.",
+            "**Si ets a l'Argentina**: les teves dades viatgen als Estats Units (i els correus, al Brasil) perquè aquests proveïdors facin la seva part, sota els seus contractes de tractament de dades. La decisió d'adequació de la Unió Europea sobre l'Argentina serveix per a les dades que van d'Europa a l'Argentina; no cobreix les que surten de l'Argentina cap als Estats Units, i per això ho expliquem a part.",
+          ),
+          p("Si vols veure els contractes amb un proveïdor concret, demana'ls per correu."),
         ],
       },
       {
         id: "cuanto-tiempo",
         titulo: "7. Quant de temps les guardem",
         bloques: [
+          // APROBADO por Naza · L3-05 (18/10, con sus correcciones)
           lista(
-            "**El llibre, les seves frases amb la seva veu, les fotos i els àudios**: mentre el llibre sigui al teu compte. Hi són perquè la família hi torni quan vulgui.",
-            "**Els àudios originals**: a més, s'esborren tan bon punt tu o el narrador ho demaneu, encara que el llibre continuï al teu compte. Les seves frases amb la seva veu són retalls d'aquests mateixos àudios: si demanes esborrar els originals, també s'esborren els retalls, i els codis del llibre imprès deixen de sonar.",
+            "**Els àudios originals**: 3 mesos des que produïm el llibre. Després els esborrem i només en queden els retalls de «La seva veu». Si ho demana el narrador, o ho demanes tu, s'esborren abans.",
+            "**El llibre, les seves frases amb la seva veu i les fotos**: mentre existeixi el teu compte, perquè la família hi torni quan vulgui. Si demanes esborrar les seves frases amb la seva veu, s'esborren, i els codis del llibre imprès deixen de sonar.",
+            "**Si el narrador no accepta participar**: en 15 dies esborrem el seu nom, el seu número, la seva fitxa i les seves fotos.",
             "**El teu compte**: fins que demanis tancar-lo. Si el tanques, esborrem tot el que hi ha a dalt.",
-            "**Les dades de la compra** (què, quan, quant, a nom de qui): el temps que exigeix la llei fiscal de cada país, encara que tanquis el compte.",
+            "**Les dades de la compra** (què, quan, quant, a nom de qui i on l'enviem): el temps que exigeix la llei fiscal de cada país, encara que tanquis el compte.",
             "**Els registres tècnics**: uns quants mesos, només per seguretat.",
+            "**Les còpies de seguretat**: s'esborren soles. Les de la base de dades, al cap de 7 dies; les dels àudios, les fotos i els llibres, 30 dies després que els esborrem.",
           ),
         ],
       },
@@ -1219,7 +1431,7 @@ const CA: TextosLegal = {
         id: "cookies",
         titulo: "12. Galetes",
         bloques: [
-          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
+          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. Si arribes a la web des d'un anunci, recordem de quin només mentre dura aquella visita, sense guardar res al teu navegador. Si compres en aquella mateixa visita, ho anotem amb la teva compra per saber quins anuncis funcionen. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
         ],
       },
       {
@@ -1240,7 +1452,8 @@ const CA: TextosLegal = {
         id: "contacto",
         titulo: "15. Contacte",
         bloques: [
-          p("{hola} per a tot el que tingui a veure amb les teves dades, les del narrador o les d'un convidat. Et contesta una de les dues persones de la secció 1, no un sistema."),
+          // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
+          p("{hola} per a tot el que tingui a veure amb les teves dades, les del narrador o les d'un convidat. Et contesta una persona, no un sistema."),
         ],
       },
     ],
@@ -1253,7 +1466,8 @@ const CA: TextosLegal = {
     enCorto: [
       "Es demana amb un correu. No cal que expliquis per què.",
       "Et confirmem que l'hem rebut dins de les 24 hores i et retornem els diners pel mateix mitjà amb què vas pagar, en 14 dies com a màxim.",
-      "Espanya, 14 dies naturals des de la compra. Argentina, 10 dies seguits, sense cost.",
+      // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
+      "Mentre dura l'entrevista, t'ho retornem tot. Amb el llibre ja escrit, 14 dies naturals des de la compra a Espanya i 10 dies seguits des que reps el llibre a l'Argentina, sense cost.",
     ],
     secciones: [
       {
@@ -1280,12 +1494,32 @@ const CA: TextosLegal = {
         id: "plazos",
         titulo: "Terminis",
         bloques: [
+          // APROBADO por Naza · L1-10 (18/10, con sus correcciones)
           lista(
-            "**Argentina**: 10 dies seguits des de la compra, sense cost (art. 34 de la llei 24.240).",
-            "**Espanya**: 14 dies naturals des de la compra. Si l'entrevista ja va començar a petició teva, es descompta la part ja feta; el PDF (amb les seves frases amb la seva veu) ja lliurat i els productes a mida (imprès, marcs) no es poden retornar.",
-            "**Sense termini**: si el narrador no accepta participar o respon menys de deu preguntes, t'ho retornem tot, sempre.",
+            "**Mentre dura l'entrevista** (o el viatge), fins que el llibre està a punt al teu compte: t'ho retornem tot, sempre, encara que ja hagi començat a contestar.",
+            "**Espanya**: 14 dies naturals des de la compra. El llibre en PDF (amb les seves frases amb la seva veu) ja lliurat al teu compte i els productes a mida (imprès, marcs) no es poden retornar, tret que arribin malmesos o amb un defecte.",
+            "**Argentina**: 10 dies seguits des que reps el llibre, o des de la compra si el llibre és només digital, el que passi més tard, sense cost (art. 34 de la llei 24.240). Si cal retornar el llibre imprès o el marc, l'enviament el paguem nosaltres.",
+            "**Encara que no ho demanis**: si el narrador no accepta participar, o l'entrevista acaba sense material per a un llibre (vegeu la secció 8 dels termes), t'escrivim i t'ho retornem tot en un termini màxim de 14 dies.",
           ),
           p("El detall és a la secció [«Si te'n desdius» dels termes](/legal/terminos#arrepentimiento)."),
+        ],
+      },
+      {
+        // APROBADO por Naza · L2-01 (18/10, con sus correcciones)
+        id: "formulario",
+        titulo: "Formulari de desistiment",
+        bloques: [
+          p("Si prefereixes el model oficial de formulari de desistiment (annex B del RDL 1/2007), copia aquest text, omple'l i envia'l a {hola}. No és obligatori: el botó de dalt val el mateix."),
+          formulario(
+            "A l'atenció de {titular:ES}, correu {hola}:",
+            "Per la present li comunico/comuniquem (*) que desisteixo del meu/desistim del nostre (*) contracte de venda del bé següent/prestació del servei següent (*):",
+            "Demanat el/rebut el (*):",
+            "Nom del consumidor o dels consumidors:",
+            "Domicili del consumidor o dels consumidors:",
+            "Signatura del consumidor o dels consumidors (només si aquest formulari es presenta en paper):",
+            "Data:",
+            "(*) Ratlleu el que no correspongui.",
+          ),
         ],
       },
       GARANTIA_CA("garantia", "La garantia de cada llibre"),

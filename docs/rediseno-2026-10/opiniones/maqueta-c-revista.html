@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta C · Opiniones tipo revista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* Maqueta, no código de la web. Opción C: editorial asimétrica, bloques que alternan crema y tinta, número grande; el fragmento como línea en itálica.
+   Las cinco opiniones son de EJEMPLO, con nombres inventados: ninguna se publica.
+   Los números rojos son los textos de opiniones/textos.md (sin cambios). */
+
+:root { --tinta:#0d0d0c; --papel:#eeeae1; --sobre-tinta:#eeeae1; --sobre-tinta-suave:#a39f96; --sobre-papel:#151412;
+  --sobre-papel-suave:#5a564e; --hilo-papel:rgba(21,20,18,.2); --hilo-tinta:rgba(238,234,225,.16); --dorado:#8a7246; }
+* { box-sizing:border-box; margin:0; }
+body { background:var(--tinta); font-family:Archivo,system-ui,sans-serif; color:var(--sobre-tinta); }
+.num { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
+  background:#d23c2c; color:#fff; font:600 11px Archivo; font-style:normal; vertical-align:middle; margin-right:6px; flex:none; letter-spacing:0; }
+.ejemplo { display:inline-block; background:#d23c2c; color:#fff; font:600 10.5px Archivo; letter-spacing:.12em; text-transform:uppercase; padding:4px 9px; border-radius:3px; }
+.aviso { background:#2a2925; color:#f1d9a8; font:13px/1.5 Archivo; padding:12px 16px; text-align:center; }
+.env { max-width:1104px; margin:0 auto; padding:0 16px; }
+@media (min-width:640px){ .env { padding:0 32px; } }
+.cab { display:flex; align-items:center; justify-content:space-between; padding:18px 0; color:var(--sobre-tinta); }
+.cab b { font:600 12px Archivo; letter-spacing:.18em; }
+.cab span { font-size:13px; border:1px solid var(--hilo-tinta); border-radius:99px; padding:7px 14px; }
+.micro { font:500 11.5px Archivo; letter-spacing:.14em; text-transform:uppercase; }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:56px; padding:0 30px; border-radius:99px; font:500 15px Archivo; text-decoration:none; text-align:center; }
+.btn.lleno { background:var(--papel); color:var(--tinta); font-weight:600; }
+.cierre { text-align:center; padding:110px 0; color:var(--sobre-tinta); }
+.cierre h2 { margin:0 auto; max-width:14ch; font:500 clamp(2.45rem,1.5rem + 4vw,5.25rem)/1.04 "Playfair Display",serif; letter-spacing:-.025em; }
+.cierre .btn { margin-top:44px; width:100%; max-width:358px; }
+@media (min-width:640px){ .cierre .btn { width:auto; } }
+.pie { border-top:1px solid var(--hilo-tinta); color:var(--sobre-tinta-suave); padding:44px 0 56px; display:flex; flex-wrap:wrap; gap:28px; justify-content:space-between; }
+.pie em { font:italic 400 15px "Playfair Display",serif; }
+.pie ul { list-style:none; padding:0; display:flex; flex-direction:column; gap:12px; font:500 12px Archivo; letter-spacing:.18em; text-transform:uppercase; }
+.pie li.nuevo { color:var(--sobre-tinta); }
+.nota { font-size:13px; margin-top:10px; opacity:.75; }
+.frase::before { content:"\00AB"; } .frase::after { content:"\00BB"; }
+
+.arriba { padding:64px 0 112px; }
+.arriba .micro { color:var(--sobre-tinta-suave); }
+h1 { margin-top:20px; max-width:12ch; font:500 clamp(2.8rem,1.2rem + 7vw,8rem)/.98 "Playfair Display",serif; letter-spacing:-.035em; }
+.bajada { margin-top:26px; max-width:30ch; font-size:clamp(1.1rem,1rem + .5vw,1.35rem); font-weight:300; line-height:1.5; color:#cfcbc1; }
+@media (min-width:900px){ .arriba { display:grid; grid-template-columns:8fr 4fr; gap:48px; align-items:end; } .bajada { justify-self:end; } }
+.op { padding:96px 0; }
+.op.t { background:var(--tinta); color:var(--sobre-tinta); border-top:1px solid var(--hilo-tinta); }
+.op.p { background:var(--papel); color:var(--sobre-papel); }
+.grid { display:grid; grid-template-columns:1fr; gap:8px; }
+@media (min-width:900px){
+  .grid { grid-template-columns:3fr 9fr; gap:48px; align-items:start; }
+  .op.t .grid { grid-template-columns:9fr 3fr; }
+  .op.t .n { order:2; text-align:right; }
+}
+.n { font:italic 500 clamp(5rem,3rem + 9vw,11rem)/.8 "Playfair Display",serif; letter-spacing:-.04em; opacity:.22; }
+.op.p .n { color:var(--dorado); opacity:.6; }
+.frase { margin-top:18px; font:500 clamp(2rem,1.1rem + 3.6vw,4.4rem)/1.08 "Playfair Display",serif; letter-spacing:-.025em; text-wrap:balance; }
+.meta { margin-top:30px; display:flex; flex-wrap:wrap; gap:6px 18px; align-items:baseline; }
+.quien { font-size:16px; } .quien b { font-weight:600; }
+.op.t .dato { color:var(--sobre-tinta-suave); } .op.p .dato { color:var(--sobre-papel-suave); }
+.op.p .dato .pr { color:var(--dorado); }
+.frag { margin-top:26px; max-width:60ch; font:italic 400 16px/1.6 "Playfair Display",serif; opacity:.78; }
+.frag .micro { display:block; font-style:normal; font-size:10.5px; margin-bottom:6px; }
+.comp { background:var(--papel); color:var(--sobre-papel); padding:72px 0 88px; border-top:1px solid var(--hilo-papel); }
+.comp .in { display:grid; gap:28px; }
+@media (min-width:900px){ .comp .in { grid-template-columns:7fr 5fr; gap:64px; align-items:start; } .comp .btn { justify-self:end; } }
+.comp h2 { color:var(--dorado); }
+.comp p { margin-top:12px; max-width:52ch; font-size:16px; font-weight:300; line-height:1.6; color:var(--sobre-papel-suave); }
+.comp .btn { border:1px solid rgba(21,20,18,.35); color:var(--sobre-papel); justify-self:start; }
+</style>
+</head>
+<body>
+<p class="aviso">Maqueta para elegir. Las cinco opiniones son de EJEMPLO, con nombres inventados. La página real arranca vacía y no se ve hasta que haya al menos tres opiniones reales con permiso.</p>
+<div class="env"><div class="cab"><b>VITÁCORA</b><span>Entrar</span></div></div>
+<section class="env arriba">
+  <div><p class="micro"><span class="num">1</span>Opiniones</p>
+  <h1><span class="num">2</span>Lo que dicen las familias.</h1></div>
+  <p class="bajada"><span class="num">3</span>Opiniones de quienes ya tienen su libro en casa.</p>
+</section>
+<article class="op p"><div class="env grid">
+  <div class="n">01</div>
+  <div>
+    <span class="ejemplo">Ejemplo, no se publica</span>
+    <p class="frase">Mi madre nunca había contado lo del pueblo. Ahora está en su libro y mis hijos lo leen en voz alta.</p>
+    <div class="meta"><p class="quien"><b>Lucía</b>, hija de Carmen · Zaragoza</p>
+    <p class="micro dato"><span class="pr"><span class="num">4</span>Libro familiar</span> · noviembre de 2026</p></div>
+    <p class="frag"><span class="micro"><span class="num">5</span>Una página de su libro</span><span>En el pueblo no había reloj en la plaza. La hora la daba el panadero, que abría a las seis, y la campana de la ermita, que tocaba cuando le parecía al cura.</span></p>
+  </div>
+</div></article>
+<article class="op t"><div class="env grid">
+  <div class="n">02</div>
+  <div>
+    <span class="ejemplo">Ejemplo, no se publica</span>
+    <p class="frase">Al principio no quería. Después era yo el que esperaba la pregunta para contestar.</p>
+    <div class="meta"><p class="quien"><b>Ramón</b>, narrador · Valladolid</p>
+    <p class="micro dato"><span class="pr">Libro familiar</span> · octubre de 2026</p></div>
+    
+  </div>
+</div></article>
+<article class="op p"><div class="env grid">
+  <div class="n">03</div>
+  <div>
+    <span class="ejemplo">Ejemplo, no se publica</span>
+    <p class="frase" lang="ca">La iaia ho explicava tot amb una gràcia que no sabíem que tenia.</p>
+    <div class="meta"><p class="quien"><b>Laia</b>, néta de Montserrat · Girona</p>
+    <p class="micro dato"><span class="pr">Libro familiar</span> · octubre de 2026</p></div>
+    <p class="frag"><span class="micro">Una página de su libro</span><span lang="ca">A casa sempre hi havia gent. La meva mare deia que on mengen quatre en mengen cinc, i el cinquè sempre era algú que passava per allà.</span></p>
+  </div>
+</div></article>
+<article class="op t"><div class="env grid">
+  <div class="n">04</div>
+  <div>
+    <span class="ejemplo">Ejemplo, no se publica</span>
+    <p class="frase" lang="es-AR">Se lo dimos en Navidad. Mi viejo se pasó la tarde leyendo su vida en voz alta, con el libro en la mano.</p>
+    <div class="meta"><p class="quien"><b>Martín</b>, hijo de Rubén · Rosario</p>
+    <p class="micro dato"><span class="pr">Libro familiar</span> · diciembre de 2026</p></div>
+    
+  </div>
+</div></article>
+<article class="op p"><div class="env grid">
+  <div class="n">05</div>
+  <div>
+    <span class="ejemplo">Ejemplo, no se publica</span>
+    <p class="frase">Volvimos de Japón y el libro nos devolvió cosas que ya habíamos olvidado.</p>
+    <div class="meta"><p class="quien"><b>Elena</b>, viajera · Valencia</p>
+    <p class="micro dato"><span class="pr">Libro del viaje</span> · septiembre de 2026</p></div>
+    
+  </div>
+</div></article>
+
+<section class="comp"><div class="env"><div class="in">
+  <div><h2 class="micro"><span class="num">6</span>Cómo las comprobamos</h2>
+  <p><span class="num">7</span>Solo publicamos opiniones de personas que compraron un libro en Vitácora. Comprobamos cada una con su pedido y la publicamos con su permiso, sin cambiar sus palabras.</p></div>
+  <a class="btn" href="#"><span class="num">8</span>Ver todas las opiniones en Google</a>
+</div><p class="nota">El botón de Google solo aparece cuando Google verifique la ficha de Vitácora.</p></div></section>
+<section style="background:var(--tinta)"><div class="env">
+  <div class="cierre">
+    <h2>Todas las vidas merecen su propio libro.</h2>
+    <a class="btn lleno" href="#">Iniciar Vitácora</a>
+    <p class="nota" style="color:var(--sobre-tinta-suave);margin-top:18px">(Cierre y botón aprobados, #30 de la portada.)</p>
+  </div>
+  <div class="pie">
+    <em>Todas las vidas merecen su propio libro</em>
+    <ul><li>Términos</li><li>Privacidad</li><li>Desistimiento</li></ul>
+    <ul><li>Entrar</li><li class="nuevo"><span class="num">9</span>Opiniones</li></ul>
+  </div>
+</div></section>
+</body>
+</html>
