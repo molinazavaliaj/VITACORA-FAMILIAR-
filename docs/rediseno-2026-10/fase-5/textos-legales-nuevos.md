@@ -35,3 +35,16 @@ Popup rasca y gana (para cuando exista el cupón):
 
 ## Tanda 3 — Checkout con cupón — APROBADA por Naza 19/10
 21. Línea del descuento en el resumen del pedido: «Cupón de bienvenida · 10 % del libro digital −{importe}» [nota interna: el checkout calcula el importe con el precio del digital de cada región; en España hoy son 4,90 €].
+
+## Tanda 4 — Garantía reescrita (términos §7 y desistimiento) — PROPUESTA 19/10
+Reemplaza la tanda 1 (1–8) siguiendo `respuesta-19-10.md` §2.2: la ley primero, la garantía nuestra debajo. es de tú; ar de vos con 10 días y «arrepentirte».
+22. Título: La garantía de cada libro
+23. Subtítulo: Lo que te da la ley
+24. Tienes 14 días naturales desde la compra para desistir, sin dar explicaciones y sin coste. Te devolvemos el dinero por el mismo medio de pago.
+25. Lo pides desde este formulario. [enlace a la página de desistimiento]
+26. Este derecho no lo podemos quitar ni limitar.
+27. Subtítulo «Lo que añadimos nosotros» + Familiar: Si la persona a la que se lo regalas no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo, aunque ya haya empezado.
+28. Viaje: Si el viaje no se hace, por el motivo que sea, y nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó, vale la regla de las diez preguntas.
+29. Para mí: Si el libro es el tuyo, te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.
+30. Subtítulo «Cuándo cerramos el libro»: Cuando contesta diez preguntas o más, cerramos su libro con lo que contó. Si todavía estás dentro de los 14 días y desistes, te devolvemos el importe menos la parte del trabajo ya hecho.
+31. Si dos reglas de este documento dicen cosas distintas, vale la que más te favorezca.
