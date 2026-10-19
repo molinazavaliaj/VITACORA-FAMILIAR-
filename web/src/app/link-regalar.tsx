@@ -8,7 +8,7 @@ import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 
 // Con idioma (rediseño 2026-10), el link va a /regalar en ese idioma y el
 // texto sale de acá; sin idioma, como siempre, por trato.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 const REGALAR_POR_IDIOMA: Record<IdiomaWeb, string> = {
   es: "Regálalo con una tarjeta →",
   ca: "Regala-ho amb una targeta →",

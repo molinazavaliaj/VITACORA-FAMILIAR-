@@ -12,7 +12,7 @@ import type { Textos } from "@/lib/idioma-web";
 // es = España, de tú (viaja una persona). ar = de vos. ca = de tu.
 // TEXTO PARA NAZA: lo nuevo está en docs/rediseno-2026-10/viaje-v2/textos.md
 // (tandas 6 y 7). Lo que sigue igual de antes lo dice al lado.
-// ca: PENDIENTE DE IMMA (revisión nativa).
+// ca: revisado con el corrector de Softcatalà (19/10).
 
 type Paso = { titulo: string; texto: string };
 type Duda = { pregunta: string; respuesta: string };
@@ -132,7 +132,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     familiar: "¿Buscás el libro de una vida? Vitácora Familiar →",
   },
 
-  /* ─────────────────────── Catalán, de tu (PENDIENTE DE IMMA) ─────────────────────── */
+  /* ─────────────────────── Catalán, de tu (revisado con Softcatalà, 19/10) ─────────────────────── */
   ca: {
     meta: {
       titulo: "Vitácora de Viatge — A cada viatge hi ha un llibre per escriure",

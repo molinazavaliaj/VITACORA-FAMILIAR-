@@ -8,7 +8,7 @@ import type { Textos } from "@/lib/idioma-web";
 // sin fecha fija en la foto. Capítulos sin amor. Todo listado en
 // docs/rediseno-2026-10/fase-1/textos-portada.md.
 //
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosEjemplo = {
   meta: { titulo: string; descripcion: string };
@@ -136,7 +136,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
       vozCita: "«El primer sueldo se lo di entero a mi madre. Me devolvió unas monedas y me dijo: “Para que aprendas a gastarlas”.»",
     },
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "Un llibre d'exemple",
@@ -147,7 +147,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     inventada: "Història inventada",
     titulo: "Així és el seu llibre per dins.",
     bajada: "Un llibre d'exemple, amb una història inventada, perquè vegis com queda. Passa les pàgines.",
-    // ca: PENDIENTE REVISIÓN NATIVA
+    // ca: revisado con el corrector de Softcatalà (19/10)
     altVideo: "El llibre de l'Osvaldo sobre una taula de fusta, a la llum d'una finestra",
     anterior: "Pàgina anterior",
     siguiente: "Pàgina següent",
@@ -159,7 +159,7 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     libro: {
       altPortada: "Portada: El llibre de la seva vida, Osvaldo Toroide",
       altContraportada: "Contraportada del llibre d'Osvaldo",
-      dedicatoria: ["Per als meus néts,", "que encara no saben", "tot això."],
+      dedicatoria: ["Per als meus nets,", "que encara no saben", "tot això."],
       firma: "Osvaldo",
       indice: "Índex",
       capitulos: ["La infància", "Les arrels", "La joventut", "Sortir al món", "L'ofici", "Els fills", "Les proves", "La saviesa"],

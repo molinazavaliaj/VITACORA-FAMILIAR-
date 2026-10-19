@@ -11,7 +11,7 @@ import type { TextosLandingBase } from "./landings";
 // TEXTO PARA NAZA: lo nuevo está en docs/rediseno-2026-10/viaje-v2/textos.md
 // (tanda 7). El titular, la bajada, los pasos y el cierre siguen igual en ar;
 // en es pasan de vosotros a tú.
-// ca: PENDIENTE DE IMMA (revisión nativa).
+// ca: revisado con el corrector de Softcatalà (19/10).
 
 export type TextosLandingViaje = TextosLandingBase & {
   queda: { titulo: string; items: [string, string, string] };
