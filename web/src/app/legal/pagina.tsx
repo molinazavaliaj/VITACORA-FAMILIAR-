@@ -1,7 +1,10 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { alternativas, langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { numeroWhatsAppDudas, urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Cabecera, Pie } from "../_publico";
 import { DOCUMENTOS_LEGALES, TEXTOS_LEGAL, type Bloque, type DocumentoLegal, type TextosLegal } from "../_textos/legal";
 import { CONTACTO, TITULARES, faltan, type Region } from "./titulares";
@@ -25,7 +28,14 @@ const RUTA: Record<DocumentoLegal, string> = {
   terminos: "/legal/terminos",
   privacidad: "/legal/privacidad",
   arrepentimiento: "/legal/arrepentimiento",
+  reclamaciones: "/legal/reclamaciones",
 };
+
+/** La hoja oficial de reclamaciones (PDF en public/). Mientras no esté, se pide por correo. */
+export const HOJA_RECLAMACIONES = "/legal/hoja-reclamaciones.pdf";
+export function hayHojaReclamaciones(): boolean {
+  return existsSync(path.join(process.cwd(), "public", HOJA_RECLAMACIONES));
+}
 
 export function metadataLegal(idioma: IdiomaWeb, documento: DocumentoLegal): Metadata {
   const d = TEXTOS_LEGAL[idioma][documento];
@@ -71,43 +81,50 @@ export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; document
               <p className="lgl-fecha">
                 {t.actualizado}: {t.fecha}
               </p>
-              <section aria-labelledby="en-corto" className="lgl-corto">
-                <h2 id="en-corto" className="dir-micro lgl-corto-titulo">
-                  {t.enCorto}
-                </h2>
-                <ul>
-                  {d.enCorto.map((linea, i) => (
-                    <li key={i}>
-                      <Marcado texto={linea} idioma={idioma} t={t} />
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {d.enCorto.length > 0 ? (
+                <section aria-labelledby="en-corto" className="lgl-corto">
+                  <h2 id="en-corto" className="dir-micro lgl-corto-titulo">
+                    {t.enCorto}
+                  </h2>
+                  <ul>
+                    {d.enCorto.map((linea, i) => (
+                      <li key={i}>
+                        <Marcado texto={linea} idioma={idioma} t={t} />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
             </header>
 
-            <nav aria-label={t.indice} className="lgl-indice">
-              <p className="dir-micro lgl-indice-titulo">{t.indice}</p>
-              <ol>
-                {d.secciones.map((s) => (
-                  <li key={s.id}>
-                    <a href={`#${s.id}`}>{s.titulo}</a>
-                  </li>
-                ))}
-              </ol>
-            </nav>
+            {/* Reclamaciones es una sola sección sin título: sin índice. */}
+            {d.secciones.some((s) => s.titulo) ? (
+              <nav aria-label={t.indice} className="lgl-indice">
+                <p className="dir-micro lgl-indice-titulo">{t.indice}</p>
+                <ol>
+                  {d.secciones.map((s) => (
+                    <li key={s.id}>
+                      <a href={`#${s.id}`}>{s.titulo}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            ) : null}
 
             <div className="lgl-cuerpo">
               {d.secciones.map((s) => (
                 <section key={s.id} id={s.id} className="lgl-seccion">
-                  <h2 className="lgl-seccion-titulo">{s.titulo}</h2>
+                  {s.titulo ? <h2 className="lgl-seccion-titulo">{s.titulo}</h2> : null}
                   {s.bloques.map((b, i) => (
                     <BloqueLegal key={i} bloque={b} idioma={idioma} t={t} />
                   ))}
                 </section>
               ))}
-              <p className="lgl-cierre">
-                <Marcado texto={t.cierre} idioma={idioma} t={t} />
-              </p>
+              {documento === "reclamaciones" ? null : (
+                <p className="lgl-cierre">
+                  <Marcado texto={t.cierre} idioma={idioma} t={t} />
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -137,6 +154,20 @@ function BloqueLegal({ bloque, idioma, t }: { bloque: Bloque; idioma: IdiomaWeb;
             </li>
           ))}
         </ul>
+      );
+    case "subtitulo":
+      return <h3 className="lgl-subtitulo">{bloque.texto}</h3>;
+    case "whatsapp":
+      return (
+        <p>
+          <Marcado texto={numeroWhatsAppDudas() ? bloque.con : bloque.sin} idioma={idioma} t={t} />
+        </p>
+      );
+    case "hoja":
+      return (
+        <p>
+          <Marcado texto={hayHojaReclamaciones() ? bloque.con : bloque.sin} idioma={idioma} t={t} />
+        </p>
       );
     case "tabla":
       return <Tabla columnas={bloque.columnas} filas={bloque.filas} />;
@@ -231,6 +262,11 @@ function Pieza({ parte, idioma, t }: { parte: string; idioma: IdiomaWeb; t: Text
   const marca = /^\{([a-z]+)(?::([A-Z]{2}))?\}$/.exec(parte);
   if (marca) {
     const [, cual, region] = marca;
+    if (cual === "whatsapp") {
+      const numero = numeroWhatsAppDudas();
+      const url = urlWhatsAppDudas();
+      return numero && url ? <Enlace href={url} idioma={idioma}>{`+${numero}`}</Enlace> : null;
+    }
     if (cual === "hola" || cual === "soporte") {
       return <Enlace href={`mailto:${CONTACTO[cual]}`} idioma={idioma}>{CONTACTO[cual]}</Enlace>;
     }
@@ -248,6 +284,14 @@ function Enlace({ href, idioma, children }: { href: string; idioma: IdiomaWeb; c
   if (href.startsWith("/")) {
     // Los enlaces entre legales se quedan en el idioma de la página.
     const [camino, ancla] = href.split("#");
+    // Un archivo (el PDF de la hoja de reclamaciones) es uno solo para los tres idiomas.
+    if (/\.[a-z]+$/.test(camino)) {
+      return (
+        <a href={href} className="lgl-enlace">
+          {children}
+        </a>
+      );
+    }
     const destino = camino.startsWith("/legal") ? ruta(idioma, camino) : camino;
     return (
       <Link prefetch={false} href={ancla ? `${destino}#${ancla}` : destino} className="lgl-enlace">
