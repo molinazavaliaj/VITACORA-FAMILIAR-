@@ -1,8 +1,7 @@
-"""Transcribir un clip corto con la API de Whisper de OpenAI (la misma que usa
-el entrevistador). Solo hace falta cuando la referencia no es una respuesta
-entera y la transcripción guardada no coincide con el recorte: un clip de
-25 s cuesta centavos, y evita cargar un whisper local (faster-whisper hizo
-segfault en la laptop de Naza; no vale la pena depender de él).
+"""Escuchar un audio con la API de Whisper de OpenAI (la misma que usa el
+entrevistador) para tener cada palabra con su minuto: así se ubica la frase de
+«Su voz» dentro de la respuesta. Es barato y evita cargar un whisper local
+(faster-whisper hizo segfault en la laptop de Naza; no vale la pena depender de él).
 """
 
 import os
@@ -11,31 +10,9 @@ from pathlib import Path
 import httpx
 
 
-def transcribir_clip(ruta: Path) -> str:
-    clave = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not clave:
-        raise SystemExit(
-            "Hace falta OPENAI_API_KEY en voz/.env para transcribir la referencia "
-            "(no hay ninguna respuesta entera de 12-30 s con transcripción)."
-        )
-    with ruta.open("rb") as f:
-        respuesta = httpx.post(
-            "https://api.openai.com/v1/audio/transcriptions",
-            headers={"Authorization": f"Bearer {clave}"},
-            data={"model": "whisper-1", "language": "es", "response_format": "text"},
-            files={"file": (ruta.name, f, "audio/wav")},
-            timeout=120,
-        )
-    if respuesta.status_code != 200:
-        # RuntimeError, no SystemExit: si algún día corre dentro del worker, el
-        # `except Exception` del bucle lo marca `fallida` en vez de matar el proceso.
-        raise RuntimeError(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
-    return respuesta.text.strip()
-
-
 def palabras_con_tiempos(ruta: Path) -> dict:
-    """Las palabras del clip con su (inicio, fin) en segundos, para arreglar el
-    ritmo de un original (voz/ritmo.py). `whisper-1` con
+    """Las palabras del clip con su (inicio, fin) en segundos, para ubicar una
+    frase en el audio (voz/frases.py). `whisper-1` con
     `timestamp_granularities=word`: devuelve {"texto" (con puntuación),
     "palabras": [{"palabra", "inicio", "fin"}, …]}."""
     clave = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -56,8 +33,7 @@ def palabras_con_tiempos(ruta: Path) -> dict:
         )
     if respuesta.status_code != 200:
         # RuntimeError, no SystemExit (revisión 21/09): un 429/413/5xx de Whisper
-        # tiene que caer en el `except Exception` de preparar_real ("sigo sin
-        # ritmo"), no tumbar el worker entero.
+        # deja la frase pendiente para la vuelta siguiente, no tumba el worker.
         raise RuntimeError(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
     datos = respuesta.json()
     palabras = [{"palabra": w["word"].strip(), "inicio": float(w["start"]), "fin": float(w["end"])} for w in datos.get("words", [])]

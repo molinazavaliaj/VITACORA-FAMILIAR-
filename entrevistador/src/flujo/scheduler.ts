@@ -21,6 +21,12 @@ export { capituloNoAplica } from './preguntar.js';
 const VENTANA_MINUTOS = 15;   // el cron corre cada 15 min
 const HORAS_RECORDATORIO = 6; // recién después de 6 hs sin responder
 const DIAS_SILENCIO = 3;      // 3 días sin señales → avisamos a la familia
+// 30 días desde la bienvenida sin decir que sí: se da por no aceptado (Naza y
+// Joaquín, 19/10). El bot no tiene un «no acepto»: un «no» lo toma como «más
+// tarde» y, sin un plazo, nadie deja de esperar nunca. Los términos prometen
+// devolver todo si el narrador no acepta, así que hace falta una fecha en la
+// que eso pasa a ser cierto.
+export const DIAS_PARA_NO_ACEPTO = 30;
 
 // ── Helpers de tiempo (puros, testeables) ──────────────────────────────
 
@@ -281,6 +287,43 @@ async function prenderAlertasDeSilencio(ahora: Date): Promise<void> {
   }
 }
 
+/**
+ * 5. Treinta días desde la bienvenida sin aceptar: se da por no aceptado.
+ *
+ * Avisa a los socios UNA vez por narrador (la marca va en su contexto, no en
+ * la memoria del proceso: Railway reinicia y el aviso no se puede repetir cada
+ * 15 minutos). No le escribe nada a él: ya se le contestó cuando dijo que no,
+ * y a quien no quiere participar no se le insiste.
+ *
+ * Deja la fecha anotada porque de ahí cuentan los 15 días del borrado de su
+ * ficha y sus fotos que prometen los términos.
+ */
+async function marcarNoAceptaron(ahora: Date): Promise<void> {
+  for (const n of await narradoresEn(['invitado'])) {
+    await aislado(n.id, async () => {
+      const contexto = (n.contexto ?? {}) as Record<string, unknown>;
+      if (contexto.noAcepto) return; // ya avisado
+      const { data } = await db.from('envios').select('enviado_at')
+        .eq('narrador_id', n.id).eq('tipo', 'bienvenida').not('wa_message_id', 'is', null)
+        .order('enviado_at', { ascending: true }).limit(1);
+      const primera = (data as { enviado_at: string }[] | null)?.[0]?.enviado_at;
+      if (!primera) return; // nunca le llegó la bienvenida: ese es otro problema
+      const dias = (ahora.getTime() - new Date(primera).getTime()) / 86_400_000;
+      if (dias < DIAS_PARA_NO_ACEPTO) return;
+      await db.from('narradores')
+        .update({ contexto: { ...contexto, noAcepto: { cuando: ahora.toISOString(), dias: Math.floor(dias) } } })
+        .eq('id', n.id);
+      await avisarSocios(
+        `no-acepto:${n.id}`,
+        `${n.como_le_dicen ?? n.id} no aceptó en ${DIAS_PARA_NO_ACEPTO} días`,
+        `A ${n.como_le_dicen ?? n.id} (${n.id}) le llegó la bienvenida hace ${Math.floor(dias)} días y nunca dijo que sí.\n\n`
+        + 'Corresponde devolverle el dinero a quien compró, completo y sin que lo pida, dentro de los 14 días (términos §8).\n'
+        + `A los 15 días de hoy hay que borrar su nombre, su número, su ficha y sus fotos (privacidad §7).`,
+      );
+    });
+  }
+}
+
 // ── El tick y el cron ──────────────────────────────────────────────────
 
 export async function tick(ahora: Date = new Date()): Promise<void> {
@@ -296,6 +339,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     ['preguntas', () => enviarPreguntasDelDia(ahora)],
     ['recordatorios', () => enviarRecordatorios(ahora)],
     ['alertas', () => prenderAlertasDeSilencio(ahora)],
+    ['no-acepto', () => marcarNoAceptaron(ahora)],
   ] as const) {
     try {
       await fase();

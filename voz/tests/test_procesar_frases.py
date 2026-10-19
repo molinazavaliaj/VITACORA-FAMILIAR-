@@ -68,7 +68,6 @@ def config_de(tmp_path) -> Config:
     return Config(
         supabase_url="", supabase_key="",
         carpeta_modelos=tmp_path / "modelos", carpeta_trabajo=tmp_path / "trabajo",
-        motor="",
     )
 
 

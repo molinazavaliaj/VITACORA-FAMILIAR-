@@ -25,6 +25,8 @@ import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtap
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { avisarVariablesAlArrancar } from './variables.js';
+import { iniciarSentry } from './sentry.js';
+import { revisarAudiosOriginales } from './audios-originales.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -129,6 +131,7 @@ export async function tick(): Promise<void> {
     await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
+    await borrarAudiosOriginalesCadaHora();
     // El portón de impresión: con la dirección puesta y las frases confirmadas,
     // el libro sale a la imprenta (3t.26 fase 2).
     await mandarEntregasAImprenta(obtenerClienteDb());
@@ -544,6 +547,21 @@ async function mandarHito(
 }
 
 /**
+ * Branch (g): los audios originales a los 3 meses del libro (audios-originales.ts):
+ * el mail con la descarga, el borrado y el de la descarga. Una vez por hora (los días
+ * no necesitan más) y apagado sin BORRADO_AUDIOS_ORIGINALES=1.
+ */
+let ultimaRevisionAudios = 0;
+async function borrarAudiosOriginalesCadaHora(ahora = Date.now()): Promise<void> {
+  if (process.env.BORRADO_AUDIOS_ORIGINALES !== '1' || ahora - ultimaRevisionAudios < 3_600_000) return;
+  ultimaRevisionAudios = ahora;
+  const db = obtenerClienteDb();
+  const kids = await conKidsOFrenar(db, 'audios originales');
+  if (!kids) return;
+  await revisarAudiosOriginales(db, { kids, candadoLibroListo: CANDADO_POR_HITO.libro_listo });
+}
+
+/**
  * Branch (c): pedidos 'entregado' cuyo narrador todavía no tiene
  * `libro_listo_enviado.txt` → el mail de "el libro está listo". Un mail por
  * narrador, no por pedido: un extra (otro ejemplar) del mismo narrador
@@ -936,6 +954,7 @@ async function entregarConLosMismosArchivos(
 }
 
 export function iniciarWorker(): void {
+  iniciarSentry(); // los errores a Sentry (sentry.ts); sin SENTRY_DSN no hace nada
   // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
   // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
   void chequearClaveAlArrancar();

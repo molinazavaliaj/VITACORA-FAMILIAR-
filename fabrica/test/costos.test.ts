@@ -38,7 +38,12 @@ function construirDbFake(opciones: {
     storage: { from: vi.fn(() => ({ download, upload })) },
     // La tabla del panel: `registrarUso` anota además en consumo_ia, así que el
     // fake tiene que espejar al cliente o "todo bien" deja de significar cero avisos.
-    from: vi.fn(() => ({ insert: async () => ({ error: null }) })),
+    // Después de anotar, el aviso de libro caro (aviso-gasto-libro.ts) suma lo
+    // gastado: select().eq().eq() sin filas, así no avisa ni hace ruido.
+    from: vi.fn(() => {
+      const consulta = { eq: () => consulta, then: (ok: (r: unknown) => unknown) => ok({ data: [], error: null }) };
+      return { insert: async () => ({ error: null }), select: () => consulta };
+    }),
     download,
     upload,
   };

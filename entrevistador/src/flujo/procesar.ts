@@ -283,6 +283,20 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     // no quiere participar sería peor que no haber preguntado.
     if (narrador.contexto?.sePidioDeNuevo !== true) {
       const dijoNo = leerSiNo(m.texto) === 'no';
+      // Dijo que no: corresponde devolver, y los términos prometen hacerlo «sin
+      // que tengas que pedirlo» (textos aprobados por Naza el 18/10). La
+      // devolución es a mano, así que lo único que la dispara es este aviso: sin
+      // él, la promesa no se cumple y nadie se entera. A ella no le cambia nada:
+      // igual recibe el texto de abajo y no se le insiste.
+      if (dijoNo) {
+        await avisarSocios(
+          `dijo-que-no:${narrador.id}`,
+          `${narrador.como_le_dicen ?? narrador.id} dijo que no quiere participar`,
+          `${narrador.como_le_dicen ?? narrador.id} (${narrador.id}) contestó que no a la bienvenida.\n\n`
+          + 'Corresponde devolverle el dinero a quien compró, completo y sin que lo pida, '
+          + 'dentro de los 14 días (términos §8). No se le insiste a ella.',
+        );
+      }
       if (idiomaRegalo) {
         await enviarTexto(narrador.telefono_whatsapp, textoDeArranque(idiomaRegalo, dijoNo ? 'noQuiere' : 'noEntendi', narrador.como_le_dicen));
       } else {

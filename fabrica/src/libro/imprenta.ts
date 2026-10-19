@@ -25,6 +25,7 @@ import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './e
 import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
 import { urlVozDeNarrador } from './token-voz.js';
+import { armarBookmundoSinFrenar } from './bookmundo/narrador.js';
 import type { Estructura } from './estructura.js';
 import { htmlLibroV3, idiomaDelLibro, tratoDelLibro, type NarradorParaLibro } from '../escritor/produccion/html.js';
 import { RUTA_LIBRO_MD_V3 } from '../escritor/produccion/libro-v3.js';
@@ -113,6 +114,8 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
     .from('audios')
     .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
   if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
+  // Y el de Bookmundo, ahora con «Su voz» (interior, cubierta e informe en {id}/bookmundo/). No frena el portón.
+  await armarBookmundoSinFrenar(db, narradorId, { frases });
 
   return true;
 }
@@ -137,6 +140,7 @@ async function armarImprentaV3(db: Db, narradorId: string, libroMd: string, fras
     .from('audios')
     .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
   if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
+  await armarBookmundoSinFrenar(db, narradorId, { frases });
   return true;
 }
 

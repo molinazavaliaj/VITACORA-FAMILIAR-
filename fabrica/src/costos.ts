@@ -1,5 +1,6 @@
 import type { obtenerClienteDb } from './db.js';
 import { descargarTextoOpcional, subirTexto } from './libro/comun.js';
+import { vigilarGastoDelLibro } from './aviso-gasto-libro.js';
 
 // Cuánto cuesta de verdad cada libro. Hasta ahora el costo por libro se
 // estimaba a mano en GASTOS.md; acá se MIDE: cada llamada al modelo devuelve
@@ -202,6 +203,8 @@ async function anotarEnConsumoIa(cliente: Db, narradorId: string, uso: { modelo:
       usd: fila.usd,
     });
     if (error) console.warn(`costos: no se pudo anotar en consumo_ia el paso ${fila.paso}: ${error.message}`);
+    // Sin await: el aviso de libro caro (aviso-gasto-libro.ts) nunca demora el libro.
+    else if (fila.usd > 0) void vigilarGastoDelLibro(cliente, narradorId);
   } catch (err) {
     console.warn(`costos: no se pudo anotar en consumo_ia el paso ${uso.paso}: ${(err as Error).message}`);
   }

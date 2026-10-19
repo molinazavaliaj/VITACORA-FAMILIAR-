@@ -1,5 +1,5 @@
 # Restauración de voz (directiva 02): resemble-enhance (denoise + enhance a 44,1 kHz, GPU).
-# Venv propio como los motores: trae su torch y no convive con nadie.
+# Venv propio: trae su torch y no convive con nadie.
 --extra-index-url https://download.pytorch.org/whl/cu126
 resemble-enhance
 soundfile

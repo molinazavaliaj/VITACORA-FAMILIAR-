@@ -18,9 +18,9 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
-| `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **PROPUESTA** (migración 20261016000000, sin aplicar). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
+| `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **aplicada por Naza el 17/10** (migración 20261016000000). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
-| `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
+| `narraciones` | **Sin uso desde el 16/10/2026** (ni fábrica ni worker; ver "Narraciones"). Antes: fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | — (solo el panel de admin muestra las filas viejas) | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
 
@@ -172,6 +172,10 @@ pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla.
 > **Histórico (23/09):** todo lo de esta sección describe un camino que la fábrica ya no
 > tiene (ver la nota de arriba). Queda para leer las filas viejas de `narraciones` y el
 > worker de la PC de música, que todavía sondea la tabla.
+>
+> **16/10/2026:** el worker de la PC de música tampoco sondea más `narraciones` (se sacó el
+> camino de la narración de `voz/`; solo corta frases de «Su voz» y late). Nadie escribe ni
+> lee la tabla salvo el panel de admin, que muestra las filas viejas; se puede borrar más adelante.
 
 ⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
 Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
@@ -734,7 +738,7 @@ y las bienvenidas `bienvenida_viaje_v2` / `bienvenida_viaje_regalo_v2`, en los t
 
 Álbum con cero fotos (Naza, 10/10): aviso a los socios, se repite a las 48 h y se cierra solo a los 7 días.
 
-## Vitácora Kids V2 por WhatsApp (migración 20261016000000 — PROPUESTA del 15/10, espera el OK de Joaquín; la aplica Naza)
+## Vitácora Kids V2 por WhatsApp (migración 20261016000000 — **aplicada por Naza el 17/10**)
 
 Producto: «Mi Primer Capítulo», chicos de 11 (rama `vitacora-kids`, `docs/kids/v2/README.md` y `flujo-vigente.md`).
 El motor es `fabrica/src/kids-v2/motor.ts`: puro, sin red ni modelos, `paso(estado, evento, ahora) → { estado, salidas }`.
@@ -1014,7 +1018,9 @@ migración no está aplicada, el producto sigue andando: los servicios avisan po
 
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
-> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09). En git no quedó escrito si la migración `20260922000000_entregas.sql` se aplicó: verificarlo en el SQL Editor (`select to_regclass('public.entregas');` devuelve `entregas` si existe) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09).
+> **Verificado el 17/10 por Naza en el SQL Editor: la migración `20260922000000_entregas.sql` está aplicada**
+> (`to_regclass('public.entregas')` no es null). La tabla existe y la sección Envío de la web funciona.
 
 Diseño: `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`. Migración:
 `20260922000000_entregas.sql`. Una fila por pedido que lleva **libro impreso y/o marcos**
@@ -1048,7 +1054,8 @@ para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
 
 ## «Sus objetos preciados» — el pedido de una foto concreta (PROPUESTA del 22/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09). En git no quedó escrito si se aplicaron `20260923000000` y `20260923000100`: verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'fotos' and column_name = 'pregunta_orden';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main (`objetos-preciados`, merge del 27/09).
+> **Verificado el 17/10 por Naza: aplicadas** (`fotos.pregunta_orden` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000000_preguntas_de_objeto.sql` y la aplica
 Naza en el SQL Editor. Mientras tanto el código funciona sin la columna: `fotos.pregunta_orden` se lee
@@ -1086,7 +1093,8 @@ Reglas:
 
 ## Saber si el mensaje llegó — `envios.entrega` (PROPUESTA del 23/09, la aplica Naza)
 
-> **Actualizado 15/10:** el código está en main desde el 27/09. En git no quedó escrito si se aplicó `20260923000200_envios_entrega.sql` (el ROADMAP del 29/09 ya manda a mirar `envios.entrega`, lo que sugiere que sí): verificarlo en el SQL Editor (`select column_name from information_schema.columns where table_name = 'envios' and column_name = 'entrega';`) y anotarlo acá.
+> **Actualizado 15/10:** el código está en main desde el 27/09.
+> **Verificado el 17/10 por Naza: aplicada** (`envios.entrega` existe).
 
 ⚠️ **No está aplicada todavía.** La migración es `20260923000200_envios_entrega.sql`. Mientras tanto
 el código funciona sin las columnas: avisa por consola (los logs de Railway ya sirven para saber qué
