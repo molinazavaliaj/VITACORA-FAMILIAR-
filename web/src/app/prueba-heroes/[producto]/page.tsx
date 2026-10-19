@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { Cabecera } from "../../_publico";
 import { LogoTrazo } from "../../_direccion/logo-trazo";
 import { VideoLibro } from "../../_direccion/video-libro";
+import { Libro3D } from "../../_direccion/libro-3d";
+import { TEXTOS_EJEMPLO } from "../../_textos/ejemplo";
+import type { TextosPortada } from "../../_textos/portada";
 import { conVar } from "../../_direccion/piezas";
 import { PaginaKidsCompleta, preciosKids } from "../../_kids/pagina";
 import { BotonEscribir } from "../../_kids/piezas";
@@ -71,6 +74,31 @@ function HeroKids({ idioma }: { idioma: IdiomaWeb }) {
   );
 }
 
+// El libro de viaje de ejemplo (19/10, SOLO para el mockup: textos inventados,
+// sin aprobar). Como el de Osvaldo, en castellano en los tres idiomas.
+const LIBRO_VIAJE: TextosPortada["direccion"]["libro"] = {
+  etiqueta: "El libro de nuestro viaje",
+  nombre: ["Lisboa ·", "Oporto"],
+  paraSiempre: "Sara y Dani",
+  iniciales: "S · D",
+  lomo: "Lisboa · Oporto · El libro de nuestro viaje",
+  contra: "Estas páginas guardan el viaje de Sara y Dani a Lisboa y Oporto, contado con sus propias palabras y sus fotos. En este QR, sus audios del viaje.",
+  escucha: "Escucha el viaje",
+  web: "vitacorafamiliar.com",
+};
+const CAPITULO_VIAJE = {
+  ...TEXTOS_EJEMPLO.es.libro,
+  capitulo: "Día 1",
+  tituloCapitulo: "Alfama",
+  citaCapitulo: "«Nos perdimos tres veces antes de encontrar el mirador.»",
+  parrafos: [
+    "Llegamos con las mochilas y sin reserva para cenar. Dani quería subir caminando y yo quería el tranvía. Subimos caminando.",
+    "Arriba había un señor tocando la guitarra y el río se ponía naranja. Nos quedamos hasta que no se veía nada.",
+  ] as [string, string],
+  altFoto: "Sara grabando un audio en la cama del hotel",
+  pieFoto: "La primera tarde en el hotel, contando el día.",
+};
+
 function HeroViaje({ idioma }: { idioma: IdiomaWeb }) {
   const v = TEXTOS_VIAJE[idioma];
   const cat = catalogo(regionDeIdioma(idioma));
@@ -91,15 +119,15 @@ function HeroViaje({ idioma }: { idioma: IdiomaWeb }) {
         <p className="dir-entra dir-bajada-hero mt-6 sm:mt-8" style={conVar({ "--e": "0.7s" })}>
           {v.bajada}
         </p>
-        <VideoLibro
-          src="/video/viaje-libro.mp4"
-          poster="/video/viaje-libro-poster.jpg"
-          alt={v.altLibro}
-          ancho={1120}
-          alto={640}
-          sizes="(min-width: 960px) 880px, 100vw"
-          className="viaje-video dir-entra mt-10 w-full max-w-[880px] sm:mt-12"
-        />
+        {/* El libro de viaje en 3D, como el de Osvaldo en Familiar: gira y se abre en el medio de la pantalla. */}
+        <div data-libro-3d className="l3-seccion dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
+          <Libro3D
+            idioma={idioma}
+            b={LIBRO_VIAJE}
+            c={CAPITULO_VIAJE}
+            diseno={{ tapa: "/rediseno/viaje-mirador-lisboa.jpg", interior: "/rediseno/viaje-audio-hotel.jpg", variante: "viaje" }}
+          />
+        </div>
         <div className="dir-entra mt-10 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
           {precio !== null ? (
             <Link prefetch={false} href={ruta(idioma, "/comprar/viaje")} className="dir-boton dir-boton--lleno">

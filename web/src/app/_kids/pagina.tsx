@@ -121,7 +121,9 @@ export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?:
             <em className="block">{t.dibujos.frase[1]}</em>
           </h2>
           <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
-          {/* El libro de Nico en video (arreglos chicos, MOTION 14): debajo del texto. */}
+          {/* El libro de Nico en video (arreglos chicos, MOTION 14): debajo del texto.
+              Con otro inicio (mockup de /prueba-heroes) el video ya está arriba: no se repite. */}
+          {!hero && (
           <VideoLibro
             src="/video/kids-libro.mp4"
             poster="/video/kids-libro-poster.jpg"
@@ -131,6 +133,7 @@ export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?:
             sizes="(min-width: 960px) 880px, 100vw"
             className="kids-video mt-14 w-full max-w-[880px] md:mt-20"
           />
+          )}
         </div>
       </section>
 
