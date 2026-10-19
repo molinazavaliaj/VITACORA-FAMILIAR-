@@ -12,7 +12,7 @@ import type { TextosLandingBase } from "./landings";
 // audio de Osvaldo que sonaba y «Cada libro lleva un código» (el PDF no lleva
 // código: lleva sus audios a un toque; el código va en el impreso).
 // Nuevo, para aprobar: fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosLandingVoz = TextosLandingBase & {
   vozTitulo: string;
@@ -51,15 +51,15 @@ export const TEXTOS_LANDING_VOZ: Textos<TextosLandingVoz> = {
     faqTitulo: "Sobre su voz.",
     cierre: "Que su voz se quede en casa.",
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "La seva veu, guardada · Vitácora Familiar",
-      descripcion: "El seu llibre porta les seves millors frases amb la seva veu real. Per a tu, per als teus fills i per quan vulguis tornar a sentir-lo.",
+      descripcion: "El seu llibre porta les seves millors frases amb la seva veu real. Per a tu, per als teus fills i per a quan vulguis tornar a sentir-lo.",
     },
     etiqueta: "La seva veu, guardada",
     titulo: "La seva història, explicada amb la seva veu.",
-    bajada: "El seu llibre porta les seves millors frases amb la seva veu real. Per a tu, per als teus fills i per quan vulguis tornar a sentir-lo.",
+    bajada: "El seu llibre porta les seves millors frases amb la seva veu real. Per a tu, per als teus fills i per a quan vulguis tornar a sentir-lo.",
     cta: "Guardar la seva veu",
     vozTitulo: "No és un llibre mut.",
     ilustracion: "Una frase d'exemple, d'una història inventada. Al seu llibre, hi sona la seva veu.",

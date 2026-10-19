@@ -25,7 +25,7 @@ import type { Textos } from "@/lib/idioma-web";
 // (Res. 424/2020). Las tres rutas siguen siendo /legal/terminos,
 // /legal/privacidad y /legal/arrepentimiento (con /ca y /ar delante).
 //
-// ca: PENDIENTE REVISIÓN NATIVA Y ABOGADO. Además, confirmar con el abogado qué
+// ca: revisado con el corrector de Softcatalà (19/10) Y ABOGADO. Además, confirmar con el abogado qué
 // textos legales tienen que estar en catalán obligatoriamente (DECISIONES D2).
 //
 // REVISIÓN DEL 17/10 (docs/legal/revision-textos-2026-10-17.md): corregidos los
@@ -160,7 +160,7 @@ export const GARANTIA: Textos<TextosGarantia> = {
       regla: "Si dos reglas de este documento dicen cosas distintas, vale la que más te favorezca.",
     },
   },
-  // ca: PENDIENTE REVISIÓN NATIVA · traducción de la tanda 4 (textos 22–31)
+  // ca: revisado con el corrector de Softcatalà (19/10) · traducción de la tanda 4 (textos 22–31)
   ca: {
     titulo: "La garantia de cada llibre",
     ley: {
@@ -1146,7 +1146,7 @@ const AR: TextosLegal = {
 };
 
 // ─── Catalán (tú) ─────────────────────────────────────────────────────────
-// ca: PENDIENTE REVISIÓN NATIVA Y ABOGADO. Traducción de ES hecha por Claude
+// ca: revisado con el corrector de Softcatalà (19/10) Y ABOGADO. Traducción de ES hecha por Claude
 // Code el 14/10. Los nombres de leyes y organismos van con su nombre oficial.
 
 const CA: TextosLegal = {
@@ -1579,7 +1579,7 @@ const CA: TextosLegal = {
       seccionGarantia("ca"),
     ],
   },
-  // ca: PENDIENTE REVISIÓN NATIVA · traducción de la tanda 5 (textos 32–37)
+  // ca: revisado con el corrector de Softcatalà (19/10) · traducción de la tanda 5 (textos 32–37)
   reclamaciones: {
     titulo: "Reclamacions i atenció",
     bajada: "Si alguna cosa no ha sortit bé, escriu-nos. Et respon una persona de l'equip de Vitácora.",

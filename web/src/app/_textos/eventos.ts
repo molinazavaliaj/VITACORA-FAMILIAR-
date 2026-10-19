@@ -10,7 +10,7 @@ import type { TipoEvento } from "@/lib/eventos";
 // cuántos invitados como mínimo, en qué ciudades, si va una persona o se graba
 // por WhatsApp.
 //
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosEventos = {
   /** #1 */
@@ -148,7 +148,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
     queEs: {
       etiqueta: "Què és Vitácora Esdeveniments",
       titulo: "El que els teus convidats diuen aquell dia, en un llibre.",
-      bajada: "Una festa passa ràpid i gairebé res no queda escrit. Escoltem qui hi era i guardem les seves paraules en un llibre per a tu.",
+      bajada: "Una festa passa de pressa i gairebé res no queda escrit. Escoltem qui hi era i guardem les seves paraules en un llibre per a tu.",
       altFoto: "Un convidat explica un record al racó de Vitácora durant un casament.",
     },
     como: {
@@ -161,7 +161,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
           titulo: "Hi anem i escoltem",
           texto: "El dia de l'esdeveniment entrevistem els teus convidats. Cadascú explica un record, una anècdota o el que et vol dir.",
         },
-        { titulo: "Et arriba el llibre", texto: "Amb les seves paraules escrivim el llibre del teu esdeveniment i te'l lliurem imprès." },
+        { titulo: "T'arriba el llibre", texto: "Amb les seves paraules escrivim el llibre del teu esdeveniment i te'l lliurem imprès." },
       ],
     },
     tipos: { titulo: "Per a qualsevol celebració", pie: "Si el teu no és a la llista, explica-ho igualment.", altFoto: "La carpa negra de Vitácora en un casament, amb una entrevista a dins." },

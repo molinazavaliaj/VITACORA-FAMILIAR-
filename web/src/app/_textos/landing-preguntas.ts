@@ -16,7 +16,7 @@ import type { TextosLandingBase } from "./landings";
 // no corta el sentido) y los dos puntos pasan a punto, como en las preguntas
 // de la portada que Naza aprobó el 11/10 (OR2 y CA1 en es y ar son ese texto
 // aprobado, palabra por palabra).
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type PreguntaDelBanco = { id: string; capitulo: string; texto: string };
 
@@ -99,7 +99,7 @@ export const TEXTOS_LANDING_PREGUNTAS: Textos<TextosLandingPreguntas> = {
     faqTitulo: "Antes de regalarlo.",
     cierre: "Preguntale ahora. Leelo siempre.",
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "El que mai li has preguntat · Vitácora Familiar",

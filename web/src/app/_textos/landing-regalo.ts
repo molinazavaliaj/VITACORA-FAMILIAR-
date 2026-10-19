@@ -8,7 +8,7 @@ import type { TextosLandingBase } from "./landings";
 // lib/regalo-textos.ts, con nombres de ejemplo) y el libro de Osvaldo.
 // Los pasos y las preguntas frecuentes son los aprobados de la portada.
 // Nuevo, para aprobar: fase-4/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosLandingRegalo = TextosLandingBase & {
   pasosTitulo: string;
@@ -63,7 +63,7 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
     faqTitulo: "Lo que suele preguntar quien regala.",
     cierre: "Este año, regalale su historia.",
   },
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
       titulo: "Un regal per al teu pare · Vitácora Familiar",

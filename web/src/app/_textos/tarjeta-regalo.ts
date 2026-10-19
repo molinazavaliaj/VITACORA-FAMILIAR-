@@ -55,7 +55,7 @@ const KIDS_AR: TextosTarjetaProducto = {
   ],
 };
 
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (19/10)
 const KIDS_CA: TextosTarjetaProducto = {
   marca: "Vitácora Kids",
   etiqueta: (q) => `Un regal de ${q}`,
@@ -99,7 +99,7 @@ const VIAJE_AR: TextosTarjetaProducto = {
   ],
 };
 
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (19/10)
 const VIAJE_CA: TextosTarjetaProducto = {
   marca: "Vitácora de viatge",
   etiqueta: () => "Un regal per al viatge",
