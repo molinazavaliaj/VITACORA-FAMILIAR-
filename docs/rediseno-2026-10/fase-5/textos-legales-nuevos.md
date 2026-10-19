@@ -49,11 +49,11 @@ Reemplaza la tanda 1 (1–8) siguiendo `respuesta-19-10.md` §2.2: la ley primer
 30. Subtítulo «Cuándo cerramos el libro»: Cuando contesta diez preguntas o más, cerramos su libro con lo que contó. Si todavía estás dentro de los 14 días y desistes, te devolvemos el importe menos la parte del trabajo ya hecho.
 31. Si dos reglas de este documento dicen cosas distintas, vale la que más te favorezca.
 
-## Tanda 5 — Reclamaciones y atención — PROPUESTA 19/10
+## Tanda 5 — Reclamaciones y atención — APROBADA por Naza 19/10 (correo soporte@vitacorafamiliar.com; en /ar el horario va igual, «hora de España»)
 Página nueva `/legal/reclamaciones` (+ `/ca`, `/ar`), enlazada desde el pie. Sale de `respuesta-19-10.md` §5.3–5.5.
 32. Título: Reclamaciones y atención
 33. Si algo no salió bien, escríbenos. Te contesta una persona del equipo de Vitácora.
-34. Por WhatsApp al [número de dudas] o por correo a [correo de atención], de lunes a viernes de 10 a 18, hora de España.
+34. Por WhatsApp al [número de dudas] o por correo a soporte@vitacorafamiliar.com, de lunes a viernes de 10 a 18, hora de España.
 35. Te respondemos en un plazo máximo de 30 días.
 36. Si prefieres una hoja oficial de reclamaciones, descárgala aquí, rellénala y mándanosla por correo. [nota interna: PDF del modelo oficial; en Cataluña, el full de reclamació en catalán]
 37. No estamos adheridos a la Junta Arbitral de Consumo. Si tu reclamación no se resuelve, te diremos qué organismo puede revisarla.
