@@ -251,3 +251,8 @@ Aunque se prenda la variable, `/api/compra` **rechaza** todo cuerpo con `product
 
 ## Marco a 19 € todos (Naza, 15/10)
 - Hoy cobra 20 € el primero (PRECIO_MARCO_EUR) y 15 € los demás (PRECIO_MARCO_ADICIONAL_EUR). Naza decidió 19 € todos: poner las dos en 19 en Vercel (Preview y Production) cuando pasemos la maqueta a la portada real, y revisar los textos del checkout que dicen «el primero / los demás». Falta decidir el equivalente en pesos (AR).
+
+## Datos legales (Naza, 19/10)
+- NIF y domicilio de los titulares: FALTAN. Joaquín se está dando de alta estos días. Bloquean publicar (art. 10 LSSI).
+- Horario de atención (WhatsApp y mails): lunes a viernes de 10 a 18. Responde «el equipo de Vitácora». Va en la web (en `/ar` es obligatorio, Disp. 954/2025 art. 6) y en la página de reclamaciones.
+- Junta Arbitral de Consumo: sin decidir.
