@@ -52,15 +52,10 @@ jobs:
         run: npm test
 
       - name: Vercel CLI
-        run: npm i -g vercel@latest
+        run: npm i -g vercel@64.2.0
 
-      # Baja la configuración y las variables de entorno del proyecto de Vercel
-      # (no viven en el repo), compila acá y sube el resultado ya compilado.
-      - name: Configuración de producción
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # Build remoto en Vercel, como preview-web.yml (19/10): con `vercel pull` + `vercel build`
+      # local, las variables marcadas como Sensitive (los PRECIO_* de producción) no bajan,
+      # y la web salía sin impreso ni pack (el código esconde un producto sin precio).
+      - name: Deploy (build en Vercel)
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
