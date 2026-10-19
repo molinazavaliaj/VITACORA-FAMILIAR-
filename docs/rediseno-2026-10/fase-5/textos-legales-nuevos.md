@@ -1,6 +1,7 @@
 # Textos legales nuevos (19/10/2026)
 
 Salen de `para-el-abogado.md`: §1 y §7.2 (garantía), §6 y §7.1 (rasca y gana). Naza los aprueba de a 10 y después van al
+Lo que va entre corchetes `[nota interna: …]` es para el abogado y para nosotros: NO se publica.
 abogado para que los confirme. es = España de tú; ar = de vos y 10 días en lugar de 14.
 
 ## Tanda 1 — APROBADA por Naza 19/10 (falta el abogado)
@@ -20,16 +21,16 @@ Popup rasca y gana (para cuando exista el cupón):
 10. Casillas sin marcar y separadas: «Quiero recibir el cupón en este mail.» / «Acepto que Vitácora me escriba hasta 4 veces para recordarme el descuento. Me doy de baja con un clic.» + enlace «Bases del cupón».
 
 ## Tanda 2 — Bases del cupón VITACORA10 — APROBADA por Naza 19/10 (falta el abogado; 10 % sobre todo el pedido, 30 días)
-11. Título: Bases del cupón de bienvenida (cada mail recibe su propio código, por ejemplo VITACORA10-K7Q2: se usa una vez y vence solo)
+11. Título: Bases del cupón de bienvenida [nota interna: cada mail recibe su propio código, tipo VITACORA10-K7Q2, de un uso y que vence solo]
 12. Quién lo da: El cupón lo da Vitácora Familiar, de [titulares, NIF y domicilio de titulares.ts].
-13. Qué es: Un 10 % de descuento sobre el libro digital. No se aplica al libro impreso, a los marcos ni a las copias. (CAMBIADO por Naza 19/10: el descuento no toca el impreso)
+13. Qué es: Un 10 % de descuento sobre el libro digital. No se aplica al libro impreso, a los marcos ni a las copias. [nota interna: cambiado por Naza 19/10, el descuento no toca el impreso]
 14. Dónde vale: Vale para cualquier Vitácora que se venda en la web, en España y en Argentina.
 15. Hasta cuándo: Vale 30 días desde que te llega por mail. Después se vence solo.
 16. Cuántas veces: Se usa una sola vez por persona y por mail.
-17. Con otras ofertas: No se suma a otros cupones. (CAMBIADO por Naza 19/10: vale también con el pack)
+17. Con otras ofertas: No se suma a otros cupones. [nota interna: cambiado por Naza 19/10, vale también con el pack]
 18. Cómo se usa: Escribes tu código al pagar y el descuento aparece en el total antes de confirmar.
 19. Devoluciones: Si te devolvemos una compra hecha con el cupón, te devolvemos lo que pagaste de verdad, con el descuento ya aplicado. El cupón no se cambia por dinero.
 20. Cambios: Si algún día cambiamos estas bases, los cupones que ya entregamos siguen valiendo como estaban.
 
 ## Tanda 3 — Checkout con cupón — APROBADA por Naza 19/10
-21. Línea del descuento en el resumen del pedido: «Cupón de bienvenida · 10 % del libro digital −4,90 €» (el importe sale solo del precio del digital).
+21. Línea del descuento en el resumen del pedido: «Cupón de bienvenida · 10 % del libro digital −{importe}» [nota interna: el checkout calcula el importe con el precio del digital de cada región; en España hoy son 4,90 €].

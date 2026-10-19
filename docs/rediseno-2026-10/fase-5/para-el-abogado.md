@@ -1,4 +1,4 @@
-# Para el abogado: los textos legales de la web (fase 5, 14/10/2026)
+# Para el abogado: los textos legales de la web (fase 5, 19/10/2026)
 
 Los textos legales de la web los redacta usted (B13). Hasta que lleguen los definitivos, la web
 nueva publica los textos que ya había, pasados al diseño nuevo y a tres idiomas, con muy pocos
@@ -56,13 +56,13 @@ Necesitamos que mire:
 ## 3. Idiomas
 
 - **Catalán**: la traducción la preparó Claude Code y está marcada PENDIENTE REVISIÓN NATIVA Y
-  ABOGADO. Lo que hemos visto hasta ahora: el Codi de consum de Catalunya (Llei 22/2010) reconoce el
+  ABOGADO (DECISIONES D2). Necesitamos que confirme **qué textos legales e información al consumidor
+  tienen que estar en catalán obligatoriamente**. Lo que hemos visto hasta ahora: el Codi de consum de Catalunya (Llei 22/2010) reconoce el
   derecho de las personas consumidoras a expresarse en catalán y exige que la información y la
   documentación contractual dirigidas a consumidores en Cataluña estén también en catalán; el Decret
-  121/2013 regula los fulls de reclamació, que se editan en catalán. ¿Alcanza con servir las tres
-  versiones enlazadas, o en Cataluña la catalana tiene que ser la que se sirve por defecto? **Confirmar qué textos legales e información al consumidor tienen que estar en catalán
-  obligatoriamente** (DECISIONES D2; p. ej. Codi de consum de Catalunya, Llei 22/2010) y si la
-  versión catalana tiene el mismo valor que la castellana o hace falta una cláusula de prevalencia.
+  121/2013 regula los fulls de reclamació, que se editan en catalán. Necesitamos que confirme además
+  si alcanza con servir las tres versiones enlazadas o si en Cataluña la catalana tiene que ser la que
+  se sirve por defecto, y si las tres tienen el mismo valor o hace falta una cláusula de prevalencia.
 - **Argentina**: la misma versión en vos. Se mantienen el título y el enlace «Botón de
   arrepentimiento» en el pie de todas las páginas de `/ar` (Disp. 954/2025). La portada de `/ar`
   enlaza a `/ar/legal/arrepentimiento`: confirmar que cumple «de fácil acceso desde la página de
@@ -91,21 +91,18 @@ falta banner ni página de cookies aparte**: basta la sección 12 de privacidad.
 duración en la sección 12? Si algún día se instala el píxel de Meta (B26), sí harán falta banner,
 página de cookies y consentimiento previo.
 
-**Cambiado el 19/10 (ver §7.3 y `cambios-origen.md`):** lo que sigue describe la versión del 14/10. Hoy no se escribe nada en `localStorage` ni en ningún otro almacenamiento del navegador: el origen se recuerda solo en la memoria de la página durante la misma visita y, si compra en esa visita, viaja con la compra a `pedidos.extras.origen`. No hay 30 días.
+**Cambiado el 19/10 (ver §7.3 y `cambios-origen.md`).** Hasta el 14/10 la web guardaba el origen de la
+campaña en el navegador durante 30 días. Eso **ya no rige**: hoy no se guarda nada en el navegador. El origen de
+la campaña se recuerda solo en la memoria de la página mientras dura la visita y, si la compra ocurre en
+esa misma visita, viaja con el pedido a `pedidos.extras.origen`. Al no quedar nada en el equipo del
+usuario, entendemos que el art. 22.2 LSSI-CE no llega a aplicarse. **Para confirmar:** (i) que esta forma
+no necesita consentimiento ni banner; (ii) si hay que nombrarlo igual en la sección 12 de privacidad;
+(iii) si cambia algo que `fbclid` y `gclid` —que pone Meta o Google en el enlace— viajen con el pedido;
+nosotros no los usamos para nada más.
 
-**Origen de campaña (agregado el 14/10, F4-5).** Cuando alguien llega a la web desde un anuncio
-con parámetros en el enlace (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`,
-`fbclid`, `gclid`), el navegador guarda en `localStorage`, con la clave `vitacora-origen`, esos
-valores, la página donde cayó (sin el resto de la dirección) y la fecha: la primera visita así y, si
-vuelve por otro anuncio, también la última. Es de primera parte: no se manda a Meta, Google ni a
-nadie, no hay píxel ni script de terceros, no se cruza con otras webs. Dura 30 días desde la primera
-visita y después se borra solo. Si compra, esos valores viajan con la compra y quedan guardados en el
-pedido (`pedidos.extras.origen`) para contar ventas por campaña. `fbclid` y `gclid` son
-identificadores de clic que pone Meta o Google en el enlace; nosotros no los usamos para nada más que
-guardarlos con el pedido. Pregunta: ¿esto entra en la exención del art. 22.2 LSSI-CE o, como es para
-medir publicidad, requiere consentimiento previo (y entonces banner)? ¿Hay que nombrarlo en la
-sección 12 de privacidad y en la tabla? Si requiere consentimiento, se apaga sin tocar nada más:
-basta con quitar el componente `OrigenVisita` del layout (`web/src/app/layout.tsx`).
+_Histórico, 14/10 (ya no rige): el navegador guardaba en `localStorage`, con la clave `vitacora-origen`,
+los parámetros de campaña durante 30 días, y viajaban con la compra si la persona compraba después. Se
+quitó el 19/10 justamente porque no estaba exento._
 
 ## 5. Lo que ya estaba pendiente (B13)
 
@@ -200,5 +197,7 @@ imperativa del domicilio del consumidor siempre a salvo, Roma I art. 6.2).
 
 **7.5 Datos.** NIF y domicilio: obligatorios antes de publicar. El enlace a la plataforma ODR de la
 UE se quita (la plataforma cerró). Hojas de reclamaciones: sí en España, y decir cómo se piden.
-Argentina: se mencionó una «Disp. 954/2025» que obligaría a publicar teléfono o canal alternativo
-con horario; no pudimos confirmarla, que la verifique. Hoy hay WhatsApp de dudas y dos correos.
+Argentina: la **Disp. 954/2025** (Boletín Oficial del 4/9/2025), art. 6, obliga a publicar en la web
+un número de teléfono o un canal alternativo de atención **y el horario**, con un mínimo de 8 horas por
+día de lunes a viernes cuando la atención es solo telefónica o electrónica. Está confirmado en el texto
+oficial; falta decidir qué canal publicamos (hoy hay WhatsApp de dudas y dos correos).
