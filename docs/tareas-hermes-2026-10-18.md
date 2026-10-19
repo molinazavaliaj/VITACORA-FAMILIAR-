@@ -105,13 +105,30 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 ---
 
 ## Entregas (las completa hermes)
-
 ### T1 · Dependabot — 18/10
 - **Rama:** `dependabot`, cortada de `main` (commit `d6603670`).
 - **PR:** #84 contra `main` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/84
 - **Qué entró:** `.github/dependabot.yml` (npm en `/web`, `/fabrica`, `/entrevistador` + `github-actions` en `/`; semanal los lunes, tope 5, menores y parches agrupados) y un paso `npm audit --omit=dev --audit-level=high` con `continue-on-error: true` en el job de Node de `tests.yml`.
 - **Tests:** CI en verde, los 4 jobs — entrevistador 1186 tests, fábrica 2861 (+1 salteado), web 974 (+1 salteado), voz 58. El paso de audit corre y no frena.
 - **Informe de avisos (`--omit=dev`, high/critical):** `web` 3 (1 critical en `next`, 2 high en `sharp` y `source-map-js`), `entrevistador` 2 high (`fastify` y `fast-uri`), `fabrica` 0. `next` pide salto mayor a 16.4.2: lo decide Joaquín.
+
+### T2 · robots.txt y JSON-LD — 18/10
+- **Rama:** `seo-robots`, cortada de `rediseno-web` (commit `ca35a258`).
+- **PR:** #85 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/85
+- **Qué entró:** `web/src/app/robots.ts` (permite todo, bloquea las nueve privadas, sitemap con la base de `metadataBase`), `web/src/lib/seo.ts` (`URL_BASE` única + `reglasRobots()` + `datosEstructurados()`), la portada imprime el JSON-LD en es/ar/ca, y `layout.tsx`/`lib/sitemap.ts` pasan a usar `URL_BASE`. Este archivo de tareas no existía en `rediseno-web`: entra con esta rama, copiado de `main`.
+- **Tests:** `web` 1424 pasan (+1 salteado, 112 archivos), 23 nuevos en `test/seo.test.tsx`; `npm run build` exit 0, `/robots.txt` estático.
+- **Pendiente de Naza:** el precio del marco en España está en dos lugares y no coinciden (el texto dice «a 19 €» y `.env.local` tiene `PRECIO_MARCO_EUR` en 20). Por eso el marco se anuncia solo en `ar`. Cuando la frase lea la variable, se suma a es y ca.
+
+### T3 · página de error 500 — 18/10
+- **Rama:** `pagina-error`, cortada de `rediseno-web` (commit `c80afc9c`).
+- **PR:** #86 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/86
+- **Qué entró:** `app/error.tsx` + `app/ca/error.tsx` + `app/ar/error.tsx` (la hoja del 404, con botón de reintentar y enlace al inicio), `app/global-error.tsx` (estilos en línea, `<html>`/`<body>` propios), `_publico/pagina-error.tsx`, una prop `accion` en `HojaAviso` y los textos nuevos en `_textos/avisos.ts`. Acepta `retry()` (Next 16.3) y `reset()`. Al log va solo el `digest`, nunca `error.message`.
+- **Tests:** `web` 1412 pasan (+1 salteado), 11 nuevos en `test/error-500.test.tsx`; `npm run build` exit 0. Sin CI en la base `rediseno-web` (no tiene `tests.yml`): se corrió a mano lo mismo.
+- **TEXTOS A APROBAR (Naza), tal cual:**
+  - es (neutro, portada y global-error): etiqueta «Error 500» · título «Se nos cruzó un error.» · frase «Fue un error nuestro.» · bajada «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escríbenos y lo miramos.» · botón «Probar de nuevo» · enlace «Volver al inicio».
+  - ca: «Error 500» · «Se'ns ha creuat un error.» · «Ha estat un error nostre.» · «Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.» · «Tornar-ho a provar» · «Tornar a l'inici».
+  - ar (voseo): «Error 500» · «Se nos cruzó un error.» · «Fue un error nuestro.» · «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.» · «Probar de nuevo» · «Volver al inicio».
+- **Pendiente:** la aprobación de los textos por Naza antes del merge (el catalán, además, revisión nativa como el resto).
 
 ### T4 · plan de rollback — 18/10
 - **Rama:** `docs-rollback`, cortada de `main`. **PR:** contra `main`.
@@ -126,4 +143,3 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 - **NO SE CORRIÓ.** El encabezado del script dice `OK de Naza para correrlo: PENDIENTE`. Para correrlo hace falta el OK anotado acá.
 - **Costo estimado por corrida:** entrada 50.782 tokens (12 llamadas, ≈4.170 cada una) → **USD 0,80 típico** (2.500 tokens de salida por ataque) y **USD 4,04 peor caso** (tope de 16.000 de salida). Precios de `src/costos.ts` (Opus 5.5: 4/20 USD por millón).
 - **Tests:** `entrevistador` 1186 pasan (76 archivos) y tipos limpios. Sin tests nuevos a propósito: no se automatiza en CI algo que gasta plata.
-
