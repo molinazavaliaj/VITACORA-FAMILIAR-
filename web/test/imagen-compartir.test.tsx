@@ -40,8 +40,16 @@ describe("imagen para compartir", () => {
   for (const { ruta, carpeta, producto, idioma, modulo } of PAGINAS) {
     describe(ruta, () => {
       const archivo = path.join(APP, carpeta, "opengraph-image.tsx");
+      // Familiar usa una foto fija (el local de noche con el titular, Naza 19/10).
+      const fija = path.join(APP, carpeta, "opengraph-image.jpg");
 
       it(`tiene su opengraph-image: ${producto}, ${idioma}`, () => {
+        if (producto === "familiar") {
+          expect(existsSync(fija), `falta ${fija}`).toBe(true);
+          expect(existsSync(path.join(APP, carpeta, "opengraph-image.alt.txt"))).toBe(true);
+          expect(existsSync(archivo)).toBe(false);
+          return;
+        }
         expect(existsSync(archivo), `falta ${archivo}`).toBe(true);
         const fuente = readFileSync(archivo, "utf8");
         expect(fuente).toContain(`imagenParaCompartir("${producto}", "${idioma}")`);
