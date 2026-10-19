@@ -4,15 +4,16 @@ import { db } from '../db/cliente.js';
 import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
-import { esTempranoParaElDia, esViaje, viajeDe } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
-import { PLANTILLAS_V3, entraALaV3, viajeV2ParaNuevos } from '../config.js';
+import { PLANTILLAS_V3, entraALaV3 } from '../config.js';
 import { viajerosV2 } from '../viaje-v2/filas.js';
+import { asegurarAltaViajeV2, esModoViaje, ESTADOS_VIAJE_VIEJO, type DepsAlta } from '../viaje-v2/alta.js';
 import { chicosKids } from '../kids-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
+import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar, type NarradorParaBorrar } from './borrado-no-acepto.js';
 
 export { fechaLocal, minutosLocales };
 
@@ -21,6 +22,12 @@ export { capituloNoAplica } from './preguntar.js';
 const VENTANA_MINUTOS = 15;   // el cron corre cada 15 min
 const HORAS_RECORDATORIO = 6; // recién después de 6 hs sin responder
 const DIAS_SILENCIO = 3;      // 3 días sin señales → avisamos a la familia
+// 30 días desde la bienvenida sin decir que sí: se da por no aceptado (Naza y
+// Joaquín, 19/10). El bot no tiene un «no acepto»: un «no» lo toma como «más
+// tarde» y, sin un plazo, nadie deja de esperar nunca. Los términos prometen
+// devolver todo si el narrador no acepta, así que hace falta una fecha en la
+// que eso pasa a ser cierto.
+export const DIAS_PARA_NO_ACEPTO = 30;
 
 // ── Helpers de tiempo (puros, testeables) ──────────────────────────────
 
@@ -35,16 +42,17 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 // ── Consultas cortas a la base ─────────────────────────────────────────
 
 /**
- * Los narradores en esos estados, SIN los de la Viaje V2 (con fila en viajes_v2) ni los chicos de Kids (con fila en
- * kids_v2): esos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts) y nada de lo viejo les sale (ni la
- * bienvenida, ni la pregunta, ni el recordatorio, ni el hito «silencio»). Si la base no deja saber quién es V2 o
- * Kids, tira: mejor no mandar nada que mandarle el flujo viejo a uno nuevo.
+ * Los narradores en esos estados, SIN ningún viajero ni los chicos de Kids (con fila en kids_v2): los de la Viaje V2
+ * (con fila en viajes_v2) y los chicos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts), y un viajero sin
+ * fila (modo viaje) o espera su alta o quedó en el viaje viejo, que ya no existe (16/10): ninguno recibe nada del
+ * Familiar (ni la bienvenida, ni la pregunta, ni el recordatorio, ni el hito «silencio»). Si la base no deja saber
+ * quién es V2 o Kids, tira: mejor no mandar nada que mandarle el flujo viejo a uno nuevo.
  */
 async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   const { data } = await db.from('narradores').select('*').in('estado', estados);
   const v2 = await viajerosV2(db);
   const kids = await chicosKids(db);
-  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id));
+  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id) && !esModoViaje(n.contexto));
 }
 
 async function ultimoEnvio(narradorId: string, tipo: string, orden?: number) {
@@ -134,6 +142,37 @@ async function guardarFalloEnContexto(narradorId: string, detalle: string): Prom
   await db.from('narradores').update({ contexto }).eq('id', narradorId);
 }
 
+const depsAlta: DepsAlta = {
+  db,
+  avisarUnaVez: async (clave, asunto, detalle) => { await avisarSocios(clave, asunto, detalle, { unaVez: true }); },
+};
+
+/**
+ * 0. Vitácora de Viaje (16/10: solo V2). Un viajero nuevo ('invitado', modo viaje) sin fila en viajes_v2 recibe su
+ * alta acá (viaje-v2/alta.ts); el reloj V2 le manda la bienvenida en el minuto siguiente. Los que quedaron en el
+ * viaje viejo (ya habían dicho SÍ, sin fila) no reciben nada más: se les avisa a los socios una sola vez, con la lista.
+ */
+async function atenderViajeros(): Promise<void> {
+  const { data, error } = await db.from('narradores').select('*').in('estado', ['invitado', ...ESTADOS_VIAJE_VIEJO]);
+  if (error) throw new Error(`No pude leer los viajeros: ${error.message}`);
+  // Los de la simulación (contexto.simulacion) tienen su fila y su reloj aparte: acá no cuentan.
+  const viajeros = ((data as Narrador[] | null) ?? []).filter((n) => esModoViaje(n.contexto) && n.contexto?.simulacion !== true);
+  if (viajeros.length === 0) return;
+  const v2 = await viajerosV2(db);
+  const viejos: Narrador[] = [];
+  for (const n of viajeros) {
+    if (v2.has(n.id)) continue;
+    if (n.estado === 'invitado') await aislado(n.id, async () => { await asegurarAltaViajeV2(depsAlta, n); });
+    else viejos.push(n);
+  }
+  if (viejos.length === 0) return;
+  const ids = viejos.map((n) => n.id).sort();
+  await depsAlta.avisarUnaVez(`viaje-v1-quedaron:${ids.join(',')}`, 'Viajeros que quedaron en el Viaje viejo',
+    'La Vitácora de Viaje vieja (V1) se borró el 16/10. Estos viajeros ya la habían empezado: quedaron en el Viaje viejo '
+      + 'y el bot ya no les escribe (tampoco les contesta si escriben).\n'
+      + viejos.map((n) => `- ${n.como_le_dicen} (${n.id}), estado '${n.estado}'`).join('\n'));
+}
+
 /** 1. Bienvenida: a los invitados que todavía no la recibieron. */
 async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
@@ -142,27 +181,6 @@ async function enviarBienvenidas(): Promise<void> {
       // Gift card: la bienvenida sale como texto cuando el narrador escribe con su
       // código (flujo/regalo.ts). La plantilla nunca: no la esperaría nadie.
       if (n.contexto?.regalo === true) return;
-      // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
-      // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
-      // le contesta la bienvenida como texto libre.
-      if (esViaje(n.contexto)) {
-        // Viaje V2 para los nuevos (VIAJE_V2_PARA_NUEVOS=1): a un viajero nuevo no le sale el viaje viejo. Hasta que
-        // exista /comprar/viaje V2, su fila la crean los socios (npm run viaje-v2-alta); el reloj V2 le manda la bienvenida.
-        if (viajeV2ParaNuevos()) {
-          await avisarSocios(`viaje-v2-sin-fila-${n.id}`, `Un viajero nuevo espera su alta en la Viaje V2`,
-            `${n.como_le_dicen} (${n.id}) es un viaje nuevo y VIAJE_V2_PARA_NUEVOS está prendido: no se le manda la bienvenida vieja. `
-              + `Hay que crearle la fila con npm run viaje-v2-alta -- ${n.id} … (fechas, zonas, formato) y la bienvenida V2 sale sola.`);
-          return;
-        }
-        if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
-        try {
-          const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
-          await registrarEnvio(n.id, 'bienvenida', waId);
-        } catch (err) {
-          await anotarBienvenidaFallida(n.id, err);
-        }
-        return;
-      }
       // Entrevista V3 para los nuevos (V3_PARA_NUEVOS=1, 10/10): la bienvenida es la plantilla V3 de su idioma
       // (una variable, cómo le dicen), no la vieja (de usted, "cada mañana", "arrancamos mañana"). Si Meta
       // todavía no la aprobó (WA_PLANTILLAS_V3_LISTAS sin "<idioma>:bienvenida"), no sale nada y se avisa:
@@ -224,12 +242,6 @@ async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
       const vigenteRespondida = n.dia_actual === 0 || await tieneRespuesta(n.id, n.dia_actual);
       const orden = vigenteRespondida ? n.dia_actual + 1 : n.dia_actual;
 
-      // Vitácora de viaje: la noche N no sale antes de su fecha. Quien dice SÍ
-      // días antes de viajar (o corrió la salida desde el panel) recibe la
-      // primera pregunta el primer día del viaje, a su hora; mientras tanto
-      // queda en 'acepto' sin que nada le llegue.
-      if (esViaje(n.contexto) && esTempranoParaElDia(viajeDe(n.contexto), orden, fechaLocal(ahora, n.zona_horaria))) return;
-
       // Idempotencia: si ya salió hoy esa pregunta, no se repite.
       const envio = await ultimoEnvio(n.id, 'pregunta', orden);
       if (envio && fechaLocal(new Date(envio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) return;
@@ -276,6 +288,69 @@ async function prenderAlertasDeSilencio(ahora: Date): Promise<void> {
   }
 }
 
+/**
+ * 5. Treinta días desde la bienvenida sin aceptar: se da por no aceptado.
+ *
+ * Avisa a los socios UNA vez por narrador (la marca va en su contexto, no en
+ * la memoria del proceso: Railway reinicia y el aviso no se puede repetir cada
+ * 15 minutos). No le escribe nada a él: ya se le contestó cuando dijo que no,
+ * y a quien no quiere participar no se le insiste.
+ *
+ * Deja la fecha anotada porque de ahí cuentan los 15 días del borrado de su
+ * ficha y sus fotos que prometen los términos.
+ */
+async function marcarNoAceptaron(ahora: Date): Promise<void> {
+  for (const n of await narradoresEn(['invitado'])) {
+    await aislado(n.id, async () => {
+      const contexto = (n.contexto ?? {}) as Record<string, unknown>;
+      if (contexto.noAcepto) return; // ya avisado
+      const { data } = await db.from('envios').select('enviado_at')
+        .eq('narrador_id', n.id).eq('tipo', 'bienvenida').not('wa_message_id', 'is', null)
+        .order('enviado_at', { ascending: true }).limit(1);
+      const primera = (data as { enviado_at: string }[] | null)?.[0]?.enviado_at;
+      if (!primera) return; // nunca le llegó la bienvenida: ese es otro problema
+      const dias = (ahora.getTime() - new Date(primera).getTime()) / 86_400_000;
+      if (dias < DIAS_PARA_NO_ACEPTO) return;
+      await db.from('narradores')
+        .update({ contexto: { ...contexto, noAcepto: { cuando: ahora.toISOString(), dias: Math.floor(dias) } } })
+        .eq('id', n.id);
+      await avisarSocios(
+        `no-acepto:${n.id}`,
+        `${n.como_le_dicen ?? n.id} no aceptó en ${DIAS_PARA_NO_ACEPTO} días`,
+        `A ${n.como_le_dicen ?? n.id} (${n.id}) le llegó la bienvenida hace ${Math.floor(dias)} días y nunca dijo que sí.\n\n`
+        + 'Corresponde devolverle el dinero a quien compró, completo y sin que lo pida, dentro de los 14 días (términos §8).\n'
+        + `A los 15 días de hoy hay que borrar su nombre, su número, su ficha y sus fotos (privacidad §7).`,
+      );
+    });
+  }
+}
+
+/**
+ * 6. Quince días después del «no aceptó»: se borra su ficha y sus fotos.
+ *
+ * Lo prometen los legales (privacidad §7). APAGADO hasta el OK de Joaquín:
+ * destruye datos y no tiene vuelta atrás, igual que el borrado de audios.
+ *
+ * Avisa a los socios de lo que hizo: un borrado silencioso no se puede auditar.
+ */
+async function borrarFichasDeNoAceptaron(ahora: Date): Promise<void> {
+  if ((process.env.BORRADO_NO_ACEPTO ?? '').trim() !== '1') return;
+  for (const n of await narradoresEn(['invitado'])) {
+    if (!leTocaBorrar(n as unknown as NarradorParaBorrar, ahora)) continue;
+    await aislado(n.id, async () => {
+      const fotos = await borrarFichaYFotos(db, n.id, ahora);
+      console.log(`no-acepto: borrada la ficha de ${n.id} y ${fotos} fotos.`);
+      await avisarSocios(
+        `borrado-ficha:${n.id}`,
+        'Se borró la ficha de un narrador que no aceptó',
+        `Pasaron ${DIAS_PARA_BORRAR_FICHA} días desde que ${n.id} quedó como «no aceptó».\n\n`
+        + `Se borraron su nombre, su número, su ficha y sus ${fotos} fotos, como prometen los legales.\n`
+        + 'El pedido y los datos de la compra siguen: los exige la ley fiscal.',
+      );
+    });
+  }
+}
+
 // ── El tick y el cron ──────────────────────────────────────────────────
 
 export async function tick(ahora: Date = new Date()): Promise<void> {
@@ -286,10 +361,13 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
 
   // Cada fase por separado: si una falla (la base no responde), las otras corren igual.
   for (const [nombre, fase] of [
+    ['viajeros', () => atenderViajeros()],
     ['bienvenidas', () => enviarBienvenidas()],
     ['preguntas', () => enviarPreguntasDelDia(ahora)],
     ['recordatorios', () => enviarRecordatorios(ahora)],
     ['alertas', () => prenderAlertasDeSilencio(ahora)],
+    ['no-acepto', () => marcarNoAceptaron(ahora)],
+    ['borrado-no-acepto', () => borrarFichasDeNoAceptaron(ahora)],
   ] as const) {
     try {
       await fase();

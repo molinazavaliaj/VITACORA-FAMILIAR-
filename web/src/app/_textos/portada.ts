@@ -18,7 +18,7 @@ import type { Textos } from "@/lib/idioma-web";
 // libro.mas, voz, marco, diciembre, faq, sticky y direccion. Están marcados.
 //
 // es = España, de tú · ar = Argentina, de vos · ca = catalán, de tú.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 type Paso = { titulo: string; texto: string };
 type Duda = { pregunta: string; respuesta: string };
@@ -568,7 +568,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
   },
 
   /* ─────────────────────────── Catalán, de tú ─────────────────────────── */
-  // ca: PENDIENTE REVISIÓN NATIVA (todo este bloque; los textos de la portada
+  // ca: revisado con el corrector de Softcatalà (18/10) (todo este bloque; los textos de la portada
   // nueva, 15/10, los traduje del castellano aprobado y los revisa Imma)
   ca: {
     meta: {
@@ -631,7 +631,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       frase: "Un dia li voldràs preguntar alguna cosa i ja no hi serà per explicar-t'ho.",
       // La carta APROBADA por Naza el 14/10 (su traducción, pendiente de Imma).
       texto:
-        "Vam fer Vitácora perquè no totes les famílies tenen la sort que els avis encara hi siguin quan els néts es fan grans. Molts nens coneixeran els seus avis només per fotos, sense saber com parlaven, què van viure ni què van aprendre. Volem que això no es perdi. Que cada nét, quan sigui gran, pugui obrir un llibre i llegir qui va ser el seu avi, amb les seves pròpies paraules.",
+        "Vam fer Vitácora perquè no totes les famílies tenen la sort que els avis encara hi siguin quan els nets es fan grans. Molts nens coneixeran els seus avis només per fotos, sense saber com parlaven, què van viure ni què van aprendre. Volem que això no es perdi. Que cada net, quan sigui gran, pugui obrir un llibre i llegir qui va ser el seu avi, amb les seves pròpies paraules.",
       firma: "Els fundadors de Vitácora",
     },
     escuchalo: {
@@ -660,7 +660,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     marcos: {
       titulo: "Un marc amb la seva veu per a cadascú.",
       texto: () =>
-        "Un marc amb la seva foto i un xip a dins. Hi apropes el mòbil i sona la seva veu. Pots demanar-ne un per a cada germà, cada fill o cada nét, a 19 € cadascun.",
+        "Un marc amb la seva foto i un xip a dins. Hi apropes el mòbil i sona la seva veu. Pots demanar-ne un per a cada germà, cada fill o cada net, a 19 € cadascun.",
     },
     regalo: {
       titulo: "No li regalis la mateixa camisa de cada any.",
@@ -721,7 +721,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       cita: "«…el meu pare va plantar el llimoner del pati l'any que vaig néixer. A l'estiu menjàvem a sota, i encara recordo l'olor de les llimones i la meva mare cridant que ens rentéssim les mans.»",
       duracion: "0:42",
       escuchar: "Escoltar el fragment",
-      pausar: "Pausar",
+      pausar: "Aturar",
       altContraportada: "Contraportada del llibre d'exemple, amb el codi QR per escoltar la seva veu",
     },
     marco: {

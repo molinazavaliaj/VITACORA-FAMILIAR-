@@ -56,6 +56,13 @@ jobs:
         if: matrix.servicio == 'fabrica'
         run: npx playwright install --with-deps chromium
 
+      # Primero queremos ver cuántos avisos hay: el paso se muestra en rojo si
+      # npm audit encuentra algo high o critical, pero no frena el PR
+      # (continue-on-error). Cuando el número baje, se saca esa línea.
+      - name: Avisos de seguridad de las librerías (informe, no frena)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
       - name: Tests
         run: npm test
 

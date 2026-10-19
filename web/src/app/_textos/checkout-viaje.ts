@@ -10,7 +10,7 @@ import type { Textos } from "@/lib/idioma-web";
 //
 // TEXTO PARA NAZA: todo lo nuevo está en docs/rediseno-2026-10/viaje-v2/textos.md
 // (tandas 1 a 4). Lo que ya estaba aprobado y sigue igual lo dice al lado.
-// ca: PENDIENTE DE IMMA (revisión nativa).
+// ca: revisado con el corrector de Softcatalà (19/10).
 
 /** Un texto que cambia si el viaje es de quien compra o un regalo. */
 type Doble = { yo: string; regalo: string };
@@ -290,7 +290,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     correoMal: "Necesitamos un correo válido. Con ese entrás a la página del viaje.",
   },
 
-  /* ─────────────────────── Catalán, de tu (PENDIENTE DE IMMA) ─────────────────────── */
+  /* ─────────────────────── Catalán, de tu (revisado con Softcatalà, 19/10) ─────────────────────── */
   ca: {
     tituloPagina: "Vitácora de viatge",
     descripcion: "Un biògraf et pregunta per WhatsApp abans, durant i després del viatge. En tornar, el teu viatge és un llibre amb les teves fotos i la teva veu.",

@@ -2,7 +2,9 @@
 
 Carpeta del rediseño de la entrevista de Vitácora de Viaje (30/09/2026), hecho con el método del banco de V3. Rama `viajes-v2`. **Main y el viaje en curso no se tocaron.**
 
-> **Actualizado 15/10:** `viajes-v2` y el bot (`viaje-v2-bot`, `viaje-v2-envio`) están en main desde el PR #7 (10/10), con la migración aplicada. Viaje V2 sigue **apagada** para clientes nuevos (`VIAJE_V2_PARA_NUEVOS`) hasta que estén las plantillas de Meta y la compra nueva de Viaje.
+> **Actualizado 16/10:** la Vitácora de Viaje es **solo V2**. El viaje viejo (V1) se borró del código el 16/10/2026, junto con el interruptor `VIAJE_V2_PARA_NUEVOS`. El bot le da el alta V2 solo a cada viajero nuevo (`entrevistador/src/viaje-v2/alta.ts`) con lo que trae `contexto.viaje`: el contrato está en [`compra-contrato.md`](compra-contrato.md). El que ya estaba en el viaje viejo (Ñako) quedó ahí y el bot ya no le escribe.
+>
+> **15/10 (viejo):** `viajes-v2` y el bot (`viaje-v2-bot`, `viaje-v2-envio`) están en main desde el PR #7 (10/10), con la migración aplicada. Viaje V2 sigue **apagada** para clientes nuevos (`VIAJE_V2_PARA_NUEVOS`) hasta que estén las plantillas de Meta y la compra nueva de Viaje.
 
 ## Empezar por acá
 - [`flujo-vigente.md`](flujo-vigente.md): el proceso de punta a punta (compra, arranque, antes de salir, cada día, el final, horas).

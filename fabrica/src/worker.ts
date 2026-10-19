@@ -26,6 +26,7 @@ import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { avisarVariablesAlArrancar } from './variables.js';
 import { iniciarSentry } from './sentry.js';
+import { revisarAudiosOriginales } from './audios-originales.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -130,6 +131,7 @@ export async function tick(): Promise<void> {
     await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
+    await borrarAudiosOriginalesCadaHora();
     // El portón de impresión: con la dirección puesta y las frases confirmadas,
     // el libro sale a la imprenta (3t.26 fase 2).
     await mandarEntregasAImprenta(obtenerClienteDb());
@@ -196,7 +198,7 @@ async function generarAnticiposFaltantes(): Promise<void> {
 
   const { data: narradores, error } = await db
     .from('narradores')
-    .select('id, como_le_dicen, familia_id')
+    .select('id, como_le_dicen, familia_id, contexto')
     .in('estado', ['activo', 'pausado']);
 
   if (error) {
@@ -213,10 +215,12 @@ async function generarAnticiposFaltantes(): Promise<void> {
     id: string;
     como_le_dicen: string;
     familia_id: string;
+    contexto?: { modo?: string } | null;
   }[]) {
     try {
-      // La V3 no tiene anticipo; un chico de Kids tampoco.
-      if (v3.has(narrador.id) || kids.has(narrador.id)) continue;
+      // La V3 no tiene anticipo; un chico de Kids tampoco. La Vitácora de Viaje tampoco (16/10: solo V2; el que
+      // quedó en el viaje viejo no es un Familiar): el mail del anticipo cita la primera pregunta de una biografía.
+      if (v3.has(narrador.id) || kids.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
@@ -540,6 +544,21 @@ async function mandarHito(
     archivos.add(candado);
   }
   return enviado;
+}
+
+/**
+ * Branch (g): los audios originales a los 3 meses del libro (audios-originales.ts):
+ * el mail con la descarga, el borrado y el de la descarga. Una vez por hora (los días
+ * no necesitan más) y apagado sin BORRADO_AUDIOS_ORIGINALES=1.
+ */
+let ultimaRevisionAudios = 0;
+async function borrarAudiosOriginalesCadaHora(ahora = Date.now()): Promise<void> {
+  if (process.env.BORRADO_AUDIOS_ORIGINALES !== '1' || ahora - ultimaRevisionAudios < 3_600_000) return;
+  ultimaRevisionAudios = ahora;
+  const db = obtenerClienteDb();
+  const kids = await conKidsOFrenar(db, 'audios originales');
+  if (!kids) return;
+  await revisarAudiosOriginales(db, { kids, candadoLibroListo: CANDADO_POR_HITO.libro_listo });
 }
 
 /**

@@ -4,7 +4,7 @@ import type { Textos } from "@/lib/idioma-web";
 // 5): la página que no existe (404) y los enlaces que ya no sirven. La frase
 // del 404 es de la lista «se pueden usar tal cual» (TEXTOS-Y-REGLAS.md §5); el
 // resto está para aprobar en docs/rediseno-2026-10/fase-3/textos.md.
-// ca: PENDIENTE REVISIÓN NATIVA
+// ca: revisado con el corrector de Softcatalà (18/10)
 
 export type TextosAviso = {
   /** La etiqueta chica de arriba; vacía, no se pinta. */
@@ -79,7 +79,7 @@ export const TEXTOS_AVISOS: Textos<TextosAvisos> = {
       titulo: "Aquesta pàgina s'ha perdut.",
       frase: "Com alguns records, si ningú no els apunta.",
     },
-    // APROBADO por Naza el 19/10/2026. PENDIENTE REVISIÓN NATIVA (como el resto del ca).
+    // APROBADO por Naza el 19/10/2026. revisado con el corrector de Softcatalà (19/10) (como el resto del ca).
     reintentar: "Tornar-ho a provar",
     falla: {
       etiqueta: "Error 500",

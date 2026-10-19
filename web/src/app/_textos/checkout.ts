@@ -12,7 +12,7 @@ import { MENSAJE_PALABRA_DE_FAMILIA, MENSAJE_PALABRA_DE_FAMILIA_TU } from "@/lib
 // 06/10 y del 13/10, docs/web-textos-v3/aprobados.md) · ca = catalán, de tú.
 // Los textos nuevos están listados en docs/rediseno-2026-10/fase-1/textos-checkout.md
 // para que los apruebe Naza.
-// ca: PENDIENTE REVISIÓN NATIVA (todo el bloque ca de este archivo).
+// ca: revisado con el corrector de Softcatalà (18/10) (todo el bloque ca de este archivo).
 
 export type Para = "padre" | "madre" | "abuelo" | "abuela" | "otra" | "yo";
 
@@ -134,11 +134,11 @@ export const RESUMEN: Textos<TextosResumen> = {
       copia: "Còpia extra del llibre imprès",
       marco: "La seva foto emmarcada",
       marco_adicional: "Marc addicional",
-      pack: "Pack el regal complet", // ca: PENDIENTE REVISIÓN NATIVA
+      pack: "Paquet el regal complet", // ca: revisado con el corrector de Softcatalà; «paquet» en vez de «pack» (Naza 18/10)
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
-    ahorras: (c) => `Estalvies ${c} amb el pack`, // ca: PENDIENTE REVISIÓN NATIVA
+    ahorras: (c) => `Estalvies ${c} amb el paquet`, // ca: revisado con el corrector de Softcatalà (18/10)
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des de la pàgina de la teva història"]
@@ -190,7 +190,7 @@ export type TextosCheckout = {
   primeroYDemas: (primero: string, demas: string) => string;
   /** Las frases de valor de las opciones del paso 1 (Naza 14/10, APROBADAS en es; ca pendiente nativa). */
   frases: Record<"marco" | "impreso" | "digital", { cabeza: string; bajada: string }>;
-  /** El botón del paso 1: «Iniciar Vitácora» en los dos casos (Naza 15/10, amigo/textos.md 3). ca: PENDIENTE REVISIÓN NATIVA. */
+  /** El botón del paso 1: «Iniciar Vitácora» en los dos casos (Naza 15/10, amigo/textos.md 3). ca: revisado con el corrector de Softcatalà (18/10). */
   quieroLibro: (propia: boolean) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
@@ -661,7 +661,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     noSubio: (n) => `No pudimos subir ${n}.`,
   },
 
-  // ca: PENDIENTE REVISIÓN NATIVA
+  // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     tituloPagina: "Comprar el llibre",
     descripcion: "Un biògraf entrevista per WhatsApp i escriu el llibre d'una vida. Pagament únic.",
@@ -685,19 +685,19 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     marcoAnadir: (p) => `Afegir el marc · +${p}`,
     marcoAnadido: (p) => `Afegit · +${p}`,
     marcoSoloImpreso: "El marc va amb el llibre imprès. Tria l'imprès per afegir-lo.",
-    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
+    // ca revisado con el corrector de Softcatalà, 18/10 (es/ar aprobados por Naza el 14/10): l'opció del llibre complet.
     marcoOpcionTitulo: "Imprès + digital + la seva foto emmarcada",
     marcoOpcionDetalle: "El llibre imprès i en PDF, i un marc amb la seva foto. Hi acostes el mòbil i s'obre el seu llibre, amb la seva veu.",
     copiasTitulo: "Còpies extra del llibre imprès",
     marcosExtraTitulo: "Marcs addicionals",
     cadaUno: (p) => `+${p} cadascun`,
-    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    // ca revisado con el corrector de Softcatalà, 18/10 (es/ar aprobados por Naza el 14/10).
     marcoRegaloTitulo: "Marc amb foto i xip NFC",
-    marcoExtraTitulo: "Marc extra", // ca: PENDIENTE REVISIÓN NATIVA
-    marcoPrimeroTitulo: "Marc amb la seva foto", // ca: PENDIENTE REVISIÓN NATIVA
+    marcoExtraTitulo: "Marc extra", // ca: revisado con el corrector de Softcatalà (18/10)
+    marcoPrimeroTitulo: "Marc amb la seva foto", // ca: revisado con el corrector de Softcatalà (18/10)
     marcoRegaloDetalle: "Per regalar als teus familiars. Quan hi acostes el mòbil s'obre el seu llibre, amb la seva veu.",
     primeroYDemas: (a, b) => `+${a} el primer, +${b} els altres`,
-    // PENDIENTE REVISIÓN NATIVA (es/ar aprobados por Naza el 14/10).
+    // ca revisado con el corrector de Softcatalà, 18/10 (es/ar aprobados por Naza el 14/10).
     frases: {
       marco: { cabeza: "El regal complet", bajada: "El seu llibre, la seva veu i la seva foto a casa" },
       impreso: { cabeza: "Per a la prestatgeria", bajada: "El seu llibre en paper i en PDF" },
@@ -747,7 +747,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     tratoOtro: "Com li parlem?",
     tratoYo: "Com et parlem?",
     tratoEtiqueta: "Idioma i tracte",
-    tratos: { "es-AR": "De vos (castellà d'Argentina)", "es-ES": "De tu (castellà)", ca: "En català" },
+    tratos: { "es-AR": "De vos (castellà de l'Argentina)", "es-ES": "De tu (castellà)", ca: "En català" },
     masTitulo: (propia) => (propia ? "Una mica més sobre tu (opcional)" : "Una mica més sobre la seva vida (opcional)"),
     anio: "Any de naixement",
     estadoCivil: "Estat civil",
@@ -782,7 +782,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     tuNombreRegalo: "El teu nom, tal com sortirà a la targeta",
     tuNombrePista: "Martina",
     vinculo: "Què ets d'aquesta persona",
-    vinculoPista: "filla, nét, neboda...",
+    vinculoPista: "filla, net, neboda...",
     direccionTitulo: "Adreça d'enviament del llibre imprès",
     direccionAyuda: "L'enviament està inclòs. T'avisem quan surti d'impremta i t'enviem el seguiment.",
     recibe: "Qui el rep",
@@ -821,7 +821,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     anioMal: "L'any de naixement no sembla correcte (entre 1900 i 2015).",
     faltaWhatsapp: "Falta el WhatsApp.",
     faltaTuNombre: "Digues-nos el teu nom. És el que llegirà quan li escrivim.",
-    faltaVinculo: "Explica'ns què ets d'aquesta persona (filla, nét...).",
+    faltaVinculo: "Explica'ns què ets d'aquesta persona (filla, net...).",
     correoMal: "Necessitem un correu vàlid. Allà t'avisem de tot.",
     faltaRecibe: "Falta el nom de qui el rep.",
     faltaTelefonoRecibe: "Falta un telèfon. El transportista el demana per entregar el llibre.",

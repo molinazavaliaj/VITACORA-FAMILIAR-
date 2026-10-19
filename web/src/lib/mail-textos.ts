@@ -181,7 +181,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
     },
   },
 
-  // ca: PENDIENTE REVISIÓN NATIVA (todo el bloque). Sin «el teu / la teva» delante
+  // ca: revisado con el corrector de Softcatalà (18/10) (todo el bloque). Sin «el teu / la teva» delante
   // de cómo le dicen: en catalán depende del género y el mail no lo sabe.
   ca: {
     comun: {
@@ -192,7 +192,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       alTerminarTexto: "Quan acaba d'explicar, el biògraf escriu el seu llibre.",
       botonTablero: "Entrar a la pàgina de la història",
       codigo: "Et demanem un codi de 6 números que arriba a aquest correu. Sense contrasenyes.",
-      dudas: "Dubtes? Respon aquest correu.",
+      dudas: "Dubtes? Respon a aquest correu.",
       pie: "Vitácora Familiar · A cada família hi ha un llibre per escriure.",
       porQue: "Reps aquest correu perquè has fet una comanda.",
     },

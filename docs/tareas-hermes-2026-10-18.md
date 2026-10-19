@@ -105,6 +105,13 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 ---
 
 ## Entregas (las completa hermes)
+### T1 · Dependabot — 18/10
+- **Rama:** `dependabot`, cortada de `main` (commit `d6603670`).
+- **PR:** #84 contra `main` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/84
+- **Qué entró:** `.github/dependabot.yml` (npm en `/web`, `/fabrica`, `/entrevistador` + `github-actions` en `/`; semanal los lunes, tope 5, menores y parches agrupados) y un paso `npm audit --omit=dev --audit-level=high` con `continue-on-error: true` en el job de Node de `tests.yml`.
+- **Tests:** CI en verde, los 4 jobs — entrevistador 1186 tests, fábrica 2861 (+1 salteado), web 974 (+1 salteado), voz 58. El paso de audit corre y no frena.
+- **Informe de avisos (`--omit=dev`, high/critical):** `web` 3 (1 critical en `next`, 2 high en `sharp` y `source-map-js`), `entrevistador` 2 high (`fastify` y `fast-uri`), `fabrica` 0. `next` pide salto mayor a 16.4.2: lo decide Joaquín.
+
 ### T2 · robots.txt y JSON-LD — 18/10
 - **Rama:** `seo-robots`, cortada de `rediseno-web` (commit `ca35a258`).
 - **PR:** #85 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/85
@@ -122,3 +129,17 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
   - ca: «Error 500» · «Se'ns ha creuat un error.» · «Ha estat un error nostre.» · «Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.» · «Tornar-ho a provar» · «Tornar a l'inici».
   - ar (voseo): «Error 500» · «Se nos cruzó un error.» · «Fue un error nuestro.» · «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.» · «Probar de nuevo» · «Volver al inicio».
 - **Pendiente:** la aprobación de los textos por Naza antes del merge (el catalán, además, revisión nativa como el resto).
+
+### T4 · plan de rollback — 18/10
+- **Rama:** `docs-rollback`, cortada de `main`. **PR:** contra `main`.
+- **Qué entró:** `docs/rollback.md` — tabla de una hojeada (pieza, dónde vive, cómo se vuelve, cuánto tarda) y un paso por pieza con los botones del panel: web en Vercel (Instant Rollback / Promote + `git revert` para que el próximo deploy no republique lo roto), fábrica y entrevistador en Railway (`fearless-kindness`, servicios `dazzling-friendship` y `VITACORA-FAMILIAR-`, «Redeploy»), base en Supabase (Restore que pisa todo vs. Restore to new project), archivos en R2, migraciones (siempre una nueva que deshaga, nunca editar la vieja) y cinco chequeos antes de publicar algo grande. Los nombres de los servicios salen de `fabrica/scripts/railway-logs.py`; la copia, de `copias/README.md`.
+- **Tests:** es documentación, no corre código: no hay tests nuevos. El CI del PR corre los cuatro jobs igual (los tests de la fábrica leen `docs/**/*.md` y el archivo va en LF, como pide `.gitattributes`).
+- **Lo que quedó marcado como no verificado:** los tiempos de restore de Supabase (estimados, nunca medidos) y la ruta exacta de los botones de Vercel (puede cambiar con la interfaz).
+
+### T5 · prueba de prompt injection — 18/10
+- **Rama:** `prueba-inyeccion`, cortada de `main` (commit `46fada03`).
+- **PR:** #88 contra `main` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/88
+- **Qué entró:** `entrevistador/scripts/prueba-inyeccion.ts` (+ `npm run prueba-inyeccion`). 12 ataques con narrador inventado («Prueba Inyección») en es-AR, es-ES y ca. Dos mitades: el flujo real (`avanzar`/`recibirAudio`/`cerrarYSeguir`, gratis, exige que cada línea del bot sea texto del banco) y el cazador real (`cazarBloque`, Opus 5.5, la única llamada al modelo). Sin `--correr --ok-naza` no llama a nadie.
+- **NO SE CORRIÓ.** El encabezado del script dice `OK de Naza para correrlo: PENDIENTE`. Para correrlo hace falta el OK anotado acá.
+- **Costo estimado por corrida:** entrada 50.782 tokens (12 llamadas, ≈4.170 cada una) → **USD 0,80 típico** (2.500 tokens de salida por ataque) y **USD 4,04 peor caso** (tope de 16.000 de salida). Precios de `src/costos.ts` (Opus 5.5: 4/20 USD por millón).
+- **Tests:** `entrevistador` 1186 pasan (76 archivos) y tipos limpios. Sin tests nuevos a propósito: no se automatiza en CI algo que gasta plata.

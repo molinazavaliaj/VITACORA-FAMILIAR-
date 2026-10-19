@@ -6,7 +6,7 @@ import { idiomaWebDeKids, type IdiomaKids } from "@/lib/kids";
 // que el sistema no cumple (DECISIONES D4): sin anticipo, sin «9 días», sin
 // «lo lees mientras se escribe». Lo aprobado el 06/10 (G1, G2, #18, #19) va tal
 // cual; lo nuevo está en docs/rediseno-2026-10/fase-1/textos-checkout.md.
-// ca: PENDIENTE REVISIÓN NATIVA (el bloque ca).
+// ca: revisado con el corrector de Softcatalà (19/10) (el bloque ca).
 
 export type Momento = { cuando: string; que: string };
 
@@ -46,7 +46,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     correoRegalo: "Te mandamos la tarjeta por correo. Si no la ves, mira en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
-      { cuando: "Antes", que: `Avisa a ${n} de que le va a escribir «Vitácora» por WhatsApp.` },
+      { cuando: "Antes", que: `Avísale a ${n} que le va a escribir «Vitácora» por WhatsApp.` }, // sin «de que» (Naza 20/10)
       { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
@@ -154,7 +154,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
         ? `El biògraf de viatge es presenta per WhatsApp. Per començar ja, cal enviar-li un «hola» a ${numero} des del WhatsApp de qui viatja. Contesta i demana el SÍ.`
         : "El biògraf de viatge es presenta per WhatsApp a qui viatja. Amb un SÍ, comença.",
     irAlPanel: (propia) => (propia ? "Anar a la pàgina de la teva història" : "Anar a la pàgina de la seva història"),
-    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del viatge" : "Entrar a la pàgina de la història"), // ca: PENDIENTE REVISIÓN NATIVA
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del viatge" : "Entrar a la pàgina de la història"), // ca: revisado con el corrector de Softcatalà (19/10)
     sinContrasenas: "Amb el teu correu i un codi de 6 xifres. Sense contrasenyes.",
     descargarTarjeta: "Descarregar la targeta de regal",
     direccionGuardada: "Adreça d'enviament desada.",
@@ -182,8 +182,8 @@ export const CONFIRMADO_KIDS_IDIOMA: Record<IdiomaKids, { canalA: (apodo: string
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando toquen el botón, juntos.",
   },
   "es-ES": {
-    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido», «Avísale de que»)
-    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale de que le va a escribir «Vitácora».`,
+    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido»); 20/10: «Avísale que», sin «de»
+    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale que le va a escribir «Vitácora».`,
     // APROBADO por Naza 16/10 (tanda 8) · canalB («pulséis»)
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando pulséis el botón, juntos.",
   },
