@@ -13,8 +13,8 @@
 //     Preview: en `preview` se separa (Production queda con el precio de hoy hasta el switch).
 //
 // Las claves salen del login de la CLI de Vercel (`npx vercel login`) y de RAILWAY_API_TOKEN en
-// fabrica/.env de la carpeta principal. Los cambios de Vercel se ven en el próximo deploy: en `preview` se
-// pide uno al final (workflow «Preview web (rediseño)»).
+// fabrica/.env de la carpeta principal. Los cambios de Vercel se ven en el próximo deploy: al final se pide
+// uno (en `preview`, el workflow «Preview web (rediseño)»; en `produccion`, deploy-web.yml sobre main).
 
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -38,6 +38,13 @@ const RAILWAY_BOT = "VITACORA-FAMILIAR-";
 const PRECIO_MARCO = "19";
 
 function tokenVercel() {
+  // El login de la CLI vence a las pocas horas y la CLI lo renueva sola cuando se usa: se la usa una vez antes de
+  // leerlo (19/10: sin esto, Vercel contestó 403 con el login vencido).
+  try {
+    execFileSync("npx", ["-y", "vercel@latest", "whoami"], { stdio: "ignore", shell: true });
+  } catch {
+    throw new Error("El login de Vercel no anda. Corré antes: npx vercel login");
+  }
   const rutas = [
     resolve(process.env.APPDATA ?? "", "com.vercel.cli/Data/auth.json"),
     resolve(process.env.APPDATA ?? "", "xdg.data/com.vercel.cli/auth.json"),
@@ -153,4 +160,12 @@ if (modo === "preview") {
     console.log("· No pude pedir el deploy de la página de prueba: las variables se toman en el próximo push a rediseno-web.");
   }
 }
-if (modo === "produccion") console.log("Listo. Se toman en el deploy del switch (el merge de rediseno-web a main).");
+if (modo === "produccion") {
+  // Si el merge ya se publicó, sin un deploy nuevo producción sigue sin estas variables (19/10).
+  try {
+    execFileSync("gh", ["workflow", "run", "deploy-web.yml", "--ref", "main", "--repo", "molinazavaliaj/VITACORA-FAMILIAR-"], { stdio: "ignore" });
+    console.log("✓ Pedí un deploy nuevo de vitacorafamiliar.com (tarda unos 3 minutos).");
+  } catch {
+    console.log("· No pude pedir el deploy de producción: las variables se toman en el próximo merge a main.");
+  }
+}
