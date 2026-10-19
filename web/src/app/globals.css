@@ -128,12 +128,9 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Sin modo oscuro (Naza, 19/10): la web tiene un solo color, esté como esté el
+   celular. Antes, con el teléfono en modo oscuro, las pantallas que usan el fondo
+   del cuerpo (panel, entrar) pasaban a negro. */
 
 body {
   background: var(--background);
@@ -460,6 +457,20 @@ body {
   .m-hoja[data-cerrando="true"] {
     animation-name: hojaOutCentro;
   }
+}
+
+/* 8b · Aviso «✓ Guardado» (MOTION 3, Panel: `hasToast`): entra subiendo
+   8 px en 240 ms y a los 3 s se va con opacidad en 200 ms. Abajo al centro,
+   encima de todo, sin tapar nada que se toque (pointer-events: none). */
+.m-aviso {
+  animation: avisoIn 240ms var(--ease-out) both;
+}
+.m-aviso[data-saliendo="true"] {
+  animation: fadeOut 200ms both;
+}
+@keyframes avisoIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* 9 · Su voz sonando: las barras se mueven como una onda mientras suena y se

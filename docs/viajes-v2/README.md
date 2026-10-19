@@ -2,6 +2,8 @@
 
 Carpeta del rediseño de la entrevista de Vitácora de Viaje (30/09/2026), hecho con el método del banco de V3. Rama `viajes-v2`. **Main y el viaje en curso no se tocaron.**
 
+> **Actualizado 15/10:** `viajes-v2` y el bot (`viaje-v2-bot`, `viaje-v2-envio`) están en main desde el PR #7 (10/10), con la migración aplicada. Viaje V2 sigue **apagada** para clientes nuevos (`VIAJE_V2_PARA_NUEVOS`) hasta que estén las plantillas de Meta y la compra nueva de Viaje.
+
 ## Empezar por acá
 - [`flujo-vigente.md`](flujo-vigente.md): el proceso de punta a punta (compra, arranque, antes de salir, cada día, el final, horas).
 - [`banco.md`](banco.md): **fuente de verdad** de textos y reglas (el código se genera desde acá). Las reglas finales están en los bloques del final.

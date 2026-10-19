@@ -26,7 +26,11 @@ export type TextosPublico = {
   privacidad: string;
   /** «Botón de arrepentimiento» en Argentina (Res. 424/2020); «Desistimiento» en España. */
   arrepentimiento: string;
+  /** El enlace del pie a /legal/reclamaciones (tanda 5, 19/10). */
+  reclamaciones: string;
   contacto: string;
+  /** El horario de atención, debajo del contacto (tanda 5, texto 39). */
+  horario: string;
   escribirWhatsApp: string;
   /** El enlace discreto del pie a /opiniones (solo con 3 opiniones o más). */
   opiniones: string;
@@ -54,7 +58,9 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     terminos: "Términos",
     privacidad: "Privacidad",
     arrepentimiento: "Desistimiento",
+    reclamaciones: "Reclamaciones",
     contacto: "Contacto",
+    horario: "Atención de lunes a viernes, de 10 a 18.",
     escribirWhatsApp: "Escríbenos por WhatsApp",
     opiniones: "Opiniones",
     eventos: "Eventos",
@@ -77,7 +83,9 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     terminos: "Termes",
     privacidad: "Privacitat",
     arrepentimiento: "Desistiment",
+    reclamaciones: "Reclamacions",
     contacto: "Contacte",
+    horario: "Atenció de dilluns a divendres, de 10 a 18.",
     escribirWhatsApp: "Escriu-nos per WhatsApp",
     opiniones: "Opinions",
     eventos: "Esdeveniments",
@@ -100,7 +108,9 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     terminos: "Términos",
     privacidad: "Privacidad",
     arrepentimiento: "Botón de arrepentimiento",
+    reclamaciones: "Reclamaciones",
     contacto: "Contacto",
+    horario: "Atención de lunes a viernes, de 10 a 18.",
     escribirWhatsApp: "Escribinos por WhatsApp",
     opiniones: "Opiniones",
     eventos: "Eventos",

@@ -25,6 +25,7 @@ import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './e
 import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
 import { urlVozDeNarrador } from './token-voz.js';
+import { armarBookmundoSinFrenar } from './bookmundo/narrador.js';
 import type { Estructura } from './estructura.js';
 import { htmlLibroV3, idiomaDelLibro, tratoDelLibro, type NarradorParaLibro } from '../escritor/produccion/html.js';
 import { RUTA_LIBRO_MD_V3 } from '../escritor/produccion/libro-v3.js';
@@ -113,6 +114,8 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
     .from('audios')
     .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
   if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
+  // Y el de Bookmundo, ahora con «Su voz» (interior, cubierta e informe en {id}/bookmundo/). No frena el portón.
+  await armarBookmundoSinFrenar(db, narradorId, { frases });
 
   return true;
 }
@@ -137,5 +140,34 @@ async function armarImprentaV3(db: Db, narradorId: string, libroMd: string, fras
     .from('audios')
     .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
   if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
+  await armarBookmundoSinFrenar(db, narradorId, { frases });
   return true;
+}
+
+export const RUTA_SOBRE_IMPRENTA = (narradorId: string) => `${narradorId}/paquete/sobre-imprenta.pdf`;
+
+/**
+ * El impreso de un chico de Kids (CONTRATO, «El libro de Kids en la fábrica»): el libro ya sale con «Su voz» y sus
+ * QR (el escritor de Kids arma el PDF con los links finales) y el padre ya lo aprobó, así que no hay nada que
+ * rearmar: `paquete/libro.pdf` se copia a `libro-imprenta.pdf` y `paquete/sobre.pdf` (el sobre cerrado que va
+ * pegado a la contratapa) a `sobre-imprenta.pdf`. Quien llama (entregas.ts) ya miró que el libro esté aprobado y
+ * con listo.json. Devuelve false si falta alguno de los dos PDF.
+ */
+export async function armarLibroDeImprentaKids(db: Db, narradorId: string): Promise<boolean> {
+  const copiar = async (desde: string, hasta: string): Promise<boolean> => {
+    const { data, error } = await db.storage.from('audios').download(desde);
+    if (error || !data) {
+      console.error(`imprenta: falta ${desde} del chico ${narradorId}; no se imprime.`);
+      return false;
+    }
+    const { error: errorSubida } = await db.storage
+      .from('audios')
+      .upload(hasta, Buffer.from(await data.arrayBuffer()), { contentType: 'application/pdf', upsert: true });
+    if (errorSubida) throw new Error(`No se pudo subir ${hasta}: ${errorSubida.message}`);
+    return true;
+  };
+  return (
+    (await copiar(`${narradorId}/paquete/libro.pdf`, RUTA_LIBRO_IMPRENTA(narradorId))) &&
+    (await copiar(`${narradorId}/paquete/sobre.pdf`, RUTA_SOBRE_IMPRENTA(narradorId)))
+  );
 }

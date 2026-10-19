@@ -212,6 +212,19 @@
 .lgl-boton:hover { background: #000; }
 .lgl-boton:active { transform: scale(0.98); }
 
+/* El formulario de desistimiento (Anexo B): texto para copiar, en una ficha con borde. */
+.lgl-formulario {
+  border: 1px solid var(--lgl-hilo-fuerte);
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  user-select: all;
+  -webkit-user-select: all;
+}
+.lgl-formulario p + p { margin-top: 6px; }
+
 /* La tabla de proveedores. */
 .lgl-tabla { width: 100%; border-collapse: collapse; text-align: left; font-size: 16px; line-height: 1.55; }
 .lgl-tabla th {
@@ -230,4 +243,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .lgl-solapa, .lgl-boton { transition: none; }
+}
+
+/* Los subtítulos dentro de una sección (la garantía: la ley, lo nuestro, el cierre). */
+.lgl-subtitulo {
+  margin-top: 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--dir-sobre-papel);
 }

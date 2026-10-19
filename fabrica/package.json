@@ -13,16 +13,18 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
+    "@sentry/node": "10.76.0",
     "@supabase/supabase-js": "^2.112.4",
+    "jsqr": "^1.4.0",
+    "pdfjs-dist": "5.4.624",
     "playwright": "^1.51.0",
+    "pngjs": "^5.0.0",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/pngjs": "^6.0.5",
     "@types/qrcode": "^1.5.6",
-    "jsqr": "^1.4.0",
-    "pngjs": "^5.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5",
     "vitest": "^4.1.11"

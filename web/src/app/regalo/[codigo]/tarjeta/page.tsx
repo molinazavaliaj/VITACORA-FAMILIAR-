@@ -3,8 +3,9 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
 import { numeroSinCortes } from "@/lib/regalo";
-import { textosAbuelo, textosComprador, tratoDeRegion } from "@/lib/regalo-textos";
-import { TarjetaImprimible } from "./tarjeta";
+import { textosAbuelo, textosComprador, textosTarjetaLibro, tratoDeRegion } from "@/lib/regalo-textos";
+import { textosTarjetaProducto } from "../../../_textos/tarjeta-regalo";
+import { TarjetaImprimible, TarjetaProductoImprimible } from "./tarjeta";
 
 // La tarjeta del regalo para imprimir (plan 2026-10-07-gift-card, Task 7): una
 // A6 doble abierta (210 × 148 mm) centrada en una A4 apaisada, dos hojas. La
@@ -14,8 +15,11 @@ import { TarjetaImprimible } from "./tarjeta";
 // almanaque, al imprimir la hoja de adentro va girada 180° y la tarjeta doblada
 // queda derecha, con la tapa detrás del mensaje. La tarjeta está centrada, así
 // que las marcas de corte coinciden de los dos lados. En pantalla no se gira.
-// Lo que se imprime es solo negro sobre blanco; el gris claro es nada más para
-// las marcas de corte y de doblez.
+// Familiar lleva el diseño negro «El libro de tu vida» (aprobado e impreso por
+// Naza el 16/10): afuera, contratapa con el slogan y tapa; adentro, Para, el
+// mensaje y De a la izquierda, y a la derecha lo que es, cómo empezar (QR y
+// respaldo) y el código en su recuadro claro. El gris claro de la hoja es nada
+// más para las marcas de corte y de doblez.
 //
 // Las letras vienen del layout raíz, que carga Playfair en 500 y 600: los textos
 // en Playfair de la tarjeta van en 400 (como siempre) con font-variation-settings,
@@ -46,13 +50,35 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   // están en castellano: la página va en "es" y solo la tarjeta, en su idioma.
   const langTarjeta = regalo.idioma === "ca" ? "ca" : "es";
 
+  const respaldo = numero ? textos.respaldo(numeroSinCortes(numero.legible)) : null;
+
+  // Kids y Viaje (arreglos chicos): la tarjeta de su maqueta, elegida por lo
+  // que se regaló (narradores.contexto.modo). Mismo QR, mismo código.
+  if (regalo.producto === "kids" || regalo.producto === "viaje") {
+    return (
+      <TarjetaProductoImprimible
+        regalo={regalo}
+        qr={qr}
+        respaldo={respaldo}
+        apunta={textos.apunta}
+        textos={textosTarjetaProducto(regalo.producto, regalo.idioma)}
+        botonImprimir={botones.botonImprimir}
+        avisoDobleFaz={botones.avisoDobleFaz}
+        botonImagen={botones.botonImagen}
+        langTarjeta={langTarjeta}
+      />
+    );
+  }
+
   return (
     <TarjetaImprimible
       regalo={regalo}
       qr={qr}
-      respaldo={numero ? textos.respaldo(numeroSinCortes(numero.legible)) : null}
+      respaldo={respaldo}
       textos={textos}
+      libro={textosTarjetaLibro(regalo.idioma)}
       botonImprimir={botones.botonImprimir}
+        avisoDobleFaz={botones.avisoDobleFaz}
       botonImagen={botones.botonImagen}
       langTarjeta={langTarjeta}
     />

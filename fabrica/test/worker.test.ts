@@ -20,6 +20,8 @@ const {
   avisarHitosDeEntregaMock: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Sin chicos de Kids (el candado de Kids se prueba en worker-kids.test.ts).
+vi.mock('../src/kids/candado.js', () => ({ narradoresConKids: vi.fn(async () => new Set<string>()) }));
 vi.mock('../src/v3/candado.js', () => ({
   idiomasV3: vi.fn(async () => new Map<string, string>()),
   narradoresConV3: vi.fn(async () => new Set<string>()),

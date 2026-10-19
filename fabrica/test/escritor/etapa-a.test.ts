@@ -7,16 +7,26 @@ import { cargarSnapshot, type Contexto } from '../../src/escritor/orquestador/co
 import { etapaA } from '../../src/escritor/orquestador/etapa-a.js';
 import { carpetaNelida, salidasModeloNelida } from './ayuda.js';
 
-function armar(salidas: Record<string, string>, c: Carpeta = carpetaNelida(['entradas'])) {
+function armar(salidas: Record<string, string>, c: Carpeta = carpetaNelida(['entradas']), propia?: boolean) {
   const modelo = new ModeloFalso(salidas);
   const almacen = new AlmacenMemoria();
   const lineas: string[] = [];
-  const x: Contexto = { c, ej: new Ejecutor({ modelo, almacen }), almacen, log: (s) => lineas.push(s), usarLote: false };
+  const x: Contexto = { c, ej: new Ejecutor({ modelo, almacen }), almacen, log: (s) => lineas.push(s), usarLote: false, ...(propia === undefined ? {} : { propia }) };
   return { x, modelo, almacen, lineas };
 }
 const registroRoto = (): string => { const r = JSON.parse(salidasModeloNelida()['1-registro']); r.voz.frases = r.voz.frases.slice(0, 10); return JSON.stringify(r); };
 
 describe('Etapa A', () => {
+  it('si el libro es propio («Para mí»), las dudas se piden con el prompt que le habla a quien narra', async () => {
+    const { x, modelo } = armar(salidasModeloNelida(), carpetaNelida(['entradas']), true);
+    expect((await etapaA(x)).ok).toBe(true);
+    const dudas = modelo.llamadas.find((p) => p.clave === 'A/dudas');
+    expect(dudas?.bloques.join(' ')).toContain('las preguntas las lee la misma persona que contó');
+    const otra = armar(salidasModeloNelida());
+    await etapaA(otra.x);
+    expect(otra.modelo.llamadas.find((p) => p.clave === 'A/dudas')?.bloques.join(' ')).toContain('la familia de Nélida');
+  });
+
   it('registro, plan y dudas para la familia; deja la carpeta y los costos en el almacén', async () => {
     const { x, modelo, almacen } = armar(salidasModeloNelida());
     const r = await etapaA(x);

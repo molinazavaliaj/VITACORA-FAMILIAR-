@@ -1,6 +1,6 @@
 # La entrevista V3 en catalán — diseño (04/10/2026, para el OK de Naza)
 
-> **Estado (04/10, noche): HECHO** en la rama `v3-catala`, sin mergear. Qué se hizo y cómo se verificó: [`../../handoff-2026-10-04-catala.md`](../../handoff-2026-10-04-catala.md). Cambios respecto de este diseño: el cazador usa una copia entera del prompt en catalán (no una instrucción agregada) y no hubo pruebas pagas.
+> **Estado (04/10, noche): HECHO** en la rama `v3-catala`, sin mergear. Qué se hizo y cómo se verificó: [`../../handoff-2026-10-04-catala.md`](../../handoff-2026-10-04-catala.md). Cambios respecto de este diseño: el cazador usa una copia entera del prompt en catalán (no una instrucción agregada) y no hubo pruebas pagas. **Actualizado 15/10:** mergeada a `v3` el 04/10 y en main con la V3 (07/10).
 
 Rama `v3-catala` (worktree `VITACORA FAMILIAR-catala`, sale de `v3` en `feeda45`).
 **Alcance:** solo la entrevista (preguntas, mensajes, botones, segunda oportunidad,

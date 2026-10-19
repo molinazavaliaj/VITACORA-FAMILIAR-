@@ -24,6 +24,8 @@
     "viaje-v2-cerrar-album": "tsx scripts/viaje-v2-cerrar-album.ts",
     "viaje-v2-cambiar-pais": "tsx scripts/viaje-v2-cambiar-pais.ts",
     "viaje-v2-simular": "tsx scripts/viaje-v2-simular.ts",
+    "kids-v2-copiar-nucleo": "tsx scripts/kids-v2-copiar-nucleo.ts",
+    "kids-v2-simular": "tsx scripts/kids-v2-simular.ts",
     "v3-recazar": "tsx scripts/v3-recazar.ts"
   },
   "keywords": [],
@@ -31,6 +33,7 @@
   "license": "ISC",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
+    "@sentry/node": "10.76.0",
     "@supabase/supabase-js": "^2.112.4",
     "fastify": "^5.12.1",
     "node-cron": "^4.6.0"

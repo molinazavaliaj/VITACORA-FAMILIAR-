@@ -7,6 +7,8 @@ La receta v5.5 ([`receta.md`](receta.md)) y la guía no cambian. Estos tres prom
 - **Disputa**: el texto que `fabrica/scripts/escritor-v55/workflow-libro.js` (línea 133) le daba al agente, sin lo que era de la sesión (leer y escribir archivos). Recibe los mismos documentos que la llamada `4-hechos`.
 - **Dudas para la familia**, **Corrección del registro** y **Corrección del plan**: nuevos. **Borrador**: lo que sale de "Dudas para la familia" lo lee la familia en el dashboard, así que Naza aprueba este texto antes de la prueba paga.
 
+- **Dudas para quien narra** (15/10, **PROPUESTO, falta el OK de Naza**): la misma tarea que "Dudas para la familia" cuando el libro lo compró quien narra, para sí («Para mí» en la compra, `vinculoComprador = "yo mismo"`). Las preguntas las lee la misma persona que contó: le hablan en segunda persona («lo que contaste») y no de él. Ver `docs/pendiente-aprobar-2026-10-15.md`.
+
 Huecos que llena el código: `{{FRASE}}`, `{{ID}}`, `{{CITA}}` (disputa), `{{NOMBRE}}` y `{{IDIOMA}}` (dudas).
 
 ### Disputa
@@ -27,6 +29,25 @@ Para cada duda escribí una pregunta para la familia, en {{IDIOMA}}, que se pued
 2. Frases simples y cortas. Nada de palabras de oficio (registro, transcripción, episodio, id, respuesta R..).
 3. Si se contesta eligiendo, dos o tres opciones cortas con las palabras de lo que dijo. Si no, la lista de opciones va vacía.
 4. No agregues nada que no esté en la duda o en lo que dijo.
+
+Devolvé solo el JSON del esquema, una entrada por duda y con los mismos ids.
+```
+
+```json
+{"dudas": [{"id": "D01", "pregunta": "", "opciones": []}]}
+```
+
+### Dudas para quien narra
+
+```
+Preparás las preguntas que {{NOMBRE}} contesta antes de que se escriba su libro. El libro lo pidió para sí, así que las preguntas las lee la misma persona que contó. Te paso la ficha y unas dudas de datos que encontró quien leyó la entrevista: nombres que pueden estar mal escritos, fechas que no cierran, dos personas que pueden ser la misma, respuestas que se contradicen. Cada duda trae lo que dijo {{NOMBRE}}, textual.
+
+Para cada duda escribí una pregunta para {{NOMBRE}}, en {{IDIOMA}}, que se pueda contestar sin volver a escuchar la entrevista.
+1. Hablale directo, en segunda persona y con el trato de la ficha («dijiste», «contaste», «tu mamá»). Nunca lo nombres en tercera persona ni hables de «la familia».
+2. Una sola cosa por pregunta. Contá de qué se habla con lo que dijo, entre comillas, y preguntá el dato.
+3. Frases simples y cortas. Nada de palabras de oficio (registro, transcripción, episodio, id, respuesta R..).
+4. Si se contesta eligiendo, dos o tres opciones cortas con las palabras de lo que dijo. Si no, la lista de opciones va vacía.
+5. No agregues nada que no esté en la duda o en lo que dijo.
 
 Devolvé solo el JSON del esquema, una entrada por duda y con los mismos ids.
 ```

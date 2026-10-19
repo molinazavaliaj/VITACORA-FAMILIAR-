@@ -1,47 +1,25 @@
-"""Masterizar: el último paso antes de subir cada `cap_NN.mp3`, igual para el
-capítulo clonado, el real y el híbrido (central, 19/09, directiva 01 punto 3).
+"""Masterizar: la cadena de audio de cada frase de «Su voz» antes del mp3.
 
-Un capítulo es una lista de piezas (wav/ogg/mp3): para el clonado, una sola
-pieza (lo que devolvió el motor, ya con sus pausas por puntuación); para el
-híbrido, los originales y los conectores en orden. A cada pieza:
+Lo que usa `procesar_frases.py`: leer cualquier audio a mono 24 kHz, limpiar
+(pasa-altos 80 Hz, afftdn suave si no viene restaurado, silencio de las
+puntas), nivelar la voz, limitar los picos y `loudnorm` en dos pasadas a
+−19 LUFS / TP −1,5 / LRA 7 (el nivel de la casa), con medición.
 
-1. Limpieza: pasa-altos 80 Hz, afftdn suave, recorte de silencio en las puntas.
-2. Igualación espectral al objetivo (el promedio del libro, o de las muestras
-   del narrador): EQ por bandas de octava, con tope, para que no cambie el
-   sonido entre historias.
-3. Pegado con la pausa `historia` de voz/pausas.py entre piezas, con fades.
-4. `loudnorm` en dos pasadas sobre el capítulo entero: −19 LUFS / TP −1,5 / LRA 7.
-5. Medición antes y después (nivel, pico, ruido por pieza; LUFS/TP/LRA por
-   capítulo) a `master.json`, con avisos si algo queda fuera de rango.
-
-    python -m voz.masterizar --capitulo 2 --salida cap_02.wav --piezas a.wav b.wav …
-                             [--objetivo muestra1.wav …] [--master master.json]
+Hasta el 16/10/2026 también masterizaba los capítulos del audiolibro (EQ al
+sonido del narrador, pegado con pausas, `master.json`); eso se sacó.
 
 Solo ffmpeg (subprocess), numpy y soundfile.
 """
 
-import argparse
-import hashlib
 import json
-import os
 import re
 import subprocess
-import sys
 import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 import soundfile as sf
-
-from dotenv import load_dotenv
-
-from .config import RAIZ
-from .pausas import pausas_ms
-from .restaurar import restaurar
-from .ritmo import Plan, aplicar_plan, plan_de_ritmo
-from .ritmo import resumen as resumen_ritmo
-from .transcribir import palabras_con_tiempos
 
 TASA = 24000
 
@@ -49,31 +27,14 @@ OBJETIVO_LUFS = -19.0
 OBJETIVO_TP = -1.5
 OBJETIVO_LRA = 7.0
 
-# Fuera de esto, `master.json` lleva un aviso (no se frena: se sube igual y se mira).
-TOLERANCIA_LUFS = 1.0  # el capítulo tiene que quedar a ±1 LU del objetivo
-TP_MAXIMO = -1.0  # pico real por encima de esto: riesgo de clipping en el mp3
-RUIDO_MAXIMO_DB = -45.0  # piso de ruido por pieza, después
-PIEZA_MINIMA_S = 0.4
-TOPE_EQ_SUBIR_DB = 3.0  # subir una banda infla lo que la grabación no tiene (retumbe, siseo): poco
-TOPE_EQ_BAJAR_DB = 6.0  # bajar es más seguro
 LIMITE_PICO_DB = -3.5  # limitador suave antes de loudnorm: deja 2 dB de aire bajo el techo de −1,5 para que trabaje en lineal
 
-BANDAS_HZ = (125, 250, 500, 1000, 2000, 4000, 8000)
-FADE_MS = 40
-
-# Limpieza por pieza. `silenceremove` con stop_periods no recorta "el final" (ver
-# audio.py): se recorta el principio, se da vuelta, se recorta y se vuelve a dar vuelta.
+# Limpieza por pieza. `silenceremove` con stop_periods no recorta "el final" (corta
+# en la primera pausa): se recorta el principio, se da vuelta, se recorta y se vuelve a dar vuelta.
 _RECORTE = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.25"
 FILTRO_LIMPIEZA = f"highpass=f=80,afftdn=nr=10:nf=-28:tn=1,{_RECORTE},areverse,{_RECORTE},areverse"
 # Una pieza real ya restaurada con modelo (directiva 02) no necesita afftdn: solo el pasa-altos y las puntas.
 FILTRO_LIMPIEZA_RESTAURADA = f"highpass=f=80,{_RECORTE},areverse,{_RECORTE},areverse"
-
-
-@dataclass(frozen=True)
-class Pieza:
-    ruta: Path
-    nombre: str  # cómo aparece en master.json ("dia_05", "c1_05_a_05_2", "cap_02")
-    tipo: str  # "clonado" | "real" | "conector"
 
 
 @dataclass
@@ -174,7 +135,7 @@ def _num(x) -> float | None:
     return None if v in (float("inf"), float("-inf")) or v != v else round(v, 1)
 
 
-# ----------------------------------------------------- limpiar / igualar ---
+# ---------------------------------------------------------------- limpiar ---
 
 
 def limpiar_pieza(entrada: Path, salida: Path, filtro: str = FILTRO_LIMPIEZA) -> Path:
@@ -182,113 +143,7 @@ def limpiar_pieza(entrada: Path, salida: Path, filtro: str = FILTRO_LIMPIEZA) ->
     return salida
 
 
-def ritmo_activo(entorno: dict | None = None) -> bool:
-    """RITMO=0 en .env apaga los cortes de ritmo (arranques y silencios)."""
-    entorno = os.environ if entorno is None else entorno
-    return (entorno.get("RITMO") or "1").strip().lower() not in ("0", "no", "off", "false")
-
-
-def _hash_de(ruta: Path, extra: str = "") -> str:
-    h = hashlib.sha1()
-    with Path(ruta).open("rb") as f:
-        for bloque in iter(lambda: f.read(1 << 20), b""):
-            h.update(bloque)
-    h.update(extra.encode("utf-8"))
-    return h.hexdigest()[:20]
-
-
-def marcas_con_cache(transcriptor, restaurado: Path, para_whisper: Path, cache: Path | None, clave: str) -> dict:
-    """Las marcas por palabra de Whisper, cacheadas por hash del audio de
-    entrada: un reintento de la narración no paga dos veces (03b)."""
-    if cache is not None:
-        cache.mkdir(parents=True, exist_ok=True)
-        archivo = cache / f"{clave}.json"
-        if archivo.exists():
-            try:
-                return json.loads(archivo.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                pass
-    # Whisper acepta hasta 25 MB: un wav 16 bit a 24 kHz tope a ~9 min por pieza
-    # (una respuesta larga daba 413); en mp3 64 kbps entran ~50 min.
-    _ffmpeg("-i", str(restaurado), "-ac", "1", "-ar", str(TASA), "-c:a", "libmp3lame", "-b:a", "64k", str(para_whisper))
-    marcas = transcriptor(para_whisper)
-    if cache is not None:
-        (cache / f"{clave}.json").write_text(json.dumps(marcas, ensure_ascii=False), encoding="utf-8")
-    return marcas
-
-
-def preparar_real(pieza: "Pieza", tmp: Path, i: int, restaurador, transcriptor, log, cache: Path | None = None) -> tuple[Path, dict]:
-    """Directiva 02, antes de todo lo demás y solo para piezas reales:
-    (A) restaurar con modelo, (B) ritmo con marcas por palabra (arranque que
-    responde a la pregunta, silencios internos largos). Devuelve el wav listo
-    para la cadena de siempre y lo medido.
-
-    Si restaurar falla, la pieza sigue SIN restaurar; si Whisper falla, sigue
-    sin ritmo. Las dos cosas quedan anotadas en master.json (`error`) y como
-    aviso, pero el capítulo no muere (directiva 04, punto 5)."""
-    crudo = tmp / f"{i:02d}_crudo.wav"
-    _ffmpeg("-i", str(pieza.ruta), "-ac", "1", str(crudo))  # a la tasa original (48 kHz en WhatsApp)
-    clave = _hash_de(crudo)
-    restaurado = tmp / f"{i:02d}_restaurado.wav"
-    medidas: dict = {}
-    try:
-        medidas["restauracion"] = restaurador(crudo, restaurado, log=log)
-    except Exception as e:  # el modelo, el venv, la GPU: sigue sin restaurar
-        medidas["restauracion"] = {"error": f"{type(e).__name__}: {str(e)[:300]}"}
-        log(f"  restaurar {pieza.nombre} FALLÓ, sigo sin restaurar: {type(e).__name__}: {str(e)[:120]}")
-        _ffmpeg("-i", str(crudo), "-ac", "1", "-ar", "44100", "-c:a", "pcm_f32le", str(restaurado))
-    audio, tasa = sf.read(str(restaurado), dtype="float32")
-    audio = audio[:, 0] if audio.ndim == 2 else audio
-    plan = Plan()
-    if ritmo_activo():
-        try:
-            marcas = marcas_con_cache(transcriptor, restaurado, tmp / f"{i:02d}_para_whisper.mp3", cache, clave)
-            plan = plan_de_ritmo(marcas["texto"], marcas["palabras"])
-        except Exception as e:  # Whisper caído, sin clave, sin red: sigue sin ritmo
-            medidas["ritmo"] = {"error": f"{type(e).__name__}: {str(e)[:300]}"}
-            log(f"  ritmo {pieza.nombre} FALLÓ, sigo sin cortar: {type(e).__name__}: {str(e)[:120]}")
-    con_ritmo = aplicar_plan(audio, tasa, plan)
-    medidas.setdefault("ritmo", {}).update(resumen_ritmo(plan, len(audio) / tasa, len(con_ritmo) / tasa))
-    if "error" not in medidas["ritmo"]:
-        log(f"  ritmo {pieza.nombre}: arranque -{plan.corte_arranque_s:.2f} s «{plan.arranque}», "
-            f"{len(plan.silencios)} silencios acortados (-{medidas['ritmo']['silencio_sacado_s']} s)")
-    listo = tmp / f"{i:02d}_listo.wav"
-    sf.write(str(listo), con_ritmo, tasa, subtype="FLOAT")
-    return listo, medidas
-
-
-def perfil_espectral(audio: np.ndarray) -> np.ndarray:
-    """Energía por banda de octava en dB, relativa a la banda de 1 kHz. Sobre
-    los primeros 60 s (alcanza y no pesa)."""
-    seg = audio[: min(len(audio), TASA * 60)]
-    if len(seg) < TASA // 2:
-        return np.zeros(len(BANDAS_HZ), dtype=np.float32)
-    espectro = np.abs(np.fft.rfft(seg * np.hanning(len(seg)))) ** 2
-    f = np.fft.rfftfreq(len(seg), 1 / TASA)
-    energia = []
-    for banda in BANDAS_HZ:
-        sel = (f >= banda / 1.4142) & (f < banda * 1.4142)
-        energia.append(float(espectro[sel].mean()) if sel.any() else 1e-12)
-    e = 10 * np.log10(np.maximum(np.array(energia), 1e-12))
-    return (e - e[3]).astype(np.float32)
-
-
-def objetivo_de(rutas: list[Path]) -> np.ndarray:
-    """El objetivo espectral: promedio de los perfiles de esos audios."""
-    perfiles = [perfil_espectral(leer(r)) for r in rutas]
-    return np.mean(perfiles, axis=0).astype(np.float32) if perfiles else np.zeros(len(BANDAS_HZ), dtype=np.float32)
-
-
-def igualar_espectro(entrada: Path, salida: Path, objetivo: np.ndarray) -> list[float]:
-    """EQ por bandas para acercar la pieza al objetivo. Devuelve las ganancias aplicadas."""
-    ganancias = np.clip(objetivo - perfil_espectral(leer(entrada)), -TOPE_EQ_BAJAR_DB, TOPE_EQ_SUBIR_DB)
-    ganancias[3] = 0.0  # 1 kHz es la referencia
-    eq = ",".join(f"equalizer=f={b}:t=o:w=1:g={g:.1f}" for b, g in zip(BANDAS_HZ, ganancias))
-    _ffmpeg("-i", str(entrada), "-af", eq, "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_f32le", str(salida))
-    return [round(float(g), 1) for g in ganancias]
-
-
-# ------------------------------------------------------- pegar / loudnorm ---
+# ------------------------------------------------------ nivelar / loudnorm ---
 
 
 NIVEL_PIEZA_DB = -17.0  # RMS de la voz de cada pieza antes de pegar (≈ −19 LUFS con sus pausas): loudnorm después solo retoca
@@ -307,32 +162,6 @@ def nivelar(audio: np.ndarray, objetivo_db: float = NIVEL_PIEZA_DB) -> np.ndarra
     if rms <= 0:
         return audio
     return (audio * 10 ** ((objetivo_db - _db(rms)) / 20)).astype(np.float32)
-
-
-def _fundir(audio: np.ndarray, ms: int = FADE_MS) -> np.ndarray:
-    audio = audio.copy()
-    n = min(int(TASA * ms / 1000), len(audio) // 4)
-    if n:
-        audio[:n] *= np.linspace(0.0, 1.0, n, dtype=np.float32)
-        audio[-n:] *= np.linspace(1.0, 0.0, n, dtype=np.float32)
-    return audio
-
-
-def pegar_piezas(audios: list[np.ndarray], pausa_ms: int) -> tuple[np.ndarray, list[tuple[int, int]]]:
-    """Concatena con `pausa_ms` de silencio entre piezas y fades en cada borde.
-    Devuelve también dónde quedó cada pieza (inicio, fin en muestras), para
-    medirla después en el capítulo terminado."""
-    silencio = np.zeros(int(TASA * pausa_ms / 1000), dtype=np.float32)
-    partes, posiciones, cursor = [], [], 0
-    for i, a in enumerate(audios):
-        if i:
-            partes.append(silencio)
-            cursor += len(silencio)
-        a = _fundir(a)
-        partes.append(a)
-        posiciones.append((cursor, cursor + len(a)))
-        cursor += len(a)
-    return np.concatenate(partes) if partes else np.zeros(0, dtype=np.float32), posiciones
 
 
 def limitar_picos(entrada: Path, salida: Path) -> Path:
@@ -361,167 +190,3 @@ def loudnorm_dos_pasadas(entrada: Path, salida: Path) -> dict:
         "despues": {"lufs": _num(segunda.get("output_i")), "tp_dbtp": _num(segunda.get("output_tp")), "lra": _num(segunda.get("output_lra"))},
         "modo": segunda.get("normalization_type", "?"),  # "linear" (solo ganancia) o "dynamic" (comprimió para llegar al LRA)
     }
-
-
-# ---------------------------------------------------------- el capítulo ---
-
-
-def avisos_de(capitulo: dict) -> list[str]:
-    avisos = []
-    d = capitulo["loudnorm"]["despues"]
-    if d["lufs"] is not None and abs(d["lufs"] - OBJETIVO_LUFS) > TOLERANCIA_LUFS:
-        avisos.append(f"capítulo a {d['lufs']} LUFS (objetivo {OBJETIVO_LUFS} ± {TOLERANCIA_LUFS})")
-    if d["tp_dbtp"] is not None and d["tp_dbtp"] > TP_MAXIMO:
-        avisos.append(f"pico real {d['tp_dbtp']} dBTP (máximo {TP_MAXIMO})")
-    if capitulo["loudnorm"]["modo"] == "dynamic":
-        avisos.append("loudnorm trabajó en modo dinámico (no llegó a −19 con solo ganancia: pico o LRA de entrada): escuchar si respira raro")
-    for p in capitulo["piezas"]:
-        if "error" in p.get("restauracion", {}):
-            avisos.append(f"{p['nombre']}: sin restaurar ({p['restauracion']['error'][:80]})")
-        if "error" in p.get("ritmo", {}):
-            avisos.append(f"{p['nombre']}: sin ritmo ({p['ritmo']['error'][:80]})")
-        if p["despues"]["ruido_db"] > RUIDO_MAXIMO_DB:
-            avisos.append(f"{p['nombre']}: piso de ruido {p['despues']['ruido_db']} dB (máximo {RUIDO_MAXIMO_DB})")
-        if p["despues"]["duracion_s"] < PIEZA_MINIMA_S:
-            avisos.append(f"{p['nombre']}: quedó de {p['despues']['duracion_s']} s (¿se recortó de más?)")
-    return avisos
-
-
-def masterizar_capitulo(
-    numero: int,
-    piezas: list[Pieza],
-    salida: Path,
-    objetivo: np.ndarray | None = None,
-    pausas: dict[str, int] | None = None,
-    log=None,
-    restaurador=restaurar,
-    transcriptor=palabras_con_tiempos,
-    cache: Path | None = None,
-    modo: str = "clonado",
-) -> dict:
-    """Limpia, iguala, pega y normaliza; deja `salida` (wav 24 kHz mono) y
-    devuelve la entrada de este capítulo para master.json. Las piezas reales
-    pasan antes por restaurar + ritmo (directiva 02); `restaurador` y
-    `transcriptor` se inyectan para los tests (el modelo pide GPU, Whisper red)."""
-    if not piezas:
-        raise ValueError("un capítulo necesita al menos una pieza")
-    pausas = pausas or pausas_ms()
-    log = log or (lambda *a, **k: None)
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        # 1. Las reales primero: restaurar y ritmo. Lo que sale de acá define el
-        #    sonido objetivo y sigue por la cadena de siempre.
-        fuentes: list[Path] = []
-        extras: list[dict] = []
-        for i, pieza in enumerate(piezas):
-            if pieza.tipo == "real":
-                listo, medidas = preparar_real(pieza, tmp, i, restaurador, transcriptor, log, cache)
-                fuentes.append(listo)
-                extras.append(medidas)
-            else:
-                fuentes.append(pieza.ruta)
-                extras.append({})
-        if objetivo is None:
-            # El sonido objetivo es la voz REAL del narrador (ya restaurada): si el
-            # capítulo trae piezas reales, el promedio de esas; si es todo clonado,
-            # el de todas (el worker pasa el de las muestras limpias). Nunca el
-            # promedio con los conectores: los sintéticos tienen mucho más grave
-            # que una nota de WhatsApp y arrastrarían a la voz real hacia ellos.
-            reales = [f for f, p in zip(fuentes, piezas) if p.tipo == "real"]
-            objetivo = objetivo_de(reales or fuentes)
-        entradas: list[dict] = []
-        limpias: list[np.ndarray] = []
-        for i, (pieza, fuente, extra) in enumerate(zip(piezas, fuentes, extras)):
-            antes = medir(leer(pieza.ruta))
-            # Una real que NO pudo restaurarse (el modelo falló y siguió cruda)
-            # necesita el afftdn de siempre: si no, el ruido de WhatsApp entra
-            # tal cual (revisión 21/09).
-            restaurada = pieza.tipo == "real" and "error" not in (extra.get("restauracion") or {})
-            filtro = FILTRO_LIMPIEZA_RESTAURADA if restaurada else FILTRO_LIMPIEZA
-            limpia = limpiar_pieza(fuente, tmp / f"{i:02d}_limpia.wav", filtro)
-            igualada = tmp / f"{i:02d}_igualada.wav"
-            eq = igualar_espectro(limpia, igualada, objetivo)
-            limpias.append(nivelar(leer(igualada)))
-            entradas.append({"nombre": pieza.nombre, "tipo": pieza.tipo, "antes": asdict(antes), "eq_db": eq, **extra})
-            log(f"  masterizar: {pieza.nombre} ({pieza.tipo}) {antes.duracion_s:.1f} s, EQ {eq}")
-        pegado, posiciones = pegar_piezas(limpias, pausas["historia"])
-        escribir(tmp / "pegado.wav", pegado, subtipo="FLOAT")
-        limitar_picos(tmp / "pegado.wav", tmp / "limitado.wav")
-        loud = loudnorm_dos_pasadas(tmp / "limitado.wav", salida)
-        final = leer(salida)
-        for entrada, (ini, fin) in zip(entradas, posiciones):
-            entrada["despues"] = asdict(medir(final[ini:fin]))
-    capitulo = {
-        "capitulo": numero,
-        "modo": modo,
-        "salida": salida.name,
-        "duracion_s": round(len(final) / TASA, 2),
-        "pausa_entre_piezas_ms": pausas["historia"],
-        "objetivo_espectral_db": [round(float(x), 1) for x in objetivo],
-        "loudnorm": loud,
-        "piezas": entradas,
-    }
-    capitulo["avisos"] = avisos_de(capitulo)
-    for aviso in capitulo["avisos"]:
-        log(f"  masterizar AVISO cap {numero}: {aviso}")
-    return capitulo
-
-
-def leer_master(ruta: Path) -> dict | None:
-    """El master.json si está y se puede leer; si quedó a medias, None (se
-    arranca de nuevo en vez de explotar en cada reintento)."""
-    try:
-        return json.loads(Path(ruta).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-
-
-def agregar_a_master(ruta: Path, capitulo: dict, libro: dict | None = None) -> dict:
-    """Un master.json por libro: se va completando capítulo a capítulo.
-    Escritura atómica (tmp + rename): nunca queda un JSON a medias."""
-    ruta = Path(ruta)
-    datos = leer_master(ruta) or {"libro": libro or {}, "objetivos": {"lufs": OBJETIVO_LUFS, "tp_dbtp": OBJETIVO_TP, "lra": OBJETIVO_LRA}, "capitulos": []}
-    if libro and not datos.get("libro"):
-        datos["libro"] = libro
-    datos["capitulos"] = [c for c in datos["capitulos"] if c["capitulo"] != capitulo["capitulo"]] + [capitulo]
-    datos["capitulos"].sort(key=lambda c: c["capitulo"])
-    datos["avisos"] = [f"cap {c['capitulo']}: {a}" for c in datos["capitulos"] for a in c["avisos"]]
-    tmp = ruta.with_suffix(ruta.suffix + ".tmp")
-    tmp.write_text(json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, ruta)
-    return datos
-
-
-# ---------------------------------------------------------------- CLI ---
-
-
-def main() -> None:
-    for flujo in (sys.stdout, sys.stderr):
-        if hasattr(flujo, "reconfigure"):
-            flujo.reconfigure(encoding="utf-8", errors="replace")
-    # Sin esto RESTAURACION_NIVEL, PAUSAS_MS y OPENAI_API_KEY de voz/.env se
-    # ignoraban (revisión 20/09). Solo el .env: esta herramienta no usa Supabase.
-    load_dotenv(RAIZ / ".env")
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--capitulo", type=int, required=True)
-    p.add_argument("--salida", type=Path, required=True, help="wav del capítulo masterizado")
-    p.add_argument("--piezas", type=Path, nargs="+", required=True, help="en orden; nombre[:tipo], tipo = clonado|real|conector")
-    p.add_argument("--objetivo", type=Path, nargs="*", default=None, help="audios que definen el sonido objetivo (por defecto, las piezas)")
-    p.add_argument("--master", type=Path, default=None, help="master.json a completar")
-    args = p.parse_args()
-    piezas = []
-    for cruda in args.piezas:
-        texto = str(cruda)
-        tipo = "real"
-        if ":" in texto[2:]:  # no la de "C:\"
-            texto, tipo = texto.rsplit(":", 1)
-        piezas.append(Pieza(Path(texto), Path(texto).stem, tipo))
-    objetivo = objetivo_de(args.objetivo) if args.objetivo else None
-    capitulo = masterizar_capitulo(args.capitulo, piezas, args.salida, objetivo, log=print)
-    if args.master:
-        agregar_a_master(args.master, capitulo)
-    print(json.dumps({k: v for k, v in capitulo.items() if k in ("capitulo", "duracion_s", "loudnorm", "avisos")}, ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()

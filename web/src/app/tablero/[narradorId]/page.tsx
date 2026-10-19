@@ -20,7 +20,7 @@ import { PanelKids } from "./kids";
 import { esKids } from "@/lib/kids-panel";
 import { leerPanelKids } from "@/lib/kids-panel-base";
 import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
-import { diasDelViaje, fechaDelDia, type Viaje } from "@/lib/viaje";
+import { viajeDelContexto } from "@/lib/viaje";
 import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -30,10 +30,12 @@ import { idiomaDelLibro } from "@/lib/tapa";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import type { TratoComprador } from "@/lib/regalo-textos";
 import { CONTACTO } from "../../legal/titulares";
-import { idiomaDelTrato, type Quien } from "../../_textos/panel";
+import { idiomaDelTrato, PANEL, type Quien } from "../../_textos/panel";
 import { MarcoHistoria } from "../_historia/marco";
 import { CifrasHistoria, PortadaHistoria } from "../_historia/portada";
-import { EnlaceDudas, HojaFamilia, HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp } from "../_historia/lateral";
+import { EnlaceDudas, HojaFamilia, HojaFotos, HojaPedido, HojaUltimo, HojaWhatsApp, TarjetaMarco } from "../_historia/lateral";
+import { CambiarFecha } from "../_historia/fecha";
+import { fechaCambiable, type RegaloConFecha } from "@/lib/regalo-fecha";
 import { leerPedido, type DatosPedido } from "../_historia/pedido";
 import { vozClasica, vozV3, vozViaje, type ResumenVoz } from "../_historia/voz";
 import { CabeceraHueca, CuerpoHueco, HojaHueca } from "../esqueleto";
@@ -189,6 +191,16 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // Los textos del panel van con el trato de la familia dueña de la historia.
   const pTrato = tratoDeLaFamilia(admin, n.familia_id);
   const pPedido = leerPedido(admin, n);
+  // La fecha de inicio de un regalo sin abrir (arreglos chicos): solo la dueña
+  // y solo en regalo_pendiente, así que casi nunca consulta. `*`: las columnas
+  // de la entrega llegaron con otra migración. Si falla, la fila no sale.
+  const pRegalo: Promise<RegaloConFecha | null> =
+    rol === "duena" && n.estado === "regalo_pendiente"
+      ? Promise.resolve(admin.from("regalos").select("*").eq("narrador_id", n.id).maybeSingle()).then(
+          (r) => (r.error ? null : ((r.data as RegaloConFecha | null) ?? null)),
+          () => null,
+        )
+      : Promise.resolve(null);
   // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
   const pFotos: Promise<FotoVista[]> = Promise.resolve(
     admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
@@ -229,7 +241,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
       }
       abajo={
         <Suspense fallback={<HojaHueca />}>
-          <LateralAbajo n={n} rol={rol} quien={quien} pFila={pFila} pPedido={pPedido} pTrato={pTrato} pLectura={pLectura} contacto={contacto} />
+          <LateralAbajo n={n} rol={rol} quien={quien} pFila={pFila} pPedido={pPedido} pRegalo={pRegalo} pTrato={pTrato} pLectura={pLectura} contacto={contacto} />
         </Suspense>
       }
     />
@@ -316,15 +328,17 @@ async function LateralArriba({
 }
 
 async function LateralAbajo({
-  n, rol, quien, pFila, pPedido, pTrato, pLectura, contacto,
+  n, rol, quien, pFila, pPedido, pRegalo, pTrato, pLectura, contacto,
 }: {
   n: NarradorPanel; rol: Rol; quien: Quien;
-  pFila: Promise<FilaNarrador>; pPedido: Promise<DatosPedido>; pTrato: Promise<TratoComprador>; pLectura: Promise<Lectura>;
+  pFila: Promise<FilaNarrador>; pPedido: Promise<DatosPedido>; pRegalo: Promise<RegaloConFecha | null>; pTrato: Promise<TratoComprador>; pLectura: Promise<Lectura>;
   contacto: { whatsapp: string | null; correo: string };
 }) {
-  const [fila, pedido, trato, lectura] = await Promise.all([pFila, pPedido, pTrato, pLectura]);
+  const [fila, pedido, regalo, trato, lectura] = await Promise.all([pFila, pPedido, pRegalo, pTrato, pLectura]);
   const idioma = idiomaDelTrato(trato);
+  const T = PANEL[idioma];
   const momento = momentoDe(n.estado, Boolean(fila.libro_aprobado_at));
+  const conMarco = rol === "duena" && pedido.impresos > 0 && pedido.marcos === 0;
   return (
     <>
       {lectura.familia ? (
@@ -339,11 +353,20 @@ async function LateralAbajo({
           momento={momento}
           lineas={{ impresos: pedido.impresos, marcos: pedido.marcos }}
           hrefDireccion={pedido.direccionEditable ? `/tablero/${n.id}/libro#envio` : undefined}
-          hrefMarco={pedido.impresos > 0 && pedido.marcos === 0 ? `/tablero/${n.id}/libro` : undefined}
+          fecha={
+            fechaCambiable(n.estado, regalo) ? (
+              <CambiarFecha
+                narradorId={n.id}
+                fecha={regalo.fecha_entrega}
+                textos={{ fila: T.cambiarFecha, titulo: T.cambiarFecha, texto: T.fechaTexto, campo: T.fechaCampo, guardar: T.guardarFecha, guardando: T.guardando, guardado: T.guardado, cerrar: T.cerrarHoja, error: T.errorFecha }}
+              />
+            ) : undefined
+          }
           contacto={contacto}
           cierre={lectura.cierre ?? undefined}
         />
       ) : null}
+      {conMarco ? <TarjetaMarco idioma={idioma} quien={quien} href={`/tablero/${n.id}/libro`} /> : null}
       <EnlaceDudas idioma={idioma} contacto={contacto} />
     </>
   );
@@ -469,7 +492,7 @@ async function armarLectura({
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const subir = (capitulos: string[]) =>
     puedeAgregarFotos ? (
-      <SubirFoto narradorId={n.id} capitulos={capitulos} variante="barra" trato={tratoPanel}>
+      <SubirFoto narradorId={n.id} capitulos={capitulos} variante="barra" trato={tratoPanel} paraTapa={rol === "duena" && !fila.edicion?.portadaFotoId}>
         <IconoBarra nombre="foto" />
         Agregar fotos
       </SubirFoto>
@@ -477,40 +500,35 @@ async function armarLectura({
   const cierre = (contadas: number) =>
     rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO ? <CierreAnticipado narradorId={n.id} trato={tratoPanel} /> : null;
 
-  // Vitácora de viaje (3t.19): otra pantalla. Los capítulos son las etapas y no
-  // hay guion que mostrar ni editar: la plantilla global del Familiar (30
-  // preguntas) no se mezcla acá — era lo que veía el viajero antes.
-  if (contexto.modo === "viaje" && contexto.viaje) {
-    const viaje = contexto.viaje as Viaje;
-    const noches = diasDelViaje(viaje);
+  // Vitácora de Viaje V2 (16/10): otra pantalla, mínima (viaje.tsx). Sin
+  // guion ni etapas: lo contado en orden de llegada y las fotos. Las fechas se
+  // corren desde acá solo mientras el bot no creó su fila en `viajes_v2`.
+  const viaje = viajeDelContexto(contexto);
+  if (viaje) {
     const lista = (respuestas as RespuestaVista[] | null) ?? [];
-    const voz = vozViaje(lista, noches, (o) => (o >= 1 && o <= noches ? `Noche ${o} · ${fechaLarga(fechaDelDia(viaje, o))}` : "Al volver"));
+    const voz = vozViaje(lista, (r) => fechaLarga(r.recibido_at.slice(0, 10)));
+    let puedeCambiarFechas = false;
+    if (rol === "duena" && !cerrado) {
+      const { data: filaV2, error: errorV2 } = await admin.from("viajes_v2").select("narrador_id").eq("narrador_id", n.id).maybeSingle();
+      puedeCambiarFechas = !filaV2 && (!errorV2 || errorV2.code === "42P01" || errorV2.code === "PGRST205");
+    }
     return {
       cuerpo: (
         <HistoriaViaje
-          enMarco
           n={n}
           rol={rol}
           viaje={viaje}
-          zonaHoraria={fila.zona_horaria ?? "UTC"}
           respuestas={lista}
           fotos={fotosData}
-          preguntasEnviadas={preguntasEnviadas}
-          repreguntasEnviadas={repreguntasEnviadas}
           usuarioId={user.id}
-          historiasRiel={historiasRiel}
           aprobado={aprobado}
           historiaCerrada={historiaCerrada}
-          linkPublico={linkPublico}
-          invitados={soloInvitados}
-          dudasAbiertas={dudasAbiertas}
-          ritmo={ritmo}
-          evitar={evitar}
-          horario={horario}
+          puedeCambiarFechas={puedeCambiarFechas}
+          trato={tratoPanel}
         />
       ),
       voz,
-      subirFoto: subir(viaje.etapas.map((e) => e.nombre)),
+      subirFoto: subir([]),
       familia,
       cierre: cierre(voz.respuestas),
     };
@@ -728,7 +746,7 @@ function HistoriaClasica({
 
       {dudasPendientes ? (
         <div className="mt-8">
-          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia, n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
+          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tratoPanel === "tu")}</ProximoPaso>
         </div>
       ) : null}
 
@@ -754,6 +772,17 @@ function HistoriaClasica({
             </div>
           ) : null}
         </div>
+      ) : null}
+
+      {/* ── Primero: cómo arranca la entrevista, hora y ritmo (solo dueña). Naza, 19/10:
+          personalizar la entrevista va antes de corregir las preguntas. ── */}
+      {!cerrado && PUEDE.cambiarRitmo(rol) ? (
+        <section className="mt-10 border-b border-[var(--linea)] pb-10">
+          <Etiqueta>Ajustes de la entrevista</Etiqueta>
+          <div className="mt-6">
+            <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={pedirFotos} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
+          </div>
+        </section>
       ) : null}
 
       {editando ? (
@@ -936,15 +965,6 @@ function HistoriaClasica({
         ) : null}
       </div>
 
-      {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
-      {!cerrado && PUEDE.cambiarRitmo(rol) ? (
-        <section className="mt-16 border-t border-[var(--linea)] pt-10">
-          <Etiqueta>Ajustes de la entrevista</Etiqueta>
-          <div className="mt-6">
-            <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={pedirFotos} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

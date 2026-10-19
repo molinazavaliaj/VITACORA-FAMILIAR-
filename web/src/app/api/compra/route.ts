@@ -17,6 +17,7 @@ import { urlBaseMail } from "@/lib/mail";
 import { CHECKOUT_KIDS, KIDS_ERRORES_API_CA, KIDS_MISMO_NUMERO_TEXTOS } from "@/app/_textos/checkout-kids";
 import type { Compra } from "@/lib/productos";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { carritoDeViaje } from "@/lib/viaje";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -189,7 +190,15 @@ export async function POST(request: NextRequest) {
     ? { ...validacion.narrador, contexto: contextoDeRegalo(validacion.narrador.contexto, datosRegalo) }
     : validacion.narrador;
 
-  const carrito = leerCarrito(body.productos);
+  // Viaje V2 (16/10): el carrito sale del viaje ya validado (formato y álbum),
+  // no de lo que diga el navegador. Un viaje sin sus datos, o con la tarjeta de
+  // regalo (el viaje se regala con el WhatsApp de quien viaja), no se cobra.
+  const carritoViaje = carritoDeViaje(narradorAInsertar.contexto);
+  const carritoCrudo = leerCarrito(body.productos);
+  if ((carritoCrudo.base === "viaje") !== (carritoViaje !== null) || (carritoViaje && esRegalo)) {
+    return NextResponse.json({ error: "Faltan los datos del viaje." }, { status: 400 });
+  }
+  const carrito = carritoViaje ?? carritoCrudo;
   const carritoOk = validarCarrito(familiaAInsertar.region, carrito);
   if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
   const compra = calcularCompra(familiaAInsertar.region, carrito);

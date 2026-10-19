@@ -105,7 +105,6 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 ---
 
 ## Entregas (las completa hermes)
-
 ### T3 · página de error 500 — 18/10
 - **Rama:** `pagina-error`, cortada de `rediseno-web` (commit `c80afc9c`).
 - **PR:** #86 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/86
@@ -116,4 +115,3 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
   - ca: «Error 500» · «Se'ns ha creuat un error.» · «Ha estat un error nostre.» · «Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.» · «Tornar-ho a provar» · «Tornar a l'inici».
   - ar (voseo): «Error 500» · «Se nos cruzó un error.» · «Fue un error nuestro.» · «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.» · «Probar de nuevo» · «Volver al inicio».
 - **Pendiente:** la aprobación de los textos por Naza antes del merge (el catalán, además, revisión nativa como el resto).
-

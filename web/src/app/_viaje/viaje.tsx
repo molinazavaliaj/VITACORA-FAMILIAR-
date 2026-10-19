@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Cabecera, Pie } from "../_publico";
 import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Foto, Palabras, conVar } from "../_direccion/piezas";
+import { VideoLibro } from "../_direccion/video-libro";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { TEXTOS_VIAJE } from "../_textos/viaje";
 import { catalogo } from "@/lib/productos";
@@ -14,8 +15,9 @@ import "../_direccion/direccion.css";
 // página en vos con la paleta vieja (violeta); ahora es la misma pantalla en
 // los tres idiomas, ESTÁTICA, con los textos de _textos/viaje.ts.
 //
-// Dice lo que recibe hoy quien compra (el Viaje V1, aprobados.md, tanda del
-// 11/10): nada del V2, nada de «cada noche os escribimos» (B24), sin reseñas.
+// 16/10: dice lo que hace la Vitácora de Viaje V2, la única que se vende
+// (antes de salir, durante, la vuelta, el libro). Nada del viaje viejo, nada de
+// «cada noche» (B24), sin reseñas.
 // El precio es el de la región del idioma (obtenerPrecioViaje vía catalogo):
 // sin PRECIO_VIAJE_* cargado, la página no vende (sin botones, «Próximamente»).
 //
@@ -103,8 +105,12 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola ═══ */}
       <section className="dir-tinta dir-hoja relative">
-        <div data-revela className="mx-auto w-full max-w-[1360px] px-4 pb-28 pt-20 sm:px-8 md:pb-40 lg:px-12" style={conVar({ "--paso": "0.17s" })}>
-          <h2 className="dir-titular dir-txl">
+        <div
+          data-revela
+          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-28 pt-20 sm:px-8 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
+          style={conVar({ "--paso": "0.17s" })}
+        >
+          <h2 className="dir-titular dir-txl viaje-frase lg:col-span-7">
             <span className="sr-only">
               {frase1} {frase2}
             </span>
@@ -115,6 +121,17 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
               <Palabras texto={frase2} desde={frase1.split(" ").length} total={nFrase} />
             </span>
           </h2>
+          {/* El libro del viaje en video (arreglos chicos, MOTION 14): al
+              costado en escritorio, abajo del texto en el celular. */}
+          <VideoLibro
+            src="/video/viaje-libro.mp4"
+            poster="/video/viaje-libro-poster.jpg"
+            alt={v.altLibro}
+            ancho={1120}
+            alto={640}
+            sizes="(min-width: 1024px) 40vw, 100vw"
+            className="viaje-video w-full lg:col-span-5"
+          />
         </div>
       </section>
 

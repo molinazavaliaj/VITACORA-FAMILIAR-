@@ -7,6 +7,7 @@ import { TEXTOS_PORTADA } from "../_textos/portada";
 import { catalogo } from "@/lib/productos";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { LibroHojeable } from "./libro-hojeable";
+import { VideoLibro } from "../_direccion/video-libro";
 import "../_direccion/tokens.css";
 import "../_checkout/checkout.css";
 import "./ejemplo.css";
@@ -43,6 +44,17 @@ export function Ejemplo({ idioma }: { idioma: IdiomaWeb }) {
           <h1 className="dir-titular dir-t2 max-w-[16ch] text-[var(--dir-sobre-tinta)]">{t.titulo}</h1>
           <p className="ejm-bajada">{t.bajada}</p>
           <span className="ejm-inventada">{t.inventada}</span>
+          {/* El libro de Osvaldo en video, entre el título y el libro que se
+              hojea (arreglos chicos, MOTION 14). Debajo del titular: no es el LCP. */}
+          <VideoLibro
+            src="/video/libro-cinematico.mp4"
+            poster="/video/libro-cinematico-poster.jpg"
+            alt={t.altVideo}
+            ancho={1344}
+            alto={768}
+            sizes="(min-width: 960px) 880px, 100vw"
+            className="ejm-video mt-6 w-full max-w-[880px] sm:mt-10"
+          />
         </div>
       </div>
       <main className="dir-deckle chk relative -mt-[14px] flex flex-col items-center gap-10 px-4 pb-24 pt-16 sm:px-6 sm:pt-20">

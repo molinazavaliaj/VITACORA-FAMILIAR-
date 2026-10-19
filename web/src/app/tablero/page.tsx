@@ -57,7 +57,7 @@ async function resumirHistoria(
   const segundos = filas.reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
   // El mismo total que Historias: propias + plantilla global (un narrador manual
   // puede tener solo las 4 adaptativas como propias). Sin nada, vale el de 30.
-  // En viaje (3t.19) el total son las noches: la plantilla global no cuenta.
+  // En viaje el total son los días del viaje: la plantilla global no cuenta.
   const total = viaje
     ? diasDelViaje(viaje)
     : totalDelGuion(

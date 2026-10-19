@@ -17,6 +17,7 @@ const CA: TextosComprador = {
   estadoCorto: "esperant que obri el regal",
   proximoPaso: "Descarrega la targeta del regal",
   botonImprimir: "Imprimir o desar en PDF",
+  avisoDobleFaz: "Imprimeix-la a doble cara i tria «girar per la vora llarga». Si la part de dins surt al revés, prova amb «vora curta».",
   botonImagen: "Descarregar la imatge per a WhatsApp",
   aQuien: "A qui li regales?",
   comoLeDecis: "Com li dius?",

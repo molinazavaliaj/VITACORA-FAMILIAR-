@@ -1,6 +1,8 @@
 # Regalo el día elegido — pase del 10/10
 
 Rama `regalo-dia-de-entrega`. Sale de `origin/main` (9195e46) y tiene mergeado el PR #5 (`regalo-antes-de-vender`).
+
+> **Actualizado 15/10:** mergeada a main (PR #6, 10/10).
 - Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 - Plan: `docs/superpowers/plans/2026-10-10-regalo-dia-de-entrega.md`.
 - Textos aprobados (tres tandas): `docs/regalo/dia-de-entrega-textos.md`.

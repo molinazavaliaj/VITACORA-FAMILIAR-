@@ -25,8 +25,8 @@ import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } fr
 import "../_direccion/direccion.css";
 
 // Las landings de anuncio (rediseño 2026-10, fase 4; maquetas LandingRegalo,
-// LandingPreguntas, LandingVoz y, de Viaje, la sobria que se puede decir con
-// el V1). Una idea por pantalla, en el lenguaje de la portada: tinta y papel,
+// LandingPreguntas, LandingVoz y, de Viaje, la sobria; desde el 16/10 dice la
+// Viaje V2). Una idea por pantalla, en el lenguaje de la portada: tinta y papel,
 // el logo que se dibuja a lápiz, el libro de Osvaldo en 3D, fotos en sepia con
 // forma. Sin cabecera completa (logo + «Comprar»), sin popup, sin píxel de Meta
 // (PENDIENTES B26). La garantía va solo en la mini FAQ (DECISIONES D1).
@@ -329,9 +329,8 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
       v.proximamente
     );
   const href = precioViaje !== null ? comprar : null;
-  // Las últimas de /viaje (las mismas): cuándo llega el libro y la garantía;
-  // en catalán, también en qué lengua escribe el biógrafo (en castellano).
-  const dudas = v.faq.preguntas.slice(idioma === "ca" ? -3 : -2);
+  // Las últimas de /viaje (las mismas): cuándo llega el libro y la garantía.
+  const dudas = v.faq.preguntas.slice(-2);
 
   return (
     <Pagina idioma={idioma} producto="viaje">

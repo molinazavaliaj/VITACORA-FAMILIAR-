@@ -9,6 +9,7 @@ import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } from "./piezas";
+import { VideoLibro } from "../_direccion/video-libro";
 
 // /kids, /ca/kids y /ar/kids: Vitácora Kids («Mi Primer Capítulo», 15/10). La
 // maqueta Kids y KidsMovil con la paleta de Kids de la guía (fondo #fbf8f3,
@@ -117,6 +118,16 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
             <em className="block">{t.dibujos.frase[1]}</em>
           </h2>
           <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
+          {/* El libro de Nico en video (arreglos chicos, MOTION 14): debajo del texto. */}
+          <VideoLibro
+            src="/video/kids-libro.mp4"
+            poster="/video/kids-libro-poster.jpg"
+            alt={t.dibujos.altVideo}
+            ancho={1120}
+            alto={640}
+            sizes="(min-width: 960px) 880px, 100vw"
+            className="kids-video mt-14 w-full max-w-[880px] md:mt-20"
+          />
         </div>
       </section>
 

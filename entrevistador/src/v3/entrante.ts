@@ -100,12 +100,16 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
     return;
   }
   // Un pedido (pausa o reserva) no dispara el reenvío por plantilla: el audio se sabe recién transcripto.
-  if (!pedidoEscrito && m.tipo !== 'audio') await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  // Un texto escrito que contesta (no un saludo) ya respondió la pregunta que leyó en la plantilla: no se le
+  // repite (handoff 07/10, «Pregunta repetida tras una plantilla»).
+  const contestaEscrito = escrito && !pedidoEscrito && (m.texto ?? '').trim() !== '' && !esSaludo((m.texto ?? '').trim(), fila.idioma);
+  if (!pedidoEscrito && m.tipo !== 'audio') await reenviarSiSalioPorPlantilla(deps, n.id, m, contestaEscrito);
   let llegada: Llegada = 'mensaje';
   if (m.tipo === 'imagen') await recibirImagen(deps, n, m, fila);
   else if (m.tipo === 'audio') {
     llegada = await recibirAudioV3(deps, n, m, fila);
-    if (llegada !== 'pedido') await reenviarSiSalioPorPlantilla(deps, n.id, m);
+    // Contestó con audio la pregunta que leyó en la plantilla: no se le repite (solo se olvida la marca).
+    if (llegada !== 'pedido') await reenviarSiSalioPorPlantilla(deps, n.id, m, true);
   } else if (m.esBoton) {
     if (!(await recibirBoton(deps, n, m, fila, ahora))) await botonSuelto(deps, n, m);
   } else llegada = await recibirTexto(deps, n, m, fila.idioma);
@@ -160,7 +164,7 @@ async function guardarAparte(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
   }
   const nueva = await conReintento(deps.db, n.id, (f) =>
     yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(f.estado, m.waMessageId) }, resultado: true });
-  if (nueva && m.tipo === 'imagen' && m.mediaId) await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
+  if (nueva && m.tipo === 'imagen' && m.mediaId) await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'suelta');
 }
 
 /** 'pedido': era «quiero parar» o «que no vaya al libro» (pedidos.ts) y no se sumó a nada. */
@@ -209,15 +213,18 @@ async function anotarEntrante(deps: DepsV3, narradorId: string, ahora: Date, esA
 
 /**
  * La abierta salió por plantilla (sin botones). Al volver a escribir, la
- * ventana está abierta: si la pregunta tiene botones, se le reenvía con ellos,
- * salvo que lo que mandó sea justo un botón de la abierta.
+ * ventana está abierta: si la pregunta tiene botones y lo que mandó no la
+ * contesta (un botón de otra plantilla, un saludo, una foto suelta), se le
+ * reenvía con ellos, para que pueda tocarlos. Si ya la contestó (`contesta`:
+ * un audio o un texto escrito, que se suman a la abierta) o tocó justo un
+ * botón de la abierta, no se le repite: ya la leyó en la plantilla.
  */
-async function reenviarSiSalioPorPlantilla(deps: DepsV3, narradorId: string, m: MensajeEntrante): Promise<void> {
+async function reenviarSiSalioPorPlantilla(deps: DepsV3, narradorId: string, m: MensajeEntrante, contesta = false): Promise<void> {
   await conReintento(deps.db, narradorId, (f) => {
     const e = f.estado;
     if (!e.abiertaPorPlantilla) return null;
     const tocaLaAbierta = m.esBoton === true && tocarBoton(e, fichaTexto(f), m.texto ?? '') !== null;
-    const reenviar = !!e.esperando && (e.preguntaAbierta?.botones?.length ?? 0) > 0 && !tocaLaAbierta;
+    const reenviar = !contesta && !!e.esperando && (e.preguntaAbierta?.botones?.length ?? 0) > 0 && !tocaLaAbierta;
     return { cambio: { estado: reenviar ? reenviarAbierta(e) : { ...e, abiertaPorPlantilla: undefined } }, resultado: true };
   });
 }
@@ -402,10 +409,8 @@ async function recibirImagen(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
     // La fila primero: el reintento de Meta se corta acá, antes de subir la foto otra vez.
     const guardada = await guardarTextoV3(deps.db, n.id, llegada, MARCA_FOTO, { waMessageId: m.waMessageId, clave: null, esBoton: false });
     if (!guardada) return;
-    try {
-      await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
-    } catch (err) {
-      console.error(`V3: no pude guardar la foto de FO1 de ${n.id}:`, err instanceof Error ? err.message : err);
+    if (!(await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'FO1'))) {
+      // FO1 sigue abierta: la foto que la vuelva a mandar la contesta.
       await ponerClave(deps.db, guardada.id, SIN_CLAVE_V3);
       return;
     }
@@ -416,9 +421,42 @@ async function recibirImagen(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
   const nueva = await conReintento(deps.db, n.id, (f) =>
     yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(f.estado, m.waMessageId) }, resultado: true });
   if (!nueva) return;
-  await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
+  if (!(await guardarFotoOAvisar(deps, n, m.mediaId, m.mimeType, m.texto, llegada, m.waMessageId, 'suelta'))) return;
   const acuse = textoFijo('fotoSuelta', fila.idioma);
   if (acuse) await conReintento(deps.db, n.id, (f) => ({ cambio: { estado: encolar(f.estado, { texto: acuse, tipo: 'suelto' }) }, resultado: true }));
+}
+
+/**
+ * Baja la foto de Meta y la guarda (Storage + `fotos`). Si falla, no se pierde en silencio (handoff 07/10, «Sin
+ * aviso al narrador si falla una foto»): al narrador le sale `fotoFallo` en su idioma, una sola vez por mensaje
+ * (si hay texto aprobado), y a los socios un aviso. Devuelve true si quedó guardada. Nunca tira.
+ */
+async function guardarFotoOAvisar(
+  deps: DepsV3, n: NarradorV3, mediaId: string, mimeType: string | undefined, caption: string | undefined, llegada: number,
+  waMessageId: string, cual: 'FO1' | 'suelta',
+): Promise<boolean> {
+  try {
+    await guardarFotoV3(deps, n.id, mediaId, mimeType, caption, llegada);
+    return true;
+  } catch (err) {
+    const detalle = err instanceof Error ? err.message : String(err);
+    console.error(`V3: no pude guardar la foto (${cual}) de ${n.id}: ${detalle}`);
+    // El reintento de Meta ya se cortó antes (la fila de FO1 o el wamid entre los vistos): sale una sola vez.
+    try {
+      await conReintento(deps.db, n.id, (f) => {
+        const t = textoFijo('fotoFallo', f.idioma, fichaTexto(f));
+        return t ? { cambio: { estado: encolar(f.estado, { texto: t, tipo: 'suelto' }) }, resultado: true } : null;
+      });
+    } catch (errCola) {
+      console.error(`V3: no pude encolar el pedido de la foto de ${n.id}:`, errCola instanceof Error ? errCola.message : errCola);
+    }
+    await deps.avisar(
+      `foto-fallo-${waMessageId}`,
+      'No se pudo guardar una foto de un narrador V3',
+      `${n.id} mandó una foto (${cual === 'FO1' ? 'la de la pregunta FO1, que sigue abierta' : 'suelta'}) y no se pudo bajar de Meta o subir a Storage: ${detalle}. Se le pidió que la vuelva a mandar. Si no la manda, se puede pedir a la familia que la suba desde el panel.`,
+    );
+    return false;
+  }
 }
 
 async function aplicarFoto(deps: DepsV3, narradorId: string, guardada: FilaGuardada): Promise<void> {
@@ -433,6 +471,47 @@ async function aplicarFoto(deps: DepsV3, narradorId: string, guardada: FilaGuard
 }
 
 // ---------------------------------------------------------------- reconciliación
+
+/** De a cuántos narradores va la búsqueda junta de respuestas sin clave (36 caracteres por id: la URL queda en ~4 KB). */
+export const TROZO_RECONCILIAR = 100;
+/**
+ * Tope de filas de la búsqueda junta (el max-rows de PostgREST en Supabase es 1000). Si un trozo lo alcanza, puede
+ * haber quedado alguna afuera: ese trozo vuelve al camino de antes (reconciliarV3 de cada uno).
+ */
+export const LIMITE_SIN_CLAVE = 1000;
+
+/**
+ * Qué narradores tienen algo para reconciliar, en UNA consulta por trozo en vez de una por narrador (roadmap 13/10).
+ * Los mismos filtros que reconciliarV3 salvo el "después de crear su V3", que en SQL va con la fila más vieja del
+ * trozo y acá se afina por narrador. Es un aviso de más, nunca de menos: ante la duda (error, tope, mismo
+ * milisegundo) el narrador entra, y reconciliarV3 hace la consulta exacta como siempre.
+ */
+export async function conSinClave(deps: DepsV3, filas: readonly Pick<FilaV3, 'narrador_id' | 'creada_at'>[]): Promise<Set<string>> {
+  const con = new Set<string>();
+  const limite = new Date(deps.ahora().getTime() - RECONCILIAR_MS).toISOString();
+  for (let i = 0; i < filas.length; i += TROZO_RECONCILIAR) {
+    const trozo = filas.slice(i, i + TROZO_RECONCILIAR);
+    const desdePor = new Map(trozo.map((f) => [f.narrador_id, Date.parse(f.creada_at)]));
+    const desde = new Date(Math.min(...desdePor.values())).toISOString();
+    const { data, error } = await deps.db.from('respuestas')
+      .select('narrador_id,recibido_at')
+      .in('narrador_id', [...desdePor.keys()]).is('clave_v3', null).not('wa_message_id', 'is', null)
+      .gt('recibido_at', desde).lt('recibido_at', limite)
+      .limit(LIMITE_SIN_CLAVE);
+    const encontradas = (data as { narrador_id: string; recibido_at: string }[] | null) ?? [];
+    if (error || Number.isNaN(Date.parse(desde)) || encontradas.length >= LIMITE_SIN_CLAVE) {
+      if (error) console.error(`reloj V3: falló la búsqueda junta de respuestas sin clave; este trozo va uno por uno: ${error.message}`);
+      for (const id of desdePor.keys()) con.add(id);
+      continue;
+    }
+    for (const r of encontradas) {
+      const desdeN = desdePor.get(r.narrador_id);
+      // >= y no >: reconciliarV3 compara en milisegundos y la base en microsegundos; ante la duda, entra.
+      if (desdeN === undefined || Number.isNaN(desdeN) || Date.parse(r.recibido_at) >= desdeN) con.add(r.narrador_id);
+    }
+  }
+  return con;
+}
 
 type FilaSinClave = { id: string; wa_message_id: string; audio_path: string | null; transcripcion: string | null; texto_directo: string | null };
 
