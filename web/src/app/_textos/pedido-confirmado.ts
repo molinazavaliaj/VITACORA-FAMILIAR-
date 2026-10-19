@@ -65,12 +65,13 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
       { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
     ],
+    // TEXTO PARA NAZA: Viaje V2, de tú y sirve para un regalo.
     viaje: (numero) =>
       numero
-        ? `Vuestro biógrafo de viaje se presenta por WhatsApp. Para empezar ya, mandadle un «hola» a ${numero}: os contesta y os pide el SÍ.`
-        : "Vuestro biógrafo de viaje se presenta por WhatsApp. Cuando os escriba, responded SÍ y empieza.",
+        ? `El biógrafo de viaje se presenta por WhatsApp. Para empezar ya, hay que mandarle un «hola» a ${numero} desde el WhatsApp de quien viaja. Contesta y pide el SÍ.`
+        : "El biógrafo de viaje se presenta por WhatsApp a quien viaja. Con un SÍ, empieza.",
     irAlPanel: (propia) => (propia ? "Ir a la página de tu historia" : "Ir a la página de su historia"),
-    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página de tu viaje" : "Entrar a la página de la historia"),
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página del viaje" : "Entrar a la página de la historia"),
     sinContrasenas: "Con tu correo y un código de 6 números. Sin contraseñas.",
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
@@ -106,13 +107,13 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
       { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
     ],
-    // El texto de vos es el de antes, letra por letra.
+    // TEXTO PARA NAZA: sin «esa noche llega la primera pregunta» (en la V2 no es así).
     viaje: (numero) =>
       numero
-        ? `Tu biógrafo de viaje se presenta por WhatsApp. Para arrancar ya, mandale un hola a ${numero}: te contesta y te pide el SÍ.`
-        : "Tu biógrafo de viaje se presenta por WhatsApp. Cuando te escriba, respondé SÍ y esa noche llega la primera pregunta.",
+        ? `El biógrafo de viaje se presenta por WhatsApp. Para arrancar ya, hay que mandarle un hola a ${numero} desde el WhatsApp de quien viaja. Contesta y pide el SÍ.`
+        : "El biógrafo de viaje se presenta por WhatsApp a quien viaja. Con un SÍ, empieza.",
     irAlPanel: (propia) => (propia ? "Ir a la página de tu historia" : "Ir a la página de su historia"),
-    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página de tu viaje" : "Entrar a la página de la historia"),
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la página del viaje" : "Entrar a la página de la historia"),
     sinContrasenas: "Con tu correo y un código de 6 números. Sin contraseñas.",
     descargarTarjeta: "Descargar la tarjeta de regalo",
     direccionGuardada: "Dirección de envío guardada.",
@@ -150,10 +151,10 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     ],
     viaje: (numero) =>
       numero
-        ? `El vostre biògraf de viatge es presenta per WhatsApp. Per començar ja, envieu-li un «hola» a ${numero}: us contesta i us demana el SÍ.`
-        : "El vostre biògraf de viatge es presenta per WhatsApp. Quan us escrigui, responeu SÍ i comença.",
+        ? `El biògraf de viatge es presenta per WhatsApp. Per començar ja, cal enviar-li un «hola» a ${numero} des del WhatsApp de qui viatja. Contesta i demana el SÍ.`
+        : "El biògraf de viatge es presenta per WhatsApp a qui viatja. Amb un SÍ, comença.",
     irAlPanel: (propia) => (propia ? "Anar a la pàgina de la teva història" : "Anar a la pàgina de la seva història"),
-    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del teu viatge" : "Entrar a la pàgina de la història"), // ca: PENDIENTE REVISIÓN NATIVA
+    entrarAlPanel: (viaje) => (viaje ? "Entrar a la pàgina del viatge" : "Entrar a la pàgina de la història"), // ca: PENDIENTE REVISIÓN NATIVA
     sinContrasenas: "Amb el teu correu i un codi de 6 xifres. Sense contrasenyes.",
     descargarTarjeta: "Descarregar la targeta de regal",
     direccionGuardada: "Adreça d'enviament desada.",

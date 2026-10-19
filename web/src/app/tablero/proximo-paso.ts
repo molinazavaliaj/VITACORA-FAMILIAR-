@@ -1,6 +1,6 @@
 import { esPropia, type Historia } from "@/lib/panel";
 import { textosComprador, tratoDeRegion, type RegionComprador } from "@/lib/regalo-textos";
-import type { Viaje } from "@/lib/viaje";
+import { viajeDelContexto, type CompraViaje } from "@/lib/viaje";
 
 // El próximo paso de cada tarjeta del Inicio. Vive aparte de page.tsx porque una
 // página de Next no puede exportar otra cosa, y así se prueba.
@@ -24,9 +24,8 @@ export function textoDudas(propia: boolean, comoLeDicen: string, tu: boolean): s
     : `Hay dudas sobre lo que contó ${comoLeDicen}. ${contestalas} antes de que se escriba el libro.`;
 }
 
-export function viajeDe(h: Historia): Viaje | null {
-  const c = h.narrador.contexto as { modo?: unknown; viaje?: Viaje } | null | undefined;
-  return c?.modo === "viaje" && c.viaje?.salida && c.viaje?.vuelta ? c.viaje : null;
+export function viajeDe(h: Historia): (Partial<CompraViaje> & { salida: string; vuelta: string }) | null {
+  return viajeDelContexto(h.narrador.contexto);
 }
 
 /**
@@ -64,7 +63,8 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
       return null;
     case "acepto":
     case "invitado":
-      if (viajeDe(h)) return { href: `/tablero/${id}`, texto: "Mientras esperás, revisá las etapas y sobre qué te preguntamos" };
+      // TEXTO PARA NAZA
+      if (viajeDe(h)) return { href: `/tablero/${id}`, texto: tu ? "Mientras esperas, revisa las fechas del viaje" : "Mientras esperás, revisá las fechas del viaje" };
       if (r.v3) return { href: `/tablero/${id}`, texto: tu ? "Mientras esperas, suma fotos o una pregunta tuya" : "Mientras esperás, sumá fotos o una pregunta tuya" };
       return { href: `/tablero/${id}?editar=1`, texto: tu ? "Mientras esperas, repasa las preguntas y suma fotos" : "Mientras esperás, repasá las preguntas y sumá fotos" };
     case "regalo_pendiente":

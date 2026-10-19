@@ -42,14 +42,14 @@ export function vozClasica(respuestas: RespuestaFila[], preguntaDe: (orden: numb
   };
 }
 
-/** Viaje: las noches contadas (1..noches); el título es la noche y su fecha. */
-export function vozViaje(respuestas: RespuestaFila[], noches: number, tituloDe: (orden: number) => string): ResumenVoz {
-  const contadas = new Set(respuestas.map((r) => r.pregunta_orden).filter((o) => o >= 1 && o <= noches));
+/** Viaje V2: cada mensaje contado; el título lo arma quien llama (la fecha). */
+export function vozViaje(respuestas: RespuestaFila[], tituloDe: (r: RespuestaFila) => string): ResumenVoz {
+  // Viaje V2 (16/10): cada mensaje contado cuenta (no hay «noches» numeradas en la web).
   return {
-    respuestas: contadas.size,
+    respuestas: respuestas.filter((r) => !r.es_repregunta).length,
     segundos: respuestas.reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0),
     ultimas: lasUltimas(
-      respuestas.filter((r) => r.audio_path).map((r) => ({ id: r.id, titulo: tituloDe(r.pregunta_orden), duracion: r.duracion_segundos, recibidoAt: r.recibido_at })),
+      respuestas.filter((r) => r.audio_path).map((r) => ({ id: r.id, titulo: tituloDe(r), duracion: r.duracion_segundos, recibidoAt: r.recibido_at })),
     ),
   };
 }

@@ -122,10 +122,10 @@ describe("lo último que contó y las cifras", () => {
     expect(voz.ultimas[0].titulo).toBe("Pregunta 4");
   });
 
-  it("viaje: cuenta solo las noches del viaje", () => {
-    const voz = vozViaje([fila("a", 1, 3), fila("b", 2, 2), fila("c", 9, 1)], 8, (o) => `Noche ${o}`);
-    expect(voz.respuestas).toBe(2);
-    expect(voz.ultimas[0].titulo).toBe("Noche 9");
+  it("viaje V2: cuenta cada mensaje contado (sin repreguntas) y el título lo da quien llama", () => {
+    const voz = vozViaje([fila("a", 1, 3), fila("b", 2, 2), fila("c", 9, 1), fila("d", 9, 1, { es_repregunta: true })], (r) => `Mensaje ${r.id}`);
+    expect(voz.respuestas).toBe(3);
+    expect(voz.ultimas.map((u) => u.titulo)).toContain("Mensaje c");
   });
 
   it("V3: lo reservado cuenta para el cierre pero no suena ni se ve", () => {

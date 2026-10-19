@@ -16,7 +16,7 @@
 // muestra ni se cobra. Prender una es cargar su variable en Vercel y re-correr
 // el deploy (web/README.md). Lógica pura, sin red, para probarla sin mocks.
 
-import { obtenerPrecio, obtenerPrecioViaje, precioValido, type Region } from "./precios";
+import { obtenerPrecio, obtenerPrecioViaje, obtenerPrecioViajeAlbum40, precioValido, type Region } from "./precios";
 
 export type Moneda = "EUR" | "ARS";
 
@@ -31,7 +31,8 @@ export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_a
 export type Voz = "clonada" | "narrador" | "real";
 
 export const NOMBRE_VIAJE = "Vitácora de viaje";
-export const DETALLE_VIAJE = "Tu biógrafo te escribe cada noche del viaje, guarda tus fotos y, al volver, tu viaje es un libro.";
+// TEXTO PARA NAZA: el nombre de la línea con el álbum de 40.
+export const NOMBRE_VIAJE_ALBUM40 = "Vitácora de viaje, álbum de 40 fotos";
 
 export const NOMBRE_PDF = "El libro en PDF + Su voz";
 export const DETALLE_PDF = "Se lee en la web, capítulo por capítulo, con sus fotos. Incluye «Su voz»: sus mejores frases, en su voz real, para escuchar. Siempre disponible.";
@@ -65,6 +66,8 @@ export type Catalogo = {
   moneda: Moneda;
   base: { nombre: string; detalle: string; precio: number };
   viaje: number | null;
+  /** Viaje V2: el precio entero del viaje con el álbum de 40 fotos; null = solo se vende el de 20. */
+  viajeAlbum40: number | null;
   /** El primer impreso (adicional sobre la base) y cada copia más; null = no se vende en la región. */
   impreso: { precio: number; precioCopia: number | null } | null;
   /** El primer marco y cada marco más; null = no se vende. */
@@ -86,11 +89,16 @@ export function catalogo(region: Region): Catalogo {
     moneda,
     base: { nombre: NOMBRE_PDF, detalle: DETALLE_PDF, precio: monto },
     viaje: obtenerPrecioViaje(region),
+    viajeAlbum40: precioAlbum40(obtenerPrecioViajeAlbum40(region), obtenerPrecioViaje(region)),
     impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
     marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
     pack: impreso === null || marco === null ? null : precioDePack(precioDeEntorno("PRECIO_PACK", region), monto + impreso),
   };
 }
+
+// El de 40 fotos cuesta más que el de 20: si no (o si no hay viaje), es un
+// error de carga y la opción no existe. Nunca se cobra de menos.
+const precioAlbum40 = (precio: number | null, viaje: number | null) => (precio === null || viaje === null || precio <= viaje ? null : precio);
 
 // Un pack que no cubre ni el libro impreso solo es un error de carga (p. ej.
 // `10.9` en vez de `109` en Vercel): se ignora y se cobra la suma, nunca de menos.
@@ -117,6 +125,8 @@ export function ahorroDelPack(cat: Catalogo): number | null {
  */
 export type Carrito = {
   base: "pdf" | "viaje" | null;
+  /** Viaje V2: el álbum de 20 (por defecto) o de 40 fotos. Solo cuenta con `base: "viaje"`. */
+  album?: 20 | 40;
   impresos: number;
   marcos: number;
   impresosPrevios?: number;
@@ -179,7 +189,10 @@ export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Co
   }
 
   if (carrito.base === "pdf") lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: cat.base.precio });
-  if (carrito.base === "viaje" && cat.viaje !== null) lineas.push({ id: "viaje", nombre: NOMBRE_VIAJE, cantidad: 1, precioUnitario: cat.viaje });
+  if (carrito.base === "viaje" && cat.viaje !== null) {
+    const con40 = carrito.album === 40 && cat.viajeAlbum40 !== null;
+    lineas.push({ id: "viaje", nombre: con40 ? NOMBRE_VIAJE_ALBUM40 : NOMBRE_VIAJE, cantidad: 1, precioUnitario: con40 ? cat.viajeAlbum40! : cat.viaje });
+  }
 
   if (impresos > 0 && cat.impreso) {
     if (impresosPrevios === 0) {
@@ -215,6 +228,8 @@ export function validarCarrito(region: Region, carrito: Carrito): { ok: true } |
   const marcos = entero(carrito.marcos);
   const impresosPrevios = entero(carrito.impresosPrevios);
   if (carrito.base === "viaje" && cat.viaje === null) return { ok: false, mensaje: "La Vitácora de viaje todavía no está disponible en tu región." };
+  // TEXTO PARA NAZA
+  if (carrito.base === "viaje" && carrito.album === 40 && cat.viajeAlbum40 === null) return { ok: false, mensaje: "El álbum de 40 fotos todavía no está disponible." };
   if (impresos > 0 && !cat.impreso) return { ok: false, mensaje: "El libro impreso todavía no está disponible en tu región." };
   const copiasNuevas = impresosPrevios === 0 ? impresos - 1 : impresos;
   if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };

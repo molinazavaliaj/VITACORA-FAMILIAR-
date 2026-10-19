@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, chicaParaTapa, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
-import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
+import { HORAS_FAMILIAR, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
@@ -667,25 +667,23 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 
 // ── ritmo y temas a evitar (solo dueña) ────────────────────────────────
 
-// `sinRitmo`: en viaje (3t.19) el bot escribe una vez por noche, no hay ritmo que elegir.
 // `horario` (3t.23): a qué hora y en qué zona le llega la pregunta; se ve y se
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
 // `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
 // se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false, tratoPanel = "vos" }: {
+export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false, tratoPanel = "vos" }: {
   narradorId: string;
   /** Entrevista V3 (10/10): sin ritmo (si contesta, le llega la siguiente siempre) ni «Temas que no se
    *  preguntan» (el bot V3 no lo lee todavía). Queda la hora. */
   v3?: boolean;
   ritmo: Ritmo;
   evitar: string;
-  sinRitmo?: boolean;
-  /** «Sus objetos preciados» (3t.30). undefined = no se ofrece (Vitácora de viaje). */
+  /** «Sus objetos preciados» (3t.30). undefined = no se ofrece. */
   pedirFotos?: boolean;
   /** Los ocho pedidos, para que la familia vea exactamente qué se le va a pedir. */
   objetos?: { orden: number; capitulo: string; texto: string }[];
   horario?: { hora: string; zona: string };
-  /** "te llega" en vez de "le llega": autobiografía o viaje. */
+  /** "te llega" en vez de "le llega": autobiografía. */
   propia?: boolean;
   trato?: { valor: "usted" | "vos" | null; editable: boolean };
   /** El trato de los textos del panel (vos/tú), no el del biógrafo. */
@@ -700,7 +698,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
   const [zona, setZona] = useState(horario?.zona ?? "");
   // La lista base según el producto; si la hora guardada no está en la lista
   // (un piloto a mano, o la compra vieja), se agrega para que se vea tal cual.
-  const horasBase: Hora[] = sinRitmo ? HORAS_VIAJE : HORAS_FAMILIAR;
+  const horasBase: Hora[] = HORAS_FAMILIAR;
   const horas: Hora[] = horario && !horasBase.some((h) => h.valor === horario.hora) ? [{ valor: horario.hora, nombre: `${horario.hora} (la actual)` }, ...horasBase] : horasBase;
   const zonas: [string, string][] = horario && !ZONAS.some(([z]) => z === horario.zona) ? [[horario.zona, horario.zona], ...ZONAS] : ZONAS;
   const horarioCambio = Boolean(horario) && (hora !== horario!.hora || zona !== horario!.zona);
@@ -725,7 +723,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
 
   return (
     <div className="flex flex-col gap-8">
-      {sinRitmo || v3 ? null : (
+      {v3 ? null : (
       <fieldset>
         <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Ritmo</legend>
         <div className="mt-3 flex flex-col gap-2">
