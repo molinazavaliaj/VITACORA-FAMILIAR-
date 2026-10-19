@@ -111,3 +111,14 @@ estimá el costo y **no lo corras** sin el OK de Naza anotado acá.
 - **Qué entró:** `web/src/app/robots.ts` (permite todo, bloquea las nueve privadas, sitemap con la base de `metadataBase`), `web/src/lib/seo.ts` (`URL_BASE` única + `reglasRobots()` + `datosEstructurados()`), la portada imprime el JSON-LD en es/ar/ca, y `layout.tsx`/`lib/sitemap.ts` pasan a usar `URL_BASE`. Este archivo de tareas no existía en `rediseno-web`: entra con esta rama, copiado de `main`.
 - **Tests:** `web` 1424 pasan (+1 salteado, 112 archivos), 23 nuevos en `test/seo.test.tsx`; `npm run build` exit 0, `/robots.txt` estático.
 - **Pendiente de Naza:** el precio del marco en España está en dos lugares y no coinciden (el texto dice «a 19 €» y `.env.local` tiene `PRECIO_MARCO_EUR` en 20). Por eso el marco se anuncia solo en `ar`. Cuando la frase lea la variable, se suma a es y ca.
+
+### T3 · página de error 500 — 18/10
+- **Rama:** `pagina-error`, cortada de `rediseno-web` (commit `c80afc9c`).
+- **PR:** #86 contra `rediseno-web` → https://github.com/molinazavaliaj/VITACORA-FAMILIAR-/pull/86
+- **Qué entró:** `app/error.tsx` + `app/ca/error.tsx` + `app/ar/error.tsx` (la hoja del 404, con botón de reintentar y enlace al inicio), `app/global-error.tsx` (estilos en línea, `<html>`/`<body>` propios), `_publico/pagina-error.tsx`, una prop `accion` en `HojaAviso` y los textos nuevos en `_textos/avisos.ts`. Acepta `retry()` (Next 16.3) y `reset()`. Al log va solo el `digest`, nunca `error.message`.
+- **Tests:** `web` 1412 pasan (+1 salteado), 11 nuevos en `test/error-500.test.tsx`; `npm run build` exit 0. Sin CI en la base `rediseno-web` (no tiene `tests.yml`): se corrió a mano lo mismo.
+- **TEXTOS A APROBAR (Naza), tal cual:**
+  - es (neutro, portada y global-error): etiqueta «Error 500» · título «Se nos cruzó un error.» · frase «Fue un error nuestro.» · bajada «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escríbenos y lo miramos.» · botón «Probar de nuevo» · enlace «Volver al inicio».
+  - ca: «Error 500» · «Se'ns ha creuat un error.» · «Ha estat un error nostre.» · «Alguna cosa ha fallat en muntar aquesta pàgina. Sol durar poc. Si torna a passar, escriu-nos i ho mirem.» · «Tornar-ho a provar» · «Tornar a l'inici».
+  - ar (voseo): «Error 500» · «Se nos cruzó un error.» · «Fue un error nuestro.» · «Algo falló al armar esta página. Suele durar poco. Si vuelve a pasar, escribinos y lo miramos.» · «Probar de nuevo» · «Volver al inicio».
+- **Pendiente:** la aprobación de los textos por Naza antes del merge (el catalán, además, revisión nativa como el resto).

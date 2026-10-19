@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { CONTACTO } from "../legal/titulares";
@@ -39,13 +40,20 @@ export function HojaAviso({
   aviso,
   salidas,
   folio,
+  accion,
 }: {
   idioma: IdiomaWeb;
   aviso: TextosAviso;
-  /** La primera va como botón lleno; las demás, como enlace. */
+  /** La primera va como botón lleno; las demás, como enlace (salvo que haya `accion`). */
   salidas: Salida[];
   /** El número grande en cursiva (el 404). */
   folio?: string;
+  /**
+   * Un botón propio delante de las salidas: en la página de error 500 es
+   * «Probar de nuevo» (el `retry()` de Next). Si viene, las salidas bajan a
+   * enlace para que haya un solo botón lleno.
+   */
+  accion?: ReactNode;
 }) {
   const t = TEXTOS_AVISOS[idioma];
   const texto: Record<Salida["tipo"], string> = {
@@ -74,9 +82,10 @@ export function HojaAviso({
             {aviso.frase ? <p className="avi-frase">{aviso.frase}</p> : null}
             {aviso.bajada ? <p className="avi-bajada">{aviso.bajada}</p> : null}
             <div className="avi-acciones">
+              {accion ?? null}
               {salidas.map((salida, i) => {
                 const href = hrefDeSalida(salida, idioma);
-                const clase = i === 0 ? "avi-boton" : "avi-enlace";
+                const clase = i === 0 && !accion ? "avi-boton" : "avi-enlace";
                 // Afuera (WhatsApp, correo) va con <a>; adentro, con Link sin prefetch.
                 return href.startsWith("/") ? (
                   <Link key={salida.tipo} href={href} prefetch={false} className={clase}>
