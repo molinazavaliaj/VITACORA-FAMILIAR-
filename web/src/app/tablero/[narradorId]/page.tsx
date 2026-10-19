@@ -774,6 +774,17 @@ function HistoriaClasica({
         </div>
       ) : null}
 
+      {/* ── Primero: cómo arranca la entrevista, hora y ritmo (solo dueña). Naza, 19/10:
+          personalizar la entrevista va antes de corregir las preguntas. ── */}
+      {!cerrado && PUEDE.cambiarRitmo(rol) ? (
+        <section className="mt-10 border-b border-[var(--linea)] pb-10">
+          <Etiqueta>Ajustes de la entrevista</Etiqueta>
+          <div className="mt-6">
+            <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={pedirFotos} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
+          </div>
+        </section>
+      ) : null}
+
       {editando ? (
         <div className="mt-8">
           <AgregarPregunta
@@ -954,15 +965,6 @@ function HistoriaClasica({
         ) : null}
       </div>
 
-      {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
-      {!cerrado && PUEDE.cambiarRitmo(rol) ? (
-        <section className="mt-16 border-t border-[var(--linea)] pt-10">
-          <Etiqueta>Ajustes de la entrevista</Etiqueta>
-          <div className="mt-6">
-            <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} pedirFotos={pedirFotos} objetos={objetos.map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto }))} tratoPanel={tratoPanel} />
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }
