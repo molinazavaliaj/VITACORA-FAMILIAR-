@@ -102,7 +102,7 @@ Solo lo que un lector catalán entendería distinto de lo que dice la versión d
 | # | ID | Regla | Aviso | Por qué se descarta |
 |---|---|---|---|---|
 | C1 | ENTRADA-1 | PER_QUAN | «Comencem per quan…» → «per a quan» | Es «començar per» (empezar por). No es «per a quan» (para cuando). Está bien. |
-| C2 | K4-FOTO | TOT_I_AIXI | «tot i així» → «així i tot» | Se usan las dos y las dos se entienden igual. Lo del corrector es preferencia de estilo; «tot i així» es lo que dice un chico. |
+| C2 | K4-FOTO | TOT_I_AIXI | «tot i així» → «així i tot» | ~~Se usan las dos y las dos se entienden igual; «tot i així» es lo que dice un chico.~~ **Revertido el 19/10: Naza decidió seguir a Softcatalà en toda la web y el banco, y este aviso se aplica.** |
 | C3 | K27-OP | ESCOLTAR_SENTIR | «has escoltat tant» → «sentit» | «Escoltar» es escuchar a propósito, y una canción que te pones mil veces se escucha. El corrector piensa en «oír». |
 | C4 | KP-GUARDADO, KP-PENDIENTE | NOMS_OPERACIONS_DESAT | «Desat» → «Desament» | Es el participio («Guardado.»), una confirmación. No es el nombre de la operación. |
 | C5 | KP-LIBRO-ERR-YA-APROBADO | ESTAR_CAUSAT | «ja està aprovat» → «ja és aprovat» | «Estar» con participio para un estado que resulta de algo lo admite la GIEC. «Ja és aprovat» suena a libro. |
