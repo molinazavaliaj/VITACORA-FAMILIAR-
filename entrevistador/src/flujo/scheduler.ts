@@ -13,6 +13,7 @@ import { chicosKids } from '../kids-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
+import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar, type NarradorParaBorrar } from './borrado-no-acepto.js';
 
 export { fechaLocal, minutosLocales };
 
@@ -319,6 +320,32 @@ async function marcarNoAceptaron(ahora: Date): Promise<void> {
   }
 }
 
+/**
+ * 6. Quince días después del «no aceptó»: se borra su ficha y sus fotos.
+ *
+ * Lo prometen los legales (privacidad §7). APAGADO hasta el OK de Joaquín:
+ * destruye datos y no tiene vuelta atrás, igual que el borrado de audios.
+ *
+ * Avisa a los socios de lo que hizo: un borrado silencioso no se puede auditar.
+ */
+async function borrarFichasDeNoAceptaron(ahora: Date): Promise<void> {
+  if ((process.env.BORRADO_NO_ACEPTO ?? '').trim() !== '1') return;
+  for (const n of await narradoresEn(['invitado'])) {
+    if (!leTocaBorrar(n as unknown as NarradorParaBorrar, ahora)) continue;
+    await aislado(n.id, async () => {
+      const fotos = await borrarFichaYFotos(db, n.id, ahora);
+      console.log(`no-acepto: borrada la ficha de ${n.id} y ${fotos} fotos.`);
+      await avisarSocios(
+        `borrado-ficha:${n.id}`,
+        'Se borró la ficha de un narrador que no aceptó',
+        `Pasaron ${DIAS_PARA_BORRAR_FICHA} días desde que ${n.id} quedó como «no aceptó».\n\n`
+        + `Se borraron su nombre, su número, su ficha y sus ${fotos} fotos, como prometen los legales.\n`
+        + 'El pedido y los datos de la compra siguen: los exige la ley fiscal.',
+      );
+    });
+  }
+}
+
 // ── El tick y el cron ──────────────────────────────────────────────────
 
 export async function tick(ahora: Date = new Date()): Promise<void> {
@@ -334,6 +361,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     ['recordatorios', () => enviarRecordatorios(ahora)],
     ['alertas', () => prenderAlertasDeSilencio(ahora)],
     ['no-acepto', () => marcarNoAceptaron(ahora)],
+    ['borrado-no-acepto', () => borrarFichasDeNoAceptaron(ahora)],
   ] as const) {
     try {
       await fase();

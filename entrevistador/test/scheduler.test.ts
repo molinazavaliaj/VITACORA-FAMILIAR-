@@ -335,6 +335,27 @@ describe('tick', () => {
     expect(mocks.avisarSocios).not.toHaveBeenCalled();
   });
 
+  // El borrado de la ficha destruye datos de una persona y no tiene vuelta
+  // atrás: tiene que estar apagado hasta que Joaquín diga, como el de audios.
+  it('(m) el borrado de la ficha está APAGADO si no está la variable', async () => {
+    delete process.env.BORRADO_NO_ACEPTO;
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-01T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-07-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const borrado = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.telefono_whatsapp);
+    expect(borrado).toBeUndefined();
+  });
+
+  it('(n) y con la variable en cualquier otra cosa, también apagado', async () => {
+    process.env.BORRADO_NO_ACEPTO = '0';
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-01T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-07-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const borrado = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.telefono_whatsapp);
+    expect(borrado).toBeUndefined();
+    delete process.env.BORRADO_NO_ACEPTO;
+  });
+
   it('(f) si faltan las adaptativas, las regenera en vez de dejarlo clavado en el día 26', async () => {
     mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 26 })];
     mocks.filas.respuestas = [{ pregunta_orden: 26 }]; // ya respondió la 26 → toca la 27

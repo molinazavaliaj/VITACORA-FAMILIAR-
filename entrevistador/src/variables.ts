@@ -13,8 +13,8 @@
 // plantillas (no son secretas y sin verlas no se encuentra el error de tipeo).
 //
 // Los interruptores apagados (V3_PARA_NUEVOS, VIAJE_V2_PARA_NUEVOS,
-// WA_BIENVENIDA_PIDE_VOZ, WA_PLANTILLA_BIENVENIDA_VIAJE, V3_CAZADOR=0) están así a
-// propósito: no son una falta. Prendidos, se revisa que tengan lo que necesitan.
+// WA_BIENVENIDA_PIDE_VOZ, WA_PLANTILLA_BIENVENIDA_VIAJE, V3_CAZADOR=0,
+// BORRADO_NO_ACEPTO) están así a propósito: no son una falta. Prendidos, se revisa que tengan lo que necesitan.
 // SUGERIDAS_CLAVE es opcional a propósito (sin ella la ruta /sugeridas no existe) y
 // REGALO_ENTREGA_WHATSAPP vive solo en Vercel (CONTRATO.md): ninguna se revisa acá.
 
