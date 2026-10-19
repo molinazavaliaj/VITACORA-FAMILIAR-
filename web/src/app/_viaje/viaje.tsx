@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Cabecera, Pie } from "../_publico";
 import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Foto, Palabras, conVar } from "../_direccion/piezas";
@@ -30,7 +31,8 @@ const FOTOS = {
   libro: "/rediseno/viaje-libro-mesa.jpg",
 } as const;
 
-export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
+/** `hero`: otro inicio en lugar del de hoy (solo los mockups de /prueba-heroes, 19/10). */
+export function PaginaViaje({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactNode }) {
   const v = TEXTOS_VIAJE[idioma];
   const cat = catalogo(regionDeIdioma(idioma));
   const formatear = (n: number) =>
@@ -53,6 +55,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
   return (
     <Pagina idioma={idioma} producto="viaje">
       {/* ═══ 1 · INICIO: el lema enorme y la foto del hotel en arco ═══ */}
+      {hero ?? (
       <section className="dir-tinta relative">
         <div className="absolute inset-x-0 top-0">
           <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
@@ -102,6 +105,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
           />
         </div>
       </section>
+      )}
 
       {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola ═══ */}
       <section className="dir-tinta dir-hoja relative">

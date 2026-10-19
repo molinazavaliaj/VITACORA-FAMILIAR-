@@ -44,7 +44,8 @@ export function preciosKids(idioma: IdiomaWeb) {
   return { vende, precio: vende ? precio : null, formatear, promo, lista };
 }
 
-export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
+/** `hero`: otro inicio en lugar del de hoy (solo los mockups de /prueba-heroes, 19/10). */
+export function PaginaKidsCompleta({ idioma, hero }: { idioma: IdiomaWeb; hero?: ReactNode }) {
   const t = TEXTOS_KIDS[idioma];
   const { vende, precio, formatear, promo, lista } = preciosKids(idioma);
   const comprar = ruta(idioma, "/comprar/kids");
@@ -80,6 +81,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
   return (
     <PaginaKids idioma={idioma}>
       {/* ═══ 1 · INICIO: el titular enorme y el chico que graba, en arco ═══ */}
+      {hero ?? (
       <section className="relative">
         <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero />
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 pb-20 pt-8 sm:px-8 md:grid-cols-12 md:gap-8 md:pb-28 md:pt-14 lg:px-12">
@@ -109,6 +111,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
           />
         </div>
       </section>
+      )}
 
       {/* ═══ 2 · LOS DIBUJOS SE PIERDEN: una frase sola, centrada ═══ */}
       <section className="kids-hilo-arriba">
