@@ -1,8 +1,9 @@
 # Textos legales nuevos (19/10/2026)
 
 Salen de `para-el-abogado.md`: §1 y §7.2 (garantía), §6 y §7.1 (rasca y gana). Naza los aprueba de a 10 y después van al
-Lo que va entre corchetes `[nota interna: …]` es para el abogado y para nosotros: NO se publica.
 abogado para que los confirme. es = España de tú; ar = de vos y 10 días en lugar de 14.
+
+Lo que va entre corchetes `[nota interna: …]` es para el abogado y para nosotros: NO se publica.
 
 ## Tanda 1 — APROBADA por Naza 19/10 (falta el abogado)
 
