@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
+  avisarSocios: vi.fn(),
   enviarPlantilla: vi.fn(),
   enviarTexto: vi.fn(),
   enviarAudioPorLink: vi.fn(),
@@ -9,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   generarPreguntaReemplazo: vi.fn(),
   armarHistoria: vi.fn(),
   ultimaTranscripcion: vi.fn(),
+  asegurarAltaViajeV2: vi.fn(),
   // Filas que devuelve la base falsa, configurables por test.
   filas: {
     narradores: [] as any[],
@@ -78,6 +80,8 @@ vi.mock('../src/db/cliente.js', () => {
   };
 });
 
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
+
 vi.mock('../src/whatsapp/enviar.js', () => ({
   enviarPlantilla: mocks.enviarPlantilla, enviarAudioPorLink: mocks.enviarAudioPorLink, enviarTexto: mocks.enviarTexto,
 }));
@@ -101,6 +105,12 @@ vi.mock('../src/db/guion.js', () => ({
   capitulosDe: async () => [...new Set(mocks.filas.preguntas.map((p: any) => p.capitulo))],
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: vi.fn() }));
+// Vitácora de Viaje (solo V2, 16/10): el alta se prueba en test/viaje-v2/alta.test.ts; acá, que el tick la llama.
+vi.mock('../src/viaje-v2/alta.js', async (importar) => ({
+  ...(await importar<typeof import('../src/viaje-v2/alta.js')>()),
+  asegurarAltaViajeV2: mocks.asegurarAltaViajeV2,
+}));
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
 }));
@@ -274,6 +284,85 @@ describe('tick', () => {
     expect(alerta).toBeTruthy();
   });
 
+  // ── Los 30 días del «no aceptó» (Naza y Joaquín, 19/10) ────────────────
+  // El bot no tiene un «no acepto»: un «no» lo toma como «más tarde». Sin un
+  // plazo nadie deja de esperar nunca, y los términos prometen devolver todo.
+
+  const invitado = (extra: Record<string, any> = {}) => narrador({ estado: 'invitado', dia_actual: 0, ...extra });
+  const bienvenidaDe = (enviado_at: string, wa: string | null = 'wamid.b') =>
+    [{ tipo: 'bienvenida', pregunta_orden: null, enviado_at, wa_message_id: wa }];
+
+  it('(g) a los 30 días sin aceptar se avisa a los socios para devolver', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+    const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0] as string[];
+    expect(clave).toContain('n1');
+    expect(asunto).toMatch(/no aceptó/i);
+    expect(detalle).toMatch(/devolver/i);
+  });
+
+  it('(h) a los 28 todavía no: no se avisa nada', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-04T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(i) se avisa UNA vez: con la marca puesta, el tick siguiente no repite', async () => {
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-31T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(j) queda anotada la fecha: de ahí cuentan los 15 días del borrado', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const marca = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.contexto?.noAcepto);
+    expect(marca).toBeTruthy();
+    expect(marca.p.contexto.noAcepto.cuando).toBeTruthy();
+  });
+
+  // Una bienvenida sin id de Meta es un intento fallido: nunca le llegó. Eso es
+  // otro problema, y no se puede contar como que la persona no quiso.
+  it('(k) si la bienvenida nunca salió de verdad, no se da por no aceptado', async () => {
+    mocks.filas.narradores = [invitado()];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z', null);
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('(l) a un narrador que ya aceptó no se lo toca', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 3 })];
+    mocks.filas.envios = bienvenidaDe('2026-08-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  // El borrado de la ficha destruye datos de una persona y no tiene vuelta
+  // atrás: tiene que estar apagado hasta que Joaquín diga, como el de audios.
+  it('(m) el borrado de la ficha está APAGADO si no está la variable', async () => {
+    delete process.env.BORRADO_NO_ACEPTO;
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-01T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-07-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const borrado = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.telefono_whatsapp);
+    expect(borrado).toBeUndefined();
+  });
+
+  it('(n) y con la variable en cualquier otra cosa, también apagado', async () => {
+    process.env.BORRADO_NO_ACEPTO = '0';
+    mocks.filas.narradores = [invitado({ contexto: { noAcepto: { cuando: '2026-08-01T10:00:00Z' } } })];
+    mocks.filas.envios = bienvenidaDe('2026-07-01T10:00:00Z');
+    await tick(A_LAS_10_05);
+    const borrado = mocks.capturas.find((c: any) => c.op === 'update' && c.tabla === 'narradores' && c.p?.telefono_whatsapp);
+    expect(borrado).toBeUndefined();
+    delete process.env.BORRADO_NO_ACEPTO;
+  });
+
   it('(f) si faltan las adaptativas, las regenera en vez de dejarlo clavado en el día 26', async () => {
     mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 26 })];
     mocks.filas.respuestas = [{ pregunta_orden: 26 }]; // ya respondió la 26 → toca la 27
@@ -290,41 +379,53 @@ describe('tick', () => {
   });
 });
 
-// Vitácora de viaje (12/10, pedido de Joaquín): la noche N no sale antes de su
-// fecha. Hoy (A_LAS_10_05) es 2026-09-01 en Buenos Aires.
-describe('tick en viaje: la pregunta espera a su noche', () => {
-  const viajero = (salida: string, extra: Record<string, any> = {}) => narrador({
-    contexto: { modo: 'viaje', viaje: { salida, vuelta: '2026-09-20', etapas: [] } }, ...extra,
+// Vitácora de Viaje: solo V2 desde el 16/10. El tick le da el alta al viajero nuevo y al que quedó en el viaje
+// viejo no le manda nada (ni Familiar ni viaje viejo): se avisa a los socios una sola vez.
+describe('tick con viajeros (solo V2)', () => {
+  const viajero = (extra: Record<string, any> = {}) => narrador({
+    contexto: { modo: 'viaje', trato: 'vos', viaje: { salida: '2026-09-05', vuelta: '2026-09-20', etapas: [] } }, ...extra,
   });
 
-  it('dijo SÍ antes de viajar: la primera pregunta no sale hasta el día de la salida', async () => {
-    mocks.filas.narradores = [viajero('2026-09-05', { estado: 'acepto', dia_actual: 0 })];
+  it('un viajero nuevo (invitado) recibe el alta V2 y ninguna bienvenida vieja', async () => {
+    mocks.filas.narradores = [viajero({ estado: 'invitado' })];
+    mocks.asegurarAltaViajeV2.mockResolvedValue('creada');
+    await tick(A_LAS_10_05);
+    expect(mocks.asegurarAltaViajeV2).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: 'n1' }));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(inserts('envios')).toEqual([]);
+  });
+
+  it('sin datos para el alta, tampoco le sale nada del Familiar', async () => {
+    mocks.filas.narradores = [viajero({ estado: 'invitado' })];
+    mocks.asegurarAltaViajeV2.mockResolvedValue('faltan-datos');
     await tick(A_LAS_10_05);
     expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
-    expect(update('narradores')).toBeUndefined();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 
-  it('el día de la salida, a su hora, sale la primera', async () => {
-    mocks.filas.narradores = [viajero('2026-09-01', { estado: 'acepto', dia_actual: 0 })];
+  it('el que quedó en el viaje viejo (activo, sin fila) no recibe pregunta ni recordatorio; los socios reciben UN aviso con la lista', async () => {
+    mocks.filas.narradores = [
+      viajero({ id: 'nako', como_le_dicen: 'Ñako', estado: 'activo', dia_actual: 3, ultima_respuesta_at: '2026-08-01T00:00:00Z' }),
+      viajero({ id: 'otro', como_le_dicen: 'Otro', estado: 'acepto' }),
+    ];
     await tick(A_LAS_10_05);
-    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
-    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
-  });
-
-  it('nunca se adelanta: con la noche 2 contestada, la 3 espera a su fecha', async () => {
-    // Salió el 31/08: hoy es el día 2. Ya contestó la 2 → la 3 es del 02/09.
-    mocks.filas.narradores = [viajero('2026-08-31', { estado: 'activo', dia_actual: 2 })];
-    mocks.filas.respuestas = [{ pregunta_orden: 2 }];
-    await tick(A_LAS_10_05);
+    expect(mocks.asegurarAltaViajeV2).not.toHaveBeenCalled();
     expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined(); // ni alerta de silencio
+    const avisos = mocks.avisarSocios.mock.calls.filter((c) => String(c[0]).startsWith('viaje-v1-quedaron'));
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0][0]).toBe('viaje-v1-quedaron:nako,otro');
+    expect(avisos[0][2]).toMatch(/Ñako \(nako\)/);
+    expect(avisos[0][2]).toMatch(/ya no les escribe/);
+    expect(avisos[0][3]).toEqual({ unaVez: true });
   });
 
-  it('atrasado no espera: si la noche ya pasó, sale', async () => {
-    // Salió el 25/08 y va por la 3 (contestada): la 4 era del 28/08, sale hoy.
-    mocks.filas.narradores = [viajero('2026-08-25', { estado: 'activo', dia_actual: 3 })];
-    mocks.filas.respuestas = [{ pregunta_orden: 3 }];
+  it('un narrador del Familiar no pasa por el alta del viaje', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'invitado' })];
     await tick(A_LAS_10_05);
-    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 4 });
+    expect(mocks.asegurarAltaViajeV2).not.toHaveBeenCalled();
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'bienvenida', expect.anything());
   });
 });
 

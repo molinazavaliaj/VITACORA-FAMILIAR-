@@ -9,7 +9,8 @@ import type { DepsV3 } from './deps.js';
 import { conReintento, soltarTurno, tomarTurno, TOMA_MS } from './estado.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
 import type { EstadoV3, FilaV3 } from './tipos.js';
-import { quitarSalientes } from './turno.js';
+import { leerInferida } from './nucleo/entrevista/respuesta.js';
+import { claveMadre, quitarSalientes } from './turno.js';
 
 /** La ventana de Meta es de 24 h desde el último mensaje del narrador; se deja media hora de margen. */
 export const VENTANA_MS = 24 * 3600_000 - 30 * 60_000;
@@ -144,7 +145,7 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
     // («enseguida le llega la primera pregunta»), revisión del 10/10.
     mailAcepto = resultado === 'enviado' && contexto.regalo === true && fila.estado.respuestas.length === 0
       && !(Array.isArray(contexto.mailsEnviados) && contexto.mailsEnviados.includes('acepto'));
-    if (fila.estado.terminada) await completar(deps, narradorId);
+    if (fila.estado.terminada) await completar(deps, narradorId, fila.estado);
     return resultado;
   } finally {
     await soltarTurno(deps.db, narradorId, tomada);
@@ -166,8 +167,40 @@ async function anotarFallo(deps: DepsV3, narradorId: string, err: unknown): Prom
   }
 }
 
+/**
+ * Las preguntas principales distintas que contestó de verdad: sin repreguntas
+ * ni segundas oportunidades (comparten la clave madre) y sin las inferidas,
+ * que no las contó ella. Es la cuenta que define §8 de los términos.
+ */
+export function preguntasContestadas(e: Pick<EstadoV3, 'respuestas'>): number {
+  const madres = e.respuestas
+    .filter(([, r]) => leerInferida(r) === undefined)
+    .map(([clave]) => claveMadre(clave));
+  return new Set(madres).size;
+}
+
+/**
+ * Con menos de esto, los términos (§8) prometen devolver todo: la entrevista
+ * terminó sin material para un libro.
+ */
+export const RESPUESTAS_PARA_UN_LIBRO = 10;
+
 /** FIN salió: `activo → completado` (la misma transición de siempre). */
-async function completar(deps: DepsV3, narradorId: string): Promise<void> {
+async function completar(deps: DepsV3, narradorId: string, estado: EstadoV3): Promise<void> {
   const { error } = await deps.db.from('narradores').update({ estado: 'completado' }).eq('id', narradorId).eq('estado', 'activo');
   if (error) console.error(`V3: no pude dejar completado a ${narradorId}: ${error.message}`);
+  // Terminó sin material para un libro: corresponde devolver todo, y los
+  // términos lo prometen «sin que tengas que pedirlo» (textos aprobados por
+  // Naza el 18/10). La devolución es a mano, así que este aviso es lo único
+  // que la dispara. Nunca frena el cierre: el aviso va después del update y
+  // un fallo suyo no deja a nadie sin completar.
+  const contestadas = preguntasContestadas(estado);
+  if (contestadas < RESPUESTAS_PARA_UN_LIBRO) {
+    await deps.avisar(`sin-material:${narradorId}`,
+      `Una entrevista terminó con ${contestadas} respuestas`,
+      `${narradorId} terminó la entrevista con ${contestadas} preguntas principales contestadas, `
+      + `menos de las ${RESPUESTAS_PARA_UN_LIBRO} que piden los términos (§8).\n\n`
+      + 'Corresponde devolverle el dinero a quien compró, completo y sin que lo pida, dentro de los 14 días.',
+    ).catch((e) => console.error(`V3: no pude avisar del material de ${narradorId}: ${String(e)}`));
+  }
 }

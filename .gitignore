@@ -25,3 +25,7 @@ skills-lock.json
 
 # Salida de entrevistador/scripts/v3-recazar.ts (citas de narradores): nunca al repo
 recazar-*.json
+
+# Python: la caché que se arma al correr los scripts (copias/).
+__pycache__/
+*.pyc

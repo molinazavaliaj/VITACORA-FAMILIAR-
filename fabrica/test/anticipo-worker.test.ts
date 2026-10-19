@@ -56,6 +56,9 @@ import { tick } from '../src/worker.js';
 
 const NARRADOR = { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' };
 
+/** El contexto del narrador en la base falsa (null = un Familiar sin contexto). */
+let contextoNarrador: Record<string, unknown> | null = null;
+
 /** La región de la familia en la base falsa (ES = el texto de siempre). */
 let regionFamilia = 'ES';
 
@@ -67,7 +70,7 @@ function construirDb(opciones: { archivos: string[]; respuestas: number }) {
 
   const from = vi.fn((tabla: string) => {
     if (tabla === 'narradores') {
-      return { select: () => ({ in: () => Promise.resolve({ data: [NARRADOR], error: null }) }) };
+      return { select: () => ({ in: () => Promise.resolve({ data: [{ ...NARRADOR, contexto: contextoNarrador }], error: null }) }) };
     }
     if (tabla === 'respuestas') {
       // dos usos: contar (head:true) y traer la primera respondida
@@ -139,6 +142,15 @@ describe('rama del anticipo en el tick', () => {
       comoLeDicen: 'papá',
       enlace: 'https://www.vitacorafamiliar.com/anticipo/token-firmado',
     });
+  });
+
+  it('a un viajero (modo viaje: V2, o uno que quedó en el viaje viejo) no se le arma el anticipo de la biografía', async () => {
+    contextoNarrador = { modo: 'viaje', viaje: { salida: '2026-10-01', vuelta: '2026-11-18', etapas: [] } };
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
+    await tick();
+    contextoNarrador = null;
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
+    expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
   });
 
   it('con 2 respuestas todavía no hace nada: no le paga al modelo', async () => {

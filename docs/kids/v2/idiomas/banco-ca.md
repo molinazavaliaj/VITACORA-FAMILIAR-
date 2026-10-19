@@ -37,7 +37,7 @@ K3-FOTO | Ensenya'm el regal més estrany que t'han fet. Qui te'l va fer?
 K3-FOTO-B1 | No en tinc
 K4 | Pensa en el joc que t'agradava més, el que jugaves sempre. Explica'm l'última vegada que hi vas jugar.
 K4-OP | Alguna vegada t'has avorrit tant que t'has inventat un joc? Explica'm aquest.
-K4-FOTO | Tens alguna cosa trencada que tot i així no llences? Envia'm una foto i explica'm com es va trencar.
+K4-FOTO | Tens alguna cosa trencada que així i tot no llences? Envia'm una foto i explica'm com es va trencar.
 K4-FOTO-B1 | No en tinc
 K5 | Quin va ser el pitjor cop que et vas fer de {{petit/petita}}? Explica'm aquell dia.
 K5-OP | T'ha quedat alguna marca o cicatriu d'alguna cosa que et va passar? Explica'm d'on va sortir.

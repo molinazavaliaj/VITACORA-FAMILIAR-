@@ -2,6 +2,14 @@
 
 > **16/10/2026:** se sacó del worker de voz (`voz/`) el camino de la narración con voz clonada: ya no sondea `narraciones` ni pide `MOTOR`; solo corta las frases de «Su voz» y late. Lo de abajo sobre el audiolibro clonado es historia.
 
+## 16/10: la Vitácora de Viaje es solo V2
+
+- Se borró el viaje viejo (V1) del entrevistador y el interruptor `VIAJE_V2_PARA_NUEVOS`. Cada viajero nuevo
+  recibe el alta V2 solo (el tick, o al escribir primero) con lo que trae `contexto.viaje`; si los datos no
+  alcanzan, mail a los socios y el bot no le escribe. Contrato: `docs/viajes-v2/compra-contrato.md`.
+- Ñako (y cualquiera que haya quedado en el viaje viejo) no recibe nada más del bot; los socios reciben un
+  mail con la lista.
+
 ## 09/10: el libro V3 ya se escribe solo en producción
 
 - **Entrevista V3 por WhatsApp** en producción desde el 07/10. Narradores en V3: Naza (prueba), Dora, Imma

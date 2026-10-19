@@ -141,15 +141,6 @@ export function plantillaKidsLista(nombre: string, env: NodeJS.ProcessEnv = proc
 }
 
 /**
- * ¿Los viajeros NUEVOS van a la Viaje V2? (VIAJE_V2_PARA_NUEVOS=1, cuando Naza lo diga y con las bienvenidas
- * aprobadas en Meta). Prendido, a un viajero nuevo sin fila en `viajes_v2` no le sale la bienvenida vieja: se
- * avisa a los socios para que le creen la fila (npm run viaje-v2-alta) hasta que exista /comprar/viaje V2.
- */
-export function viajeV2ParaNuevos(): boolean {
-  return process.env.VIAJE_V2_PARA_NUEVOS === '1';
-}
-
-/**
  * ¿Los narradores NUEVOS entran a la entrevista V3? (spec 2026-10-07). Se
  * prende en Railway con V3_PARA_NUEVOS=1 cuando Naza lo diga; apagado, el alta
  * es la de siempre. Se lee en el momento (no al arrancar), como bienvenidaPideVoz.
