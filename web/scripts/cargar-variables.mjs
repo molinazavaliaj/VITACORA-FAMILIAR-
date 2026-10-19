@@ -16,7 +16,7 @@
 // fabrica/.env de la carpeta principal. Los cambios de Vercel se ven en el próximo deploy: al final se pide
 // uno (en `preview`, el workflow «Preview web (rediseño)»; en `produccion`, deploy-web.yml sobre main).
 
-import { execFileSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -41,7 +41,7 @@ function tokenVercel() {
   // El login de la CLI vence a las pocas horas y la CLI lo renueva sola cuando se usa: se la usa una vez antes de
   // leerlo (19/10: sin esto, Vercel contestó 403 con el login vencido).
   try {
-    execFileSync("npx", ["-y", "vercel@latest", "whoami"], { stdio: "ignore", shell: true });
+    execSync("npx -y vercel@latest whoami", { stdio: "ignore" });
   } catch {
     throw new Error("El login de Vercel no anda. Corré antes: npx vercel login");
   }
