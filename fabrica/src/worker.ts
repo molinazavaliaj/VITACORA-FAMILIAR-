@@ -108,6 +108,14 @@ type NarradorTerminado = NarradorConFamilia & Pick<Narrador, 'ultima_respuesta_a
 
 let corriendo = false;
 
+/** Cuándo empezó la vuelta que está corriendo (null: ninguna). */
+let vueltaEmpezo: number | null = null;
+/** Una vuelta que lleva más de esto no terminó nunca: el latido de cada minuto se calla (el panel la ve caída). */
+const VUELTA_COLGADA_MS = 60 * 60_000;
+export function vueltaColgada(ahora = Date.now()): boolean {
+  return vueltaEmpezo !== null && ahora - vueltaEmpezo > VUELTA_COLGADA_MS;
+}
+
 /**
  * Quién es V3 y quién es chico de Kids, leído UNA vez por vuelta (antes, cada rama lo leía de nuevo: 5 y 7
  * veces por vuelta). Solo vive mientras corre `tick`; una rama llamada sola (los tests) lee como siempre.
@@ -167,6 +175,7 @@ const pedidosGenerandoClaimados = new Set<string>();
 export async function tick(): Promise<void> {
   if (corriendo) return;
   corriendo = true;
+  vueltaEmpezo = Date.now();
   delTick = {};
   try {
     // Primero el latido: adentro de este tick se escribe un libro entero (minutos)
@@ -194,6 +203,7 @@ export async function tick(): Promise<void> {
     await anotarLatido('fabrica');
   } finally {
     delTick = null;
+    vueltaEmpezo = null;
     corriendo = false;
   }
 }
@@ -1046,7 +1056,9 @@ export function iniciarWorker(): void {
   // Sin await: no frena el arranque y nunca tira.
   void avisarVariablesAlArrancar();
   // El latido va aparte de la vuelta: late cada minuto aunque la vuelta sea cada 5 o esté escribiendo un libro.
+  // Si una vuelta quedó colgada (un await que nunca vuelve), deja de latir y el panel la ve caída, como antes.
   setInterval(() => {
+    if (vueltaColgada()) return;
     void anotarLatido('fabrica');
   }, LATIDO_MS);
   // La primera vuelta al minuto de arrancar (como antes); después, cada VUELTA_MS.

@@ -126,8 +126,9 @@ export async function tickViajeV2(deps: DepsViaje): Promise<void> {
   // que pueden tener algo (invitados esperando la bienvenida y activos), y solo SUS filas.
   const viajeros = await viajerosV2(deps.db);
   if (viajeros.size === 0) return;
-  const { data, error } = await deps.db.from('narradores').select('id,estado,telefono_whatsapp,contexto')
-    .in('id', [...viajeros]).in('estado', ['invitado', 'activo']);
+  // Con muchos viajeros la lista de ids no entra en la URL: se filtra por estado y se cruza acá.
+  const consulta = deps.db.from('narradores').select('id,estado,telefono_whatsapp,contexto').in('estado', ['invitado', 'activo']);
+  const { data, error } = viajeros.size <= 100 ? await consulta.in('id', [...viajeros]) : await consulta;
   if (error) throw new Error(`reloj viaje V2: no pude leer los narradores: ${error.message}`);
   const porId = new Map(((data as Narrador[] | null) ?? []).map((n) => [n.id, n]));
   const filas = await listarFilas<Compra, EstadoBotViaje>(deps.db, [...porId.keys()]);
