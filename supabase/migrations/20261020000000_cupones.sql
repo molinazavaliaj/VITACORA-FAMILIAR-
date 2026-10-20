@@ -47,6 +47,12 @@ create table if not exists cupones (
 
 alter table cupones enable row level security;  -- sin policies: solo la service role
 
+-- Desde el 30/10/2026 Supabase ya no da permisos solos a las tablas nuevas de
+-- `public`: van explícitos. La web la usa solo con la service role
+-- (lib/cupon-base.ts); anon y authenticated no la tocan, así que no se les da
+-- nada. Idempotente; la aplicación del 20/10 ya los tenía por defecto.
+grant select, insert, update, delete on table cupones to service_role;
+
 create unique index if not exists cupones_email_region on cupones (email, region);
 
 -- El cron de recordatorios busca solo los que pueden recibir uno: pocos, siempre.
