@@ -13,13 +13,23 @@ import { idiomaDe, type Idioma } from '../v3/nucleo/entrevista/idioma.js';
 import { renderizar } from '../v3/nucleo/entrevista/texto.js';
 import { ARRANQUE, type TextosArranque } from './regalo-textos.js';
 
+/** `quienRegala`: ya armado para ir al principio de la oración («Tu hijo Naza», flujo/quien-regala.ts). */
 export type FichaBienvenida = { nombre: string; genero: Genero; quienRegala?: string };
+
+/** Cómo nombra el BIEN a quien regala cuando no se sabe. Con el nombre (20/10, Naza) va «Tu hijo Naza». */
+const QUIEN_SIN_NOMBRE: Record<Idioma, string> = {
+  'es-AR': 'Una persona que te quiere mucho',
+  'es-ES': 'Una persona que te quiere mucho',
+  ca: "Una persona que t'estima molt",
+};
 
 /** El BIEN del banco en ese idioma, una línea en blanco y el pedido de SÍ. Nunca cae a otro idioma: sin BIEN, tira. */
 export function bienvenidaDeRegalo(idioma: Idioma, ficha: FichaBienvenida): string {
   const bien = mensajePorId('BIEN', idioma);
   if (!bien) throw new Error(`El banco no tiene el mensaje BIEN en ${idioma}.`);
-  return `${renderizar(bien.texto, { ...ficha, idioma })}\n\n${ARRANQUE[idioma].pedidoSi}`;
+  const texto = renderizar(bien.texto, { ...ficha, idioma });
+  const conQuien = ficha.quienRegala ? texto.replace(QUIEN_SIN_NOMBRE[idioma], ficha.quienRegala) : texto;
+  return `${conQuien}\n\n${ARRANQUE[idioma].pedidoSi}`;
 }
 
 /** Un texto de ARRANQUE con {{nombre}} lleno (como_le_dicen). */

@@ -13,6 +13,7 @@ import { chicosKids } from '../kids-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
+import { quienLoRegala } from './quien-regala.js';
 import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar, type NarradorParaBorrar } from './borrado-no-acepto.js';
 
 export { fechaLocal, minutosLocales };
@@ -187,8 +188,12 @@ async function enviarBienvenidas(): Promise<void> {
       // mandarle la vieja le prometería otra entrevista.
       if (entraALaV3(n.contexto)) {
         const idioma = idiomaDeRegalo(n.contexto);
-        const p = PLANTILLAS_V3[idioma].bienvenida;
-        if (!plantillaLista(idioma, 'bienvenida')) {
+        // Quién la regala (20/10): con la plantilla nueva aprobada y un nombre, «Tu hijo Naza te regaló…».
+        const { data: compradora } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
+        const quien = quienLoRegala(idioma, (compradora as { nombre?: string } | null)?.nombre, n.contexto?.vinculoComprador);
+        const conQuien = quien !== null && plantillaLista(idioma, 'bienvenida_quien');
+        const p = PLANTILLAS_V3[idioma][conQuien ? 'bienvenida_quien' : 'bienvenida'];
+        if (!conQuien && !plantillaLista(idioma, 'bienvenida')) {
           await avisarSocios(`bienvenida-v3-${idioma}`, `No sale la bienvenida V3 en ${idioma}`,
             `${n.como_le_dicen} (${n.id}) espera la bienvenida, pero la plantilla ${p.nombre} no está marcada como aprobada (WA_PLANTILLAS_V3_LISTAS="${idioma}:bienvenida"). Sale apenas se marque.`);
           return;
@@ -208,7 +213,7 @@ async function enviarBienvenidas(): Promise<void> {
           }
         }
         try {
-          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
+          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, conQuien ? [n.como_le_dicen, quien] : [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);

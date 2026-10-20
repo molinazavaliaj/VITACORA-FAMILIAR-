@@ -28,7 +28,7 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     // AM16 y AM20 cambiaron otra vez en la ronda 2 (Naza, 30/09): v3-entrevista-ronda2.test.ts.
     // AM0, AM1 y CI1 cambiaron otra vez después de la prueba de Naza en la página (30/09): v3-entrevista-prueba-naza.test.ts.
     AM14: '¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.',
-    PG1: 'Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.',
+    PG1: 'Contame de tus padres cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más grandes, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.',
     HS1: '¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{{o/a}}. Contame un día de esa época que te acuerdes bien.',
     TR5: '¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo.',
     HG4: 'Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado.',
