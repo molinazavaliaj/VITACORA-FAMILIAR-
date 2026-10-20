@@ -7,7 +7,7 @@ import { PLANTILLAS_VIAJE_V2, plantillaViajeLista } from '../config.js';
 import type { DepsViaje } from './deps.js';
 import { drenar } from './enviar.js';
 import { reconciliarEnCola } from './entrante.js';
-import { conReintento, listarFilas, soltarTurno, tomarTurno, tomaVigente } from './filas.js';
+import { conReintento, listarFilas, soltarTurno, tomarTurno, tomaVigente, viajerosV2 } from './filas.js';
 import { anotarNotas, mandarAvisos, sumarPaso } from './motor.js';
 import { proximaAccion, queToca, type Paso } from './nucleo/planificador.js';
 import { textoFormato } from './nucleo/texto.js';
@@ -121,8 +121,13 @@ export async function mandarBienvenida(deps: DepsViaje, fila: FilaViaje, n: Narr
 }
 
 export async function tickViajeV2(deps: DepsViaje): Promise<void> {
-  // Primero los narradores que pueden tener algo (invitados esperando la bienvenida y activos) y después solo SUS filas.
-  const { data, error } = await deps.db.from('narradores').select('id,estado,telefono_whatsapp,contexto').in('estado', ['invitado', 'activo']);
+  // Primero quiénes tienen fila de Viaje V2 (una consulta liviana; sin viajeros, es la única del minuto: antes se
+  // leían todos los invitados y activos de cualquier producto, cada minuto — Disk IO, 20/10). Después, de esos, los
+  // que pueden tener algo (invitados esperando la bienvenida y activos), y solo SUS filas.
+  const viajeros = await viajerosV2(deps.db);
+  if (viajeros.size === 0) return;
+  const { data, error } = await deps.db.from('narradores').select('id,estado,telefono_whatsapp,contexto')
+    .in('id', [...viajeros]).in('estado', ['invitado', 'activo']);
   if (error) throw new Error(`reloj viaje V2: no pude leer los narradores: ${error.message}`);
   const porId = new Map(((data as Narrador[] | null) ?? []).map((n) => [n.id, n]));
   const filas = await listarFilas<Compra, EstadoBotViaje>(deps.db, [...porId.keys()]);

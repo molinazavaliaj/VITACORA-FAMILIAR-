@@ -70,6 +70,18 @@ afterEach(() => {
 });
 
 describe('worker: narradores con entrevista V3', () => {
+  it('con el libro ya entregado no revisa más la Etapa A (Disk IO, 20/10); sin entregar, sí', async () => {
+    m.narradoresConV3.mockResolvedValue(new Set(['listo', 'falta']));
+    const { db } = base({
+      narradores: [{ id: 'listo', estado: 'completado' }, { id: 'falta', estado: 'completado' }],
+      pedidos: [{ id: 'p1', narrador_id: 'listo', estado: 'entregado' }, { id: 'p2', narrador_id: 'falta', estado: 'pagado' }],
+    });
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(m.revisarEtapaAV3).toHaveBeenCalledWith(db, 'falta');
+    expect(m.revisarEtapaAV3).not.toHaveBeenCalledWith(db, 'listo');
+  });
+
   it('entrevista terminada: revisa la Etapa A (no la estructura vieja); los viejos siguen igual', async () => {
     m.narradoresConV3.mockResolvedValue(new Set(['v3']));
     const { db } = base({ narradores: [{ id: 'v3', estado: 'completado' }, { id: 'viejo', estado: 'completado' }], pedidos: [] });
