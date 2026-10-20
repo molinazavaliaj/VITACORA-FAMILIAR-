@@ -121,7 +121,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
       contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo escribirá su libro.`,
       cuerpo: (quien) =>
-        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y añadir fotos de cada época.`,
+        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, sumar preguntas que te gustaría que le hicieran y añadir fotos de cada época.`,
       tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
       cuerpoDudas: (quien) =>
         `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,

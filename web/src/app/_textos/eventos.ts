@@ -119,7 +119,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
       invitados: "Invitados, más o menos",
       invitadosPista: "Por ejemplo, 80",
       mensaje: "Algo más que quieras contarnos",
-      mensajePista: "Quién celebra, qué te gustaría que tenga el libro…",
+      mensajePista: "Quién celebra, qué te gustaría que tuviera el libro…",
       enviar: "Enviar",
       enviando: "Enviando…",
       privacidad: "Usamos estos datos solo para contestarte.",

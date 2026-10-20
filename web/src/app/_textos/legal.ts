@@ -343,7 +343,7 @@ const ES: TextosLegal = {
           ),
           // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
           p("**Por último, lo que no se devuelve.** Si compraste en España: el libro en PDF ya entregado en tu cuenta (art. 103 m), y el libro impreso y los marcos, que se hacen a medida con la historia y las fotos de tu familia y que apruebas antes de imprimir (art. 103 c). En las dos regiones, si algo llega dañado o con un defecto, lo reponemos sin coste."),
-          p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos que los que te corresponden como consumidor donde vives."),
+          p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos de los que te corresponden como consumidor donde vives."),
         ],
       },
       seccionGarantia("es", "7"),
@@ -543,7 +543,7 @@ const ES: TextosLegal = {
         id: "derechos",
         titulo: "9. Tus derechos (y los del narrador)",
         bloques: [
-          p("Tú, el narrador y cada invitado pueden pedir en cualquier momento: **acceder** a sus datos, **corregirlos**, **borrarlos**, **llevárselos** en un formato usable (el libro en PDF, sus frases y los audios originales), **oponerse** a un uso o pedir que lo **limitemos**, y **retirar un consentimiento** (por ejemplo, el del narrador para seguir la entrevista) sin que eso afecte lo hecho hasta entonces."),
+          p("Tú, el narrador y cada invitado podéis pedir en cualquier momento: **acceder** a sus datos, **corregirlos**, **borrarlos**, **llevárselos** en un formato usable (el libro en PDF, sus frases y los audios originales), **oponerse** a un uso o pedir que lo **limitemos**, y **retirar un consentimiento** (por ejemplo, el del narrador para seguir la entrevista) sin que eso afecte lo hecho hasta entonces."),
           p("Cómo: un correo a {hola} desde la dirección de tu cuenta (o, si eres el narrador, un mensaje por el mismo WhatsApp). Contestamos en un mes como máximo; casi siempre en días. Si crees que no te hicimos caso, puedes reclamar ante la {autoridad:ES} si estás en España o ante la {autoridad:AR} si estás en Argentina."),
         ],
       },
@@ -804,7 +804,7 @@ const AR: TextosLegal = {
           ),
           // APROBADO por Naza · L1-04 (18/10, con sus correcciones)
           p("**Por último, lo que no se devuelve.** Si compraste en España: el libro en PDF ya entregado en tu cuenta (art. 103 m), y el libro impreso y los marcos, que se hacen a medida con la historia y las fotos de tu familia y que aprobás antes de imprimir (art. 103 c). En las dos regiones, si algo llega dañado o con un defecto, lo reponemos sin costo."),
-          p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos que los que te corresponden como consumidor donde vivís."),
+          p("Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos de los que te corresponden como consumidor donde vivís."),
         ],
       },
       seccionGarantia("ar", "7"),

@@ -43,7 +43,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloPropio: "Ya está. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
     // Naza 20/10 (texto suyo)
-    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia desde cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mira en promociones o en spam.",
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mira en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por correo. Si no la ves, mira en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
@@ -86,7 +86,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloPropio: "Listo. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
     // Naza 20/10 (texto suyo, de vos)
-    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia desde cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.",
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por mail. Si no la ves, mirá en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },

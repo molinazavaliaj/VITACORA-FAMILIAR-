@@ -151,12 +151,12 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
       ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
       propio: { pregunta: "¿Quieres contar tu propia vida?", enlace: "También puedes hacer tu libro." },
@@ -361,12 +361,12 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
       ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
       propio: { pregunta: "¿Querés contar tu propia vida?", enlace: "También podés hacer tu libro." },

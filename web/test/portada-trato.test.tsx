@@ -219,7 +219,7 @@ describe("la portada según el idioma", () => {
       expect(texto).not.toMatch(/padre|papá|\bpare\b/);
     }
     expect(metaEs.description).toBe(
-      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     );
   });
 
