@@ -18,6 +18,8 @@ import { CHECKOUT_KIDS, KIDS_ERRORES_API_CA, KIDS_MISMO_NUMERO_TEXTOS } from "@/
 import type { Compra } from "@/lib/productos";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { carritoDeViaje } from "@/lib/viaje";
+import { cuponParaLaCompra } from "@/lib/cupon-base";
+import { TEXTOS_CUPON } from "@/app/_textos/cupon";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -73,6 +75,8 @@ export type CompraBody = RegistroBody & {
    * preguntas de un adulto.
    */
   producto?: unknown;
+  /** El código del cupón de bienvenida (rasca y gana, 20/10), tal como lo escribió. Solo el libro de una vida. */
+  cupon?: unknown;
 } & CuerpoKids;
 
 /**
@@ -134,7 +138,7 @@ function esDeKids(fila: unknown): boolean {
  * `pedidos.extras`: los productos, `regalo: true` si es un regalo y `origen`
  * (F4-5) solo si vino uno válido. Sin origen, exactamente lo de antes.
  */
-function extrasDelPedido(compra: Parameters<typeof productosParaPedido>[0], regalo: boolean, origenCrudo: unknown) {
+function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown) {
   let origen: ReturnType<typeof limpiarOrigen> = null;
   try {
     origen = limpiarOrigen(origenCrudo, new Date());
@@ -145,6 +149,8 @@ function extrasDelPedido(compra: Parameters<typeof productosParaPedido>[0], rega
     ...productosParaPedido(compra),
     ...(regalo ? { regalo: true } : {}),
     ...(origen ? { origen } : {}),
+    // El cupón de bienvenida (CONTRATO «Cupón de bienvenida»): se marca usado cuando el pago entra.
+    ...(compra.descuento ? { cupon: compra.descuento } : {}),
   };
 }
 
@@ -201,9 +207,26 @@ export async function POST(request: NextRequest) {
   const carrito = carritoViaje ?? carritoCrudo;
   const carritoOk = validarCarrito(familiaAInsertar.region, carrito);
   if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
-  const compra = calcularCompra(familiaAInsertar.region, carrito);
+  let compra = calcularCompra(familiaAInsertar.region, carrito);
 
   const admin = crearClienteServidor();
+
+  // El cupón de bienvenida (rasca y gana, 20/10): se valida y se calcula acá,
+  // nunca en el navegador. Si no sirve, no se cobra: se le dice por qué (nunca
+  // se cobra el precio entero a quien esperaba el descuento).
+  if (body.cupon !== undefined && body.cupon !== null && body.cupon !== "") {
+    const idiomaCupon = esIdiomaWeb(body.idiomaWeb) ? body.idiomaWeb : familiaAInsertar.region === "AR" ? "ar" : "es";
+    const TC = TEXTOS_CUPON[idiomaCupon].checkout;
+    const conCupon = await cuponParaLaCompra(admin, body.cupon, compra, catalogo(familiaAInsertar.region));
+    if (!conCupon.ok) {
+      if ("falla" in conCupon) {
+        console.error("compra: no pude revisar el cupón", conCupon.falla);
+        return NextResponse.json({ error: TC.fallo }, { status: conCupon.falla === "tabla_ausente" ? 409 : 500 });
+      }
+      return NextResponse.json({ error: TC.motivos[conCupon.motivo], motivoCupon: conCupon.motivo }, { status: 400 });
+    }
+    compra = conCupon.compra;
+  }
 
   // La familia: la de siempre si ya compró antes (mismo correo), o una nueva.
   // Sin auth_user_id: la cuenta la crea el login la primera vez que entra.

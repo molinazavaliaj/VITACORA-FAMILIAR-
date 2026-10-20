@@ -6,7 +6,9 @@ import type { ReactNode } from "react";
 import { alternativas, langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { numeroWhatsAppDudas, urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Cabecera, Pie } from "../_publico";
-import { DOCUMENTOS_LEGALES, TEXTOS_LEGAL, type Bloque, type DocumentoLegal, type TextosLegal } from "../_textos/legal";
+import { DOCUMENTOS_LEGALES, TEXTOS_LEGAL, type Bloque, type DocumentoLegal, type TextoDocumento, type TextosLegal } from "../_textos/legal";
+import { BASES_CUPON, privacidadConCupon } from "../_textos/legal-cupon";
+import { rascaPrendido } from "@/lib/cupon";
 import { CONTACTO, TITULARES, faltan, type Region } from "./titulares";
 import "../_direccion/tokens.css";
 import "./legal.css";
@@ -24,12 +26,29 @@ import "./legal.css";
 // rutas son /legal/<documento>, /ca/legal/<documento> y /ar/legal/<documento>,
 // todas estáticas. Componente de servidor: no suma JS.
 
-const RUTA: Record<DocumentoLegal, string> = {
+/**
+ * Las páginas legales: los cuatro documentos de siempre y, con el rasca y gana
+ * prendido (RASCA_Y_GANA=1, 20/10), las «Bases del cupón» (_textos/legal-cupon.ts).
+ */
+export type PaginaLegalId = DocumentoLegal | "cupon";
+
+const RUTA: Record<PaginaLegalId, string> = {
   terminos: "/legal/terminos",
   privacidad: "/legal/privacidad",
   arrepentimiento: "/legal/arrepentimiento",
   reclamaciones: "/legal/reclamaciones",
+  cupon: "/legal/cupon",
 };
+
+/** El texto de cada página; con el rasca y gana, la privacidad suma lo del cupón. */
+export function textoDe(idioma: IdiomaWeb, documento: PaginaLegalId): TextoDocumento {
+  if (documento === "cupon") return BASES_CUPON[idioma];
+  const d = TEXTOS_LEGAL[idioma][documento];
+  return documento === "privacidad" && rascaPrendido() ? privacidadConCupon(d, idioma) : d;
+}
+
+/** Las solapas: las bases del cupón, solo con el rasca y gana prendido. */
+const solapas = (): readonly PaginaLegalId[] => (rascaPrendido() ? [...DOCUMENTOS_LEGALES, "cupon"] : DOCUMENTOS_LEGALES);
 
 /** La hoja oficial de reclamaciones (PDF en public/). Mientras no esté, se pide por correo. */
 export const HOJA_RECLAMACIONES = "/legal/hoja-reclamaciones.pdf";
@@ -37,8 +56,8 @@ export function hayHojaReclamaciones(): boolean {
   return existsSync(path.join(process.cwd(), "public", HOJA_RECLAMACIONES));
 }
 
-export function metadataLegal(idioma: IdiomaWeb, documento: DocumentoLegal): Metadata {
-  const d = TEXTOS_LEGAL[idioma][documento];
+export function metadataLegal(idioma: IdiomaWeb, documento: PaginaLegalId): Metadata {
+  const d = textoDe(idioma, documento);
   return { title: d.titulo, description: d.descripcion, alternates: alternativas(idioma, RUTA[documento]) };
 }
 
@@ -48,9 +67,9 @@ export function mailtoDesistimiento(idioma: IdiomaWeb): string {
   return `mailto:${CONTACTO.hola}?subject=${encodeURIComponent(t.asunto)}&body=${encodeURIComponent(t.cuerpo.join("\n"))}`;
 }
 
-export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; documento: DocumentoLegal }) {
+export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; documento: PaginaLegalId }) {
   const t = TEXTOS_LEGAL[idioma];
-  const d = t[documento];
+  const d = textoDe(idioma, documento);
   const camino = RUTA[documento];
   return (
     <div lang={langDeIdioma(idioma)} className="dir-pagina lgl flex min-h-dvh flex-1 flex-col">
@@ -61,7 +80,7 @@ export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; document
       <main className="dir-deckle lgl-hoja">
         <div className="mx-auto w-full max-w-[1104px] px-4 pb-24 pt-10 sm:px-6 sm:pt-14">
           <nav aria-label={t.documentos} className="lgl-solapas">
-            {DOCUMENTOS_LEGALES.map((doc) => (
+            {solapas().map((doc) => (
               <Link
                 key={doc}
                 prefetch={false}
@@ -69,7 +88,7 @@ export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; document
                 aria-current={doc === documento ? "page" : undefined}
                 className="lgl-solapa"
               >
-                {t[doc].titulo}
+                {textoDe(idioma, doc).titulo}
               </Link>
             ))}
           </nav>

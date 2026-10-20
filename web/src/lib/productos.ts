@@ -146,7 +146,14 @@ export type Compra = {
   region: Region;
   moneda: Moneda;
   lineas: LineaDeCompra[];
+  /** Lo que se cobra: la suma de las líneas, menos el descuento si hay. */
   total: number;
+  /**
+   * El cupón de bienvenida (rasca y gana, 20/10), si se aplicó: lo calcula
+   * SOLO el servidor (`aplicarCupon`, lib/cupon.ts). Las pasarelas no aceptan
+   * líneas negativas: `lineasParaCobrar` lo resta de la línea del PDF o del pack.
+   */
+  descuento?: { codigo: string; porcentaje: number; importe: number };
 };
 
 const entero = (n: number | undefined) => Math.max(0, Math.floor(n || 0));
