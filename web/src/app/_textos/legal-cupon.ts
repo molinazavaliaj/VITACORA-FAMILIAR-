@@ -43,7 +43,7 @@ const BASES_ES: TextoDocumento = {
     s(
       "cuando",
       "Hasta cuándo",
-      p("Vale 30 días desde que te llega por mail. Después se vence solo."), // T2-15
+      p("Vale 30 días desde que te llega por mail. Después caduca solo."), // T2-15
       p("El último día también vale. La fecha exacta va en cada mail."), // §1.6
     ),
     s(

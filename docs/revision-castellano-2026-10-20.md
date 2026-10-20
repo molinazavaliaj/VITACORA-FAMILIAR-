@@ -52,6 +52,14 @@ Test actualizado con el texto nuevo: `test/portada-trato.test.tsx` (la bajada).
 
 ### Tanda 1 (las diez que más se ven)
 
+> **20/10, Naza**: aprobados 1, 2 y 4 a 9, **aplicados en el PR #135**. En el 8 la frase de los marcos
+> quedó «Los marcos viajan con el libro. Añade primero el libro impreso y después los marcos.» (ar
+> «Sumá primero…»), para no repetir «añadir». El 3 («panel») y el 10 («una al día») esperan su
+> respuesta. En el 10, Naza confirmó que la pregunta siguiente llega cuando el chico contesta,
+> no una por día. Queda pendiente `DETALLE_IMPRESO` (`lib/productos.ts:49`, «Tapa dura, a color,
+> con un código en la contratapa»), que es el mismo texto para los dos países. Para corregirlo hay
+> que separarlo por país.
+
 **1. La pregunta de ejemplo con foto trata de usted** (`tablero/[narradorId]/preguntas/acciones.tsx:313` y `:393`)
 Cuando alguien agrega una pregunta con foto en la página de la historia, el campo se llena solo con
 «¿Qué estaba pasando ese día? Cuénteme todo lo que le venga a la cabeza al ver esta foto.» Esa

@@ -138,7 +138,7 @@ describe("mail de invitación con el diseño nuevo (fase 3)", () => {
     expect(plano(es.html)).toContain("Pere te ha invitado a seguir su historia. Podrás escuchar lo que va contando");
     expect(plano(es.html)).toContain("Recibes este email porque te han invitado a una historia.");
     expect(plano(es.html)).not.toMatch(/Entrá|invitó|Recibís|sabés/);
-    expect(es.texto).toContain(`Entra con este mismo correo:\nVer la historia de Imma\n${URL}/entrar`);
+    expect(es.texto).toContain(`Entra con este mismo correo.\nVer la historia de Imma\n${URL}/entrar`);
     expect(es.texto).not.toMatch(/<[a-z]/i);
   });
 

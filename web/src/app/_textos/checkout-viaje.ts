@@ -137,7 +137,7 @@ export const CHECKOUT_VIAJE: Textos<TextosViaje> = {
     quienRegalaAyuda: "Así le cuenta el biógrafo quién le hace el regalo. Por ejemplo, mamá o Lucía.",
     nombre: { yo: "Tu nombre", regalo: "Nombre de quien viaja" },
     nombrePista: "Nombre y apellidos",
-    comoLeDicen: { yo: "Cómo te dicen", regalo: "Cómo le dicen" },
+    comoLeDicen: { yo: "Cómo te llaman", regalo: "Cómo le llaman" },
     comoLeDicenAyuda: { yo: "Con este nombre te escribe el biógrafo.", regalo: "Con este nombre le escribe el biógrafo." },
     whatsapp: { yo: "Tu WhatsApp", regalo: "Su WhatsApp" },
     whatsappAyuda: { yo: "Ahí te escribe el biógrafo.", regalo: "Ahí le escribe el biógrafo para contarle que es tu regalo." },

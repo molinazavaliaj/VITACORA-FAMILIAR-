@@ -105,7 +105,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
       cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo:",
+      paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo.",
     },
     regalo: {
       asunto: TU.mailAsunto,
@@ -125,7 +125,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
       cuerpoDudas: (quien) =>
         `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
-      entra: "Entra con este mismo correo:",
+      entra: "Entra con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
       porQue: "Recibes este email porque te han invitado a una historia.",
@@ -152,7 +152,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
       cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:",
+      paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo.",
     },
     regalo: {
       asunto: VOS.mailAsunto,
@@ -174,7 +174,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       tituloDudas: (n) => `${n} terminó de contar su vida y estamos por escribir su libro.`,
       cuerpoDudas: (quien) =>
         `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
-      entra: "Entrá con este mismo correo:",
+      entra: "Entrá con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
       porQue: "Recibís este mail porque te invitaron a una historia.",

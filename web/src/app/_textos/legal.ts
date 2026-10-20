@@ -252,7 +252,7 @@ const ES: TextosLegal = {
 
   terminos: {
     titulo: "Términos del servicio",
-    bajada: "Qué te damos, qué te cobramos y cuándo. En castellano, sin letra chica.",
+    bajada: "Qué te damos, qué te cobramos y cuándo. En castellano, sin letra pequeña.",
     descripcion: "Qué te damos, qué te cobramos, cuándo puedes desistir y de quién es la historia.",
     // APROBADO por Naza · L2-06 (18/10, con sus correcciones)
     enCorto: [
@@ -292,12 +292,12 @@ const ES: TextosLegal = {
           lista(
             // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
             "**El libro en PDF**: se lee en la web, capítulo por capítulo, con las fotos que suba la familia. Incluye **«Su voz»**: sus mejores frases, recortes de sus audios originales con el sonido limpio y parejo (no se clona ni se imita su voz), para escuchar en la web y con un código impreso. Está siempre disponible en tu cuenta.",
-            "**El libro impreso**, en blanco y negro o a color: tapa dura, con un código en la contratapa que hace sonar su voz.",
+            "**El libro impreso**, en blanco y negro o en color: tapa dura, con un código en la contraportada que hace sonar su voz.",
             "**Marcos con su voz**: un marco con su foto y un chip; se acerca el teléfono y suena su voz.",
           ),
           p("Hace falta comprar al menos uno de los dos primeros; los marcos van con el libro impreso. Solo se ofrece lo que tiene precio publicado en tu región."),
           p("Desde tu cuenta puedes invitar a familiares para que lean el libro y suban fotos, y compartir una muestra pública (portada, títulos de los capítulos, el primer párrafo y un minuto de audio). La muestra solo existe si tú compartes el enlace."),
-          p("El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace sonar, y otro en la contratapa, que abre en el teléfono el libro entero —el texto y todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la mano puede abrirlos y reenviar ese enlace: cuéntaselo a quien se lo regales."),
+          p("El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace sonar, y otro en la contraportada, que abre en el teléfono el libro entero —el texto y todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la mano puede abrirlos y reenviar ese enlace: cuéntaselo a quien se lo regales."),
         ],
       },
       {
@@ -323,7 +323,7 @@ const ES: TextosLegal = {
         id: "entrega",
         titulo: "5. Qué te entregamos y cuándo",
         bloques: [
-          p("El ritmo lo pone el narrador: la entrevista dura lo que él tarde en responder, y puedes seguirla desde tu cuenta mientras avanza. Cuando termina, producimos el libro y te avisamos por correo. Antes de darlo por cerrado lo revisas tú: puedes cambiar el título, el orden y los nombres de los capítulos, las fotos de la portada y la contratapa, dejar fuera alguna respuesta y pedir correcciones de lo que no suene a él."),
+          p("El ritmo lo pone el narrador: la entrevista dura lo que él tarde en responder, y puedes seguirla desde tu cuenta mientras avanza. Cuando termina, producimos el libro y te avisamos por correo. Antes de darlo por cerrado lo revisas tú: puedes cambiar el título, el orden y los nombres de los capítulos, las fotos de la portada y la contraportada, dejar fuera alguna respuesta y pedir correcciones de lo que no suene a él."),
           p("El libro en PDF y sus frases en su voz quedan disponibles en tu cuenta. El libro impreso y los marcos se producen después de que apruebas el libro; antes de mandarlos a producir te escribimos para pedirte la dirección de envío y confirmarte el plazo."),
         ],
       },
@@ -352,7 +352,7 @@ const ES: TextosLegal = {
         titulo: "8. La historia es de tu familia",
         bloques: [
           // APROBADO por Naza · L1-07 (18/10, con sus correcciones)
-          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca la usamos como ejemplo, nunca publicamos su historia ni se la mostramos a nadie fuera de tu familia, salvo la muestra que tú decidas compartir y quien tenga el libro en la mano: el código de la contratapa abre el libro completo, y ese enlace se puede reenviar. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
+          p("Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca la usamos como ejemplo, nunca publicamos su historia ni se la mostramos a nadie fuera de tu familia, salvo la muestra que tú decidas compartir y quien tenga el libro en la mano: el código de la contraportada abre el libro completo, y ese enlace se puede reenviar. Si algún día quisiéramos mostrar una página como muestra de nuestro trabajo, te lo pediríamos por escrito y podrías decir que no."),
           // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
           p("Sus frases en su voz son recortes de sus audios originales, con el sonido limpio y parejo; no se clona ni se imita su voz. No se usan para ningún otro fin y se borran cuando el narrador o tú lo pidan."),
         ],
@@ -401,7 +401,7 @@ const ES: TextosLegal = {
             "Si compras desde **España**, el contrato se rige por {ley:ES}. Cualquier disputa se resuelve en los juzgados de tu domicilio. También puedes acudir a la oficina de consumo de tu comunidad autónoma o a una Junta Arbitral de Consumo; tienes hojas de reclamaciones a tu disposición pidiéndolas por correo.",
             "Si compras desde **Argentina**, el contrato se rige por {ley:AR}. Puedes reclamar ante la autoridad de Defensa del Consumidor de tu jurisdicción o por la [ventanilla única federal](https://www.argentina.gob.ar/produccion/defensadelconsumidor).",
           ),
-          p("En los dos casos conservas siempre los derechos que te da la ley del país donde vives. Antes de cualquier reclamo formal, escríbenos: lo normal es que lo resolvamos en un correo."),
+          p("En los dos casos conservas siempre los derechos que te da la ley del país donde vives. Antes de cualquier reclamación formal, escríbenos: lo normal es que lo resolvamos en un correo."),
         ],
       },
       {
@@ -434,7 +434,7 @@ const ES: TextosLegal = {
           // APROBADO por Naza · L2-02 (18/10, con sus correcciones)
           p("El responsable del tratamiento es el titular del servicio, una sola persona, con los datos de la región que elegiste al comprar:"),
           lista("**España**: {titular:ES}.", "**Argentina**: {titular:AR}."),
-          p("Para cualquier cosa sobre tus datos escribe a {hola}. No hace falta formulario ni formalidad: un correo alcanza."),
+          p("Para cualquier cosa sobre tus datos escribe a {hola}. No hace falta formulario ni formalidad: un correo basta."),
         ],
       },
       {
@@ -457,7 +457,7 @@ const ES: TextosLegal = {
           p("**De ti**: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos llega solo la confirmación. Cuando entras a tu cuenta guardamos los registros técnicos normales de cualquier web (dirección IP, navegador, hora)."),
           // APROBADO por Naza · L3-03 (18/10, con sus correcciones)
           p("**La dirección de envío**: si compras el libro impreso o un marco, la dirección y el nombre de quien lo recibe. Solo la usamos para mandarlo: se la pasamos a la imprenta y a la mensajería, y después queda con los datos de la compra."),
-          p("**Del narrador**: su nombre y cómo le gusta que le digan, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
+          p("**Del narrador**: su nombre y cómo le gusta que le llamen, su número de WhatsApp, su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde y cuándo nació, a qué se dedicó, quién es quién en su familia), y lo importante: los **audios** que graba, las **transcripciones** que hacemos de ellos, los **textos** del libro y las **fotos** que sube la familia."),
           // APROBADO por Naza · L3-02 (18/10, con sus correcciones)
           p("**Del viajero**, en el libro de viaje: además de lo anterior, las fechas de salida y de vuelta y el país principal del viaje (para mandarle los mensajes a una hora razonable allí donde esté), las preguntas propias que escribe quien regala, si las hay, y las fotos del álbum que nos manda por WhatsApp, en las que pueden aparecer otras personas que viajan con él."),
           // APROBADO por Naza · L1-08 (18/10, con sus correcciones)
@@ -536,7 +536,7 @@ const ES: TextosLegal = {
         id: "con-quien",
         titulo: "8. Con quién compartimos",
         bloques: [
-          p("Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro. Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal."),
+          p("Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contraportada (y uno al lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro. Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal."),
         ],
       },
       {
@@ -608,7 +608,7 @@ const ES: TextosLegal = {
         id: "como",
         titulo: "Cómo se hace",
         bloques: [
-          p("Aprieta el botón: se abre un correo a {hola} con el asunto ya escrito. Completa tu correo de compra y el nombre del narrador, y mándalo. No hace falta que expliques por qué."),
+          p("Pulsa el botón: se abre un correo a {hola} con el asunto ya escrito. Completa tu correo de compra y el nombre del narrador, y mándalo. No hace falta que expliques por qué."),
           BOTON,
           p("Si el botón no te abre el correo, escribe tú a {hola} con el asunto «Desistimiento de compra»."),
         ],
