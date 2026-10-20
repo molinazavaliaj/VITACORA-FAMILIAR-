@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
 import { PUEDE, type Rol } from "@/lib/panel";
-import type { BloqueHistoriaV3 } from "@/lib/v3";
+import type { BloqueHistoriaV3, PreguntaFamiliaV3 } from "@/lib/v3";
+import { idiomaPreguntasFamilia, textosPreguntasFamilia } from "@/lib/preguntas-familia-textos";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { Ajustes, SubirFoto, SumarPreguntaV3 } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -24,7 +26,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false,
+  n, rol, propia, bloques, preguntasFamilia = [], fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false,
 }: {
   /**
    * Rediseño 2026-10 (fase 2): la historia va adentro del marco nuevo (MarcoHistoria), que ya trae la
@@ -40,6 +42,8 @@ export function HistoriaV3({
   rol: Rol;
   propia: boolean;
   bloques: BloqueHistoriaV3[];
+  /** Las preguntas que sumó la familia, tal cual las escribió, y en qué quedaron (Naza, 20/10). */
+  preguntasFamilia?: PreguntaFamiliaV3[];
   fotos: FotoVista[];
   usuarioId: string;
   historiasRiel: HistoriaRiel[];
@@ -145,7 +149,11 @@ export function HistoriaV3({
           </section>
         ) : null}
 
-        {puedeSumar ? (
+        {preguntasFamilia.length > 0 ? (
+          <PreguntasDeLaFamilia preguntas={preguntasFamilia} propia={propia} trato={trato}>
+            {puedeSumar ? <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} /> : null}
+          </PreguntasDeLaFamilia>
+        ) : puedeSumar ? (
           <div className="mt-8">
             <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} />
           </div>
@@ -234,5 +242,35 @@ export function HistoriaV3({
       <Riel historias={historiasRiel} actual={n.id} />
       {contenido}
     </div>
+  );
+}
+
+/** Las preguntas que sumó la familia, con sus palabras, y si ya se le hicieron (Naza, 20/10). */
+function PreguntasDeLaFamilia({
+  preguntas, propia, trato, children,
+}: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; children?: ReactNode }) {
+  const T = textosPreguntasFamilia(idiomaPreguntasFamilia(trato));
+  return (
+    <section aria-labelledby="preguntas-de-la-familia" className="mt-10">
+      <div className="border-b border-[var(--texto)] pb-4">
+        <h2 id="preguntas-de-la-familia" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{T.titulo}</h2>
+        <p className="mt-3 text-[15px] text-[var(--texto-suave)]">{T.bajada}</p>
+      </div>
+      <ol className="mt-6 flex flex-col gap-4">
+        {preguntas.map((p) => {
+          const hecha = p.estado === "contestada" || p.estado === "esperando" || p.estado === "sin respuesta";
+          return (
+            <li
+              key={p.id}
+              className={`flex flex-col gap-2 rounded-xl px-4 py-3.5 sm:px-5 ${hecha ? "border border-[var(--linea)]" : "border border-dashed border-[var(--linea-fuerte)]"}`}
+            >
+              <p className="text-[16px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">«{p.texto}»</p>
+              <span className={`text-[13.5px] ${p.estado === "contestada" ? "text-[var(--texto-suave)]" : "text-[var(--texto-menor)]"}`}>{T.estado(p.estado, propia)}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {children ? <div className="mt-5">{children}</div> : null}
+    </section>
   );
 }
