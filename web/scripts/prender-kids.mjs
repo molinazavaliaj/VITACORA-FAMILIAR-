@@ -1,7 +1,8 @@
 // Prende la venta de Vitácora Kids (Naza, 20/10), sin mostrar ningún valor secreto.
 //
-//   node web/scripts/prender-kids.mjs          → prende Kids en Argentina
-//   node web/scripts/prender-kids.mjs probar   → solo cuenta qué haría
+//   node web/scripts/prender-kids.mjs                 → prende Kids en Argentina
+//   node web/scripts/prender-kids.mjs espana          → suma España y catalán (20/10: las 39 plantillas aprobadas en Meta)
+//   node web/scripts/prender-kids.mjs probar          → solo cuenta qué haría (también: probar espana)
 //
 // Qué hace:
 //   - Railway, bot: WA_PLANTILLAS_KIDS_LISTAS = las 13 plantillas de Kids en rioplatense (aprobadas en Meta).
@@ -18,7 +19,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const probar = process.argv[2] === "probar";
+const probar = process.argv.includes("probar");
+const espana = process.argv.includes("espana");
+// España y catalán (20/10): las 13 plantillas de cada idioma ya aprobadas en Meta (_es_es y _ca). Precio = el
+// libro digital de Familiar en España (49 €), como en Argentina.
+const PRECIO_KIDS_EUR = "49";
 
 const VERCEL_PROYECTO = "prj_oYk4cfitEdqG2gVzlAlEUY3Q6Isa";
 const VERCEL_EQUIPO = "team_Dby99Pb5AzpVpYroZy9VJIdr";
@@ -93,7 +98,8 @@ async function ponerRailway(servicio, nombre, valor, que) {
   });
   console.log(`✓ ${que}: ${nombre} (Railway lo vuelve a publicar solo).`);
 }
-await ponerRailway(bot, "WA_PLANTILLAS_KIDS_LISTAS", PLANTILLAS_KIDS_AR.join(","), "Bot");
+const plantillas = espana ? PLANTILLAS_KIDS_AR.flatMap((p) => [p, `${p}_es_es`, `${p}_ca`]) : PLANTILLAS_KIDS_AR;
+await ponerRailway(bot, "WA_PLANTILLAS_KIDS_LISTAS", plantillas.join(","), `Bot (${plantillas.length} plantillas)`);
 await ponerRailway(fabrica, "ESCRITOR_KIDS", "1", "Fábrica");
 
 // 2. Vercel: la venta y el precio, en Production y Preview.
@@ -114,6 +120,7 @@ async function ponerVercel(key, value) {
 }
 await ponerVercel("KIDS_VENTA", "1");
 await ponerVercel("PRECIO_KIDS_ARS", PRECIO_KIDS_ARS);
+if (espana) await ponerVercel("PRECIO_KIDS_EUR", PRECIO_KIDS_EUR);
 
 // 3. Que la web lo tome.
 if (!probar) {
