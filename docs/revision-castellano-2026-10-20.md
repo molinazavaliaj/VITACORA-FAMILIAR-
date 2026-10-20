@@ -52,6 +52,17 @@ Test actualizado con el texto nuevo: `test/portada-trato.test.tsx` (la bajada).
 
 ### Tanda 1 (las diez que más se ven)
 
+> **20/10, Naza, segunda vuelta**: aprobados también el 3 y el 10, **aplicados en el PR #135**.
+> «Panel» pasa a «la página de su historia» (Kids) y «la página del viaje» (Viaje). En Kids sale
+> «por lo menos una al día» y queda «A partir de ahí va a su ritmo.». En el bot se corrigió la
+> fuente (`docs/kids/v2/mensajes.md`, `docs/kids/v2/idiomas/banco-es-ES.md`, `docs/viajes-v2/banco.md`,
+> `docs/viajes-v2/idiomas/banco-es-ES.md` y las plantillas de Meta de Kids). De ahí se regeneraron
+> los JSON de la fábrica y se copiaron al entrevistador y a la web. Cambia la plantilla
+> `kids_aviso_padre` (y `_es_es`): si Joaquín ya la mandó a Meta, hay que volver a mandarla.
+> Siguen diciendo «panel» los mails de la fábrica (`fabrica/src/mail/frases.ts`,
+> `mail/borrado-audios.ts`, `escritor-kids/produccion/mails.ts`) y el aviso al padre de Kids
+> (`entrevistador/src/kids-v2/padre.ts`). No entraron en esta revisión.
+>
 > **20/10, Naza**: aprobados 1, 2 y 4 a 9, **aplicados en el PR #135**. En el 8 la frase de los marcos
 > quedó «Los marcos viajan con el libro. Añade primero el libro impreso y después los marcos.» (ar
 > «Sumá primero…»), para no repetir «añadir». El 3 («panel») y el 10 («una al día») esperan su

@@ -45,15 +45,15 @@ La respuesta es un audio, y lo graba {{2}} con sus palabras. No contestes tú ni
 
 Los botones también los toca {{2}}, para pasar una pregunta, decir que no tiene algo o pedir otra. Son parte de lo que cuenta.
 
-Y una sola cosa te pedimos. Lee todo, pero no le digas nada hasta el libro. Ni qué te ha parecido ni qué te habría gustado que dijera. Todo queda guardado en tu panel, también lo del sobre cerrado.
+Y una sola cosa te pedimos. Lee todo, pero no le digas nada hasta el libro. Ni qué te ha parecido ni qué te habría gustado que dijera. Todo queda guardado en la página de su historia, también lo del sobre cerrado.
 
 Cuando estéis juntos, toca el botón y llega la primera.
 
 ## 4. `kids_aviso_padre_es_es` (las preguntas van al WhatsApp del chico) — {{1}} padre · {{2}} chico · {{3}} link del panel
 
-Hola {{1}}. Ya le hemos escrito a {{2}}. Le hemos contado de parte de quién es el regalo, y cuando toque "Vale, vamos" le llega la primera pregunta. A partir de ahí va a su ritmo, por lo menos una al día, y más si tiene ganas.
+Hola {{1}}. Ya le hemos escrito a {{2}}. Le hemos contado de parte de quién es el regalo, y cuando toque "Vale, vamos" le llega la primera pregunta. A partir de ahí va a su ritmo.
 
-Todo lo que cuente lo puedes ver en tu panel, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).
+Todo lo que cuente lo puedes ver en la página de su historia, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).
 
 Mientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A {{2}} no le decimos nada por tardar. No hay regañinas ni prisas por nuestra parte.
 
@@ -89,7 +89,7 @@ Hola {{1}}, hay una pregunta nueva para {{2}}. Cuando estéis juntos y con un ra
 
 ## 9. `kids_termino_padre_es_es` (el chico terminó de contar) — {{1}} padre · {{2}} chico
 
-Hola {{1}}. {{2}} ha terminado de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empezamos a preparar el libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
+Hola {{1}}. {{2}} ha terminado de contar. Ya están todas sus respuestas en la página de su historia, también las del sobre cerrado. Ahora empezamos a preparar el libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
 
 ## 10. `kids_final_es_es` (mensaje final al chico, cuando se cierra solo a los 2 días y pasaron 24 h) — {{1}} cómo le llaman · {{2}} quién se lo regala
 Sin botón.

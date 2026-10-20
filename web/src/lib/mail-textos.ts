@@ -258,7 +258,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       A: (apodo) => `Le vamos a escribir a ${apodo} a la hora que elegiste. A vos te avisamos por WhatsApp.`,
       B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.",
     },
-    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
+    enTuPanel: "En la página de su historia vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
   },
   "es-ES": {
     // APROBADO por Naza 16/10 (tanda 8) · asunto («Ya está en marcha…», sin «Listo»)
@@ -270,7 +270,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estéis juntos.",
     },
     // APROBADO por Naza 16/10 (tanda 8) · enTuPanel
-    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
+    enTuPanel: "En la página de su historia vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
   },
   ca: {
     // APROBADO por Naza 16/10 (tanda 10) · asunto

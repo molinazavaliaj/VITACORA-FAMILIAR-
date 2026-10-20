@@ -192,7 +192,7 @@ describe("mail de acceso de Vitácora Kids", () => {
   const ASUNTO = "Listo, ya está en marcha el libro de Tomi";
   const A = "Le vamos a escribir a Tomi a la hora que elegiste. A vos te avisamos por WhatsApp.";
   const B = "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.";
-  const PANEL = "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.";
+  const PANEL = "En la página de su historia vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.";
   const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde (tu panel|la página de su historia)/;
 
   it("canal A: asunto, vista previa y primera línea del A, y la fila del panel", () => {

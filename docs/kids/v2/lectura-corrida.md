@@ -22,9 +22,9 @@ Una chica **inventada**, mensaje por mensaje, como le llegaría por WhatsApp. Ge
 > ¿Vamos con la primera?
 
 **17:30 · Vitácora → Laura (su WhatsApp)** `AVISO-PADRE` · plantilla `kids_aviso_padre`  
-> Hola Laura. Ya le escribimos a Tini. Le contamos de parte de quién es el regalo, y cuando toque "Dale, vamos" le llega la primera pregunta. De ahí en adelante va a su ritmo, por lo menos una por día, y más si tiene ganas.
+> Hola Laura. Ya le escribimos a Tini. Le contamos de parte de quién es el regalo, y cuando toque "Dale, vamos" le llega la primera pregunta. De ahí en adelante va a su ritmo.
 > 
-> Todo lo que cuente lo podés ver en tu panel, en vitacora.com/panel/tini (audios, fotos y respuestas, también las del sobre cerrado).
+> Todo lo que cuente lo podés ver en la página de su historia, en vitacora.com/panel/tini (audios, fotos y respuestas, también las del sobre cerrado).
 > 
 > Mientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A Tini no le decimos nada por tardar. No hay retos ni apuros de nuestro lado.
 > 
@@ -1205,7 +1205,7 @@ _[audio de 63 s: cuenta con detalle]_
 _[toca «Lo dejamos acá»]_
 
 **19:15 · Vitácora → Laura (su WhatsApp)** `TERMINO-PADRE` · plantilla `kids_termino_padre`  
-> Hola Laura. Tini terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
+> Hola Laura. Tini terminó de contar. Ya están todas sus respuestas en la página de su historia, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
 
 **19:15 · Vitácora** `FINAL-CHICO-PL`  
 > Bueno Tini, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo van a dar tus abuelos, que fueron quienes te hicieron este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.
