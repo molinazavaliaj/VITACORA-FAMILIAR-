@@ -28,7 +28,7 @@ NO9 | Empieza por algo que te ha hecho reír, aunque sea una tontería
 F1 | , y a partir de ahí sigue por donde quieras. Mándame las fotos que quieras guardar.
 F2 | , y después sigue con lo que venga. Si hay fotos, mándalas.
 F3 | , y desde ahí ve por donde te lleve el día. Las fotos que quieras guardar, mándamelas.
-F4 | , y después cuéntame lo demás, lo que se te vaya ocurriendo. Y mándame todas las fotos de hoy que quieras.
+F4 | , y después cuéntame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, aquí.
 F5 | , y desde ahí sigue hasta donde llegues. Si hay fotos que quieras guardar, mándalas.
 MD1 | ¿Por dónde andas ahora, {{nombre}}? Mándame una foto de lo que tienes delante, tal cual, sin explicarme nada.
 MD5 | Hoy quiero verte a ti, {{nombre}}. Una foto de cómo vas: de cuerpo entero o solo las zapatillas, como prefieras.
