@@ -1249,7 +1249,7 @@ Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
   es siempre el del canje.
 - El recordatorio de los 15 días no cambia.
 
-## Cupón de bienvenida — rasca y gana (migración 20261020000000 — PROPUESTA del 20/10, la aplica Naza)
+## Cupón de bienvenida — rasca y gana (migración 20261020000000 — **aplicada por Naza el 20/10**)
 
 Textos y reglas: `docs/rediseno-2026-10/fase-5/textos-legales-nuevos.md` (tandas 1 —textos 9 y 10—, 2 y 3)
 y `respuesta-19-10.md` §1. Rama `rasca-y-gana`. **Solo la web** lee y escribe; la fábrica y el entrevistador
