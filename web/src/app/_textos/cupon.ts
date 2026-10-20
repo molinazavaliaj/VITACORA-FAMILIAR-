@@ -6,10 +6,10 @@ import type { MotivoRechazo } from "@/lib/cupon";
 //
 // Marcas (regla de la casa: los textos que ve una persona los aprueba Naza):
 //   // APROBADO por Naza 19/10 · tanda N, texto M   (fase-5/textos-legales-nuevos.md)
-//   // DE respuesta-19-10.md §X (frase del análisis legal, adaptada sin dos puntos) · A APROBAR CU-NN
-//   // BORRADOR · A APROBAR CU-NN   (docs/rediseno-2026-10/fase-5/textos-cupon-para-aprobar.md)
-// Todo lo que no es «APROBADO» está en la tanda para Naza. El catalán y el vos
-// de lo aprobado también van a la tanda (lo aprobado es el castellano de tú).
+//   // APROBADO por Naza 20/10 · CU-NN   (docs/rediseno-2026-10/fase-5/textos-cupon-para-aprobar.md;
+//      «DE respuesta-19-10.md» = frase del análisis legal, adaptada sin dos puntos)
+// Naza aprobó el 20/10 las tandas A-D de ese archivo, con el vos y el catalán
+// (el catalán, falta pasarlo por Softcatalà).
 // Nada de esto se ve hasta que se prenda RASCA_Y_GANA=1.
 
 export type TextosPopup = {
@@ -106,44 +106,44 @@ export type TextosCupon = { popup: TextosPopup; checkout: TextosCuponCheckout; p
 
 const ES: TextosCupon = {
   popup: {
-    cerrar: "Cerrar", // BORRADOR · CU-01
+    cerrar: "Cerrar", // APROBADO por Naza 20/10 · CU-01
     titulo: "Rasca y descubre tu descuento.", // APROBADO por Naza 19/10 · tanda 1, texto 9
-    rascar: "Rascar", // DE respuesta-19-10.md §1.3 · CU-01
-    pistaRascar: "Pasa el dedo o el ratón por la tarjeta, o toca Rascar.", // BORRADOR · CU-01
-    // DE respuesta-19-10.md §1.3 y §1.6 (las condiciones que cambian la decisión, antes de rascar) · CU-02
+    rascar: "Rascar", // APROBADO por Naza 20/10 · CU-01 (respuesta-19-10.md §1.3 )
+    pistaRascar: "Pasa el dedo o el ratón por la tarjeta, o toca Rascar.", // APROBADO por Naza 20/10 · CU-01
+    // APROBADO por Naza 20/10 · CU-02 (respuesta-19-10.md §1.3 y §1.6 (las condiciones que cambian la decisión, antes de rascar) )
     condiciones: "Vale 30 días desde que te llega. Solo el libro digital. Un uso por código. No se suma a otros cupones.",
-    noEsSorteo: "No es un sorteo. Todos reciben el mismo cupón.", // DE respuesta-19-10.md §1.3 · CU-03
+    noEsSorteo: "No es un sorteo. Todos reciben el mismo cupón.", // APROBADO por Naza 20/10 · CU-03 (respuesta-19-10.md §1.3 )
     premio: "Tienes un 10 % de descuento en tu Vitácora.", // APROBADO por Naza 19/10 · tanda 1, texto 9
-    correo: "Tu correo", // BORRADOR · CU-04
-    correoPista: "nombre@correo.com", // BORRADOR · CU-04
+    correo: "Tu correo", // APROBADO por Naza 20/10 · CU-04
+    correoPista: "nombre@correo.com", // APROBADO por Naza 20/10 · CU-04
     casillaCupon: "Quiero recibir el cupón en este mail.", // APROBADO por Naza 19/10 · tanda 1, texto 10
     // APROBADO por Naza 19/10 · tanda 1, texto 10
     casillaRecordatorios: "Acepto que Vitácora me escriba hasta 4 veces para recordarme el descuento. Me doy de baja con un clic.",
     recibir: "Recibir mi cupón", // APROBADO por Naza 19/10 · tanda 1, texto 9
     noGracias: "No, gracias", // APROBADO (pedido de Naza 20/10)
-    enviando: "Enviando…", // BORRADOR · CU-04
+    enviando: "Enviando…", // APROBADO por Naza 20/10 · CU-04
     bases: "Bases del cupón", // APROBADO por Naza 19/10 · tanda 1, texto 10
     privacidad: "Privacidad", // el nombre del enlace del pie (ya aprobado)
-    // DE respuesta-19-10.md §1.3 (responsable, finalidad y derechos, art. 13 RGPD) · CU-05
+    // APROBADO por Naza 20/10 · CU-05 (respuesta-19-10.md §1.3 (responsable, finalidad y derechos, art. 13 RGPD) )
     responsable: (quien, correo) =>
       `Lo da Vitácora Familiar, de ${quien}. Usamos tu correo para mandarte el cupón y, si lo aceptas, los recordatorios. Para ver o borrar tus datos, escribe a ${correo}.`,
-    menores: "Si tienes menos de 14 años, pide a un adulto que lo haga por ti.", // DE respuesta-19-10.md §1.3 · CU-06
-    faltaCorreo: "Escribe un correo válido.", // BORRADOR · CU-07
-    faltaCasilla: "Marca la primera casilla para recibir el cupón.", // BORRADOR · CU-07
-    fallo: "No pudimos mandarlo. Intenta de nuevo en un rato.", // BORRADOR · CU-07
-    enviadoTitulo: "Revisa tu correo.", // BORRADOR · CU-08
-    enviadoTexto: (correo) => `Te mandamos un mail a ${correo}. Toca el botón del mail y te llega tu cupón.`, // BORRADOR · CU-08
+    menores: "Si tienes menos de 14 años, pide a un adulto que lo haga por ti.", // APROBADO por Naza 20/10 · CU-06 (respuesta-19-10.md §1.3 )
+    faltaCorreo: "Escribe un correo válido.", // APROBADO por Naza 20/10 · CU-07
+    faltaCasilla: "Marca la primera casilla para recibir el cupón.", // APROBADO por Naza 20/10 · CU-07
+    fallo: "No pudimos mandarlo. Intenta de nuevo en un rato.", // APROBADO por Naza 20/10 · CU-07
+    enviadoTitulo: "Revisa tu correo.", // APROBADO por Naza 20/10 · CU-08
+    enviadoTexto: (correo) => `Te mandamos un mail a ${correo}. Toca el botón del mail y te llega tu cupón.`, // APROBADO por Naza 20/10 · CU-08
   },
   checkout: {
-    pregunta: "¿Tienes un cupón?", // BORRADOR · CU-09
-    pista: "VITACORA10-…", // BORRADOR · CU-09
-    aplicar: "Aplicar", // BORRADOR · CU-09
-    aplicando: "Revisando…", // BORRADOR · CU-09
-    quitar: "Quitar", // BORRADOR · CU-09
+    pregunta: "¿Tienes un cupón?", // APROBADO por Naza 20/10 · CU-09
+    pista: "VITACORA10-…", // APROBADO por Naza 20/10 · CU-09
+    aplicar: "Aplicar", // APROBADO por Naza 20/10 · CU-09
+    aplicando: "Revisando…", // APROBADO por Naza 20/10 · CU-09
+    quitar: "Quitar", // APROBADO por Naza 20/10 · CU-09
     linea: "Cupón de bienvenida · 10 % del libro digital", // APROBADO por Naza 19/10 · tanda 3, texto 21
-    aplicado: (codigo) => `Cupón ${codigo} aplicado.`, // BORRADOR · CU-09
+    aplicado: (codigo) => `Cupón ${codigo} aplicado.`, // APROBADO por Naza 20/10 · CU-09
     motivos: {
-      // BORRADOR · CU-10
+      // APROBADO por Naza 20/10 · CU-10
       no_existe: "Ese código no existe. Revisa que esté bien escrito.",
       sin_confirmar: "Ese cupón todavía no está activo. Toca el botón del mail que te mandamos.",
       vencido: "Ese cupón ya venció.",
@@ -152,32 +152,32 @@ const ES: TextosCupon = {
       no_aplica: "El cupón es para el libro digital. Esta compra no lo lleva.",
       con_promo: "El cupón no se suma a precios ya rebajados.",
     },
-    fallo: "No pudimos revisar el cupón. Intenta de nuevo en un momento.", // BORRADOR · CU-10
+    fallo: "No pudimos revisar el cupón. Intenta de nuevo en un momento.", // APROBADO por Naza 20/10 · CU-10
   },
   paginas: {
-    // BORRADOR · CU-11
+    // APROBADO por Naza 20/10 · CU-11
     confirmarTitulo: "Confirma tu correo",
     confirmarTexto: "Toca el botón y te mandamos tu cupón.",
     confirmarBoton: "Ver mi cupón",
-    // BORRADOR · CU-12
+    // APROBADO por Naza 20/10 · CU-12
     listoTitulo: "Tu cupón ya es tuyo",
     tuCodigo: "Tu código",
     vale: (fecha) => `Vale hasta el ${fecha}, ese día incluido.`,
     tambienPorMail: "Te lo mandamos también por mail.",
     usar: "Usar mi cupón",
-    // BORRADOR · CU-13
+    // APROBADO por Naza 20/10 · CU-13
     enlaceVencido: "Este enlace ya no sirve. Pide el cupón otra vez desde la web y te mandamos uno nuevo.",
     yaNoVale: "Este cupón ya no se puede usar.",
-    // BORRADOR · CU-14
+    // APROBADO por Naza 20/10 · CU-14
     bajaTitulo: "Listo",
     bajaTexto: "No te vamos a mandar más recordatorios. Tu cupón sigue valiendo hasta su fecha.",
     bajaMal: "Este enlace no sirve. Escríbenos a soporte@vitacorafamiliar.com y te damos de baja a mano.",
     volver: "Volver a Vitácora",
   },
   mail: {
-    etiqueta: "CUPÓN DE BIENVENIDA", // BORRADOR · CU-15
+    etiqueta: "CUPÓN DE BIENVENIDA", // APROBADO por Naza 20/10 · CU-15
     confirmar: {
-      // BORRADOR · CU-15
+      // APROBADO por Naza 20/10 · CU-15
       asunto: "Confirma tu correo para recibir tu cupón",
       vistaPrevia: "Toca el botón y te llega tu cupón de Vitácora.",
       titulo: "Confirma tu correo",
@@ -187,7 +187,7 @@ const ES: TextosCupon = {
       porQue: (fecha) => `Recibes este email porque alguien pidió el cupón con esta dirección el ${fecha}.`,
     },
     cupon: {
-      // BORRADOR · CU-16
+      // APROBADO por Naza 20/10 · CU-16
       asunto: "Tu cupón de bienvenida de Vitácora",
       vistaPrevia: "Tu código y la fecha en que vence.",
       titulo: "Tu cupón de bienvenida",
@@ -200,7 +200,7 @@ const ES: TextosCupon = {
       porQue: (fecha) => `Recibes este email porque pediste el cupón el ${fecha}.`,
     },
     recordatorio: {
-      // BORRADOR · CU-17 (PUBLICIDAD en el asunto y arriba, respuesta-19-10.md §1.5)
+      // APROBADO por Naza 20/10 · CU-17 (PUBLICIDAD en el asunto y arriba, respuesta-19-10.md §1.5)
       etiqueta: "PUBLICIDAD · CUPÓN DE BIENVENIDA",
       asuntos: [
         "Publicidad · Tu cupón de Vitácora sigue activo",
@@ -213,15 +213,15 @@ const ES: TextosCupon = {
       boton: "Usar mi cupón",
       porQue: (fecha) => `Recibes este email porque pediste el cupón el ${fecha} y aceptaste los recordatorios.`,
     },
-    remitente: (quien) => `Te escribe Vitácora Familiar, de ${quien}.`, // DE respuesta-19-10.md §1.5 · CU-18
+    remitente: (quien) => `Te escribe Vitácora Familiar, de ${quien}.`, // APROBADO por Naza 20/10 · CU-18 (respuesta-19-10.md §1.5 )
     bases: "Bases del cupón", // APROBADO por Naza 19/10 · tanda 1, texto 10
     privacidad: "Privacidad",
-    baja: "No quiero más recordatorios", // BORRADOR · CU-18
+    baja: "No quiero más recordatorios", // APROBADO por Naza 20/10 · CU-18
   },
 };
 
 // ─── Castellano de Argentina (vos) ─────────────────────────────────────────
-// Lo mismo que ES pasado a vos (CU-19: Naza aprueba el vos de lo aprobado).
+// Lo mismo que ES pasado a vos (CU-19, APROBADO por Naza 20/10).
 
 const AR: TextosCupon = {
   popup: {
@@ -281,7 +281,7 @@ const AR: TextosCupon = {
 };
 
 // ─── Català ───────────────────────────────────────────────────────────────
-// BORRADOR entero (CU-20): traducción de lo de arriba, a revisar con Softcatalà y Naza.
+// CU-20, APROBADO por Naza 20/10: traducción de lo de arriba (falta pasarla por Softcatalà).
 
 const CA: TextosCupon = {
   popup: {

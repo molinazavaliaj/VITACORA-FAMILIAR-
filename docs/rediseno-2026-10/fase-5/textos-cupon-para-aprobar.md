@@ -1,4 +1,6 @@
-# Rasca y gana: textos que faltan aprobar (20/10/2026)
+# Rasca y gana: textos del cupón (20/10/2026) — APROBADOS por Naza el 20/10
+
+**Naza aprobó las tandas A, B, C y D enteras el 20/10** (falta el abogado; el catalán, pasarlo por Softcatalà). Las decisiones de negocio del final siguen abiertas.
 
 Rama `rasca-y-gana`. Lo **aprobado** ya está en el código tal cual (tanda 1 textos 9 y 10, tanda 2, tanda 3 de
 `textos-legales-nuevos.md`, y los arreglos de `respuesta-19-10.md` §1.6). Lo de abajo es lo que **no** estaba

@@ -9,11 +9,12 @@ import type { Bloque, SeccionLegal, TextoDocumento } from "./legal";
 // APROBADOS por Naza 19/10, falta el abogado) con los arreglos de
 // respuesta-19-10.md §1.6, SIN las notas internas. Cada frase lleva su marca:
 //   // T2-NN   = texto NN de la tanda 2, aprobado (castellano de tú)
-//   // §1.6    = frase del arreglo de respuesta-19-10.md §1.6 (falta el OK de Naza: CU-21)
+//   // §1.6    = frase del arreglo de respuesta-19-10.md §1.6 (APROBADO por Naza 20/10, CU-21)
 // Dos cambios de forma sobre §1.6, para la regla de la casa (sin dos puntos):
 // «El código es personal. Si lo compartes…» y «No es un sorteo. No hay azar…».
-// El vos (ar) y el catalán (ca) de todo esto, y la privacidad entera, son
-// BORRADOR (CU-22 a CU-24 en docs/rediseno-2026-10/fase-5/textos-cupon-para-aprobar.md).
+// El vos (ar), el catalán (ca) y la privacidad (CU-22 a CU-24 en
+// docs/rediseno-2026-10/fase-5/textos-cupon-para-aprobar.md): APROBADOS por Naza
+// el 20/10 (falta el abogado; el catalán, falta pasarlo por Softcatalà).
 //
 // Marcas: las mismas de _textos/legal.ts ({titular:ES}, {soporte}, [enlace](/ruta)).
 
@@ -22,8 +23,8 @@ const s = (id: string, titulo: string, ...bloques: Bloque[]): SeccionLegal => ({
 
 const BASES_ES: TextoDocumento = {
   titulo: "Bases del cupón de bienvenida", // T2-11
-  bajada: "Un 10 % de descuento sobre el libro digital, para cada correo que lo pide.", // BORRADOR · CU-21
-  descripcion: "Las condiciones del cupón de bienvenida de Vitácora.", // BORRADOR · CU-21
+  bajada: "Un 10 % de descuento sobre el libro digital, para cada correo que lo pide.", // APROBADO por Naza 20/10 · CU-21
+  descripcion: "Las condiciones del cupón de bienvenida de Vitácora.", // APROBADO por Naza 20/10 · CU-21
   enCorto: [],
   secciones: [
     s("quien", "Quién lo da", p("El cupón lo da Vitácora Familiar, {titular:ES}.")), // T2-12 con el arreglo de §1.6
@@ -73,7 +74,7 @@ const BASES_ES: TextoDocumento = {
   ],
 };
 
-// BORRADOR · CU-22: lo mismo de vos, con el titular de Argentina.
+// APROBADO por Naza 20/10 · CU-22: lo mismo de vos, con el titular de Argentina.
 const BASES_AR: TextoDocumento = {
   ...BASES_ES,
   secciones: [
@@ -101,7 +102,7 @@ const BASES_AR: TextoDocumento = {
   ],
 };
 
-// BORRADOR · CU-23: traducción al catalán, a revisar con Softcatalà.
+// APROBADO por Naza 20/10 · CU-23: traducción al catalán, a revisar con Softcatalà.
 const BASES_CA: TextoDocumento = {
   titulo: "Bases del cupó de benvinguda",
   bajada: "Un 10 % de descompte sobre el llibre digital, per a cada correu que el demana.",
@@ -144,7 +145,7 @@ const BASES_CA: TextoDocumento = {
 
 export const BASES_CUPON: Textos<TextoDocumento> = { es: BASES_ES, ca: BASES_CA, ar: BASES_AR };
 
-// ── Privacidad (respuesta-19-10.md §1.9) · BORRADOR · CU-24 ───────────────
+// ── Privacidad (respuesta-19-10.md §1.9) · APROBADO por Naza 20/10 · CU-24 ───────────────
 // Finalidad, base, datos, plazo, proveedor y cómo retirar el consentimiento.
 // Va como «4 bis», después de «4. Para qué los usamos»; y la frase «no usamos
 // tus datos para publicidad» de esa sección suma la excepción.
