@@ -19,6 +19,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { necesitaEntrega } from "./entregas";
 import { productosDelPedido } from "./productos";
 import { tratoDeRegion, type TratoComprador } from "./regalo-textos";
+import { marcarCuponUsado } from "./cupon-base";
 
 export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
@@ -80,6 +81,11 @@ export async function confirmarPago(
     // que hacer y se responde 200 para que el proveedor deje de insistir.
     return { ok: true, yaEstaba: true, email: null, codigoRegalo: null };
   }
+
+  // 1b. El cupón de bienvenida (rasca y gana, 20/10): queda usado recién
+  //     ahora que el pago entró. Nunca tira ni cambia el resultado del pago.
+  const cupon = extras?.cupon as { codigo?: unknown } | undefined;
+  if (typeof cupon?.codigo === "string") await marcarCuponUsado(admin, cupon.codigo, pedido.id);
 
   // 2. El narrador arranca. Solo desde pendiente_pago: si por alguna razón ya
   //    estaba más adelante, no se lo retrocede.

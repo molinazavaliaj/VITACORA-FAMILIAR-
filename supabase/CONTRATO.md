@@ -1248,3 +1248,33 @@ Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 - `entrega_contacto` se usa solo para este envío: no pasa a `narradores`. El teléfono del narrador
   es siempre el del canje.
 - El recordatorio de los 15 días no cambia.
+
+## Cupón de bienvenida — rasca y gana (migración 20261020000000 — PROPUESTA del 20/10, la aplica Naza)
+
+Textos y reglas: `docs/rediseno-2026-10/fase-5/textos-legales-nuevos.md` (tandas 1 —textos 9 y 10—, 2 y 3)
+y `respuesta-19-10.md` §1. Rama `rasca-y-gana`. **Solo la web** lee y escribe; la fábrica y el entrevistador
+no la miran.
+
+- **`cupones`**: una fila por correo y por país (`unique (email, region)`). `codigo` único,
+  `VITACORA10-XXXXXX` (6 letras/números sin 0, O, 1, I ni L). Nace sin confirmar (`confirmado_at` null):
+  no vale ni recibe nada. Al tocar el botón del mail (doble opt-in) se escribe `confirmado_at` y
+  `vence_el` (= el día de la confirmación + 30, en la fecha del país; el último día vale) y sale el mail
+  con el código. `acepta_recordatorios` es la segunda casilla (opcional: el cupón se entrega igual sin
+  ella). `consentimiento` = `{ textos: string[], version: string, fecha: ISO, userAgent?: string }`, con
+  `ip` aparte: la prueba del art. 7.1 RGPD.
+- **Recordatorios**: hasta 4, en los 14 días que siguen a la confirmación (días 2, 5, 9 y 13), solo si
+  `acepta_recordatorios`, sin `baja_at`, sin `usado_at` y sin vencer. Los manda la ruta
+  `/api/cupon/recordatorios` (cron diario de Vercel, `vercel.json`, con `CRON_SECRET`); cada envío sube
+  `recordatorios_enviados` con compare-and-swap (nunca un quinto mail). `baja_at`: la baja de un clic
+  (link firmado y cabecera `List-Unsubscribe`). El mismo cron borra los cupones sin confirmar de más de
+  30 días y los de más de 24 meses.
+- **En la compra**: `/api/compra` recibe `cupon` (el código), lo valida (confirmado, de la región, sin
+  usar, sin vencer, sin promo global prendida) y calcula el descuento en el servidor: `porcentaje` del
+  precio del libro digital de la región (`PRECIO_EUR` / `PRECIO_ARS`), también cuando va dentro del pack.
+  `pedidos.monto` es el total ya con el descuento. `pedidos.extras.cupon = { codigo, porcentaje, importe }`
+  (sin la clave, sin cupón). Las pasarelas no aceptan líneas negativas: el importe se resta de la línea del
+  PDF o del pack.
+- **Al pagar** (`confirmarPago`, el mismo camino de Stripe, Mercado Pago y la vuelta del pago):
+  `usado_at` y `pedido_id`, con compare-and-swap sobre `usado_at is null`. Si dos pedidos pendientes
+  usaron el mismo código y pagan los dos, el segundo se cobra igual con el descuento y queda en los logs.
+  Si se devuelve la compra, el cupón no se regenera.

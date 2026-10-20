@@ -28,8 +28,10 @@ const VOZ: Record<Trato, { suma: string; tenes: string; marcosGris: string }> = 
   vos: { suma: "Sumá", tenes: "Ya tenés", marcosGris: "Los marcos viajan con el libro: sumá el libro impreso para agregar marcos." },
 };
 
-export function formatearPrecio(monto: number, moneda: Moneda, region: Region) {
-  return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(monto);
+export function formatearPrecio(monto: number, moneda: Moneda, region: Region, centimos = false) {
+  // Sin decimales, como siempre. `centimos`: con el cupón de bienvenida (44,10 € y −4,90 €), si el monto los tiene.
+  const decimales = centimos && Math.round(monto * 100) % 100 !== 0 ? 2 : 0;
+  return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, minimumFractionDigits: decimales, maximumFractionDigits: decimales }).format(monto);
 }
 
 /** El precio de lista de la promo, ya formateado, para `Tachado`. */

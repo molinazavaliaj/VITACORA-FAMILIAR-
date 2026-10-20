@@ -91,7 +91,7 @@ export function Ejemplo({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </main>
       <div className="dir-tinta ejm-tinta">
-        <Pie idioma={idioma} camino="/ejemplo" />
+        <Pie idioma={idioma} camino="/ejemplo" rasca />
       </div>
     </div>
   );
