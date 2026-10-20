@@ -1,7 +1,7 @@
 import type { TratoComprador } from "./regalo-textos";
 import type { EstadoPreguntaFamiliaV3 } from "./v3";
 
-// «Las preguntas de la familia» en la página de su historia (Naza, 20/10). Textos aprobados por Naza en
+// «Las preguntas de la familia» en la página de su historia (Naza, 20/10). Textos aprobados por Naza el 20/10 (las tres tandas), en
 // docs/panel/preguntas-de-la-familia-textos.md. En es (tú), ar (vos) y ca. Hoy la página de su historia
 // solo distingue vos y tú; el catalán queda listo para cuando la página se vea en catalán.
 
