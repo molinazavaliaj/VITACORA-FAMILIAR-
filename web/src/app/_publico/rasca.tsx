@@ -12,11 +12,13 @@ import "./rasca.css";
 // los pocos segundos y no al cargar, y si se cierra (la X o «No, gracias») no
 // vuelve en esa visita. Si ya pidió el cupón en este navegador, no vuelve más.
 //
-// El premio es el mismo para todos: el rasca es solo visual (no hay azar, no
-// es juego) y lo dice antes de rascar, con las condiciones que cambian la
-// decisión (vigencia, solo digital, un uso, no acumulable). Las dos casillas
-// van sin marcar y separadas; la segunda es opcional y el cupón llega igual.
-// «Recibir mi cupón» y «No, gracias» tienen el mismo tamaño, color y peso.
+// Corto, como lo pidió Naza (20/10): antes de revelar, solo el título, la
+// tarjeta y «Revelar mi descuento». Después, el correo, las dos casillas sin
+// marcar y separadas (la segunda es opcional y el cupón llega igual) y una sola
+// línea de letra chica con las condiciones, quién lo da y los enlaces a las
+// bases y la privacidad. El resto (no es un sorteo, todos reciben lo mismo)
+// vive en las bases. «Recibir mi cupón» y «No, gracias» tienen el mismo
+// tamaño, color y peso. El premio es igual para todos: el rasca es solo visual.
 //
 // Solo se pinta con RASCA_Y_GANA=1 (lo decide el servidor, Pie).
 
@@ -43,7 +45,7 @@ const guardar = (almacen: () => Storage, clave: string) => {
 
 type Etapa = "rascar" | "pedir" | "enviado";
 
-export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien: string; correo: string }) {
+export function RascaYGana({ idioma }: { idioma: IdiomaWeb }) {
   const T = TEXTOS_CUPON[idioma].popup;
   const [visible, setVisible] = useState(false);
   const [etapa, setEtapa] = useState<Etapa>("rascar");
@@ -170,76 +172,63 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
           <p id={titulo} className="rsc-titulo">{T.enviadoTitulo}</p>
           <p className="rsc-texto">{T.enviadoTexto(email.trim())}</p>
         </div>
-      ) : (
+      ) : etapa === "rascar" ? (
         <div className="rsc-cuerpo">
           <p id={titulo} className="rsc-titulo">{T.titulo}</p>
-          <p className="rsc-nota">{T.noEsSorteo}</p>
-
           <div className="rsc-tarjeta">
-            <p className="rsc-premio" aria-live="polite">{etapa === "rascar" ? "" : T.premio}</p>
-            {etapa === "rascar" ? (
-              <>
-                <span aria-hidden className="rsc-premio rsc-premio-debajo">{T.premio}</span>
-                <canvas
-                  ref={lienzo}
-                  aria-hidden
-                  className="rsc-lienzo"
-                  onPointerDown={(ev) => {
-                    rascando.current = true;
-                    ev.currentTarget.setPointerCapture(ev.pointerId);
-                    rascar(ev);
-                  }}
-                  onPointerMove={rascar}
-                  onPointerUp={medir}
-                  onPointerCancel={medir}
-                />
-              </>
-            ) : null}
+            <span aria-hidden className="rsc-premio rsc-premio-debajo">{T.premio}</span>
+            <canvas
+              ref={lienzo}
+              aria-hidden
+              className="rsc-lienzo"
+              onPointerDown={(ev) => {
+                rascando.current = true;
+                ev.currentTarget.setPointerCapture(ev.pointerId);
+                rascar(ev);
+              }}
+              onPointerMove={rascar}
+              onPointerUp={medir}
+              onPointerCancel={medir}
+            />
           </div>
-
-          {etapa === "rascar" ? (
-            <>
-              <p className="rsc-nota">{T.pistaRascar}</p>
-              <button type="button" className="rsc-boton" onClick={() => setEtapa("pedir")}>{T.rascar}</button>
-            </>
-          ) : (
-            <form onSubmit={pedir} noValidate className="rsc-form">
-              <label htmlFor={`${id}-correo`} className="rsc-etiqueta">{T.correo}</label>
-              <input
-                id={`${id}-correo`}
-                type="email"
-                className="rsc-campo"
-                value={email}
-                onChange={(ev) => setEmail(ev.target.value)}
-                placeholder={T.correoPista}
-                autoComplete="email"
-                inputMode="email"
-                spellCheck={false}
-                {...(error === T.faltaCorreo ? { "aria-invalid": true, "aria-describedby": idError } : {})}
-              />
-              <label className="rsc-casilla">
-                <input type="checkbox" checked={recibir} onChange={(ev) => setRecibir(ev.target.checked)} {...(error === T.faltaCasilla ? { "aria-invalid": true, "aria-describedby": idError } : {})} />
-                <span>{T.casillaCupon}</span>
-              </label>
-              <label className="rsc-casilla">
-                <input type="checkbox" checked={recordatorios} onChange={(ev) => setRecordatorios(ev.target.checked)} />
-                <span>{T.casillaRecordatorios}</span>
-              </label>
-              {error ? <p id={idError} role="alert" className="rsc-error">{error}</p> : null}
-              <div className="rsc-botones">
-                <button type="submit" className="rsc-boton" disabled={enviando}>{enviando ? T.enviando : T.recibir}</button>
-                <button type="button" className="rsc-boton" onClick={cerrar}>{T.noGracias}</button>
-              </div>
-            </form>
-          )}
-
-          <p className="rsc-legal">{T.condiciones}</p>
-          <p className="rsc-legal">{T.responsable(quien, correo)}</p>
-          <p className="rsc-legal">{T.menores}</p>
+          <button type="button" className="rsc-boton" onClick={() => setEtapa("pedir")}>{T.revelar}</button>
+        </div>
+      ) : (
+        <div className="rsc-cuerpo">
+          <p id={titulo} className="rsc-titulo" aria-live="polite">{T.premio}</p>
+          <form onSubmit={pedir} noValidate className="rsc-form">
+            <label htmlFor={`${id}-correo`} className="rsc-etiqueta">{T.correo}</label>
+            <input
+              id={`${id}-correo`}
+              type="email"
+              className="rsc-campo"
+              value={email}
+              onChange={(ev) => setEmail(ev.target.value)}
+              placeholder={T.correoPista}
+              autoComplete="email"
+              inputMode="email"
+              spellCheck={false}
+              {...(error === T.faltaCorreo ? { "aria-invalid": true, "aria-describedby": idError } : {})}
+            />
+            <label className="rsc-casilla">
+              <input type="checkbox" checked={recibir} onChange={(ev) => setRecibir(ev.target.checked)} {...(error === T.faltaCasilla ? { "aria-invalid": true, "aria-describedby": idError } : {})} />
+              <span>{T.casillaCupon}</span>
+            </label>
+            <label className="rsc-casilla">
+              <input type="checkbox" checked={recordatorios} onChange={(ev) => setRecordatorios(ev.target.checked)} />
+              <span>{T.casillaRecordatorios}</span>
+            </label>
+            {error ? <p id={idError} role="alert" className="rsc-error">{error}</p> : null}
+            <div className="rsc-botones">
+              <button type="submit" className="rsc-boton" disabled={enviando}>{enviando ? T.enviando : T.recibir}</button>
+              <button type="button" className="rsc-boton" onClick={cerrar}>{T.noGracias}</button>
+            </div>
+          </form>
           <p className="rsc-legal">
-            <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")}>{T.privacidad}</Link>
-            {" · "}
+            {T.letraChica}{" "}
             <Link prefetch={false} href={ruta(idioma, "/legal/cupon")}>{T.bases}</Link>
+            {" · "}
+            <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")}>{T.privacidad}</Link>
           </p>
         </div>
       )}
