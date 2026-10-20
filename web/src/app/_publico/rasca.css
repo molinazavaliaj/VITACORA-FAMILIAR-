@@ -4,7 +4,8 @@
 
 .rsc {
   position: fixed;
-  z-index: 60;
+  z-index: 1000;
+  isolation: isolate;
   right: 16px;
   bottom: 16px;
   left: 16px;

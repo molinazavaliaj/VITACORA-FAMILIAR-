@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type FormEvent, type PointerEvent as EventoPuntero } from "react";
+import { createPortal } from "react-dom";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { TEXTOS_CUPON } from "../_textos/cupon";
 import "./rasca.css";
@@ -53,6 +54,7 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
   const [enviando, setEnviando] = useState(false);
   const lienzo = useRef<HTMLCanvasElement>(null);
   const rascando = useRef(false);
+  const ultimo = useRef<{ x: number; y: number } | null>(null);
   const id = useId();
 
   useEffect(() => {
@@ -75,6 +77,9 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
     ctx.fillStyle = "#a8936a";
     ctx.fillRect(0, 0, width, height);
     ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = 36;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
   }, [visible, etapa]);
 
   function cerrar() {
@@ -97,13 +102,19 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
     const ctx = c?.getContext("2d");
     if (!c || !ctx) return;
     const r = c.getBoundingClientRect();
+    const punto = { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    // Una línea desde el punto anterior: un movimiento rápido no deja huecos.
+    const desde = ultimo.current ?? punto;
     ctx.beginPath();
-    ctx.arc(ev.clientX - r.left, ev.clientY - r.top, 18, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(desde.x, desde.y);
+    ctx.lineTo(punto.x + 0.01, punto.y);
+    ctx.stroke();
+    ultimo.current = punto;
   }
 
   function medir() {
     rascando.current = false;
+    ultimo.current = null;
     const c = lienzo.current;
     const ctx = c?.getContext("2d");
     if (!c || !ctx || c.width === 0) return;
@@ -145,7 +156,8 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
   const titulo = `${id}-titulo`;
   const idError = `${id}-error`;
 
-  return (
+  // Al body: dentro del pie, un ancestro con transform dejaría el `fixed` atado a él.
+  return createPortal(
     <div role="dialog" aria-modal="false" aria-labelledby={titulo} className="rsc">
       <button type="button" onClick={cerrar} aria-label={T.cerrar} className="rsc-cerrar">
         <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
@@ -231,6 +243,7 @@ export function RascaYGana({ idioma, quien, correo }: { idioma: IdiomaWeb; quien
           </p>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
