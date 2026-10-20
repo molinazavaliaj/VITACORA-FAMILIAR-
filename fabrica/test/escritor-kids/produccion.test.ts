@@ -410,13 +410,13 @@ describe('piezas del libro de Kids en producción', () => {
   it('los mails al padre: los textos que aprobó Naza (16/10, tanda 4), literales', () => {
     const { revisar, libro_listo } = TEXTOS_MAIL_KIDS;
     expect(revisar.asunto('Benja')).toBe('El libro de Benja está para que lo revises');
-    expect(revisar.parrafos('Benja')).toEqual(['Ya escribimos el libro de Benja con lo que contó. Entrá a tu panel y leelo.', 'Si está bien, aprobalo desde ahí.']);
+    expect(revisar.parrafos('Benja')).toEqual(['Ya escribimos el libro de Benja con lo que contó. Entrá a la página de su historia y leelo.', 'Si está bien, aprobalo desde ahí.']);
     expect(revisar.parrafos('Benja').join(' ')).not.toContain('no se imprime');
     expect(revisar.boton).toBe('Ver el libro');
     expect(libro_listo.asunto('Benja')).toBe('El libro de Benja está listo');
     expect(libro_listo.parrafos('Benja')).toEqual([
       'Ya está. El libro de Benja, con sus palabras y con sus audios para escuchar desde los códigos del libro.',
-      'Queda en tu panel para leerlo o descargarlo cuando quieras.',
+      'Queda en la página de su historia para leerlo o descargarlo cuando quieras.',
     ]);
     expect(libro_listo.boton).toBe('Ver el libro');
   });
@@ -424,12 +424,12 @@ describe('piezas del libro de Kids en producción', () => {
   it('los mails al padre de España: los textos que aprobó Naza (16/10, tanda 8), en tú, literales', () => {
     const { revisar, libro_listo } = textosMailKids('es-ES');
     expect(revisar.asunto('Benja')).toBe('El libro de Benja ya se puede leer. Revísalo antes de aprobarlo');
-    expect(revisar.parrafos('Benja')).toEqual(['Ya hemos escrito el libro de Benja con lo que contó. Entra en tu panel y léelo.', 'Si está bien, apruébalo desde ahí.']);
+    expect(revisar.parrafos('Benja')).toEqual(['Ya hemos escrito el libro de Benja con lo que contó. Entra en la página de su historia y léelo.', 'Si está bien, apruébalo desde ahí.']);
     expect(revisar.boton).toBe('Ver el libro');
     expect(libro_listo.asunto('Benja')).toBe('El libro de Benja está listo');
     expect(libro_listo.parrafos('Benja')).toEqual([
       'Ya está. El libro de Benja, con sus palabras y con sus audios para escuchar desde los códigos del libro.',
-      'Se queda en tu panel para leerlo o descargarlo cuando quieras.',
+      'Se queda en la página de su historia para leerlo o descargarlo cuando quieras.',
     ]);
     expect(libro_listo.boton).toBe('Ver el libro');
     for (const t of Object.values(textosMailKids('es-ES'))) {
@@ -439,8 +439,8 @@ describe('piezas del libro de Kids en producción', () => {
     }
     expect(textosMailKids('es-AR')).toBe(TEXTOS_MAIL_KIDS);
     expect(textosMailKids()).toBe(TEXTOS_MAIL_KIDS);
-    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test', idioma: 'es-ES' })).toContain('Entra en tu panel y léelo.');
-    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test' })).toContain('Entrá a tu panel y leelo.');
+    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test', idioma: 'es-ES' })).toContain('Entra en la página de su historia y léelo.');
+    expect(cuerpoMailKids('revisar', { apodo: 'Benja', enlace: 'https://x.test' })).toContain('Entrá a la página de su historia y leelo.');
   });
 
   it('un chico de España: los dos mails al padre salen en tú (ficha.idioma, si no kids_v2.idioma)', async () => {
@@ -453,11 +453,11 @@ describe('piezas del libro de Kids en producción', () => {
       const { motor } = motorFalso();
       await vuelta(db, motor);
       expect(alPadre().map((m) => m.subject)).toEqual(['El libro de Benja ya se puede leer. Revísalo antes de aprobarlo']);
-      expect(alPadre()[0].html).toContain('Entra en tu panel y léelo.');
+      expect(alPadre()[0].html).toContain('Entra en la página de su historia y léelo.');
       tablas.narradores[0].libro_aprobado_at = new Date().toISOString();
       await vuelta(db, motor);
       expect(alPadre()[1].subject).toBe('El libro de Benja está listo');
-      expect(alPadre()[1].html).toContain('Se queda en tu panel');
+      expect(alPadre()[1].html).toContain('Se queda en la página de su historia');
     }
   });
 
@@ -467,12 +467,12 @@ describe('piezas del libro de Kids en producción', () => {
     expect(faltanTextosKids('ca')).toEqual([]);
     const { revisar, libro_listo } = textosMailKids('ca');
     expect(revisar.asunto('Jana')).toBe("El llibre de Jana ja es pot llegir. Revisa'l abans d'aprovar-lo");
-    expect(revisar.parrafos('Jana')).toEqual(['Ja hem escrit el llibre de Jana amb el que ha explicat. Entra al teu panell i llegeix-lo.', "Si està bé, aprova'l des d'allà."]);
+    expect(revisar.parrafos('Jana')).toEqual(['Ja hem escrit el llibre de Jana amb el que ha explicat. Entra a la pàgina de la seva història i llegeix-lo.', "Si està bé, aprova'l des d'allà."]);
     expect(revisar.boton).toBe('Veure el llibre');
     expect(libro_listo.asunto('Jana')).toBe('El llibre de Jana està llest');
     expect(libro_listo.parrafos('Jana')).toEqual([
       'Ja està. El llibre de Jana, amb les seves paraules i amb els seus àudios per escoltar des dels codis del llibre.',
-      'Es queda al teu panell per llegir-lo o descarregar-lo quan vulguis.',
+      'Es queda a la pàgina de la seva història per llegir-lo o descarregar-lo quan vulguis.',
     ]);
     for (const t of Object.values(textosMailKids('ca'))) expect([t.asunto('Jana'), ...t.parrafos('Jana'), t.boton].join(' ')).not.toContain(':');
     const html = cuerpoMailKids('revisar', { apodo: 'Jana', enlace: 'https://x.test', idioma: 'ca' });
@@ -492,12 +492,12 @@ describe('piezas del libro de Kids en producción', () => {
       const { motor } = motorFalso();
       await vuelta(db, motor);
       expect(alPadre().map((m) => m.subject)).toEqual(["El llibre de Benja ja es pot llegir. Revisa'l abans d'aprovar-lo"]);
-      expect(alPadre()[0].html).toContain('Entra al teu panell i llegeix-lo.');
+      expect(alPadre()[0].html).toContain('Entra a la pàgina de la seva història i llegeix-lo.');
       expect(archivos.has(kids('aviso-sin-textos-del-idioma.txt'))).toBe(false);
       tablas.narradores[0].libro_aprobado_at = new Date().toISOString();
       await vuelta(db, motor);
       expect(alPadre()[1].subject).toBe('El llibre de Benja està llest');
-      expect(alPadre()[1].html).toContain('Es queda al teu panell');
+      expect(alPadre()[1].html).toContain('Es queda a la pàgina de la seva història');
     }
   });
 });

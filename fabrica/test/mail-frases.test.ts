@@ -98,9 +98,9 @@ describe('recordatorio de frases con vos para Argentina (Naza, 09/10)', () => {
     expect(asuntoRecordatorioFrases('abuela', true)).toBe('Las frases de tu abuela: ¿querés elegir vos las que se imprimen?');
     expect(asuntoRecordatorioFrases('abuela')).toBe('Las frases de tu abuela: ¿quieres elegir tú las que se imprimen?');
     const conImpreso = cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x', conImpreso: true, vos: true });
-    expect(conImpreso).toContain('Miralas desde tu panel, cambiá lo que quieras, y si están bien así, confirmalas tal cual.');
+    expect(conImpreso).toContain('Miralas en la página de su historia, cambiá lo que quieras, y si están bien así, confirmalas tal cual.');
     const soloPdf = cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x', vos: true });
-    expect(soloPdf).toContain('Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.');
+    expect(soloPdf).toContain('Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde la página de su historia.');
     expect(cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x' })).toContain('Si quieres sacar alguna');
   });
 });

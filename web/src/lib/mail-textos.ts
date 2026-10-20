@@ -282,7 +282,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       B: () => "El primer missatge t'arriba al teu WhatsApp. La primera pregunta surt quan estigueu junts.",
     },
     // APROBADO por Naza 16/10 (tanda 10) · enTuPanel
-    enTuPanel: "Al teu panell veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
+    enTuPanel: "A la pàgina de la seva història veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
   },
 };
 
