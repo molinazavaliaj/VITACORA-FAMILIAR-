@@ -28,7 +28,18 @@ import { avisarVariablesAlArrancar } from './variables.js';
 import { iniciarSentry } from './sentry.js';
 import { revisarAudiosOriginales } from './audios-originales.js';
 
-const INTERVALO_MS = 60_000;
+/** El latido: cada minuto, como siempre (el panel declara caída a la fábrica a las 3 vueltas sin latir). */
+const LATIDO_MS = 60_000;
+
+/**
+ * La vuelta de trabajo (Disk IO de Supabase, 20/10): cada 5 minutos, no cada 1. Nada de lo que hace espera a
+ * nadie en vivo (un mail sale unos minutos después, un libro tarda horas), y cada vuelta lee la base y lista
+ * carpetas de Storage por narrador. `FABRICA_VUELTA_MINUTOS` lo cambia sin tocar código.
+ */
+const VUELTA_MS = (() => {
+  const m = Number(process.env.FABRICA_VUELTA_MINUTOS ?? 5);
+  return (Number.isFinite(m) && m >= 1 ? m : 5) * 60_000;
+})();
 
 /**
  * A la tercera respuesta se le manda a la familia el anticipo del libro.
@@ -61,7 +72,7 @@ type Db = ReturnType<typeof obtenerClienteDb>;
  */
 async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   try {
-    return await narradoresConV3(db);
+    return await (delTick ? (delTick.v3 ??= narradoresConV3(db)) : narradoresConV3(db));
   } catch (err) {
     console.error(`tick: no pude leer entrevistas_v3; la rama '${rama}' no corre este tick:`, err);
     return null;
@@ -75,7 +86,7 @@ async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
  */
 async function conKidsOFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   try {
-    return await narradoresConKids(db);
+    return await (delTick ? (delTick.kids ??= narradoresConKids(db)) : narradoresConKids(db));
   } catch (err) {
     console.error(`tick: no pude leer kids_v2; la rama '${rama}' no corre este tick:`, err);
     return null;
@@ -97,6 +108,54 @@ type NarradorTerminado = NarradorConFamilia & Pick<Narrador, 'ultima_respuesta_a
 
 let corriendo = false;
 
+/** Cuándo empezó la vuelta que está corriendo (null: ninguna). */
+let vueltaEmpezo: number | null = null;
+/** Una vuelta que lleva más de esto no terminó nunca: el latido de cada minuto se calla (el panel la ve caída). */
+const VUELTA_COLGADA_MS = 60 * 60_000;
+export function vueltaColgada(ahora = Date.now()): boolean {
+  return vueltaEmpezo !== null && ahora - vueltaEmpezo > VUELTA_COLGADA_MS;
+}
+
+/**
+ * Quién es V3 y quién es chico de Kids, leído UNA vez por vuelta (antes, cada rama lo leía de nuevo: 5 y 7
+ * veces por vuelta). Solo vive mientras corre `tick`; una rama llamada sola (los tests) lee como siempre.
+ */
+let delTick: { v3?: Promise<Set<string>>; kids?: Promise<Set<string>>; entregados?: Promise<Set<string>> } | null = null;
+
+/** Los narradores con algún pedido 'entregado', una vez por vuelta. Null si no se pudo leer: quien llama sigue como antes. */
+async function conLibroEntregado(db: Db): Promise<Set<string> | null> {
+  const leer = async (): Promise<Set<string>> => {
+    const { data, error } = await db.from('pedidos').select('narrador_id').eq('estado', 'entregado');
+    if (error) throw new Error(error.message);
+    return new Set(((data ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+  };
+  try {
+    return await (delTick ? (delTick.entregados ??= leer()) : leer());
+  } catch (err) {
+    console.error('tick: no pude leer los pedidos entregados; la Etapa A se revisa como siempre:', err);
+    return null;
+  }
+}
+
+/**
+ * Lo que ya no tiene nada más que hacer, por narrador y por rama (Disk IO, 20/10): «anticipo:{id}» con
+ * `anticipo_enviado.txt`, «libro-listo:{id}» con su candado, etc. Antes, cada vuelta listaba la carpeta de
+ * TODOS los narradores, también los de libro entregado hace meses, para volver a ver el mismo candado; ahora
+ * se lista hasta verlo una vez. Solo se anota lo que no tiene vuelta atrás (un candado que ya está, una
+ * selección de frases confirmada), y vive en la memoria del proceso: al reiniciar la fábrica se vuelve a
+ * mirar todo una vez. Si alguien borra un candado a mano para que un mail salga de nuevo, hay que reiniciar
+ * la fábrica. Por cliente de base, para que cada test arranque de cero.
+ */
+const hechos = new WeakMap<Db, Set<string>>();
+function yaHecho(db: Db, clave: string): boolean {
+  return hechos.get(db)?.has(clave) ?? false;
+}
+function anotarHecho(db: Db, clave: string): void {
+  const set = hechos.get(db) ?? new Set<string>();
+  set.add(clave);
+  hechos.set(db, set);
+}
+
 /**
  * Ids de pedidos en 'generando' que ESTE proceso reclamó y todavía tiene en
  * curso (generarPaquete no terminó). Un pedido sale del Set apenas
@@ -116,6 +175,8 @@ const pedidosGenerandoClaimados = new Set<string>();
 export async function tick(): Promise<void> {
   if (corriendo) return;
   corriendo = true;
+  vueltaEmpezo = Date.now();
+  delTick = {};
   try {
     // Primero el latido: adentro de este tick se escribe un libro entero (minutos)
     // y la fábrica no puede verse caída justo mientras trabaja. Se repite al final.
@@ -141,6 +202,8 @@ export async function tick(): Promise<void> {
     // fábrica está viva, el tick no se cae por eso.
     await anotarLatido('fabrica');
   } finally {
+    delTick = null;
+    vueltaEmpezo = null;
     corriendo = false;
   }
 }
@@ -221,8 +284,12 @@ async function generarAnticiposFaltantes(): Promise<void> {
       // La V3 no tiene anticipo; un chico de Kids tampoco. La Vitácora de Viaje tampoco (16/10: solo V2; el que
       // quedó en el viaje viejo no es un Familiar): el mail del anticipo cita la primera pregunta de una biografía.
       if (v3.has(narrador.id) || kids.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
+      if (yaHecho(db, `anticipo:${narrador.id}`)) continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
-      if (nombresArchivos.has('anticipo_enviado.txt')) continue;
+      if (nombresArchivos.has('anticipo_enviado.txt')) {
+        anotarHecho(db, `anticipo:${narrador.id}`);
+        continue;
+      }
 
       const { count, error: errorCuenta } = await db
         .from('respuestas')
@@ -324,11 +391,17 @@ async function generarEstructurasFaltantes(): Promise<void> {
       if (kids.has(narrador.id)) continue;
       // V3: en vez de la estructura vieja, la Etapa A del escritor nuevo (en segundo plano; no frena el tick).
       if (v3.has(narrador.id)) {
-        await revisarEtapaAV3(db, narrador.id);
+        // Con el libro ya entregado no queda nada de la Etapa A que hacer (ni lanzarla ni avisar sus dudas):
+        // antes se listaba su carpeta del escritor en cada vuelta, para siempre.
+        if (!(await conLibroEntregado(db))?.has(narrador.id)) await revisarEtapaAV3(db, narrador.id);
         continue;
       }
+      if (yaHecho(db, `estructura:${narrador.id}`)) continue;
       const archivos = await listarPaquete(db, narrador.id);
-      if (archivos.has('estructura.json')) continue;
+      if (archivos.has('estructura.json')) {
+        anotarHecho(db, `estructura:${narrador.id}`);
+        continue;
+      }
 
       await generarEstructura(narrador.id);
     } catch (err) {
@@ -365,10 +438,12 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
     try {
       // La V3 no tiene previsualización; un chico de Kids tampoco.
       if (v3.has(narrador.id) || kids.has(narrador.id)) continue;
+      if (yaHecho(db, `preview:${narrador.id}`)) continue;
       const archivos = await listarPaquete(db, narrador.id);
       const tieneEstructura = archivos.has('estructura.json');
       const tieneNombres = archivos.has('nombres.json');
       const tienePreview = archivos.has('preview.pdf');
+      if (tienePreview) anotarHecho(db, `preview:${narrador.id}`);
 
       if (!tieneEstructura || !tieneNombres || tienePreview) continue;
 
@@ -424,6 +499,9 @@ async function avisarHitosDeCierre(): Promise<void> {
 
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
     if (kids.has(narrador.id)) continue;
+    // Libro cerrado y todos sus mails de cierre ya salieron: no queda nada (ver abajo, donde se anota). Si la web
+    // lo reabriera (`libro_aprobado_at` en null), se vuelve a mirar.
+    if (narrador.libro_aprobado_at != null && yaHecho(db, `cierre:${narrador.id}`)) continue;
     try {
       const archivos = await listarPaquete(db, narrador.id);
       const enlace = `${urlBase}/tablero/${narrador.id}`;
@@ -445,7 +523,13 @@ async function avisarHitosDeCierre(): Promise<void> {
       // recordar. Sin fecha de última respuesta no hay desde cuándo contar.
       // `!= null` a propósito: si la columna no vino en el select (o llega
       // undefined desde un fake), se trata como cerrado y no se recuerda de más.
-      if (narrador.libro_aprobado_at != null || !narrador.ultima_respuesta_at) continue;
+      if (narrador.libro_aprobado_at != null) {
+        // Cerrado, con el «terminó» ya mandado y sin un cierre automático por avisar (eso corta arriba):
+        // de acá en más esta rama no hace nada con él.
+        if (archivos.has(CANDADO_POR_HITO.terminado)) anotarHecho(db, `cierre:${narrador.id}`);
+        continue;
+      }
+      if (!narrador.ultima_respuesta_at) continue;
       const dias = Math.floor((Date.now() - new Date(narrador.ultima_respuesta_at).getTime()) / MS_POR_DIA);
 
       if (dias >= DIAS_CIERRE_AUTOMATICO) {
@@ -585,9 +669,13 @@ async function avisarLibrosListos(): Promise<void> {
 
   for (const narradorId of narradoresEntregados) {
     if (kids.has(narradorId)) continue;
+    if (yaHecho(db, `libro-listo:${narradorId}`)) continue;
     try {
       const archivos = await listarPaquete(db, narradorId);
-      if (archivos.has(CANDADO_POR_HITO.libro_listo)) continue;
+      if (archivos.has(CANDADO_POR_HITO.libro_listo)) {
+        anotarHecho(db, `libro-listo:${narradorId}`);
+        continue;
+      }
 
       const { data: narrador, error: errorNarrador } = await db
         .from('narradores')
@@ -654,11 +742,15 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
   let enviados = 0;
   for (const narradorId of narradoresEntregados) {
     if (kids.has(narradorId)) continue;
+    if (yaHecho(db, `frases:${narradorId}`)) continue;
     try {
       const { archivos, creados } = await listarPaqueteDeStorage(db, narradorId);
 
       // El candado manda: ya salió (o alguien lo sembró a mano para que no salga).
-      if (archivos.has(CANDADO_RECORDATORIO_FRASES)) continue;
+      if (archivos.has(CANDADO_RECORDATORIO_FRASES)) {
+        anotarHecho(db, `frases:${narradorId}`);
+        continue;
+      }
 
       // Sin `frases.json` no hay nada que confirmar: libro entregado antes de Su
       // voz, o un libro sin audios (la selección con cero capítulos no existe).
@@ -675,6 +767,8 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
       const frases = await leerFrases(db, narradorId);
       // Confirmó (`confirmado_at`) → no hay nada que recordarle. Sin capítulos
       // con frases, el mail prometería algo que no existe.
+      // La confirmación no tiene vuelta atrás (la web solo la pone): de acá en más no hay nada que recordar.
+      if (frases?.confirmado_at != null) anotarHecho(db, `frases:${narradorId}`);
       if (!frases || frases.confirmado_at != null || (frases.capitulos ?? []).length === 0) continue;
 
       const { data: narrador, error: errorNarrador } = await db
@@ -961,9 +1055,19 @@ export function iniciarWorker(): void {
   // Revisa las variables de Railway; si falta alguna, avisa a los socios (una vez por día).
   // Sin await: no frena el arranque y nunca tira.
   void avisarVariablesAlArrancar();
+  // El latido va aparte de la vuelta: late cada minuto aunque la vuelta sea cada 5 o esté escribiendo un libro.
+  // Si una vuelta quedó colgada (un await que nunca vuelve), deja de latir y el panel la ve caída, como antes.
   setInterval(() => {
+    if (vueltaColgada()) return;
+    void anotarLatido('fabrica');
+  }, LATIDO_MS);
+  // La primera vuelta al minuto de arrancar (como antes); después, cada VUELTA_MS.
+  setTimeout(() => {
     void tick();
-  }, INTERVALO_MS);
+    setInterval(() => {
+      void tick();
+    }, VUELTA_MS);
+  }, LATIDO_MS);
 }
 
 // Arranca solo cuando el archivo se ejecuta directamente (dev/start), no cuando

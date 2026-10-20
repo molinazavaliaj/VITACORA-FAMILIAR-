@@ -42,6 +42,9 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 
 // ── Consultas cortas a la base ─────────────────────────────────────────
 
+/** Lo leído una vez por tick (solo mientras corre `tick`; una fase llamada sola lee como siempre). */
+let delTick: { v2YKids?: Promise<[Set<string>, Set<string>]> } | null = null;
+
 /**
  * Los narradores en esos estados, SIN ningún viajero ni los chicos de Kids (con fila en kids_v2): los de la Viaje V2
  * (con fila en viajes_v2) y los chicos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts), y un viajero sin
@@ -51,8 +54,9 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
  */
 async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   const { data } = await db.from('narradores').select('*').in('estado', estados);
-  const v2 = await viajerosV2(db);
-  const kids = await chicosKids(db);
+  // Quién es viajero V2 o chico de Kids se lee una vez por tick, no en cada fase (Disk IO, 20/10).
+  const leer = () => Promise.all([viajerosV2(db), chicosKids(db)]);
+  const [v2, kids] = await (delTick ? (delTick.v2YKids ??= leer()) : leer());
   return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id) && !esModoViaje(n.contexto));
 }
 
@@ -365,6 +369,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });
 
   // Cada fase por separado: si una falla (la base no responde), las otras corren igual.
+  delTick = {};
   for (const [nombre, fase] of [
     ['viajeros', () => atenderViajeros()],
     ['bienvenidas', () => enviarBienvenidas()],
@@ -380,6 +385,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
       console.error(`Falló la fase '${nombre}' del tick:`, err);
     }
   }
+  delTick = null;
 
   // Gift card: el recordatorio de los 15 días a quien regaló. Aislado: si
   // falla (o la tabla regalos no existe todavía), el resto del tick no se entera.
