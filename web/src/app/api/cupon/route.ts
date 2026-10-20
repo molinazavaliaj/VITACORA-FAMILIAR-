@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
       ip: ipDe(request),
     });
     if (!r.ok) {
-      if (r.falla === "freno") return NextResponse.json({ error: T.fallo }, { status: 429 });
+      // El freno por IP contesta lo mismo que un pedido que salió: un 429 diría qué correos ya lo pidieron.
+      if (r.falla === "freno") return NextResponse.json({ ok: true }, { status: 200 });
       console.error("cupon: no pude guardar el pedido", r.falla);
       return NextResponse.json({ error: T.fallo }, { status: r.falla === "tabla_ausente" ? 409 : 500 });
     }

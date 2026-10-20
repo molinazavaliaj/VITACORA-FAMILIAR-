@@ -27,7 +27,7 @@ export const quienDaElCupon = quienEs;
 /** Una fecha como se lee en cada idioma («19 de noviembre de 2026»). `fecha` es AAAA-MM-DD o ISO. */
 export function fechaLegible(fecha: string, idioma: IdiomaWeb): string {
   const dia = fecha.length === 10 ? new Date(`${fecha}T12:00:00Z`) : new Date(fecha);
-  return new Intl.DateTimeFormat(localeDeIdioma(idioma), { day: "numeric", month: "long", year: "numeric", timeZone: fecha.length === 10 ? "UTC" : "Europe/Madrid" }).format(dia);
+  return new Intl.DateTimeFormat(localeDeIdioma(idioma), { day: "numeric", month: "long", year: "numeric", timeZone: fecha.length === 10 ? "UTC" : idioma === "ar" ? "America/Argentina/Buenos_Aires" : "Europe/Madrid" }).format(dia);
 }
 
 export const urlConfirmarCupon = (id: string, ahora = Date.now()) =>

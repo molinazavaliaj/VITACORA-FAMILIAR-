@@ -127,7 +127,7 @@ export function Checkout({
     () => (cupon ? { ...lista, total: Math.round((lista.total - cupon.importe) * 100) / 100 } : lista),
     [lista, cupon],
   );
-  const f = (n: number) => formatearPrecio(n, cat.moneda, region);
+  const f = (n: number) => formatearPrecio(n, cat.moneda, region, cupon !== null);
 
   // Lo que se guarda justo antes de ir a la pasarela: lo elegido (para volver
   // de un pago fallido, con la prueba para retomar la misma compra) y la

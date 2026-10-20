@@ -6,6 +6,7 @@ import { esTablaAusente } from "./tabla-ausente";
 import type { IdiomaWeb } from "./idioma-web";
 import type { Region } from "./precios";
 import { enviarMailConfirmarCupon, enviarMailCupon, enviarMailRecordatorio } from "./mail-cupon";
+import { enviarMailSocios } from "./mail";
 
 // Lo que el cupón de bienvenida hace con la base (tabla `cupones`, migración
 // 20261020000000, supabase/CONTRATO.md «Cupón de bienvenida»). Las reglas
@@ -183,7 +184,10 @@ export async function marcarCuponUsado(admin: SupabaseClient, codigo: string, pe
       .select("id");
     if (error) throw new Error(error.message);
     if (((data as unknown[] | null) ?? []).length === 0) {
-      console.error(`cupon: el pedido ${pedidoId} se pagó con el cupón ${codigo}, pero el cupón ya estaba usado (o no existe). Se cobró con el descuento.`);
+      const aviso = `El pedido ${pedidoId} se pagó con el cupón ${codigo}, pero el cupón ya estaba usado (o no existe). Se cobró con el descuento.`;
+      console.error(`cupon: ${aviso}`);
+      // Dos checkouts abiertos con el mismo código: el segundo ya se cobró. Que los socios lo sepan.
+      await enviarMailSocios("Cupón usado dos veces", aviso).catch(() => false);
     }
   } catch (err) {
     console.error(`cupon: el pedido ${pedidoId} se pagó con el cupón ${codigo}, pero no pude marcarlo usado:`, err);

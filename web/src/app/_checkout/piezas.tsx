@@ -179,7 +179,7 @@ export function Resumen({
   /** El cupón de bienvenida (20/10): su línea y el importe ya formateado; `compra.total` ya viene con el descuento. */
   descuento?: { nombre: string; importe: string } | null;
 }) {
-  const f = (n: number) => formatearPrecio(n, compra.moneda, region);
+  const f = (n: number) => formatearPrecio(n, compra.moneda, region, Boolean(descuento));
   const total = f(compra.total);
   return (
     <aside aria-label={T.etiqueta} className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8">
