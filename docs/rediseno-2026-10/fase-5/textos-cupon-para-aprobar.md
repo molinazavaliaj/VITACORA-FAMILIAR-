@@ -15,6 +15,13 @@ frases simples sin dos puntos. Igual lo tiene que aprobar Naza.
 
 ---
 
+## Cambio del 20/10, al probarlo (Naza): popup simple
+
+Salen del popup 1, 2, 3, 4, 6 y 7 de la tanda A («No es un sorteo» queda en las bases). Quedan el título, la tarjeta y el botón
+«Revelar mi descuento»; después el correo, las dos casillas, los dos botones y una sola línea: «Solo el libro digital,
+30 días. Lo da Vitácora.» con «Bases del cupón · Privacidad». En catalán: «Revelar el meu descompte» y «Només el llibre
+digital, 30 dies. El dona Vitácora.»
+
 ## Tanda A — El popup (10)
 
 1. CU-01 · Botón para descubrir sin rascar **(abogado)**: «Rascar»

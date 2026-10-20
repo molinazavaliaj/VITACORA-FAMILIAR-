@@ -48,7 +48,7 @@ describe("prendido", () => {
   });
 
   it("el popup no se pinta de entrada (aparece a los segundos, en el navegador)", () => {
-    expect(renderToStaticMarkup(<RascaYGana idioma="es" quien="Joaquín Molina" correo="soporte@vitacorafamiliar.com" />)).toBe("");
+    expect(renderToStaticMarkup(<RascaYGana idioma="es" />)).toBe("");
   });
 });
 

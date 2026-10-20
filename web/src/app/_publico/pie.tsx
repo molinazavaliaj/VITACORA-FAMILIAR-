@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { CONTACTO, quienEs } from "../legal/titulares";
+import { CONTACTO } from "../legal/titulares";
 import { TEXTOS_CUPON } from "../_textos/cupon";
 import { rascaPrendido } from "@/lib/cupon";
 import { RascaYGana } from "./rasca";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
-import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { OPINIONES, hayOpiniones, type Opinion } from "@/lib/opiniones";
 import { EnlaceIdioma } from "./idioma-cliente";
 
@@ -64,7 +64,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
           </div>
         </div>
       </div>
-      {cupon && rasca ? <RascaYGana idioma={idioma} quien={quienEs(regionDeIdioma(idioma))} correo={CONTACTO.soporte} /> : null}
+      {cupon && rasca ? <RascaYGana idioma={idioma} /> : null}
     </footer>
   );
 }

@@ -11,14 +11,17 @@ import type { MotivoRechazo } from "@/lib/cupon";
 // Naza aprobó el 20/10 las tandas A-D de ese archivo, con el vos y el catalán
 // (el catalán, falta pasarlo por Softcatalà).
 // Nada de esto se ve hasta que se prenda RASCA_Y_GANA=1.
+//
+// Popup simple (Naza, 20/10, al probarlo): salieron «Rascar», la ayuda para
+// rascar, las condiciones antes de rascar, «No es un sorteo» (queda en las
+// bases), el texto del responsable y el de los 14 años. Quedan «Revelar mi
+// descuento» y una sola línea de letra chica: «Solo el libro digital, 30 días.
+// Lo da Vitácora.» con los enlaces a las bases y la privacidad.
 
 export type TextosPopup = {
   cerrar: string;
   titulo: string;
-  rascar: string;
-  pistaRascar: string;
-  condiciones: string;
-  noEsSorteo: string;
+  revelar: string;
   premio: string;
   correo: string;
   correoPista: string;
@@ -29,9 +32,8 @@ export type TextosPopup = {
   enviando: string;
   bases: string;
   privacidad: string;
-  /** El responsable y para qué se usa el correo (art. 13 RGPD). `quien` = nombre y documento del titular. */
-  responsable: (quien: string, correo: string) => string;
-  menores: string;
+  /** La letra chica debajo de los botones: las condiciones y quién lo da (Naza 20/10). */
+  letraChica: string;
   faltaCorreo: string;
   faltaCasilla: string;
   fallo: string;
@@ -108,11 +110,7 @@ const ES: TextosCupon = {
   popup: {
     cerrar: "Cerrar", // APROBADO por Naza 20/10 · CU-01
     titulo: "Rasca y descubre tu descuento.", // APROBADO por Naza 19/10 · tanda 1, texto 9
-    rascar: "Rascar", // APROBADO por Naza 20/10 · CU-01 (respuesta-19-10.md §1.3 )
-    pistaRascar: "Pasa el dedo o el ratón por la tarjeta, o toca Rascar.", // APROBADO por Naza 20/10 · CU-01
-    // APROBADO por Naza 20/10 · CU-02 (respuesta-19-10.md §1.3 y §1.6 (las condiciones que cambian la decisión, antes de rascar) )
-    condiciones: "Vale 30 días desde que te llega. Solo el libro digital. Un uso por código. No se suma a otros cupones.",
-    noEsSorteo: "No es un sorteo. Todos reciben el mismo cupón.", // APROBADO por Naza 20/10 · CU-03 (respuesta-19-10.md §1.3 )
+    revelar: "Revelar mi descuento", // APROBADO por Naza 20/10 (popup simple)
     premio: "Tienes un 10 % de descuento en tu Vitácora.", // APROBADO por Naza 19/10 · tanda 1, texto 9
     correo: "Tu correo", // APROBADO por Naza 20/10 · CU-04
     correoPista: "nombre@correo.com", // APROBADO por Naza 20/10 · CU-04
@@ -124,10 +122,7 @@ const ES: TextosCupon = {
     enviando: "Enviando…", // APROBADO por Naza 20/10 · CU-04
     bases: "Bases del cupón", // APROBADO por Naza 19/10 · tanda 1, texto 10
     privacidad: "Privacidad", // el nombre del enlace del pie (ya aprobado)
-    // APROBADO por Naza 20/10 · CU-05 (respuesta-19-10.md §1.3 (responsable, finalidad y derechos, art. 13 RGPD) )
-    responsable: (quien, correo) =>
-      `Lo da Vitácora Familiar, de ${quien}. Usamos tu correo para mandarte el cupón y, si lo aceptas, los recordatorios. Para ver o borrar tus datos, escribe a ${correo}.`,
-    menores: "Si tienes menos de 14 años, pide a un adulto que lo haga por ti.", // APROBADO por Naza 20/10 · CU-06 (respuesta-19-10.md §1.3 )
+    letraChica: "Solo el libro digital, 30 días. Lo da Vitácora.", // APROBADO por Naza 20/10 (popup simple)
     faltaCorreo: "Escribe un correo válido.", // APROBADO por Naza 20/10 · CU-07
     faltaCasilla: "Marca la primera casilla para recibir el cupón.", // APROBADO por Naza 20/10 · CU-07
     fallo: "No pudimos mandarlo. Intenta de nuevo en un rato.", // APROBADO por Naza 20/10 · CU-07
@@ -227,11 +222,7 @@ const AR: TextosCupon = {
   popup: {
     ...ES.popup,
     titulo: "Rascá y descubrí tu descuento.",
-    pistaRascar: "Pasá el dedo o el mouse por la tarjeta, o tocá Rascar.",
     premio: "Tenés un 10 % de descuento en tu Vitácora.",
-    responsable: (quien, correo) =>
-      `Lo da Vitácora Familiar, de ${quien}. Usamos tu correo para mandarte el cupón y, si lo aceptás, los recordatorios. Para ver o borrar tus datos, escribí a ${correo}.`,
-    menores: "Si tenés menos de 14 años, pedile a un adulto que lo haga por vos.",
     faltaCorreo: "Escribí un correo válido.",
     faltaCasilla: "Marcá la primera casilla para recibir el cupón.",
     fallo: "No pudimos mandarlo. Intentá de nuevo en un rato.",
@@ -287,10 +278,7 @@ const CA: TextosCupon = {
   popup: {
     cerrar: "Tancar",
     titulo: "Grata i descobreix el teu descompte.",
-    rascar: "Gratar",
-    pistaRascar: "Passa el dit o el ratolí per la targeta, o toca Gratar.",
-    condiciones: "Val 30 dies des que t'arriba. Només el llibre digital. Un ús per codi. No es pot sumar a altres cupons.",
-    noEsSorteo: "No és un sorteig. Tothom rep el mateix cupó.",
+    revelar: "Revelar el meu descompte",
     premio: "Tens un 10 % de descompte a la teva Vitácora.",
     correo: "El teu correu",
     correoPista: "nom@correu.com",
@@ -301,9 +289,7 @@ const CA: TextosCupon = {
     enviando: "Enviant…",
     bases: "Bases del cupó",
     privacidad: "Privacitat",
-    responsable: (quien, correo) =>
-      `El dona Vitácora Familiar, de ${quien}. Fem servir el teu correu per enviar-te el cupó i, si ho acceptes, els recordatoris. Per veure o esborrar les teves dades, escriu a ${correo}.`,
-    menores: "Si tens menys de 14 anys, demana a un adult que ho faci per tu.",
+    letraChica: "Només el llibre digital, 30 dies. El dona Vitácora.",
     faltaCorreo: "Escriu un correu vàlid.",
     faltaCasilla: "Marca la primera casella per rebre el cupó.",
     fallo: "No l'hem pogut enviar. Torna-ho a provar d'aquí a una estona.",
