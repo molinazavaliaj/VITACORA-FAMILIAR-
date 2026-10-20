@@ -1,5 +1,6 @@
 # El favicon de la web (20/10): el toroide de marca (docs/design.md §3, "favicon"), blanco sobre tinta.
-# Misma geometría que marca/avatar-toroide-negro.svg, con el trazo más grueso para que a 16-48 px se vea.
+# Misma geometría que marca/avatar-toroide-negro.svg, pero solo el anillo de afuera (Naza, 20/10: con los siete,
+# a 16-48 px se empasta). El trazo es más grueso para que se vea chico.
 # Genera favicon.ico (16/32/48), icono-512.png (web/src/app/icon.png) e icono-180.png (apple-icon.png).
 # Uso: python hacer.py  (necesita Pillow)
 import sys
@@ -10,13 +11,13 @@ def icono(S, grosor_px, ancho=0.86, sobre=4):
     im=Image.new("RGB",(G,G),(0x14,0x14,0x0F)); d=ImageDraw.Draw(im)
     esc=ancho*G/352; cx0=100; cy0=145
     w=max(1,round(grosor_px*sobre))
-    for cx,rx,ry in ANILLOS:
+    for cx,rx,ry in ANILLOS[-1:]:  # solo el contorno de afuera
         for c in (cx,200-cx):
             x=G/2+(c-cx0)*esc; y=G/2
             d.ellipse([x-rx*esc,y-ry*esc,x+rx*esc,y+ry*esc],outline=(255,255,255),width=w)
     return im.resize((S,S),Image.LANCZOS).convert("RGBA")  # Next solo lee el .ico en RGBA
 # grosor en px finales: se nota a 16-48 sin empastar
-grosor={16:0.75,32:1.0,48:1.3,180:2.6,192:2.8,512:5.5}
+grosor={16:1.3,32:2.0,48:2.8,180:7,192:7.5,512:18}
 ims={s:icono(s,g) for s,g in grosor.items()}
 for s,im in ims.items(): im.save(f"icono-{s}.png")
 ims[48].save("favicon.ico",sizes=[(16,16),(32,32),(48,48)],append_images=[ims[16],ims[32]])
