@@ -75,7 +75,7 @@ Va en paralelo con las fases 1 a 3. El código usa un banco de prueba hasta que 
 **Files:**
 - Create: `docs/historia/banco.md`
 
-El formato es **el de `docs/v3/entrevista/banco.md`**, con las mismas columnas en el mismo orden (ID, Depende de, Parte, Clase, Sensible, texto, etc.) y una columna nueva **al final**, `Tema`. Su valor es `comun` o una de las claves de `temas.md`.
+El formato es **el de `docs/v3/entrevista/banco.md`**, con las mismas columnas en el mismo orden (ID, Depende de, Parte, Clase, Sensible, texto, etc.) y una columna nueva **al final**, `Tema`. Su valor es `comun` o una de las claves de `temas.md`. Hay otra columna nueva después de esa, `Reemplaza`, vacía salvo en las variantes de un tema. Por ejemplo, `HC8-Q` lleva `Tema = conocimos` y `Reemplaza = HC8`. Lo aprobado está en `docs/historia/banco-armado/`.
 
 - [ ] **Step 1:** Leer `docs/v3/entrevista/como-lo-hicimos.md` y seguir ese método.
 - [ ] **Step 2:** Fable redacta la parte común, unas 10 preguntas, con los tramos del spec §4.1: antes 2, comienzo 2, lo más difícil 2, giro 1, después 2, cierre 1. Van en tandas de 10 a Naza.
@@ -141,7 +141,7 @@ cp src/v3/ficha.ts src/historia/ficha.ts
 
 No se copian los `.json`: se generan en la Task 1.2. Corregir los imports relativos que apunten a `../ficha` o a `../../` hasta que `npx tsc --noEmit -p tsconfig.check.json` compile.
 
-- [ ] **Step 2: Banco de prueba.** En `test/fixtures/historia/banco.md` va una copia de `docs/v3/entrevista/banco.md` recortada a 6 preguntas. Se le agrega la columna `Tema`: 3 con `comun`, 2 con `mudanza` y 1 con `otra`. Los mensajes fijos quedan, con texto de prueba, por ejemplo «[prueba] BIEN». Este archivo no es contenido real.
+- [ ] **Step 2: Banco de prueba.** En `test/fixtures/historia/banco.md` va una copia de `docs/v3/entrevista/banco.md` recortada a 6 preguntas. Se le agrega la columna `Tema`: 3 con `comun`, 2 con `mudanza`, 1 con `otra` y 1 variante con `Tema = mudanza` y `Reemplaza = <la última común>`. En el test de orden, la variante ocupa el lugar de esa común. Los mensajes fijos quedan, con texto de prueba, por ejemplo «[prueba] BIEN». Este archivo no es contenido real.
 
 - [ ] **Step 3: Test que falla**
 
@@ -167,6 +167,14 @@ describe('temas de historia', () => {
     const b = bancoDeTema(banco, 'mudanza');
     expect(b.preguntas.map((p) => p.tema)).toEqual(['comun', 'comun', 'mudanza', 'mudanza', 'comun']);
     expect(b.mensajes).toBe(banco.mensajes);
+  });
+  it('una variante ocupa el lugar de la común que reemplaza', () => {
+    // El banco de prueba tiene una variante con Tema=mudanza y Reemplaza=<la última común>.
+    const b = bancoDeTema(banco, 'mudanza');
+    const v = banco.preguntas.find((p) => p.reemplaza)!;
+    expect(b.preguntas.map((p) => p.id)).not.toContain(v.reemplaza);
+    expect(b.preguntas.map((p) => p.id)).toContain(v.id);
+    expect(bancoDeTema(banco, 'otra').preguntas.map((p) => p.id)).toContain(v.reemplaza);
   });
   it('otra deja la común y las generales', () => {
     expect(bancoDeTema(banco, 'otra').preguntas.filter((p) => p.tema !== 'comun')).toHaveLength(1);
@@ -194,12 +202,18 @@ export function esTema(x: unknown): x is TemaHistoria {
 
 /** El banco que recibe un narrador: la parte común y las de su tema, en el orden del md. */
 export function bancoDeTema(banco: BancoEntrevista, tema: TemaHistoria): BancoEntrevista {
-  return { ...banco, preguntas: banco.preguntas.filter((p) => p.tema === 'comun' || p.tema === tema) };
+  const reemplazadas = new Set(banco.preguntas.filter((p) => p.tema === tema && p.reemplaza).map((p) => p.reemplaza));
+  const deTema = new Map(banco.preguntas.filter((p) => p.tema === tema && p.reemplaza).map((p) => [p.reemplaza!, p]));
+  // Una variante del tema ocupa el lugar de la común que reemplaza (HC8-Q en lugar de HC8, en «conocimos»).
+  const preguntas = banco.preguntas
+    .filter((p) => (p.tema === 'comun' || (p.tema === tema && !p.reemplaza)))
+    .map((p) => (reemplazadas.has(p.id) ? deTema.get(p.id)! : p));
+  return { ...banco, preguntas };
 }
 ```
 
 En `src/historia/entrevista/banco-md.ts` (la copia):
-- `PreguntaEntrevista` suma `tema: 'comun' | TemaHistoria`;
+- `PreguntaEntrevista` suma `tema: 'comun' | TemaHistoria` y `reemplaza?: string` (columna `Reemplaza`). Si un `Reemplaza` no apunta a una común existente, tira `Error`;
 - `parsearEntrevistaMd` lee la última columna `Tema` y tira `Error('historia: tema desconocido «X» en <ID>')` si no es `comun` ni `esTema`.
 
 En `src/historia/ficha.ts` el tipo se renombra a `FichaHistoria` y suma `tema: TemaHistoria; temaLibre?: string`.

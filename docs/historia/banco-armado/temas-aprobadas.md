@@ -63,3 +63,24 @@ Decisión de Naza: «enfermedad» es solo la del narrador. Haber acompañado a o
 | HT4 | Contame el día que cobraste el primer sueldo. Cómo te lo dieron, qué hiciste con esa plata, a quién se lo contaste primero. | |
 | HT5 | Contame una vez que te salió algo muy bien. Un trabajo terminado, un problema que nadie podía resolver y vos sí, un día en que te felicitaron. Dónde estabas y quién lo vio. | |
 
+
+## Tanda 4 · aprobada por Naza tal cual (22/10/2026)
+
+## Otra
+| ID | Pregunta | Sensible |
+|---|---|---|
+| HO1 | Llevame al lugar donde pasaba todo esto. Elegí un rincón y contámelo como si me estuvieras mostrando una foto. Qué se veía, qué se escuchaba, qué olor tenía. | |
+| HO2 | ¿Quiénes estaban? Presentame a la gente de esta historia con sus nombres. Elegí a una persona y contame una vez con ella que la muestre tal cual era. | |
+| HO3 | Contame un día de esos que se repetían. Desde la mañana hasta la noche, lo que se hacía siempre, lo que nunca faltaba, lo que vos esperabas de ese día. | |
+| HO4 | Pensá en una cosa de esa época. Una foto, una camiseta, una carta, una herramienta, algo que guardaste o que se perdió. Contame cómo llegó a tus manos y qué pasó con eso. | |
+| HO5 | Hay una historia de esa época que contás siempre, la que sale en las mesas. Contámela entera, con todos los detalles que ya te sabés de memoria. | |
+
+## Variantes de las comunes, solo para «conocimos» (aprobadas el 22/10/2026, con la HC8-Q recomendada)
+
+En el tema `conocimos` reemplazan a la común del mismo número. Las otras siete comunes quedan igual.
+
+| ID | Reemplaza a | Pregunta | Sensible |
+|---|---|---|---|
+| HC5-Q | HC5 | Ahora vamos a lo más difícil, {{nombre}}. En toda historia de dos hay un momento en que uno piensa que ahí se termina. Contame cuál fue el de ustedes, qué pasó ese día y qué hiciste. Si preferís no entrar, con un paso alcanza. | sí |
+| HC8-Q | HC8 | Contame cómo siguió esta historia después de esos primeros tiempos. Elegí un día de mucho después, cuando ya sabías lo que esa persona era para vos. Dónde estaban, qué hacían, qué se dijeron. | sí |
+| HC9-Q | HC9 | ¿Qué te dejó esa persona? Contame una vez en que te diste cuenta de que algo en vos había cambiado por haberla conocido. Qué estabas haciendo y qué pensaste. | |
