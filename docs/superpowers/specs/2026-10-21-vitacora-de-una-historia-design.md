@@ -90,7 +90,9 @@ Las redacta Fable con voz cálida y Claude controla las reglas. Naza las aprueba
   - relato, no transcripción, sin inventar hechos, con lo delicado como lo dijo («libro sin maquillaje»);
   - el título sale del tema y de sus palabras.
 - Fotos y QR con los audios, como en Familiar.
-- Bookmundo tapa dura 168×240, automático, interior en grises salvo las fotos. Si no llega al mínimo de páginas de la imprenta, se ajusta el cuerpo de letra. No se agrega relleno.
+- Bookmundo tapa dura 168×240, automático, interior en grises salvo las fotos.
+- **Mínimo de 88 páginas** (agregado el 21/10, al armar el plan). La tapa dura de Bookmundo no se imprime con menos de 88 páginas, y sus reglas prohíben los libros que sean mayormente hojas en blanco. Naza decidió que va tapa dura igual. En este producto la plantilla **no rellena con hojas de «Notas»**. Si un libro sale con menos de 88 páginas, la fábrica no lo manda a Bookmundo y avisa a los socios (`MAIL_SOCIOS`). Los socios se comunican con el cliente y le ofrecen tapa blanda (170×240, mínimo 44 páginas), que se arma con un script a mano.
+- Riesgo a medir en el piloto. Con unas 15 preguntas es probable que muchos libros salgan con menos de 88 páginas. Si pasa seguido, se revisa el largo con Naza.
 - La primera corrida paga es con un narrador real del piloto, nunca con uno inventado.
 - Se usa Opus para escribir y juzgar.
 
@@ -99,7 +101,7 @@ Las redacta Fable con voz cálida y Claude controla las reglas. Naza las aprueba
 - **Cuarta solapa**: Familiar · Kids · De viaje · **Historia** («Història» en catalán), en `web/src/app/_publico/cabecera.tsx` (`Solapas`, que pasa de 3 a 4 columnas, y el tipo `Producto` suma `"historia"`).
   - Se prueba en 360 px en es, ca y ar antes de cerrar. Si «De viaje» no entra al lado de las otras tres, pasa a «Viaje».
 - Página `/historia` (con `/ca/historia` y `/ar/historia`) y compra `/comprar/historia` con el paso del tema.
-- Precio propio en Vercel (`PRECIO_HISTORIA_EUR` / `_ARS`), con el mismo valor que Familiar.
+- Precio: usa las mismas variables que Familiar (`PRECIO_EUR` / `PRECIO_ARS`, el impreso y el marco). No hay variable propia, así el precio no se puede desincronizar.
 - Se prende con una variable (`HISTORIA_VENTA`, como `KIDS_VENTA`): puede estar lista en la web sin venderse hasta que Naza diga.
 - Los textos de la web los redacta Fable y los aprueba Naza de a 10. No se promete lo que no pasa.
 
@@ -114,7 +116,7 @@ Las redacta Fable con voz cálida y Claude controla las reglas. Naza las aprueba
 | Compra y panel | Los de Familiar con el campo «tema» (`tema`, `tema_libre`) |
 | Preguntas del que regala | El mecanismo de Viaje V2 (PR-R), hasta 3, sin revisión |
 | Escritor | La máquina de la fábrica con una receta nueva `historia` |
-| Impresión | Bookmundo automático, como hoy |
+| Impresión | Bookmundo automático sin hojas de «Notas»; con menos de 88 páginas, aviso a socios y tapa blanda a mano |
 
 - **V3 no se toca.** Los narradores que hoy están en Familiar no corren ningún riesgo.
 - Descartados:
@@ -135,5 +137,5 @@ Las redacta Fable con voz cálida y Claude controla las reglas. Naza las aprueba
 3. Plantillas de Meta de la bienvenida en los 3 idiomas (Joaquín).
 4. Textos de la web aprobados.
 5. Prueba de la solapa en 360 px.
-6. Precio en Vercel y `HISTORIA_VENTA` con el OK de Naza.
+6. `HISTORIA_VENTA=1` en Vercel con el OK de Naza.
 7. Revisar que los textos de la web que dicen «tres productos» o nombran solo Familiar, Kids y Viaje no queden mintiendo (memoria «textos que quedan mintiendo»).
