@@ -9,6 +9,8 @@ import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { Riel, type HistoriaRiel } from "../riel";
 import { ReproductorRespuesta } from "../reproductor";
+import { SacarDelLibro } from "./fuera-del-libro";
+import { idiomaFueraDelLibro, textosFueraDelLibro } from "@/lib/fuera-del-libro-textos";
 import { Etiqueta, ProximoPaso, Titulo, estadoEnHumano, fechaCorta, formatearDuracion, tituloHistoria } from "../ui";
 import type { Ritmo } from "@/lib/guion";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -26,7 +28,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, preguntasFamilia = [], fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false,
+  n, rol, propia, bloques, preguntasFamilia = [], fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false, puedeVolverAPreguntar = false,
 }: {
   /**
    * Rediseño 2026-10 (fase 2): la historia va adentro del marco nuevo (MarcoHistoria), que ya trae la
@@ -38,6 +40,8 @@ export function HistoriaV3({
   trato?: TratoComprador;
   /** Ya llegó a la foto del final (FO1): las preguntas de la familia ya no le llegan. */
   alFinal: boolean;
+  /** Al sacar una respuesta del libro se puede pedir que se la volvamos a hacer (sigue la entrevista y hay lugar). */
+  puedeVolverAPreguntar?: boolean;
   n: Narrador;
   rol: Rol;
   propia: boolean;
@@ -66,6 +70,9 @@ export function HistoriaV3({
   const puedeSumar = !cerrado && !alFinal && PUEDE.agregarPreguntasYFotos(rol);
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const puedeCerrarAnticipado = rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contestadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
+  // «Que esto no vaya al libro» por respuesta (Naza, 21/10): la dueña, hasta que se cierra el libro.
+  const puedeSacar = rol === "duena" && !aprobado;
+  const marcaFuera = textosFueraDelLibro(idiomaFueraDelLibro(trato)).marca;
   const suya = propia ? "tu" : "su";
   const tu = trato === "tu";
 
@@ -196,7 +203,7 @@ export function HistoriaV3({
                       {p.respuestas.map((r, j) => (
                         <div key={r.id} className={`flex flex-col gap-2 ${j > 0 ? "border-t border-[var(--linea)] pt-3" : ""}`}>
                           {r.texto ? (
-                            <p className="text-[15.5px] leading-[1.7] text-[var(--texto-suave)] [font-family:var(--fuente-cuerpo)] font-light">{r.texto}</p>
+                            <p className={`text-[15.5px] leading-[1.7] [font-family:var(--fuente-cuerpo)] font-light ${r.fuera ? "text-[var(--texto-menor)] opacity-70" : "text-[var(--texto-suave)]"}`}>{r.texto}</p>
                           ) : (
                             <p className="text-sm text-[var(--texto-menor)]">Estamos transcribiendo el audio…</p>
                           )}
@@ -204,6 +211,11 @@ export function HistoriaV3({
                             <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{fechaCorta(r.recibidoAt)}</span>
                             {r.audio ? <ReproductorRespuesta src={`/api/audio/${r.id}`} duracion={r.duracion} etiqueta={p.pregunta.slice(0, 60)} /> : null}
                           </div>
+                          {puedeSacar ? (
+                            <SacarDelLibro narradorId={n.id} respuestaId={r.id} fuera={r.fuera === true} propia={propia} trato={trato} puedeVolverAPreguntar={puedeVolverAPreguntar} />
+                          ) : r.fuera ? (
+                            <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{marcaFuera}</span>
+                          ) : null}
                         </div>
                       ))}
                     </article>

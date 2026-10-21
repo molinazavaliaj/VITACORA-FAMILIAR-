@@ -107,7 +107,7 @@ describe("historiaV3: la entrevista en el panel", () => {
   it("la pregunta va como le llegó (con apodo, la última vez que salió), con sus respuestas y audios; ∅ no aparece", () => {
     const or6 = h[1].preguntas[0];
     expect(or6).toMatchObject({ pregunta: "¿Por qué te pusieron Babu?", estado: "contestada" });
-    expect(or6.respuestas).toEqual([{ id: "b", texto: "dicho b", audio: true, duracion: 30, recibidoAt: "2026-10-08T10:00:00Z" }]);
+    expect(or6.respuestas).toEqual([{ id: "b", texto: "dicho b", audio: true, duracion: 30, recibidoAt: "2026-10-08T10:00:00Z", fuera: false }]);
     expect(h[1].preguntas.find((p) => p.clave === "OR7")).toMatchObject({ pregunta: "¿Y el barrio? (de nuevo)", estado: "esperando", respuestas: [] });
     expect(h.flatMap((b) => b.preguntas).flatMap((p) => p.respuestas).map((r) => r.id)).not.toContain("z");
   });
