@@ -44,11 +44,13 @@ export type TextosColabora = {
     mensajePista: string;
     /** La casilla: antes + [condiciones] + medio + [privacidad] + fin. */
     casilla: { antes: string; condiciones: string; medio: string; privacidad: string; fin: string };
+    /** CR-26 la casilla de mayor de 18 años (legal, 21/10) */
+    mayor: string;
     enviar: string;
     enviando: string;
   };
-  /** CR-14 */
-  errores: { faltan: string; email: string; perfil: string; condiciones: string; envio: (correo: string) => string };
+  /** CR-14 (y CR-26 el de mayor de 18) */
+  errores: { faltan: string; email: string; perfil: string; condiciones: string; mayor: string; envio: (correo: string) => string };
   /** CR-15 */
   gracias: { titulo: string; texto: string };
   /** CR-16 la línea del código en el resumen del checkout y el aviso del casillero */
@@ -137,6 +139,7 @@ const ES: TextosColabora = {
     mensaje: "Algo que quieras contarnos (si quieres)", // CR-11
     mensajePista: "Qué publicas, a quién le hablas…", // CR-11
     casilla: { antes: "He leído y acepto las ", condiciones: "condiciones del programa", medio: " y la ", privacidad: "privacidad", fin: "." }, // CR-12
+    mayor: "Soy mayor de 18 años.", // CR-26 · PENDIENTE OK de Naza (tanda 6)
     enviar: "Enviar", // CR-13
     enviando: "Enviando…", // CR-13
   },
@@ -145,6 +148,7 @@ const ES: TextosColabora = {
     email: "Escribe un correo válido.", // CR-14
     perfil: "Escribe el link de tu perfil o tu usuario con @.", // CR-14
     condiciones: "Marca la casilla para aceptar las condiciones.", // CR-14
+    mayor: "Marca la casilla para confirmar que eres mayor de 18 años.", // CR-26 · PENDIENTE OK de Naza (tanda 6)
     envio: (correo) => `No pudimos enviarlo. Prueba de nuevo o escríbenos a ${correo}.`, // CR-14
   },
   gracias: { titulo: "¡Gracias! Lo recibimos.", texto: "Leemos cada solicitud con calma. Te escribimos a tu correo cuando la revisemos." }, // CR-15
@@ -233,6 +237,7 @@ const AR: TextosColabora = {
     email: "Escribí un correo válido.",
     perfil: "Escribí el link de tu perfil o tu usuario con @.",
     condiciones: "Marcá la casilla para aceptar las condiciones.",
+    mayor: "Marcá la casilla para confirmar que sos mayor de 18 años.", // CR-26 · PENDIENTE OK de Naza (tanda 6)
     envio: (correo) => `No pudimos enviarlo. Probá de nuevo o escribinos a ${correo}.`,
   },
   mail: {
@@ -289,6 +294,7 @@ const CA: TextosColabora = {
     mensaje: "Alguna cosa que ens vulguis explicar (si vols)",
     mensajePista: "Què publiques, a qui parles…",
     casilla: { antes: "He llegit i accepto les ", condiciones: "condicions del programa", medio: " i la ", privacidad: "privacitat", fin: "." },
+    mayor: "Soc major de 18 anys.", // CR-26 · PENDIENTE OK de Naza (tanda 6)
     enviar: "Enviar",
     enviando: "Enviant…",
   },
@@ -297,6 +303,7 @@ const CA: TextosColabora = {
     email: "Escriu un correu vàlid.",
     perfil: "Escriu l'enllaç del teu perfil o el teu usuari amb @.",
     condiciones: "Marca la casella per acceptar les condicions.",
+    mayor: "Marca la casella per confirmar que ets major de 18 anys.", // CR-26 · PENDIENTE OK de Naza (tanda 6)
     envio: (correo) => `No l'hem pogut enviar. Torna-ho a provar o escriu-nos a ${correo}.`,
   },
   gracias: { titulo: "Gràcies! Ho hem rebut.", texto: "Llegim cada sol·licitud amb calma. T'escriurem al teu correu quan la revisem." },

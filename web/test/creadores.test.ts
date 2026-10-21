@@ -128,7 +128,7 @@ describe("el token del panel", () => {
 });
 
 describe("el alta de /colabora", () => {
-  const BIEN = { nombre: "Lucía", email: "Lucia@Ejemplo.com ", red: "instagram", perfil: "instagram.com/lucia", condiciones: true, idioma: "ar" };
+  const BIEN = { nombre: "Lucía", email: "Lucia@Ejemplo.com ", red: "instagram", perfil: "instagram.com/lucia", condiciones: true, mayor: true, idioma: "ar" };
 
   it("limpia el cuerpo y pasa el correo a minúsculas", () => {
     const r = validarAltaCreador({ ...BIEN, seguidores: " 3.000 ", mensaje: "Hola" });
@@ -144,6 +144,10 @@ describe("el alta de /colabora", () => {
     expect(validarAltaCreador({ ...BIEN, email: "lucia" })).toEqual({ ok: false, error: "email" });
     expect(validarAltaCreador({ ...BIEN, perfil: "lucia" })).toEqual({ ok: false, error: "perfil" });
     expect(validarAltaCreador({ ...BIEN, condiciones: false })).toEqual({ ok: false, error: "condiciones" });
+    // CR-L16: solo mayores de 18.
+    expect(validarAltaCreador({ ...BIEN, mayor: false })).toEqual({ ok: false, error: "mayor" });
+    expect(validarAltaCreador({ ...BIEN, mayor: "si" })).toEqual({ ok: false, error: "mayor" });
+    expect(validarAltaCreador({ ...BIEN, mayor: "on" }).ok).toBe(true);
     expect(validarAltaCreador({ ...BIEN, perfil: "@lucia" }).ok).toBe(true);
   });
 

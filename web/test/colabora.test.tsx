@@ -57,7 +57,7 @@ function crearAdmin(opciones: { existe?: boolean; recientes?: number } = {}) {
 
 const usar = (admin: ReturnType<typeof crearAdmin>) => (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-const BUENA = { nombre: "Pruebalia Testina", email: "prueba@ejemplo.com", red: "tiktok", perfil: "tiktok.com/@pruebalia", seguidores: "4.000", mensaje: "Hago videos de recuerdos.", condiciones: true, idioma: "ca" };
+const BUENA = { nombre: "Pruebalia Testina", email: "prueba@ejemplo.com", red: "tiktok", perfil: "tiktok.com/@pruebalia", seguidores: "4.000", mensaje: "Hago videos de recuerdos.", condiciones: true, mayor: true, idioma: "ca" };
 
 const pedir = (cuerpo: unknown) =>
   POST(
@@ -102,7 +102,11 @@ describe("POST /api/colabora", () => {
     const insert = admin.ops.find((o) => o.op === "insert")!.valores as Record<string, unknown>;
     expect(insert).toMatchObject({ nombre: "Pruebalia Testina", email: "prueba@ejemplo.com", red: "tiktok", region: "ES", idioma: "ca", ip: "203.0.113.7" });
     expect("estado" in insert).toBe(false); // nace pendiente por defecto de la base
-    expect(insert.consentimiento).toMatchObject({ textos: ["He llegit i accepto les condicions del programa i la privacitat."], userAgent: "prueba" });
+    expect(insert.consentimiento).toMatchObject({
+      textos: ["He llegit i accepto les condicions del programa i la privacitat.", "Soc major de 18 anys."],
+      version: "2026-10-21-legal",
+      userAgent: "prueba",
+    });
     const alCreador = mails.find((m) => m.to[0] === "prueba@ejemplo.com")!;
     expect(alCreador.subject).toBe(TEXTOS_COLABORA.ca.mail.recibido.asunto);
     const aSocios = mails.find((m) => m.to[0] === "socios@ejemplo.com")!;
@@ -138,6 +142,8 @@ describe("POST /api/colabora", () => {
   it("rebota lo que falta, sin la casilla o mal formado", async () => {
     usar(crearAdmin());
     expect(await (await pedir({ ...BUENA, condiciones: false })).json()).toEqual({ error: "condiciones" });
+    expect(await (await pedir({ ...BUENA, mayor: false })).json()).toEqual({ error: "mayor" });
+    expect(await (await pedir({ ...BUENA, mayor: undefined })).json()).toEqual({ error: "mayor" });
     expect(await (await pedir({ ...BUENA, email: "no" })).json()).toEqual({ error: "email" });
     expect((await pedir("{roto")).status).toBe(400);
   });
@@ -168,6 +174,8 @@ describe("las páginas", () => {
     expect(t).toContain(TEXTOS_COLABORA[idioma].formulario.casilla.condiciones);
     expect(h).toContain(`href="${condiciones}"`);
     expect(h).toContain('name="condiciones"');
+    expect(h).toContain('name="mayor"');
+    expect(t).toContain(TEXTOS_COLABORA[idioma].formulario.mayor);
     // Sin cifras fijas: la comisión y el descuento son de cada creador.
     expect(t).not.toMatch(/\d+\s?%/);
   });

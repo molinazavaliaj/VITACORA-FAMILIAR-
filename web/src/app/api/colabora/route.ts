@@ -10,8 +10,11 @@ import { TEXTOS_COLABORA, textoCasilla } from "@/app/_textos/colabora";
 // siempre lo mismo, sea un correo nuevo o uno que ya estaba: nadie averigua
 // quién se anotó. Con CREADORES apagado, 404.
 
-/** La versión del texto de la casilla que se guarda como prueba (subirla si cambia). */
-const VERSION_CONSENTIMIENTO = "2026-10-21-borrador";
+/**
+ * La versión de los textos de las casillas que se guardan como prueba (subirla
+ * si cambian). «-legal»: se sumó la casilla de mayor de 18 años (CR-26).
+ */
+const VERSION_CONSENTIMIENTO = "2026-10-21-legal";
 
 function ipDe(request: NextRequest): string | null {
   const reenviada = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -37,7 +40,12 @@ export async function POST(request: NextRequest) {
   try {
     const r = await anotarCreador(crearClienteServidor(), {
       alta: validado.alta,
-      consentimiento: { textos: [textoCasilla(TEXTOS_COLABORA[validado.alta.idioma])], version: VERSION_CONSENTIMIENTO, ...(userAgent ? { userAgent } : {}) },
+      consentimiento: {
+        // Las dos casillas, con el texto exacto que vio: las condiciones y la de mayor de 18.
+        textos: [textoCasilla(TEXTOS_COLABORA[validado.alta.idioma]), TEXTOS_COLABORA[validado.alta.idioma].formulario.mayor],
+        version: VERSION_CONSENTIMIENTO,
+        ...(userAgent ? { userAgent } : {}),
+      },
       ip: ipDe(request),
     });
     if (!r.ok) {

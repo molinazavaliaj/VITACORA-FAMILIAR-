@@ -201,7 +201,7 @@ export type AltaCreador = {
   mensaje: string;
 };
 
-export type ErrorAlta = "faltan" | "email" | "perfil" | "condiciones";
+export type ErrorAlta = "faltan" | "email" | "perfil" | "condiciones" | "mayor";
 
 const CORTO = 200;
 export const MENSAJE_MAXIMO = 1000;
@@ -218,8 +218,9 @@ export function esRobotColabora(cuerpo: unknown): boolean {
 }
 
 /**
- * El cuerpo del formulario de /colabora, limpio. Nombre, correo, red, perfil y
- * la casilla de las condiciones son obligatorios; seguidores y mensaje no.
+ * El cuerpo del formulario de /colabora, limpio. Nombre, correo, red, perfil,
+ * la casilla de las condiciones y la de mayor de 18 años (CR-L16, legal 21/10)
+ * son obligatorios; seguidores y mensaje no.
  */
 export function validarAltaCreador(cuerpo: unknown): { ok: true; alta: AltaCreador } | { ok: false; error: ErrorAlta } {
   const c = (cuerpo && typeof cuerpo === "object" ? cuerpo : {}) as Record<string, unknown>;
@@ -232,6 +233,7 @@ export function validarAltaCreador(cuerpo: unknown): { ok: true; alta: AltaCread
   // Un link o un @usuario: lo que no tenga ni un punto ni una arroba no se puede buscar.
   if (!/[.@]/.test(perfil) || /\s/.test(perfil)) return { ok: false, error: "perfil" };
   if (c.condiciones !== true && c.condiciones !== "on") return { ok: false, error: "condiciones" };
+  if (c.mayor !== true && c.mayor !== "on") return { ok: false, error: "mayor" };
   const idioma: IdiomaWeb = c.idioma === "ca" || c.idioma === "ar" ? c.idioma : "es";
   return {
     ok: true,
