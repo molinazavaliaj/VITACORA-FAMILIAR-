@@ -33,6 +33,8 @@ afterEach(() => {
 
 /** La cabecera pública lleva la solapa «Kids» desde el 15/10: el resto de la página no la nombra. */
 const sinSolapas = (h: string) => h.replace(/<nav[^>]*m-solapas[\s\S]*?<\/nav>/g, "");
+// «Lisboa» solo puede estar en el libro de ejemplo que gira (19/10): se mira la página sin él.
+const sinLibro = (h: string) => h.slice(0, h.indexOf('<div class="l3-escena')) + h.slice(h.indexOf("Las fotos quedan."));
 const PROHIBIDO = ["cada noche", "Cada noche", "cada nit", "9 días", "RESEÑA", "Kids", "los dos", "álbum de 20", "contigo", "etapa", "Lisboa", "con quién viaj", "vosotros", "vuestro", "en la web"];
 
 describe("la página de Viaje por idioma", () => {
@@ -48,12 +50,12 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain(escapar("¿Tengo que saber las ciudades?"));
     expect(html).not.toContain("Cada ciudad, un capítulo"); // Naza lo quitó (06/10 y 14/10)
     expect(html).toContain(escapar("Lo pagas una vez, antes de salir."));
-    expect(html).toContain(escapar("Si el viaje se cancela, te devolvemos el dinero."));
+    expect(html).toContain(escapar("Si nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo."));
     expect(html).toContain('href="/comprar/viaje"');
     expect(html).toContain("€");
     expect(html).not.toContain(escapar("¿Me trata de vos?"));
     expect(html).not.toMatch(/con vos/);
-    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinLibro(sinSolapas(html)), p).not.toContain(escapar(p));
   });
 
   it("en /ar/viaje: de vos, como siempre, en pesos, a /ar/comprar/viaje", () => {
@@ -64,7 +66,7 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain(escapar("Empezar mi Vitácora de viaje"));
     expect(html).toContain('href="/ar/comprar/viaje"');
     expect(html).not.toContain("€");
-    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinLibro(sinSolapas(html)), p).not.toContain(escapar(p));
   });
 
   it("en /ca/viaje: en catalán, el biógrafo también escribe en catalán, a /ca/comprar/viaje", () => {
@@ -72,7 +74,7 @@ describe("la página de Viaje por idioma", () => {
     expect(html).toContain('lang="ca-ES"');
     expect(html).toContain(escapar("En català, en castellà d'Espanya o d'Argentina."));
     expect(html).toContain('href="/ca/comprar/viaje"');
-    for (const p of PROHIBIDO) expect(sinSolapas(html), p).not.toContain(escapar(p));
+    for (const p of PROHIBIDO) expect(sinLibro(sinSolapas(html)), p).not.toContain(escapar(p));
   });
 
   // 15/10: Viaje con su color (noche y azul de la guía), por alcance: el contenedor lleva
@@ -91,7 +93,7 @@ describe("la página de Viaje por idioma", () => {
   it("la garantía de Viaje va una sola vez, en las preguntas", () => {
     for (const p of [ViajeEs, ViajeAr]) {
       const html = renderToStaticMarkup(p());
-      expect(html.split(escapar("te devolvemos el dinero")).length - 1).toBe(1);
+      expect(html.split(escapar("menos de diez preguntas")).length - 1).toBe(1);
     }
   });
 

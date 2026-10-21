@@ -2,10 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { insertadas, estado } = vi.hoisted(() => ({
   insertadas: [] as Record<string, unknown>[],
-  estado: { falla: false },
+  estado: { falla: false, email: "socio@vitacora.com" as string | null },
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// La sesión de quien llama: un admin salvo que el test diga otra cosa.
+vi.mock("@/lib/supabase/sesion", () => ({
+  crearClienteSesion: async () => ({ auth: { getUser: async () => ({ data: { user: estado.email ? { email: estado.email } : null } }) } }),
+}));
 vi.mock("@/lib/supabase/servidor", () => ({
   crearClienteServidor: () => ({
     from: () => ({
@@ -29,6 +33,29 @@ const form = (campos: Record<string, string>) => {
 beforeEach(() => {
   insertadas.length = 0;
   estado.falla = false;
+  estado.email = "socio@vitacora.com";
+  process.env.ADMIN_EMAILS = "socio@vitacora.com, otra@vitacora.com";
+});
+
+// La acción es un endpoint suelto (un POST sin pasar por la pantalla): el
+// layout de /admin no la protege, así que chequea ADMIN_EMAILS ella misma.
+describe("cargar un gasto pide ser admin", () => {
+  it.each([
+    ["sin sesión", null],
+    ["con un mail que no está en ADMIN_EMAILS", "intruso@ejemplo.com"],
+  ])("%s, no toca la base", async (_caso, email) => {
+    estado.email = email;
+    const r = await cargarGastoManual(form({ concepto: "Railway", monto: "5" }));
+    expect(r.error).toBeTruthy();
+    expect(insertadas).toEqual([]);
+  });
+
+  it("sin ADMIN_EMAILS no entra nadie (falla cerrado)", async () => {
+    delete process.env.ADMIN_EMAILS;
+    const r = await cargarGastoManual(form({ concepto: "Railway", monto: "5" }));
+    expect(r.error).toBeTruthy();
+    expect(insertadas).toEqual([]);
+  });
 });
 
 describe("cargar un gasto a mano (la única escritura del panel)", () => {

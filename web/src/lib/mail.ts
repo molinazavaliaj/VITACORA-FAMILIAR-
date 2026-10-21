@@ -20,7 +20,7 @@ import { idiomaWebDeKids, type IdiomaKids } from "./kids";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
-function escapar(texto: string): string {
+export function escapar(texto: string): string {
   return texto
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -28,8 +28,13 @@ function escapar(texto: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** `texto`: la versión de texto plano (los mails del rediseño la llevan siempre). */
-async function enviar(opciones: { para: string; asunto: string; html: string; texto?: string }): Promise<boolean> {
+/**
+ * `texto`: la versión de texto plano (los mails del rediseño la llevan siempre).
+ * `remitente` y `cabeceras`: los recordatorios del cupón (lib/mail-cupon.ts)
+ * salen de otra dirección que los avisos del pedido y con la baja de un clic
+ * (List-Unsubscribe, RFC 8058).
+ */
+export async function enviar(opciones: { para: string; asunto: string; html: string; texto?: string; remitente?: string; cabeceras?: Record<string, string> }): Promise<boolean> {
   const clave = process.env.RESEND_API_KEY;
   if (!clave) {
     console.warn(`mail: falta RESEND_API_KEY, no se manda "${opciones.asunto}" a ${opciones.para}.`);
@@ -40,11 +45,12 @@ async function enviar(opciones: { para: string; asunto: string; html: string; te
     method: "POST",
     headers: { Authorization: `Bearer ${clave}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: REMITENTE,
+      from: opciones.remitente ?? REMITENTE,
       to: [opciones.para],
       subject: opciones.asunto,
       html: opciones.html,
       ...(opciones.texto ? { text: opciones.texto } : {}),
+      ...(opciones.cabeceras ? { headers: opciones.cabeceras } : {}),
     }),
     // Un Resend colgado no puede colgar la ruta (webhook de pago): a los 15 s tira
     // (TimeoutError) como cualquier fallo; quienes llaman ya lo atrapan.
@@ -84,7 +90,7 @@ export async function enviarMailSocios(asunto: string, texto: string): Promise<b
 // fondo declarado (también con `bgcolor`), así se lee igual si el cliente pinta
 // todo de claro o de oscuro. El botón es una tabla con fondo (Outlook incluido).
 
-const COLOR = {
+export const COLOR = {
   // Tinta y papel (web/src/app/_direccion/tokens.css), en hex sólido: los
   // clientes de correo no siempre entienden rgba ni variables. La tinta es la
   // que se VE en la web con el grano encima (#0d0d0c), el papel el crema.
@@ -102,9 +108,9 @@ const COLOR = {
   pie: "#6b665c",
 } as const;
 
-const SERIF_TITULO = "'Playfair Display', Georgia, 'Times New Roman', serif";
-const SERIF = "'Source Serif 4', Georgia, 'Times New Roman', serif";
-const SANS = "Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif";
+export const SERIF_TITULO = "'Playfair Display', Georgia, 'Times New Roman', serif";
+export const SERIF = "'Source Serif 4', Georgia, 'Times New Roman', serif";
+export const SANS = "Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 /** El logo (las elipses de la marca) en PNG: el SVG no se ve en Gmail ni en Outlook. */
 export const RUTA_LOGO_MAIL = "/mail/vitacora-logo.png";
@@ -119,7 +125,7 @@ export function idiomaMailDeRegion(region: string | null | undefined): IdiomaWeb
   return deTu(region) ? "es" : "ar";
 }
 
-function boton(href: string, texto: string): string {
+export function boton(href: string, texto: string): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;">
   <tr><td bgcolor="${COLOR.boton}" style="background:${COLOR.boton};border-radius:999px;">
     <a href="${escapar(href)}" style="display:inline-block;padding:15px 26px;border-radius:999px;background:${COLOR.boton};color:${COLOR.sobreBoton};text-decoration:none;font-family:${SANS};font-size:15px;font-weight:600;line-height:1.2;">${escapar(texto)}</a>
@@ -153,7 +159,7 @@ function lineaDeTiempo(titulo: string, filas: { cuando: string; que: string }[])
  * clara con etiqueta + título + `cuerpo`, «¿Dudas?» y el pie. `cuerpo` son filas
  * (<tr>) de la tabla de 600.
  */
-function cascaron(o: {
+export function cascaron(o: {
   idioma: IdiomaWeb;
   vistaPrevia: string;
   titulo: string;
@@ -161,6 +167,8 @@ function cascaron(o: {
   /** La etiqueta de arriba y el «por qué recibes esto»: por defecto, los del pedido. */
   etiqueta?: string;
   porQue?: string;
+  /** HTML ya escapado que va al final del pie (el cupón: remitente, bases, privacidad y baja). */
+  pieHtml?: string;
 }): string {
   const t = textosMail(o.idioma).comun;
   const logo = `${urlBaseMail()}${RUTA_LOGO_MAIL}`;
@@ -201,7 +209,7 @@ function cascaron(o: {
           <tr><td class="vt-px vt-titulo" style="padding:14px 36px 0;font-family:${SERIF_TITULO};font-weight:500;font-size:32px;line-height:1.15;color:${COLOR.titulo};">${escapar(o.titulo)}</td></tr>
           ${o.cuerpo}
           <tr><td class="vt-px" style="padding:26px 36px 34px;font-family:${SERIF};font-size:15px;line-height:1.55;color:${COLOR.texto};">${escapar(t.dudas)}</td></tr>
-          <tr><td class="vt-px" style="border-top:1px solid ${COLOR.linea};padding:20px 36px 26px;font-family:${SANS};font-size:11px;line-height:1.6;color:${COLOR.pie};">${escapar(t.pie)}<br />${escapar(o.porQue ?? t.porQue)}</td></tr>
+          <tr><td class="vt-px" style="border-top:1px solid ${COLOR.linea};padding:20px 36px 26px;font-family:${SANS};font-size:11px;line-height:1.6;color:${COLOR.pie};">${escapar(t.pie)}<br />${escapar(o.porQue ?? t.porQue)}${o.pieHtml ? `<br />${o.pieHtml}` : ""}</td></tr>
         </table>
       </td></tr>
     </table>
@@ -211,11 +219,11 @@ function cascaron(o: {
 }
 
 /** Un párrafo de la tarjeta (ya escapado por quien llama). */
-const parrafo = (html: string) =>
+export const parrafo = (html: string) =>
   `<tr><td class="vt-px" style="padding:14px 36px 0;font-family:${SERIF};font-size:16px;line-height:1.6;color:${COLOR.texto};">${html}</td></tr>`;
 
 /** El texto plano: lo mismo, en orden, para los clientes que no muestran HTML. */
-const textoPlano = (bloques: string[]) => `${bloques.join("\n\n")}\n`;
+export const textoPlano = (bloques: string[]) => `${bloques.join("\n\n")}\n`;
 
 /**
  * El mail que llega apenas se confirma el pago: qué va a pasar ahora y cómo

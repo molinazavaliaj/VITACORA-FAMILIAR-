@@ -105,7 +105,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
       cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo:",
+      paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo.",
     },
     regalo: {
       asunto: TU.mailAsunto,
@@ -121,11 +121,11 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
       contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo escribirá su libro.`,
       cuerpo: (quien) =>
-        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y añadir fotos de cada época.`,
+        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, sumar preguntas que te gustaría que le hicieran y añadir fotos de cada época.`,
       tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
       cuerpoDudas: (quien) =>
         `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
-      entra: "Entra con este mismo correo:",
+      entra: "Entra con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
       porQue: "Recibes este email porque te han invitado a una historia.",
@@ -152,7 +152,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
       cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:",
+      paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo.",
     },
     regalo: {
       asunto: VOS.mailAsunto,
@@ -174,7 +174,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       tituloDudas: (n) => `${n} terminó de contar su vida y estamos por escribir su libro.`,
       cuerpoDudas: (quien) =>
         `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
-      entra: "Entrá con este mismo correo:",
+      entra: "Entrá con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
       porQue: "Recibís este mail porque te invitaron a una historia.",
@@ -258,7 +258,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       A: (apodo) => `Le vamos a escribir a ${apodo} a la hora que elegiste. A vos te avisamos por WhatsApp.`,
       B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.",
     },
-    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
+    enTuPanel: "En la página de su historia vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.",
   },
   "es-ES": {
     // APROBADO por Naza 16/10 (tanda 8) · asunto («Ya está en marcha…», sin «Listo»)
@@ -270,7 +270,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       B: () => "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estéis juntos.",
     },
     // APROBADO por Naza 16/10 (tanda 8) · enTuPanel
-    enTuPanel: "En tu panel vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
+    enTuPanel: "En la página de su historia vas a ver todo lo que cuenta. Ahí también puedes escribir hasta tres preguntas tuyas para el libro.",
   },
   ca: {
     // APROBADO por Naza 16/10 (tanda 10) · asunto
@@ -282,7 +282,7 @@ export const TEXTOS_MAIL_KIDS_IDIOMA: Record<IdiomaKids, TextosMailKids> = {
       B: () => "El primer missatge t'arriba al teu WhatsApp. La primera pregunta surt quan estigueu junts.",
     },
     // APROBADO por Naza 16/10 (tanda 10) · enTuPanel
-    enTuPanel: "Al teu panell veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
+    enTuPanel: "A la pàgina de la seva història veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.",
   },
 };
 

@@ -44,7 +44,8 @@ export type TextosPago = {
   sacalaOIntenta: string;
 };
 
-export type ResultadoPago = { ok: true } | { ocupado: true } | { error: string };
+/** `motivoCupon`: /api/compra no aceptó el cupón de bienvenida (venció, se usó…); el error ya dice por qué. */
+export type ResultadoPago = { ok: true } | { ocupado: true } | { error: string; motivoCupon?: string };
 
 export function crearPagador(deps: DependenciasPago, T: TextosPago) {
   let enCurso = false;
@@ -65,7 +66,7 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
     const cuerpoJson = JSON.stringify(conOrigen(cuerpo));
     if (iniciada && cuerpoIniciado !== cuerpoJson) iniciada = null;
     if (!iniciada) {
-      let datos: Partial<RespuestaCompra> & { error?: string };
+      let datos: Partial<RespuestaCompra> & { error?: string; motivoCupon?: string };
       let ok: boolean;
       try {
         const r = await deps.fetch("/api/compra", {
@@ -78,7 +79,9 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
       } catch {
         return { error: T.errorConexion };
       }
-      if (!ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) return { error: datos.error ?? T.errorPago };
+      if (!ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) {
+        return { error: datos.error ?? T.errorPago, ...(typeof datos.motivoCupon === "string" ? { motivoCupon: datos.motivoCupon } : {}) };
+      }
       iniciada = { urlPago: datos.urlPago, narradorId: datos.narradorId, tokenFotos: datos.tokenFotos };
       cuerpoIniciado = cuerpoJson;
     }

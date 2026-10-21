@@ -26,13 +26,13 @@ export function asuntoBorradoAudios(comoLeDicen: string, fecha: Date): string {
 const PARRAFOS_VOS = (quien: string, fecha: string, partes: number): string[] => [
   `Hace casi tres meses terminamos el libro de tu ${quien}. Como te contamos al comprar, el ${fecha} borramos los audios originales de la entrevista.`,
   `Si los querés guardar, descargalos desde acá. Están todos, uno por respuesta, con la fecha en que los grabó.${partes > 1 ? ` Son ${partes} archivos porque pesan mucho juntos.` : ''}`,
-  `El libro y las frases de «Su voz» no se borran. Siguen en tu panel como siempre.`,
+  `El libro y las frases de «Su voz» no se borran. Siguen en la página de su historia, como siempre.`,
 ];
 
 const PARRAFOS = (quien: string, fecha: string, partes: number): string[] => [
   `Hace casi tres meses terminamos el libro de tu ${quien}. Como te contamos al comprar, el ${fecha} borramos los audios originales de la entrevista.`,
   `Si los quieres guardar, descárgalos desde aquí. Están todos, uno por respuesta, con la fecha en que los grabó.${partes > 1 ? ` Son ${partes} archivos porque pesan mucho juntos.` : ''}`,
-  `El libro y las frases de «Su voz» no se borran. Siguen en tu panel como siempre.`,
+  `El libro y las frases de «Su voz» no se borran. Siguen en la página de su historia, como siempre.`,
 ];
 
 export function cuerpoBorradoAudios(o: { comoLeDicen: string; fecha: Date; enlaces: string[]; vos?: boolean }): string {

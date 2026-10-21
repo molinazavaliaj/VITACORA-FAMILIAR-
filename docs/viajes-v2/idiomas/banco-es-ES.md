@@ -1,6 +1,6 @@
 BIEN-1 | Hola, {{nombre}}. Soy quien va a escribir el libro de tu viaje. Funciona así: yo te pregunto por aquí, tú me cuentas en audio cuando puedas, y al volver tienes {{formato}} con tu viaje contado con tu voz, tus fotos y un código QR para escuchar algunos de tus audios. ¿Empezamos? Contéstame SÍ: con eso me das permiso para guardar lo que me mandes.
 BIEN-1R | Hola, {{nombre}}. Te escribo porque {{quien_regala}} te ha hecho un regalo: {{formato}} con tu viaje, contado por ti. Funciona así: yo te pregunto por aquí, tú me cuentas en audio cuando puedas, y al volver lo tienes escrito con tu voz, con tus fotos y con un código QR para escuchar algunos de tus audios. ¿Empezamos? Contéstame SÍ: con eso me das permiso para guardar lo que me mandes.
-BIEN-2 | Vamos allá. Antes de salir te mando unas pocas preguntas, de una en una; cuando las contestes, silencio hasta el día que te vayas. En el viaje, dos al día: una cortita al mediodía, que es una foto o diez segundos de audio, y una por la noche para que me cuentes el día. Si un día no te apetece, "paso" y seguimos. La hora la tomo del país al que vas; si cambias de país y te llega a deshora, la corriges desde tu panel. Ahí va la primera.
+BIEN-2 | Vamos allá. Antes de salir te mando unas pocas preguntas, de una en una; cuando las contestes, silencio hasta el día que te vayas. En el viaje, dos al día: una cortita al mediodía, que es una foto o diez segundos de audio, y una por la noche para que me cuentes el día. Si un día no te apetece, "paso" y seguimos. La hora la tomo del país al que vas; si cambias de país y te llega a deshora, la corriges desde la página del viaje. Ahí va la primera.
 AS1 | Empecemos por el principio, antes de cualquier maleta. ¿De dónde salió este viaje, {{nombre}}? Cuéntame el momento en que dejó de ser una idea y se convirtió en algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago".
 AS1~viaje | Ya estás en marcha, pero quiero empezar por antes de cualquier maleta. ¿De dónde salió este viaje, {{nombre}}? Cuéntame el momento en que dejó de ser una idea y se convirtió en algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago".
 AS2 | Ya falta poco, {{nombre}}. ¿Cómo llevas este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperas encontrar allí. Cuéntame el momento de estos días en que te has dado cuenta de que esto va en serio: qué estabas haciendo y qué se te ha pasado por la cabeza.
@@ -28,7 +28,7 @@ NO9 | Empieza por algo que te ha hecho reír, aunque sea una tontería
 F1 | , y a partir de ahí sigue por donde quieras. Mándame las fotos que quieras guardar.
 F2 | , y después sigue con lo que venga. Si hay fotos, mándalas.
 F3 | , y desde ahí ve por donde te lleve el día. Las fotos que quieras guardar, mándamelas.
-F4 | , y después cuéntame lo demás, lo que se te vaya ocurriendo. Y mándame todas las fotos de hoy que quieras.
+F4 | , y después cuéntame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, aquí.
 F5 | , y desde ahí sigue hasta donde llegues. Si hay fotos que quieras guardar, mándalas.
 MD1 | ¿Por dónde andas ahora, {{nombre}}? Mándame una foto de lo que tienes delante, tal cual, sin explicarme nada.
 MD5 | Hoy quiero verte a ti, {{nombre}}. Una foto de cómo vas: de cuerpo entero o solo las zapatillas, como prefieras.
@@ -80,7 +80,7 @@ PR-R | Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Cu�
 PR-R2 | Esta noche te escribe otra persona, no yo. {{quien_regala}} te ha dejado esta pregunta: «{{pregunta}}». Contéstale como si la tuvieras delante. Si hay foto, mándala.
 PR-R3 | {{quien_regala}} ha querido saber esto de tu viaje: «{{pregunta}}». Es para {{quien_regala}}, así que háblale aunque llegue por aquí. Si tienes una foto que vaya con eso, mándala.
 PR-P | Hoy va una que te dejaste tú, {{nombre}}, antes de salir: «{{pregunta}}». A ver qué le dices ahora. Si tienes una foto, mándala.
-DES | Ya está, {{nombre}}: el viaje ha quedado contado, con tu voz. Ahora me toca a mí preparar el libro con lo que me has dado; lo vas a poder leer en tu panel antes de que lo cerremos, y ahí cambias lo que haga falta. Ha sido bonito acompañarte. Gracias por dejarme entrar en tu viaje.
+DES | Ya está, {{nombre}}: el viaje ha quedado contado, con tu voz. Ahora me toca a mí preparar el libro con lo que me has dado; lo vas a poder leer en la página del viaje antes de que lo cerremos, y ahí cambias lo que haga falta. Ha sido bonito acompañarte. Gracias por dejarme entrar en tu viaje.
 DES+ | Del álbum me he quedado con las primeras {{fotos_album}} que has mandado, que son las que caben.
 FORMATO-impreso | un libro impreso
 FORMATO-pdf | un libro en PDF

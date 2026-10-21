@@ -150,7 +150,13 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
       if (hito === 'falta_direccion' && !pasaronDias(entrega.created_at, DIAS_PARA_PEDIR_DIRECCION)) continue;
 
       const candado = candadoDeEntrega(entrega.narrador_id, entrega.id, hito);
-      if (await existeCandado(db, entrega.narrador_id, candado)) continue;
+      // Ya visto en una vuelta anterior: una entrega que llegó queda en 'entregado' para siempre, y antes se
+      // listaba su carpeta en cada vuelta para volver a encontrar el mismo candado (Disk IO, 20/10).
+      if (avisosHechos.get(db)?.has(candado)) continue;
+      if (await existeCandado(db, entrega.narrador_id, candado)) {
+        avisosHechos.set(db, (avisosHechos.get(db) ?? new Set<string>()).add(candado));
+        continue;
+      }
 
       const { data: familia } = await db
         .from('familias')
@@ -192,6 +198,12 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
     }
   }
 }
+
+/**
+ * Los candados de entrega que ya se vieron en Storage (por cliente de base, para que cada test arranque de cero).
+ * Un candado no se borra solo; si alguien lo borra a mano para que el mail salga de nuevo, hay que reiniciar la fábrica.
+ */
+const avisosHechos = new WeakMap<Db, Set<string>>();
 
 type EntregaParaAviso = {
   id: string;

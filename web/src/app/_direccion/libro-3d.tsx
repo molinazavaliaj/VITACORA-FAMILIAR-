@@ -45,11 +45,15 @@ function Qr({ url, className }: { url: string; className?: string }) {
 type Libro = TextosPortada["direccion"]["libro"];
 type Capitulo = TextosEjemplo["libro"];
 
-function Tapa({ b, sizes }: { b: Libro; sizes: string }) {
+/** Las fotos y la variante del libro. Sin nada, el de Osvaldo; `viaje` es el libro de viaje del inicio de /viaje (19/10): tapa con banda de tinta, lomo azul noche. */
+export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje" };
+const OSVALDO: DisenoLibro = { tapa: "/rediseno/libro-tapa-foto.jpg", interior: "/rediseno/osvaldo-guitarra.jpg" };
+
+function Tapa({ b, sizes, foto }: { b: Libro; sizes: string; foto: string }) {
   return (
     <div className="l3-papel-tapa flex h-full flex-col">
       <div className="relative h-[65%] overflow-hidden">
-        <Image src="/rediseno/libro-tapa-foto.jpg" alt="" fill sizes={sizes} className="object-cover" />
+        <Image src={foto} alt="" fill sizes={sizes} className="object-cover" />
       </div>
       <div className="flex flex-1 flex-col px-[6%] pb-[5.5%] pt-[6%]">
         <span className="l3-etiqueta">{b.etiqueta}</span>
@@ -128,11 +132,11 @@ export function PaginaCapitulo({ c }: { c: Capitulo }) {
 }
 
 /** La página derecha: la foto de juventud con su pie. */
-export function PaginaFoto({ c, sizes }: { c: Capitulo; sizes: string }) {
+export function PaginaFoto({ c, sizes, foto = OSVALDO.interior }: { c: Capitulo; sizes: string; foto?: string }) {
   return (
     <div className="l3-pagina l3-pagina--der flex h-full flex-col items-center px-[11%] pb-[7%] pt-[16%]">
       <div className="relative aspect-[700/870] w-full overflow-hidden">
-        <Image src="/rediseno/osvaldo-guitarra.jpg" alt={c.altFoto} fill sizes={sizes} className="object-cover" />
+        <Image src={foto} alt={c.altFoto} fill sizes={sizes} className="object-cover" />
       </div>
       <span className="l3-pie-foto mt-[6%]">{c.pieFoto}</span>
       <span className="l3-folio mt-auto">11</span>
@@ -144,21 +148,23 @@ export function Libro3D({
   idioma,
   b,
   c,
+  diseno = OSVALDO,
 }: {
   idioma: IdiomaWeb;
   b: Libro;
   c: Capitulo;
+  diseno?: DisenoLibro;
 }) {
   const lema = TEXTOS_PUBLICO[idioma].lema;
   // El libro se arma 1,5 veces más grande (ver globals.css): la tapa mide ~570 px.
   const sizes = "(min-width: 768px) 570px, 93vw";
   return (
-    <div className="l3-escena" aria-hidden>
+    <div className={`l3-escena ${diseno.variante === "viaje" ? "l3--viaje" : ""}`} aria-hidden>
       <div className="l3-sombra" />
       <div className="l3-libro">
         <div className="l3-tapa">
           <div className="l3-cara l3-frente">
-            <Tapa b={b} sizes={sizes} />
+            <Tapa b={b} sizes={sizes} foto={diseno.tapa} />
             <span className="l3-brillo" />
           </div>
           {/* El dorso de la tapa: la guarda, lisa, negra como el lomo. */}
@@ -178,7 +184,7 @@ export function Libro3D({
           </div>
         </div>
         <div className="l3-cara l3-hoja-derecha">
-          <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" />
+          <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" foto={diseno.interior} />
         </div>
         <div className="l3-cara l3-contra">
           <Contratapa b={b} lema={lema} />

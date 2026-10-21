@@ -28,14 +28,14 @@ describe("la voz del carrito", () => {
     const html = render("tu");
     expect(html).toContain("Añade el libro impreso");
     expect(html).toContain("Añade marcos con su voz");
-    expect(html).toContain("añade el libro impreso para agregar marcos");
+    expect(html).toContain("Añade primero el libro impreso y después los marcos.");
     expect(html).not.toMatch(/Sumá|tenés|querés|Elegí|Podés/);
   });
 
   it('en "vos" (viaje y panel) sigue en rioplatense', () => {
     const html = render("vos");
     expect(html).toContain("Sumá el libro impreso");
-    expect(html).toContain("sumá el libro impreso para agregar marcos");
+    expect(html).toContain("Sumá primero el libro impreso y después los marcos.");
   });
 
   it("los mensajes del servidor son impersonales: sirven para las dos voces", async () => {

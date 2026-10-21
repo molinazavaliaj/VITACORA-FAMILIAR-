@@ -17,6 +17,7 @@ const SECCIONES = [
   { href: "/admin/gastos", numero: "04", nombre: "Gastos" },
   { href: "/admin/cerebros", numero: "05", nombre: "Cerebros" },
   { href: "/admin/kids", numero: "06", nombre: "Kids" },
+  { href: "/admin/creadores", numero: "07", nombre: "Creadores" },
 ];
 
 export function NavegacionAdmin() {

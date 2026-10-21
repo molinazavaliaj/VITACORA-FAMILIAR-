@@ -24,7 +24,7 @@ describe('bienvenidaDeRegalo: el BIEN del banco y el pedido de SÍ, en el idioma
 
 describe('textoDeArranque', () => {
   it('llena {{nombre}}', () => {
-    expect(textoDeArranque('ca', 'aceptacion', 'Joan')).toBe("Gràcies, Joan. Ara mateix t'envio la primera pregunta. Sense pressa, i no hi ha respostes incorrectes.");
+    expect(textoDeArranque('ca', 'aceptacion', 'Joan')).toBe("Gràcies, Joan. El que m'expliquis ho podrà llegir i escoltar qui t'ha regalat el llibre, en una pàgina privada, i només ho fem servir per al teu llibre. Si en algun moment vols que esborrem alguna cosa, escriu-nos a soporte@vitacorafamiliar.com. Ara mateix t'envio la primera pregunta. Sense pressa, i no hi ha respostes incorrectes.");
     expect(textoDeArranque('es-ES', 'noQuiere', 'Ana')).toBe('Sin problema, Ana. Cuando te apetezca me escribes SÍ y empezamos. Aquí estaré.');
     expect(textoDeArranque('es-AR', 'noEntendi', 'abuelo')).toBe(ARRANQUE['es-AR'].noEntendi);
   });

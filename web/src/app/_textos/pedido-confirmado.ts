@@ -42,11 +42,12 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloDe: (n) => `Ya está. El libro de ${n} está en marcha.`,
     tituloPropio: "Ya está. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
-    correo: "Te mandamos un correo con todo esto y con cómo entrar a la página de su historia, donde vas a ir escuchando lo que cuenta. Si no lo ves, mira en promociones o en spam.",
+    // Naza 20/10 (texto suyo)
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mira en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por correo. Si no la ves, mira en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
-      { cuando: "Antes", que: `Avisa a ${n} de que le va a escribir «Vitácora» por WhatsApp.` },
+      { cuando: "Antes", que: `Avísale a ${n} que le va a escribir «Vitácora» por WhatsApp.` }, // sin «de que» (Naza 20/10)
       { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
@@ -84,7 +85,8 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloDe: (n) => `Listo. El libro de ${n} está en marcha.`,
     tituloPropio: "Listo. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
-    correo: "Te mandamos un correo con todo esto y con cómo entrar a la página de su historia, donde vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.",
+    // Naza 20/10 (texto suyo, de vos)
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por mail. Si no la ves, mirá en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
@@ -126,7 +128,8 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloDe: (n) => `Ja està. El llibre de ${n} està en marxa.`,
     tituloPropio: "Ja està. El teu llibre està en marxa.",
     tituloGenerico: "Gràcies. Ja està en marxa.",
-    correo: "T'enviem un correu amb tot això i amb com entrar a la pàgina de la seva història, on aniràs escoltant el que explica. Si no el veus, mira a promocions o a correu brossa.",
+    // PENDIENTE REVISIÓN NATIVA (Imma) · traducción del texto de Naza del 20/10
+    correo: "T'enviem un correu amb tota la informació i t'expliquem com entrar a la pàgina per seguir la seva història de prop, on aniràs escoltant el que explica. Si no el veus, mira a promocions o a correu brossa.",
     correoRegalo: "T'enviem la targeta per correu. Si no la veus, mira a promocions o a correu brossa.",
     otro: (n, impreso) => [
       { cuando: "Avui", que: "D'aquí a una estona li arriba un missatge nostre per WhatsApp, explicant-li de què es tracta. Comença quan vulgui." },
@@ -182,8 +185,8 @@ export const CONFIRMADO_KIDS_IDIOMA: Record<IdiomaKids, { canalA: (apodo: string
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando toquen el botón, juntos.",
   },
   "es-ES": {
-    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido», «Avísale de que»)
-    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale de que le va a escribir «Vitácora».`,
+    // APROBADO por Naza 16/10 (tanda 8) · canalA («a la hora que has elegido»); 20/10: «Avísale que», sin «de»
+    canalA: (apodo: string) => `A la hora que has elegido le llega a ${apodo} un mensaje nuestro por WhatsApp. Avísale que le va a escribir «Vitácora».`,
     // APROBADO por Naza 16/10 (tanda 8) · canalB («pulséis»)
     canalB: "Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando pulséis el botón, juntos.",
   },

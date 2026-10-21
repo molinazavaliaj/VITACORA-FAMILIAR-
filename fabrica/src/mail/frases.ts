@@ -66,11 +66,11 @@ const PARRAFOS_VOS = (quien: string, conImpreso: boolean): string[] =>
     ? [
         `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
         `Encargaste el libro impreso, y sale con estas frases: cada una lleva su código para escucharla.`,
-        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Miralas desde tu panel, cambiá lo que quieras, y si están bien así, confirmalas tal cual.`,
+        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Miralas en la página de su historia, cambiá lo que quieras, y si están bien así, confirmalas tal cual.`,
       ]
     : [
         `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
-        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.`,
+        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde la página de su historia.`,
         `No hay apuro: quedan guardadas así hasta que decidas.`,
       ];
 
@@ -79,11 +79,11 @@ const PARRAFOS = (quien: string, conImpreso: boolean): string[] =>
     ? [
         `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
         `Encargaste el libro impreso, y sale con estas frases: cada una lleva su código para escucharla.`,
-        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Échales un vistazo desde tu panel: cambia lo que quieras, y si están bien así, confírmalas tal cual.`,
+        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Échales un vistazo en la página de su historia, cambia lo que quieras, y si están bien así, confírmalas tal cual.`,
       ]
     : [
         `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
-        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si quieres sacar alguna, poner otra en su lugar o cambiar el orden, puedes hacerlo desde tu panel.`,
+        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si quieres sacar alguna, poner otra en su lugar o cambiar el orden, puedes hacerlo desde la página de su historia.`,
         `No hay apuro: quedan guardadas así hasta que decidas.`,
       ];
 

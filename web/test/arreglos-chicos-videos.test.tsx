@@ -83,7 +83,7 @@ describe("VideoLibro", () => {
   });
 });
 
-describe("dónde va cada uno (sin tocar los heros)", () => {
+describe("dónde va cada uno", () => {
   it("/ejemplo: después del título y antes del libro que se hojea", () => {
     const html = renderToStaticMarkup(PaginaEjemplo());
     const titulo = html.indexOf(TEXTOS_EJEMPLO.es.titulo);
@@ -94,26 +94,27 @@ describe("dónde va cada uno (sin tocar los heros)", () => {
     expect(libro).toBeGreaterThan(poster);
   });
 
-  it("/viaje: en «Las fotos quedan», después del hero", () => {
+  // 19/10 (Naza): el inicio de /viaje es como el de Familiar, con el libro de
+  // viaje en 3D; el video del libro sale (si no, el libro se repite).
+  it("/viaje: el libro de viaje en 3D en el inicio y sin el video", () => {
     for (const pagina of [ViajeEs, ViajeAr]) {
       const html = renderToStaticMarkup(pagina());
-      const h1 = html.indexOf("</h1>");
-      const frase = html.indexOf("Las fotos quedan.");
-      const poster = html.indexOf("viaje-libro-poster.jpg");
-      expect(frase).toBeGreaterThan(h1);
-      expect(poster).toBeGreaterThan(frase);
-      expect(poster).toBeLessThan(html.indexOf('id="como-funciona"'));
+      const libro = html.indexOf("l3-escena l3--viaje");
+      expect(libro).toBeGreaterThan(html.indexOf("</h1>"));
+      expect(libro).toBeLessThan(html.indexOf("Las fotos quedan."));
+      expect(html).not.toContain("viaje-libro-poster.jpg");
     }
   });
 
-  it("/kids: en «Los dibujos se pierden», después del hero", () => {
+  // 19/10 (Naza): el inicio de /kids es como el de Familiar, con el libro de
+  // Nico que se abre debajo del lema, una sola vez.
+  it("/kids: el libro de Nico en el inicio, una sola vez", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const html = renderToStaticMarkup(<PaginaKidsCompleta idioma={idioma} />);
-      const frase = html.indexOf(TEXTOS_KIDS[idioma].dibujos.frase[0]);
       const poster = html.indexOf("kids-libro-poster.jpg");
-      expect(frase).toBeGreaterThan(html.indexOf("</h1>"));
-      expect(poster).toBeGreaterThan(frase);
-      expect(poster).toBeLessThan(html.indexOf('id="como-funciona"'));
+      expect(poster).toBeGreaterThan(html.indexOf("</h1>"));
+      expect(poster).toBeLessThan(html.indexOf(TEXTOS_KIDS[idioma].dibujos.frase[0]));
+      expect(html.split("kids-video ").length - 1).toBe(1);
     }
   });
 });
