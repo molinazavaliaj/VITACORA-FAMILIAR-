@@ -13,6 +13,7 @@ import { bienvenidaDeRegalo, idiomaDeRegalo, idiomaPorTelefono } from './regalo-
 import { extraerCodigo } from './regalo-codigo.js';
 import { AVISOS, RECORDATORIO, tratoDeComprador } from './regalo-textos.js';
 import { zonaPorTelefono } from './regalo-zona.js';
+import { quienLoRegala } from './quien-regala.js';
 
 export type DepsRegalo = {
   db: SupabaseClient;
@@ -177,9 +178,10 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
     if (!n || !r) return false;
     // El BIEN no tiene marcas de género hoy; si llega a tenerlas, sin género cargado va 'otro'.
     const genero = esGenero(n.contexto?.genero) ? n.contexto.genero : 'otro';
-    const texto = bienvenidaDeRegalo(idiomaDeRegalo(n.contexto), {
-      nombre: n.como_le_dicen, genero, ...(r.quien_regala ? { quienRegala: r.quien_regala } : {}),
-    });
+    // Quién lo regala, con su vínculo si se reconoce («Tu hijo Naza»): reemplaza «Una persona que te quiere mucho».
+    const idioma = idiomaDeRegalo(n.contexto);
+    const quien = quienLoRegala(idioma, r.quien_regala, n.contexto?.vinculoComprador);
+    const texto = bienvenidaDeRegalo(idioma, { nombre: n.como_le_dicen, genero, ...(quien ? { quienRegala: quien } : {}) });
     const waId = await deps.enviarTexto(telefono, texto);
     const { error } = await deps.db.from('envios').insert({ narrador_id: narradorId, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
     if (error) {

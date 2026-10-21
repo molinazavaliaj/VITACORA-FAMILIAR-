@@ -178,3 +178,106 @@ Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques
 
 Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.
 ```
+
+## Bienvenida V3 diciendo quién la regala (20/10) — variables: {{1}} cómo le dicen · {{2}} quién la regala
+
+Naza, 20/10: «una persona que te quiere mucho» le dio desconfianza a Amelia. Es la misma bienvenida V3, con {{2}} = quién la regala, ya armado por el bot al principio de la oración: «Tu hijo Naza», «Tu nieta Lucía», «El teu fill Naza» o, si el vínculo que escribió el comprador no se reconoce, solo el nombre («Naza»). Ejemplo para Meta: {{1}} = Ame, {{2}} = Tu hijo Naza. Misma categoría y el mismo botón «SÍ» que la bienvenida de hoy. Cuando Meta la apruebe, sumar `<idioma>:bienvenida_quien` a `WA_PLANTILLAS_V3_LISTAS` (`es-AR:bienvenida_quien,es-ES:bienvenida_quien,ca:bienvenida_quien`). Hasta entonces sigue saliendo `bienvenida_v3_*`, y también si no hay nombre de quien compró.
+
+### bienvenida_v3_quien_vos (es)
+
+```
+Hola, {{1}}, ¿cómo estás? {{2}} te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+
+Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
+
+Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, esto lo hacemos al ritmo que vos quieras.
+
+Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.
+```
+
+### bienvenida_v3_quien_es_es (es_ES)
+
+```
+Hola, {{1}}, ¿cómo estás? {{2}} te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.
+
+Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
+
+Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras.
+
+Antes de empezar, una cosa. Tus mejores frases quedarán en el libro tal cual las has contado, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Responde SÍ y empezamos.
+```
+
+### bienvenida_v3_quien_ca (ca)
+
+```
+Hola, {{1}}, com estàs? {{2}} t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.
+
+Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.
+
+Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme.
+
+Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.
+```
+
+## Las `_b` que se borraron (20/10) — y lo que queda pendiente del abogado
+
+El 18/10 se cargaron en Meta tres bienvenidas `bienvenida_v3_*_b` con el texto que
+pedía la revisión legal del 17/10: la frase «soy el asistente automático» que exige
+el Reglamento Europeo de IA (art. 50.1, en vigor desde el 2/8/2026) y la primera capa
+de la información del RGPD.
+
+**No se usaron nunca.** Naza decidió el 19/10 arrancar con la bienvenida como está,
+con el resumen corto y el enlace a la web, y no agregar el botón INFO (PR #75,
+cerrado). Las `_b` quedaron aprobadas en Meta y sin que ningún código las nombrara,
+así que se borraron el 20/10 para que la lista no tenga nombres que nadie usa.
+
+**Lo que sigue pendiente, y conviene no perderlo de vista.** Hoy ninguna bienvenida
+dice que del otro lado hay un sistema automático. Eso es lo que marcó la revisión
+legal como el punto más urgente, y el único que depende de una ley ya en vigor y no
+de una opinión. Cuando se retome, son **seis** plantillas a rehacer y no tres: las
+tres `bienvenida_v3_*` y las tres `bienvenida_v3_quien_*` del 20/10.
+
+El texto completo que se había aprobado en Meta queda acá para no reescribirlo:
+
+### bienvenida_v3_ca_b (ca) — borrada, texto guardado
+
+```
+Hola, {{1}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida. Soc l'assistent automàtic de Vitácora Familiar i t'entrevistaré per fer-lo. Ho farem aquí, per WhatsApp, amb calma.
+
+Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.
+
+Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme.
+
+Abans de començar, una cosa. Els teus àudios es fan servir només per fer el teu llibre, i les teves millors frases quedaran al llibre amb la teva veu, tal com les has explicat. Pots parar quan vulguis i demanar que ho esborrem tot. El detall és a vitacorafamiliar.com/ca/legal/privacidad
+
+En respondre SÍ ens dones permís. Respon SÍ i comencem.
+```
+
+### bienvenida_v3_es_es_b (es_ES) — borrada, texto guardado
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida. Soy el asistente automático de Vitácora Familiar y voy a entrevistarte para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.
+
+Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
+
+Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras.
+
+Antes de empezar, una cosa. Tus audios se usan solo para hacer tu libro, y tus mejores frases quedarán en él con tu voz, tal cual las has contado. Puedes parar cuando quieras y pedir que lo borremos todo. El detalle está en vitacorafamiliar.com/legal/privacidad
+
+Al responder SÍ nos das permiso. Responde SÍ y empezamos.
+```
+
+### bienvenida_v3_vos_b (es) — borrada, texto guardado
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida. Soy el asistente automático de Vitácora Familiar y voy a entrevistarte para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+
+Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
+
+Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, esto lo hacemos al ritmo que vos quieras.
+
+Antes de empezar, una cosa. Tus audios se usan solo para hacer tu libro, y tus mejores frases van a quedar en él con tu voz, tal cual las contaste. Podés parar cuando quieras y pedir que borremos todo. El detalle está en vitacorafamiliar.com/ar/legal/privacidad
+
+Al responder SÍ nos das permiso. Respondé SÍ y arrancamos.
+```
+

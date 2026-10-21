@@ -187,3 +187,53 @@ export function llegoAlFinalV3(estado: (EstadoV3 & { esperando?: string; termina
 export const MAXIMO_PREGUNTAS_FAMILIA_V3 = 10;
 /** La banda de `orden` de las preguntas de la familia V3: lejos del guion viejo (1-40) y de los objetos (101-108). */
 export const ORDEN_FAMILIA_V3 = 200;
+
+// ── Las preguntas de la familia (Naza, 20/10): las que sumó, tal cual las escribió, y en qué quedaron ──
+
+export type FilaPreguntaFamiliaV3 = { id: string; orden: number; texto: string; tipo: string };
+/**
+ * contestada · esperando (se la hicimos y falta que conteste) · sin respuesta (se la hicimos y la dejó pasar) ·
+ * por hacer (le llega antes de la foto del final) · tarde (no llegó a tiempo y ya no se la hacemos).
+ */
+export type EstadoPreguntaFamiliaV3 = "contestada" | "esperando" | "sin respuesta" | "por hacer" | "tarde";
+export type PreguntaFamiliaV3 = { id: string; texto: string; estado: EstadoPreguntaFamiliaV3 };
+
+type EstadoConFamilia = EstadoV3 & { esperando?: string; terminada?: boolean; enviados?: string[]; familiaTarde?: string[] };
+
+/**
+ * Las preguntas que sumó la familia (tabla `preguntas`, tipo 'familia'), en el orden en que las sumó, con el
+ * texto como lo escribió. El bot las hace con la clave `F:<id>` (entrevistador/src/v3/filas.ts) y lo que
+ * contesta queda en `estado.respuestas` con esa clave (o su repregunta / segunda oportunidad).
+ */
+export function preguntasDeLaFamiliaV3(estado: EstadoConFamilia | null | undefined, filas: FilaPreguntaFamiliaV3[]): PreguntaFamiliaV3[] {
+  const contestadas = new Set(
+    (Array.isArray(estado?.respuestas) ? estado.respuestas : []).filter((r) => Array.isArray(r) && typeof r[0] === "string").map((r) => claveMadre(r[0])),
+  );
+  const hechas = new Set((Array.isArray(estado?.enviados) ? estado.enviados : []).filter((k) => typeof k === "string"));
+  for (const g of (Array.isArray(estado?.charla) ? estado.charla : []) as GloboHistoria[]) {
+    if (g?.de !== "bio" || !Array.isArray(g.partes)) continue;
+    for (const p of g.partes) if (typeof p?.id === "string" && p.id.startsWith("F:")) hechas.add(p.id);
+  }
+  const tarde = new Set((Array.isArray(estado?.familiaTarde) ? estado.familiaTarde : []).filter((k) => typeof k === "string"));
+  const alFinal = llegoAlFinalV3(estado);
+  return filas
+    .filter((f) => f.tipo === "familia" && typeof f.texto === "string" && f.texto.trim())
+    .sort((a, b) => a.orden - b.orden)
+    .map((f) => {
+      const clave = `F:${f.id}`;
+      const abierta = typeof estado?.esperando === "string" ? estado.esperando : "";
+      // La abierta es ella misma: falta que conteste. Si lo abierto es su repregunta, ya contestó.
+      const estadoPregunta: EstadoPreguntaFamiliaV3 = abierta === clave
+        ? "esperando"
+        : contestadas.has(clave)
+          ? "contestada"
+          : claveMadre(abierta) === clave
+            ? "esperando"
+            : hechas.has(clave)
+              ? "sin respuesta"
+              : tarde.has(clave) || alFinal
+                ? "tarde"
+                : "por hacer";
+      return { id: f.id, texto: f.texto.trim(), estado: estadoPregunta };
+    });
+}

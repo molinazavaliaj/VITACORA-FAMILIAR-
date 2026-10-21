@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { firmarToken } from "./token-firmado";
 import type { Compra } from "@/lib/productos";
+import { lineasParaCobrar } from "@/lib/cupon";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 
 // Crea el link de pago (Stripe para ES, Mercado Pago para AR) a partir de una
@@ -26,6 +27,9 @@ export type OrigenCompra = { idioma: IdiomaWeb; pantalla?: "comprar" | "regalar"
 export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: OrigenCompra): Promise<{ urlPago: string }> {
   // Vitácora de viaje: la pantalla de gracias explica cómo arrancar por WhatsApp, y "atrás" vuelve a su compra.
   const esViaje = compra.lineas.some((l) => l.id === "viaje");
+  // Con el cupón de bienvenida, el descuento va restado de la línea del libro
+  // digital: lo que cobra la pasarela es exactamente `compra.total`.
+  const lineas = lineasParaCobrar(compra);
   const vuelta = esViaje ? "/viaje" : "";
   const urlBase = process.env.URL_BASE;
   // 3t.20: al cobrar, el proveedor vuelve a NUESTRA ruta con un token firmado
@@ -44,7 +48,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: Ori
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: pedido.email,
-      line_items: compra.lineas.map((linea) => ({
+      line_items: lineas.map((linea) => ({
         price_data: {
           currency: "eur",
           // Math.round: precios con decimales (19.99) dan un *100 no entero
@@ -70,7 +74,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: Ori
 
   const preference = await new Preference(client).create({
     body: {
-      items: compra.lineas.map((linea) => ({
+      items: lineas.map((linea) => ({
         id: linea.id,
         title: linea.nombre,
         quantity: linea.cantidad,

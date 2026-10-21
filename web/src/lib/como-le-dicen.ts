@@ -18,6 +18,6 @@ export function nombreDePila(nombreCompleto: string): string {
 }
 
 /** El error de la compra cuando pusieron una palabra de la familia. ⚠️ Texto a aprobar por Naza. */
-export const MENSAJE_PALABRA_DE_FAMILIA = 'Poné su nombre o su apodo. Nada de "papá" ni "abuela".';
+export const MENSAJE_PALABRA_DE_FAMILIA = 'Poné su nombre o su apodo. Nada de «papá» ni «abuela».';
 /** El mismo, de tú, para quien compra desde España. */
-export const MENSAJE_PALABRA_DE_FAMILIA_TU = 'Pon su nombre o su apodo. Nada de "papá" ni "abuela".';
+export const MENSAJE_PALABRA_DE_FAMILIA_TU = 'Pon su nombre o su apodo. Nada de «papá» ni «abuela».';

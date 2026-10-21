@@ -1470,3 +1470,84 @@ function anotarLatidoCorrio(db: { from: (tabla: string) => unknown }): boolean {
   const llamadas = (db.from as unknown as { mock: { calls: unknown[][] } }).mock.calls;
   return llamadas.length > 0 && llamadas[llamadas.length - 1][0] === 'latidos';
 }
+
+// Disk IO de Supabase (20/10): cada `storage.list` es una consulta a storage.objects. Lo que ya no tiene nada
+// que hacer (todos sus candados puestos) se lista una vez y no en cada vuelta para siempre.
+describe('lo ya hecho no se vuelve a listar', () => {
+  function contarListas(db: ReturnType<typeof construirClienteDbMock>): Record<string, number> {
+    const cuenta: Record<string, number> = {};
+    const original = db.storage.from;
+    db.storage.from = () => {
+      const bucket = original();
+      const list = bucket.list;
+      bucket.list = (ruta: string) => {
+        const id = ruta.split('/')[0];
+        cuenta[id] = (cuenta[id] ?? 0) + 1;
+        return list(ruta);
+      };
+      return bucket;
+    };
+    return cuenta;
+  }
+
+  beforeEach(() => {
+    enviarMailHitoMock.mockClear();
+    enviarMailRecordatorioFrasesMock.mockClear();
+    generarEstructuraMock.mockClear();
+    generarPrevisualizacionMock.mockClear();
+  });
+
+  it('un libro entregado con todos sus mails: lo lista la primera vuelta y después nunca más', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'Abu', familia_id: 'f1', ultima_respuesta_at: '2026-09-01T00:00:00Z', libro_aprobado_at: '2026-09-02T00:00:00Z' }],
+      archivosPorNarrador: {
+        n1: ['estructura.json', 'nombres.json', 'preview.pdf', 'anticipo_enviado.txt', 'terminado_enviado.txt', CANDADO_POR_HITO.libro_listo, CANDADO_RECORDATORIO_FRASES],
+      },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+    });
+    const listas = contarListas(db);
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+    const primera = listas['n1'] ?? 0;
+    expect(primera).toBeGreaterThan(0);
+
+    await tick();
+    await tick();
+    expect(listas['n1']).toBe(primera);
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+  });
+
+  it('a uno con algo pendiente se lo sigue mirando en cada vuelta', async () => {
+    // Libro entregado, sin el mail de "libro listo" porque Resend falla: se reintenta en cada vuelta, como antes.
+    enviarMailHitoMock.mockResolvedValue(false);
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'Abu', familia_id: 'f1', ultima_respuesta_at: '2026-09-01T00:00:00Z', libro_aprobado_at: '2026-09-02T00:00:00Z' }],
+      archivosPorNarrador: { n1: ['estructura.json', 'nombres.json', 'preview.pdf', 'terminado_enviado.txt', CANDADO_RECORDATORIO_FRASES] },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+    await tick();
+    const libroListo = enviarMailHitoMock.mock.calls.filter(([a]) => (a as { hito: string }).hito === 'libro_listo');
+    expect(libroListo).toHaveLength(2);
+    enviarMailHitoMock.mockResolvedValue(true);
+  });
+
+  it('el «terminó» que no salió se reintenta aunque el libro esté cerrado', async () => {
+    enviarMailHitoMock.mockResolvedValueOnce(false);
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'Abu', familia_id: 'f1', ultima_respuesta_at: '2026-09-01T00:00:00Z', libro_aprobado_at: '2026-09-02T00:00:00Z' }],
+      archivosPorNarrador: { n1: ['estructura.json', 'nombres.json', 'preview.pdf'] },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+    await tick();
+    const terminado = enviarMailHitoMock.mock.calls.filter(([a]) => (a as { hito: string }).hito === 'terminado');
+    expect(terminado).toHaveLength(2);
+    expect(db.subidos['n1']).toContain('terminado_enviado.txt');
+  });
+});

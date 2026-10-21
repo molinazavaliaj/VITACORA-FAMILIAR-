@@ -82,8 +82,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver eliges tus favoritas y van al álbum del final del libro." },
         { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de España, de Argentina o en catalán. Lo eliges al comprar." },
         { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando vuelves y mandas las fotos del álbum, lo escribimos. Lo revisas en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
-        // Aprobada (D1): la garantía de Viaje vive solo acá y en el pago.
-        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 9 (la garantía de Viaje vive solo acá y en el pago)
+        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     familiar: "¿Buscas el libro de una vida? Vitácora Familiar →",
@@ -126,7 +126,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver elegís tus favoritas y van al álbum del final del libro." },
         { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de Argentina, de España o en catalán. Lo elegís al comprar." },
         { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando volvés y mandás las fotos del álbum, lo escribimos. Lo revisás en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },
-        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si el viaje se cancela, te devolvemos el dinero." },
+        // APROBADO por Naza el 19/10 · tanda 6, texto 10
+        { pregunta: "¿Y si el viaje se cancela?", respuesta: "Si nos avisás antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     familiar: "¿Buscás el libro de una vida? Vitácora Familiar →",
@@ -169,9 +170,37 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
         { pregunta: "Quantes fotos puc enviar?", respuesta: "Les que vulguis, durant tot el viatge. En tornar tries les preferides i van a l'àlbum del final del llibre." },
         { pregunta: "En quina llengua m'escriu?", respuesta: "En català, en castellà d'Espanya o d'Argentina. Ho tries en comprar." },
         { pregunta: "Quan arriba el llibre?", respuesta: "Quan tornes i envies les fotos de l'àlbum, l'escrivim. El revises a la pàgina del viatge abans de tancar-lo i, si és imprès, t'avisem quan surti d'impremta." },
-        { pregunta: "I si el viatge es cancel·la?", respuesta: "Si el viatge es cancel·la, et retornem els diners." },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, texto 9
+        { pregunta: "I si el viatge es cancel·la?", respuesta: "Si ens avises abans que la persona que viatja accepti l'entrevista, t'ho retornem tot. Si ja ha acceptat i contesta menys de deu preguntes, també t'ho retornem tot." },
       ],
     },
     familiar: "Busques el llibre d'una vida? Vitácora Familiar →",
   },
+};
+
+// El libro de viaje de ejemplo que gira en el inicio de /viaje (Libro3D con la
+// variante «viaje», como el de Osvaldo en Familiar). APROBADO por Naza el 19/10
+// (los 10 textos del libro). Es inventado y va en castellano en los tres
+// idiomas, como el libro de Osvaldo.
+export const LIBRO_VIAJE_EJEMPLO = {
+  etiqueta: "El libro de nuestro viaje",
+  nombre: ["Lisboa ·", "Oporto"] as [string, string],
+  paraSiempre: "Sara y Dani",
+  iniciales: "S · D",
+  lomo: "Lisboa · Oporto · El libro de nuestro viaje",
+  contra: "Estas páginas guardan el viaje de Sara y Dani a Lisboa y Oporto, contado con sus propias palabras y sus fotos. En este QR, sus audios del viaje.",
+  escucha: "Escucha el viaje",
+  web: "vitacorafamiliar.com",
+};
+
+export const CAPITULO_VIAJE_EJEMPLO = {
+  capitulo: "Día 1",
+  tituloCapitulo: "Alfama",
+  citaCapitulo: "«Nos perdimos tres veces antes de encontrar el mirador.»",
+  parrafos: [
+    "Llegamos con las mochilas y sin reserva para cenar. Dani quería subir caminando y yo quería el tranvía. Subimos caminando.",
+    "Arriba había un señor tocando la guitarra y el río se ponía naranja. Nos quedamos hasta que no se veía nada.",
+  ] as [string, string],
+  altFoto: "Sara grabando un audio en la cama del hotel",
+  pieFoto: "La primera tarde en el hotel, contando el día.",
 };

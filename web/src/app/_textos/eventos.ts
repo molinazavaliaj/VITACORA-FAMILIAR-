@@ -95,7 +95,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
         { titulo: "Te llega el libro", texto: "Con sus palabras escribimos el libro de tu evento y te lo entregamos impreso." },
       ],
     },
-    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, cuéntanoslo igual.", altFoto: "La carpa negra de Vitácora en una boda, con una entrevista adentro." },
+    tipos: { titulo: "Para cualquier celebración", pie: "Si lo tuyo no está en la lista, cuéntanoslo igual.", altFoto: "La carpa negra de Vitácora en una boda, con una entrevista dentro." },
     tipo: {
       boda: "Bodas",
       cumpleanos: "Cumpleaños",
@@ -119,7 +119,7 @@ export const TEXTOS_EVENTOS: Textos<TextosEventos> = {
       invitados: "Invitados, más o menos",
       invitadosPista: "Por ejemplo, 80",
       mensaje: "Algo más que quieras contarnos",
-      mensajePista: "Quién celebra, qué te gustaría que tenga el libro…",
+      mensajePista: "Quién celebra, qué te gustaría que tuviera el libro…",
       enviar: "Enviar",
       enviando: "Enviando…",
       privacidad: "Usamos estos datos solo para contestarte.",

@@ -28,6 +28,8 @@ const ANILLOS: ReadonlyArray<readonly [number, number, number]> = [
 ];
 
 const k = (n: number) => ({ "--k": n }) as CSSProperties;
+/** Sin colas de coma flotante en el HTML (13.559999…): dos decimales alcanzan. */
+const r2 = (n: number) => Math.round(n * 100) / 100;
 
 function Lado({ filtro }: { filtro: string }) {
   return (
@@ -38,10 +40,10 @@ function Lado({ filtro }: { filtro: string }) {
           <ellipse
             className="dir-anillo dir-repaso"
             style={k(i)}
-            cx={cx + 0.5}
+            cx={r2(cx + 0.5)}
             cy={145.4}
-            rx={rx - 0.3}
-            ry={ry + 0.4}
+            rx={r2(rx - 0.3)}
+            ry={r2(ry + 0.4)}
             pathLength={1}
           />
         </g>

@@ -333,7 +333,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       acuse: "Eso va al libro, con tus palabras.",
       ejemplo: "Conversación de ejemplo",
       resumen: "Ejemplo de conversación. Vitácora le pregunta qué quiere hacer de grande, contesta con un audio de un minuto y doce segundos, y Vitácora le dice que eso va al libro, con sus palabras.",
-      altFoto: "Un chico sentado en la alfombra de su cuarto le saca una foto a sus juguetes con el celular",
+      altFoto: "Un chico sentado en la alfombra de su cuarto les saca una foto a sus juguetes con el celular",
     },
     libro: {
       titulo: "Cinco partes, y la última cerrada.",

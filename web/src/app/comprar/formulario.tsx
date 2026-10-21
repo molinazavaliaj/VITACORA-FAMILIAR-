@@ -21,6 +21,8 @@ import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
 import { eleccionDe } from "../_checkout/opciones-libro";
 import { OpcionesLibro } from "../_checkout/opciones-libro-ui";
+import { CampoCupon, type CuponAplicado } from "../_checkout/cupon";
+import { TEXTOS_CUPON } from "../_textos/cupon";
 import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { formatearPrecio, listaDe } from "./productos-ui";
@@ -76,10 +78,16 @@ export function Checkout({
   promo = null,
   entregaWhatsApp = false,
   pasoInicial = 1,
+  conCupon = false,
+  pistaCupon = true,
 }: {
   idioma: IdiomaWeb;
   catalogo: CatalogoRegion;
   promo?: number | null;
+  /** El campo del cupón de bienvenida (RASCA_Y_GANA=1 y sin promo global: no se suma a precios rebajados). */
+  conCupon?: boolean;
+  /** La pista «VITACORA10-…» en el campo: solo con el rasca prendido. */
+  pistaCupon?: boolean;
   /** Si se ofrece mandar el regalo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
   /** Para probar cada paso sin navegador. */
@@ -113,8 +121,18 @@ export function Checkout({
   const yo = esPropia(e);
   const regalo = esRegalo(e);
   const ella = generoDe(e) === "mujer";
-  const compra = useMemo(() => armarCompra(cat, region, carritoDe(e)), [cat, region, e]);
-  const f = (n: number) => formatearPrecio(n, cat.moneda, region);
+  // El cupón de bienvenida o el código de un creador: el importe lo dijo el servidor (/api/cupon/validar);
+  // acá solo se resta para mostrar el total. Lo que se cobra lo recalcula /api/compra.
+  const [cupon, setCupon] = useState<CuponAplicado | null>(null);
+  const [cuponInicial, setCuponInicial] = useState<string | null>(null);
+  const lista = useMemo(() => armarCompra(cat, region, carritoDe(e)), [cat, region, e]);
+  const compra = useMemo(
+    () => (cupon ? { ...lista, total: Math.round((lista.total - cupon.importe) * 100) / 100 } : lista),
+    [lista, cupon],
+  );
+  // El código de un creador sin descuento (o una compra sin libro digital) vale igual, con importe 0: sin línea.
+  const conDescuento = cupon !== null && cupon.importe > 0;
+  const f = (n: number) => formatearPrecio(n, cat.moneda, region, conDescuento);
 
   // Lo que se guarda justo antes de ir a la pasarela: lo elegido (para volver
   // de un pago fallido, con la prueba para retomar la misma compra) y la
@@ -173,6 +191,13 @@ export function Checkout({
       ),
     [T],
   );
+
+  // El link del mail del cupón trae `?cupon=`: se aplica solo al llegar al pago.
+  useEffect(() => {
+    if (!conCupon) return;
+    const codigo = new URLSearchParams(window.location.search).get("cupon");
+    if (codigo) setCuponInicial(codigo);
+  }, [conCupon]);
 
   // Vuelta de un pago que no se cobró (Casos 2): lo elegido aparece de nuevo,
   // en el paso del pago, y el parámetro se saca de la barra.
@@ -281,13 +306,15 @@ export function Checkout({
     setFalla(null);
     setEnviando(true);
     const r = await pagador.pagar(
-      cuerpoDeLaCompra(e, idioma),
+      { ...cuerpoDeLaCompra(e, idioma), ...(cupon ? { cupon: cupon.codigo } : {}) },
       fotos.map((x) => ({ clave: x.clave, nombre: x.archivo.name, subida: x.subida })),
       (clave) => setFotos((x) => x.map((y) => (y.clave === clave ? { ...y, subida: true } : y))),
     );
     if ("error" in r) {
       setFalla({ texto: r.error });
       setEnviando(false);
+      // El servidor no aceptó el cupón (venció, se usó): se saca y se cobra sin él solo si lo vuelve a intentar.
+      if (r.motivoCupon) setCupon(null);
     }
   }
 
@@ -570,6 +597,17 @@ export function Checkout({
                   <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} />
                 ) : null}
 
+                {conCupon ? (
+                  <CampoCupon
+                    idioma={idioma}
+                    productos={{ impresos: carritoDe(e).impresos, marcos: carritoDe(e).marcos }}
+                    aplicado={cupon}
+                    alCambiar={setCupon}
+                    inicial={cuponInicial}
+                    conPista={pistaCupon}
+                  />
+                ) : null}
+
                 <p className="text-[14px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">{T.metodos}</p>
                 <ErrorPaso texto={falla?.texto ?? null} />
                 <div className="chk-solo-escritorio">
@@ -592,7 +630,16 @@ export function Checkout({
           )}
         </div>
 
-        <Resumen compra={compra} region={region} textos={R} cabeza={cabezaResumen} incluye={R.incluye(yo)} tachado={tachado} ahorro={ahorro} />
+        <Resumen
+          compra={compra}
+          region={region}
+          textos={R}
+          cabeza={cabezaResumen}
+          incluye={R.incluye(yo)}
+          tachado={tachado}
+          ahorro={ahorro}
+          descuento={cupon && conDescuento ? { nombre: cupon.linea ?? TEXTOS_CUPON[idioma].checkout.linea, importe: f(cupon.importe) } : null}
+        />
       </div>
 
       {/* En el teléfono: el total y el botón del paso, abajo y después del resumen. */}

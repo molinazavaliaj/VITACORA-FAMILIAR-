@@ -24,12 +24,14 @@ export type Trato = "tu" | "vos";
 /** Las palabras que cambian entre "tú" y "vos". */
 const VOZ: Record<Trato, { suma: string; tenes: string; marcosGris: string }> = {
   // "Añade" y no "Suma": en España suena natural (lo pidió Naza, 22/09).
-  tu: { suma: "Añade", tenes: "Ya tienes", marcosGris: "Los marcos viajan con el libro: añade el libro impreso para agregar marcos." },
-  vos: { suma: "Sumá", tenes: "Ya tenés", marcosGris: "Los marcos viajan con el libro: sumá el libro impreso para agregar marcos." },
+  tu: { suma: "Añade", tenes: "Ya tienes", marcosGris: "Los marcos viajan con el libro. Añade primero el libro impreso y después los marcos." },
+  vos: { suma: "Sumá", tenes: "Ya tenés", marcosGris: "Los marcos viajan con el libro. Sumá primero el libro impreso y después los marcos." },
 };
 
-export function formatearPrecio(monto: number, moneda: Moneda, region: Region) {
-  return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(monto);
+export function formatearPrecio(monto: number, moneda: Moneda, region: Region, centimos = false) {
+  // Sin decimales, como siempre. `centimos`: con el cupón de bienvenida (44,10 € y −4,90 €), si el monto los tiene.
+  const decimales = centimos && Math.round(monto * 100) % 100 !== 0 ? 2 : 0;
+  return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, minimumFractionDigits: decimales, maximumFractionDigits: decimales }).format(monto);
 }
 
 /** El precio de lista de la promo, ya formateado, para `Tachado`. */
