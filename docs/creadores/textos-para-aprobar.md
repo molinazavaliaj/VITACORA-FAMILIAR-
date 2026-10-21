@@ -46,7 +46,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 
 11. **CR-11 · Campo libre**
     «Algo que quieras contarnos (si quieres)» (pista «Qué publicas, a quién le hablas…»)
-12. **CR-12 · La casilla obligatoria** (con dos enlaces, a las condiciones y a la privacidad; este texto exacto se guarda como prueba de que aceptó)
+12. **CR-12 · La casilla obligatoria** (con dos enlaces, a las condiciones y a la privacidad; este texto exacto se guarda como prueba de que aceptó) — debajo va otra casilla, la de mayor de 18 (CR-26, tanda 6)
     «He leído y acepto las [condiciones del programa] y la [privacidad].»
 13. **CR-13 · El botón**
     «Enviar» · mientras manda, «Enviando…»
@@ -83,9 +83,9 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
     «Tu comunidad tiene un 10 % de descuento en el libro digital.» (sin descuento: «Tu código no lleva descuento. Cada venta cuenta igual.») · «Te queda un 20 % de cada venta.»
 23. **CR-23 · Si está en pausa**
     «Tu código está en pausa. Por ahora no suma ventas nuevas. Si tienes dudas, escríbenos.»
-24. **CR-24 · Las ventas** (solo fecha, comisión y estado: ningún dato de quien compró)
+24. **CR-24 · Las ventas** (solo fecha, comisión y estado: ningún dato de quien compró) — se suma el estado «En espera» (CR-27, tanda 6)
     «Tus ventas» · columnas «Fecha», «Comisión», «Estado» · estados «Por cobrar» y «Cobrada» · sin ventas «Todavía no hay ventas con tu código. Cuando alguien compre, aparece aquí.»
-25. **CR-25 · Totales y pie**
+25. **CR-25 · Totales y pie** — se suma un tercer total «En espera» y la línea de la espera (CR-27, tanda 6)
     «Por cobrar» · «Cobrado» · «Te pagamos por transferencia. Cuando toque, te escribimos para pedirte los datos.» · enlace «Condiciones del programa»
 
 ---
@@ -114,17 +114,17 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
    «La comisión y el descuento son de cada creador. Te los decimos en el correo de bienvenida y los ves en tu panel.»
    «Podemos cambiarlos más adelante. Las ventas que ya se hicieron no cambian.»
    (No promete avisar por mail cuando cambian: el panel de la empresa no manda nada al cambiarlos.)
-6. **CR-L06 · Cómo se calcula**
+6. **CR-L06 · Cómo se calcula** — ⚠️ REEMPLAZADO en la tanda 6 (sale «Cuenta cuando el pago entra», entran los 14 días de espera)
    «La comisión se calcula sobre lo que la persona pagó de verdad, con el descuento ya aplicado. Cuenta cuando el pago entra.»
    «Una venta es una compra pagada en la web con tu código escrito en el casillero del código, o entrando por tu link.»
 7. **CR-L07 · Dónde vale**
    «Tu código vale al comprar en la web, donde aparece el casillero del código. No se suma a otros cupones ni a precios ya rebajados. Va un solo código por compra.»
-8. **CR-L08 · Si se devuelve una compra**
+8. **CR-L08 · Si se devuelve una compra** — ⚠️ REEMPLAZADO en la tanda 6
    «Si se devuelve una compra hecha con tu código, su comisión se anula.»
-9. **CR-L09 · Cómo te pagamos**
+9. **CR-L09 · Cómo te pagamos** — ⚠️ el primer párrafo se REEMPLAZA en la tanda 6 (suma la factura)
    «Te pagamos por transferencia lo que tengas por cobrar. Cuando toque, te escribimos para pedirte los datos. No guardamos tus datos bancarios en la web.»
    «Los impuestos que correspondan por lo que cobras son tuyos.»
-10. **CR-L10 · Cómo lo compartes**
+10. **CR-L10 · Cómo lo compartes** — ⚠️ el primer párrafo se REEMPLAZA en la tanda 6 (decir que es publicidad)
     «Habla de Vitácora con tus palabras y con honestidad. Di que es una colaboración y que ganas una comisión con tu código.»
     «No prometas cosas que Vitácora no hace. No uses publicidad pagada con nuestro nombre sin hablarlo antes con nosotros.»
 ## Tanda 5 — las condiciones, del 11 al 13 — ✅ APROBADA por Naza el 21/10 (en la forma; falta el abogado)
@@ -132,9 +132,63 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 11. **CR-L11 · Si quieres dejarlo**
     «Puedes dejar el programa cuando quieras. Nos escribes a soporte@vitacorafamiliar.com y listo.»
     «Podemos pausar o cerrar tu código si no se cumplen estas condiciones. Lo que ya tengas por cobrar te lo pagamos igual.»
-12. **CR-L12 · Tus datos**
+12. **CR-L12 · Tus datos** — se suma un párrafo en la tanda 6 (cuánto guardamos los datos)
     «Guardamos tu nombre, tu correo, dónde publicas, tu perfil y lo que nos cuentes. También la fecha, la hora y la dirección IP de cuando te anotaste. Los usamos solo para el programa.»
     «Tu panel no muestra ningún dato de quien compra. Para borrar tus datos, escríbenos a soporte@vitacorafamiliar.com.»
 13. **CR-L13 · Cambios**
     «Si cambiamos estas condiciones, te lo contamos por correo antes de que valgan.»
     (Es una promesa: si se cambian, hay que mandar el mail a mano a los creadores activos.)
+
+---
+
+## Tanda 6 — cambios legales (21/10) — ⏳ PENDIENTE del OK de Naza
+
+> Salen de la revisión legal que Naza aprobó el 21/10. Lo de las condiciones (CR-L) sigue
+> **pendiente del abogado** antes de prender `CREADORES=1`. Va la versión de España (tú),
+> la recomendada; la de Argentina es la misma pasada a vos y la catalana su traducción, en
+> los mismos archivos. En el código cada uno lleva `PENDIENTE OK de Naza (tanda 6)`.
+> Comportamiento nuevo que acompaña a estos textos: cada comisión queda 14 días en espera
+> antes de poder pagarse, la casilla de mayor de 18 es obligatoria y el alta de Argentina
+> (`/ar/colabora`) queda cerrada por ahora (los textos de Argentina siguen en su lugar).
+
+**El formulario y el panel** (`web/src/app/_textos/colabora.ts`)
+
+1. **CR-26 · La casilla de mayor de 18** (en /colabora, debajo de la de las condiciones; obligatoria, y su texto exacto también se guarda como prueba)
+   «Soy mayor de 18 años.» · si no la marca, «Marca la casilla para confirmar que eres mayor de 18 años.»
+2. **CR-27 · La espera de 14 días en el panel del creador** (/creador/…)
+   Estado de una venta «En espera» (al lado de «Por cobrar» y «Cobrada») · un tercer total «En espera» (al lado de «Por cobrar» y «Cobrado») · debajo de la tabla, antes de «Te pagamos por transferencia…», «Cada comisión queda en espera 14 días desde la compra. Después pasa a por cobrar.»
+
+**Las condiciones** (`/legal/creadores`, `web/src/app/_textos/legal-creadores.ts`)
+
+3. **CR-L14 · Qué relación tenemos** (nueva, después de «Qué es»)
+   «Colaborar con Vitácora no es un trabajo ni te hace agente nuestro. Recomiendas Vitácora por tu cuenta y sin exclusividad. No vendes ni negocias nada en nuestro nombre.»
+4. **CR-L16 · Quién puede participar** (nueva, después de «Qué relación tenemos»)
+   «Para sumarte tienes que ser mayor de 18 años.»
+5. **CR-L06 · Cómo se calcula** (reemplaza a la de la tanda 4)
+   «La comisión se calcula sobre lo que la persona pagó de verdad, con el descuento ya aplicado.»
+   «Cada comisión queda en espera 14 días desde la compra. Pasado ese tiempo pasa a por cobrar.»
+   «Una venta es una compra pagada en la web con tu código escrito en el casillero del código, o entrando por tu link.» (sin cambios)
+6. **CR-L15 · Tus propias compras** (nueva, después de «Dónde vale»)
+   «Las compras que hagas tú con tu propio código no te dejan comisión.»
+   (No hay detección automática: si aparece una, los socios la anulan desde `/admin/creadores`.)
+7. **CR-L08 · Si se devuelve una compra** (reemplaza a la de la tanda 4)
+   «Si una compra hecha con tu código se devuelve en esos 14 días, su comisión no cuenta. Si se devuelve después, la descontamos de lo que tengas por cobrar.»
+8. **CR-L09 · Cómo te pagamos** (cambia el primer párrafo)
+   «Te pagamos por transferencia lo que tengas por cobrar. Cuando toque, te escribimos para pedirte los datos y la factura que corresponda en tu país. No guardamos tus datos bancarios en la web.»
+   «Los impuestos que correspondan por lo que cobras son tuyos.» (sin cambios)
+9. **CR-L10 · Cómo lo compartes** (cambia el primer párrafo)
+   «Cada vez que hables de Vitácora, di que es publicidad desde el principio y que se vea bien, con #publi o «colaboración pagada». Vale también si la Vitácora te la regalamos nosotros.»
+   «No prometas cosas que Vitácora no hace. No uses publicidad pagada con nuestro nombre sin hablarlo antes con nosotros.» (sin cambios)
+10. **CR-L12 · Tus datos** (se suma un párrafo, después del primero)
+    «Guardamos tus datos mientras estés en el programa. Después, solo lo que pide la ley para la contabilidad, durante 6 años.»
+
+**La privacidad** (`/legal/privacidad`, solo con `CREADORES=1`; `privacidadConCreadores` en `legal-creadores.ts`)
+
+11. **CR-L17 · Programa de creadores** (sección nueva, «4 bis» después de «4. Para qué los usamos», o «4 ter» si ya está el «4 bis» del cupón)
+    Título «Programa de creadores» · «Si te anotas como creador, tratamos tu nombre, tu correo, dónde publicas, tu perfil y lo que nos cuentes para gestionar el programa y pagarte las comisiones. Lo hacemos porque lo pides al anotarte. Guardamos tus datos mientras estés en el programa y después 6 años por la contabilidad. Puedes pedirnos verlos, corregirlos o borrarlos en soporte@vitacorafamiliar.com.»
+
+**Lo que no cambió y se revisó por si quedaba mintiendo:** el pie del panel («Te pagamos por
+transferencia. Cuando toque, te escribimos para pedirte los datos.») sigue siendo cierto y no
+se tocó; si Naza quiere que nombre la factura como CR-L09, es un cambio de una línea. La
+página /colabora, los mails y el resto de las condiciones no hablan de cuándo cuenta una
+comisión ni de Argentina, así que no cambian.
