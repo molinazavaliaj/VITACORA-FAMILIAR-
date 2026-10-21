@@ -32,6 +32,12 @@ describe("las reglas en la web", () => {
     expect(sinLoSacado(padre, [{ texto: padre, fuera: true }])).toBeNull();
   });
 
+  it("un «Sí» corto no se come el «así» de otra respuesta", () => {
+    const filas = [{ texto: "Mi casa era así.", fuera: false }, { texto: "Sí", fuera: true }];
+    expect(sinLoSacado("Mi casa era así. Sí", filas)).toBe("Mi casa era así.");
+    expect(sinLoSacado("⟦botón:Sí⟧ Mi casa era así. Sí", filas)).toBe("⟦botón:Sí⟧ Mi casa era así.");
+    expect(sinLoSacado("Sí, así. Sí", [{ texto: "Sí, así.", fuera: false }, { texto: "Sí", fuera: true }])).toBe("Sí, así.");
+  });
   it("la historia marca la fila sacada y la sigue mostrando", () => {
     const p = historiaV3(estado, filas, new Set(["r-padre"]))[0].preguntas[0];
     expect(p.respuestas.map((r) => [r.id, r.fuera])).toEqual([["r-padre", true], ["r-madre", false]]);

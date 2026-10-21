@@ -56,6 +56,12 @@ describe('sinLoSacado', () => {
     expect(sinLoSacado('otra cosa', [{ texto: padre, fuera: true }])).toBeNull();
   });
 
+  it('un «Sí» corto no se come el «así» de otra respuesta', () => {
+    const filas = [{ texto: 'Mi casa era así.', fuera: false }, { texto: 'Sí', fuera: true }];
+    expect(sinLoSacado('Mi casa era así. Sí', filas)).toBe('Mi casa era así.');
+    expect(sinLoSacado('⟦botón:Sí⟧ Mi casa era así. Sí', filas)).toBe('⟦botón:Sí⟧ Mi casa era así.');
+    expect(sinLoSacado('Sí, así. Sí', [{ texto: 'Sí, así.', fuera: false }, { texto: 'Sí', fuera: true }])).toBe('Sí, así.');
+  });
   it('sin filas sacadas, el texto queda igual', () => {
     expect(sinLoSacado('Igual.', [{ texto: 'Igual.', fuera: false }])).toBe('Igual.');
   });

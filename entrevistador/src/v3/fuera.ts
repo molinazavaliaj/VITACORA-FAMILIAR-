@@ -53,14 +53,23 @@ export async function leerSacadas(db: SupabaseClient, narradorId: string): Promi
 /** El texto de una clave sin las filas sacadas: se borra cada una; si alguna no está tal cual, se rearma con las que quedan. */
 export function sinLoSacado(texto: string, filas: readonly { texto: string; fuera: boolean }[]): string | null {
   if (!filas.some((f) => f.fuera)) return texto;
+  const quedan = () => filas.filter((f) => !f.fuera).map((f) => normal(f.texto)).filter(Boolean).join(' ');
   let t = normal(texto);
-  for (const s of filas.filter((f) => f.fuera).map((f) => normal(f.texto)).filter(Boolean)) {
-    const i = t.indexOf(s);
-    if (i < 0) {
-      t = filas.filter((f) => !f.fuera).map((f) => normal(f.texto)).filter(Boolean).join(' ');
-      break;
+  // El texto es la suma de las filas en orden: si coincide entero, se rearma sin las sacadas (sin buscar nada).
+  if (t === filas.map((f) => normal(f.texto)).filter(Boolean).join(' ')) t = quedan();
+  else {
+    for (const s of filas.filter((f) => f.fuera).map((f) => normal(f.texto)).filter(Boolean)) {
+      // Solo como palabras enteras y una sola vez: un «Sí» sacado no puede comerse el «así» de otra respuesta.
+      const lugares: number[] = [];
+      for (let i = t.indexOf(s); i >= 0; i = t.indexOf(s, i + 1)) {
+        if ((i === 0 || t[i - 1] === ' ') && (i + s.length === t.length || t[i + s.length] === ' ')) lugares.push(i);
+      }
+      if (lugares.length !== 1) {
+        t = quedan();
+        break;
+      }
+      t = normal(`${t.slice(0, lugares[0])} ${t.slice(lugares[0] + s.length)}`);
     }
-    t = normal(`${t.slice(0, i)} ${t.slice(i + s.length)}`);
   }
   return t === '' ? null : t;
 }

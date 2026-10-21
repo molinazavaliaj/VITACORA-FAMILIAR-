@@ -53,6 +53,12 @@ describe('las reglas', () => {
     expect(sinLoSacado(`${padre} ${madre}`, sacadas.get('OR1')!)).toBe(madre);
   });
 
+  it('un «Sí» corto no se come el «así» de otra respuesta', () => {
+    const filas = [{ texto: 'Mi casa era así.', fuera: false }, { texto: 'Sí', fuera: true }];
+    expect(sinLoSacado('Mi casa era así. Sí', filas)).toBe('Mi casa era así.');
+    expect(sinLoSacado('⟦botón:Sí⟧ Mi casa era así. Sí', filas)).toBe('⟦botón:Sí⟧ Mi casa era así.');
+    expect(sinLoSacado('Sí, así. Sí', [{ texto: 'Sí, así.', fuera: false }, { texto: 'Sí', fuera: true }])).toBe('Sí, así.');
+  });
   it('respuestasSinSacadas saca la fila y deja las otras claves', () => {
     expect(respuestasSinSacadas([['OR1', `${padre} ${madre}`], ['OR2', 'Otra.']], sacadas)).toEqual([['OR1', madre], ['OR2', 'Otra.']]);
   });
