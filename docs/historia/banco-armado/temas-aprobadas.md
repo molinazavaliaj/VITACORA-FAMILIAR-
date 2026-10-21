@@ -84,3 +84,14 @@ En el tema `conocimos` reemplazan a la común del mismo número. Las otras siete
 | HC5-Q | HC5 | Ahora vamos a lo más difícil, {{nombre}}. En toda historia de dos hay un momento en que uno piensa que ahí se termina. Contame cuál fue el de ustedes, qué pasó ese día y qué hiciste. Si preferís no entrar, con un paso alcanza. | sí |
 | HC8-Q | HC8 | Contame cómo siguió esta historia después de esos primeros tiempos. Elegí un día de mucho después, cuando ya sabías lo que esa persona era para vos. Dónde estaban, qué hacían, qué se dijeron. | sí |
 | HC9-Q | HC9 | ¿Qué te dejó esa persona? Contame una vez en que te diste cuenta de que algo en vos había cambiado por haberla conocido. Qué estabas haciendo y qué pensaste. | |
+
+## Tanda 5 · variantes de padres y trabajo, aprobadas por Naza (22/10/2026)
+
+En los temas `padres` y `trabajo` reemplazan a la común del mismo número, como las de `conocimos`. Las otras comunes quedan igual.
+
+| ID | Reemplaza a | Pregunta | Sensible |
+|---|---|---|---|
+| HC8-P | HC8 | Contame cómo terminaron esos primeros tiempos. El día en que sentiste que ya sabías ser mamá o papá, que te salía solo, sin tener que pensarlo. Dónde estabas, qué estabas haciendo, quién estaba con vos. | |
+| HC9-P | HC9 | ¿En qué te cambió ser mamá o papá? Contame una vez, cuando ya habían pasado esos primeros tiempos, en que te diste cuenta de que algo en vos era distinto. Qué estabas haciendo y qué pensaste. | |
+| HC8-T | HC8 | Contame el último día, si lo hubo. El de la jubilación, el cierre, el día que te fuiste o te dijeron que no seguías. Qué hiciste al salir y cómo llegaste a tu casa. Si todavía seguís, contame cómo es un día de ahora al lado de aquellos. | sí |
+| HC9-T | HC9 | ¿Qué te dejó ese trabajo, aparte del sueldo? Contame una vez, fuera del trabajo, en que te diste cuenta de que algo tuyo venía de ahí. Una manera de hacer las cosas, de tratar a la gente, de aguantar. Qué estabas haciendo y qué pensaste. | |

@@ -57,6 +57,10 @@
 | HC5-Q | Ahora vamos a lo más difícil, {{nombre}}. En toda historia de dos hay un momento en que uno piensa que ahí se acaba. Cuéntame cuál fue el vuestro, qué pasó ese día y qué hiciste. Si prefieres no hablar de esto, con decir paso basta. |
 | HC8-Q | Cuéntame cómo siguió esta historia después de esos primeros tiempos. Elige un día de mucho después, cuando ya sabías lo que esa persona era para ti. Dónde estabais, qué hacíais, qué os dijisteis. |
 | HC9-Q | ¿Qué te ha dejado esa persona? Cuéntame una vez en que te diste cuenta de que algo en ti había cambiado por haberla conocido. Qué estabas haciendo y qué pensaste. |
+| HC8-P | Cuéntame cómo terminaron esos primeros tiempos. El día en que sentiste que ya sabías ser madre o padre, que te salía solo, sin tener que pensarlo. Dónde estabas, qué estabas haciendo, quién estaba contigo. |
+| HC9-P | ¿En qué te ha cambiado ser madre o padre? Cuéntame una vez, cuando ya habían pasado esos primeros tiempos, en que te diste cuenta de que algo en ti era distinto. Qué estabas haciendo y qué pensaste. |
+| HC8-T | Cuéntame el último día, si lo hubo. El de la jubilación, el cierre, el día que te fuiste o te dijeron que ya no seguías. Qué hiciste al salir y cómo llegaste a casa. Si todavía sigues, cuéntame cómo es un día de ahora comparado con los de entonces. |
+| HC9-T | ¿Qué te ha dejado ese trabajo, aparte del sueldo? Cuéntame una vez, fuera del trabajo, en que te diste cuenta de que algo tuyo venía de allí. Una manera de hacer las cosas, de tratar a la gente, de aguantar. Qué estabas haciendo y qué pensaste. |
 | HC1-A | Empecemos por el antes, {{nombre}}. Antes de que empezara esta historia que has elegido, tú ya tenías una vida en marcha. Cuéntame un día normal de esa época, de poco antes de que pasara todo esto. Dónde vivías, qué hacías, quién estaba cerca. |
 
 ## Mensajes

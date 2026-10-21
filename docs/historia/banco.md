@@ -1,6 +1,6 @@
 # Vitácora de una historia · Banco (vigente)
 
-Aprobado por Naza el 21 y el 22/10/2026. Lo redactó Fable. Se compiló tal cual desde [`banco-armado/`](banco-armado/) (parte común, preguntas por tema y mensajes fijos aprobados), sin cambiar ningún texto. Los mensajes que vienen de V3 están copiados palabra por palabra de [`docs/v3/entrevista/banco.md`](../v3/entrevista/banco.md), con los mismos IDs. Es la **fuente de verdad** para el código (`fabrica/src/historia/entrevista/`). Los archivos de es-ES y catalán (`idiomas/`) llevan solo los textos por ID, como en V3.
+Aprobado por Naza el 21 y el 22/10/2026 (las variantes de `padres` y `trabajo`, el 22/10). Lo redactó Fable. Se compiló tal cual desde [`banco-armado/`](banco-armado/) (parte común, preguntas por tema y mensajes fijos aprobados), sin cambiar ningún texto. Los mensajes que vienen de V3 están copiados palabra por palabra de [`docs/v3/entrevista/banco.md`](../v3/entrevista/banco.md), con los mismos IDs. Es la **fuente de verdad** para el código (`fabrica/src/historia/entrevista/`). Los archivos de es-ES y catalán (`idiomas/`) llevan solo los textos por ID, como en V3.
 
 ## Notación
 
@@ -155,13 +155,17 @@ Antes de HC10 van las preguntas de quien regala (PR-H1 a PR-H3), si dejó alguna
 
 ## Bloque 8 · Variantes
 
-Se mandan en el lugar de la común que reemplazan. HC5-Q, HC8-Q y HC9-Q son solo para `conocimos`. **HC1-A reemplaza a HC1 solo cuando el tema quedó abierto** (`estado.temaAbierto`: el narrador eligió su historia en TEMA-ABIERTO), en cualquier tema; con tema elegido en la compra va HC1. Eso lo decide el código, no la columna `Tema`.
+Se mandan en el lugar de la común que reemplazan. HC5-Q, HC8-Q y HC9-Q son solo para `conocimos`; HC8-P y HC9-P, para `padres`; HC8-T y HC9-T, para `trabajo`. **HC1-A reemplaza a HC1 solo cuando el tema quedó abierto** (`estado.temaAbierto`: el narrador eligió su historia en TEMA-ABIERTO), en cualquier tema; con tema elegido en la compra va HC1. Eso lo decide el código, no la columna `Tema`.
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible | Tema | Reemplaza |
 |---|---|---|---|---|---|---|---|
 | HC5-Q | Ahora vamos a lo más difícil, {{nombre}}. En toda historia de dos hay un momento en que uno piensa que ahí se termina. Contame cuál fue el de ustedes, qué pasó ese día y qué hiciste. Si preferís no entrar, con un paso alcanza. |  | núcleo | historia | sí | conocimos | HC5 |
 | HC8-Q | Contame cómo siguió esta historia después de esos primeros tiempos. Elegí un día de mucho después, cuando ya sabías lo que esa persona era para vos. Dónde estaban, qué hacían, qué se dijeron. |  | núcleo | historia | sí | conocimos | HC8 |
 | HC9-Q | ¿Qué te dejó esa persona? Contame una vez en que te diste cuenta de que algo en vos había cambiado por haberla conocido. Qué estabas haciendo y qué pensaste. |  | núcleo | historia |  | conocimos | HC9 |
+| HC8-P | Contame cómo terminaron esos primeros tiempos. El día en que sentiste que ya sabías ser mamá o papá, que te salía solo, sin tener que pensarlo. Dónde estabas, qué estabas haciendo, quién estaba con vos. |  | núcleo | historia |  | padres | HC8 |
+| HC9-P | ¿En qué te cambió ser mamá o papá? Contame una vez, cuando ya habían pasado esos primeros tiempos, en que te diste cuenta de que algo en vos era distinto. Qué estabas haciendo y qué pensaste. |  | núcleo | historia |  | padres | HC9 |
+| HC8-T | Contame el último día, si lo hubo. El de la jubilación, el cierre, el día que te fuiste o te dijeron que no seguías. Qué hiciste al salir y cómo llegaste a tu casa. Si todavía seguís, contame cómo es un día de ahora al lado de aquellos. |  | núcleo | historia | sí | trabajo | HC8 |
+| HC9-T | ¿Qué te dejó ese trabajo, aparte del sueldo? Contame una vez, fuera del trabajo, en que te diste cuenta de que algo tuyo venía de ahí. Una manera de hacer las cosas, de tratar a la gente, de aguantar. Qué estabas haciendo y qué pensaste. |  | núcleo | historia |  | trabajo | HC9 |
 | HC1-A | Empecemos por el antes, {{nombre}}. Antes de que empezara esta historia que elegiste, vos ya tenías una vida andando. Contame un día común de esa época, de poco antes de que pasara todo esto. Dónde vivías, en qué andabas, quién estaba cerca. |  | núcleo | historia |  | comun | HC1 |
 
 ## Reglas del flujo
@@ -171,11 +175,11 @@ Salen del diseño ([`../superpowers/specs/2026-10-21-vitacora-de-una-historia-de
 1. **Arranque:** la plantilla de bienvenida (BIEN-H si es para uno mismo, BIEN-HR si es regalo con tema, BIEN-HR-A si es regalo con tema abierto). Contesta SÍ (con eso da permiso para guardar lo que mande).
 2. **Tema abierto:** si el tema quedó abierto, después del SÍ va TEMA-ABIERTO. Si duda o pide ideas, va TEMA-LISTA y se vuelve a esperar. Cuando dice cuál, queda anotado (`estado.temaAbierto`, con su tema y sus palabras) y COMO arranca con TEMA-OK como primera línea. Si el tema vino de la compra, después del SÍ va COMO directo.
 3. **Orden:** COMO → HC1 (o HC1-A con tema abierto) → HC2 → HC3 → HC4 → las preguntas de su tema, en el orden de la tabla → **FOTO-H** → HC5 → HC6 → HC7 → HC8 → HC9 → **PR-H1, PR-H2, PR-H3** (las que haya dejado quien regala, en ese orden) → HC10 → **FIN-H**.
-4. **Variantes por tema:** una fila con `Reemplaza = X` ocupa el lugar de X en su tema, y X no se manda. En `conocimos` van HC5-Q, HC8-Q y HC9-Q en lugar de HC5, HC8 y HC9. HC1-A reemplaza a HC1 solo con tema abierto (regla 2).
+4. **Variantes por tema:** una fila con `Reemplaza = X` ocupa el lugar de X en su tema, y X no se manda. En `conocimos` van HC5-Q, HC8-Q y HC9-Q en lugar de HC5, HC8 y HC9. En `padres`, HC8-P y HC9-P en lugar de HC8 y HC9. En `trabajo`, HC8-T y HC9-T en lugar de HC8 y HC9. HC1-A reemplaza a HC1 solo con tema abierto (regla 2).
 5. **M1** va debajo, en línea aparte y en cursiva, en las 3 primeras preguntas: HC1 (o HC1-A), HC2 y HC3. En el resto, no.
 6. **La foto (FOTO-H):** va después de la última pregunta del tema y antes de HC5, como FO1 en V3. Lleva el botón [No tengo fotos], que vale como "no", y debajo M31 (es el primer mensaje con botones). No corre el reloj de minutos: se espera una foto o un audio hasta 24 horas (si pasa, llega HC5 igual). Las fotos que lleguen después, en cualquier momento, se guardan con FOTO-H. FIN-H usa `«sino:FOTO-H: … ‖ …»`: sin la frase de la foto si contestó [No tengo fotos].
 7. **Preguntas de quien regala:** PR-H1, PR-H2 y PR-H3 (la primera, la segunda y la tercera que dejó escritas) van después de HC9 y antes de HC10. Se suman a las de la tabla. Reemplazan a M15 de V3.
-8. **Acuses:** como en V3. Después de cada respuesta, uno de M3 (rotan); después de una sensible (HC5, HC6, HE1, HE2, HE3, HC5-Q, HC8-Q), uno de M4, solo, en mensaje aparte (o M25 con un "no" corto, M27 con "paso"). Delante de una sensible o de HC10, M26 en lugar de M3. "Paso" en una común, M21. Olvido, M28.1; olvido a medias, M28.4 o M28.5; al tercer olvido seguido, M29, una sola vez. Se negó pero siguió contando, M32. Texto en vez de audio, M22. Audio cortado, M23. Después de HC10 no va acuse: va FIN-H directo (M24 no se usa).
+8. **Acuses:** como en V3. Después de cada respuesta, uno de M3 (rotan); después de una sensible (HC5, HC6, HE1, HE2, HE3, HC5-Q, HC8-Q, HC8-T), uno de M4, solo, en mensaje aparte (o M25 con un "no" corto, M27 con "paso"). Delante de una sensible o de HC10, M26 en lugar de M3. "Paso" en una común, M21. Olvido, M28.1; olvido a medias, M28.4 o M28.5; al tercer olvido seguido, M29, una sola vez. Se negó pero siguió contando, M32. Texto en vez de audio, M22. Audio cortado, M23. Después de HC10 no va acuse: va FIN-H directo (M24 no se usa).
 9. **Cazador de escenas:** si la respuesta es general, pide una vez un momento concreto. **Como mucho una repregunta por pregunta**, nunca más.
 10. **Si deja de contestar:** a los pocos días M8 a la persona; a la semana M9 a quien regaló (si hay alguien que regaló).
 11. **Lo que no se usa de V3:** M6, M10, M15 (lo reemplaza PR-H), M24, M30, M33.x, EN2-EN15, DD1/DD2, ni BIEN, FO1 y FIN de V3. Tampoco hay ronda extra, botones en las preguntas ni la segunda oportunidad (M33).

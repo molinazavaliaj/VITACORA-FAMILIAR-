@@ -11,7 +11,7 @@ Regla de nombres: lo que dice **vigente** es lo actual. Cuando algo se reemplaza
 - [`temas.md`](temas.md): los 7 temas de la compra en los 3 idiomas. **Vigente, aprobado el 21/10.**
 - [`banco.md`](banco.md): el banco de preguntas y mensajes en es-AR, con el formato de `docs/v3/entrevista/banco.md` y las columnas `Tema` y `Reemplaza` al final. **Vigente, aprobado el 21 y el 22/10.** Se compiló de [`banco-armado/`](banco-armado/), que queda como historial de las tandas.
 
-- [`idiomas/banco-es-ES.md`](idiomas/banco-es-ES.md) y [`idiomas/banco-ca.md`](idiomas/banco-ca.md): los textos del banco en castellano de España (tú) y en catalán (tu), solo por ID. Hechos el 22/10, con revisión a ciegas y Softcatalà ([`idiomas/revision-2026-10-22.md`](idiomas/revision-2026-10-22.md)). **Pasan a vigentes cuando Naza decida los 6 puntos de la revisión.**
+- [`idiomas/banco-es-ES.md`](idiomas/banco-es-ES.md) y [`idiomas/banco-ca.md`](idiomas/banco-ca.md): los textos del banco en castellano de España (tú) y en catalán (tu), solo por ID. Hechos el 22/10, con revisión a ciegas y Softcatalà ([`idiomas/revision-2026-10-22.md`](idiomas/revision-2026-10-22.md)). **Vigentes desde el 22/10:** Naza decidió los 6 puntos de la revisión (ver «Decisiones de Naza»), y el mismo día se sumaron las variantes de `padres` y `trabajo` (HC8-P, HC9-P, HC8-T, HC9-T).
 
 ## Lo que viene
 

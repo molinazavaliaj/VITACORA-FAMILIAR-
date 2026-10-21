@@ -57,6 +57,10 @@
 | HC5-Q | Ara arribem a la part més difícil, {{nombre}}. En totes les històries de parella hi ha un moment en què sembla que allò s'acaba. Explica'm quin va ser el vostre, què va passar aquell dia i què vas fer. Si prefereixes no entrar-hi, n'hi ha prou amb dir «passo». |
 | HC8-Q | Explica'm com va continuar aquesta història després d'aquells primers temps. Tria un dia de molt més endavant, quan ja sabies què era aquella persona per a tu. On éreu, què fèieu, què us vau dir. |
 | HC9-Q | Què t'ha deixat aquella persona? Explica'm una vegada que et vas adonar que alguna cosa en tu havia canviat per haver-la coneguda. Què estaves fent i què vas pensar. |
+| HC8-P | Explica'm com van acabar aquells primers temps. El dia que vas sentir que ja sabies ser mare o pare, que et sortia sol, sense haver-hi de pensar. On eres, què estaves fent, qui hi havia amb tu. |
+| HC9-P | En què t'ha canviat ser mare o pare? Explica'm una vegada, quan ja havien passat aquells primers temps, en què et vas adonar que alguna cosa en tu havia canviat. Què estaves fent i què vas pensar. |
+| HC8-T | Explica'm l'últim dia, si n'hi va haver. El de la jubilació, el tancament, el dia que vas plegar o et van dir que ja no continuaves. Què vas fer en sortir i com vas arribar a casa. Si encara hi treballes, explica'm com és un dia d'ara comparat amb els d'aleshores. |
+| HC9-T | Què t'ha deixat aquella feina, a part del sou? Explica'm una vegada, fora de la feina, en què et vas adonar que alguna cosa teva venia d'allà. Una manera de fer les coses, de tractar la gent, d'aguantar. Què estaves fent i què vas pensar. |
 | HC1-A | Comencem per com era tot abans, {{nombre}}. Abans que comencés aquesta història que has triat, tu ja feies la teva vida. Explica'm un dia normal d'aquella època, de poc abans que passés tot això. On vivies, què feies, qui tenies a prop. |
 
 ## Mensajes
