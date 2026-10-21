@@ -141,7 +141,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 
 ---
 
-## Tanda 6 — cambios legales (21/10) — ⏳ PENDIENTE del OK de Naza
+## Tanda 6 — cambios legales (21/10) — ✅ APROBADA por Naza el 21/10 (las CR-L, en la forma; falta el abogado). Pie del panel con «y la factura», también aprobado.
 
 > Salen de la revisión legal que Naza aprobó el 21/10. Lo de las condiciones (CR-L) sigue
 > **pendiente del abogado** antes de prender `CREADORES=1`. Va la versión de España (tú),

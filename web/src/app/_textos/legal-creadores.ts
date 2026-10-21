@@ -228,7 +228,7 @@ const CA: TextoDocumento = {
 
 export const CONDICIONES_CREADORES: Textos<TextoDocumento> = { es: ES, ca: CA, ar: AR };
 
-// ── Privacidad (legal, 21/10) · CR-L17 · PENDIENTE OK de Naza (tanda 6) ──────────────
+// ── Privacidad (legal, 21/10) · CR-L17 · APROBADO por Naza 21/10 (tanda 6) ──────────────
 // Con CREADORES=1 la política de privacidad suma una sección para los creadores
 // (qué datos, para qué, con qué base, cuánto tiempo y cómo pedir verlos o
 // borrarlos), igual que el cupón suma su «4 bis» con RASCA_Y_GANA=1. Va después
