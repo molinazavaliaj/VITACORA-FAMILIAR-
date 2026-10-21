@@ -197,3 +197,4 @@
 - **Tanda 3** (pregunta 16, portadilla del 4, preguntas 17 a 22, portadilla y nota del 5): ✅ APROBADA por Naza el 21/10.
 - **Tanda 4** (preguntas 23 a 28, portadilla del 6, preguntas 29 a 31): ✅ APROBADA por Naza el 21/10 (incluida la 28, «otro amor»).
 - **Tanda 5** (preguntas 32 a 34, portadilla y nota del 7, preguntas 35 a 40): ✅ APROBADA por Naza el 21/10.
+- **Tanda 6** (capítulos 8, 9 y 10 con sus portadillas y notas, preguntas 41 a 56, página de fotos sueltas): ✅ APROBADA por Naza el 21/10. **Contenido completo aprobado.**
