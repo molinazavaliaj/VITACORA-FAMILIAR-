@@ -170,13 +170,13 @@
 
 > **¿Ya lo has terminado?**
 >
-> Hazle una foto a cada página y mándanoslas. Con ellas hacemos un libro de verdad, con tapa dura, con tu letra pasada a limpio y tus fotos dentro, para que cada uno de la familia tenga el suyo.
+> Escanea el código y descubre qué más podemos hacer con él.
 >
 > [QR] vitacorafamiliar.com/cuaderno
 >
 > *Si prefieres dejarlo así, con tu letra, también está bien. Ya es un libro.*
 
-[Nota: el texto promete solo lo que la fábrica hace hoy, tapa dura, texto pasado a limpio y fotos. No promete entrevista, ni audio, ni plazo, ni precio. La URL es provisional.]
+[Nota: decisión de Naza 21/10 (opción 2). El texto impreso no promete ningún servicio concreto. El QR lleva a una página nuestra, que hoy ofrece la Vitácora y el día que exista el servicio de pasar el cuaderno a libro (fotos de las páginas → escritor → Bookmundo) lo ofrece ahí, sin reimprimir. La URL es provisional.]
 
 ---
 
