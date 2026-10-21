@@ -249,6 +249,16 @@ describe('viaje V2 en el bot: el reloj', () => {
     await tickViajeV2(r.deps);
     expect(r.enviados).toHaveLength(1);
   });
+
+  it('sin ningún viajero V2 hace una sola consulta y no lee los narradores (Disk IO, 20/10)', async () => {
+    const base = crearBaseFalsa({ narradores: [{ id: 'otro', estado: 'activo', contexto: {} }], viajes_v2: [] });
+    const p = depsViajeDePrueba(base, { ahora: AHORA });
+    const tablas: string[] = [];
+    const from = base.cliente.from.bind(base.cliente);
+    (base.cliente as { from: (t: string) => unknown }).from = (t: string) => { tablas.push(t); return from(t); };
+    await tickViajeV2(p.deps);
+    expect(tablas).toEqual(['viajes_v2']);
+  });
 });
 
 describe('viaje V2 en el bot: revisión del 10/10', () => {

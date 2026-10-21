@@ -19,7 +19,7 @@ import { HistoriaV3 } from "./v3";
 import { PanelKids } from "./kids";
 import { esKids } from "@/lib/kids-panel";
 import { leerPanelKids } from "@/lib/kids-panel-base";
-import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
+import { entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
 import { viajeDelContexto } from "@/lib/viaje";
 import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
@@ -556,6 +556,7 @@ async function armarLectura({
           rol={rol}
           propia={propia}
           bloques={bloques}
+          preguntasFamilia={preguntasDeLaFamiliaV3(v3.estado, (propias as FilaPreguntaFamiliaV3[] | null) ?? [])}
           fotos={fotosData}
           usuarioId={user.id}
           historiasRiel={historiasRiel}

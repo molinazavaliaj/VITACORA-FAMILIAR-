@@ -459,7 +459,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             {t.iniciar}
           </Link>
         </div>
-        <Pie idioma={idioma} camino="/" />
+        <Pie idioma={idioma} camino="/" rasca />
       </section>
 
       <WhatsAppFlotante idioma={idioma} />

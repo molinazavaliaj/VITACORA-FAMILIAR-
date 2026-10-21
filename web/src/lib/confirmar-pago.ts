@@ -19,6 +19,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { necesitaEntrega } from "./entregas";
 import { productosDelPedido } from "./productos";
 import { tratoDeRegion, type TratoComprador } from "./regalo-textos";
+import { marcarCuponUsado } from "./cupon-base";
+import { registrarComision } from "./creadores-base";
+import { enviarMailSocios } from "./mail";
 
 export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
@@ -39,14 +42,19 @@ export async function confirmarPago(
   //    nada, así el reintento del proveedor es seguro.
   let extras: Record<string, unknown> | undefined;
   let region: "ES" | "AR" | undefined;
+  // Lo que se cobró: la base de la comisión de un creador (paso 1c).
+  let monto: number | null = null;
+  let moneda: string | null = null;
   try {
     const { data: filaPedido, error: errorExtras } = await admin
-      .from("pedidos").select("extras, familia_id").eq("id", pedidoId).maybeSingle();
+      .from("pedidos").select("extras, familia_id, monto, moneda").eq("id", pedidoId).maybeSingle();
     if (errorExtras) {
       return { ok: false, error: `No se pudo leer el pedido: ${errorExtras.message}` };
     }
-    const leido = filaPedido as { extras?: Record<string, unknown>; familia_id?: string } | null;
+    const leido = filaPedido as { extras?: Record<string, unknown>; familia_id?: string; monto?: unknown; moneda?: unknown } | null;
     extras = leido?.extras;
+    monto = leido?.monto === null || leido?.monto === undefined ? null : Number(leido.monto);
+    moneda = typeof leido?.moneda === "string" ? leido.moneda : null;
     // La región decide el origen de la entrega y el trato del mail del regalo: si no se puede leer, AR.
     if (leido?.familia_id) {
       const { data: filaFamilia } = await admin.from("familias").select("region").eq("id", leido.familia_id).maybeSingle();
@@ -79,6 +87,25 @@ export async function confirmarPago(
     // Ya estaba pagado (reintento) o no existe. En ambos casos no hay nada
     // que hacer y se responde 200 para que el proveedor deje de insistir.
     return { ok: true, yaEstaba: true, email: null, codigoRegalo: null };
+  }
+
+  // 1b. El cupón de bienvenida (rasca y gana, 20/10): queda usado recién
+  //     ahora que el pago entró. Nunca tira ni cambia el resultado del pago.
+  const cupon = extras?.cupon as { codigo?: unknown } | undefined;
+  if (typeof cupon?.codigo === "string") await marcarCuponUsado(admin, cupon.codigo, pedido.id);
+
+  // 1c. El código de un creador (programa de creadores, 21/10): nace su
+  //     comisión sobre lo que se cobró, con el porcentaje congelado en la
+  //     compra. Una por pedido. Nunca tira ni cambia el resultado del pago.
+  const creador = extras?.creador as { id?: unknown; codigo?: unknown; comision?: unknown } | undefined;
+  if (typeof creador?.id === "string") {
+    if (typeof creador.codigo === "string" && typeof creador.comision === "number" && monto !== null && Number.isFinite(monto) && moneda) {
+      await registrarComision(admin, { id: pedido.id, total: monto, moneda }, { id: creador.id, codigo: creador.codigo, comision: creador.comision });
+    } else {
+      const aviso = `El pedido ${pedido.id} se pagó con el código de un creador (${creador.id}), pero el pedido no trae lo necesario para la comisión. Hay que cargarla a mano.`;
+      console.error(`confirmarPago: ${aviso}`);
+      await enviarMailSocios("Comisión de creador sin anotar", aviso).catch(() => false);
+    }
   }
 
   // 2. El narrador arranca. Solo desde pendiente_pago: si por alguna razón ya

@@ -133,7 +133,7 @@ export function Opiniones({
             {portada.iniciar}
           </Link>
         </div>
-        <Pie idioma={idioma} camino={CAMINO} opiniones={opiniones} />
+        <Pie idioma={idioma} camino={CAMINO} opiniones={opiniones} rasca />
       </section>
     </div>
   );

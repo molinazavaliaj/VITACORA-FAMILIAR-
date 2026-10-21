@@ -13,6 +13,8 @@ import { chicosKids } from '../kids-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
+import { quienLoRegala } from './quien-regala.js';
+import { controlarPlantillasCadaTanto } from './control-plantillas.js';
 import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar, type NarradorParaBorrar } from './borrado-no-acepto.js';
 
 export { fechaLocal, minutosLocales };
@@ -41,6 +43,9 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 
 // ── Consultas cortas a la base ─────────────────────────────────────────
 
+/** Lo leído una vez por tick (solo mientras corre `tick`; una fase llamada sola lee como siempre). */
+let delTick: { v2YKids?: Promise<[Set<string>, Set<string>]> } | null = null;
+
 /**
  * Los narradores en esos estados, SIN ningún viajero ni los chicos de Kids (con fila en kids_v2): los de la Viaje V2
  * (con fila en viajes_v2) y los chicos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts), y un viajero sin
@@ -50,8 +55,9 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
  */
 async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   const { data } = await db.from('narradores').select('*').in('estado', estados);
-  const v2 = await viajerosV2(db);
-  const kids = await chicosKids(db);
+  // Quién es viajero V2 o chico de Kids se lee una vez por tick, no en cada fase (Disk IO, 20/10).
+  const leer = () => Promise.all([viajerosV2(db), chicosKids(db)]);
+  const [v2, kids] = await (delTick ? (delTick.v2YKids ??= leer()) : leer());
   return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id) && !esModoViaje(n.contexto));
 }
 
@@ -187,8 +193,12 @@ async function enviarBienvenidas(): Promise<void> {
       // mandarle la vieja le prometería otra entrevista.
       if (entraALaV3(n.contexto)) {
         const idioma = idiomaDeRegalo(n.contexto);
-        const p = PLANTILLAS_V3[idioma].bienvenida;
-        if (!plantillaLista(idioma, 'bienvenida')) {
+        // Quién la regala (20/10): con la plantilla nueva aprobada y un nombre, «Tu hijo Naza te regaló…».
+        const { data: compradora } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
+        const quien = quienLoRegala(idioma, (compradora as { nombre?: string } | null)?.nombre, n.contexto?.vinculoComprador);
+        const conQuien = quien !== null && plantillaLista(idioma, 'bienvenida_quien');
+        const p = PLANTILLAS_V3[idioma][conQuien ? 'bienvenida_quien' : 'bienvenida'];
+        if (!conQuien && !plantillaLista(idioma, 'bienvenida')) {
           await avisarSocios(`bienvenida-v3-${idioma}`, `No sale la bienvenida V3 en ${idioma}`,
             `${n.como_le_dicen} (${n.id}) espera la bienvenida, pero la plantilla ${p.nombre} no está marcada como aprobada (WA_PLANTILLAS_V3_LISTAS="${idioma}:bienvenida"). Sale apenas se marque.`);
           return;
@@ -208,7 +218,7 @@ async function enviarBienvenidas(): Promise<void> {
           }
         }
         try {
-          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
+          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, conQuien ? [n.como_le_dicen, quien] : [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);
@@ -360,6 +370,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });
 
   // Cada fase por separado: si una falla (la base no responde), las otras corren igual.
+  delTick = {};
   for (const [nombre, fase] of [
     ['viajeros', () => atenderViajeros()],
     ['bienvenidas', () => enviarBienvenidas()],
@@ -368,6 +379,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     ['alertas', () => prenderAlertasDeSilencio(ahora)],
     ['no-acepto', () => marcarNoAceptaron(ahora)],
     ['borrado-no-acepto', () => borrarFichasDeNoAceptaron(ahora)],
+    ['control-plantillas', () => controlarPlantillasCadaTanto(ahora)],
   ] as const) {
     try {
       await fase();
@@ -375,6 +387,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
       console.error(`Falló la fase '${nombre}' del tick:`, err);
     }
   }
+  delTick = null;
 
   // Gift card: el recordatorio de los 15 días a quien regaló. Aislado: si
   // falla (o la tabla regalos no existe todavía), el resto del tick no se entera.

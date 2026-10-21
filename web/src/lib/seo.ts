@@ -30,13 +30,42 @@ export const RUTAS_PRIVADAS = [
   "/regalo/",
   "/voz/",
   "/comprar/gracias",
+  // 19/10: lo que va adentro del teléfono de la portada (un iframe con datos
+  // inventados) y el panel de muestra (en producción da 404, pero que ni lo pida).
+  "/telefono-historia",
+  "/ar/telefono-historia",
+  "/panel-muestra",
 ] as const;
 
+/** ¿Es el sitio de verdad? Vercel dice "production", "preview" o "development"; local no dice nada. */
+export function esProduccion(entorno: string | undefined = process.env.VERCEL_ENV): boolean {
+  return entorno === "production";
+}
+
 /**
- * /robots.txt (app/robots.ts). Todo permitido salvo lo privado, y el sitemap
- * apuntado con el mismo origen que `metadataBase` del layout.
+ * La base de las URLs absolutas de los metadatos (`metadataBase` del layout:
+ * og:image, twitter:image, og:url). En producción, siempre el dominio real.
+ * Fuera de producción, la variable URL_BASE del entorno (en la preview de
+ * Vercel es https://vitacora-rediseno.vercel.app, PASO-DE-MANOS.md): así la
+ * imagen para compartir de la preview es la de la preview, que ya existe,
+ * y no la de producción, que puede no estar todavía. Si falta, el dominio real.
  */
-export function reglasRobots(): MetadataRoute.Robots {
+export function origenPublico(
+  entorno: string | undefined = process.env.VERCEL_ENV,
+  urlDelEntorno: string | undefined = process.env.URL_BASE,
+): string {
+  if (esProduccion(entorno) || !urlDelEntorno || !/^https?:\/\//.test(urlDelEntorno)) return URL_BASE;
+  return urlDelEntorno.replace(/\/+$/, "");
+}
+
+/**
+ * /robots.txt (app/robots.ts). En producción: todo permitido salvo lo privado,
+ * y el sitemap apuntado con el mismo origen que `metadataBase` del layout.
+ * En cualquier otro entorno (la preview de Vercel, local): nada se indexa
+ * (19/10; además next.config manda `X-Robots-Tag: noindex` en la preview).
+ */
+export function reglasRobots(entorno: string | undefined = process.env.VERCEL_ENV): MetadataRoute.Robots {
+  if (!esProduccion(entorno)) return { rules: [{ userAgent: "*", disallow: "/" }] };
   return {
     rules: [{ userAgent: "*", allow: "/", disallow: [...RUTAS_PRIVADAS] }],
     sitemap: `${URL_BASE}/sitemap.xml`,

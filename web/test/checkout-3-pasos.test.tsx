@@ -325,7 +325,7 @@ describe("/comprar en tres pasos", () => {
   it("la letra pequeña junto a pagar: el desistimiento de hoy y la garantía de la línea (D1)", () => {
     const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} pasoInicial={3} />);
     expect(html).toContain(escapar("sin esperar los 14 días de desistimiento"));
-    expect(html).toContain(escapar("Si no quiere hacerlo, te devolvemos el dinero."));
+    expect(html).toContain(escapar("Si no acepta la entrevista o contesta menos de diez preguntas, te devolvemos todo. Desde la décima respuesta, si desistes dentro de esos 14 días, se descuenta la parte ya hecha."));
     const ar = renderToStaticMarkup(<Checkout idioma="ar" catalogo={catalogo("AR")} pasoInicial={3} />);
     expect(ar).toContain(escapar("Pago único y seguro con Mercado Pago. Al pagar aceptás los"));
   });

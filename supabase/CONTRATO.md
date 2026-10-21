@@ -1248,3 +1248,73 @@ Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 - `entrega_contacto` se usa solo para este envío: no pasa a `narradores`. El teléfono del narrador
   es siempre el del canje.
 - El recordatorio de los 15 días no cambia.
+
+## Cupón de bienvenida — rasca y gana (migración 20261020000000 — **aplicada por Naza el 20/10**)
+
+Textos y reglas: `docs/rediseno-2026-10/fase-5/textos-legales-nuevos.md` (tandas 1 —textos 9 y 10—, 2 y 3)
+y `respuesta-19-10.md` §1. Rama `rasca-y-gana`. **Solo la web** lee y escribe; la fábrica y el entrevistador
+no la miran.
+
+- **`cupones`**: una fila por correo y por país (`unique (email, region)`). `codigo` único,
+  `VITACORA10-XXXXXX` (6 letras/números sin 0, O, 1, I ni L). Nace sin confirmar (`confirmado_at` null):
+  no vale ni recibe nada. Al tocar el botón del mail (doble opt-in) se escribe `confirmado_at` y
+  `vence_el` (= el día de la confirmación + 30, en la fecha del país; el último día vale) y sale el mail
+  con el código. `acepta_recordatorios` es la segunda casilla (opcional: el cupón se entrega igual sin
+  ella). `consentimiento` = `{ textos: string[], version: string, fecha: ISO, userAgent?: string }`, con
+  `ip` aparte: la prueba del art. 7.1 RGPD.
+- **Recordatorios**: hasta 4, en los 14 días que siguen a la confirmación (días 2, 5, 9 y 13), solo si
+  `acepta_recordatorios`, sin `baja_at`, sin `usado_at` y sin vencer. Los manda la ruta
+  `/api/cupon/recordatorios` (cron diario de Vercel, `vercel.json`, con `CRON_SECRET`); cada envío sube
+  `recordatorios_enviados` con compare-and-swap (nunca un quinto mail). `baja_at`: la baja de un clic
+  (link firmado y cabecera `List-Unsubscribe`). El mismo cron borra los cupones sin confirmar de más de
+  30 días y los de más de 24 meses.
+- **En la compra**: `/api/compra` recibe `cupon` (el código), lo valida (confirmado, de la región, sin
+  usar, sin vencer, sin promo global prendida) y calcula el descuento en el servidor: `porcentaje` del
+  precio del libro digital de la región (`PRECIO_EUR` / `PRECIO_ARS`), también cuando va dentro del pack.
+  `pedidos.monto` es el total ya con el descuento. `pedidos.extras.cupon = { codigo, porcentaje, importe }`
+  (sin la clave, sin cupón). Las pasarelas no aceptan líneas negativas: el importe se resta de la línea del
+  PDF o del pack.
+- **Al pagar** (`confirmarPago`, el mismo camino de Stripe, Mercado Pago y la vuelta del pago):
+  `usado_at` y `pedido_id`, con compare-and-swap sobre `usado_at is null`. Si dos pedidos pendientes
+  usaron el mismo código y pagan los dos, el segundo se cobra igual con el descuento y queda en los logs.
+  Si se devuelve la compra, el cupón no se regenera.
+
+## Programa de creadores — «Colabora con Vitácora» (migración 20261021000000 — **sin aplicar, la aplica Naza**)
+
+Diseño: `docs/superpowers/specs/2026-10-21-programa-creadores-design.md`. Rama `creadores`. **Solo la web**
+lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `CREADORES=1` en Vercel.
+
+- **`creadores`**: una fila por correo (`email` único, en minúsculas). Nace en `pendiente` desde `/colabora`
+  o `/ca/colabora` (`/ar/colabora` está cerrada desde el 21/10: pagar comisiones en Argentina no está
+  resuelto, así que hoy no nacen filas con `region = 'AR'`; se abre con `IDIOMAS_CON_ALTA` en
+  `web/src/lib/creadores.ts`) con `nombre`, `red` (`instagram` | `tiktok` | `youtube` | `otra`),
+  `perfil` (link), `seguidores` y `mensaje` (opcionales), `region` e `idioma` de la web donde se anotó (el
+  idioma de sus mails y de su panel) y `consentimiento` = `{ textos: string[], version: string, fecha: ISO,
+  userAgent?: string }` con `ip` aparte. `textos` lleva el texto exacto de las dos casillas obligatorias: las
+  condiciones y «Soy mayor de 18 años» (desde la versión `2026-10-21-legal`). Si el correo ya existe, no se
+  duplica ni se dice. Freno: 5 altas por IP y por hora.
+- **Aprobar** (panel de la empresa, `/admin/creadores`): `estado = 'activo'`, `codigo` (mayúsculas y
+  números, 3 a 20, nunca empieza con `VITACORA10`), `comision` (1–50 %), `descuento` (0–50 %),
+  `token_panel` (32 bytes al azar en base64url: el link privado `/creador/<token>`) y `aprobado_at`. Los
+  tres números se pueden cambiar después. `pausado`: el código deja de valer pero el panel se sigue viendo.
+  `rechazado`: no vale nada. `notas` es de los socios y nunca se le muestra al creador.
+- **En la compra**: el código se escribe en el mismo casillero que el cupón de bienvenida (`/api/compra`,
+  campo `cupon`). Vale solo si el creador está `activo` y no hay promo global; con `descuento > 0` se
+  resta del libro digital igual que el cupón (también dentro del pack); sin libro digital, o con descuento
+  0, el código igual atribuye la venta. **`pedidos.extras.cupon` NO se escribe** para un código de creador
+  (así no lo toca `marcarCuponUsado`). Va `pedidos.extras.creador = { id, codigo, comision }` y, si hubo
+  descuento, `pedidos.extras.descuento_creador = { codigo, porcentaje, importe }`. `pedidos.monto` es el
+  total ya con el descuento.
+- **`comisiones_creadores`**: nace en `confirmarPago`, cuando el pago entra, si `extras.creador` tiene `id`.
+  Una por pedido (`pedido_id` único: si el webhook reintenta, el insert choca y no pasa nada). `total` y
+  `moneda` salen del pedido; `porcentaje` es la comisión congelada del momento de la compra; `importe` =
+  `total × porcentaje / 100` (euros a los céntimos, pesos al entero). Nunca tira ni cambia el resultado del
+  pago: si falla, se loguea y se avisa a los socios. `estado`: `pendiente` → `pagada` (con `pagada_at`,
+  desde el panel, todas las pendientes de un creador a la vez que tengan **más de 14 días**) o `anulada`
+  (con `anulada_at`, una por una: las devoluciones y las compras del creador con su propio código).
+- **Espera de 14 días** (21/10): una `pendiente` con `created_at` de hace 14 días o menos se muestra «en
+  espera» y no se paga; después, «por cobrar». No hay columna: se deriva de `created_at`
+  (`estadoDeComision`, `web/src/lib/creadores.ts`). En la base las dos son `pendiente`.
+- **Resumen mensual**: `/api/creadores/resumen` (cron de Vercel el día 1 a las 9, `vercel.json`, con
+  `CRON_SECRET`) manda a los socios, por creador, lo pendiente que ya pasó la espera (y aparte lo que sigue
+  en espera). Si nada pasó la espera, no manda nada.

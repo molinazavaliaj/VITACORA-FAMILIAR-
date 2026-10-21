@@ -110,7 +110,7 @@ export function LandingFamiliar({ idioma, landing }: { idioma: IdiomaWeb; landin
 
       <MiniFaq titulo={base.faqTitulo} dudas={dudas} />
 
-      <Cierre idioma={idioma} lema={t.hero.titulo.join(" ")} titulo={base.cierre} cta={base.cta} href={comprar} dato={desde} camino={caminoPie(landing)} />
+      <Cierre idioma={idioma} lema={t.hero.titulo.join(" ")} titulo={base.cierre} cta={base.cta} href={comprar} dato={desde} camino={caminoPie(landing)} rasca />
 
       <CtaSticky precio={precio} conImpreso={cat.impreso !== null} href={comprar} textos={{ ...t.sticky, boton: base.cta }} />
     </Pagina>
@@ -533,6 +533,7 @@ function Cierre({
   href,
   dato,
   camino,
+  rasca = false,
 }: {
   idioma: IdiomaWeb;
   lema: string;
@@ -541,6 +542,8 @@ function Cierre({
   href: string | null;
   dato: ReactNode;
   camino: string;
+  /** El popup del rasca y gana: solo en las landings del libro de una vida (no en la de Viaje). */
+  rasca?: boolean;
 }) {
   return (
     <section data-cta-propio className="dir-tinta relative">
@@ -555,7 +558,7 @@ function Cierre({
         ) : null}
         <p className="dir-dato aparece mt-6 text-[var(--dir-sobre-tinta-suave)]">{dato}</p>
       </div>
-      <Pie idioma={idioma} camino={camino} />
+      <Pie idioma={idioma} camino={camino} rasca={rasca} />
     </section>
   );
 }

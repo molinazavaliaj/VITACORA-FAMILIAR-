@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { esAdminQuienLlama } from "@/lib/admin/quien-llama";
 
 // La ÚNICA escritura del panel de la empresa (spec §2): cargar a mano un gasto que no pasa
 // por ninguna API —Railway, el dominio, los mails, la imprenta—. Todo lo demás es mirar.
@@ -9,6 +10,9 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 // La validación es del lado del servidor y es toda la defensa que hace falta: si algo no
 // cierra, no se toca la base y se devuelve el motivo en castellano para mostrarlo arriba
 // del formulario. Un gasto mal cargado ensucia la cuenta del mes, así que se rebota.
+//
+// ⚠️ Antes que nada, que quien llama sea admin (ADMIN_EMAILS): la acción es un
+// endpoint suelto y el layout de /admin no la protege (hueco cerrado el 21/10).
 
 const MONEDAS = ["EUR", "USD", "ARS"];
 const CATEGORIAS = ["suscripcion", "api", "imprenta", "otro"];
@@ -18,6 +22,8 @@ export type ResultadoGasto = { error: string | null };
 const texto = (v: FormDataEntryValue | null): string => (typeof v === "string" ? v.trim() : "");
 
 export async function cargarGastoManual(datos: FormData): Promise<ResultadoGasto> {
+  if (!(await esAdminQuienLlama())) return { error: "No tenés permiso para esto." };
+
   const concepto = texto(datos.get("concepto"));
   const montoCrudo = texto(datos.get("monto"));
   const moneda = texto(datos.get("moneda")) || "EUR";

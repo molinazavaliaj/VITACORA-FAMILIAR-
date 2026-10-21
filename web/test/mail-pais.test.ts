@@ -29,8 +29,8 @@ describe("mails de la web por país", () => {
     expect(enviados[0].subject).toBe("Listo. Hoy le escribimos a tu abuela.");
     expect(ar).toContain("contándole de qué se trata. <strong style=\"font-weight:normal;\">Arranca cuando quiera.</strong>");
     expect(ar).toContain("Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.");
-    expect(ar).toContain("Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:");
-    expect(es).toContain("Para ir escuchando lo que cuenta, entra a la página con este mismo correo:");
+    expect(ar).toContain("Para ir escuchando lo que cuenta, entrá a la página con este mismo correo.");
+    expect(es).toContain("Para ir escuchando lo que cuenta, entra a la página con este mismo correo.");
     expect(sin).toContain("entrá a la página");
     for (const t of [ar, es]) expect(t).not.toMatch(/devolvemos el dinero|tercera pregunta|primeras páginas|día a día/);
   });
@@ -42,8 +42,8 @@ describe("mails de la web por país", () => {
     const [ar, es] = enviados.map((m) => m.html.replace(/\s+/g, " "));
     expect(enviados[0].subject).toBe("Marta te invita a la historia de Dora");
     expect(ar).toContain("Marta te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época.");
-    expect(ar).toContain("Entrá con este mismo correo:");
-    expect(es).toContain("Entra con este mismo correo:");
+    expect(ar).toContain("Entrá con este mismo correo.");
+    expect(es).toContain("Entra con este mismo correo.");
     expect(ar).not.toContain("leer sus páginas");
   });
 
@@ -56,8 +56,8 @@ describe("mails de la web por país", () => {
     expect(ar).toContain("Dora terminó de contar su vida y estamos por escribir su libro.");
     expect(ar).toContain("Marta te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.");
     expect(es).toContain("Si sabes la respuesta, puedes escribirla antes de que se escriba el libro.");
-    expect(ar).toContain("Entrá con este mismo correo:");
-    expect(es).toContain("Entra con este mismo correo:");
+    expect(ar).toContain("Entrá con este mismo correo.");
+    expect(es).toContain("Entra con este mismo correo.");
     expect(ar).toContain("Ver las dudas");
     expect(ar).not.toContain("sumar preguntas");
   });

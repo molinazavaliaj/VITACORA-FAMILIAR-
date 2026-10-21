@@ -45,11 +45,16 @@ export function normalizarQuienRegala(s: string): string {
   return POSESIVO.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
 }
 
-/** "Laura Gómez" → "Laura" (saludo al padre, 05/10). */
+/**
+ * "Laura Gómez" → "Laura" (saludo al padre, 05/10). Si vino todo en minúsculas o todo en mayúsculas, con la
+ * primera en mayúscula (20/10: «immaculada colell» saludaba «Hola, immaculada.»).
+ */
 export function primerNombre(s: string): string {
   const p = s.trim().split(/\s+/)[0];
   if (!p) throw new Error('Nombre vacío');
-  return p;
+  if (p !== p.toLowerCase() && p !== p.toUpperCase()) return p;
+  const m = p.toLowerCase();
+  return m.charAt(0).toUpperCase() + m.slice(1);
 }
 
 /** ¿Quedó alguna marca sin llenar? */
