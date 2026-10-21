@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { creadoresPrendido, pareceTokenPanel, resumenDeComisiones, type PorMoneda } from "@/lib/creadores";
+import { creadoresPrendido, estadoDeComision, pareceTokenPanel, resumenDeComisiones, type PorMoneda } from "@/lib/creadores";
 import { panelDelCreador } from "@/lib/creadores-base";
 import { urlCompartirCreador } from "@/lib/mail-creadores";
 import { langDeIdioma, localeDeIdioma, ruta } from "@/lib/idioma-web";
@@ -14,10 +14,19 @@ import { BotonCopiar } from "./copiar";
 // token de la URL es la llave (como /local/<token> de la rama regalo-locales).
 // Muestra su código, el link para compartir, el descuento que da, la comisión
 // que le toca, sus ventas (fecha y comisión: NINGÚN dato del cliente) y lo
-// que tiene por cobrar y cobrado. Pausado ve el panel con un aviso; pendiente,
+// que tiene en espera (los 14 días desde la compra), por cobrar y cobrado. Pausado ve el panel con un aviso; pendiente,
 // rechazado o un token que no existe, 404. Sin CREADORES=1, 404.
 
 export const dynamic = "force-dynamic";
+
+type Estados = (typeof TEXTOS_COLABORA)["es"]["panel"]["estados"];
+/** El estado que ve el creador (las anuladas ni llegan: panelDelCreador las deja afuera). */
+const ESTADO_VISIBLE = {
+  en_espera: (e: Estados) => e.enEspera,
+  por_cobrar: (e: Estados) => e.pendiente,
+  pagada: (e: Estados) => e.pagada,
+  anulada: () => "",
+} as const;
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function PanelCreador({ params }: PageProps<"/creador/[token]">) {
@@ -40,7 +49,8 @@ export default async function PanelCreador({ params }: PageProps<"/creador/[toke
   };
   const fecha = (iso: string) =>
     new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: c.region === "AR" ? "America/Argentina/Buenos_Aires" : "Europe/Madrid" }).format(new Date(iso));
-  const totales = resumenDeComisiones(ventas);
+  const ahora = new Date();
+  const totales = resumenDeComisiones(ventas, ahora);
   const link = urlCompartirCreador(c.idioma, c.codigo);
 
   return (
@@ -72,10 +82,14 @@ export default async function PanelCreador({ params }: PageProps<"/creador/[toke
           </div>
         </section>
 
-        <div className="mt-8 grid grid-cols-2 gap-4">
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div>
+            <p className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.15em]">{t.enEspera}</p>
+            <p className="mt-1 text-[22px] [font-family:var(--fuente-titulo)]">{suma(totales.enEspera)}</p>
+          </div>
           <div>
             <p className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.15em]">{t.porCobrar}</p>
-            <p className="mt-1 text-[22px] [font-family:var(--fuente-titulo)]">{suma(totales.pendiente)}</p>
+            <p className="mt-1 text-[22px] [font-family:var(--fuente-titulo)]">{suma(totales.porCobrar)}</p>
           </div>
           <div>
             <p className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.15em]">{t.cobrado}</p>
@@ -100,14 +114,15 @@ export default async function PanelCreador({ params }: PageProps<"/creador/[toke
                 <tr key={`${v.created_at}-${i}`} className="border-b border-[#14140F]/20">
                   <td className="py-3">{fecha(v.created_at)}</td>
                   <td className="py-3 text-right tabular-nums">{plata(Number(v.importe), v.moneda)}</td>
-                  <td className="py-3 text-right">{v.estado === "pagada" ? t.estados.pagada : t.estados.pendiente}</td>
+                  <td className="py-3 text-right">{ESTADO_VISIBLE[estadoDeComision(v, ahora)](t.estados)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
 
-        <p className="mt-8 text-[14px] font-light leading-relaxed">{t.pago}</p>
+        <p className="mt-8 text-[14px] font-light leading-relaxed">{t.espera}</p>
+        <p className="mt-3 text-[14px] font-light leading-relaxed">{t.pago}</p>
         <p className="mt-3 text-[14px]">
           <Link prefetch={false} href={ruta(c.idioma, "/legal/creadores")} className="underline underline-offset-4">
             {t.condiciones}

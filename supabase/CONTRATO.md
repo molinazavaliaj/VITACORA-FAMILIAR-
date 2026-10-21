@@ -1285,11 +1285,14 @@ Diseño: `docs/superpowers/specs/2026-10-21-programa-creadores-design.md`. Rama 
 lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `CREADORES=1` en Vercel.
 
 - **`creadores`**: una fila por correo (`email` único, en minúsculas). Nace en `pendiente` desde `/colabora`
-  (`/ca/colabora`, `/ar/colabora`) con `nombre`, `red` (`instagram` | `tiktok` | `youtube` | `otra`),
+  o `/ca/colabora` (`/ar/colabora` está cerrada desde el 21/10: pagar comisiones en Argentina no está
+  resuelto, así que hoy no nacen filas con `region = 'AR'`; se abre con `IDIOMAS_CON_ALTA` en
+  `web/src/lib/creadores.ts`) con `nombre`, `red` (`instagram` | `tiktok` | `youtube` | `otra`),
   `perfil` (link), `seguidores` y `mensaje` (opcionales), `region` e `idioma` de la web donde se anotó (el
   idioma de sus mails y de su panel) y `consentimiento` = `{ textos: string[], version: string, fecha: ISO,
-  userAgent?: string }` con `ip` aparte. Si el correo ya existe, no se duplica ni se dice. Freno: 5 altas
-  por IP y por hora.
+  userAgent?: string }` con `ip` aparte. `textos` lleva el texto exacto de las dos casillas obligatorias: las
+  condiciones y «Soy mayor de 18 años» (desde la versión `2026-10-21-legal`). Si el correo ya existe, no se
+  duplica ni se dice. Freno: 5 altas por IP y por hora.
 - **Aprobar** (panel de la empresa, `/admin/creadores`): `estado = 'activo'`, `codigo` (mayúsculas y
   números, 3 a 20, nunca empieza con `VITACORA10`), `comision` (1–50 %), `descuento` (0–50 %),
   `token_panel` (32 bytes al azar en base64url: el link privado `/creador/<token>`) y `aprobado_at`. Los
@@ -1307,7 +1310,11 @@ lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `C
   `moneda` salen del pedido; `porcentaje` es la comisión congelada del momento de la compra; `importe` =
   `total × porcentaje / 100` (euros a los céntimos, pesos al entero). Nunca tira ni cambia el resultado del
   pago: si falla, se loguea y se avisa a los socios. `estado`: `pendiente` → `pagada` (con `pagada_at`,
-  desde el panel, todas las pendientes de un creador a la vez) o `anulada` (con `anulada_at`, una por una:
-  las devoluciones).
+  desde el panel, todas las pendientes de un creador a la vez que tengan **más de 14 días**) o `anulada`
+  (con `anulada_at`, una por una: las devoluciones y las compras del creador con su propio código).
+- **Espera de 14 días** (21/10): una `pendiente` con `created_at` de hace 14 días o menos se muestra «en
+  espera» y no se paga; después, «por cobrar». No hay columna: se deriva de `created_at`
+  (`estadoDeComision`, `web/src/lib/creadores.ts`). En la base las dos son `pendiente`.
 - **Resumen mensual**: `/api/creadores/resumen` (cron de Vercel el día 1 a las 9, `vercel.json`, con
-  `CRON_SECRET`) manda a los socios lo pendiente por creador. Sin pendientes, no manda nada.
+  `CRON_SECRET`) manda a los socios, por creador, lo pendiente que ya pasó la espera (y aparte lo que sigue
+  en espera). Si nada pasó la espera, no manda nada.

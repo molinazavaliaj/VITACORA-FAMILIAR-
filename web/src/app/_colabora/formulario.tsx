@@ -26,7 +26,7 @@ export function FormularioColabora({ idioma, correo, condiciones }: { idioma: Id
       const r = await fetch("/api/colabora", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...datos, condiciones: form.get("condiciones") === "on", idioma }),
+        body: JSON.stringify({ ...datos, condiciones: form.get("condiciones") === "on", mayor: form.get("mayor") === "on", idioma }),
       });
       if (r.ok) {
         setEstado({ tipo: "enviado" });
@@ -34,7 +34,7 @@ export function FormularioColabora({ idioma, correo, condiciones }: { idioma: Id
       }
       const { error } = (await r.json().catch(() => ({}))) as { error?: string };
       const mensaje =
-        error === "faltan" || error === "email" || error === "perfil" || error === "condiciones" ? t.errores[error] : t.errores.envio(correo);
+        error === "faltan" || error === "email" || error === "perfil" || error === "condiciones" || error === "mayor" ? t.errores[error] : t.errores.envio(correo);
       setEstado({ tipo: "error", mensaje });
     } catch {
       setEstado({ tipo: "error", mensaje: t.errores.envio(correo) });
@@ -86,6 +86,11 @@ export function FormularioColabora({ idioma, correo, condiciones }: { idioma: Id
       <label className="evt-campo--ancho flex items-start gap-3 text-[15px] leading-relaxed">
         <input type="checkbox" name="condiciones" required className="mt-1 h-5 w-5 shrink-0" />
         <span>{condiciones}</span>
+      </label>
+      {/* CR-L16: solo mayores de 18. El texto exacto también va a la prueba del consentimiento. */}
+      <label className="evt-campo--ancho flex items-start gap-3 text-[15px] leading-relaxed">
+        <input type="checkbox" name="mayor" required className="mt-1 h-5 w-5 shrink-0" />
+        <span>{f.mayor}</span>
       </label>
 
       {/* La trampa para robots: fuera de la pantalla y de los lectores. */}

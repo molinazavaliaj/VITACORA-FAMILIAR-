@@ -1,7 +1,9 @@
 import { describe, it, expect, afterEach } from "vitest";
 import {
+  DIAS_EN_ESPERA,
   codigoCreadorValido,
   creadoresPrendido,
+  estadoDeComision,
   generarTokenPanel,
   importeComision,
   leerPorcentaje,
@@ -82,15 +84,35 @@ describe("la comisión", () => {
     expect(leerPorcentaje(null, 1, 50)).toBeNull();
   });
 
-  it("suma por moneda, sin las anuladas", () => {
-    const r = resumenDeComisiones([
-      { estado: "pendiente", moneda: "EUR", importe: 8.82 },
-      { estado: "pendiente", moneda: "EUR", importe: 7.35 },
-      { estado: "pagada", moneda: "EUR", importe: 5 },
-      { estado: "pendiente", moneda: "ARS", importe: 15435 },
-      { estado: "anulada", moneda: "EUR", importe: 100 },
-    ]);
-    expect(r).toEqual({ ventas: 4, pendiente: { EUR: 16.17, ARS: 15435 }, pagado: { EUR: 5 } });
+  const AHORA = new Date("2026-11-01T09:00:00Z");
+  const VIEJA = "2026-10-10T12:00:00Z"; // 22 días antes: ya pasó la espera
+  const NUEVA = "2026-10-25T12:00:00Z"; // 7 días antes: sigue en espera
+
+  it("suma por moneda, sin las anuladas, y separa lo que sigue en espera", () => {
+    const r = resumenDeComisiones(
+      [
+        { estado: "pendiente", created_at: VIEJA, moneda: "EUR", importe: 8.82 },
+        { estado: "pendiente", created_at: VIEJA, moneda: "EUR", importe: 7.35 },
+        { estado: "pendiente", created_at: NUEVA, moneda: "EUR", importe: 3 },
+        { estado: "pagada", created_at: VIEJA, moneda: "EUR", importe: 5 },
+        { estado: "pendiente", created_at: VIEJA, moneda: "ARS", importe: 15435 },
+        { estado: "anulada", created_at: NUEVA, moneda: "EUR", importe: 100 },
+      ],
+      AHORA,
+    );
+    expect(r).toEqual({ ventas: 5, enEspera: { EUR: 3 }, porCobrar: { EUR: 16.17, ARS: 15435 }, pagado: { EUR: 5 } });
+  });
+
+  it("una comisión queda en espera 14 días desde la compra y después pasa a por cobrar", () => {
+    expect(DIAS_EN_ESPERA).toBe(14);
+    const hace = (dias: number) => new Date(AHORA.getTime() - dias * 24 * 60 * 60 * 1000).toISOString();
+    expect(estadoDeComision({ estado: "pendiente", created_at: hace(0) }, AHORA)).toBe("en_espera");
+    expect(estadoDeComision({ estado: "pendiente", created_at: hace(13.9) }, AHORA)).toBe("en_espera");
+    expect(estadoDeComision({ estado: "pendiente", created_at: hace(14) }, AHORA)).toBe("en_espera");
+    expect(estadoDeComision({ estado: "pendiente", created_at: hace(14.01) }, AHORA)).toBe("por_cobrar");
+    // Pagada y anulada no cambian con el tiempo.
+    expect(estadoDeComision({ estado: "pagada", created_at: hace(1) }, AHORA)).toBe("pagada");
+    expect(estadoDeComision({ estado: "anulada", created_at: hace(30) }, AHORA)).toBe("anulada");
   });
 });
 
@@ -106,7 +128,7 @@ describe("el token del panel", () => {
 });
 
 describe("el alta de /colabora", () => {
-  const BIEN = { nombre: "Lucía", email: "Lucia@Ejemplo.com ", red: "instagram", perfil: "instagram.com/lucia", condiciones: true, idioma: "ar" };
+  const BIEN = { nombre: "Lucía", email: "Lucia@Ejemplo.com ", red: "instagram", perfil: "instagram.com/lucia", condiciones: true, mayor: true, idioma: "ar" };
 
   it("limpia el cuerpo y pasa el correo a minúsculas", () => {
     const r = validarAltaCreador({ ...BIEN, seguidores: " 3.000 ", mensaje: "Hola" });
@@ -122,6 +144,10 @@ describe("el alta de /colabora", () => {
     expect(validarAltaCreador({ ...BIEN, email: "lucia" })).toEqual({ ok: false, error: "email" });
     expect(validarAltaCreador({ ...BIEN, perfil: "lucia" })).toEqual({ ok: false, error: "perfil" });
     expect(validarAltaCreador({ ...BIEN, condiciones: false })).toEqual({ ok: false, error: "condiciones" });
+    // CR-L16: solo mayores de 18.
+    expect(validarAltaCreador({ ...BIEN, mayor: false })).toEqual({ ok: false, error: "mayor" });
+    expect(validarAltaCreador({ ...BIEN, mayor: "si" })).toEqual({ ok: false, error: "mayor" });
+    expect(validarAltaCreador({ ...BIEN, mayor: "on" }).ok).toBe(true);
     expect(validarAltaCreador({ ...BIEN, perfil: "@lucia" }).ok).toBe(true);
   });
 

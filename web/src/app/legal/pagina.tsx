@@ -9,7 +9,8 @@ import { Cabecera, Pie } from "../_publico";
 import { DOCUMENTOS_LEGALES, TEXTOS_LEGAL, type Bloque, type DocumentoLegal, type TextoDocumento, type TextosLegal } from "../_textos/legal";
 import { BASES_CUPON, privacidadConCupon } from "../_textos/legal-cupon";
 import { rascaPrendido } from "@/lib/cupon";
-import { CONDICIONES_CREADORES } from "../_textos/legal-creadores";
+import { CONDICIONES_CREADORES, privacidadConCreadores } from "../_textos/legal-creadores";
+import { creadoresPrendido } from "@/lib/creadores";
 import { CONTACTO, TITULARES, faltan, type Region } from "./titulares";
 import "../_direccion/tokens.css";
 import "./legal.css";
@@ -42,13 +43,18 @@ const RUTA: Record<PaginaLegalId, string> = {
   creadores: "/legal/creadores",
 };
 
-/** El texto de cada página; con el rasca y gana, la privacidad suma lo del cupón. */
+/**
+ * El texto de cada página. La privacidad suma lo del cupón con el rasca y gana
+ * prendido y lo del programa de creadores con CREADORES=1 (legal, 21/10).
+ */
 export function textoDe(idioma: IdiomaWeb, documento: PaginaLegalId): TextoDocumento {
   if (documento === "cupon") return BASES_CUPON[idioma];
   // Las condiciones del programa de creadores (21/10, CREADORES=1): no van en las solapas todavía.
   if (documento === "creadores") return CONDICIONES_CREADORES[idioma];
-  const d = TEXTOS_LEGAL[idioma][documento];
-  return documento === "privacidad" && rascaPrendido() ? privacidadConCupon(d, idioma) : d;
+  let d = TEXTOS_LEGAL[idioma][documento];
+  if (documento === "privacidad" && rascaPrendido()) d = privacidadConCupon(d, idioma);
+  if (documento === "privacidad" && creadoresPrendido()) d = privacidadConCreadores(d, idioma);
+  return d;
 }
 
 /** Las solapas: las bases del cupón, solo con el rasca y gana prendido. */

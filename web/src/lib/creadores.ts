@@ -16,6 +16,9 @@ import type { Region } from "./precios";
 //   - La comisión es sobre lo que el cliente pagó de verdad (`compra.total`, ya
 //     con el descuento) y se congela en el momento de la compra.
 //   - No se suma con la promo global ni con otro cupón: un solo código por compra.
+//   - Cada comisión queda «en espera» 14 días desde la compra (el plazo de las
+//     devoluciones) y recién después pasa a «por cobrar» (legal, 21/10). No hay
+//     columna nueva: es un estado derivado de `created_at` (ver `estadoDeComision`).
 //
 // Todo apagado hasta que Naza prenda CREADORES=1 en Vercel (con la migración
 // 20261021000000 aplicada y los textos aprobados).
@@ -23,6 +26,20 @@ import type { Region } from "./precios";
 /** ¿Está prendido el programa? Sin la variable, ni /colabora ni códigos ni panel ni resumen. */
 export function creadoresPrendido(): boolean {
   return process.env.CREADORES?.trim() === "1";
+}
+
+/**
+ * Dónde se puede anotar un creador. Por ahora solo en España (/colabora y
+ * /ca/colabora): pagar comisiones en Argentina (transferencia, factura e
+ * impuestos desde España) no está resuelto (legal, 21/10). /ar/colabora da 404
+ * y /api/colabora rechaza el alta de Argentina. Los textos de Argentina siguen
+ * en su lugar, y los códigos valen al comprar en cualquier país.
+ * Para abrir Argentina: sumar "ar" acá (y volver a enlazarla, ver _colabora/colabora.tsx).
+ */
+export const IDIOMAS_CON_ALTA: readonly IdiomaWeb[] = ["es", "ca"];
+
+export function altaAbiertaEn(idioma: IdiomaWeb): boolean {
+  return IDIOMAS_CON_ALTA.includes(idioma);
 }
 
 export const COMISION_SUGERIDA = 20;
@@ -141,6 +158,28 @@ export type FilaComision = {
 /** Lo que el creador lleva en la compra (`compra.creador`), y lo que va a `pedidos.extras.creador`. */
 export type CreadorEnLaCompra = { id: string; codigo: string; comision: number; descuento: number };
 
+// ── La espera de 14 días ──────────────────────────────────────────────────
+
+/**
+ * Los días que una comisión queda en espera desde la compra (CR-L06 y CR-L08):
+ * si la compra se devuelve en ese tiempo, la comisión se anula y no llega a
+ * cobrarse. Pasado el plazo, pasa sola a «por cobrar».
+ */
+export const DIAS_EN_ESPERA = 14;
+
+/** El corte: una comisión nacida ANTES de este momento ya pasó la espera. */
+export function finDeLaEspera(ahora = new Date()): Date {
+  return new Date(ahora.getTime() - DIAS_EN_ESPERA * 24 * 60 * 60 * 1000);
+}
+
+/** Lo que se ve de una comisión: la `pendiente` de la base se parte en «en espera» y «por cobrar». */
+export type EstadoVisibleComision = "en_espera" | "por_cobrar" | "pagada" | "anulada";
+
+export function estadoDeComision(c: Pick<FilaComision, "estado" | "created_at">, ahora = new Date()): EstadoVisibleComision {
+  if (c.estado !== "pendiente") return c.estado;
+  return new Date(c.created_at).getTime() < finDeLaEspera(ahora).getTime() ? "por_cobrar" : "en_espera";
+}
+
 // ── Las sumas ─────────────────────────────────────────────────────────────
 
 /** Una suma por moneda (un creador de España puede vender en Argentina). */
@@ -148,18 +187,20 @@ export type PorMoneda = Record<string, number>;
 
 const sumar = (a: PorMoneda, moneda: string, n: number): PorMoneda => ({ ...a, [moneda]: Math.round(((a[moneda] ?? 0) + Number(n)) * 100) / 100 });
 
-/** Ventas, pendiente y pagado de un creador (las anuladas no cuentan). */
-export function resumenDeComisiones(comisiones: Pick<FilaComision, "estado" | "moneda" | "importe">[]): { ventas: number; pendiente: PorMoneda; pagado: PorMoneda } {
-  let ventas = 0;
-  let pendiente: PorMoneda = {};
-  let pagado: PorMoneda = {};
+export type ResumenComisiones = { ventas: number; enEspera: PorMoneda; porCobrar: PorMoneda; pagado: PorMoneda };
+
+/** Ventas, en espera, por cobrar y pagado de un creador (las anuladas no cuentan). */
+export function resumenDeComisiones(comisiones: Pick<FilaComision, "estado" | "created_at" | "moneda" | "importe">[], ahora = new Date()): ResumenComisiones {
+  const r: ResumenComisiones = { ventas: 0, enEspera: {}, porCobrar: {}, pagado: {} };
   for (const c of comisiones) {
-    if (c.estado === "anulada") continue;
-    ventas++;
-    if (c.estado === "pendiente") pendiente = sumar(pendiente, c.moneda, c.importe);
-    else pagado = sumar(pagado, c.moneda, c.importe);
+    const estado = estadoDeComision(c, ahora);
+    if (estado === "anulada") continue;
+    r.ventas++;
+    if (estado === "en_espera") r.enEspera = sumar(r.enEspera, c.moneda, c.importe);
+    else if (estado === "por_cobrar") r.porCobrar = sumar(r.porCobrar, c.moneda, c.importe);
+    else r.pagado = sumar(r.pagado, c.moneda, c.importe);
   }
-  return { ventas, pendiente, pagado };
+  return r;
 }
 
 // ── El alta (/colabora) ───────────────────────────────────────────────────
@@ -174,7 +215,7 @@ export type AltaCreador = {
   mensaje: string;
 };
 
-export type ErrorAlta = "faltan" | "email" | "perfil" | "condiciones";
+export type ErrorAlta = "faltan" | "email" | "perfil" | "condiciones" | "mayor";
 
 const CORTO = 200;
 export const MENSAJE_MAXIMO = 1000;
@@ -190,9 +231,16 @@ export function esRobotColabora(cuerpo: unknown): boolean {
   return typeof c[CAMPO_TRAMPA_COLABORA] === "string" && c[CAMPO_TRAMPA_COLABORA].trim() !== "";
 }
 
+/** El idioma de la web desde donde vino el alta (sin idioma, España). */
+export function idiomaDelAlta(cuerpo: unknown): IdiomaWeb {
+  const idioma = (cuerpo && typeof cuerpo === "object" ? cuerpo : {}) as { idioma?: unknown };
+  return idioma.idioma === "ca" || idioma.idioma === "ar" ? idioma.idioma : "es";
+}
+
 /**
- * El cuerpo del formulario de /colabora, limpio. Nombre, correo, red, perfil y
- * la casilla de las condiciones son obligatorios; seguidores y mensaje no.
+ * El cuerpo del formulario de /colabora, limpio. Nombre, correo, red, perfil,
+ * la casilla de las condiciones y la de mayor de 18 años (CR-L16, legal 21/10)
+ * son obligatorios; seguidores y mensaje no.
  */
 export function validarAltaCreador(cuerpo: unknown): { ok: true; alta: AltaCreador } | { ok: false; error: ErrorAlta } {
   const c = (cuerpo && typeof cuerpo === "object" ? cuerpo : {}) as Record<string, unknown>;
@@ -205,7 +253,8 @@ export function validarAltaCreador(cuerpo: unknown): { ok: true; alta: AltaCread
   // Un link o un @usuario: lo que no tenga ni un punto ni una arroba no se puede buscar.
   if (!/[.@]/.test(perfil) || /\s/.test(perfil)) return { ok: false, error: "perfil" };
   if (c.condiciones !== true && c.condiciones !== "on") return { ok: false, error: "condiciones" };
-  const idioma: IdiomaWeb = c.idioma === "ca" || c.idioma === "ar" ? c.idioma : "es";
+  if (c.mayor !== true && c.mayor !== "on") return { ok: false, error: "mayor" };
+  const idioma = idiomaDelAlta(c);
   return {
     ok: true,
     alta: { idioma, nombre, email, red, perfil, seguidores: texto(c.seguidores, CORTO), mensaje: texto(c.mensaje, MENSAJE_MAXIMO) },

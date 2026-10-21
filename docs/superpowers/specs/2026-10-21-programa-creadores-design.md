@@ -88,6 +88,11 @@ pedido. **Nunca tira ni cambia el resultado del pago** (como `marcarCuponUsado`)
 
 ### 4. La página `/colabora` (y `/ca/colabora`, `/ar/colabora`)
 
+> **Cambio legal (21/10):** el alta empieza **solo en España** (`/colabora` y `/ca/colabora`).
+> `/ar/colabora` da 404 y `/api/colabora` rechaza el alta de Argentina porque pagar comisiones
+> allá no está resuelto. Se abre sumando `"ar"` a `IDIOMAS_CON_ALTA` (`web/src/lib/creadores.ts`).
+> Los textos de Argentina quedan en su lugar y los códigos valen al comprar en cualquier país.
+
 Seguir el patrón de `/eventos` (página + formulario + ruta que manda mail a socios), con
 los textos en `web/src/app/_textos/colabora.ts` por idioma (`es` tú, `ar` vos, `ca`).
 - Arriba: qué es el programa en pocas líneas (comisión por venta con tu código, descuento
@@ -95,7 +100,9 @@ los textos en `web/src/app/_textos/colabora.ts` por idioma (`es` tú, `ar` vos, 
   (cambian por creador): «una comisión por cada venta» y «un descuento para tu comunidad».
 - Formulario: nombre, correo, red (select), link del perfil, seguidores (opcional), algo
   que quieras contarnos (opcional), casilla obligatoria de aceptar las condiciones y la
-  privacidad (link a `/legal/creadores`). Honeypot como en eventos.
+  privacidad (link a `/legal/creadores`) y, desde el cambio legal del 21/10, otra casilla
+  obligatoria «Soy mayor de 18 años» (CR-26; las dos van con su texto exacto a la prueba del
+  consentimiento). Honeypot como en eventos.
 - `POST /api/colabora`: valida, freno de 5 altas por IP y hora, inserta `pendiente`
   (si el correo ya existe, contesta lo mismo y no duplica — no se revela si existía),
   mail al creador («lo recibimos, te escribimos cuando lo revisemos»), mail a socios
@@ -113,7 +120,8 @@ quien llama esté en `ADMIN_EMAILS`** (las server actions son endpoints sueltos;
   crea `token_panel`, `estado=activo`, manda al creador el mail de bienvenida (código, link para
   compartir, link a su panel, link a las condiciones).
 - Activos y pausados: código, comisión, descuento (editables), ventas, comisión pendiente,
-  pagada; botones pausar/reactivar y «Marcar pagado» (pasa a `pagada` todas las pendientes de ese creador, con fecha).
+  pagada; botones pausar/reactivar y «Marcar pagado» (pasa a `pagada` las pendientes de ese creador
+  que ya pasaron los 14 días de espera, con fecha; ver §6).
 - Lista de comisiones con opción de anular una (para devoluciones).
 
 ### 6. Panel del creador: `/creador/[token]`
@@ -122,13 +130,20 @@ Sin login: el token es la llave (como `/local/[token]` de la rama regalo-locales
 desconocido o creador no activo/pausado → 404 (pausado ve el panel con un aviso).
 `noindex`. Idioma del creador. Muestra: su código, el link para compartir (botón copiar),
 el descuento que da, ventas (fecha y comisión, **ningún dato del cliente**), total
-pendiente y total cobrado.
+en espera, total por cobrar y total cobrado.
+
+**Espera de 14 días (cambio legal, 21/10):** cada comisión queda «en espera» 14 días desde su
+`created_at` (el plazo de las devoluciones) y después pasa sola a «por cobrar». Es un estado
+derivado, sin columna nueva ni migración (`estadoDeComision` en `web/src/lib/creadores.ts`):
+en la base sigue siendo `pendiente`. El panel del creador, el de la empresa, «Marcar pagado» y
+el resumen mensual usan el mismo corte.
 
 ### 7. Mail mensual
 
 `/api/creadores/resumen` con el mismo cuidado que `/api/cupon/recordatorios` (`CRON_SECRET`),
-cron en `web/vercel.json` el día 1 a las 9. Mail a socios: por creador, pendiente de pagar,
-cantidad de ventas, correo para pedirle los datos. Sin pendientes, no manda nada.
+cron en `web/vercel.json` el día 1 a las 9. Mail a socios: por creador, lo que ya pasó los 14
+días de espera, cantidad de esas ventas, lo que sigue en espera (aparte) y el correo para
+pedirle los datos. Un creador con todo en espera no sale. Si no hay nada para pagar, no manda nada.
 
 ### 8. Textos
 
