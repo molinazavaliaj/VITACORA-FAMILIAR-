@@ -90,7 +90,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 
 ---
 
-## Tanda 4 — las condiciones (/legal/creadores), del 1 al 10
+## Tanda 4 — las condiciones (/legal/creadores), del 1 al 10 — ✅ APROBADA por Naza el 21/10 (en la forma; falta el abogado)
 
 > ⚠️ **PENDIENTE DEL ABOGADO.** Es un borrador para que Naza lo apruebe en lo de forma; el
 > contenido lo tiene que mirar el abogado antes de prender `CREADORES=1`. Puntos para él:
