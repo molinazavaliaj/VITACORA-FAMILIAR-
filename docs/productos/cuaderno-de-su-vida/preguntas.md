@@ -193,3 +193,4 @@
 ## Aprobación
 
 - **Tanda 1** (páginas de entrada, portadilla y preguntas 1 a 6 del capítulo 1, portadilla del 2 y pregunta 6): ✅ APROBADA por Naza el 21/10.
+- **Tanda 2** (preguntas 7 a 11, portadilla del 3 y preguntas 12 a 15): ✅ APROBADA por Naza el 21/10.
