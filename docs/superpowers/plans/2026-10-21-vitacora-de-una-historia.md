@@ -213,6 +213,7 @@ export function bancoDeTema(banco: BancoEntrevista, tema: TemaHistoria): BancoEn
 ```
 
 En `src/historia/entrevista/banco-md.ts` (la copia):
+- el chequeo de columnas pasa de 6 a 8 (el parser de V3 tira «la fila tiene 8 columnas y van 6»), y el patrón de ID acepta guiones (`HC8-Q`, `HC1-A`, `BIEN-H`, `PR-H1`). Hoy el de V3 los saltea en silencio, así que un test tiene que contar 46 preguntas y 44 mensajes con `docs/historia/banco.md`;
 - `PreguntaEntrevista` suma `tema: 'comun' | TemaHistoria` y `reemplaza?: string` (columna `Reemplaza`). Si un `Reemplaza` no apunta a una común existente, tira `Error`;
 - `parsearEntrevistaMd` lee la última columna `Tema` y tira `Error('historia: tema desconocido «X» en <ID>')` si no es `comun` ni `esTema`.
 
