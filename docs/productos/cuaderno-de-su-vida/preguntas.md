@@ -187,3 +187,9 @@
 - Saqué todo lo que necesitaba saber algo del narrador (nombre, pareja de ahora, padre/madre, o/a) y lo reescribí sin género; donde el banco daba por hecho hijos, pareja o trabajo fuera de casa, puse nota de capítulo o alternativa en la misma pregunta.
 - Junté 15 bloques en 10 capítulos; lo que quedó fuera del todo fue «La historia grande» (país, pandemia), «Lugares y pasiones» y «Hoy», que en WhatsApp funcionan por el repregunte y en papel pesan; alguna sobrevive en el capítulo 9 y 10.
 - Lo delicado está solo en el 8, con una nota de permiso en la portadilla y «si quieres» en cada pregunta, como en AV11 del banco.
+
+---
+
+## Aprobación
+
+- **Tanda 1** (páginas de entrada, portadilla y preguntas 1 a 6 del capítulo 1, portadilla del 2 y pregunta 6): ✅ APROBADA por Naza el 21/10.
