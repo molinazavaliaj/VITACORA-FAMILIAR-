@@ -154,6 +154,13 @@ export type Compra = {
    * líneas negativas: `lineasParaCobrar` lo resta de la línea del PDF o del pack.
    */
   descuento?: { codigo: string; porcentaje: number; importe: number };
+  /**
+   * El código de un creador (programa de creadores, 21/10), si se usó: el
+   * descuento (si tiene) va en `descuento`, como el del cupón, pero el pedido lo
+   * guarda aparte (`extras.creador`, `extras.descuento_creador`) y nunca como
+   * `extras.cupon`. La comisión queda congelada acá.
+   */
+  creador?: { id: string; codigo: string; comision: number; descuento: number };
 };
 
 const entero = (n: number | undefined) => Math.max(0, Math.floor(n || 0));

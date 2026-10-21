@@ -7,6 +7,7 @@ import type { IdiomaWeb } from "./idioma-web";
 import type { Region } from "./precios";
 import { enviarMailConfirmarCupon, enviarMailCupon, enviarMailRecordatorio } from "./mail-cupon";
 import { enviarMailSocios } from "./mail";
+import { creadorParaLaCompra } from "./creadores-base";
 
 // Lo que el cupón de bienvenida hace con la base (tabla `cupones`, migración
 // 20261020000000, supabase/CONTRATO.md «Cupón de bienvenida»). Las reglas
@@ -257,6 +258,11 @@ export async function correrRecordatorios(admin: SupabaseClient, ahora = new Dat
  * El cupón que escribió la persona, aplicado a una compra ya calculada: lo usan
  * /api/compra (lo que se cobra) y /api/cupon/validar (lo que se muestra antes
  * de pagar). La cuenta es SIEMPRE del servidor.
+ *
+ * El mismo casillero sirve para el código de un creador (21/10): primero se
+ * prueba el formato del rasca (si está prendido) y, si no es de ese formato,
+ * el de un creador activo (si CREADORES=1, lib/creadores-base.ts). La compra
+ * vuelve con `compra.creador` (y `compra.descuento` si el creador da uno).
  */
 export async function cuponParaLaCompra(
   admin: SupabaseClient,
@@ -265,9 +271,8 @@ export async function cuponParaLaCompra(
   cat: Pick<Catalogo, "base" | "moneda">,
   ahora = new Date(),
 ): Promise<{ ok: true; compra: Compra } | { ok: false; motivo: MotivoRechazo } | { ok: false; falla: "tabla_ausente" | "base" }> {
-  if (!rascaPrendido()) return { ok: false, motivo: "no_existe" };
-  const codigo = normalizarCodigo(crudo);
-  if (!codigo) return { ok: false, motivo: "no_existe" };
+  const codigo = rascaPrendido() ? normalizarCodigo(crudo) : null;
+  if (!codigo) return creadorParaLaCompra(admin, crudo, compra, cat);
   const fila = await buscarCuponPorCodigo(admin, codigo);
   if (!fila.ok) return fila.falla === "freno" ? { ok: false, falla: "base" } : { ok: false, falla: fila.falla };
   const valido = validarCupon(fila.valor, compra.region, ahora, promoPorcentaje());

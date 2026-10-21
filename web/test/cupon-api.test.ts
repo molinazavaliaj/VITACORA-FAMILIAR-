@@ -191,7 +191,7 @@ describe("POST /api/cupon/validar", () => {
     usar(baseDeCompra(cupon()));
     const r = await validarCupon(json({ codigo: "VITACORA10-ABCDEF", idiomaWeb: "ar", productos: { impresos: 1, marcos: 0 } }));
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ codigo: "VITACORA10-ABCDEF", importe: 8575, total: 85750 + 120000 - 8575 });
+    expect(await r.json()).toEqual({ codigo: "VITACORA10-ABCDEF", importe: 8575, total: 85750 + 120000 - 8575, linea: "Cupón de bienvenida · 10 % del libro digital" });
   });
 
   it("dice por qué no sirve", async () => {

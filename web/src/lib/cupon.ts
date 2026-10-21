@@ -1,6 +1,7 @@
 import { randomInt } from "node:crypto";
 import type { Catalogo, Compra, LineaDeCompra } from "./productos";
 import type { Region } from "./precios";
+import { lineaCreadorPasarela } from "@/app/_textos/colabora";
 
 // El cupón de bienvenida del rasca y gana (20/10; reglas en
 // docs/rediseno-2026-10/fase-5/textos-legales-nuevos.md tandas 1, 2 y 3 y
@@ -151,8 +152,10 @@ export function lineasParaCobrar(compra: Compra): LineaDeCompra[] {
   const digital = lineaDigital(compra.lineas);
   if (!digital) throw new Error("Una compra con cupón tiene que llevar el libro digital.");
   const { importe } = compra.descuento;
+  // El código de un creador dice su código y su %, no «Cupón de bienvenida».
+  const etiqueta = compra.creador ? lineaCreadorPasarela(compra.descuento.codigo, compra.descuento.porcentaje) : LINEA_CUPON_PASARELA;
   return compra.lineas.map((l) =>
-    l === digital ? { ...l, nombre: `${l.nombre} (${LINEA_CUPON_PASARELA})`, precioUnitario: Math.round((l.precioUnitario - importe) * 100) / 100 } : l,
+    l === digital ? { ...l, nombre: `${l.nombre} (${etiqueta})`, precioUnitario: Math.round((l.precioUnitario - importe) * 100) / 100 } : l,
   );
 }
 
