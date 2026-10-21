@@ -1,5 +1,8 @@
 # Qué cambia en el libro de «una historia»
 
+> Aprobado por Naza el 22/10/2026, con el título fijo «A quien era antes».
+
+
 Naza, esta es la receta del libro de «Vitácora de una historia». Sale de la de Familiar, la que ya aprobaste, y cambia solo lo que hace falta para un libro que cuenta una sola historia. Esto es lo que vas a notar cuando lo leas.
 
 1. **Un solo hilo de punta a punta.** El libro no salta de tema en tema. Arranca en cómo era su vida antes, sigue con cómo empezó todo, pasa por lo más difícil y termina en cómo quedó. Cada capítulo empuja esa misma historia.

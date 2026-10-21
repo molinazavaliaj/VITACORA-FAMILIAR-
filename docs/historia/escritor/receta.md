@@ -1,5 +1,8 @@
 # Receta del escritor de «Vitácora de una historia»
 
+> **Vigente.** Aprobada por Naza el 22/10/2026, junto con el título fijo «A quien era antes».
+
+
 **Estado: BORRADOR, 22/10/2026. Falta que Naza la apruebe** (la nota corta para él está en [`que-cambia.md`](que-cambia.md)). No hay ninguna corrida paga con esta receta: la primera es con el narrador real del piloto (spec §5).
 
 **De dónde sale.** Es la receta de Familiar v5.5 ([`../../v5/escritor-v55/receta.md`](../../v5/escritor-v55/receta.md)), la que Naza aprobó y corre en la fábrica, adaptada a un libro que cuenta **una sola historia** y no una vida entera ([spec §5](../../superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md)). Se queda la máquina de Familiar (registro, plan, armador, capítulos uno por uno con su ficha, verificador de hechos, veedor, arreglo de una ronda, corrector de dos pasadas, títulos al final). Cambia lo que el libro tiene que ser distinto, y nada más. La receta de Familiar no se toca.

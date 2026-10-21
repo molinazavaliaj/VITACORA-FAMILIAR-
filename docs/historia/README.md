@@ -13,6 +13,9 @@ Regla de nombres: lo que dice **vigente** es lo actual. Cuando algo se reemplaza
 
 - [`idiomas/banco-es-ES.md`](idiomas/banco-es-ES.md) y [`idiomas/banco-ca.md`](idiomas/banco-ca.md): los textos del banco en castellano de España (tú) y en catalán (tu), solo por ID. Hechos el 22/10, con revisión a ciegas y Softcatalà ([`idiomas/revision-2026-10-22.md`](idiomas/revision-2026-10-22.md)). **Vigentes desde el 22/10:** Naza decidió los 6 puntos de la revisión (ver «Decisiones de Naza»), y el mismo día se sumaron las variantes de `padres` y `trabajo` (HC8-P, HC9-P, HC8-T, HC9-T).
 
+- [`escritor/receta.md`](escritor/receta.md) y [`escritor/que-cambia.md`](escritor/que-cambia.md): la receta del libro. **Vigente, aprobada el 22/10.**
+
 ## Lo que viene
 
-- `escritor/receta.md`: la receta del libro (Task 0.4).
+
+- El código, fases 1 a 6 del plan. La fase 0 (contenido) está cerrada.
