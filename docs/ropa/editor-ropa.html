@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ropa Vitácora · editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#ededea; --panel:#ffffff; --tinta:#14140F; --gris:#6b6b63; --linea:#d6d6d0; --sel:#3b82f6; }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; }
+body { background:var(--bg); color:var(--tinta); font-family:Archivo, system-ui, sans-serif; font-size:13px; display:flex; flex-direction:column; }
+header { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--linea); }
+header .marca { font-size:11px; letter-spacing:.28em; text-transform:uppercase; margin-right:8px; }
+.tabs { display:flex; gap:4px; flex-wrap:wrap; }
+button { font:inherit; border:1px solid var(--linea); background:#fff; color:var(--tinta); padding:6px 10px; cursor:pointer; border-radius:4px; }
+button:hover { border-color:#999; }
+button.on { background:var(--tinta); color:#fff; border-color:var(--tinta); }
+main { flex:1; display:flex; min-height:0; }
+aside { width:270px; flex:none; background:var(--panel); border-right:1px solid var(--linea); padding:14px; overflow:auto; display:flex; flex-direction:column; gap:18px; }
+aside h3 { margin:0 0 8px; font-size:10px; letter-spacing:.26em; text-transform:uppercase; color:var(--gris); font-weight:500; }
+.piezas { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.pieza { display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 6px; background:#1d1d19; color:#fff; border:1px solid #000; border-radius:4px; cursor:pointer; text-align:center; font-size:11px; }
+.pieza svg { width:100%; height:44px; }
+.pieza:hover { outline:2px solid var(--sel); }
+.campo { display:flex; flex-direction:column; gap:6px; }
+.campo label { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.campo input[type=range] { width:100%; }
+.campo input[type=number] { width:70px; font:inherit; padding:3px 5px; border:1px solid var(--linea); border-radius:3px; }
+.fila { display:flex; flex-wrap:wrap; gap:6px; }
+.vacio { color:var(--gris); line-height:1.5; }
+.lienzo { flex:1; position:relative; min-width:0; display:flex; align-items:center; justify-content:center; padding:12px; }
+#svg { width:100%; height:100%; max-height:calc(100vh - 80px); touch-action:none; user-select:none; }
+.ayuda { line-height:1.55; color:var(--gris); font-size:12px; }
+.ayuda b { color:var(--tinta); font-weight:500; }
+textarea { width:100%; height:120px; font:12px/1.4 ui-monospace, monospace; border:1px solid var(--linea); padding:6px; }
+@media (max-width: 760px) {
+  main { flex-direction:column-reverse; }
+  aside { width:auto; border-right:none; border-top:1px solid var(--linea); }
+  #svg { max-height:70vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <span class="marca">Vitácora Familiar · ropa</span>
+  <div class="tabs" id="tabs"></div>
+  <span style="flex:1"></span>
+  <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="recorte" checked> Recortar a la prenda</label>
+  <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="regla"> Regla en cm</label>
+</header>
+<main>
+  <aside>
+    <section>
+      <h3>Piezas · tocá para agregar</h3>
+      <div class="piezas" id="piezas"></div>
+    </section>
+    <section id="props">
+      <h3>Pieza elegida</h3>
+      <div id="propsBody" class="vacio">Tocá una pieza en la prenda para elegirla.</div>
+    </section>
+    <section>
+      <h3>Cómo se usa</h3>
+      <div class="ayuda">
+        <b>Arrastrar</b> mueve. <b>Rueda del mouse</b> o el cuadrado de la esquina agranda y achica. El círculo de arriba <b>gira</b>.<br>
+        Con <b>Recortar a la prenda</b> prendido, lo que sale de la tela se corta (por ejemplo, un toroide gigante sobre un hombro).<br>
+        Flechas mueven de a 0,5 cm (con Shift, 2 cm). Supr borra.<br>
+        Todo se guarda solo en este navegador.
+      </div>
+    </section>
+    <section>
+      <h3>Pasarle el diseño a Claude</h3>
+      <div class="fila"><button id="copiar">Copiar diseño</button><button id="limpiar">Vaciar esta prenda</button></div>
+      <textarea id="salida" readonly placeholder="Al tocar «Copiar diseño» aparece acá el texto con las medidas, y queda copiado para pegarlo en el chat."></textarea>
+    </section>
+  </aside>
+  <div class="lienzo"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+</main>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const BLANCO = "#FFFFFF", TELA = "#1d1d19", COSTURA = "#55554c";
+
+/* ---------- Prendas (en cm, talle M; y=0 es el punto del hombro junto al cuello) ---------- */
+const PRENDAS = {
+  "hoodie-frente": {
+    nombre: "Hoodie · frente", vb: [-56, -20, 112, 92],
+    telas: [
+      "M -27,4 L -47,57 L -38,60 L -28,25 Z", "M 27,4 L 47,57 L 38,60 L 28,25 Z",
+      "M -47,57 L -38,60 L -40,66 L -49,63 Z", "M 47,57 L 38,60 L 40,66 L 49,63 Z",
+      "M -11,-1 C -14,-10 -6,-15 0,-15 C 6,-15 14,-10 11,-1 Z",
+      "M -10,-1 L -27,4 L -28,25 L -28,64 L 28,64 L 28,25 L 27,4 L 10,-1 C 6,5 -6,5 -10,-1 Z",
+      "M -28,64 L 28,64 L 28,70 L -28,70 Z"
+    ],
+    lineas: [
+      "M -10,-1 C -9,6 -3,9 0,10 C 3,9 9,6 10,-1",
+      "M -16,42 L 16,42 L 20,60 L -20,60 Z", "M -16,42 L -20,52 M 16,42 L 20,52",
+      "M -28,25 L -27,4 M 28,25 L 27,4"
+    ],
+    hueco: "M -10,-1 C -9,6 -3,9 0,10 C 3,9 9,6 10,-1 C 7,-7 -7,-7 -10,-1 Z"
+  },
+  "hoodie-espalda": {
+    nombre: "Hoodie · espalda", vb: [-56, -20, 112, 92],
+    telas: [
+      "M -27,4 L -47,57 L -38,60 L -28,25 Z", "M 27,4 L 47,57 L 38,60 L 28,25 Z",
+      "M -47,57 L -38,60 L -40,66 L -49,63 Z", "M 47,57 L 38,60 L 40,66 L 49,63 Z",
+      "M -10,-1 L -27,4 L -28,25 L -28,64 L 28,64 L 28,25 L 27,4 L 10,-1 C 6,1 -6,1 -10,-1 Z",
+      "M -28,64 L 28,64 L 28,70 L -28,70 Z"
+    ],
+    lineas: [ "M -28,25 L -27,4 M 28,25 L 27,4" ],
+    capucha: "M -10,-1 C -17,1 -16,10 0,12.5 C 16,10 17,1 10,-1 C 6,1 -6,1 -10,-1 Z"
+  },
+  "camisa-frente": {
+    nombre: "Camisa · frente", vb: [-52, -12, 104, 92],
+    telas: [
+      "M -24,3 L -41,62 L -34,64 L -27,22 Z", "M 24,3 L 41,62 L 34,64 L 27,22 Z",
+      "M -41,62 L -34,64 L -35.5,70 L -42.5,68 Z", "M 41,62 L 34,64 L 35.5,70 L 42.5,68 Z",
+      "M -8,0 L -24,3 L -27,22 L -27,72 Q -14,79 0,76 Q 14,79 27,72 L 27,22 L 24,3 L 8,0 Z"
+    ],
+    lineas: [
+      "M -1.6,4 L -1.6,76.5 M 1.6,4 L 1.6,76.5",
+      "M -27,22 L -24,3 M 27,22 L 24,3"
+    ],
+    encima: [
+      "M -8,0 C -6,-3 6,-3 8,0 L 7.5,1.5 C 4,0 -4,0 -7.5,1.5 Z",
+      "M -8,0 L -9.5,7.5 L -1,5 L 0,2 Z", "M 8,0 L 9.5,7.5 L 1,5 L 0,2 Z"
+    ],
+    botones: [5, 13, 22, 31, 40, 49, 58, 67]
+  },
+  "camisa-espalda": {
+    nombre: "Camisa · espalda", vb: [-52, -12, 104, 92],
+    telas: [
+      "M -24,3 L -41,62 L -34,64 L -27,22 Z", "M 24,3 L 41,62 L 34,64 L 27,22 Z",
+      "M -41,62 L -34,64 L -35.5,70 L -42.5,68 Z", "M 41,62 L 34,64 L 35.5,70 L 42.5,68 Z",
+      "M -8,0 L -24,3 L -27,22 L -27,72 Q -14,79 0,76 Q 14,79 27,72 L 27,22 L 24,3 L 8,0 Z"
+    ],
+    lineas: [ "M -25,11 Q 0,13 25,11", "M -27,22 L -24,3 M 27,22 L 24,3" ],
+    encima: [ "M -8,0 C -6,-3 6,-3 8,0 L 8,1.2 C 4,-1 -4,-1 -8,1.2 Z" ]
+  }
+};
+
+/* ---------- Piezas de marca ---------- */
+const ANILLOS = [[13.86,17.63],[26.77,34.07],[39.35,50.08],[51.71,65.82],[63.92,81.36],[76.01,96.74],[88.00,112.00]];
+function toroide(g, grosor) {
+  for (const [rx, ry] of ANILLOS) for (const lado of [-1, 1]) {
+    const e = el("ellipse", { cx: lado * rx, cy: 0, rx, ry, fill: "none", stroke: BLANCO, "stroke-width": grosor });
+    g.appendChild(e);
+  }
+}
+const PIEZAS = {
+  toroide: {
+    nombre: "Toroide", w: 30,
+    dibujar(g) { toroide(g, 1.15); }
+  },
+  campo: {
+    nombre: "Campo V·F", w: 20,
+    dibujar(g) {
+      const id = "cv" + Math.random().toString(36).slice(2, 8);
+      const cp = el("clipPath", { id }); cp.appendChild(el("rect", { x: -100, y: -145, width: 200, height: 290 }));
+      g.appendChild(cp);
+      const c = el("g", { "clip-path": `url(#${id})` }); g.appendChild(c);
+      c.appendChild(el("line", { x1: 0, y1: -124.68, x2: 0, y2: 124.68, stroke: BLANCO, "stroke-width": 0.9, "stroke-dasharray": "3 4", opacity: 0.55 }));
+      c.appendChild(el("path", { d: "M0 -133 l5.2 5.2 l-5.2 5.2 l-5.2 -5.2 Z", fill: BLANCO, opacity: 0.75 }));
+      c.appendChild(el("path", { d: "M0 133 l5.2 -5.2 l-5.2 -5.2 l-5.2 5.2 Z", fill: BLANCO, opacity: 0.75 }));
+      toroide(c, 1.15);
+      for (const x of [-48, 48]) c.appendChild(el("ellipse", { cx: x, cy: 0, rx: 33.5, ry: 43, fill: TELA }));
+      for (const [x, t] of [[-48, "V"], [48, "F"]]) {
+        const tx = el("text", { x, y: 26, "text-anchor": "middle", "font-family": "'Playfair Display', Georgia, serif", "font-weight": 500, "font-size": 76, fill: BLANCO });
+        tx.textContent = t; c.appendChild(tx);
+      }
+      g.appendChild(el("rect", { x: -100, y: -145, width: 200, height: 290, fill: "transparent" }));
+    }
+  },
+  vf: {
+    nombre: "V·F", w: 12,
+    dibujar(g) {
+      const tx = el("text", { x: 0, y: 0, "text-anchor": "middle", "font-family": "'Playfair Display', Georgia, serif", "font-weight": 500, "font-size": 76, fill: BLANCO });
+      tx.textContent = "V·F"; g.appendChild(tx);
+    }
+  },
+  nombre1: { nombre: "VITÁCORA FAMILIAR (1 línea)", w: 24, texto: ["VITÁCORA FAMILIAR"], fuente: "playfair" },
+  nombre2: { nombre: "VITÁCORA / FAMILIAR (2 líneas)", w: 14, texto: ["VITÁCORA", "FAMILIAR"], fuente: "playfair" },
+  slogan1: { nombre: "Slogan (1 línea)", w: 30, texto: ["En cada familia hay un libro sin escribir."], fuente: "italica" },
+  slogan2: { nombre: "Slogan (2 líneas)", w: 20, texto: ["En cada familia hay", "un libro sin escribir."], fuente: "italica" }
+};
+const FUENTES = {
+  playfair: { "font-family": "'Playfair Display', Georgia, serif", "font-weight": 400, "letter-spacing": 1.5 },
+  archivo: { "font-family": "Archivo, sans-serif", "font-weight": 500, "letter-spacing": 12 },
+  italica: { "font-family": "'Playfair Display', Georgia, serif", "font-style": "italic", "font-weight": 400 }
+};
+function dibujarTexto(g, lineas, fuente) {
+  const t = el("text", Object.assign({ "text-anchor": "middle", "font-size": 46, fill: BLANCO }, FUENTES[fuente]));
+  lineas.forEach((l, i) => { const s = el("tspan", { x: 0, y: i * 56 }); s.textContent = l; t.appendChild(s); });
+  g.appendChild(t);
+}
+
+/* ---------- Estado ---------- */
+let vista = "hoodie-frente";
+let sel = null;
+let estado = cargar() || { "hoodie-frente": [], "hoodie-espalda": [], "camisa-frente": [], "camisa-espalda": [] };
+function cargar() { try { return JSON.parse(localStorage.getItem("vf-ropa-editor")); } catch (e) { return null; } }
+function guardar() { try { localStorage.setItem("vf-ropa-editor", JSON.stringify(estado)); } catch (e) {} }
+const items = () => estado[vista];
+
+function el(tag, attrs = {}) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+/* ---------- Dibujo ---------- */
+const svg = document.getElementById("svg");
+const cajas = {}; // tipo+fuente -> bbox en unidades del arte
+
+function arte(item) {
+  const g = el("g");
+  const p = PIEZAS[item.tipo];
+  if (p.texto) dibujarTexto(g, p.texto, item.fuente || p.fuente); else p.dibujar(g);
+  return g;
+}
+function caja(item) {
+  const k = item.tipo + "|" + (item.fuente || "");
+  if (cajas[k]) return cajas[k];
+  if (item.tipo === "campo") return cajas[k] = { x: -100, y: -145, width: 200, height: 290 };
+  if (item.tipo === "toroide") return cajas[k] = { x: -176, y: -112, width: 352, height: 224 };
+  const tmp = el("svg", { width: 10, height: 10, style: "position:absolute;left:-9999px" });
+  const g = arte(item); tmp.appendChild(g); document.body.appendChild(tmp);
+  const b = g.getBBox(); tmp.remove();
+  return cajas[k] = { x: b.x, y: b.y, width: b.width, height: b.height };
+}
+
+function dibujar() {
+  const P = PRENDAS[vista];
+  svg.innerHTML = "";
+  svg.setAttribute("viewBox", P.vb.join(" "));
+  const defs = el("defs"); svg.appendChild(defs);
+  const cp = el("clipPath", { id: "clipTela" });
+  P.telas.forEach(d => cp.appendChild(el("path", { d })));
+  defs.appendChild(cp);
+
+  const base = el("g", { stroke: COSTURA, "stroke-width": 0.22, "stroke-linejoin": "round" });
+  P.telas.forEach(d => base.appendChild(el("path", { d, fill: TELA })));
+  svg.appendChild(base);
+
+  const capa = el("g", document.getElementById("recorte").checked ? { "clip-path": "url(#clipTela)" } : {});
+  svg.appendChild(capa);
+
+  const arriba = el("g", { stroke: COSTURA, "stroke-width": 0.22, fill: "none", "stroke-linejoin": "round", "pointer-events": "none", opacity: 0.9 });
+  (P.lineas || []).forEach(d => arriba.appendChild(el("path", { d })));
+  if (P.hueco) arriba.appendChild(el("path", { d: P.hueco, fill: "#141411" }));
+  if (P.capucha) arriba.appendChild(el("path", { d: P.capucha, fill: "#1a1a16", opacity: 0.55 }));
+  (P.encima || []).forEach(d => arriba.appendChild(el("path", { d, fill: TELA })));
+  (P.botones || []).forEach(y => arriba.appendChild(el("circle", { cx: 0, cy: y, r: 0.55, fill: "#2c2c27", stroke: "none" })));
+  svg.appendChild(arriba);
+
+  items().forEach((it, i) => {
+    const b = caja(it);
+    const s = it.w / b.width;
+    const g = el("g", { transform: `translate(${it.x} ${it.y}) rotate(${it.rot || 0}) scale(${s}) translate(${-(b.x + b.width / 2)} ${-(b.y + b.height / 2)})`, style: "cursor:move" });
+    g.dataset.i = i;
+    g.appendChild(arte(it));
+    g.appendChild(el("rect", { x: b.x, y: b.y, width: b.width, height: b.height, fill: "transparent" }));
+    capa.appendChild(g);
+  });
+
+  if (document.getElementById("regla").checked) regla();
+  if (sel !== null && items()[sel]) manijas(items()[sel]);
+  panel();
+}
+
+function regla() {
+  const P = PRENDAS[vista], g = el("g", { "pointer-events": "none" });
+  for (let x = Math.ceil(P.vb[0] / 5) * 5; x <= P.vb[0] + P.vb[2]; x += 5)
+    g.appendChild(el("line", { x1: x, x2: x, y1: P.vb[1], y2: P.vb[1] + P.vb[3], stroke: "#3b82f6", "stroke-width": x === 0 ? 0.15 : 0.06, opacity: 0.5 }));
+  for (let y = 0; y <= P.vb[1] + P.vb[3]; y += 5) {
+    g.appendChild(el("line", { x1: P.vb[0], x2: P.vb[0] + P.vb[2], y1: y, y2: y, stroke: "#3b82f6", "stroke-width": 0.06, opacity: 0.5 }));
+    const t = el("text", { x: P.vb[0] + 1, y: y - 0.4, "font-size": 1.6, fill: "#3b82f6", "font-family": "Archivo" }); t.textContent = y + " cm"; g.appendChild(t);
+  }
+  svg.appendChild(g);
+}
+
+function dims(it) { const b = caja(it); return { w: it.w, h: it.w * b.height / b.width }; }
+
+function manijas(it) {
+  const { w, h } = dims(it);
+  const g = el("g", { transform: `translate(${it.x} ${it.y}) rotate(${it.rot || 0})` });
+  g.appendChild(el("rect", { x: -w / 2, y: -h / 2, width: w, height: h, fill: "none", stroke: "#3b82f6", "stroke-width": 0.2, "stroke-dasharray": "0.8 0.5", "pointer-events": "none" }));
+  const r = el("rect", { x: w / 2 - 1, y: h / 2 - 1, width: 2, height: 2, fill: "#3b82f6", style: "cursor:nwse-resize" }); r.dataset.h = "escala"; g.appendChild(r);
+  g.appendChild(el("line", { x1: 0, y1: -h / 2, x2: 0, y2: -h / 2 - 3, stroke: "#3b82f6", "stroke-width": 0.2, "pointer-events": "none" }));
+  const c = el("circle", { cx: 0, cy: -h / 2 - 3.6, r: 1.1, fill: "#fff", stroke: "#3b82f6", "stroke-width": 0.3, style: "cursor:grab" }); c.dataset.h = "giro"; g.appendChild(c);
+  const t = el("text", { x: 0, y: h / 2 + 2.6, "text-anchor": "middle", "font-size": 1.7, fill: "#3b82f6", "font-family": "Archivo", "pointer-events": "none" });
+  t.textContent = `${w.toFixed(1)} × ${h.toFixed(1)} cm`; g.appendChild(t);
+  svg.appendChild(g);
+}
+
+/* ---------- Panel de la pieza ---------- */
+function panel() {
+  const body = document.getElementById("propsBody");
+  const it = sel !== null ? items()[sel] : null;
+  if (!it) { body.className = "vacio"; body.textContent = "Tocá una pieza en la prenda para elegirla."; return; }
+  body.className = "campo";
+  const { h } = dims(it);
+  const esTexto = !!PIEZAS[it.tipo].texto;
+  const esNombre = it.tipo.startsWith("nombre");
+  body.innerHTML = `
+    <b style="font-weight:500">${PIEZAS[it.tipo].nombre}</b>
+    <label>Ancho (cm) <input type="number" id="pw" step="0.5" min="1" value="${it.w.toFixed(1)}"></label>
+    <input type="range" id="pwr" min="2" max="90" step="0.5" value="${it.w}">
+    <label>Alto <span>${h.toFixed(1)} cm</span></label>
+    <label>Giro (°) <input type="number" id="prot" step="5" value="${Math.round(it.rot || 0)}"></label>
+    <label>Desde el hombro (cm) <span>${(it.y - h / 2).toFixed(1)}</span></label>
+    ${esNombre ? `<div class="fila"><button data-f="playfair" class="${(it.fuente || "playfair") === "playfair" ? "on" : ""}">Playfair</button><button data-f="archivo" class="${it.fuente === "archivo" ? "on" : ""}">Archivo espaciada</button></div>` : ""}
+    <div class="fila">
+      <button id="centrar">Centrar</button><button id="enderezar">Enderezar</button>
+      <button id="dup">Duplicar</button><button id="adelante">Al frente</button>
+      <button id="atras">Al fondo</button><button id="borrar">Borrar</button>
+    </div>`;
+  const cambiar = f => { f(it); guardar(); dibujar(); };
+  body.querySelector("#pw").onchange = e => cambiar(i => i.w = Math.max(1, +e.target.value));
+  body.querySelector("#pwr").oninput = e => cambiar(i => i.w = +e.target.value);
+  body.querySelector("#prot").onchange = e => cambiar(i => i.rot = +e.target.value);
+  body.querySelectorAll("[data-f]").forEach(b => b.onclick = () => cambiar(i => i.fuente = b.dataset.f));
+  body.querySelector("#centrar").onclick = () => cambiar(i => i.x = 0);
+  body.querySelector("#enderezar").onclick = () => cambiar(i => i.rot = 0);
+  body.querySelector("#dup").onclick = () => { items().push(Object.assign({}, it, { x: it.x + 3, y: it.y + 3 })); sel = items().length - 1; guardar(); dibujar(); };
+  body.querySelector("#adelante").onclick = () => { items().splice(sel, 1); items().push(it); sel = items().length - 1; guardar(); dibujar(); };
+  body.querySelector("#atras").onclick = () => { items().splice(sel, 1); items().unshift(it); sel = 0; guardar(); dibujar(); };
+  body.querySelector("#borrar").onclick = borrar;
+}
+function borrar() { if (sel === null) return; items().splice(sel, 1); sel = null; guardar(); dibujar(); }
+
+/* ---------- Interacción ---------- */
+function pt(e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+let drag = null;
+svg.addEventListener("pointerdown", e => {
+  const h = e.target.dataset.h;
+  const g = e.target.closest("[data-i]");
+  const p = pt(e);
+  if (h && sel !== null) {
+    const it = items()[sel];
+    drag = { modo: h, it, p0: p, w0: it.w, rot0: it.rot || 0, d0: Math.hypot(p.x - it.x, p.y - it.y), a0: Math.atan2(p.y - it.y, p.x - it.x) };
+  } else if (g) {
+    sel = +g.dataset.i; const it = items()[sel];
+    drag = { modo: "mover", it, dx: p.x - it.x, dy: p.y - it.y };
+    dibujar();
+  } else { sel = null; dibujar(); return; }
+  svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const p = pt(e), it = drag.it;
+  if (drag.modo === "mover") { it.x = +(p.x - drag.dx).toFixed(2); it.y = +(p.y - drag.dy).toFixed(2); }
+  if (drag.modo === "escala") { const d = Math.hypot(p.x - it.x, p.y - it.y); it.w = Math.max(1, +(drag.w0 * d / drag.d0).toFixed(2)); }
+  if (drag.modo === "giro") { const a = Math.atan2(p.y - it.y, p.x - it.x); let r = drag.rot0 + (a - drag.a0) * 180 / Math.PI; if (!e.shiftKey) r = Math.round(r / 5) * 5; it.rot = r; }
+  dibujar();
+});
+svg.addEventListener("pointerup", () => { if (drag) { drag = null; guardar(); } });
+svg.addEventListener("wheel", e => {
+  if (sel === null) return;
+  e.preventDefault();
+  const it = items()[sel]; it.w = Math.max(1, +(it.w * (e.deltaY < 0 ? 1.05 : 1 / 1.05)).toFixed(2));
+  guardar(); dibujar();
+}, { passive: false });
+document.addEventListener("keydown", e => {
+  if (sel === null || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  const it = items()[sel], d = e.shiftKey ? 2 : 0.5;
+  const mov = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[e.key];
+  if (mov) { e.preventDefault(); it.x += mov[0]; it.y += mov[1]; guardar(); dibujar(); }
+  if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); borrar(); }
+});
+
+/* ---------- Barra ---------- */
+function tabs() {
+  const t = document.getElementById("tabs"); t.innerHTML = "";
+  for (const k in PRENDAS) {
+    const b = document.createElement("button"); b.textContent = PRENDAS[k].nombre; if (k === vista) b.className = "on";
+    b.onclick = () => { vista = k; sel = null; tabs(); dibujar(); }; t.appendChild(b);
+  }
+}
+function botonesPiezas() {
+  const box = document.getElementById("piezas");
+  for (const k in PIEZAS) {
+    const b = document.createElement("button"); b.className = "pieza";
+    const it = { tipo: k }; const c = caja(it);
+    const m = el("svg", { viewBox: `${c.x - c.width * 0.05} ${c.y - c.height * 0.05} ${c.width * 1.1} ${c.height * 1.1}` });
+    m.appendChild(arte(it)); b.appendChild(m);
+    const s = document.createElement("span"); s.textContent = PIEZAS[k].nombre; b.appendChild(s);
+    b.onclick = () => {
+      const y0 = vista.startsWith("hoodie") ? 22 : 24;
+      items().push({ tipo: k, x: 0, y: y0, w: PIEZAS[k].w, rot: 0 });
+      sel = items().length - 1; guardar(); dibujar();
+    };
+    box.appendChild(b);
+  }
+}
+document.getElementById("recorte").onchange = dibujar;
+document.getElementById("regla").onchange = dibujar;
+document.getElementById("limpiar").onclick = () => { if (confirm("¿Vaciar " + PRENDAS[vista].nombre + "?")) { estado[vista] = []; sel = null; guardar(); dibujar(); } };
+document.getElementById("copiar").onclick = () => {
+  const lineas = ["Diseño de ropa Vitácora (talle M, cm; x = 0 es el centro, y = 0 es el hombro junto al cuello)"];
+  for (const k in PRENDAS) {
+    if (!estado[k].length) continue;
+    lineas.push("", PRENDAS[k].nombre + ":");
+    estado[k].forEach(it => {
+      const { w, h } = dims(it);
+      lineas.push(`- ${PIEZAS[it.tipo].nombre}${it.fuente ? " [" + it.fuente + "]" : ""}: ${w.toFixed(1)} × ${h.toFixed(1)} cm, centro en x ${it.x.toFixed(1)} / y ${it.y.toFixed(1)}, borde de arriba a ${(it.y - h / 2).toFixed(1)} cm del hombro, giro ${Math.round(it.rot || 0)}°`);
+    });
+  }
+  lineas.push("", "JSON: " + JSON.stringify(estado));
+  const txt = lineas.join("\n");
+  document.getElementById("salida").value = txt;
+  try { navigator.clipboard.writeText(txt); } catch (e) {}
+};
+
+(document.fonts ? Promise.all([
+  document.fonts.load('46px "Playfair Display"'), document.fonts.load('italic 46px "Playfair Display"'),
+  document.fonts.load('500 46px "Playfair Display"'), document.fonts.load('500 46px Archivo')
+]).catch(() => {}) : Promise.resolve()).then(() => { tabs(); botonesPiezas(); dibujar(); });
+</script>
+</body>
+</html>

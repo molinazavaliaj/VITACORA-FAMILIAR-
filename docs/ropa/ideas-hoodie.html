@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ropa Vitácora · ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#efefec; --tinta:#14140F; --gris:#6b6b63; --linea:#d6d6d0; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--tinta); font-family:Archivo, system-ui, sans-serif; }
+header { max-width:1100px; margin:0 auto; padding:36px 16px 8px; }
+.kicker { font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--gris); }
+h1 { font-family:'Playfair Display', serif; font-style:italic; font-weight:400; font-size:clamp(28px,4vw,42px); margin:8px 0; }
+header p { max-width:66ch; line-height:1.55; color:#3d3d37; }
+.idea { max-width:1100px; margin:16px auto; padding:0 16px; }
+.card { background:#fff; border:1px solid var(--linea); padding:20px; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; align-items:center; }
+.prendas { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.prendas figure { margin:0; }
+.prendas svg { width:100%; height:auto; display:block; background:#f6f6f3; }
+.prendas figcaption { font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--gris); padding-top:6px; text-align:center; }
+.num { font-family:'Playfair Display', serif; font-style:italic; font-size:44px; line-height:1; }
+h2 { font-family:'Playfair Display', serif; font-weight:400; font-size:26px; margin:4px 0 10px; }
+.txt p { line-height:1.55; color:#3d3d37; margin:0 0 10px; font-size:14px; }
+.txt .pc { font-size:13px; }
+.txt b { font-weight:600; color:var(--tinta); }
+@media (max-width:760px) { .card { grid-template-columns:1fr; } }
+</style></head><body>
+<header>
+  <div class="kicker">Vitácora Familiar · ropa para grabar</div>
+  <h1>Cuatro direcciones para el hoodie</h1>
+  <p>Mismo hoodie negro, mismo estampado blanco. Lo único que cambia es qué pieza va, dónde y de qué tamaño. Todas respetan las reglas de la marca. Elegí por el ojo: la que te dé ganas de ponértela.</p>
+</header>
+<div id="ideas"></div>
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const BLANCO = "#FFFFFF", TELA = "#1d1d19", COSTURA = "#55554c";
+
+/* ---------- Prendas (en cm, talle M; y=0 es el punto del hombro junto al cuello) ---------- */
+const PRENDAS = {
+  "hoodie-frente": {
+    nombre: "Hoodie · frente", vb: [-56, -20, 112, 92],
+    telas: [
+      "M -27,4 L -47,57 L -38,60 L -28,25 Z", "M 27,4 L 47,57 L 38,60 L 28,25 Z",
+      "M -47,57 L -38,60 L -40,66 L -49,63 Z", "M 47,57 L 38,60 L 40,66 L 49,63 Z",
+      "M -11,-1 C -14,-10 -6,-15 0,-15 C 6,-15 14,-10 11,-1 Z",
+      "M -10,-1 L -27,4 L -28,25 L -28,64 L 28,64 L 28,25 L 27,4 L 10,-1 C 6,5 -6,5 -10,-1 Z",
+      "M -28,64 L 28,64 L 28,70 L -28,70 Z"
+    ],
+    lineas: [
+      "M -10,-1 C -9,6 -3,9 0,10 C 3,9 9,6 10,-1",
+      "M -16,42 L 16,42 L 20,60 L -20,60 Z", "M -16,42 L -20,52 M 16,42 L 20,52",
+      "M -28,25 L -27,4 M 28,25 L 27,4"
+    ],
+    hueco: "M -10,-1 C -9,6 -3,9 0,10 C 3,9 9,6 10,-1 C 7,-7 -7,-7 -10,-1 Z"
+  },
+  "hoodie-espalda": {
+    nombre: "Hoodie · espalda", vb: [-56, -20, 112, 92],
+    telas: [
+      "M -27,4 L -47,57 L -38,60 L -28,25 Z", "M 27,4 L 47,57 L 38,60 L 28,25 Z",
+      "M -47,57 L -38,60 L -40,66 L -49,63 Z", "M 47,57 L 38,60 L 40,66 L 49,63 Z",
+      "M -10,-1 L -27,4 L -28,25 L -28,64 L 28,64 L 28,25 L 27,4 L 10,-1 C 6,1 -6,1 -10,-1 Z",
+      "M -28,64 L 28,64 L 28,70 L -28,70 Z"
+    ],
+    lineas: [ "M -28,25 L -27,4 M 28,25 L 27,4" ],
+    capucha: "M -10,-1 C -17,1 -16,10 0,12.5 C 16,10 17,1 10,-1 C 6,1 -6,1 -10,-1 Z"
+  },
+  "camisa-frente": {
+    nombre: "Camisa · frente", vb: [-52, -12, 104, 92],
+    telas: [
+      "M -24,3 L -41,62 L -34,64 L -27,22 Z", "M 24,3 L 41,62 L 34,64 L 27,22 Z",
+      "M -41,62 L -34,64 L -35.5,70 L -42.5,68 Z", "M 41,62 L 34,64 L 35.5,70 L 42.5,68 Z",
+      "M -8,0 L -24,3 L -27,22 L -27,72 Q -14,79 0,76 Q 14,79 27,72 L 27,22 L 24,3 L 8,0 Z"
+    ],
+    lineas: [
+      "M -1.6,4 L -1.6,76.5 M 1.6,4 L 1.6,76.5",
+      "M -27,22 L -24,3 M 27,22 L 24,3"
+    ],
+    encima: [
+      "M -8,0 C -6,-3 6,-3 8,0 L 7.5,1.5 C 4,0 -4,0 -7.5,1.5 Z",
+      "M -8,0 L -9.5,7.5 L -1,5 L 0,2 Z", "M 8,0 L 9.5,7.5 L 1,5 L 0,2 Z"
+    ],
+    botones: [5, 13, 22, 31, 40, 49, 58, 67]
+  },
+  "camisa-espalda": {
+    nombre: "Camisa · espalda", vb: [-52, -12, 104, 92],
+    telas: [
+      "M -24,3 L -41,62 L -34,64 L -27,22 Z", "M 24,3 L 41,62 L 34,64 L 27,22 Z",
+      "M -41,62 L -34,64 L -35.5,70 L -42.5,68 Z", "M 41,62 L 34,64 L 35.5,70 L 42.5,68 Z",
+      "M -8,0 L -24,3 L -27,22 L -27,72 Q -14,79 0,76 Q 14,79 27,72 L 27,22 L 24,3 L 8,0 Z"
+    ],
+    lineas: [ "M -25,11 Q 0,13 25,11", "M -27,22 L -24,3 M 27,22 L 24,3" ],
+    encima: [ "M -8,0 C -6,-3 6,-3 8,0 L 8,1.2 C 4,-1 -4,-1 -8,1.2 Z" ]
+  }
+};
+
+/* ---------- Piezas de marca ---------- */
+const ANILLOS = [[13.86,17.63],[26.77,34.07],[39.35,50.08],[51.71,65.82],[63.92,81.36],[76.01,96.74],[88.00,112.00]];
+function toroide(g, grosor) {
+  for (const [rx, ry] of ANILLOS) for (const lado of [-1, 1]) {
+    const e = el("ellipse", { cx: lado * rx, cy: 0, rx, ry, fill: "none", stroke: BLANCO, "stroke-width": grosor });
+    g.appendChild(e);
+  }
+}
+const PIEZAS = {
+  toroide: {
+    nombre: "Toroide", w: 30,
+    dibujar(g) { toroide(g, 1.15); }
+  },
+  campo: {
+    nombre: "Campo V·F", w: 20,
+    dibujar(g) {
+      const id = "cv" + Math.random().toString(36).slice(2, 8);
+      const cp = el("clipPath", { id }); cp.appendChild(el("rect", { x: -100, y: -145, width: 200, height: 290 }));
+      g.appendChild(cp);
+      const c = el("g", { "clip-path": `url(#${id})` }); g.appendChild(c);
+      c.appendChild(el("line", { x1: 0, y1: -124.68, x2: 0, y2: 124.68, stroke: BLANCO, "stroke-width": 0.9, "stroke-dasharray": "3 4", opacity: 0.55 }));
+      c.appendChild(el("path", { d: "M0 -133 l5.2 5.2 l-5.2 5.2 l-5.2 -5.2 Z", fill: BLANCO, opacity: 0.75 }));
+      c.appendChild(el("path", { d: "M0 133 l5.2 -5.2 l-5.2 -5.2 l-5.2 5.2 Z", fill: BLANCO, opacity: 0.75 }));
+      toroide(c, 1.15);
+      for (const x of [-48, 48]) c.appendChild(el("ellipse", { cx: x, cy: 0, rx: 33.5, ry: 43, fill: TELA }));
+      for (const [x, t] of [[-48, "V"], [48, "F"]]) {
+        const tx = el("text", { x, y: 26, "text-anchor": "middle", "font-family": "'Playfair Display', Georgia, serif", "font-weight": 500, "font-size": 76, fill: BLANCO });
+        tx.textContent = t; c.appendChild(tx);
+      }
+      g.appendChild(el("rect", { x: -100, y: -145, width: 200, height: 290, fill: "transparent" }));
+    }
+  },
+  vf: {
+    nombre: "V·F", w: 12,
+    dibujar(g) {
+      const tx = el("text", { x: 0, y: 0, "text-anchor": "middle", "font-family": "'Playfair Display', Georgia, serif", "font-weight": 500, "font-size": 76, fill: BLANCO });
+      tx.textContent = "V·F"; g.appendChild(tx);
+    }
+  },
+  nombre1: { nombre: "VITÁCORA FAMILIAR (1 línea)", w: 24, texto: ["VITÁCORA FAMILIAR"], fuente: "playfair" },
+  nombre2: { nombre: "VITÁCORA / FAMILIAR (2 líneas)", w: 14, texto: ["VITÁCORA", "FAMILIAR"], fuente: "playfair" },
+  slogan1: { nombre: "Slogan (1 línea)", w: 30, texto: ["En cada familia hay un libro sin escribir."], fuente: "italica" },
+  slogan2: { nombre: "Slogan (2 líneas)", w: 20, texto: ["En cada familia hay", "un libro sin escribir."], fuente: "italica" }
+};
+const FUENTES = {
+  playfair: { "font-family": "'Playfair Display', Georgia, serif", "font-weight": 400, "letter-spacing": 1.5 },
+  archivo: { "font-family": "Archivo, sans-serif", "font-weight": 500, "letter-spacing": 12 },
+  italica: { "font-family": "'Playfair Display', Georgia, serif", "font-style": "italic", "font-weight": 400 }
+};
+function dibujarTexto(g, lineas, fuente) {
+  const t = el("text", Object.assign({ "text-anchor": "middle", "font-size": 46, fill: BLANCO }, FUENTES[fuente]));
+  lineas.forEach((l, i) => { const s = el("tspan", { x: 0, y: i * 56 }); s.textContent = l; t.appendChild(s); });
+  g.appendChild(t);
+}
+
+function el(tag, attrs = {}) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+const cajas = {};
+function arte(item) {
+  const g = el("g");
+  const p = PIEZAS[item.tipo];
+  if (p.texto) dibujarTexto(g, p.texto, item.fuente || p.fuente); else p.dibujar(g);
+  return g;
+}
+function caja(item) {
+  const k = item.tipo + "|" + (item.fuente || "");
+  if (cajas[k]) return cajas[k];
+  if (item.tipo === "campo") return cajas[k] = { x: -100, y: -145, width: 200, height: 290 };
+  if (item.tipo === "toroide") return cajas[k] = { x: -176, y: -112, width: 352, height: 224 };
+  const tmp = el("svg", { width: 10, height: 10, style: "position:absolute;left:-9999px" });
+  const g = arte(item); tmp.appendChild(g); document.body.appendChild(tmp);
+  const b = g.getBBox(); tmp.remove();
+  return cajas[k] = { x: b.x, y: b.y, width: b.width, height: b.height };
+}
+
+
+const IDEAS = [{"n": "1", "titulo": "Firma", "texto": "Lo que hacen las marcas caras. Adelante, el nombre chiquito en el pecho izquierdo, como una etiqueta. Atrás, el toroide solo, grande, sin una letra. De frente se ve una prenda negra lisa con una firma, y de espaldas una imagen que intriga.", "pro": "Es la que más se ve de marca y la que menos parece de promotor.", "contra": "El nombre a 1–2 metros cuesta leerlo. Quien te ve venir no sabe de entrada quién sos.", "frente": [{"tipo": "nombre1", "fuente": "archivo", "x": 12.5, "y": 14, "w": 10, "rot": 0}], "espalda": [{"tipo": "toroide", "x": 0, "y": 34, "w": 40, "rot": 0}]}, {"n": "2", "titulo": "Toroide que se escapa", "texto": "Atrás, el toroide gigante, descentrado, que se corta en la costura y sigue por el hombro y la manga. Adelante, el nombre en dos líneas, chico, en el pecho izquierdo.", "pro": "Es la más llamativa en video. Se reconoce de lejos y no parece de ninguna otra marca.", "contra": "Es la más arriesgada. Cuesta más estampar sobre la costura (el DTF se puede partir en dos piezas).", "frente": [{"tipo": "nombre2", "fuente": "playfair", "x": 12.5, "y": 15, "w": 11, "rot": 0}], "espalda": [{"tipo": "toroide", "x": 14, "y": 26, "w": 78, "rot": 0}]}, {"n": "3", "titulo": "Línea de libro", "texto": "La más silenciosa. Adelante, el Campo V·F chiquito en el pecho, como un sello. Atrás, solo el slogan en una línea, en itálica, abajo cerca del borde, como la primera frase de un libro.", "pro": "Es la más elegante y la que más dice de qué se trata la marca.", "contra": "En cámara la espalda llama poco la atención. La frase se lee de cerca, no en 3 segundos.", "frente": [{"tipo": "campo", "x": 12.5, "y": 18, "w": 7, "rot": 0}], "espalda": [{"tipo": "slogan1", "x": 0, "y": 56, "w": 34, "rot": 0}]}, {"n": "4", "titulo": "Claro y de frente", "texto": "Pensada para el momento de encarar a alguien. Adelante, el toroide arriba y el nombre debajo, en Archivo espaciada, con mucho aire alrededor. Atrás, el slogan en dos líneas, alto, justo debajo de la capucha.", "pro": "El nombre se lee a 3 metros. Quien te ve venir sabe quién sos antes de que hables.", "contra": "Es la más de marca y la menos de moda. Se acerca a lo que te pareció feo.", "frente": [{"tipo": "toroide", "x": 0, "y": 22, "w": 14, "rot": 0}, {"tipo": "nombre1", "fuente": "archivo", "x": 0, "y": 32, "w": 26, "rot": 0}], "espalda": [{"tipo": "slogan2", "x": 0, "y": 20, "w": 24, "rot": 0}]}];
+function render(vista, lista) {
+  const P = PRENDAS[vista];
+  const s = el("svg", { viewBox: P.vb.join(" ") });
+  const defs = el("defs"); s.appendChild(defs);
+  const id = "c" + Math.random().toString(36).slice(2, 8);
+  const cp = el("clipPath", { id }); P.telas.forEach(d => cp.appendChild(el("path", { d }))); defs.appendChild(cp);
+  const base = el("g", { stroke: COSTURA, "stroke-width": 0.22, "stroke-linejoin": "round" });
+  P.telas.forEach(d => base.appendChild(el("path", { d, fill: TELA }))); s.appendChild(base);
+  const capa = el("g", { "clip-path": `url(#${id})` }); s.appendChild(capa);
+  const arriba = el("g", { stroke: COSTURA, "stroke-width": 0.22, fill: "none", "stroke-linejoin": "round", opacity: 0.9 });
+  (P.lineas || []).forEach(d => arriba.appendChild(el("path", { d })));
+  if (P.hueco) arriba.appendChild(el("path", { d: P.hueco, fill: "#141411" }));
+  if (P.capucha) arriba.appendChild(el("path", { d: P.capucha, fill: "#1a1a16", opacity: 0.55 }));
+  s.appendChild(arriba);
+  lista.forEach(it => {
+    const b = caja(it), k = it.w / b.width;
+    const g = el("g", { transform: `translate(${it.x} ${it.y}) rotate(${it.rot || 0}) scale(${k}) translate(${-(b.x + b.width / 2)} ${-(b.y + b.height / 2)})` });
+    g.appendChild(arte(it)); capa.appendChild(g);
+  });
+  return s;
+}
+function armar() {
+  const box = document.getElementById("ideas");
+  IDEAS.forEach(i => {
+    const sec = document.createElement("section"); sec.className = "idea";
+    sec.innerHTML = `<div class="card"><div class="prendas"><figure></figure><figure></figure></div>
+      <div class="txt"><div class="num">${i.n}</div><h2>${i.titulo}</h2><p>${i.texto}</p>
+      <p class="pc"><b>A favor.</b> ${i.pro}</p><p class="pc"><b>En contra.</b> ${i.contra}</p></div></div>`;
+    const [f1, f2] = sec.querySelectorAll("figure");
+    f1.appendChild(render("hoodie-frente", i.frente)); f1.insertAdjacentHTML("beforeend", "<figcaption>Frente</figcaption>");
+    f2.appendChild(render("hoodie-espalda", i.espalda)); f2.insertAdjacentHTML("beforeend", "<figcaption>Espalda</figcaption>");
+    box.appendChild(sec);
+  });
+}
+(document.fonts ? Promise.all([
+  document.fonts.load('46px "Playfair Display"'), document.fonts.load('italic 46px "Playfair Display"'),
+  document.fonts.load('500 46px "Playfair Display"'), document.fonts.load('500 46px Archivo')
+]).catch(() => {}) : Promise.resolve()).then(armar);
+</script></body></html>
