@@ -52,11 +52,11 @@
 | HC6 | En aquell moment tan dur, qui va estar al teu costat? Explica'm una vegada concreta que algú et va donar un cop de mà o et va dir alguna cosa que no has oblidat. Si ho vas passar {{sol/sola}}, això també forma part de la història, explica-m'ho. |
 | HC7 | Quan va començar a canviar? Hi va haver un dia, o un moment petit, que vas sentir que les coses començaven a canviar. Explica'm aquell moment, on eres i què et va fer pensar que ara sí que te'n sortiries. |
 | HC8 | Explica'm com va acabar aquesta història. El dia que vas sentir que ja havia passat, que ja ho havies deixat enrere. On eres, amb qui, què vas fer aquell dia. |
-| HC9 | Què t'ha deixat tot això? Explica'm una vegada, quan ja ho tenies tot al darrere, que et vas adonar que alguna cosa en tu havia canviat. Què estaves fent i què vas pensar. |
+| HC9 | Què t'ha deixat tot això? Explica'm una vegada, quan ja ho tenies tot al darrere, en què et vas adonar que alguna cosa en tu havia canviat. Què estaves fent i què vas pensar. |
 | HC10 | Ja hem arribat al final, {{nombre}}. Imagina't que tens al davant la persona que eres abans de tot això, el dia abans que comencés. Què li diries? Parla-li com si t'estigués escoltant, sense pressa. |
 | HC5-Q | Ara arribem a la part més difícil, {{nombre}}. En totes les històries de parella hi ha un moment en què sembla que allò s'acaba. Explica'm quin va ser el vostre, què va passar aquell dia i què vas fer. Si prefereixes no entrar-hi, n'hi ha prou amb dir «passo». |
 | HC8-Q | Explica'm com va continuar aquesta història després d'aquells primers temps. Tria un dia de molt més endavant, quan ja sabies què era aquella persona per a tu. On éreu, què fèieu, què us vau dir. |
-| HC9-Q | Què t'ha deixat aquella persona? Explica'm una vegada que et vas adonar que alguna cosa en tu havia canviat per haver-la coneguda. Què estaves fent i què vas pensar. |
+| HC9-Q | Què t'ha deixat aquella persona? Explica'm una vegada en què et vas adonar que alguna cosa en tu havia canviat per haver-la coneguda. Què estaves fent i què vas pensar. |
 | HC8-P | Explica'm com van acabar aquells primers temps. El dia que vas sentir que ja sabies ser mare o pare, que et sortia sol, sense haver-hi de pensar. On eres, què estaves fent, qui hi havia amb tu. |
 | HC9-P | En què t'ha canviat ser mare o pare? Explica'm una vegada, quan ja havien passat aquells primers temps, en què et vas adonar que alguna cosa en tu havia canviat. Què estaves fent i què vas pensar. |
 | HC8-T | Explica'm l'últim dia, si n'hi va haver. El de la jubilació, el tancament, el dia que vas plegar o et van dir que ja no continuaves. Què vas fer en sortir i com vas arribar a casa. Si encara hi treballes, explica'm com és un dia d'ara comparat amb els d'aleshores. |
