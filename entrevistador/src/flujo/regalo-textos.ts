@@ -77,19 +77,21 @@ export type TextosAvisos = { noExiste: string; usadoPorOtro: string };
 export const ARRANQUE: Readonly<Record<Idioma, TextosArranque>> = {
   'es-AR': {
     pedidoSi: 'Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.',
-    aceptacion: 'Gracias, {{nombre}}. Ahí te mando la primera pregunta. Sin apuro, y no hay respuestas incorrectas.',
+    // 20/10 (Naza): quién lee lo que cuenta y cómo pedir que se borre (informar al narrador, RGPD art. 14).
+    aceptacion: 'Gracias, {{nombre}}. Lo que me cuentes lo va a poder leer y escuchar quien te regaló el libro, en una página privada, y lo usamos solo para tu libro. Si en algún momento querés que borremos algo, escribinos a soporte@vitacorafamiliar.com. Ahí te mando la primera pregunta. Sin apuro, y no hay respuestas incorrectas.',
     noEntendi: 'Perdón, no te entendí. Para arrancar necesito que me escribas SÍ. ¿Vamos?',
     noQuiere: 'Sin problema, {{nombre}}. Cuando tengas ganas me escribís SÍ y arrancamos. Acá voy a estar.',
   },
   'es-ES': {
     pedidoSi: 'Antes de empezar, una cosa. Tus mejores frases quedarán en el libro tal cual las has contado, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Responde SÍ y empezamos.',
-    aceptacion: 'Gracias, {{nombre}}. Ahora mismo te mando la primera pregunta. Sin prisa, y no hay respuestas incorrectas.',
+    aceptacion: 'Gracias, {{nombre}}. Lo que me cuentes lo podrá leer y escuchar quien te regaló el libro, en una página privada, y solo lo usamos para tu libro. Si en algún momento quieres que borremos algo, escríbenos a soporte@vitacorafamiliar.com. Ahora mismo te mando la primera pregunta. Sin prisa, y no hay respuestas incorrectas.',
     noEntendi: 'Perdona, no te he entendido. Para empezar necesito que me escribas SÍ. ¿Vamos?',
     noQuiere: 'Sin problema, {{nombre}}. Cuando te apetezca me escribes SÍ y empezamos. Aquí estaré.',
   },
   ca: {
     pedidoSi: "Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.",
-    aceptacion: "Gràcies, {{nombre}}. Ara mateix t'envio la primera pregunta. Sense pressa, i no hi ha respostes incorrectes.",
+    // ca: PENDIENTE REVISIÓN NATIVA (Imma), traducción del texto del 20/10
+    aceptacion: "Gràcies, {{nombre}}. El que m'expliquis ho podrà llegir i escoltar qui t'ha regalat el llibre, en una pàgina privada, i només ho fem servir per al teu llibre. Si en algun moment vols que esborrem alguna cosa, escriu-nos a soporte@vitacorafamiliar.com. Ara mateix t'envio la primera pregunta. Sense pressa, i no hi ha respostes incorrectes.",
     noEntendi: "Perdona, no t'he entès. Per començar necessito que m'escriguis SÍ. Som-hi?",
     noQuiere: "Cap problema, {{nombre}}. Quan et vingui de gust m'escrius SÍ i comencem. Aquí em tindràs.",
   },

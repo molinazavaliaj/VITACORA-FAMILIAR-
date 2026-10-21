@@ -205,7 +205,7 @@ const AR: PorLanding = {
     },
     faqTitulo: "Antes de decidir.",
     cierre: "Que lo cuente con su voz.",
-    altFoto: "Un chico sentado en la alfombra de su cuarto le saca una foto a sus juguetes con el celular",
+    altFoto: "Un chico sentado en la alfombra de su cuarto les saca una foto a sus juguetes con el celular",
   },
   once: {
     meta: { titulo: "Vitácora Kids · Cómo piensa a los once", descripcion: "Le preguntamos por su mundo y contesta con audios. Con sus respuestas hacemos su libro." },

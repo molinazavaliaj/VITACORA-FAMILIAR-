@@ -145,3 +145,13 @@ describe('kids v2: banco.md + mensajes.md → banco.json', () => {
     expect(() => parsearBancoMd(`${tabla}| K1 (b1) | Hola | [Sí] sin flecha | — | — | |\n`)).toThrow(/K1.*→/);
   });
 });
+
+describe('primerNombre (20/10)', () => {
+  it('pone la mayúscula si vino todo en minúsculas o mayúsculas, y respeta el resto', async () => {
+    const { primerNombre } = await import('../src/kids-v2/texto.js');
+    expect(primerNombre('immaculada colell')).toBe('Immaculada');
+    expect(primerNombre('LAURA SOSA')).toBe('Laura');
+    expect(primerNombre('Laura Sosa')).toBe('Laura');
+    expect(primerNombre('McKenzie')).toBe('McKenzie');
+  });
+});

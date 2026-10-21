@@ -55,6 +55,19 @@ export const CONTACTO = {
 /** La fecha de la última versión de los legales (la pinta _textos/legal.ts en cada idioma). */
 export const ACTUALIZADO = "19 de octubre de 2026";
 
+/**
+ * Quién da el cupón de bienvenida y quién firma sus mails (rasca y gana,
+ * 20/10): nombre, documento y domicilio del titular del país, lo que esté
+ * cargado (LSSI arts. 10 y 20; art. 13.1.a RGPD en el popup).
+ */
+export function quienEs(region: Region): string {
+  const t = TITULARES[region];
+  const partes = [t.nombre];
+  if (t.documento.valor.trim()) partes.push(`${t.documento.etiqueta} ${t.documento.valor.trim()}`);
+  if (t.domicilio.trim()) partes.push(t.domicilio.trim());
+  return partes.join(", ");
+}
+
 /** Campos del titular que todavía no se completaron (se pintan en amarillo). */
 export function faltan(t: Titular): string[] {
   const lista: string[] = [];

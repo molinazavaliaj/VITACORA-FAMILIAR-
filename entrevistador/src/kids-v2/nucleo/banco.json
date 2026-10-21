@@ -1517,7 +1517,7 @@
     },
     {
       "id": "BIEN-PADRE",
-      "texto": "Hola {{1}}. Qué lindo regalo le estás haciendo a {{2}}, su propio libro, con vos al lado mientras lo cuenta. Las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.\n\nCuando llegue una, buscá un rato tranquilo y sentate con {{2}} al lado. Leésela, o pasale el celular para que la lea.\n\nLa respuesta es un audio, y lo graba {{2}} con sus palabras. No contestes vos ni le corrijas nada. Si se va por las ramas o dice algo que no es como vos lo recordás, eso también va al libro, y es lo que lo hace suyo.\n\nLos botones también los toca {{2}}, para pasar una pregunta, decir que no tiene algo o pedir otra. Son parte de lo que cuenta.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro. Ni qué te pareció ni qué te hubiera gustado que dijera. Todo queda guardado en tu panel, también lo del sobre cerrado.\n\nCuando estén juntos, tocá el botón y llega la primera.",
+      "texto": "Hola {{1}}. Qué lindo regalo le estás haciendo a {{2}}, su propio libro, con vos al lado mientras lo cuenta. Las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.\n\nCuando llegue una, buscá un rato tranquilo y sentate con {{2}} al lado. Leésela, o pasale el celular para que la lea.\n\nLa respuesta es un audio, y lo graba {{2}} con sus palabras. No contestes vos ni le corrijas nada. Si se va por las ramas o dice algo que no es como vos lo recordás, eso también va al libro, y es lo que lo hace suyo.\n\nLos botones también los toca {{2}}, para pasar una pregunta, decir que no tiene algo o pedir otra. Son parte de lo que cuenta.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro. Ni qué te pareció ni qué te hubiera gustado que dijera. Todo queda guardado en la página de su historia, también lo del sobre cerrado.\n\nCuando estén juntos, tocá el botón y llega la primera.",
       "botones": [
         "Estamos listos"
       ],
@@ -1525,7 +1525,7 @@
     },
     {
       "id": "AVISO-PADRE",
-      "texto": "Hola {{1}}. Ya le escribimos a {{2}}. Le contamos de parte de quién es el regalo, y cuando toque \"Dale, vamos\" le llega la primera pregunta. De ahí en adelante va a su ritmo, por lo menos una por día, y más si tiene ganas.\n\nTodo lo que cuente lo podés ver en tu panel, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).\n\nMientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A {{2}} no le decimos nada por tardar. No hay retos ni apuros de nuestro lado.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.",
+      "texto": "Hola {{1}}. Ya le escribimos a {{2}}. Le contamos de parte de quién es el regalo, y cuando toque \"Dale, vamos\" le llega la primera pregunta. De ahí en adelante va a su ritmo.\n\nTodo lo que cuente lo podés ver en la página de su historia, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).\n\nMientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A {{2}} no le decimos nada por tardar. No hay retos ni apuros de nuestro lado.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.",
       "botones": [],
       "plantilla": "kids_aviso_padre"
     },
@@ -1629,7 +1629,7 @@
     },
     {
       "id": "TERMINO-PADRE",
-      "texto": "Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.",
+      "texto": "Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en la página de su historia, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.",
       "botones": [],
       "plantilla": "kids_termino_padre"
     },

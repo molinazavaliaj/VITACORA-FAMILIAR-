@@ -23,16 +23,16 @@ import type { IdiomaKids } from './nucleo/idioma.js';
 import type { FilaKids } from './tipos.js';
 
 /**
- * Lo que se le contesta al padre, una sola vez por chico. Texto aprobado por Naza 15/10: no se cambia sin su OK.
+ * Lo que se le contesta al padre, una sola vez por chico. Texto aprobado por Naza 15/10 («panel» → «la página de su historia», Naza 20/10): no se cambia sin su OK.
  * `{apodo}` = cómo le dicen al chico (`ficha.apodo`). No está en el banco del motor porque el banco sale de los md
  * aprobados de docs/kids/v2 (que no se editan) y el motor no ve al padre de canal A. Tampoco tiene versión en
  * banco-es-ES.md: va el mismo a España (no tiene voseo: «ves» es igual con tú), hasta que Naza apruebe otro.
  * Si un idioma no tuviera el suyo, al padre no se le contesta nada, nunca en castellano, y se avisa a los socios.
  */
-export const TEXTO_AL_PADRE = 'Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en tu panel.';
+export const TEXTO_AL_PADRE = 'Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en la página de su historia.';
 
 /** En catalán: Aprobado por Naza el 16/10/2026 (tanda 10), de docs/rediseno-2026-10/kids/textos-ca-2026-10-16.md (rama de la web). */
-export const TEXTO_AL_PADRE_CA = 'Aquest número és per a les preguntes de {apodo}. El que explica ho veus al teu panell.';
+export const TEXTO_AL_PADRE_CA = 'Aquest número és per a les preguntes de {apodo}. El que explica ho veus a la pàgina de la seva història.';
 
 /** Por idioma del chico. */
 export const TEXTOS_AL_PADRE: Readonly<Partial<Record<IdiomaKids, string>>> = { 'es-AR': TEXTO_AL_PADRE, 'es-ES': TEXTO_AL_PADRE, ca: TEXTO_AL_PADRE_CA };

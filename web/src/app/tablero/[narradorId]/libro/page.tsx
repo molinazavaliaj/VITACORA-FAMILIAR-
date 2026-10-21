@@ -245,7 +245,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar su voz</ProximoPaso>
         </div>
         <p className="mt-4 text-[14px] leading-relaxed text-[var(--texto-menor)]">
-          Quienes invitaste a la historia lo leen y lo escuchan desde su panel. Para el resto de la familia, el link para compartir está en la historia (botón <strong className="font-medium text-[var(--texto)]">Compartir</strong>): ven la muestra y pueden encargar su propio libro.
+          Las personas que invitaste lo leen y lo escuchan en la página de la historia. Para el resto de la familia está el botón <strong className="font-medium text-[var(--texto)]">Compartir</strong>. Con ese enlace ven la muestra y pueden encargar su propio libro.
         </p>
       </Tarjeta>
     );

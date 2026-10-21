@@ -26,6 +26,15 @@ const LANDINGS_POR_PAIS: ReadonlyArray<readonly [string, string]> = [
   ["/kids/a-los-once", "/ar/kids/a-los-once"],
 ];
 
+// La preview (y local) no se indexa (19/10): además del robots.txt que bloquea
+// todo fuera de producción (lib/seo.ts), cada respuesta lleva X-Robots-Tag.
+// Robots solo pide no rastrear; esta cabecera es la que saca de Google una URL
+// de la preview que alguien enlazó. En producción no se manda nada.
+export function cabecerasSinIndexar(entorno: string | undefined = process.env.VERCEL_ENV) {
+  if (entorno === "production") return [];
+  return [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
+}
+
 const nextConfig: NextConfig = {
   compress: true,
   // El chequeo de tipos del build deja afuera test/: algunos tests importan de
@@ -34,6 +43,9 @@ const nextConfig: NextConfig = {
   typescript: { tsconfigPath: "tsconfig.build.json" },
   images: {
     formats: ["image/avif", "image/webp"],
+  },
+  async headers() {
+    return cabecerasSinIndexar();
   },
   async redirects() {
     const pares: Array<readonly [string, string]> = [

@@ -63,7 +63,7 @@ BIEN-1 y BIEN-1R son alternativas (una u otra, según sea para sí o un regalo);
 |---|---|---|---|---|
 | BIEN-1 | arranque | 1 | Hola, {{nombre}}. Soy quien va a escribir el libro de tu viaje. Funciona así: yo te pregunto por acá, vos me contás en audio cuando puedas, y al volver tenés {{formato}} con tu viaje contado con tu voz, tus fotos y un código QR para escuchar algunos de tus audios. ¿Arrancamos? Contestame SÍ: con eso me das permiso para guardar lo que me mandes. | |
 | BIEN-1R | arranque | 1 | Hola, {{nombre}}. Te escribo porque {{quien_regala}} te hizo un regalo: {{formato}} con tu viaje, contado por vos. Funciona así: yo te pregunto por acá, vos me contás en audio cuando puedas, y al volver lo tenés escrito con tu voz, con tus fotos y con un código QR para escuchar algunos de tus audios. ¿Arrancamos? Contestame SÍ: con eso me das permiso para guardar lo que me mandes. | |
-| BIEN-2 | arranque | 2 | Vamos. Antes de salir te mando unas pocas preguntas, de a una; cuando las contestás, silencio hasta el día que te vas. En el viaje, dos por día: una cortita al mediodía, que es una foto o diez segundos de audio, y una a la noche para que me cuentes el día. Si un día no tenés ganas, "paso" y seguimos. La hora la tomo del país adonde vas; si cambiás de país y te llega a deshora, la corregís desde tu panel. Ahí va la primera. | |
+| BIEN-2 | arranque | 2 | Vamos. Antes de salir te mando unas pocas preguntas, de a una; cuando las contestás, silencio hasta el día que te vas. En el viaje, dos por día: una cortita al mediodía, que es una foto o diez segundos de audio, y una a la noche para que me cuentes el día. Si un día no tenés ganas, "paso" y seguimos. La hora la tomo del país adonde vas; si cambiás de país y te llega a deshora, la corregís desde la página del viaje. Ahí va la primera. | |
 
 ## Antes de salir
 
@@ -218,7 +218,7 @@ DES+ se agrega adentro de DES, antes de "Fue lindo acompañarte", solo si mandó
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| DES | despedida | | Ya está, {{nombre}}: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje. | |
+| DES | despedida | | Ya está, {{nombre}}: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en la página del viaje antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje. | |
 | DES+ | despedida | | Del álbum me quedé con las primeras {{fotos_album}} que mandaste, que son las que entran. | |
 
 ## Reglas del flujo

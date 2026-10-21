@@ -114,7 +114,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | OR5 | ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron. |  | núcleo | historia |  |
 | OR6 | ¿Por qué te pusieron {{nombre_pila}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita. |  | núcleo | historia |  |
 | OR6.2 | ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás. |  | núcleo | historia |  |
-| CI1 | Hasta acá lo de tu familia de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual. |  | núcleo | cierre |  |
+| CI1 | Hasta acá lo de tu familia de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus padres de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual. |  | núcleo | cierre |  |
 
 ## Bloque 2 · La casa y la familia de la infancia
 
@@ -180,7 +180,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
-| JU1 | ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande. |  | núcleo | historia |  |
+| JU1 | ¿Te acordás del día que te fuiste de la casa de tus padres? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande. |  | núcleo | historia |  |
 | JU2 | ¿Qué hiciste cuando terminaste la escuela, o cuando la dejaste? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado. |  | núcleo | historia |  |
 | JU2b | ¿Te pasó de empezar a estudiar algo y dejarlo? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. |  | extra | historia |  |
 | JU4 | ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas. |  | núcleo | historia |  |
@@ -189,7 +189,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | JU11 | Un día uno se da cuenta de que ya es de ahí: conoce las calles, lo saludan, se siente en casa. ¿Te pasó con ese lugar nuevo? Contame ese momento. | si:JU8 | extra | historia |  |
 | JU9 | De joven, ¿qué lugares recorriste? Vacaciones, viajes, escapadas. Contame un viaje de esos años que se te haya quedado. |  | extra | historia |  |
 | JU22 | ¿Cómo fueron tus primeros años por tu cuenta? ¿Cómo te arreglabas, qué hacías para salir adelante? Contame algún momento de esa época que te acuerdes. |  | extra | historia |  |
-| JU12 | Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo. |  | núcleo | historia |  |
+| JU12 | Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus padres, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo. |  | núcleo | historia |  |
 | JU13 | ¿Hiciste alguna locura de joven? Un viaje a dedo, una apuesta, algo que hoy no harías. Contame esa vez desde que empezó, con todo lo que pasó. |  | núcleo | historia |  |
 | JU15 | ¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde se juntaban, qué hacían. Contame una vez con ellos que te quedó. Y si se te vienen más, contalas también. |  | núcleo | historia |  |
 | JU16 | Pensá en un momento muy feliz de tu juventud. No hace falta que sea algo grande: una tarde, una noticia, un lugar. ¿Dónde estabas, qué pasó? Contámelo como si estuvieras ahí de nuevo. |  | extra | historia |  |
@@ -250,7 +250,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
-| PG1 | Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso. |  | núcleo | historia |  |
+| PG1 | Contame de tus padres cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más grandes, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso. |  | núcleo | historia |  |
 | HI0 | Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Presentámelos de a uno, incluso si alguno ya apareció en lo que me venís contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado. |  | núcleo | historia |  |
 | HI1 | Hay noticias que te cambian la vida. ¿Cómo fue el día que te enteraste de que ibas a ser {{padre/madre}} por primera vez? Dónde estabas, quién estaba con vos, y lo primero que pensaste. | si:HI0 | extra | historia |  |
 | HI2 | ¿Y el día que llegó tu primer hijo? Contame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez. | si:HI0 | núcleo | historia |  |

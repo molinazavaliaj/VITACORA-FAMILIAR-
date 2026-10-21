@@ -145,7 +145,7 @@ describe("los mails y «Pedido confirmado» de Kids", () => {
 
   it("«Pedido confirmado» de Kids en tú y en vos", () => {
     const [a] = momentosKids("Nico", "A", false, "es-ES");
-    expect(a.que).toBe("A la hora que has elegido le llega a Nico un mensaje nuestro por WhatsApp. Avísale de que le va a escribir «Vitácora».");
+    expect(a.que).toBe("A la hora que has elegido le llega a Nico un mensaje nuestro por WhatsApp. Avísale que le va a escribir «Vitácora».");
     const [b] = momentosKids("Nico", "B", false, "es-ES");
     expect(b.que).toBe("Te llega un mensaje nuestro a tu WhatsApp. La primera pregunta sale cuando pulséis el botón, juntos.");
     const [c] = momentosKids("Tomi", "A");

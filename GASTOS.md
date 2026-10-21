@@ -25,7 +25,18 @@
 | 2026-10-09 | Ensayo del escritor V3 por el camino de producción (Batch, Storage, consumo_ia) con la entrevista V3 web de Naza: Etapa A 2,37 + capítulo 1 con su revisión 0,73 (`fabrica/scripts/escritor-v3-ensayo.ts`; tardó 7 h 07 min, la mayor parte esperando el Batch) | USD 3,10 | key de Naza | Consumible |
 | 2026-10-11 | Cazador V3 recuperado para Imma: los 7 bloques que habían fallado con la key revocada de Railway (`entrevistador/scripts/v3-recazar.ts`, Opus 5.5), 12 repreguntas aplicadas a su entrevista | USD 0,45 | key de Naza (fabrica-local) | Consumible |
 | 2026-10-11 | Cazador V3 recuperado para Dora (Babu): el bloque 1 que había fallado con la key revocada, 1 repregunta aplicada (`v3-recazar`) | USD 0,06 | key de Naza (fabrica-local) | Consumible |
+| hasta 2026-10-17 | Higgsfield (imágenes: tapa de Imma, local, video) | USD 25 | Naza | Consumible |
+| ~2026-10-15 | Recarga Higgsfield | USD 15 | Naza | Consumible |
+| hasta 2026-10-17 | Impresiones (Naza) | 20 € | Naza | Puntual |
+| hasta 2026-10-17 | Impresiones (Joaquín) | 9 € | Joaquín | Puntual |
+| desde ~2026-09-15 | Resend Pro (mails de la web), 18,52 por mes: dos cobros a octubre | 37,04 | Joaquín | Recurrente (mensual) |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
+
+**Costo real por cliente, leído de `consumo_ia` el 17/10** (una fila por llamada; total de la tabla desde el
+21/09: USD 26,69). Imma (catalán, libro entregado el 13/10): entrevista USD 0,81 (cazador 0,77, transcripción
+0,04) + libro USD 6,85 (Etapa A 2,20 · B 1,99 · C 2,66) = **USD 7,66**. Entrevistas V3 hasta hoy: Dora 0,26,
+Mariano 0,11. Los USD 14 de "Naza | entrevistador" son las pruebas del biógrafo v2, no producto.
+`gastos_manuales` (en `/admin`) está vacía: ahí van imprenta, suscripciones y recargas.
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
 Anthropic previo + USD 10 Anthropic + 20€ Anthropic + USD 5 OpenAI + USD 5 Railway +

@@ -17,7 +17,7 @@
     "id": "BIEN-2",
     "momento": "arranque",
     "orden": 2,
-    "texto": "Vamos. Antes de salir te mando unas pocas preguntas, de a una; cuando las contestás, silencio hasta el día que te vas. En el viaje, dos por día: una cortita al mediodía, que es una foto o diez segundos de audio, y una a la noche para que me cuentes el día. Si un día no tenés ganas, \"paso\" y seguimos. La hora la tomo del país adonde vas; si cambiás de país y te llega a deshora, la corregís desde tu panel. Ahí va la primera.",
+    "texto": "Vamos. Antes de salir te mando unas pocas preguntas, de a una; cuando las contestás, silencio hasta el día que te vas. En el viaje, dos por día: una cortita al mediodía, que es una foto o diez segundos de audio, y una a la noche para que me cuentes el día. Si un día no tenés ganas, \"paso\" y seguimos. La hora la tomo del país adonde vas; si cambiás de país y te llega a deshora, la corregís desde la página del viaje. Ahí va la primera.",
     "yaDeViaje": null
   },
   {
@@ -549,7 +549,7 @@
     "id": "DES",
     "momento": "despedida",
     "orden": null,
-    "texto": "Ya está, {{nombre}}: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.",
+    "texto": "Ya está, {{nombre}}: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en la página del viaje antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.",
     "yaDeViaje": null
   },
   {
