@@ -127,7 +127,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 10. **CR-L10 · Cómo lo compartes**
     «Habla de Vitácora con tus palabras y con honestidad. Di que es una colaboración y que ganas una comisión con tu código.»
     «No prometas cosas que Vitácora no hace. No uses publicidad pagada con nuestro nombre sin hablarlo antes con nosotros.»
-## Tanda 5 — las condiciones, del 11 al 13
+## Tanda 5 — las condiciones, del 11 al 13 — ✅ APROBADA por Naza el 21/10 (en la forma; falta el abogado)
 
 11. **CR-L11 · Si quieres dejarlo**
     «Puedes dejar el programa cuando quieras. Nos escribes a soporte@vitacorafamiliar.com y listo.»
