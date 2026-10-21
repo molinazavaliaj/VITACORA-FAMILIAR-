@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
-import { esAdmin, mailsDeAdmin } from "@/lib/admin/acceso";
+import { esAdminQuienLlama } from "@/lib/admin/quien-llama";
 import { COMISION_MAXIMA, DESCUENTO_MAXIMO, creadoresPrendido, leerPorcentaje, normalizarCodigoCreador } from "@/lib/creadores";
 import { anularComision, aprobarCreador, cambiarCreador, cambiarEstadoCreador, marcarComisionesPagadas } from "@/lib/creadores-base";
 
@@ -24,19 +23,6 @@ const APAGADO: ResultadoCreador = { error: "El programa está apagado (falta CRE
 
 const texto = (v: FormDataEntryValue | null): string => (typeof v === "string" ? v.trim() : "");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** ¿Quien llama es un admin? Lo mismo que el layout, pero acá (falla cerrado). */
-async function esAdminQuienLlama(): Promise<boolean> {
-  try {
-    const supabase = await crearClienteSesion();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return esAdmin(user?.email, mailsDeAdmin(process.env.ADMIN_EMAILS));
-  } catch {
-    return false;
-  }
-}
 
 /** El portero de todas: admin, programa prendido e id con forma de id. */
 async function portero(datos: FormData, campo = "id"): Promise<{ id: string } | ResultadoCreador> {
