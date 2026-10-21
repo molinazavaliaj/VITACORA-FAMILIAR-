@@ -42,7 +42,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 10. **CR-10 · Campos (2)**
     «El link de tu perfil» (pista «instagram.com/tuperfil») · «Cuántas personas te siguen (si quieres)» (pista «Por ejemplo, 5.000»)
 
-## Tanda 2 — el formulario, el checkout y el mail «lo recibimos»
+## Tanda 2 — el formulario, el checkout y el mail «lo recibimos» — ✅ APROBADA por Naza el 21/10
 
 11. **CR-11 · Campo libre**
     «Algo que quieras contarnos (si quieres)» (pista «Qué publicas, a quién le hablas…»)
