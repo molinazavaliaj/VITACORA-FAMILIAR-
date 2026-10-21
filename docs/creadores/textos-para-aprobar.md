@@ -75,7 +75,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
     «Comparte este link. Quien entra por él ya tiene tu código puesto.» + el link
     «En tu panel ves tus ventas y lo que te toca cobrar. Es privado, no lo compartas.» · botón «Ver mi panel»
 
-## Tanda 3 — el panel del creador (/creador/…)
+## Tanda 3 — el panel del creador (/creador/…) — ✅ APROBADA por Naza el 21/10
 
 21. **CR-21 · Arriba**
     «Hola, Lucía» · «Tu código» · «Tu link para compartir» con el botón «Copiar» (al tocarlo, «Copiado»)
