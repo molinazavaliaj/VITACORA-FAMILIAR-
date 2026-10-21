@@ -108,7 +108,7 @@ describe("el mail y «Pedido confirmado» de Kids en catalán", () => {
     const a = armarMailAcceso({ comoLeDicen: "Nil", region: "ES", kids: { canal: "A", idioma: "ca" } });
     expect(a.asunto).toBe("Ja està en marxa el llibre de Nil");
     expect(a.texto).toContain("Escriurem a Nil a l'hora que has triat. A tu t'avisem per WhatsApp.");
-    expect(a.texto).toContain("Al teu panell veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.");
+    expect(a.texto).toContain("A la pàgina de la seva història veuràs tot el que explica. Allà també pots escriure fins a tres preguntes teves per al llibre.");
     expect(a.texto).toContain("A cada família hi ha un llibre per escriure.");
     const b = armarMailAcceso({ comoLeDicen: "Nil", region: "ES", kids: { canal: "B", idioma: "ca" } });
     expect(b.texto).toContain("La primera pregunta surt quan estigueu junts.");

@@ -165,6 +165,7 @@ export function Resumen({
   incluye,
   tachado,
   ahorro,
+  descuento,
 }: {
   compra: Compra;
   region: Region;
@@ -175,8 +176,10 @@ export function Resumen({
   tachado?: string | null;
   /** Lo que se ahorra con el pack, ya formateado, si el ticket lo lleva. */
   ahorro?: string | null;
+  /** El cupón de bienvenida (20/10): su línea y el importe ya formateado; `compra.total` ya viene con el descuento. */
+  descuento?: { nombre: string; importe: string } | null;
 }) {
-  const f = (n: number) => formatearPrecio(n, compra.moneda, region);
+  const f = (n: number) => formatearPrecio(n, compra.moneda, region, Boolean(descuento));
   const total = f(compra.total);
   return (
     <aside aria-label={T.etiqueta} className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8">
@@ -196,6 +199,13 @@ export function Resumen({
               </span>
             </div>
           ))}
+          {descuento ? (
+            <div className="chk-renglon">
+              <span>{descuento.nombre}</span>
+              <span aria-hidden className="chk-guia" />
+              <span className="tabular-nums text-[var(--texto-oscuro-fuerte)]">−{descuento.importe}</span>
+            </div>
+          ) : null}
           <div className="chk-total">
             <span className="text-[15px] font-medium">{T.total}</span>
             <span className="flex items-baseline gap-2">

@@ -154,6 +154,8 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
   const CAMBIADAS_0410 = new Set(['JU20', 'AM0', 'AMH', 'AM9', 'HE2']);
   // Naza, 06/10 (después de la simulación en castellano de España): JU2 y CI3 ya no dan por hecho que siguió estudiando.
   const CAMBIADAS_0610 = new Set(['JU2', 'CI3']);
+  // Naza, 20/10 (Amelia): «tus viejos» → «tus padres» y «más viejos» → «más grandes» (JU1, JU12, PG1, CI1).
+  const CAMBIADAS_2010 = new Set(['JU1', 'JU12', 'PG1', 'CI1']);
 
   it('06/10: JU2 y CI3 no dan por hecho que siguió estudiando (Naza)', () => {
     expect(preguntaPorId('JU2')!.texto).toBe('¿Qué hiciste cuando terminaste la escuela, o cuando la dejaste? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.');
@@ -171,7 +173,7 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
       // CI14 se reescribió el 30/09 después de la lectura corrida (correcciones-lectura.md): ahora pregunta.
       // CI11 perdió su primera frase en la ronda 2.
       if (p!.id === 'CI14' || p!.id === 'CI11' || p!.id === 'FO1') continue; // FO1: "Otra cosa" desde la ronda 3
-      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id) || CAMBIADAS_0610.has(p!.id)) continue;
+      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id) || CAMBIADAS_0610.has(p!.id) || CAMBIADAS_2010.has(p!.id)) continue;
       // OR6 (08/10): solo cambió la marca, {{nombre}} → {{nombre_pila}} (el nombre de pila, no como le dicen).
       const textoP = p!.id === 'OR6' ? p!.texto.replace('{{nombre_pila}}', '{{nombre}}') : p!.texto;
       expect(normalizar(textoP), f.clave).toBe(normalizar(f.texto));
@@ -275,5 +277,13 @@ describe('entrevista: textos limpios', () => {
       expect(t.toLowerCase(), id).not.toMatch(/pausa/);
       expect(t.toLowerCase(), id).not.toMatch(/elegí/);
     }
+  });
+});
+
+describe('20/10: «tus padres», no «tus viejos» (Naza, por Amelia)', () => {
+  it('el banco de Argentina no dice «viejos»', () => {
+    for (const p of BANCO) expect(p.texto.includes('viejos'), p.id).toBe(false);
+    expect(preguntaPorId('JU1')!.texto).toContain('de la casa de tus padres?');
+    expect(preguntaPorId('PG1')!.texto).toContain('Una vez que los notaste más grandes');
   });
 });

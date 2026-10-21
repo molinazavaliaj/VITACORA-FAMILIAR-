@@ -8,7 +8,7 @@ import PortadaEs from "../src/app/page";
 import PortadaCa from "../src/app/ca/page";
 import PortadaAr from "../src/app/ar/page";
 import robots from "../src/app/robots";
-import { datosEstructurados, reglasRobots, RUTAS_PRIVADAS, URL_BASE } from "../src/lib/seo";
+import { datosEstructurados, origenPublico, reglasRobots, RUTAS_PRIVADAS, URL_BASE } from "../src/lib/seo";
 import { catalogo } from "../src/lib/productos";
 import { localeDeIdioma, regionDeIdioma, type IdiomaWeb } from "../src/lib/idioma-web";
 
@@ -59,8 +59,8 @@ function comoSeVe(idioma: IdiomaWeb, monto: number, moneda: string) {
 beforeEach(cargarPrecios);
 afterEach(borrarPrecios);
 
-describe("robots.txt", () => {
-  const reglas = reglasRobots();
+describe("robots.txt en producción", () => {
+  const reglas = reglasRobots("production");
   // `rules` es una lista de bloques (uno por user-agent): acá hay uno solo.
   const disallow = (reglas.rules as Array<{ disallow: string[] }>)[0].disallow;
 
@@ -83,14 +83,48 @@ describe("robots.txt", () => {
     // layout.tsx no se puede importar acá (next/font/local no existe fuera de
     // Next): se lee el archivo y se comprueba que use la misma constante.
     const layout = readFileSync(path.join(process.cwd(), "src/app/layout.tsx"), "utf8");
-    expect(layout).toContain("metadataBase: new URL(URL_BASE)");
+    expect(layout).toContain("metadataBase: new URL(origenPublico())");
+    expect(origenPublico("production", "https://vitacora-rediseno.vercel.app")).toBe(URL_BASE);
   });
 
   it("es lo que devuelve app/robots.ts", () => {
-    expect(robots()).toEqual({
-      rules: [{ userAgent: "*", allow: "/", disallow: expect.arrayContaining([...RUTAS_PRIVADAS]) }],
-      sitemap: `${URL_BASE}/sitemap.xml`,
+    process.env.VERCEL_ENV = "production";
+    try {
+      expect(robots()).toEqual({
+        rules: [{ userAgent: "*", allow: "/", disallow: expect.arrayContaining([...RUTAS_PRIVADAS]) }],
+        sitemap: `${URL_BASE}/sitemap.xml`,
+      });
+    } finally {
+      delete process.env.VERCEL_ENV;
+    }
+  });
+
+  it("bloquea lo de adentro del teléfono y el panel de muestra (19/10)", () => {
+    for (const privada of ["/telefono-historia", "/ar/telefono-historia", "/panel-muestra"]) expect(disallow).toContain(privada);
+  });
+
+  it("no bloquea ninguna página que vende", () => {
+    const publicas = [
+      "/", "/ar", "/ca", "/viaje", "/kids", "/kids/su-mundo", "/regalar", "/regalo-para-tu-padre", "/ar/regalo-para-tu-papa",
+      "/su-voz", "/el-libro-del-viaje", "/lo-que-nunca-le-preguntaste", "/comprar/viaje", "/comprar/kids", "/ejemplo", "/opiniones", "/eventos",
+    ];
+    // Un Disallow bloquea todo lo que EMPIEZA con él (así lee robots.txt Google).
+    for (const publica of publicas) {
+      for (const regla of disallow) expect(publica.startsWith(regla), `${regla} bloquea ${publica}`).toBe(false);
+    }
+  });
+});
+
+describe("robots.txt fuera de producción (preview, local)", () => {
+  for (const entorno of ["preview", "development", undefined]) {
+    it(`no deja indexar nada (${entorno ?? "sin VERCEL_ENV"})`, () => {
+      expect(reglasRobots(entorno)).toEqual({ rules: [{ userAgent: "*", disallow: "/" }] });
     });
+  }
+
+  it("app/robots.ts sin VERCEL_ENV (local) bloquea todo", () => {
+    delete process.env.VERCEL_ENV;
+    expect(robots()).toEqual({ rules: [{ userAgent: "*", disallow: "/" }] });
   });
 });
 

@@ -51,7 +51,7 @@ describe('canjearRegalo', () => {
     expect(base.tablas.regalos[0]).toMatchObject({ usado_por_telefono: TEL });
     expect(base.tablas.regalos[0].usado_at).toBeTruthy();
     expect(enviados).toHaveLength(1);
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon', quienRegala: 'Lucía' }));
     expect(enviados[0].texto.startsWith('Hola, abuelo, ¿cómo estás?')).toBe(true);
     expect(enviados[0].texto).toContain('Respondé SÍ');
     expect(base.tablas.envios).toEqual([expect.objectContaining({ narrador_id: 'n1', tipo: 'bienvenida', wa_message_id: 'wa-1' })]);
@@ -59,12 +59,12 @@ describe('canjearRegalo', () => {
   it('el ritmo no cambia la bienvenida: la primera pregunta sale siempre con el SÍ', async () => {
     const { deps, enviados } = armar({ contexto: { regalo: true, ritmo: 'diario', genero: 'varon' } });
     expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('canjeado');
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon', quienRegala: 'Lucía' }));
   });
   it('un regalo en catalán: la bienvenida en catalán', async () => {
     const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'ca', genero: 'mujer' } });
     expect(await canjearRegalo(deps, { telefono: '+34612345678', texto: 'VF-7K3M2Q' })).toBe('canjeado');
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer', quienRegala: 'Lucía' }));
   });
   it('código que no existe desde un +34: se lo dice en castellano de España', async () => {
     const { deps, enviados } = armar();
@@ -129,7 +129,7 @@ describe('canjearRegalo: arreglos de la revisión', () => {
     ]);
     expect([...resultados].sort()).toEqual(['canjeado', 'ya_era_suyo']);
     expect(enviados).toHaveLength(1);
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon', quienRegala: 'Lucía' }));
     expect(enviados.some((e) => e.texto === TEXTOS_REGALO_BOT.usadoPorOtro)).toBe(false);
     expect(base.tablas.narradores.filter((n) => n.telefono_whatsapp === TEL)).toHaveLength(1);
     expect(base.tablas.envios).toHaveLength(1);
@@ -233,14 +233,14 @@ describe('mandarBienvenidaDeRegalo', () => {
   it('con idioma ca, manda la bienvenida del banco en catalán', async () => {
     const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'ca', genero: 'mujer' } });
     expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer', quienRegala: 'Lucía' }));
     expect(enviados[0].texto.startsWith('Hola, abuelo, com estàs?')).toBe(true);
   });
   it('sin idioma, la de es-AR (ya no la bienvenida vieja)', async () => {
     const { deps, enviados } = armar({ contexto: { regalo: true } });
     expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'otro' }));
-    expect(enviados[0].texto).toContain('Una persona que te quiere mucho te regaló');
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'otro', quienRegala: 'Lucía' }));
+    expect(enviados[0].texto).toContain('Lucía te regaló');
     expect(enviados[0].texto).not.toContain('Lucía te hizo un regalo');
   });
   it('si no se puede anotar el envío, lo dice y devuelve false', async () => {
@@ -380,7 +380,7 @@ describe('canjearRegalo sin código (el regalo le llegó por WhatsApp)', () => {
     const { base, deps, enviados } = armarEntrega();
     expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: 'hola' })).toBe('canjeado');
     expect(base.tablas.narradores[0]).toMatchObject({ telefono_whatsapp: '+5491155551234', estado: 'invitado' });
-    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon', quienRegala: 'Lucía' }));
   });
   it('una palabra que parece código («buenas») no le gana: canjea igual', async () => {
     const { deps } = armarEntrega();

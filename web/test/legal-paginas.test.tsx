@@ -129,7 +129,7 @@ describe("revisión legal del 17/10: lo corregido no vuelve", () => {
   it.each(IDIOMAS_WEB)("%s: la voz se dice como es (D4) y el código de la contratapa es la excepción (B3)", (idioma) => {
     const t = visible(idioma, "terminos");
     expect(t).toMatch(/no se clona ni se imita su voz|no es clona ni s'imita la seva veu/);
-    expect(t).toMatch(/el código de la contratapa abre el libro completo|el codi de la contracoberta obre el llibre complet/);
+    expect(t).toMatch(/el código de la (?:contratapa|contraportada) abre el libro completo|el codi de la contracoberta obre el llibre complet/);
   });
 
   it.each(IDIOMAS_WEB)("%s: privacidad pone plazo a los audios originales (B4)", (idioma) => {

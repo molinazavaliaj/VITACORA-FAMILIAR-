@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { OrigenVisita } from "./origen-visita";
-import { URL_BASE } from "@/lib/seo";
+import { origenPublico } from "@/lib/seo";
 
 // Las tipografías de marca (Playfair Display, Archivo, Source Serif 4, las mismas
 // de siempre) se sirven desde web/src/app/fuentes: subsets propios con solo los
@@ -66,14 +66,15 @@ const sourceSerif = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(URL_BASE),
+  // El dominio real en producción; en la preview, la preview (lib/seo.ts).
+  metadataBase: new URL(origenPublico()),
   title: {
     default: "Vitácora Familiar — En cada familia hay un libro sin escribir",
     // La marca paraguas (19/09): Vitácora, con dos productos. La home sigue siendo Familiar.
     template: "%s · Vitácora",
   },
   description:
-    "Vitácora: un biógrafo por WhatsApp. Vitácora Familiar escribe el libro de una vida, con sus mejores frases en su propia voz; Vitácora de viaje, el libro de tu viaje, noche a noche.",
+    "Vitácora es un biógrafo por WhatsApp. Vitácora Familiar escribe el libro de una vida, con sus mejores frases en su propia voz. Vitácora de viaje escribe el libro de tu viaje.",
   openGraph: {
     title: "En cada familia hay un libro sin escribir",
     description:

@@ -28,13 +28,13 @@ async function arrancado() {
 
 describe('kids: el padre de canal A le escribe al bot', () => {
   it('el texto es el aprobado por Naza, con el apodo', () => {
-    expect(TEXTO_AL_PADRE).toBe('Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en tu panel.');
-    expect(textoAlPadre('Bruno')).toBe('Este número es para las preguntas de Bruno. Lo que cuenta lo ves en tu panel.');
+    expect(TEXTO_AL_PADRE).toBe('Este número es para las preguntas de {apodo}. Lo que cuenta lo ves en la página de su historia.');
+    expect(textoAlPadre('Bruno')).toBe('Este número es para las preguntas de Bruno. Lo que cuenta lo ves en la página de su historia.');
   });
 
   it('el padre de un chico en catalán: se le contesta en catalán (aprobado por Naza el 16/10, tanda 10), nunca en castellano', async () => {
-    expect(textoAlPadre('Jana', 'ca')).toBe('Aquest número és per a les preguntes de Jana. El que explica ho veus al teu panell.');
-    expect(textoAlPadre('Lucía', 'es-ES')).toBe('Este número es para las preguntas de Lucía. Lo que cuenta lo ves en tu panel.');
+    expect(textoAlPadre('Jana', 'ca')).toBe('Aquest número és per a les preguntes de Jana. El que explica ho veus a la pàgina de la seva història.');
+    expect(textoAlPadre('Lucía', 'es-ES')).toBe('Este número es para las preguntas de Lucía. Lo que cuenta lo ves en la página de su historia.');
     const b = baseConChico({ ficha: { idioma: 'ca', quienRegala: 'la teva mare', apodo: 'Jana' } });
     b.tablas.kids_v2[0].idioma = 'ca';
     const t = depsKidsDePrueba(b);

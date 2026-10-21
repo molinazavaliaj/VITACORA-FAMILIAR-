@@ -310,7 +310,7 @@ export function AgregarPregunta({
   function elegirModo(m: "escribir" | "foto") {
     setModo(m);
     setError(null);
-    if (m === "foto" && !texto) setTexto("¿Qué estaba pasando ese día? Cuénteme todo lo que le venga a la cabeza al ver esta foto.");
+    if (m === "foto" && !texto) setTexto(tu ? "¿Qué estaba pasando ese día? Cuéntame todo lo que te venga a la cabeza al ver esta foto." : "¿Qué estaba pasando ese día? Contame todo lo que se te venga a la cabeza al ver esta foto.");
   }
 
   async function guardar() {
@@ -390,7 +390,7 @@ export function AgregarPregunta({
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
             {modo === "foto" ? "Qué le preguntamos sobre la foto" : "La pregunta"}
           </span>
-          <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} placeholder="Cuénteme de aquel verano en la casa de la tía Rosa…" />
+          <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} placeholder={tu ? "Cuéntame aquel verano en la casa de la tía Rosa…" : "Contame de aquel verano en la casa de la tía Rosa…"} />
         </label>
 
         <label className="flex flex-col gap-2">

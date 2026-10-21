@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { CONTACTO } from "../legal/titulares";
+import { TEXTOS_CUPON } from "../_textos/cupon";
+import { rascaPrendido } from "@/lib/cupon";
+import { RascaYGana } from "./rasca";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -14,9 +17,15 @@ import { EnlaceIdioma } from "./idioma-cliente";
 // aparece con al menos tres opiniones reales (lib/opiniones.ts); `opiniones`
 // se pasa solo en los tests. «Eventos» lleva a Vitácora Eventos (17/10), que
 // no tiene solapa arriba: no se compra, se consulta.
+//
+// Rasca y gana (20/10): con RASCA_Y_GANA=1, el pie enlaza a las «Bases del
+// cupón» en toda la web (respuesta-19-10.md §1.6) y, en las páginas que lo
+// piden con `rasca` (las del libro de una vida: el cupón no vale para Viaje
+// ni Kids), monta el popup.
 
-export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaWeb; camino: string; opiniones?: readonly Opinion[] }) {
+export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { idioma: IdiomaWeb; camino: string; opiniones?: readonly Opinion[]; rasca?: boolean }) {
   const t = TEXTOS_PUBLICO[idioma];
+  const cupon = rascaPrendido();
   const whatsapp = urlWhatsAppDudas();
   const enlace = "flex min-h-11 items-center hover:text-[var(--texto-oscuro-fuerte)]";
   return (
@@ -29,6 +38,9 @@ export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaW
             <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className={enlace}>{t.privacidad}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/reclamaciones")} className={enlace}>{t.reclamaciones}</Link>
+            {cupon ? (
+              <Link prefetch={false} href={ruta(idioma, "/legal/cupon")} className={enlace}>{TEXTOS_CUPON[idioma].popup.bases}</Link>
+            ) : null}
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
@@ -52,6 +64,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES }: { idioma: IdiomaW
           </div>
         </div>
       </div>
+      {cupon && rasca ? <RascaYGana idioma={idioma} /> : null}
     </footer>
   );
 }

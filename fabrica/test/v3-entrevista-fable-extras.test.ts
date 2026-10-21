@@ -43,7 +43,7 @@ describe('textos sueltos', () => {
   // Naza, 01/10: sin "Si la noche justa no te vuelve…": la salida va aparte, después de un olvido (M33.3; v3-entrevista-segunda-oportunidad.test.ts).
   it('JU12: "Capaz ya me nombraste ese lugar; ahora contámelo por dentro"', () => {
     expect(texto('JU12')).toBe(
-      'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
+      'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus padres, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
     );
   });
 

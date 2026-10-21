@@ -73,7 +73,7 @@ describe("el panel de Kids del padre", () => {
     expect(PANEL_GUIA.p1("Tomi")).toBe(
       "Podés agregar hasta tres preguntas tuyas. Le llegan a Tomi cerca del final, entre la cuarta parte y el sobre cerrado. Antes de cada una le decimos que viene de vos, salvo que prefieras que le llegue como una pregunta más.",
     );
-    expect(PANEL_GUIA.p3).toBe('Funciona mejor pedirle una vez concreta que una opinión. "Contame la vez que…" saca mucho más que "¿Qué sentís?" o "¿Qué pensás de…?".');
+    expect(PANEL_GUIA.p3).toBe('Funciona mejor pedirle una vez concreta que una opinión. «Contame la vez que…» saca mucho más que «¿Qué sentís?» o «¿Qué pensás de…?».');
     expect(PANEL_CASILLA).toBe("Que le llegue como una pregunta más, sin decir que es mía");
   });
 

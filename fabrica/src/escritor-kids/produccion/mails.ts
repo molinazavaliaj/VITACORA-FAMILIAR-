@@ -26,7 +26,7 @@ export const TEXTOS_MAIL_KIDS: Record<MailKids, Texto> = {
   revisar: {
     asunto: (apodo) => `El libro de ${apodo} está para que lo revises`,
     parrafos: (apodo) => [
-      `Ya escribimos el libro de ${apodo} con lo que contó. Entrá a tu panel y leelo.`,
+      `Ya escribimos el libro de ${apodo} con lo que contó. Entrá a la página de su historia y leelo.`,
       'Si está bien, aprobalo desde ahí.',
     ],
     boton: 'Ver el libro',
@@ -36,7 +36,7 @@ export const TEXTOS_MAIL_KIDS: Record<MailKids, Texto> = {
     asunto: (apodo) => `El libro de ${apodo} está listo`,
     parrafos: (apodo) => [
       `Ya está. El libro de ${apodo}, con sus palabras y con sus audios para escuchar desde los códigos del libro.`,
-      'Queda en tu panel para leerlo o descargarlo cuando quieras.',
+      'Queda en la página de su historia para leerlo o descargarlo cuando quieras.',
     ],
     boton: 'Ver el libro',
   },
@@ -48,7 +48,7 @@ export const TEXTOS_MAIL_KIDS_ES_ES: Record<MailKids, Texto> = {
   revisar: {
     asunto: (apodo) => `El libro de ${apodo} ya se puede leer. Revísalo antes de aprobarlo`,
     parrafos: (apodo) => [
-      `Ya hemos escrito el libro de ${apodo} con lo que contó. Entra en tu panel y léelo.`,
+      `Ya hemos escrito el libro de ${apodo} con lo que contó. Entra en la página de su historia y léelo.`,
       'Si está bien, apruébalo desde ahí.',
     ],
     boton: 'Ver el libro',
@@ -58,7 +58,7 @@ export const TEXTOS_MAIL_KIDS_ES_ES: Record<MailKids, Texto> = {
     asunto: (apodo) => `El libro de ${apodo} está listo`,
     parrafos: (apodo) => [
       `Ya está. El libro de ${apodo}, con sus palabras y con sus audios para escuchar desde los códigos del libro.`,
-      'Se queda en tu panel para leerlo o descargarlo cuando quieras.',
+      'Se queda en la página de su historia para leerlo o descargarlo cuando quieras.',
     ],
     boton: 'Ver el libro',
   },
@@ -70,7 +70,7 @@ export const TEXTOS_MAIL_KIDS_CA: Record<MailKids, Texto> = {
   revisar: {
     asunto: (apodo) => `El llibre de ${apodo} ja es pot llegir. Revisa'l abans d'aprovar-lo`,
     parrafos: (apodo) => [
-      `Ja hem escrit el llibre de ${apodo} amb el que ha explicat. Entra al teu panell i llegeix-lo.`,
+      `Ja hem escrit el llibre de ${apodo} amb el que ha explicat. Entra a la pàgina de la seva història i llegeix-lo.`,
       "Si està bé, aprova'l des d'allà.",
     ],
     boton: 'Veure el llibre',
@@ -80,7 +80,7 @@ export const TEXTOS_MAIL_KIDS_CA: Record<MailKids, Texto> = {
     asunto: (apodo) => `El llibre de ${apodo} està llest`,
     parrafos: (apodo) => [
       `Ja està. El llibre de ${apodo}, amb les seves paraules i amb els seus àudios per escoltar des dels codis del llibre.`,
-      'Es queda al teu panell per llegir-lo o descarregar-lo quan vulguis.',
+      'Es queda a la pàgina de la seva història per llegir-lo o descarregar-lo quan vulguis.',
     ],
     boton: 'Veure el llibre',
   },
