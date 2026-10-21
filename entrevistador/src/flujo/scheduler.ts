@@ -14,6 +14,7 @@ import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
 import { quienLoRegala } from './quien-regala.js';
+import { controlarPlantillasCadaTanto } from './control-plantillas.js';
 import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar, type NarradorParaBorrar } from './borrado-no-acepto.js';
 
 export { fechaLocal, minutosLocales };
@@ -378,6 +379,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     ['alertas', () => prenderAlertasDeSilencio(ahora)],
     ['no-acepto', () => marcarNoAceptaron(ahora)],
     ['borrado-no-acepto', () => borrarFichasDeNoAceptaron(ahora)],
+    ['control-plantillas', () => controlarPlantillasCadaTanto(ahora)],
   ] as const) {
     try {
       await fase();
