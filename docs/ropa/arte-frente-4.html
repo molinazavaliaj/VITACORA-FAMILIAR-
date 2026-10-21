@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Arte frente 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500&display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#14140F;display:grid;place-items:center}svg{width:min(90vw,90vh);height:auto}</style>
+</head><body>
+<svg viewBox="-200 -150 400 300" xmlns="http://www.w3.org/2000/svg">
+  <g id="t" transform="translate(0 -40) scale(0.42)" fill="none" stroke="#fff" stroke-width="2.4"></g>
+  <text x="0" y="78" text-anchor="middle" fill="#fff" font-family="Archivo, sans-serif" font-weight="500" font-size="22" letter-spacing="6.5">VITÁCORA FAMILIAR</text>
+</svg>
+<script>
+const A=[[13.86,17.63],[26.77,34.07],[39.35,50.08],[51.71,65.82],[63.92,81.36],[76.01,96.74],[88,112]];
+const g=document.getElementById('t');
+for(const [rx,ry] of A) for(const s of [-1,1]){const e=document.createElementNS('http://www.w3.org/2000/svg','ellipse');e.setAttribute('cx',s*rx);e.setAttribute('cy',0);e.setAttribute('rx',rx);e.setAttribute('ry',ry);g.appendChild(e);}
+</script>
+</body></html>
