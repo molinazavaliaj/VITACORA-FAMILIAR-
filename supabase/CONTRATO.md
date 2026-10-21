@@ -17,6 +17,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
+| `respuestas_fuera` | web | fábrica, entrevistador | Nueva 21/10 (migración `20261021000100`, la aplica Naza). La dueña saca del libro **una** respuesta V3 desde el panel. Ver "Respuestas sacadas por la familia". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
 | `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **aplicada por Naza el 17/10** (migración 20261016000000). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
@@ -464,6 +465,35 @@ Reglas:
   dato: la familia puede pedirlo por teléfono y es lo más rápido que tenemos hoy.
 - Ante la duda **siempre se reserva de más**: volver a agregar algo es fácil, desdecir algo
   que la familia ya leyó impreso, no.
+
+## Respuestas sacadas por la familia — «que esto no vaya al libro» desde el panel (21/10)
+
+Spec: `docs/superpowers/specs/2026-10-21-respuesta-fuera-del-libro-design.md`. Migración
+`20261021000100_respuestas_fuera.sql` (la aplica Naza). Solo narradores V3.
+
+| Columna | Qué guarda |
+|---|---|
+| `respuesta_id` | Clave primaria: la fila de `respuestas` que **no va al libro**. |
+| `narrador_id` | El narrador (para leer todas de una vez). |
+| `marcada_por` | La dueña que la sacó (`auth.users`). |
+| `created_at` | Cuándo. |
+
+- **Escribe solo la web** (`/api/fuera-del-libro`): la dueña, con el libro sin cerrar
+  (`libro_aprobado_at` null), sobre una fila suya con `clave_v3` (no null ni `∅`). Marcar = insertar;
+  deshacer = borrar. No toca `respuestas` ni `entrevistas_v3.estado`.
+- **Por respuesta, no por clave** (a diferencia de `reservada` y de `estado.reservadas`). El texto de la
+  clave en `estado.respuestas` es la suma de sus filas: se le borra el texto de cada fila sacada
+  (`transcripcion`, o `texto_directo`, sin marcas ⟦…⟧, con espacios normalizados). Si alguna no aparece
+  tal cual, el texto se rearma con las filas que quedan, en orden; si no queda nada, la clave sale.
+  Clave exacta: sacar una fila de `X` no toca `RP~X` ni `X~2`.
+- **Fábrica** (`de-base.ts`): aplica eso, y la fila sacada no va a «Su voz» (sin audio ni transcripción).
+  Cambia el material: si la Etapa A estaba hecha, se rehace.
+- **Entrevistador**: el cazador recibe las respuestas sin lo sacado, y una repregunta en cola cuyo
+  `origen` tiene filas sacadas no sale si su `cita` está en una fila sacada o no está en ninguna de las
+  que quedan.
+- **«Volver a hacerla»**: la web suma una pregunta de la familia (`preguntas`, `tipo = 'familia'`) con el
+  texto con que le llegó, si la entrevista no llegó a FO1 y hay lugar (máximo 10). Deshacer no la borra.
+- Sin la tabla (42P01 / PGRST205), todos toman que no hay nada sacado.
 
 ## Respuestas de otra parte — "esto es de otra parte" (PROPUESTA del 21/09, acordada entre los dos, pendiente de aplicar)
 
