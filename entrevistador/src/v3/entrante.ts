@@ -15,7 +15,7 @@ import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { lanzarCazador } from './cazador.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
 import type { DepsV3, Transcripcion } from './deps.js';
-import { drenar } from './enviar.js';
+import { drenar, ventanaAbierta } from './enviar.js';
 import { conReintento, type Paso } from './estado.js';
 import {
   anotarTranscripcion, avisarFamiliaTarde, bajarAudioGuardado, leerFamilia, guardarAudioV3, guardarFotoV3, guardarTextoV3, marcarRespondido, numeroDeLlegada, ponerClave,
@@ -57,11 +57,12 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const ahora = deps.ahora();
   // Cualquier mensaje del narrador abre la ventana de 24 h de Meta: sin esto,
   // drenar mandaría todo como plantilla.
-  const fila = await anotarEntrante(deps, n.id, ahora, m.tipo === 'audio');
-  if (!fila) {
+  const anotado = await anotarEntrante(deps, n.id, ahora, m.tipo === 'audio');
+  if (!anotado) {
     console.warn(`V3: ${n.id} no tiene fila en entrevistas_v3: se ignora el mensaje`);
     return;
   }
+  const { fila, ventanaAntes } = anotado;
   // Lo que no deja fila en `respuestas` (el texto que reactiva a un pausado, la
   // foto suelta, el audio que no se pudo bajar) se deduplica con los vistos.
   if (yaVisto(fila.estado, m.waMessageId)) return;
@@ -72,7 +73,10 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
   // La pregunta abierta todavía no le llegó (Naza, 09/10, Imma): lo que mande no la contesta. Queda aparte
   // (∅), sin acuse, y la pregunta sale ahora, que la ventana se acaba de abrir. Un pedido escrito sigue su camino.
-  if (abiertaSinEntregar(fila.estado) && !pedidoEscrito) {
+  // Con la ventana ya abierta y sin envíos fallando, la pregunta no está trabada: está saliendo en este
+  // momento (el segundo entre el cierre y el envío). Lo que mande la contesta, como siempre (21/10).
+  const trabada = !ventanaAntes || fila.estado.fallosEnvio > 0;
+  if (abiertaSinEntregar(fila.estado) && trabada && !pedidoEscrito) {
     console.warn(`V3: ${n.id} escribió con la pregunta ${fila.estado.esperando} todavía sin entregar: queda aparte y la pregunta sale ahora`);
     await guardarAparte(deps, n, m, fila);
     // La pregunta sale ahora: M8 cuenta desde ahora (no desde que se trabó) y no hay silencio que cerrar.
@@ -89,13 +93,26 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
     await reactivar(deps, n.id);
     // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22). M8 cuenta de
     // nuevo desde ahora y, si había algo contado, el silencio de 3' también (que no la
-    // cierre apenas se reenvía).
+    // cierre apenas se reenvía). Lo que escribió no cuenta como respuesta (un «Hola, volví, perdón la
+    // demora» no puede contestar la abierta), pero no se pierde (21/10: antes no dejaba ni la fila): queda
+    // guardado con ∅ y, si es más que un saludo, se avisa a los socios para que decidan si va al libro.
     const ahoraIso = ahora.toISOString();
+    const escritoTexto = (m.texto ?? '').trim();
+    const guardada = escritoTexto
+      ? await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), escritoTexto, { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: false })
+      : null;
     await conReintento(deps.db, n.id, (f) => {
       if (yaVisto(f.estado, m.waMessageId)) return null;
       const estado = { ...anotarVisto(reenviarAbierta(f.estado), m.waMessageId), m8En: undefined, ...(f.estado.esperando ? { abiertaDesde: ahoraIso } : {}) };
       return { cambio: { estado, ...(f.estado.borrador?.trim() ? { ultimo_audio_at: ahoraIso } : {}) }, resultado: true };
     });
+    if (guardada && !esSaludo(escritoTexto, fila.idioma)) {
+      await deps.avisar(
+        `texto-pausado-${m.waMessageId}`,
+        'Un narrador V3 pausado volvió escribiendo',
+        `${n.id} estaba pausado y volvió escribiendo con la pregunta ${fila.estado.esperando} abierta. Se le reenvió la pregunta; lo que escribió no se sumó a ninguna respuesta (quedó con clave ∅). Lo que escribió: «${escritoTexto.length > 600 ? `${escritoTexto.slice(0, 600)}…` : escritoTexto}». Si vale para el libro, hay que sumarlo a mano.`,
+      );
+    }
     await drenar(deps, n.id);
     return;
   }
@@ -133,7 +150,16 @@ async function guardarAparte(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fi
   const llegada = await numeroDeLlegada(deps.db, n.id);
   if (m.tipo === 'texto') {
     const t = m.esBoton ? respuestaDeBoton(m.texto ?? '') : (m.texto ?? '').trim();
-    if (t) await guardarTextoV3(deps.db, n.id, llegada, t, { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: m.esBoton === true });
+    if (!t) return;
+    const g = await guardarTextoV3(deps.db, n.id, llegada, t, { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: m.esBoton === true });
+    // Un texto escrito tampoco queda mudo (21/10): se avisa a los socios como un audio. Un botón o un saludo no.
+    if (g && !m.esBoton && !esSaludo(t, fila.idioma)) {
+      await deps.avisar(
+        `texto-aparte-${m.waMessageId}`,
+        'Un narrador V3 escribió antes de ver su pregunta',
+        `${n.id} escribió cuando la pregunta ${fila.estado.esperando} todavía no le había llegado. No se sumó a ninguna respuesta (quedó con clave ∅); la pregunta le sale ahora. Lo que escribió: «${t.length > 600 ? `${t.slice(0, 600)}…` : t}». Si vale para el libro, hay que sumarlo a mano.`,
+      );
+    }
     return;
   }
   if (m.tipo === 'audio' && m.mediaId) {
@@ -198,17 +224,18 @@ async function abrirAlVolver(deps: DepsV3, n: NarradorV3, ahora: Date): Promise<
  * ultimoEntranteAt = ahora (nunca para atrás) y fuera los M8 que no salieron
  * (ya escribió). Si es un audio y hay una pregunta abierta, el reloj de
  * silencio arranca ya, antes de transcribir: un audio que se está
- * transcribiendo no deja cerrar la respuesta. Devuelve la fila, o null si no tiene.
+ * transcribiendo no deja cerrar la respuesta. Devuelve la fila y si la ventana de 24 h ya estaba abierta
+ * antes de este mensaje (o null si no tiene fila).
  */
-async function anotarEntrante(deps: DepsV3, narradorId: string, ahora: Date, esAudio: boolean): Promise<FilaV3 | null> {
+async function anotarEntrante(deps: DepsV3, narradorId: string, ahora: Date, esAudio: boolean): Promise<{ fila: FilaV3; ventanaAntes: boolean } | null> {
   const r = await conReintento(deps.db, narradorId, (f) => {
     const antes = f.estado.ultimoEntranteAt ? Date.parse(f.estado.ultimoEntranteAt) : Number.NEGATIVE_INFINITY;
     const ultimoEntranteAt = antes > ahora.getTime() ? f.estado.ultimoEntranteAt : ahora.toISOString();
     const audioAntes = f.ultimo_audio_at ? Date.parse(f.ultimo_audio_at) : Number.NEGATIVE_INFINITY;
     const relojDeSilencio = esAudio && f.estado.esperando && audioAntes < ahora.getTime() ? { ultimo_audio_at: ahora.toISOString() } : {};
-    return { cambio: { estado: { ...sinRecordatorios(f.estado), ultimoEntranteAt }, ...relojDeSilencio }, resultado: true };
+    return { cambio: { estado: { ...sinRecordatorios(f.estado), ultimoEntranteAt }, ...relojDeSilencio }, resultado: ventanaAbierta(f.estado, ahora) };
   });
-  return r?.fila ?? null;
+  return r ? { fila: r.fila, ventanaAntes: r.resultado } : null;
 }
 
 /**

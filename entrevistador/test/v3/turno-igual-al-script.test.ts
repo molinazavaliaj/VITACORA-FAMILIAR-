@@ -64,7 +64,7 @@ describe.skipIf(!hayFabrica)('turno.ts manda lo mismo que v3-entrevista-turno.ts
     expect(script.estado.terminada).toBe(true);
     expect(nuestro.terminada).toBe(true);
     expect(nuestro.respuestas).toEqual(script.estado.respuestas);
-  });
+  }, 30_000); // el primero importa en frío el script de la fábrica: con la suite entera en paralelo pasaba los 5 s
 });
 
 // La vida de ejemplo no toca nunca un "Sí" solo (lo cuenta en el mismo audio):
@@ -95,7 +95,7 @@ describe.skipIf(!hayFabrica)('turno.ts y el script, tocando "Sí" donde hay', ()
     expect(tocoSi).toBeGreaterThan(3);
     expect(nuestro.terminada).toBe(true);
     expect(nuestro.respuestas).toEqual(script.estado.respuestas);
-  });
+  }, 30_000);
 });
 
 // Las ramas que la vida de ejemplo no pisa: la pregunta de la familia (M15),
@@ -146,5 +146,5 @@ describe.skipIf(!hayFabrica)('turno.ts y el script: familia, segunda oportunidad
     expect(claves).toContain(claveSegunda(olvidada));
     expect(claves.some((k) => k.startsWith('RP~'))).toBe(true);
     expect(nuestro.cazador?.registro).toEqual(script.estado.cazador.registro);
-  });
+  }, 30_000);
 });

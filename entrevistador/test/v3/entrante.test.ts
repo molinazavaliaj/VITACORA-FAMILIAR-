@@ -843,3 +843,43 @@ describe('un saludo solo no contesta la pregunta (Naza, 09/10)', () => {
     expect(f?.estado.borrador).toBe('Hola, nací en Rosario y éramos cuatro.');
   });
 });
+
+describe('nada de lo que manda se pierde en silencio (21/10)', () => {
+  it('pausado con pregunta abierta: lo que escribe queda guardado con ∅ y avisa a los socios, sin contestar la abierta', async () => {
+    const { deps, n1, enviados, base, fila, avisos } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Hola, volví, perdón la demora'));
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+    expect(enviados).toHaveLength(1); // solo la abierta, sin M22
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([[SIN_CLAVE_V3, 'Hola, volví, perdón la demora']]);
+    const f = await fila();
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.estado.esperando).toBe('OR1');
+    expect(f?.ultimo_audio_at).toBeNull();
+    expect(avisos.map((a) => a.detalle).join(' ')).toContain('«Hola, volví, perdón la demora»');
+  });
+
+  it('pausado con pregunta abierta: un saludo solo queda guardado con ∅, sin aviso', async () => {
+    const { deps, n1, enviados, base, fila, avisos } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    expect(enviados).toHaveLength(1);
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([[SIN_CLAVE_V3, 'Hola']]);
+    expect((await fila())?.estado.borrador).toBeUndefined();
+    expect(avisos).toEqual([]);
+  });
+
+  it('la pregunta siguiente está saliendo (ventana abierta): lo que manda en ese segundo la contesta, no queda con ∅', async () => {
+    const saliendo: EstadoV3 = { ...avanzar(estadoInicial(), FICHA).estado, ultimoEntranteAt: new Date(AHORA.getTime() - 60_000).toISOString() };
+    const { deps, n1, base, fila } = await preparar(saliendo);
+    await procesarEntranteV3(deps, n1, texto('Y además había un río al lado.'));
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual(['OR1']);
+    expect((await fila())?.estado.borrador).toBe('Y además había un río al lado.');
+  });
+
+  it('la pregunta sigue trabada (ventana cerrada): un texto queda aparte, pero se avisa a los socios como un audio', async () => {
+    const sinEntregar: EstadoV3 = { ...avanzar(estadoInicial(), FICHA).estado, ultimoEntranteAt: undefined };
+    const { deps, n1, base, avisos } = await preparar(sinEntregar);
+    await procesarEntranteV3(deps, n1, texto('Nací en Rosario.'));
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual([SIN_CLAVE_V3]);
+    expect(avisos.map((a) => a.detalle).join(' ')).toContain('«Nací en Rosario.»');
+  });
+});

@@ -587,8 +587,12 @@ Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
 `salientes` (fuera de la ventana de 24 h y sin plantilla aprobada, `drenar` la retiene) y salió una sola
 vez a la cola, lo que mande el narrador no la contesta: la fila queda con `∅`, no sale acuse ni M22, la
 pregunta sale en ese momento, y `abiertaDesde` (M8) y `ultimo_audio_at` arrancan de nuevo. Un audio se
-transcribe igual (queda en `transcripcion`) y se avisa a los socios, por si vale para el libro. Un pedido
-escrito («quiero parar», «que no vaya al libro») sigue su camino.
+transcribe igual (queda en `transcripcion`) y se avisa a los socios, por si vale para el libro; un texto escrito
+(que no sea un botón ni un saludo solo) también avisa (21/10). Un pedido escrito («quiero parar», «que no vaya al
+libro») sigue su camino. **Solo cuenta como trabada** si la ventana de 24 h estaba cerrada antes de ese mensaje o
+hay envíos fallando (`fallosEnvio > 0`). Con la ventana abierta y sin fallos, la pregunta está saliendo en ese
+momento (el segundo entre el cierre de una respuesta y el envío de la siguiente): lo que mande la contesta como
+siempre (21/10: antes quedaba con `∅`).
 
 **Un saludo solo no es respuesta (Naza, 09/10).** Un mensaje escrito que es solo un saludo («Hola»,
 «Buenas tardes, ¿qué tal?», «Bon dia») no se suma a la abierta: fila con `∅`, sin M22 ni reloj. Si dice
@@ -623,7 +627,10 @@ El mensaje que lo pide queda con `clave_v3 = '∅'`.
   dos cosas, se reserva y además se pausa. Un pedido no reactiva a un pausado.
 - **Vuelta de un pausado:** cualquier otro mensaje lo reactiva (`alerta_silencio = false`). Con
   pregunta abierta, se le reenvía, M8 cuenta de nuevo desde ahora (`abiertaDesde`, `m8En`) y, si
-  había algo contado, el silencio de 3' también. Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
+  había algo contado, el silencio de 3' también. Si vuelve **escribiendo**, el texto **no** contesta la
+  abierta (no va al borrador ni arranca el reloj: un «Hola, volví, perdón la demora» no puede ser la
+  respuesta), pero queda guardado en `respuestas` con `∅` y, si es más que un saludo, se avisa a los
+  socios con el texto para que decidan si va al libro (21/10: antes no dejaba ni la fila). Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
   momento** (sin esperar `hora_preferida`) y cuenta en la tanda de hoy, aunque esté en el tope; lo
   que mandó queda con `∅`. Antes se suman las preguntas de la familia (como al abrir la tanda).
 
