@@ -706,7 +706,7 @@ describe('revisión del 07/10: red de seguridad de la pausa y la reserva', () =>
 
   it('sin borrador, al volver no se toca el reloj de silencio', async () => {
     const { deps, n1, fila } = await preparar({ ...enOR1(), abiertaDesde: '2026-10-01T00:00:00.000Z', m8En: 'OR1' }, { narrador: { estado: 'pausado' } });
-    await procesarEntranteV3(deps, n1, texto('Hola'));
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
     const f = await fila();
     expect(f?.estado.abiertaDesde).toBe(AHORA.toISOString());
     expect(f?.ultimo_audio_at).toBeNull();
@@ -845,24 +845,26 @@ describe('un saludo solo no contesta la pregunta (Naza, 09/10)', () => {
 });
 
 describe('nada de lo que manda se pierde en silencio (21/10)', () => {
-  it('pausado con pregunta abierta: lo que escribe se guarda (fila y borrador) y se le reenvía la abierta igual que antes', async () => {
-    const { deps, n1, enviados, base, fila } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
-    await procesarEntranteV3(deps, n1, texto('Volví. Nací en Rosario, en una casa con patio.'));
+  it('pausado con pregunta abierta: lo que escribe queda guardado con ∅ y avisa a los socios, sin contestar la abierta', async () => {
+    const { deps, n1, enviados, base, fila, avisos } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Hola, volví, perdón la demora'));
     expect(base.tablas.narradores[0].estado).toBe('activo');
     expect(enviados).toHaveLength(1); // solo la abierta, sin M22
-    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([['OR1', 'Volví. Nací en Rosario, en una casa con patio.']]);
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([[SIN_CLAVE_V3, 'Hola, volví, perdón la demora']]);
     const f = await fila();
-    expect(f?.estado.borrador).toBe('Volví. Nací en Rosario, en una casa con patio.');
-    expect(f?.estado.m22Enviado).toBeUndefined();
-    expect(f?.ultimo_audio_at).toBe(AHORA.toISOString());
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.estado.esperando).toBe('OR1');
+    expect(f?.ultimo_audio_at).toBeNull();
+    expect(avisos.map((a) => a.detalle).join(' ')).toContain('«Hola, volví, perdón la demora»');
   });
 
-  it('pausado con pregunta abierta: un saludo solo se guarda aparte (∅) y no se suma', async () => {
-    const { deps, n1, enviados, base, fila } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+  it('pausado con pregunta abierta: un saludo solo queda guardado con ∅, sin aviso', async () => {
+    const { deps, n1, enviados, base, fila, avisos } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
     await procesarEntranteV3(deps, n1, texto('Hola'));
     expect(enviados).toHaveLength(1);
     expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([[SIN_CLAVE_V3, 'Hola']]);
     expect((await fila())?.estado.borrador).toBeUndefined();
+    expect(avisos).toEqual([]);
   });
 
   it('la pregunta siguiente está saliendo (ventana abierta): lo que manda en ese segundo la contesta, no queda con ∅', async () => {

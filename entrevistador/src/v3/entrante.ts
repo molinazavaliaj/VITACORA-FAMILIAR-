@@ -93,22 +93,26 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
     await reactivar(deps, n.id);
     // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22). M8 cuenta de
     // nuevo desde ahora y, si había algo contado, el silencio de 3' también (que no la
-    // cierre apenas se reenvía). Lo que escribió no se pierde (21/10: antes no dejaba ni la fila):
-    // se guarda y, si no es un saludo solo, se suma a la abierta como cualquier texto.
+    // cierre apenas se reenvía). Lo que escribió no cuenta como respuesta (un «Hola, volví, perdón la
+    // demora» no puede contestar la abierta), pero no se pierde (21/10: antes no dejaba ni la fila): queda
+    // guardado con ∅ y, si es más que un saludo, se avisa a los socios para que decidan si va al libro.
     const ahoraIso = ahora.toISOString();
     const escritoTexto = (m.texto ?? '').trim();
     const guardada = escritoTexto
-      ? await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), escritoTexto, { waMessageId: m.waMessageId, clave: null, esBoton: false })
+      ? await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), escritoTexto, { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: false })
       : null;
-    if (escritoTexto && !guardada) return; // el reintento de Meta: ya se guardó y se aplicó
-    const suma = escritoTexto !== '' && !esSaludo(escritoTexto, fila.idioma);
-    const r = await conReintento(deps.db, n.id, (f): Paso<string | null> => {
+    await conReintento(deps.db, n.id, (f) => {
       if (yaVisto(f.estado, m.waMessageId)) return null;
-      const a = suma ? recibirAudio(f.estado, escritoTexto) : { estado: f.estado, clave: null, abierta: false };
-      const estado = { ...anotarVisto(reenviarAbierta(a.estado), m.waMessageId), m8En: undefined, ...(f.estado.esperando ? { abiertaDesde: ahoraIso } : {}) };
-      return { cambio: { estado, ...(a.estado.borrador?.trim() ? { ultimo_audio_at: ahoraIso } : {}) }, resultado: a.clave };
+      const estado = { ...anotarVisto(reenviarAbierta(f.estado), m.waMessageId), m8En: undefined, ...(f.estado.esperando ? { abiertaDesde: ahoraIso } : {}) };
+      return { cambio: { estado, ...(f.estado.borrador?.trim() ? { ultimo_audio_at: ahoraIso } : {}) }, resultado: true };
     });
-    if (guardada) await anotarClave(deps, guardada.id, r);
+    if (guardada && !esSaludo(escritoTexto, fila.idioma)) {
+      await deps.avisar(
+        `texto-pausado-${m.waMessageId}`,
+        'Un narrador V3 pausado volvió escribiendo',
+        `${n.id} estaba pausado y volvió escribiendo con la pregunta ${fila.estado.esperando} abierta. Se le reenvió la pregunta; lo que escribió no se sumó a ninguna respuesta (quedó con clave ∅). Lo que escribió: «${escritoTexto.length > 600 ? `${escritoTexto.slice(0, 600)}…` : escritoTexto}». Si vale para el libro, hay que sumarlo a mano.`,
+      );
+    }
     await drenar(deps, n.id);
     return;
   }

@@ -627,9 +627,10 @@ El mensaje que lo pide queda con `clave_v3 = '∅'`.
   dos cosas, se reserva y además se pausa. Un pedido no reactiva a un pausado.
 - **Vuelta de un pausado:** cualquier otro mensaje lo reactiva (`alerta_silencio = false`). Con
   pregunta abierta, se le reenvía, M8 cuenta de nuevo desde ahora (`abiertaDesde`, `m8En`) y, si
-  había algo contado, el silencio de 3' también. Si vuelve **escribiendo**, el texto se guarda en
-  `respuestas` y se suma a la abierta como cualquier texto (sin M22); un saludo solo queda con `∅`
-  (21/10: antes no dejaba ni la fila). Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
+  había algo contado, el silencio de 3' también. Si vuelve **escribiendo**, el texto **no** contesta la
+  abierta (no va al borrador ni arranca el reloj: un «Hola, volví, perdón la demora» no puede ser la
+  respuesta), pero queda guardado en `respuestas` con `∅` y, si es más que un saludo, se avisa a los
+  socios con el texto para que decidan si va al libro (21/10: antes no dejaba ni la fila). Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
   momento** (sin esperar `hora_preferida`) y cuenta en la tanda de hoy, aunque esté en el tope; lo
   que mandó queda con `∅`. Antes se suman las preguntas de la familia (como al abrir la tanda).
 
