@@ -190,6 +190,7 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
         ritmo="diario"
         horario={momento === "listo" ? undefined : { hora: "10:00", zona: "Europe/Madrid" }}
         alFinal={false}
+        puedeVolverAPreguntar={momento !== "listo"}
         trato={trato}
       />
     );

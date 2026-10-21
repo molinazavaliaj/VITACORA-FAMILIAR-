@@ -17,6 +17,7 @@ import type { Idioma } from './nucleo/entrevista/idioma.js';
 import type { DepsV3, Transcripcion } from './deps.js';
 import { drenar, ventanaAbierta } from './enviar.js';
 import { conReintento, type Paso } from './estado.js';
+import { leerSacadas } from './fuera.js';
 import {
   anotarTranscripcion, avisarFamiliaTarde, bajarAudioGuardado, leerFamilia, guardarAudioV3, guardarFotoV3, guardarTextoV3, marcarRespondido, numeroDeLlegada, ponerClave,
   ponerClaveSiFalta, yaLlego,
@@ -210,10 +211,11 @@ async function reactivar(deps: DepsV3, narradorId: string): Promise<void> {
 async function abrirAlVolver(deps: DepsV3, n: NarradorV3, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
   const familia = (await leerFamilia(deps.db, n.id)) ?? [];
+  const sacadas = await leerSacadas(deps.db, n.id);
   const r = await conReintento(deps.db, n.id, (f) => {
     if (f.estado.esperando || f.estado.terminada) return null;
     const conFamilia = sumarFamilia(f.estado, familia);
-    const a = avanzar(conFamilia.estado, fichaTexto(f));
+    const a = avanzar(conFamilia.estado, fichaTexto(f), sacadas);
     const t = aplicarTanda(f, a.estado, hoy, a.abrio, ahora);
     return { cambio: { estado: t.estado, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: conFamilia.tarde };
   });
@@ -356,6 +358,7 @@ async function recibirBoton(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fil
 async function aplicarBoton(deps: DepsV3, n: NarradorV3, boton: string, guardada: FilaGuardada, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
   type Res = { resultado: string | null; bloqueCerrado?: number; cerro: boolean };
+  const sacadas = await leerSacadas(deps.db, n.id);
   const r = await conReintento(deps.db, n.id, (f): Paso<Res> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const ficha = fichaTexto(f);
@@ -363,7 +366,7 @@ async function aplicarBoton(deps: DepsV3, n: NarradorV3, boton: string, guardada
     // Ya no es un botón de la abierta (cambió en el medio): se guarda y queda afuera.
     if (!t) return { cambio: { estado: anotarVisto(f.estado, guardada.waMessageId) }, resultado: { resultado: null, cerro: false } };
     if (!t.cerrar) return { cambio: { estado: anotarVisto(t.estado, guardada.waMessageId) }, resultado: { resultado: t.clave, cerro: false } };
-    const s = cerrarYSeguir(t.estado, ficha, true);
+    const s = cerrarYSeguir(t.estado, ficha, true, sacadas);
     const tanda = aplicarTanda(f, s.estado, hoy, s.abrio, ahora);
     return {
       cambio: { estado: anotarVisto(tanda.estado, guardada.waMessageId), ultimo_audio_at: null, tanda_dia: tanda.tanda_dia, tanda_cuenta: tanda.tanda_cuenta },

@@ -21,6 +21,7 @@ import { idiomaDe } from './nucleo/entrevista/idioma.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse } from './nucleo/entrevista/mensajes.js';
 import { leerBoton, sumarAudio } from './nucleo/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from './nucleo/entrevista/texto.js';
+import { respuestasSinSacadas, SIN_SACADAS, sinRepreguntasSacadas, type Sacadas } from './fuera.js';
 import { MARCA_FOTO, WAMIDS_VISTOS, type EstadoV3, type Parte, type Saliente } from './tipos.js';
 
 function clonar(e: EstadoV3): EstadoV3 {
@@ -173,10 +174,13 @@ export function cerrarRespuesta(anterior: EstadoV3, ficha: FichaTexto): Cierre {
 
 export type Avance = { estado: EstadoV3; abrio: boolean };
 
-/** Manda todo lo que va hasta la próxima pregunta que espera respuesta (o hasta el final). Igual que `avanzar` del script. */
-export function avanzar(anterior: EstadoV3, ficha: FichaTexto): Avance {
+/**
+ * Manda todo lo que va hasta la próxima pregunta que espera respuesta (o hasta el final). Igual que `avanzar` del script.
+ * `sacadas`: lo que la familia sacó del libro desde el panel; una repregunta en cola sobre eso no sale (fuera.ts).
+ */
+export function avanzar(anterior: EstadoV3, ficha: FichaTexto, sacadas: Sacadas = SIN_SACADAS): Avance {
   if (anterior.esperando) throw new Error(`avanzar: ${anterior.esperando} todavía espera respuesta.`);
-  const e = clonar(anterior);
+  const e = clonar(sinRepreguntasSacadas(anterior, sacadas));
   if (e.terminada) return { estado: e, abrio: false };
   const idioma = idiomaDe(ficha);
   const respuestas = new Map(e.respuestas);
@@ -260,11 +264,11 @@ export function avanzar(anterior: EstadoV3, ficha: FichaTexto): Avance {
 export type Seguir = { estado: EstadoV3; abrio: boolean; bloqueCerrado?: number };
 
 /** Cierra la abierta y, si `puedeAbrir`, manda lo que sigue. En producción siempre es true desde el 10/10 (Naza: si contesta, le llega la siguiente). */
-export function cerrarYSeguir(anterior: EstadoV3, ficha: FichaTexto, puedeAbrir: boolean): Seguir {
+export function cerrarYSeguir(anterior: EstadoV3, ficha: FichaTexto, puedeAbrir: boolean, sacadas: Sacadas = SIN_SACADAS): Seguir {
   const c = cerrarRespuesta(anterior, ficha);
   const bloque = c.bloqueCerrado !== undefined ? { bloqueCerrado: c.bloqueCerrado } : {};
   if (!puedeAbrir) return { estado: c.estado, abrio: false, ...bloque };
-  const a = avanzar(c.estado, ficha);
+  const a = avanzar(c.estado, ficha, sacadas);
   return { estado: a.estado, abrio: a.abrio, ...bloque };
 }
 
@@ -332,13 +336,13 @@ export function esReservada(e: Pick<EstadoV3, 'reservadas'>, clave: string): boo
   return r.includes(clave) || r.includes(claveMadre(clave));
 }
 
-export function cazarAlCerrar(e: EstadoV3, ficha: FichaTexto, bloque: number, cliente: ClienteModelo): Promise<ResultadoCaza> {
+export function cazarAlCerrar(e: EstadoV3, ficha: FichaTexto, bloque: number, cliente: ClienteModelo, sacadas: Sacadas = SIN_SACADAS): Promise<ResultadoCaza> {
   return cazarBloque({
     cliente,
     ficha: fichaCorta(ficha),
     bloque,
-    // Lo que pidió que no vaya al libro tampoco va al modelo (no se repregunta sobre eso).
-    respuestas: new Map(e.respuestas.filter(([k]) => !esReservada(e, k))),
+    // Lo que pidió que no vaya al libro tampoco va al modelo (no se repregunta sobre eso), ni lo que sacó la familia.
+    respuestas: new Map(respuestasSinSacadas(e.respuestas, sacadas).filter(([k]) => !esReservada(e, k))),
     textoPregunta: (id) => textoMandado(e, ficha, id),
     yaRepreguntado: e.repreguntas ?? [],
     escenasContadas: e.cazador?.escenasContadas ?? [],

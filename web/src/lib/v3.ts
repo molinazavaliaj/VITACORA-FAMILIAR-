@@ -12,7 +12,55 @@ const MARCAS = /⟦[^⟧]*⟧/g;
 
 type Globo = { de?: string; partes?: { id?: string; texto?: string }[] };
 export type EstadoV3 = { respuestas?: [string, string][]; charla?: unknown[]; reservadas?: string[] };
-export type FilaRespuestaV3 = { id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null };
+export type FilaRespuestaV3 = {
+  id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null;
+  transcripcion?: string | null; texto_directo?: string | null;
+};
+
+// ── «Que esto no vaya al libro» por respuesta, desde el panel (respuestas_fuera, Naza 21/10) ──
+// La dueña saca UNA fila; lo demás que contó en esa pregunta sigue en el libro. La misma regla que la fábrica
+// (fabrica/src/escritor/material/de-base.ts) y el entrevistador (entrevistador/src/v3/fuera.ts).
+
+const normal = (t: string) => t.replace(/\s+/g, " ").trim();
+/** El texto de una fila como lo sumó el bot: la transcripción o lo escrito, sin las marcas ⟦…⟧. */
+const textoDeFila = (f: Pick<FilaRespuestaV3, "transcripcion" | "texto_directo">) => normal((f.transcripcion ?? f.texto_directo ?? "").replace(MARCAS, " "));
+
+/** El texto de una clave sin las filas sacadas: se borra cada una; si alguna no está tal cual, se rearma con las que quedan. */
+export function sinLoSacado(texto: string, filas: readonly { texto: string; fuera: boolean }[]): string | null {
+  if (!filas.some((f) => f.fuera)) return texto;
+  const quedan = () => filas.filter((f) => !f.fuera).map((f) => normal(f.texto)).filter(Boolean).join(" ");
+  let t = normal(texto);
+  // El texto es la suma de las filas en orden: si coincide entero, se rearma sin las sacadas (sin buscar nada).
+  if (t === filas.map((f) => normal(f.texto)).filter(Boolean).join(" ")) t = quedan();
+  else {
+    for (const s of filas.filter((f) => f.fuera).map((f) => normal(f.texto)).filter(Boolean)) {
+      // Solo como palabras enteras y una sola vez: un «Sí» sacado no puede comerse el «así» de otra respuesta.
+      const lugares: number[] = [];
+      for (let i = t.indexOf(s); i >= 0; i = t.indexOf(s, i + 1)) {
+        if ((i === 0 || t[i - 1] === " ") && (i + s.length === t.length || t[i + s.length] === " ")) lugares.push(i);
+      }
+      if (lugares.length !== 1) {
+        t = quedan();
+        break;
+      }
+      t = normal(`${t.slice(0, lugares[0])} ${t.slice(lugares[0] + s.length)}`);
+    }
+  }
+  return t === "" ? null : t;
+}
+
+/** Los ids de `respuestas_fuera` del narrador. Sin la tabla (migración sin aplicar), ninguno. Otro error tira. */
+export async function respuestasFuera(admin: ClienteMinimo, narradorId: string): Promise<Set<string>> {
+  const { data, error } = await admin.from("respuestas_fuera").select("respuesta_id").eq("narrador_id", narradorId);
+  if (error?.code === "42P01" || error?.code === "PGRST205") return new Set();
+  if (error) throw new Error(`No pude leer las respuestas sacadas de ${narradorId}`);
+  return new Set(((data as { respuesta_id: string }[] | null) ?? []).map((r) => r.respuesta_id));
+}
+
+/** El texto con que le llegó la pregunta de esa fila (la de una X~2, el de X), para volver a hacérsela. null si no está. */
+export function preguntaDeLaFila(clave: string, charla: unknown[]): string | null {
+  return preguntaDe(clave, charla) ?? preguntaDe(claveMadre(clave), charla);
+}
 
 /** Una pregunta contestada, para «Qué dejar afuera»: destildarla saca todas sus filas (`ids`). */
 export type RespuestaV3 = { clave: string; pregunta: string; fragmento: string; ids: string[] };
@@ -35,7 +83,7 @@ function preguntaDe(clave: string, charla: unknown[]): string | null {
  * pidió que no vaya al libro (por WhatsApp: `estado.reservadas`, o la fila reservada entera) no aparece: ya está
  * afuera y no se puede volver a meter desde acá.
  */
-export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, filas: FilaRespuestaV3[]): RespuestaV3[] {
+export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, filas: FilaRespuestaV3[], fuera: ReadonlySet<string> = new Set()): RespuestaV3[] {
   const respuestas = Array.isArray(estado?.respuestas) ? estado.respuestas : [];
   const charla = Array.isArray(estado?.charla) ? estado.charla : [];
   // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X.
@@ -54,10 +102,15 @@ export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, fila
   const ocultaTexto = (k: string) => reservadas.has(k) || reservadas.has(claveMadre(k)) || conReserva.has(k);
   const textoPorMadre = new Map<string, string[]>();
   const conAlgoOculto = new Set<string>();
+  // Lo que la dueña sacó desde la historia (por fila, clave exacta) no se muestra ni cuenta.
+  const conSacadas = new Set(filas.filter((f) => f.clave_v3 && fuera.has(f.id)).map((f) => f.clave_v3 as string));
   for (const r of respuestas) {
     if (!Array.isArray(r) || typeof r[0] !== "string" || typeof r[1] !== "string") continue;
     const m = claveMadre(r[0]);
-    const limpio = r[1].replace(MARCAS, " ").replace(/\s+/g, " ").trim();
+    const sinSacadas = conSacadas.has(r[0])
+      ? sinLoSacado(r[1], filas.filter((f) => f.clave_v3 === r[0]).map((f) => ({ texto: textoDeFila(f), fuera: fuera.has(f.id) }))) ?? ""
+      : r[1];
+    const limpio = sinSacadas.replace(MARCAS, " ").replace(/\s+/g, " ").trim();
     if (!textoPorMadre.has(m)) textoPorMadre.set(m, []);
     if (!limpio) continue;
     if (ocultaTexto(r[0])) conAlgoOculto.add(m);
@@ -99,7 +152,11 @@ export type FilaHistoriaV3 = FilaRespuestaV3 & {
   audio_path: string | null; transcripcion: string | null; texto_directo: string | null;
   duracion_segundos: number | null; recibido_at: string;
 };
-export type RespuestaHistoriaV3 = { id: string; texto: string; audio: boolean; duracion: number | null; recibidoAt: string };
+export type RespuestaHistoriaV3 = {
+  id: string; texto: string; audio: boolean; duracion: number | null; recibidoAt: string;
+  /** La dueña la sacó del libro desde acá (respuestas_fuera): se ve, en gris, y se puede volver a poner. */
+  fuera?: boolean;
+};
 export type PreguntaHistoriaV3 = {
   clave: string;
   /** El texto tal como le llegó (la última vez que salió). */
@@ -127,7 +184,7 @@ type GloboHistoria = { de?: string; nombre?: unknown; partes?: { id?: unknown; t
  * `respuestas`, con audio). Lo que quedó afuera a propósito (∅) no aparece. Lo reservado por WhatsApp se
  * marca y no se muestra.
  */
-export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[]): BloqueHistoriaV3[] {
+export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[], fuera: ReadonlySet<string> = new Set()): BloqueHistoriaV3[] {
   const charla = (Array.isArray(estado?.charla) ? estado.charla : []) as GloboHistoria[];
   const contestadas = new Set((Array.isArray(estado?.respuestas) ? estado.respuestas : []).map((r) => (Array.isArray(r) ? r[0] : "")));
   // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X.
@@ -163,7 +220,7 @@ export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | 
       const crudo = (f.transcripcion ?? f.texto_directo ?? "").trim();
       const boton = /⟦botón:([^⟧]*)⟧/.exec(crudo)?.[1];
       const texto = crudo.replace(MARCAS, " ").replace(/\s+/g, " ").trim() || (boton ? `«${boton}»` : "");
-      return { id: f.id, texto, audio: Boolean(f.audio_path), duracion: f.duracion_segundos, recibidoAt: f.recibido_at };
+      return { id: f.id, texto, audio: Boolean(f.audio_path), duracion: f.duracion_segundos, recibidoAt: f.recibido_at, fuera: fuera.has(f.id) };
     }).filter((r) => r.texto || r.audio);
     item.estado = estado?.esperando === item.clave ? "esperando" : contestadas.has(item.clave) || item.respuestas.length > 0 || item.reservada ? "contestada" : "sin respuesta";
   }

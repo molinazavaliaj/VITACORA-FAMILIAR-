@@ -19,7 +19,8 @@ import { HistoriaV3 } from "./v3";
 import { PanelKids } from "./kids";
 import { esKids } from "@/lib/kids-panel";
 import { leerPanelKids } from "@/lib/kids-panel-base";
-import { entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
+import { entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
+import { puedeVolverAPreguntar } from "@/lib/fuera-del-libro";
 import { viajeDelContexto } from "@/lib/viaje";
 import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
@@ -98,6 +99,8 @@ function IconoBarra({ nombre }: { nombre: "lapiz" | "foto" | "check" }) {
 type LecturaV3 = {
   v3: Awaited<ReturnType<typeof entrevistaV3>>;
   filasV3: unknown[] | null;
+  /** Las respuestas que la dueña sacó del libro (respuestas_fuera, 21/10). */
+  fuera?: Set<string>;
   e4: { message: string } | null;
   /** entrevistaV3 tiró: la página muestra el error, salvo en un viaje (que no la mira). */
   fallo?: unknown;
@@ -112,12 +115,16 @@ async function leerV3(admin: SupabaseClient, narradorId: string): Promise<Lectur
     return { v3: null, filasV3: null, e4: null, fallo: e };
   }
   if (!v3) return { v3, filasV3: null, e4: null };
-  const { data, error } = await admin
-    .from("respuestas")
-    .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
-    .eq("narrador_id", narradorId)
-    .order("recibido_at", { ascending: true });
-  return { v3, filasV3: data, e4: error };
+  const [{ data, error }, fuera] = await Promise.all([
+    admin
+      .from("respuestas")
+      .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
+      .eq("narrador_id", narradorId)
+      .order("recibido_at", { ascending: true }),
+    respuestasFuera(admin, narradorId).catch((e: unknown) => e as Error),
+  ]);
+  if (fuera instanceof Error) return { v3, filasV3: null, e4: { message: fuera.message } };
+  return { v3, filasV3: data, fuera, e4: error };
 }
 
 /** "22 de septiembre" desde YYYY-MM-DD, sin que la zona del servidor corra el día (como en viaje.tsx). */
@@ -540,13 +547,15 @@ async function armarLectura({
     console.error("historia: fallo la lectura V3", lecturaV3.fallo);
     return error();
   }
-  const { v3, filasV3, e4 } = lecturaV3;
+  const { v3, filasV3, e4, fuera } = lecturaV3;
   if (v3) {
     if (e4) {
       console.error("historia: fallo la carga V3", e4);
       return error();
     }
-    const bloques = historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? []);
+    const bloques = historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? [], fuera);
+    const alFinal = llegoAlFinalV3(v3.estado);
+    const preguntasDeFamilia = ((propias as FilaPreguntaFamiliaV3[] | null) ?? []).filter((p) => p.tipo === "familia").length;
     const voz = vozV3(bloques);
     return {
       cuerpo: (
@@ -568,7 +577,8 @@ async function armarLectura({
           dudasPendientes={dudasPendientes}
           ritmo={ritmo}
           horario={horario}
-          alFinal={llegoAlFinalV3(v3.estado)}
+          alFinal={alFinal}
+          puedeVolverAPreguntar={puedeVolverAPreguntar({ estadoNarrador: n.estado, alFinal, preguntasFamilia: preguntasDeFamilia })}
           trato={tratoPanel}
         />
       ),

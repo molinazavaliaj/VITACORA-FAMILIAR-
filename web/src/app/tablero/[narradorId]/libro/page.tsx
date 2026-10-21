@@ -16,7 +16,7 @@ import { FotosDelLibro, type FotoElegible } from "./fotos-del-libro";
 import { Extras } from "./extras";
 import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
-import { entrevistaV3, respuestasV3ParaCerrar, type RespuestaV3 } from "@/lib/v3";
+import { entrevistaV3, respuestasFuera, respuestasV3ParaCerrar, type FilaRespuestaV3, type RespuestaV3 } from "@/lib/v3";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../../proximo-paso";
@@ -164,8 +164,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const porOrden = new Map(guion.map((p) => [p.orden, p]));
   // V3: no hay capítulos del guion (el plan lo arma el escritor).
   const capitulos = v3 ? [] : capitulosDelGuion(guion);
+  // Lo que la dueña ya sacó desde la historia (21/10) no aparece. Si no se puede leer, se muestra todo: acá no se escribe.
+  const fuera = v3 ? await respuestasFuera(admin, n.id).catch((e: unknown) => { console.error("libro: fallo la lectura de respuestas_fuera", e); return new Set<string>(); }) : new Set<string>();
   const respuestasV3: RespuestaV3[] | undefined = v3
-    ? respuestasV3ParaCerrar(v3.estado, ((respuestas as { id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null }[] | null) ?? []))
+    ? respuestasV3ParaCerrar(v3.estado, ((respuestas as FilaRespuestaV3[] | null) ?? []), fuera)
     : undefined;
   // Encuadre (3b.6): siempre un foco usable y una posición válida, tenga o no la fila los campos.
   const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown })[] | null) ?? []).map((f) => ({
