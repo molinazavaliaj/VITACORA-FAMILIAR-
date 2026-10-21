@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>El cuaderno de su vida · muestra</title>
-<!-- Muestra de maqueta del cuaderno (21/10). Cuatro páginas A5: tapa, instrucciones,
-     portadilla de capítulo y una pregunta con recuadro de foto. Tipografías y colores de
+<!-- Muestra de maqueta del cuaderno (21/10). Seis páginas A5: tapa, instrucciones,
+     portadilla de capítulo, una pregunta con su vuelta de renglones y una página de fotos. Tipografías y colores de
      docs/design.md: Playfair grita, Archivo susurra, Source Serif para leer. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Playfair+Display:ital,wght@0,500;1,400&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
 
   /* Tapa */
   .tapa { background: var(--tinta); color: #fff; align-items: center; text-align: center; justify-content: space-between; padding: 22mm 16mm 18mm; }
-  .tapa svg { width: 46mm; height: auto; }
+  .tapa svg { width: 92mm; height: auto; }
   .tapa h1 { font-family: var(--titulo); font-weight: 500; font-size: 24pt; line-height: 1.2; }
   .tapa .nombre { margin-top: 6mm; border-bottom: .3mm solid rgba(255,255,255,.6); width: 80mm; height: 9mm; }
   .tapa .etiqueta { color: rgba(255,255,255,.65); }
@@ -54,6 +54,9 @@
   .pregunta h3 { font-family: var(--cuerpo); font-weight: 400; font-size: 13.5pt; line-height: 1.45; margin: 5mm 0 7mm; }
   .foto { border: .3mm dashed var(--gris); height: 52mm; display: flex; align-items: center; justify-content: center; margin-bottom: 6mm; }
   .foto span { font-family: var(--micro); font-size: 7.5pt; letter-spacing: .2em; text-transform: uppercase; color: var(--gris); }
+  .fotos .grilla { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8mm 6mm; margin-top: 8mm; }
+  .fotos .foto { height: 62mm; margin-bottom: 0; }
+  .pie-foto { font-family: var(--micro); font-size: 7pt; letter-spacing: .15em; text-transform: uppercase; color: var(--gris); border-top: .25mm solid var(--linea); padding-top: 2mm; margin-top: 7mm; }
   .renglones { flex: 1; background-image: linear-gradient(to bottom, transparent calc(9mm - .25mm), var(--linea) calc(9mm - .25mm)); background-size: 100% 9mm; }
 
   .pie { text-align: center; font-family: var(--micro); font-size: 9pt; color: #6b6861; margin-top: 24px; }
@@ -73,7 +76,7 @@
   <!-- Tapa -->
   <section class="hoja tapa">
     <span class="etiqueta">Vitácora Familiar</span>
-    <svg viewBox="0 0 200 290" aria-label="Vitácora Familiar">
+    <svg viewBox="-80 8 360 274" aria-label="Vitácora Familiar">
       <line x1="100" y1="20.32" x2="100" y2="269.68" stroke="#FFF" stroke-width="0.9" stroke-dasharray="3 4" opacity="0.55"/>
       <path d="M100 12 l5.2 5.2 l-5.2 5.2 l-5.2 -5.2 Z" fill="#FFF" opacity="0.75"/>
       <path d="M100 278 l5.2 -5.2 l-5.2 -5.2 l-5.2 5.2 Z" fill="#FFF" opacity="0.75"/>
@@ -121,13 +124,31 @@
     <span class="folio">5</span>
   </section>
 
-  <!-- Pregunta con foto -->
+  <!-- Pregunta: la pregunta arriba y renglones hasta el pie -->
   <section class="hoja pregunta">
     <span class="etiqueta">De dónde vengo · 1</span>
     <h3>¿Dónde vivían tus padres cuando llegaste al mundo y a qué se dedicaban? Escríbelo como te lo contaron a ti.</h3>
-    <div class="foto"><span>Pega aquí una foto de esa época</span></div>
     <div class="renglones"></div>
     <span class="folio">6</span>
+  </section>
+
+  <!-- La vuelta de la pregunta: toda la página para seguir escribiendo -->
+  <section class="hoja pregunta">
+    <span class="etiqueta">De dónde vengo · 1</span>
+    <div class="renglones" style="margin-top:6mm"></div>
+    <span class="folio">7</span>
+  </section>
+
+  <!-- Las fotos, todas al final -->
+  <section class="hoja fotos">
+    <span class="etiqueta">Tus fotos</span>
+    <div class="grilla">
+      <div><div class="foto"><span>Foto</span></div><p class="pie-foto">Quién sale y en qué año</p></div>
+      <div><div class="foto"><span>Foto</span></div><p class="pie-foto">Quién sale y en qué año</p></div>
+      <div><div class="foto"><span>Foto</span></div><p class="pie-foto">Quién sale y en qué año</p></div>
+      <div><div class="foto"><span>Foto</span></div><p class="pie-foto">Quién sale y en qué año</p></div>
+    </div>
+    <span class="folio">121</span>
   </section>
 
 </div>

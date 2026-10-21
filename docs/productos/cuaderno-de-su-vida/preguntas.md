@@ -6,7 +6,7 @@
 
 **Reglas que cumple todo el texto:** ninguna pregunta sabe si escribe un hombre o una mujer; tú, nunca usted; sin dos puntos en las preguntas; sin oraciones que empiecen con «Y» tras un punto; nada se da por hecho (hermanos, pareja, hijos, trabajo fuera de casa); lo delicado solo en el capítulo 8 y siempre con «si quieres». Castellano de España.
 
-**Marcas:** ☐ foto = esa página lleva un recuadro con el texto «Pega aquí una foto de esa época» (8 en todo el cuaderno). Entre corchetes van notas de maqueta, no se imprimen.
+**Marcas:** ~~☐ foto~~ — **cambio de Naza 21/10: ninguna pregunta lleva foto.** Cada pregunta tiene su página de renglones y la vuelta entera para seguir escribiendo (2 páginas por pregunta). Las fotos van todas juntas al final, en «Tus fotos». Las marcas ☐ foto de abajo quedan solo como historial. Entre corchetes van notas de maqueta, no se imprimen.
 
 **Falta:** la versión de Argentina (vos), que se hará después sobre esta.
 
@@ -161,10 +161,9 @@
 
 ## Páginas de cierre
 
-### Página de las fotos sueltas
+### Tus fotos (cambio de Naza 21/10)
 
-[Una doble página en blanco con cuatro recuadros y una sola línea arriba:]
-> Las fotos que no tenían pregunta van aquí.
+[Seis páginas al final, cuatro recuadros por página y una línea debajo de cada uno. Arriba de cada página, en chiquito, «Tus fotos». Debajo de cada recuadro, en chiquito, «Quién sale y en qué año». PENDIENTE OK de Naza a estos dos textos nuevos. Reemplaza a «Las fotos que no tenían pregunta van aquí», que ya no tiene sentido.]
 
 ### Última página — con el QR
 
