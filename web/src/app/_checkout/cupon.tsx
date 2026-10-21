@@ -27,6 +27,7 @@ export function CampoCupon({
   aplicado,
   alCambiar,
   inicial,
+  conPista = true,
 }: {
   idioma: IdiomaWeb;
   /** Lo que lleva el carrito (el descuento es el mismo, pero el servidor lo revisa con la compra entera). */
@@ -35,6 +36,8 @@ export function CampoCupon({
   alCambiar: (cupon: CuponAplicado | null) => void;
   /** Un código para aplicar solo al llegar (el link del mail, `?cupon=`). */
   inicial?: string | null;
+  /** La pista «VITACORA10-…» es del cupón del rasca: con solo creadores prendido, el casillero va sin pista. */
+  conPista?: boolean;
 }) {
   const T = TEXTOS_CUPON[idioma].checkout;
   const [codigo, setCodigo] = useState(inicial ?? "");
@@ -104,7 +107,7 @@ export function CampoCupon({
               void aplicar();
             }
           }}
-          placeholder={T.pista}
+          placeholder={conPista ? T.pista : undefined}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}

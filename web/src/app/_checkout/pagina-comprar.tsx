@@ -32,6 +32,7 @@ export function PaginaComprar({ idioma }: { idioma: IdiomaWeb }) {
         // El casillero sirve para el cupón de bienvenida y para el código de un
         // creador. No se suma a precios ya rebajados: con la promo global prendida, no hay campo.
         conCupon={(rascaPrendido() || creadoresPrendido()) && promoPorcentaje() === null}
+        pistaCupon={rascaPrendido()}
       />
     </CascaronCheckout>
   );

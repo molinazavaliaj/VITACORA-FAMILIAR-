@@ -79,12 +79,15 @@ export function Checkout({
   entregaWhatsApp = false,
   pasoInicial = 1,
   conCupon = false,
+  pistaCupon = true,
 }: {
   idioma: IdiomaWeb;
   catalogo: CatalogoRegion;
   promo?: number | null;
   /** El campo del cupón de bienvenida (RASCA_Y_GANA=1 y sin promo global: no se suma a precios rebajados). */
   conCupon?: boolean;
+  /** La pista «VITACORA10-…» en el campo: solo con el rasca prendido. */
+  pistaCupon?: boolean;
   /** Si se ofrece mandar el regalo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
   /** Para probar cada paso sin navegador. */
@@ -601,6 +604,7 @@ export function Checkout({
                     aplicado={cupon}
                     alCambiar={setCupon}
                     inicial={cuponInicial}
+                    conPista={pistaCupon}
                   />
                 ) : null}
 
