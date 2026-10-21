@@ -66,9 +66,13 @@ function creador(cambios: Partial<FilaCreador> = {}): FilaCreador {
   };
 }
 
+const DIA = 24 * 60 * 60 * 1000;
+const hace = (dias: number, desde = Date.now()) => new Date(desde - dias * DIA).toISOString();
+
 const VENTAS = [
-  { created_at: "2026-10-21T12:00:00Z", moneda: "ARS", importe: 15435, estado: "pendiente" },
-  { created_at: "2026-10-01T12:00:00Z", moneda: "ARS", importe: 10000, estado: "pagada" },
+  { created_at: hace(3), moneda: "ARS", importe: 7000, estado: "pendiente" },
+  { created_at: hace(20), moneda: "ARS", importe: 15435, estado: "pendiente" },
+  { created_at: hace(40), moneda: "ARS", importe: 10000, estado: "pagada" },
 ];
 
 const abrir = async (token = TOKEN) => renderToStaticMarkup(await PanelCreador({ params: Promise.resolve({ token }) } as never));
@@ -112,6 +116,20 @@ describe("el panel del creador", () => {
     expect(h).toContain("Por cobrar");
     expect(h).toContain("Cobrada");
     expect(h).not.toContain("secreto de los socios");
+  });
+
+  it("separa lo que sigue en espera (14 días) de lo que está por cobrar", async () => {
+    conDatos(creador());
+    const h = await abrir();
+    // Totales: en espera 7.000, por cobrar 15.435, cobrado 10.000.
+    expect(h).toMatch(/En espera<\/p><p[^>]*>\$\s?7\.000/);
+    expect(h).toMatch(/Por cobrar<\/p><p[^>]*>\$\s?15\.435/);
+    expect(h).toMatch(/Cobrado<\/p><p[^>]*>\$\s?10\.000/);
+    // La venta de hace 3 días dice «En espera»; la de hace 20, «Por cobrar».
+    expect(h).toMatch(/7\.000,00<\/td><td[^>]*>En espera</);
+    expect(h).toMatch(/15\.435,00<\/td><td[^>]*>Por cobrar</);
+    expect(h).toContain("Cada comisión queda en espera 14 días desde la compra. Después pasa a por cobrar.");
+    expect(h).not.toContain("secreto de los socios");
     expect(h).not.toContain("lucia@ejemplo.com");
     // Lo que se le pide a la base no trae ni el pedido ni el total del cliente.
     const consulta = estado.ops.find((o) => o.tabla === "comisiones_creadores")!;
@@ -151,28 +169,40 @@ describe("el panel del creador", () => {
 describe("el resumen mensual", () => {
   const pedir = (auth?: string) => resumen(new Request("http://localhost/api/creadores/resumen", { headers: auth ? { authorization: auth } : {} }) as never);
 
-  it("arma el texto por creador, con lo pendiente, las ventas y el correo", () => {
+  const AHORA = new Date("2026-12-01T09:00:00Z").getTime();
+
+  it("arma el texto por creador, con lo que ya pasó la espera, las ventas, lo que sigue en espera y el correo", () => {
     const t = textoResumenMensual(
       [
         { id: "c1", nombre: "Lucía", email: "lucia@ejemplo.com", codigo: "LUCIA" },
         { id: "c2", nombre: "Pau", email: "pau@ejemplo.com", codigo: "PAU" },
+        { id: "c3", nombre: "Nueva", email: "nueva@ejemplo.com", codigo: "NUEVA" },
       ],
       [
-        { creador_id: "c1", estado: "pendiente", moneda: "ARS", importe: 15435 },
-        { creador_id: "c1", estado: "pendiente", moneda: "ARS", importe: 10000 },
-        { creador_id: "c2", estado: "pendiente", moneda: "EUR", importe: 8.82 },
+        { creador_id: "c1", estado: "pendiente", created_at: hace(20, AHORA), moneda: "ARS", importe: 15435 },
+        { creador_id: "c1", estado: "pendiente", created_at: hace(15, AHORA), moneda: "ARS", importe: 10000 },
+        { creador_id: "c1", estado: "pendiente", created_at: hace(5, AHORA), moneda: "ARS", importe: 7000 },
+        { creador_id: "c2", estado: "pendiente", created_at: hace(30, AHORA), moneda: "EUR", importe: 8.82 },
+        // Todo en espera: no sale este mes.
+        { creador_id: "c3", estado: "pendiente", created_at: hace(1, AHORA), moneda: "EUR", importe: 4 },
       ],
+      new Date(AHORA),
     )!;
     expect(t).toContain("Lucía (código LUCIA)");
-    expect(t).toContain("25.435 ARS");
+    expect(t).toContain("Para pagar: 25.435 ARS");
     expect(t).toContain("Ventas: 2");
+    expect(t).toContain("En espera (todavía no se paga): 7.000 ARS");
     expect(t).toContain("lucia@ejemplo.com");
-    expect(t).toContain("8,82 EUR");
+    expect(t).toContain("Para pagar: 8,82 EUR");
+    expect(t).not.toContain("NUEVA");
+    expect(t).toContain("14 días de espera");
     expect(t).toContain("/admin/creadores");
   });
 
-  it("sin pendientes no hay texto", () => {
-    expect(textoResumenMensual([{ id: "c1", nombre: "Lucía", email: "l@e.com", codigo: "LUCIA" }], [])).toBeNull();
+  it("sin nada que haya pasado la espera no hay texto", () => {
+    const c = [{ id: "c1", nombre: "Lucía", email: "l@e.com", codigo: "LUCIA" }];
+    expect(textoResumenMensual(c, [])).toBeNull();
+    expect(textoResumenMensual(c, [{ creador_id: "c1", estado: "pendiente", created_at: hace(3, AHORA), moneda: "EUR", importe: 4 }], new Date(AHORA))).toBeNull();
   });
 
   it("sin CRON_SECRET o con otra clave, 401", async () => {
@@ -199,7 +229,7 @@ describe("el resumen mensual", () => {
       }),
     );
     estado.responder = (op) => {
-      if (op.tabla === "comisiones_creadores") return { data: [{ creador_id: "c1", estado: "pendiente", moneda: "EUR", importe: 8.82 }], error: null };
+      if (op.tabla === "comisiones_creadores") return { data: [{ creador_id: "c1", estado: "pendiente", created_at: hace(20), moneda: "EUR", importe: 8.82 }], error: null };
       if (op.tabla === "creadores") return { data: [{ id: "c1", nombre: "Lucía", email: "lucia@ejemplo.com", codigo: "LUCIA" }], error: null };
       return undefined;
     };
@@ -208,6 +238,12 @@ describe("el resumen mensual", () => {
 
     mails.length = 0;
     estado.responder = (op) => (op.tabla === "comisiones_creadores" ? { data: [], error: null } : undefined);
+    expect(await (await pedir("Bearer secreto-del-cron")).json()).toEqual({ creadores: 0, enviado: false });
+    expect(mails).toEqual([]);
+
+    // Solo comisiones en espera: tampoco manda.
+    estado.responder = (op) =>
+      op.tabla === "comisiones_creadores" ? { data: [{ creador_id: "c1", estado: "pendiente", created_at: hace(2), moneda: "EUR", importe: 8.82 }], error: null } : undefined;
     expect(await (await pedir("Bearer secreto-del-cron")).json()).toEqual({ creadores: 0, enviado: false });
     expect(mails).toEqual([]);
   });

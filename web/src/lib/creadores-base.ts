@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  DIAS_EN_ESPERA,
   codigoCreadorValido,
   creadoresPrendido,
+  estadoDeComision,
+  finDeLaEspera,
   generarTokenPanel,
   importeComision,
   normalizarCodigoCreador,
@@ -271,13 +274,18 @@ export async function cambiarEstadoCreador(admin: SupabaseClient, id: string, a:
   return { ok: true };
 }
 
-/** «Marcar pagado»: todas las comisiones pendientes de ese creador pasan a pagadas, con la fecha. */
+/**
+ * «Marcar pagado»: las comisiones por cobrar de ese creador pasan a pagadas,
+ * con la fecha. Solo las que ya pasaron los 14 días de espera: las que siguen
+ * en espera no se pagan todavía (una devolución todavía puede anularlas).
+ */
 export async function marcarComisionesPagadas(admin: SupabaseClient, creadorId: string, ahora = new Date()): Promise<{ ok: true; cuantas: number } | ErrorAdmin> {
   const { data, error } = await admin
     .from("comisiones_creadores")
     .update({ estado: "pagada", pagada_at: ahora.toISOString() })
     .eq("creador_id", creadorId)
     .eq("estado", "pendiente")
+    .lt("created_at", finDeLaEspera(ahora).toISOString())
     .select("id");
   if (error) {
     console.error("creadores: no pude marcar pagado", error);
@@ -346,37 +354,44 @@ const plata = (p: PorMoneda) =>
     .map(([moneda, n]) => `${moneda === "ARS" ? Math.round(n).toLocaleString("es-AR") : n.toFixed(2).replace(".", ",")} ${moneda}`)
     .join(" + ");
 
+type PendienteResumen = Pick<FilaComision, "creador_id" | "estado" | "created_at" | "moneda" | "importe">;
+
 /**
- * El mail del día 1 a los socios: por creador, lo pendiente de pagar, cuántas
- * ventas y su correo para pedirle los datos. null si no hay nada pendiente.
+ * El mail del día 1 a los socios: por creador, lo que ya se puede pagar (las
+ * comisiones que pasaron los 14 días de espera), cuántas ventas, lo que sigue
+ * en espera y su correo para pedirle los datos. Un creador con todo en espera
+ * no sale: se paga el mes que viene. null si no hay nada para pagar.
  */
-export function textoResumenMensual(creadores: Pick<FilaCreador, "id" | "nombre" | "email" | "codigo">[], pendientes: Pick<FilaComision, "creador_id" | "estado" | "moneda" | "importe">[]): string | null {
+export function textoResumenMensual(creadores: Pick<FilaCreador, "id" | "nombre" | "email" | "codigo">[], pendientes: PendienteResumen[], ahora = new Date()): string | null {
   const bloques: string[] = [];
   for (const c of creadores) {
     const suyas = pendientes.filter((k) => k.creador_id === c.id && k.estado === "pendiente");
-    if (suyas.length === 0) continue;
-    const r = resumenDeComisiones(suyas);
-    bloques.push(`${c.nombre} (código ${c.codigo ?? "—"})\n  Pendiente: ${plata(r.pendiente)}\n  Ventas: ${r.ventas}\n  Correo para pedirle los datos: ${c.email}`);
+    const listas = suyas.filter((k) => estadoDeComision(k, ahora) === "por_cobrar");
+    if (listas.length === 0) continue;
+    const r = resumenDeComisiones(suyas, ahora);
+    const espera = Object.keys(r.enEspera).length > 0 ? `\n  En espera (todavía no se paga): ${plata(r.enEspera)}` : "";
+    bloques.push(`${c.nombre} (código ${c.codigo ?? "—"})\n  Para pagar: ${plata(r.porCobrar)}\n  Ventas: ${listas.length}${espera}\n  Correo para pedirle los datos: ${c.email}`);
   }
   if (bloques.length === 0) return null;
   return [
-    "Comisiones de creadores pendientes de pagar.",
+    `Comisiones de creadores para pagar (las que ya pasaron los ${DIAS_EN_ESPERA} días de espera).`,
     "",
     ...bloques.flatMap((b) => [b, ""]),
-    `Cuando las paguen, márquenlas en ${urlBaseMail()}/admin/creadores («Marcar pagado»).`,
+    `Cuando las paguen, márquenlas en ${urlBaseMail()}/admin/creadores («Marcar pagado» paga solo las que pasaron la espera).`,
   ].join("\n");
 }
 
-/** El cron mensual: arma el resumen y, si hay algo pendiente, lo manda. */
-export async function mandarResumenMensual(admin: SupabaseClient): Promise<ResultadoBase<{ creadores: number; enviado: boolean }>> {
-  const { data: pendientes, error } = await admin.from("comisiones_creadores").select("creador_id, estado, moneda, importe").eq("estado", "pendiente").limit(5000);
+/** El cron mensual: arma el resumen y, si hay algo para pagar (pasada la espera), lo manda. */
+export async function mandarResumenMensual(admin: SupabaseClient, ahora = new Date()): Promise<ResultadoBase<{ creadores: number; enviado: boolean }>> {
+  const { data: pendientes, error } = await admin.from("comisiones_creadores").select("creador_id, estado, created_at, moneda, importe").eq("estado", "pendiente").limit(5000);
   if (error) return fallaDe(error);
-  const filas = (pendientes as Pick<FilaComision, "creador_id" | "estado" | "moneda" | "importe">[] | null) ?? [];
-  if (filas.length === 0) return { ok: true, valor: { creadores: 0, enviado: false } };
-  const ids = [...new Set(filas.map((f) => f.creador_id))];
+  const filas = (pendientes as PendienteResumen[] | null) ?? [];
+  // Solo los creadores con algo que ya pasó la espera; el resto se paga el mes que viene.
+  const ids = [...new Set(filas.filter((f) => estadoDeComision(f, ahora) === "por_cobrar").map((f) => f.creador_id))];
+  if (ids.length === 0) return { ok: true, valor: { creadores: 0, enviado: false } };
   const { data: creadores, error: errorCreadores } = await admin.from("creadores").select("id, nombre, email, codigo").in("id", ids);
   if (errorCreadores) return fallaDe(errorCreadores);
-  const texto = textoResumenMensual((creadores as Pick<FilaCreador, "id" | "nombre" | "email" | "codigo">[] | null) ?? [], filas);
+  const texto = textoResumenMensual((creadores as Pick<FilaCreador, "id" | "nombre" | "email" | "codigo">[] | null) ?? [], filas, ahora);
   if (!texto) return { ok: true, valor: { creadores: 0, enviado: false } };
   const enviado = await enviarMailSocios("Comisiones de creadores pendientes", texto);
   return { ok: true, valor: { creadores: ids.length, enviado } };

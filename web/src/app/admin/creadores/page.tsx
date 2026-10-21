@@ -1,5 +1,5 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { COMISION_SUGERIDA, DESCUENTO_SUGERIDO, creadoresPrendido, resumenDeComisiones, sugerirCodigo, type FilaComision, type FilaCreador, type PorMoneda } from "@/lib/creadores";
+import { COMISION_SUGERIDA, DESCUENTO_SUGERIDO, DIAS_EN_ESPERA, creadoresPrendido, estadoDeComision, resumenDeComisiones, sugerirCodigo, type EstadoVisibleComision, type FilaComision, type FilaCreador, type PorMoneda } from "@/lib/creadores";
 import { datosCreadores } from "@/lib/creadores-base";
 import { urlCompartirCreador, urlPanelCreador } from "@/lib/mail-creadores";
 import { Chip, Nota, SinDatos, Tarjeta, Titulo, fechaCorta, type Color } from "../ui";
@@ -25,6 +25,14 @@ const ESTADO: Record<FilaCreador["estado"], { texto: string; color: Color }> = {
   activo: { texto: "activo", color: "verde" },
   pausado: { texto: "pausado", color: "neutro" },
   rechazado: { texto: "rechazado", color: "rojo" },
+};
+
+/** La `pendiente` de la base se ve partida: en espera (los 14 días) o por cobrar. */
+const ESTADO_COMISION: Record<EstadoVisibleComision, { texto: string; color: Color }> = {
+  en_espera: { texto: "en espera", color: "neutro" },
+  por_cobrar: { texto: "por cobrar", color: "ambar" },
+  pagada: { texto: "pagada", color: "verde" },
+  anulada: { texto: "anulada", color: "neutro" },
 };
 
 const plata = (p: PorMoneda) => {
@@ -58,8 +66,10 @@ export default async function PantallaCreadores() {
 
       <Nota>
         La comisión se calcula sobre lo que pagó el cliente (ya con el descuento) y queda congelada en la venta: cambiar
-        el porcentaje no toca ventas viejas. El pago es a mano, por transferencia; el día 1 de cada mes llega un mail con
-        lo pendiente. «Marcar pagado» pasa a pagadas todas las pendientes de ese creador.
+        el porcentaje no toca ventas viejas. Cada comisión queda {DIAS_EN_ESPERA} días en espera (por si devuelven la
+        compra) y después pasa a por cobrar. El pago es a mano, por transferencia; el día 1 de cada mes llega un mail con
+        lo que ya se puede pagar. «Marcar pagado» pasa a pagadas solo las por cobrar de ese creador, no las en espera.
+        Las compras de un creador con su propio código no dejan comisión: si aparece una, anúlenla.
       </Nota>
     </div>
   );
@@ -87,8 +97,10 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
         </Tarjeta>
         <Tarjeta>
           <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Se les debe</p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{plata(total.pendiente)}</p>
-          <span className="text-xs text-[var(--texto-menor)]">pagado: {plata(total.pagado)}</span>
+          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{plata(total.porCobrar)}</p>
+          <span className="text-xs text-[var(--texto-menor)]">
+            en espera: {plata(total.enEspera)} · pagado: {plata(total.pagado)}
+          </span>
         </Tarjeta>
       </div>
 
@@ -138,7 +150,7 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
               <Tarjeta key={c.id}>
                 <Datos c={c} />
                 <p className="mt-3 text-sm">
-                  {r.ventas} ventas · se le debe <b>{plata(r.pendiente)}</b> · pagado {plata(r.pagado)}
+                  {r.ventas} ventas · se le debe <b>{plata(r.porCobrar)}</b> · en espera {plata(r.enEspera)} · pagado {plata(r.pagado)}
                 </p>
                 {c.codigo && c.token_panel ? (
                   <p className="mt-1 break-all text-xs text-[var(--texto-menor)]">
@@ -174,8 +186,8 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
                       <input type="hidden" name="id" value={c.id} />
                     </FormAccion>
                   )}
-                  {Object.keys(r.pendiente).length > 0 ? (
-                    <FormAccion accion={marcarPagado} boton="marcar pagado" estilo="hilo" confirmar={`¿Ya le transfirieron ${plata(r.pendiente)} a ${c.nombre}?`}>
+                  {Object.keys(r.porCobrar).length > 0 ? (
+                    <FormAccion accion={marcarPagado} boton="marcar pagado" estilo="hilo" confirmar={`¿Ya le transfirieron ${plata(r.porCobrar)} a ${c.nombre}?`}>
                       <input type="hidden" name="id" value={c.id} />
                     </FormAccion>
                   ) : null}
@@ -207,7 +219,9 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
               </tr>
             </thead>
             <tbody>
-              {comisiones.map((k) => (
+              {comisiones.map((k) => {
+                const estado = estadoDeComision(k);
+                return (
                 <tr key={k.id}>
                   <td className="border-b border-[var(--linea)] py-2 pr-4">{fechaCorta(k.created_at, true)}</td>
                   <td className="border-b border-[var(--linea)] py-2 pr-4">{porId.get(k.creador_id)?.nombre ?? "—"}</td>
@@ -216,8 +230,8 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
                   <td className="border-b border-[var(--linea)] py-2 pr-4">{k.porcentaje}</td>
                   <td className="border-b border-[var(--linea)] py-2 pr-4">{plata({ [k.moneda]: Number(k.importe) })}</td>
                   <td className="border-b border-[var(--linea)] py-2 pr-4">
-                    <Chip color={k.estado === "pendiente" ? "ambar" : k.estado === "pagada" ? "verde" : "neutro"}>
-                      {k.estado}
+                    <Chip color={ESTADO_COMISION[estado].color}>
+                      {ESTADO_COMISION[estado].texto}
                       {k.estado === "pagada" && k.pagada_at ? ` ${fechaCorta(k.pagada_at)}` : ""}
                     </Chip>
                   </td>
@@ -234,7 +248,8 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
                     ) : null}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

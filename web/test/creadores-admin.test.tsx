@@ -24,7 +24,7 @@ vi.mock("@/lib/supabase/servidor", () => ({
     from: (tabla: string) => {
       const op: Op = { tabla, op: "select", filtros: [] };
       const b: Record<string, unknown> = {};
-      for (const t of ["eq", "in", "is", "gte", "order", "limit"]) {
+      for (const t of ["eq", "in", "is", "gte", "lt", "order", "limit"]) {
         b[t] = (col: string, val: unknown) => {
           op.filtros.push([t, col, val]);
           return b;
@@ -185,13 +185,19 @@ describe("aprobar", () => {
 });
 
 describe("lo demás", () => {
-  it("marcar pagado pasa a pagadas solo las pendientes de ese creador", async () => {
+  it("marcar pagado pasa a pagadas solo las pendientes de ese creador que pasaron los 14 días", async () => {
     estado.responder = (op) => (op.op === "update" ? { data: [{ id: "k1" }, { id: "k2" }], error: null } : undefined);
+    const antes = Date.now();
     expect(await marcarPagado(form({ id: ID }))).toEqual({ error: null, listo: "2 comisiones marcadas como pagadas." });
     const u = estado.ops[0];
     expect(u.tabla).toBe("comisiones_creadores");
     expect(u.valores).toMatchObject({ estado: "pagada" });
     expect(u.filtros).toEqual(expect.arrayContaining([["eq", "creador_id", ID], ["eq", "estado", "pendiente"]]));
+    // Las que siguen en espera no se pagan: el corte es hace 14 días.
+    const corte = u.filtros.find(([t, col]) => t === "lt" && col === "created_at");
+    expect(corte).toBeDefined();
+    const dias = (antes - new Date(corte![2] as string).getTime()) / (24 * 60 * 60 * 1000);
+    expect(Math.round(dias)).toBe(14);
   });
 
   it("cambiar guarda los números nuevos (las ventas viejas no se tocan)", async () => {
@@ -216,6 +222,8 @@ describe("lo demás", () => {
   });
 });
 
+const hace = (dias: number) => new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+
 describe("la pantalla", () => {
   it("muestra pendientes con el código sugerido, activos con lo que se les debe y las comisiones", async () => {
     estado.responder = (op) => {
@@ -229,7 +237,10 @@ describe("la pantalla", () => {
         };
       if (op.tabla === "comisiones_creadores")
         return {
-          data: [{ id: "k1", created_at: "2026-10-21T12:00:00Z", creador_id: "c2", pedido_id: "p1", codigo: "LUCIA", total: 77175, moneda: "ARS", porcentaje: 20, importe: 15435, estado: "pendiente", pagada_at: null, anulada_at: null }],
+          data: [
+            { id: "k1", created_at: hace(20), creador_id: "c2", pedido_id: "p1", codigo: "LUCIA", total: 77175, moneda: "ARS", porcentaje: 20, importe: 15435, estado: "pendiente", pagada_at: null, anulada_at: null },
+            { id: "k2", created_at: hace(2), creador_id: "c2", pedido_id: "p2", codigo: "LUCIA", total: 50000, moneda: "ARS", porcentaje: 20, importe: 10000, estado: "pendiente", pagada_at: null, anulada_at: null },
+          ],
           error: null,
         };
       return undefined;
@@ -239,7 +250,10 @@ describe("la pantalla", () => {
     expect(h).toContain('value="PRUEBALIATESTIN"');
     expect(h).toContain("Lucía Activa");
     expect(h).toContain("/ar/comprar?cupon=LUCIA");
-    expect(h).toMatch(/15\.435/);
+    expect(h).toMatch(/se le debe <b>\$\s?15\.435/);
+    expect(h).toMatch(/en espera \$\s?10\.000/);
+    expect(h).toContain("por cobrar");
+    expect(h).toContain("en espera");
     expect(h).toContain("marcar pagado");
     expect(h).not.toContain("NaN");
     expect(h).not.toContain("undefined");

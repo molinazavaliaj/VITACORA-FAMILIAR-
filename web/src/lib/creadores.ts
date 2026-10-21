@@ -16,6 +16,9 @@ import type { Region } from "./precios";
 //   - La comisión es sobre lo que el cliente pagó de verdad (`compra.total`, ya
 //     con el descuento) y se congela en el momento de la compra.
 //   - No se suma con la promo global ni con otro cupón: un solo código por compra.
+//   - Cada comisión queda «en espera» 14 días desde la compra (el plazo de las
+//     devoluciones) y recién después pasa a «por cobrar» (legal, 21/10). No hay
+//     columna nueva: es un estado derivado de `created_at` (ver `estadoDeComision`).
 //
 // Todo apagado hasta que Naza prenda CREADORES=1 en Vercel (con la migración
 // 20261021000000 aplicada y los textos aprobados).
@@ -141,6 +144,28 @@ export type FilaComision = {
 /** Lo que el creador lleva en la compra (`compra.creador`), y lo que va a `pedidos.extras.creador`. */
 export type CreadorEnLaCompra = { id: string; codigo: string; comision: number; descuento: number };
 
+// ── La espera de 14 días ──────────────────────────────────────────────────
+
+/**
+ * Los días que una comisión queda en espera desde la compra (CR-L06 y CR-L08):
+ * si la compra se devuelve en ese tiempo, la comisión se anula y no llega a
+ * cobrarse. Pasado el plazo, pasa sola a «por cobrar».
+ */
+export const DIAS_EN_ESPERA = 14;
+
+/** El corte: una comisión nacida ANTES de este momento ya pasó la espera. */
+export function finDeLaEspera(ahora = new Date()): Date {
+  return new Date(ahora.getTime() - DIAS_EN_ESPERA * 24 * 60 * 60 * 1000);
+}
+
+/** Lo que se ve de una comisión: la `pendiente` de la base se parte en «en espera» y «por cobrar». */
+export type EstadoVisibleComision = "en_espera" | "por_cobrar" | "pagada" | "anulada";
+
+export function estadoDeComision(c: Pick<FilaComision, "estado" | "created_at">, ahora = new Date()): EstadoVisibleComision {
+  if (c.estado !== "pendiente") return c.estado;
+  return new Date(c.created_at).getTime() < finDeLaEspera(ahora).getTime() ? "por_cobrar" : "en_espera";
+}
+
 // ── Las sumas ─────────────────────────────────────────────────────────────
 
 /** Una suma por moneda (un creador de España puede vender en Argentina). */
@@ -148,18 +173,20 @@ export type PorMoneda = Record<string, number>;
 
 const sumar = (a: PorMoneda, moneda: string, n: number): PorMoneda => ({ ...a, [moneda]: Math.round(((a[moneda] ?? 0) + Number(n)) * 100) / 100 });
 
-/** Ventas, pendiente y pagado de un creador (las anuladas no cuentan). */
-export function resumenDeComisiones(comisiones: Pick<FilaComision, "estado" | "moneda" | "importe">[]): { ventas: number; pendiente: PorMoneda; pagado: PorMoneda } {
-  let ventas = 0;
-  let pendiente: PorMoneda = {};
-  let pagado: PorMoneda = {};
+export type ResumenComisiones = { ventas: number; enEspera: PorMoneda; porCobrar: PorMoneda; pagado: PorMoneda };
+
+/** Ventas, en espera, por cobrar y pagado de un creador (las anuladas no cuentan). */
+export function resumenDeComisiones(comisiones: Pick<FilaComision, "estado" | "created_at" | "moneda" | "importe">[], ahora = new Date()): ResumenComisiones {
+  const r: ResumenComisiones = { ventas: 0, enEspera: {}, porCobrar: {}, pagado: {} };
   for (const c of comisiones) {
-    if (c.estado === "anulada") continue;
-    ventas++;
-    if (c.estado === "pendiente") pendiente = sumar(pendiente, c.moneda, c.importe);
-    else pagado = sumar(pagado, c.moneda, c.importe);
+    const estado = estadoDeComision(c, ahora);
+    if (estado === "anulada") continue;
+    r.ventas++;
+    if (estado === "en_espera") r.enEspera = sumar(r.enEspera, c.moneda, c.importe);
+    else if (estado === "por_cobrar") r.porCobrar = sumar(r.porCobrar, c.moneda, c.importe);
+    else r.pagado = sumar(r.pagado, c.moneda, c.importe);
   }
-  return { ventas, pendiente, pagado };
+  return r;
 }
 
 // ── El alta (/colabora) ───────────────────────────────────────────────────

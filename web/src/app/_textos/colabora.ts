@@ -74,7 +74,7 @@ export type TextosColabora = {
       boton: string;
     };
   };
-  /** CR-21 a CR-25 */
+  /** CR-21 a CR-25 y CR-27 */
   panel: {
     titulo: (nombre: string) => string;
     tuCodigo: string;
@@ -89,10 +89,13 @@ export type TextosColabora = {
     fecha: string;
     importe: string;
     estado: string;
-    estados: { pendiente: string; pagada: string };
+    estados: { enEspera: string; pendiente: string; pagada: string };
     sinVentas: string;
+    enEspera: string;
     porCobrar: string;
     cobrado: string;
+    /** CR-27 la espera de 14 días (legal, 21/10) */
+    espera: string;
     pago: string;
     condiciones: string;
   };
@@ -189,10 +192,12 @@ const ES: TextosColabora = {
     fecha: "Fecha", // CR-24
     importe: "Comisión", // CR-24
     estado: "Estado", // CR-24
-    estados: { pendiente: "Por cobrar", pagada: "Cobrada" }, // CR-24
+    estados: { enEspera: "En espera", pendiente: "Por cobrar", pagada: "Cobrada" }, // CR-24 · «En espera» es CR-27, PENDIENTE OK de Naza (tanda 6)
     sinVentas: "Todavía no hay ventas con tu código. Cuando alguien compre, aparece aquí.", // CR-24
+    enEspera: "En espera", // CR-27 · PENDIENTE OK de Naza (tanda 6)
     porCobrar: "Por cobrar", // CR-25
     cobrado: "Cobrado", // CR-25
+    espera: "Cada comisión queda en espera 14 días desde la compra. Después pasa a por cobrar.", // CR-27 · PENDIENTE OK de Naza (tanda 6)
     pago: "Te pagamos por transferencia. Cuando toque, te escribimos para pedirte los datos.", // CR-25
     condiciones: "Condiciones del programa", // CR-25
   },
@@ -339,10 +344,12 @@ const CA: TextosColabora = {
     fecha: "Data",
     importe: "Comissió",
     estado: "Estat",
-    estados: { pendiente: "Per cobrar", pagada: "Cobrada" },
+    estados: { enEspera: "En espera", pendiente: "Per cobrar", pagada: "Cobrada" }, // «En espera»: CR-27, PENDIENTE OK de Naza (tanda 6)
     sinVentas: "Encara no hi ha vendes amb el teu codi. Quan algú compri, apareixerà aquí.",
+    enEspera: "En espera", // CR-27 · PENDIENTE OK de Naza (tanda 6)
     porCobrar: "Per cobrar",
     cobrado: "Cobrat",
+    espera: "Cada comissió queda en espera 14 dies des de la compra. Després passa a per cobrar.", // CR-27 · PENDIENTE OK de Naza (tanda 6)
     pago: "Et paguem per transferència. Quan toqui, t'escriurem per demanar-te les dades.",
     condiciones: "Condicions del programa",
   },
