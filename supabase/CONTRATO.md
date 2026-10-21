@@ -1278,3 +1278,36 @@ no la miran.
   `usado_at` y `pedido_id`, con compare-and-swap sobre `usado_at is null`. Si dos pedidos pendientes
   usaron el mismo código y pagan los dos, el segundo se cobra igual con el descuento y queda en los logs.
   Si se devuelve la compra, el cupón no se regenera.
+
+## Programa de creadores — «Colabora con Vitácora» (migración 20261021000000 — **sin aplicar, la aplica Naza**)
+
+Diseño: `docs/superpowers/specs/2026-10-21-programa-creadores-design.md`. Rama `creadores`. **Solo la web**
+lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `CREADORES=1` en Vercel.
+
+- **`creadores`**: una fila por correo (`email` único, en minúsculas). Nace en `pendiente` desde `/colabora`
+  (`/ca/colabora`, `/ar/colabora`) con `nombre`, `red` (`instagram` | `tiktok` | `youtube` | `otra`),
+  `perfil` (link), `seguidores` y `mensaje` (opcionales), `region` e `idioma` de la web donde se anotó (el
+  idioma de sus mails y de su panel) y `consentimiento` = `{ textos: string[], version: string, fecha: ISO,
+  userAgent?: string }` con `ip` aparte. Si el correo ya existe, no se duplica ni se dice. Freno: 5 altas
+  por IP y por hora.
+- **Aprobar** (panel de la empresa, `/admin/creadores`): `estado = 'activo'`, `codigo` (mayúsculas y
+  números, 3 a 20, nunca empieza con `VITACORA10`), `comision` (1–50 %), `descuento` (0–50 %),
+  `token_panel` (32 bytes al azar en base64url: el link privado `/creador/<token>`) y `aprobado_at`. Los
+  tres números se pueden cambiar después. `pausado`: el código deja de valer pero el panel se sigue viendo.
+  `rechazado`: no vale nada. `notas` es de los socios y nunca se le muestra al creador.
+- **En la compra**: el código se escribe en el mismo casillero que el cupón de bienvenida (`/api/compra`,
+  campo `cupon`). Vale solo si el creador está `activo` y no hay promo global; con `descuento > 0` se
+  resta del libro digital igual que el cupón (también dentro del pack); sin libro digital, o con descuento
+  0, el código igual atribuye la venta. **`pedidos.extras.cupon` NO se escribe** para un código de creador
+  (así no lo toca `marcarCuponUsado`). Va `pedidos.extras.creador = { id, codigo, comision }` y, si hubo
+  descuento, `pedidos.extras.descuento_creador = { codigo, porcentaje, importe }`. `pedidos.monto` es el
+  total ya con el descuento.
+- **`comisiones_creadores`**: nace en `confirmarPago`, cuando el pago entra, si `extras.creador` tiene `id`.
+  Una por pedido (`pedido_id` único: si el webhook reintenta, el insert choca y no pasa nada). `total` y
+  `moneda` salen del pedido; `porcentaje` es la comisión congelada del momento de la compra; `importe` =
+  `total × porcentaje / 100` (euros a los céntimos, pesos al entero). Nunca tira ni cambia el resultado del
+  pago: si falla, se loguea y se avisa a los socios. `estado`: `pendiente` → `pagada` (con `pagada_at`,
+  desde el panel, todas las pendientes de un creador a la vez) o `anulada` (con `anulada_at`, una por una:
+  las devoluciones).
+- **Resumen mensual**: `/api/creadores/resumen` (cron de Vercel el día 1 a las 9, `vercel.json`, con
+  `CRON_SECRET`) manda a los socios lo pendiente por creador. Sin pendientes, no manda nada.
