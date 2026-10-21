@@ -6,7 +6,8 @@ import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { conVar } from "../_direccion/piezas";
 import { TEXTOS_COLABORA } from "../_textos/colabora";
 import { CONTACTO } from "../legal/titulares";
-import { langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { alternativas, langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { altaAbiertaEn } from "@/lib/creadores";
 import { FormularioColabora } from "./formulario";
 import "../_portada/portada.css";
 import "../_eventos/eventos.css";
@@ -21,6 +22,18 @@ import "../_eventos/eventos.css";
 // en el sitemap hasta que lo decida Naza.
 
 const CAMINO = "/colabora";
+
+/**
+ * Argentina cerrada por ahora (IDIOMAS_CON_ALTA, lib/creadores.ts): ni el
+ * hreflang ni el «cambiar de país» del pie apuntan a /ar/colabora, que da 404.
+ * El pie lleva a la portada de Argentina. Al abrirla, vuelve sola.
+ */
+export function alternativasColabora(idioma: IdiomaWeb) {
+  const a = alternativas(idioma, CAMINO);
+  if (altaAbiertaEn("ar")) return a;
+  return { ...a, languages: Object.fromEntries(Object.entries(a.languages).filter(([lang]) => lang !== "es-AR")) };
+}
+const CAMINO_PIE = altaAbiertaEn("ar") ? CAMINO : "/";
 const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 export function Colabora({ idioma }: { idioma: IdiomaWeb }) {
@@ -126,7 +139,7 @@ export function Colabora({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       <section className="dir-tinta dir-hoja dir-diferido relative z-[4]">
-        <Pie idioma={idioma} camino={CAMINO} />
+        <Pie idioma={idioma} camino={CAMINO_PIE} />
       </section>
 
       <WhatsAppFlotante idioma={idioma} />

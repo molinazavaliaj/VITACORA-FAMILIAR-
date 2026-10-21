@@ -7,8 +7,8 @@ vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { POST } from "../src/app/api/colabora/route";
-import PaginaColabora from "../src/app/colabora/page";
-import PaginaColaboraCa from "../src/app/ca/colabora/page";
+import PaginaColabora, { metadata as metaColabora } from "../src/app/colabora/page";
+import PaginaColaboraCa, { metadata as metaColaboraCa } from "../src/app/ca/colabora/page";
 import PaginaColaboraAr from "../src/app/ar/colabora/page";
 import CondicionesCreadores from "../src/app/legal/creadores/page";
 import { PaginaLegal } from "../src/app/legal/pagina";
@@ -148,6 +148,14 @@ describe("POST /api/colabora", () => {
     expect((await pedir("{roto")).status).toBe(400);
   });
 
+  it("desde Argentina, 404 por ahora y no toca la base (pagar comisiones allá no está resuelto)", async () => {
+    const admin = crearAdmin();
+    usar(admin);
+    expect((await pedir({ ...BUENA, idioma: "ar" })).status).toBe(404);
+    expect(admin.ops).toEqual([]);
+    expect(mails).toEqual([]);
+  });
+
   it("con CREADORES apagado, 404 y no toca la base", async () => {
     delete process.env.CREADORES;
     const admin = crearAdmin();
@@ -163,10 +171,23 @@ describe("las páginas", () => {
     for (const Pagina of [PaginaColabora, PaginaColaboraCa, PaginaColaboraAr, CondicionesCreadores]) expect(() => Pagina()).toThrow();
   });
 
+  it("/ar/colabora está cerrada por ahora aunque el programa esté prendido", () => {
+    expect(() => PaginaColaboraAr()).toThrow();
+  });
+
+  it("ni el hreflang ni el pie apuntan a /ar/colabora", () => {
+    for (const meta of [metaColabora, metaColaboraCa]) {
+      const languages = meta.alternates?.languages as Record<string, string>;
+      expect(languages["es-ES"]).toBe("/colabora");
+      expect(languages["ca-ES"]).toBe("/ca/colabora");
+      expect("es-AR" in languages).toBe(false);
+    }
+    expect(renderToStaticMarkup(<PaginaColabora />)).not.toContain('href="/ar/colabora"');
+  });
+
   it.each([
     ["es", PaginaColabora, "/legal/creadores"],
     ["ca", PaginaColaboraCa, "/ca/legal/creadores"],
-    ["ar", PaginaColaboraAr, "/ar/legal/creadores"],
   ] as const)("%s: el inicio, el formulario con la casilla y el link a las condiciones", (idioma, Pagina, condiciones) => {
     const h = renderToStaticMarkup(<Pagina />);
     const t = texto(h);

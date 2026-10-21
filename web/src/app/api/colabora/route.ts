@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { creadoresPrendido, esRobotColabora, validarAltaCreador } from "@/lib/creadores";
+import { altaAbiertaEn, creadoresPrendido, esRobotColabora, idiomaDelAlta, validarAltaCreador } from "@/lib/creadores";
 import { anotarCreador } from "@/lib/creadores-base";
 import { TEXTOS_COLABORA, textoCasilla } from "@/app/_textos/colabora";
 
@@ -8,7 +8,8 @@ import { TEXTOS_COLABORA, textoCasilla } from "@/app/_textos/colabora";
 // sesión: valida, descarta a los robots (campo trampa), frena 5 altas por IP y
 // por hora, y anota al creador como pendiente (lib/creadores-base.ts). Contesta
 // siempre lo mismo, sea un correo nuevo o uno que ya estaba: nadie averigua
-// quién se anotó. Con CREADORES apagado, 404.
+// quién se anotó. Con CREADORES apagado, 404. Desde Argentina, también 404 por
+// ahora: el alta solo está abierta en España (IDIOMAS_CON_ALTA, lib/creadores.ts).
 
 /**
  * La versión de los textos de las casillas que se guardan como prueba (subirla
@@ -29,6 +30,9 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "faltan" }, { status: 400 });
   }
+
+  // Argentina cerrada por ahora (pagar comisiones allá no está resuelto).
+  if (!altaAbiertaEn(idiomaDelAlta(cuerpo))) return NextResponse.json({ error: "envio" }, { status: 404 });
 
   // Al robot se le contesta como si hubiera salido, para que no reintente.
   if (esRobotColabora(cuerpo)) return NextResponse.json({ ok: true });

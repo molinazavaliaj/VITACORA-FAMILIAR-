@@ -28,6 +28,20 @@ export function creadoresPrendido(): boolean {
   return process.env.CREADORES?.trim() === "1";
 }
 
+/**
+ * Dónde se puede anotar un creador. Por ahora solo en España (/colabora y
+ * /ca/colabora): pagar comisiones en Argentina (transferencia, factura e
+ * impuestos desde España) no está resuelto (legal, 21/10). /ar/colabora da 404
+ * y /api/colabora rechaza el alta de Argentina. Los textos de Argentina siguen
+ * en su lugar, y los códigos valen al comprar en cualquier país.
+ * Para abrir Argentina: sumar "ar" acá (y volver a enlazarla, ver _colabora/colabora.tsx).
+ */
+export const IDIOMAS_CON_ALTA: readonly IdiomaWeb[] = ["es", "ca"];
+
+export function altaAbiertaEn(idioma: IdiomaWeb): boolean {
+  return IDIOMAS_CON_ALTA.includes(idioma);
+}
+
 export const COMISION_SUGERIDA = 20;
 export const DESCUENTO_SUGERIDO = 10;
 export const COMISION_MAXIMA = 50;
@@ -217,6 +231,12 @@ export function esRobotColabora(cuerpo: unknown): boolean {
   return typeof c[CAMPO_TRAMPA_COLABORA] === "string" && c[CAMPO_TRAMPA_COLABORA].trim() !== "";
 }
 
+/** El idioma de la web desde donde vino el alta (sin idioma, España). */
+export function idiomaDelAlta(cuerpo: unknown): IdiomaWeb {
+  const idioma = (cuerpo && typeof cuerpo === "object" ? cuerpo : {}) as { idioma?: unknown };
+  return idioma.idioma === "ca" || idioma.idioma === "ar" ? idioma.idioma : "es";
+}
+
 /**
  * El cuerpo del formulario de /colabora, limpio. Nombre, correo, red, perfil,
  * la casilla de las condiciones y la de mayor de 18 años (CR-L16, legal 21/10)
@@ -234,7 +254,7 @@ export function validarAltaCreador(cuerpo: unknown): { ok: true; alta: AltaCread
   if (!/[.@]/.test(perfil) || /\s/.test(perfil)) return { ok: false, error: "perfil" };
   if (c.condiciones !== true && c.condiciones !== "on") return { ok: false, error: "condiciones" };
   if (c.mayor !== true && c.mayor !== "on") return { ok: false, error: "mayor" };
-  const idioma: IdiomaWeb = c.idioma === "ca" || c.idioma === "ar" ? c.idioma : "es";
+  const idioma = idiomaDelAlta(c);
   return {
     ok: true,
     alta: { idioma, nombre, email, red, perfil, seguidores: texto(c.seguidores, CORTO), mensaje: texto(c.mensaje, MENSAJE_MAXIMO) },
