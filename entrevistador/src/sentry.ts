@@ -7,9 +7,30 @@
 // pueden traer el texto de un narrador). Sin SENTRY_DSN, o en los tests, no hace nada.
 
 import * as Sentry from '@sentry/node';
-import type { ErrorEvent } from '@sentry/node';
+import type { ErrorEvent, NodeOptions } from '@sentry/node';
 
 let prendido = false;
+
+/**
+ * Lo que Sentry junta solo, todo apagado. Desde Sentry 11 (21/10) ya no existe
+ * `sendDefaultPii`: lo reemplaza `dataCollection`, que por defecto junta TODO
+ * (el usuario, cuerpos y encabezados de los pedidos, lo que se le manda a la IA,
+ * los datos de las consultas a la base, las variables locales de cada línea del
+ * error). Cualquiera de esas puede traer el texto o el teléfono de un narrador,
+ * así que cada categoría va apagada a mano. `limpiarEvento` igual borra lo que se escape.
+ */
+export const RECOLECCION: NonNullable<NodeOptions['dataCollection']> = {
+  userInfo: false,
+  cookies: false,
+  httpHeaders: false,
+  httpBodies: [],
+  urlQueryParams: false,
+  graphQL: { document: false, variables: false },
+  genAI: { inputs: false, outputs: false },
+  databaseQueryData: false,
+  queues: false,
+  stackFrameVariables: false,
+};
 
 /** Lo que se le saca a cada evento antes de mandarlo. Puro: para los tests. */
 export function limpiarEvento(evento: ErrorEvent): ErrorEvent {
@@ -17,6 +38,9 @@ export function limpiarEvento(evento: ErrorEvent): ErrorEvent {
   delete evento.user;
   delete evento.extra;
   delete evento.breadcrumbs;
+  for (const valor of evento.exception?.values ?? []) {
+    for (const linea of valor.stacktrace?.frames ?? []) delete linea.vars;
+  }
   if (evento.contexts) {
     const { os, runtime, app, device } = evento.contexts;
     evento.contexts = { os, runtime, app, device };
@@ -31,7 +55,7 @@ export function iniciarSentry(env: NodeJS.ProcessEnv = process.env): boolean {
     dsn,
     environment: 'produccion',
     release: env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 12),
-    sendDefaultPii: false,
+    dataCollection: RECOLECCION,
     // El bot y la fábrica pueden compartir proyecto de Sentry: la etiqueta dice de cuál es.
     initialScope: { tags: { servicio: 'bot' } },
     tracesSampleRate: 0,
