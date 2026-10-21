@@ -14,7 +14,8 @@
 // reglas de comun.ts (esPublicable/textoRespuesta). Ante la duda, se reserva más.
 // Las reservas pedidas por WhatsApp («esto que no vaya al libro», Naza 07/10)
 // también quedan en `estado.reservadas`: esas claves salen enteras (y sus
-// audios), aunque no se haya podido marcar la fila.
+// audios), aunque no se haya podido marcar la fila. Lo que la dueña sacó desde el panel
+// (`respuestas_fuera`, Naza 21/10) sale por fila, no por clave: ver sinLoSacado.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { esPublicable, textoRespuesta } from '../../libro/comun.js';
@@ -101,6 +102,53 @@ function aplicarReservas(e: EstadoEntrevista, reservas: Map<string, Reserva>): E
   return { ...e, respuestas };
 }
 
+// ---- «Que esto no vaya al libro» por respuesta, desde el panel (respuestas_fuera, Naza 21/10) ----
+// A diferencia de la reserva, sale UNA fila: lo demás que contó en esa pregunta sigue en el libro.
+
+const MARCAS = /⟦[^⟧]*⟧/g;
+const normal = (t: string) => t.replace(/\s+/g, ' ').trim();
+/** El texto de una fila como lo sumó el bot: la transcripción o lo escrito, sin las marcas ⟦…⟧. */
+const textoDeFila = (r: Pick<FilaRespuesta, 'transcripcion' | 'texto_directo'>) => normal((r.transcripcion ?? r.texto_directo ?? '').replace(MARCAS, ' '));
+
+/**
+ * El texto de una clave sin las filas sacadas (`filas`: las de esa clave, en orden). Se borra el texto de
+ * cada sacada; si alguna no está tal cual, se rearma con las que quedan. null si no queda nada.
+ */
+export function sinLoSacado(texto: string, filas: { texto: string; fuera: boolean }[]): string | null {
+  const sacadas = filas.filter((f) => f.fuera).map((f) => normal(f.texto)).filter(Boolean);
+  if (!filas.some((f) => f.fuera)) return texto;
+  let t = normal(texto);
+  for (const s of sacadas) {
+    const i = t.indexOf(s);
+    if (i < 0) {
+      t = filas.filter((f) => !f.fuera).map((f) => normal(f.texto)).filter(Boolean).join(' ');
+      break;
+    }
+    t = normal(`${t.slice(0, i)} ${t.slice(i + s.length)}`);
+  }
+  return t === '' ? null : t;
+}
+
+/** Los ids de `respuestas_fuera` del narrador. Sin la tabla (migración sin aplicar), ninguno. */
+async function idsFuera(db: SupabaseClient, narradorId: string): Promise<Set<string>> {
+  const { data, error } = await db.from('respuestas_fuera').select('respuesta_id').eq('narrador_id', narradorId);
+  if (error?.code === '42P01' || error?.code === 'PGRST205') return new Set();
+  if (error) throw new Error(`No pude leer las respuestas sacadas de ${narradorId}: ${error.message}`);
+  return new Set(((data as { respuesta_id: string }[] | null) ?? []).map((r) => r.respuesta_id));
+}
+
+/** Aplica las filas sacadas al texto ya armado, por clave exacta (incluye el borrador). */
+function aplicarFuera(e: EstadoEntrevista, filas: FilaRespuesta[], fuera: Set<string>): EstadoEntrevista {
+  if (fuera.size === 0) return e;
+  const respuestas: [string, string][] = [];
+  for (const [k, texto] of e.respuestas) {
+    const propias = filas.filter((r) => r.clave_v3 === k).map((r) => ({ texto: textoDeFila(r), fuera: fuera.has(r.id) }));
+    const limpio = sinLoSacado(texto, propias);
+    if (limpio !== null) respuestas.push([k, limpio]);
+  }
+  return { ...e, respuestas };
+}
+
 const sinMarcaFoto = (r: string) => r.replace(MARCA_FOTO, '').trim();
 
 export function entrevistaDeFila(fila: FilaEntrevistaV3): EstadoEntrevista {
@@ -163,13 +211,16 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
     .map((r) => (reservadaEnEstado(r.clave_v3) ? { ...r, reservada: true, reservado_tramo: null } : r));
   const reservas = reservasPorClave(filasResp);
   for (const k of delEstado) reservas.set(k, { total: true, tramos: [] });
+  const fuera = await idsFuera(db, narradorId);
   const audios: AudioV3[] = filasResp.map((r) => ({
     respuestaId: r.id,
     clave: r.clave_v3,
-    // Un tramo reservado no se recorta de una grabación: el audio queda afuera.
-    audioPath: esPublicable(r) ? r.audio_path : null,
-    transcripcion: textoRespuesta({ transcripcion: r.transcripcion, texto_directo: r.texto_directo ?? null, reservada: r.reservada, reservado_tramo: r.reservado_tramo }),
+    // Un tramo reservado no se recorta de una grabación: el audio queda afuera. Una fila sacada, también.
+    audioPath: esPublicable(r) && !fuera.has(r.id) ? r.audio_path : null,
+    transcripcion: fuera.has(r.id) ? null : textoRespuesta({ transcripcion: r.transcripcion, texto_directo: r.texto_directo ?? null, reservada: r.reservada, reservado_tramo: r.reservado_tramo }),
     recibidoAt: r.recibido_at,
   }));
-  return { ...aplicarReservas(entrevistaDeFila(fila), reservas), audios };
+  // Primero lo sacado y después las reservas: si lo sacado rearma el texto con las filas que quedan, la reserva
+  // se aplica sobre eso (un tramo reservado que ya no está tal cual saca la clave entera).
+  return { ...aplicarReservas(aplicarFuera(entrevistaDeFila(fila), filasResp, fuera), reservas), audios };
 }
