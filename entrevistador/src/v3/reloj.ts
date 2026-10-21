@@ -18,6 +18,7 @@ import { conSinClave, reconciliarV3 } from './entrante.js';
 export { LIMITE_SIN_CLAVE, TROZO_RECONCILIAR } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
+import { leerSacadas } from './fuera.js';
 import { avisarFamiliaTarde, leerFamilia } from './filas.js';
 import { aplicarTanda, cuentaDeHoy, hitosDe, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaV3, type NarradorV3 } from './tipos.js';
@@ -86,10 +87,11 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
   const hoy = fechaLocal(ahora, n.zona_horaria);
 
   if (silencioCumplido(fila, ahora)) {
+    const sacadas = await leerSacadas(deps.db, n.id);
     const r = await conReintento(deps.db, n.id, (f) => {
       if (!silencioCumplido(f, ahora) || tomaVigente(f, ahora)) return null;
       // Si contestó, le llega la siguiente, siempre (Naza 10/10: el tope por día no corta a quien está contestando).
-      const s = cerrarYSeguir(f.estado, fichaTexto(f), true);
+      const s = cerrarYSeguir(f.estado, fichaTexto(f), true, sacadas);
       const t = aplicarTanda(f, s.estado, hoy, s.abrio, ahora);
       return { cambio: { estado: t.estado, ultimo_audio_at: null, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: s.bloqueCerrado };
     });
@@ -102,13 +104,14 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
 
   if (tocaTanda(fila, n, ahora, hoy) || quedoCortada(fila, hoy)) {
     const familia = (await leerFamilia(deps.db, n.id)) ?? [];
+    const sacadas = await leerSacadas(deps.db, n.id);
     const r = await conReintento(deps.db, n.id, (f) => {
       const cortada = quedoCortada(f, hoy);
       if ((!tocaTanda(f, n, ahora, hoy) && !cortada) || tomaVigente(f, ahora)) return null;
       // Las preguntas que la familia cargó después del alta, antes de elegir la próxima.
       const conFamilia = sumarFamilia(f.estado, familia);
       // Sigue con la próxima (con el acuse pendiente pegado arriba).
-      const sigue = avanzar(conFamilia.estado, fichaTexto(f));
+      const sigue = avanzar(conFamilia.estado, fichaTexto(f), sacadas);
       return {
         cambio: {
           estado: sigue.abrio ? { ...sigue.estado, abiertaDesde: ahora.toISOString() } : sigue.estado,

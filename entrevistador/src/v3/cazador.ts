@@ -14,6 +14,7 @@ import { avisarSocios } from './avisos.js';
 import type { DepsV3 } from './deps.js';
 import { conReintento, leerFila } from './estado.js';
 import { MODELO_CAZADOR, type ClienteModelo, type ResultadoCaza } from './nucleo/entrevista/cazador.js';
+import { leerSacadas } from './fuera.js';
 import { fichaTexto } from './tipos.js';
 import { cazarAlCerrar, sumarCaza } from './turno.js';
 
@@ -31,7 +32,7 @@ export async function cazarEnSegundoPlano(deps: DepsV3, narradorId: string, bloq
     if (!deps.cazador) return null;
     const fila = await leerFila(deps.db, narradorId);
     if (!fila || fila.estado.cazador?.registro.some((x) => x.bloque === bloque)) return null;
-    const r = await cazarAlCerrar(fila.estado, fichaTexto(fila), bloque, deps.cazador);
+    const r = await cazarAlCerrar(fila.estado, fichaTexto(fila), bloque, deps.cazador, await leerSacadas(deps.db, narradorId));
     if (r.tokens) {
       await registrarUso(deps.db, {
         servicio: 'entrevistador', paso: 'cazador_v3', modelo: MODELO_CAZADOR, proveedor: 'anthropic',
