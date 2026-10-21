@@ -43,3 +43,23 @@ Decisión de Naza: «enfermedad» es solo la del narrador. Haber acompañado a o
 | HQ4 | Hubo un momento en que dejaron de ser dos que salían y pasaron a ser una pareja de verdad. Una propuesta, una charla, una mudanza, un casamiento. Contame ese día, dónde estaban y qué se dijeron. | |
 | HQ5 | Contame algo que hacían siempre, los dos solos, en esa época. Un café, una caminata, un programa de radio, una manera de despedirse. Contame una de esas veces como si fuera hoy. | |
 
+
+## Tanda 3 · aprobada por Naza tal cual (22/10/2026)
+
+## Padres
+| ID | Pregunta | Sensible |
+|---|---|---|
+| HP1 | Contame la espera. El tiempo antes de que llegara, cómo preparaste la casa, qué compraste o qué te prestaron, qué te daba vueltas en la cabeza de noche. | |
+| HP2 | Contame del nombre. Quién lo propuso, en qué charla quedó decidido, qué otros quedaron en el camino. Si el nombre ya venía puesto, contame qué te pasó cuando lo escuchaste por primera vez. | |
+| HP3 | Contame la primera noche en tu casa, cuando se fueron las visitas y quedaron solos. Qué hiciste, cuánto dormiste, qué pensabas a las tres de la mañana. | |
+| HP4 | Contame un día entero de esos primeros tiempos, de los que se repetían. A qué hora empezaba, quién hacía qué, en qué momento te sentabas un rato, cómo terminaba. | |
+
+## Trabajo
+| ID | Pregunta | Sensible |
+|---|---|---|
+| HT1 | Contame qué hacías, con las manos o con la cabeza. Elegí una tarea de las de todos los días y contámela paso a paso, como si me la estuvieras enseñando. | |
+| HT2 | ¿Quién te enseñó? Un jefe, un compañero de años, alguien que te tuvo paciencia. Contame una vez en que te corrigió algo o te mostró cómo se hacía de verdad. | |
+| HT3 | Contame de los compañeros. Un almuerzo, un mate o un café en el descanso, un chiste que se repetía todos los días. Contame una de esas veces, con nombres, como si estuviéramos ahí. | |
+| HT4 | Contame el día que cobraste el primer sueldo. Cómo te lo dieron, qué hiciste con esa plata, a quién se lo contaste primero. | |
+| HT5 | Contame una vez que te salió algo muy bien. Un trabajo terminado, un problema que nadie podía resolver y vos sí, un día en que te felicitaron. Dónde estabas y quién lo vio. | |
+
