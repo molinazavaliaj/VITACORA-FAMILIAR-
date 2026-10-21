@@ -97,7 +97,7 @@ Variables que se usan (todas salen de la compra, ver COMPRA-2):
 >
 > Los botones también los toca {{2}}, para pasar una pregunta, decir que no tiene algo o pedir otra. Son parte de lo que cuenta.
 >
-> Y una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro. Ni qué te pareció ni qué te hubiera gustado que dijera. Todo queda guardado en tu panel, también lo del sobre cerrado.
+> Y una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro. Ni qué te pareció ni qué te hubiera gustado que dijera. Todo queda guardado en la página de su historia, también lo del sobre cerrado.
 >
 > Cuando estén juntos, tocá el botón y llega la primera.
 >
@@ -110,9 +110,9 @@ Variables que se usan (todas salen de la compra, ver COMPRA-2):
 - **Botones:** no lleva.
 - Lleva la línea obligatoria al padre ("leé todo, pero no le digas nada hasta el libro", aprobada el 30/09).
 
-> Hola {{1}}. Ya le escribimos a {{2}}. Le contamos de parte de quién es el regalo, y cuando toque "Dale, vamos" le llega la primera pregunta. De ahí en adelante va a su ritmo, por lo menos una por día, y más si tiene ganas.
+> Hola {{1}}. Ya le escribimos a {{2}}. Le contamos de parte de quién es el regalo, y cuando toque "Dale, vamos" le llega la primera pregunta. De ahí en adelante va a su ritmo.
 >
-> Todo lo que cuente lo podés ver en tu panel, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).
+> Todo lo que cuente lo podés ver en la página de su historia, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).
 >
 > Mientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A {{2}} no le decimos nada por tardar. No hay retos ni apuros de nuestro lado.
 >
@@ -308,7 +308,7 @@ Va después de CIERRE-FINAL (banco.md, texto nuevo del 05/10). Después de K47 n
 - **A quién:** al padre (canal A y B). **Cuándo:** canal A, cuando el chico terminó de contar (sale FINAL-CHICO). **Canal B, al día siguiente, a la hora de envío** (05/10, Fable 7: en "lo hago yo" el chico está mirando ese celular). Mismo texto.
 - **Plantilla** `kids_termino_padre` · {{1}} nombre del padre · {{2}} nombre del chico. Sin botones.
 
-> Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
+> Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en la página de su historia, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
 
 ### LIBRO-LISTO
 - El aviso al padre de que el libro está listo lo prometen TERMINO-PADRE y COMPRA-1. **(05/10)** Igual que el resto de la casa (libro listo, correo de acceso al panel, formato, envío e impresión); no se escribe un texto propio de Kids.

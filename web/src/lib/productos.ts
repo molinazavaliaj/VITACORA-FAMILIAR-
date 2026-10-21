@@ -35,7 +35,7 @@ export const NOMBRE_VIAJE = "Vitácora de viaje";
 export const NOMBRE_VIAJE_ALBUM40 = "Vitácora de viaje, álbum de 40 fotos";
 
 export const NOMBRE_PDF = "El libro en PDF + Su voz";
-export const DETALLE_PDF = "Se lee en la web, capítulo por capítulo, con sus fotos. Incluye «Su voz»: sus mejores frases, en su voz real, para escuchar. Siempre disponible.";
+export const DETALLE_PDF = "Se lee en la web, capítulo por capítulo, con sus fotos. Incluye «Su voz», sus mejores frases en su voz real, para escuchar. Siempre disponible.";
 
 /** ⚠️ Textos a revisar por Naza (21/09). */
 export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
@@ -47,7 +47,7 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   pack: "Pack el regalo completo",
 };
 export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
-export const DETALLE_MARCO = "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viaja con el libro.";
+export const DETALLE_MARCO = "Un marco con su foto y un chip. Se acerca el teléfono y suena su voz. Viaja con el libro.";
 
 /** Cómo se nombra la voz de un audiolibro ya comprado (solo pedidos anteriores al 21/09). */
 export const NOMBRE_VOZ: Record<Voz, string> = {

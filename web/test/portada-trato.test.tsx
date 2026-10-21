@@ -36,7 +36,7 @@ const DE_TU = [
   "Nos dices quién es",
   "Nos dejas su nombre, su WhatsApp y el día en que quieres que empiece.",
   "Muchos niños van a conocer a sus abuelos solo por fotos",
-  "Las escuchas con el código de la contratapa o desde el móvil, cuando quieras.",
+  "Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
   "Léelo",
   "Acercas el móvil y suena su voz. Puedes pedir uno",
   "Regálale algo que va a quedar para toda la vida. Eliges el día",
@@ -219,7 +219,7 @@ describe("la portada según el idioma", () => {
       expect(texto).not.toMatch(/padre|papá|\bpare\b/);
     }
     expect(metaEs.description).toBe(
-      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     );
   });
 

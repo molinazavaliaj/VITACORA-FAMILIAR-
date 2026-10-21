@@ -132,7 +132,7 @@ const CITA_CAMPO =
   "«En el campo andábamos a caballo, hacíamos vida de campo, cortábamos el pasto, comíamos asado. Ni bien llegábamos abríamos la tranquera, saludábamos a los animales que se acercaban caminando al camino, abríamos toda la casa…»";
 
 const CARTA_ES =
-  "Hicimos Vitácora porque no todas las familias tienen la suerte de que los abuelos sigan ahí cuando los nietos crecen. Muchos niños van a conocer a sus abuelos solo por fotos, sin saber cómo hablaban, qué vivieron ni qué aprendieron. Queremos que eso no se pierda. Que cada nieto, cuando sea grande, pueda abrir un libro y leer quién fue su abuelo, con sus propias palabras.";
+  "Hicimos Vitácora porque no todas las familias tienen la suerte de que los abuelos sigan ahí cuando los nietos crecen. Muchos niños van a conocer a sus abuelos solo por fotos, sin saber cómo hablaban, qué vivieron ni qué aprendieron. Queremos que eso no se pierda. Que cada nieto, cuando sea mayor, pueda abrir un libro y leer quién fue su abuelo, con sus propias palabras.";
 
 const LIBRO_OSVALDO: TextosPortada["direccion"]["libro"] = {
   etiqueta: "El libro de su vida",
@@ -140,7 +140,7 @@ const LIBRO_OSVALDO: TextosPortada["direccion"]["libro"] = {
   paraSiempre: "para siempre",
   iniciales: "O · T",
   lomo: "Osvaldo Toroide · El libro de su vida",
-  contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras: sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
+  contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras. Sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
   escucha: "Escucha su voz",
   web: "vitacorafamiliar.com",
 };
@@ -151,12 +151,12 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
       ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
       propio: { pregunta: "¿Quieres contar tu propia vida?", enlace: "También puedes hacer tu libro." },
@@ -195,7 +195,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         },
         {
           titulo: "Su familia lo lee y lo escucha",
-          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contratapa vuelven a escuchar su voz.",
+          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contraportada vuelven a escuchar su voz.",
         },
       ],
     },
@@ -208,7 +208,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     escuchalo: {
       titulo: "Su voz, guardada en su libro.",
       texto:
-        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contratapa o desde el móvil, cuando quieras.",
+        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
       etiqueta: "El campo",
       cita: CITA_CAMPO,
       duracion: "0:30",
@@ -217,7 +217,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Cada vida merece su propio libro.",
       beneficios: [
         { titulo: "Léelo", texto: "Su vida contada con sus palabras, capítulo a capítulo, con sus fotos." },
-        { titulo: "Escúchalo", texto: "Sus mejores frases suenan con su voz desde el código de la contratapa." },
+        { titulo: "Escúchalo", texto: "Sus mejores frases suenan con su voz desde el código de la contraportada." },
         { titulo: "Para siempre", texto: "Tapa dura y su foto en la portada, para que pase de mano en mano en tu familia." },
       ],
       incluye: [
@@ -243,7 +243,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       nuevas: [
         {
           pregunta: "¿Puedo ver el libro antes de que se imprima?",
-          respuesta: "Sí. Cuando está terminado lo ves en la página de su historia, eliges la tapa y recién ahí se imprime.",
+          respuesta: "Sí. Cuando está terminado lo ves en la página de su historia, eliges la tapa y solo entonces se imprime.",
         },
         { pregunta: "¿Y si quiero hacer mi propio libro?", respuesta: "Funciona igual. Las preguntas te llegan a ti y el libro es el de tu vida." },
       ],
@@ -332,7 +332,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         },
         {
           pregunta: "¿Y si empieza y no termina?",
-          respuesta: "No hay calendario ni apuro. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
+          respuesta: "No hay calendario ni prisa. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
         },
         {
           pregunta: "¿Cuánto sale y cuándo se paga?",
@@ -342,7 +342,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         {
           pregunta: "¿Se puede tener el libro impreso?",
           respuesta:
-            "Sí. Se suma al comprar o después, desde la página de su historia, con el libro ya terminado. Tapa dura, a color, con un código en la contratapa que hace sonar su voz.",
+            "Sí. Se suma al comprar o después, desde la página de su historia, con el libro ya terminado. Tapa dura, en color, con un código en la contraportada que hace sonar su voz.",
         },
       ],
     },
@@ -361,12 +361,12 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
       ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
       propio: { pregunta: "¿Querés contar tu propia vida?", enlace: "También podés hacer tu libro." },

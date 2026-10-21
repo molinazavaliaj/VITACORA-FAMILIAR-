@@ -11,7 +11,7 @@ describe('kids v2: texto', () => {
 
   it('variables {{1}}, {{2}}, {{3}}', () => {
     expect(llenar(fijo('PREG-NUEVA-CHICO').texto, ['Tini'])).toBe('Hola Tini, hay una pregunta esperándote. Tocá el botón y te la mando.');
-    expect(llenar(fijo('AVISO-PADRE').texto, ['Laura', 'Tini', 'vitacora.com/panel/tini'])).toContain('en tu panel, en vitacora.com/panel/tini (audios');
+    expect(llenar(fijo('AVISO-PADRE').texto, ['Laura', 'Tini', 'vitacora.com/panel/tini'])).toContain('en la página de su historia, en vitacora.com/panel/tini (audios');
   });
 
   it('si falta una variable, error con su número', () => {

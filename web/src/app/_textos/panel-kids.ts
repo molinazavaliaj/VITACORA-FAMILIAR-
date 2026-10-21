@@ -32,7 +32,7 @@ const PANEL_GUIA_AR = {
   p1: (nombre: string) =>
     `Podés agregar hasta tres preguntas tuyas. Le llegan a ${nombre} cerca del final, entre la cuarta parte y el sobre cerrado. Antes de cada una le decimos que viene de vos, salvo que prefieras que le llegue como una pregunta más.`,
   p2: "Que cada pregunta pida una sola cosa. Si querés saber dos cosas, escribí dos preguntas.",
-  p3: "Funciona mejor pedirle una vez concreta que una opinión. \"Contame la vez que…\" saca mucho más que \"¿Qué sentís?\" o \"¿Qué pensás de…?\".",
+  p3: "Funciona mejor pedirle una vez concreta que una opinión. «Contame la vez que…» saca mucho más que «¿Qué sentís?» o «¿Qué pensás de…?».",
   p4: (nombre: string) => `Como todas las demás, ${nombre} la puede pasar si no quiere contestarla.`,
   ejemplos: [
     "Contame el día que aprendiste a andar en bici sin rueditas.",
@@ -54,7 +54,7 @@ const PANEL_GUIA_ES: TextosGuia = {
   // APROBADO por Naza 16/10 (tanda 8)
   p2: "Que cada pregunta pida una sola cosa. Si quieres saber dos cosas, escribe dos preguntas.",
   // APROBADO por Naza 16/10 (tanda 8)
-  p3: "Funciona mejor pedirle una vez concreta que una opinión. \"Cuéntame la vez que…\" saca mucho más que \"¿Qué sientes?\" o \"¿Qué piensas de…?\".",
+  p3: "Funciona mejor pedirle una vez concreta que una opinión. «Cuéntame la vez que…» saca mucho más que «¿Qué sientes?» o «¿Qué piensas de…?».",
   // APROBADO por Naza 16/10 (tanda 8)
   p4: (nombre: string) => `Como todas las demás, ${nombre} la puede pasar si no quiere contestarla.`,
   // APROBADO por Naza 16/10 (tanda 8)
