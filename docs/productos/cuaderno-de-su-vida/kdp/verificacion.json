@@ -1,0 +1,908 @@
+{
+ "medidas": {
+  "paginas": 144,
+  "lomo_in": 0.36,
+  "ancho_in": 12.27,
+  "alto_in": 8.52,
+  "texto_en_lomo": true
+ },
+ "mapa": [
+  {
+   "pagina": 1,
+   "tipo": "titulo",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 2,
+   "tipo": "regala",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 3,
+   "tipo": "instrucciones",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 4,
+   "tipo": "indice",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 5,
+   "tipo": "portadilla",
+   "capitulo": 1,
+   "pregunta": null
+  },
+  {
+   "pagina": 6,
+   "tipo": "pregunta",
+   "capitulo": 1,
+   "pregunta": 1
+  },
+  {
+   "pagina": 7,
+   "tipo": "vuelta",
+   "capitulo": 1,
+   "pregunta": 1
+  },
+  {
+   "pagina": 8,
+   "tipo": "pregunta",
+   "capitulo": 1,
+   "pregunta": 2
+  },
+  {
+   "pagina": 9,
+   "tipo": "vuelta",
+   "capitulo": 1,
+   "pregunta": 2
+  },
+  {
+   "pagina": 10,
+   "tipo": "pregunta",
+   "capitulo": 1,
+   "pregunta": 3
+  },
+  {
+   "pagina": 11,
+   "tipo": "vuelta",
+   "capitulo": 1,
+   "pregunta": 3
+  },
+  {
+   "pagina": 12,
+   "tipo": "pregunta",
+   "capitulo": 1,
+   "pregunta": 4
+  },
+  {
+   "pagina": 13,
+   "tipo": "vuelta",
+   "capitulo": 1,
+   "pregunta": 4
+  },
+  {
+   "pagina": 14,
+   "tipo": "pregunta",
+   "capitulo": 1,
+   "pregunta": 5
+  },
+  {
+   "pagina": 15,
+   "tipo": "vuelta",
+   "capitulo": 1,
+   "pregunta": 5
+  },
+  {
+   "pagina": 16,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 17,
+   "tipo": "portadilla",
+   "capitulo": 2,
+   "pregunta": null
+  },
+  {
+   "pagina": 18,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 6
+  },
+  {
+   "pagina": 19,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 6
+  },
+  {
+   "pagina": 20,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 7
+  },
+  {
+   "pagina": 21,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 7
+  },
+  {
+   "pagina": 22,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 8
+  },
+  {
+   "pagina": 23,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 8
+  },
+  {
+   "pagina": 24,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 9
+  },
+  {
+   "pagina": 25,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 9
+  },
+  {
+   "pagina": 26,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 10
+  },
+  {
+   "pagina": 27,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 10
+  },
+  {
+   "pagina": 28,
+   "tipo": "pregunta",
+   "capitulo": 2,
+   "pregunta": 11
+  },
+  {
+   "pagina": 29,
+   "tipo": "vuelta",
+   "capitulo": 2,
+   "pregunta": 11
+  },
+  {
+   "pagina": 30,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 31,
+   "tipo": "portadilla",
+   "capitulo": 3,
+   "pregunta": null
+  },
+  {
+   "pagina": 32,
+   "tipo": "pregunta",
+   "capitulo": 3,
+   "pregunta": 12
+  },
+  {
+   "pagina": 33,
+   "tipo": "vuelta",
+   "capitulo": 3,
+   "pregunta": 12
+  },
+  {
+   "pagina": 34,
+   "tipo": "pregunta",
+   "capitulo": 3,
+   "pregunta": 13
+  },
+  {
+   "pagina": 35,
+   "tipo": "vuelta",
+   "capitulo": 3,
+   "pregunta": 13
+  },
+  {
+   "pagina": 36,
+   "tipo": "pregunta",
+   "capitulo": 3,
+   "pregunta": 14
+  },
+  {
+   "pagina": 37,
+   "tipo": "vuelta",
+   "capitulo": 3,
+   "pregunta": 14
+  },
+  {
+   "pagina": 38,
+   "tipo": "pregunta",
+   "capitulo": 3,
+   "pregunta": 15
+  },
+  {
+   "pagina": 39,
+   "tipo": "vuelta",
+   "capitulo": 3,
+   "pregunta": 15
+  },
+  {
+   "pagina": 40,
+   "tipo": "pregunta",
+   "capitulo": 3,
+   "pregunta": 16
+  },
+  {
+   "pagina": 41,
+   "tipo": "vuelta",
+   "capitulo": 3,
+   "pregunta": 16
+  },
+  {
+   "pagina": 42,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 43,
+   "tipo": "portadilla",
+   "capitulo": 4,
+   "pregunta": null
+  },
+  {
+   "pagina": 44,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 17
+  },
+  {
+   "pagina": 45,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 17
+  },
+  {
+   "pagina": 46,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 18
+  },
+  {
+   "pagina": 47,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 18
+  },
+  {
+   "pagina": 48,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 19
+  },
+  {
+   "pagina": 49,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 19
+  },
+  {
+   "pagina": 50,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 20
+  },
+  {
+   "pagina": 51,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 20
+  },
+  {
+   "pagina": 52,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 21
+  },
+  {
+   "pagina": 53,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 21
+  },
+  {
+   "pagina": 54,
+   "tipo": "pregunta",
+   "capitulo": 4,
+   "pregunta": 22
+  },
+  {
+   "pagina": 55,
+   "tipo": "vuelta",
+   "capitulo": 4,
+   "pregunta": 22
+  },
+  {
+   "pagina": 56,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 57,
+   "tipo": "portadilla",
+   "capitulo": 5,
+   "pregunta": null
+  },
+  {
+   "pagina": 58,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 23
+  },
+  {
+   "pagina": 59,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 23
+  },
+  {
+   "pagina": 60,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 24
+  },
+  {
+   "pagina": 61,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 24
+  },
+  {
+   "pagina": 62,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 25
+  },
+  {
+   "pagina": 63,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 25
+  },
+  {
+   "pagina": 64,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 26
+  },
+  {
+   "pagina": 65,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 26
+  },
+  {
+   "pagina": 66,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 27
+  },
+  {
+   "pagina": 67,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 27
+  },
+  {
+   "pagina": 68,
+   "tipo": "pregunta",
+   "capitulo": 5,
+   "pregunta": 28
+  },
+  {
+   "pagina": 69,
+   "tipo": "vuelta",
+   "capitulo": 5,
+   "pregunta": 28
+  },
+  {
+   "pagina": 70,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 71,
+   "tipo": "portadilla",
+   "capitulo": 6,
+   "pregunta": null
+  },
+  {
+   "pagina": 72,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 29
+  },
+  {
+   "pagina": 73,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 29
+  },
+  {
+   "pagina": 74,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 30
+  },
+  {
+   "pagina": 75,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 30
+  },
+  {
+   "pagina": 76,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 31
+  },
+  {
+   "pagina": 77,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 31
+  },
+  {
+   "pagina": 78,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 32
+  },
+  {
+   "pagina": 79,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 32
+  },
+  {
+   "pagina": 80,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 33
+  },
+  {
+   "pagina": 81,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 33
+  },
+  {
+   "pagina": 82,
+   "tipo": "pregunta",
+   "capitulo": 6,
+   "pregunta": 34
+  },
+  {
+   "pagina": 83,
+   "tipo": "vuelta",
+   "capitulo": 6,
+   "pregunta": 34
+  },
+  {
+   "pagina": 84,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 85,
+   "tipo": "portadilla",
+   "capitulo": 7,
+   "pregunta": null
+  },
+  {
+   "pagina": 86,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 35
+  },
+  {
+   "pagina": 87,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 35
+  },
+  {
+   "pagina": 88,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 36
+  },
+  {
+   "pagina": 89,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 36
+  },
+  {
+   "pagina": 90,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 37
+  },
+  {
+   "pagina": 91,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 37
+  },
+  {
+   "pagina": 92,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 38
+  },
+  {
+   "pagina": 93,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 38
+  },
+  {
+   "pagina": 94,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 39
+  },
+  {
+   "pagina": 95,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 39
+  },
+  {
+   "pagina": 96,
+   "tipo": "pregunta",
+   "capitulo": 7,
+   "pregunta": 40
+  },
+  {
+   "pagina": 97,
+   "tipo": "vuelta",
+   "capitulo": 7,
+   "pregunta": 40
+  },
+  {
+   "pagina": 98,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 99,
+   "tipo": "portadilla",
+   "capitulo": 8,
+   "pregunta": null
+  },
+  {
+   "pagina": 100,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 41
+  },
+  {
+   "pagina": 101,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 41
+  },
+  {
+   "pagina": 102,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 42
+  },
+  {
+   "pagina": 103,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 42
+  },
+  {
+   "pagina": 104,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 43
+  },
+  {
+   "pagina": 105,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 43
+  },
+  {
+   "pagina": 106,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 44
+  },
+  {
+   "pagina": 107,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 44
+  },
+  {
+   "pagina": 108,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 45
+  },
+  {
+   "pagina": 109,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 45
+  },
+  {
+   "pagina": 110,
+   "tipo": "pregunta",
+   "capitulo": 8,
+   "pregunta": 46
+  },
+  {
+   "pagina": 111,
+   "tipo": "vuelta",
+   "capitulo": 8,
+   "pregunta": 46
+  },
+  {
+   "pagina": 112,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 113,
+   "tipo": "portadilla",
+   "capitulo": 9,
+   "pregunta": null
+  },
+  {
+   "pagina": 114,
+   "tipo": "pregunta",
+   "capitulo": 9,
+   "pregunta": 47
+  },
+  {
+   "pagina": 115,
+   "tipo": "vuelta",
+   "capitulo": 9,
+   "pregunta": 47
+  },
+  {
+   "pagina": 116,
+   "tipo": "pregunta",
+   "capitulo": 9,
+   "pregunta": 48
+  },
+  {
+   "pagina": 117,
+   "tipo": "vuelta",
+   "capitulo": 9,
+   "pregunta": 48
+  },
+  {
+   "pagina": 118,
+   "tipo": "pregunta",
+   "capitulo": 9,
+   "pregunta": 49
+  },
+  {
+   "pagina": 119,
+   "tipo": "vuelta",
+   "capitulo": 9,
+   "pregunta": 49
+  },
+  {
+   "pagina": 120,
+   "tipo": "pregunta",
+   "capitulo": 9,
+   "pregunta": 50
+  },
+  {
+   "pagina": 121,
+   "tipo": "vuelta",
+   "capitulo": 9,
+   "pregunta": 50
+  },
+  {
+   "pagina": 122,
+   "tipo": "pregunta",
+   "capitulo": 9,
+   "pregunta": 51
+  },
+  {
+   "pagina": 123,
+   "tipo": "vuelta",
+   "capitulo": 9,
+   "pregunta": 51
+  },
+  {
+   "pagina": 124,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 125,
+   "tipo": "portadilla",
+   "capitulo": 10,
+   "pregunta": null
+  },
+  {
+   "pagina": 126,
+   "tipo": "pregunta",
+   "capitulo": 10,
+   "pregunta": 52
+  },
+  {
+   "pagina": 127,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 52
+  },
+  {
+   "pagina": 128,
+   "tipo": "pregunta",
+   "capitulo": 10,
+   "pregunta": 53
+  },
+  {
+   "pagina": 129,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 53
+  },
+  {
+   "pagina": 130,
+   "tipo": "pregunta",
+   "capitulo": 10,
+   "pregunta": 54
+  },
+  {
+   "pagina": 131,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 54
+  },
+  {
+   "pagina": 132,
+   "tipo": "pregunta",
+   "capitulo": 10,
+   "pregunta": 55
+  },
+  {
+   "pagina": 133,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 55
+  },
+  {
+   "pagina": 134,
+   "tipo": "pregunta",
+   "capitulo": 10,
+   "pregunta": 56
+  },
+  {
+   "pagina": 135,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 56
+  },
+  {
+   "pagina": 136,
+   "tipo": "vuelta",
+   "capitulo": 10,
+   "pregunta": 56
+  },
+  {
+   "pagina": 137,
+   "tipo": "blanca",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 138,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 139,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 140,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 141,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 142,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 143,
+   "tipo": "fotos",
+   "capitulo": null,
+   "pregunta": null
+  },
+  {
+   "pagina": 144,
+   "tipo": "qr",
+   "capitulo": null,
+   "pregunta": null
+  }
+ ],
+ "interior": {
+  "archivo": "interior.pdf",
+  "paginas": 144,
+  "ancho_in": 5.83,
+  "alto_in": 8.27,
+  "ancho_mm": 148.1,
+  "alto_mm": 210.1,
+  "fuentes": [
+   "Archivo-SemiBold",
+   "SourceSerif4Italic-Italic",
+   "SourceSerif4Roman-Regular",
+   "VitacoraTitulo-Regular"
+  ],
+  "no_embebidas": [],
+  "mb": 0.37,
+  "errores": []
+ },
+ "cubierta": {
+  "archivo": "cubierta.pdf",
+  "paginas": 1,
+  "ancho_in": 12.27,
+  "alto_in": 8.52,
+  "ancho_mm": 311.7,
+  "alto_mm": 216.4,
+  "fuentes": [
+   "Archivo-SemiBold",
+   "SourceSerif4Roman-Regular",
+   "VitacoraTitulo-Regular"
+  ],
+  "no_embebidas": [],
+  "mb": 0.04,
+  "errores": []
+ }
+}
