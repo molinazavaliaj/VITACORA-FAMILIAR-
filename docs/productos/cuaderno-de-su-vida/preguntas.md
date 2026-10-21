@@ -163,7 +163,7 @@
 
 ### Tus fotos (cambio de Naza 21/10)
 
-[Seis páginas al final, cuatro recuadros por página y una línea debajo de cada uno. Arriba de cada página, en chiquito, «Tus fotos». Debajo de cada recuadro, en chiquito, «Quién sale y en qué año». PENDIENTE OK de Naza a estos dos textos nuevos. Reemplaza a «Las fotos que no tenían pregunta van aquí», que ya no tiene sentido.]
+[Seis páginas al final, cuatro recuadros por página y una línea debajo de cada uno. Arriba de cada página, en chiquito, «Tus fotos». Debajo de cada recuadro, en chiquito, «Quién sale y en qué año». APROBADOS por Naza el 21/10. Reemplaza a «Las fotos que no tenían pregunta van aquí», que ya no tiene sentido.]
 
 ### Última página — con el QR
 
