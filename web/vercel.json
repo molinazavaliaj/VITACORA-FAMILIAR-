@@ -1,4 +1,7 @@
 {
   "regions": ["dub1"],
-  "crons": [{ "path": "/api/cupon/recordatorios", "schedule": "0 9 * * *" }]
+  "crons": [
+    { "path": "/api/cupon/recordatorios", "schedule": "0 9 * * *" },
+    { "path": "/api/creadores/resumen", "schedule": "0 9 1 * *" }
+  ]
 }
