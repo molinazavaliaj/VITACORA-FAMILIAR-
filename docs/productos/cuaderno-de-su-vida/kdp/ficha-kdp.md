@@ -61,7 +61,7 @@ Si cambia el número de páginas, el lomo y el ancho de la cubierta se recalcula
 
 ## Textos nuevos para aprobar
 
-Ninguno de estos textos está aprobado todavía. El 1 ya está impreso en `cubierta.pdf` como borrador.
+✅ **Los 6 textos APROBADOS por Naza el 21/10.** El 1 ya está impreso en `cubierta.pdf`.
 
 **1. Texto de la contratapa**
 
