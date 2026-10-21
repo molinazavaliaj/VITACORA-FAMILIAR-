@@ -182,7 +182,7 @@ describe('temas de historia', () => {
 });
 ```
 
-(El orden del `toEqual` del tercer test tiene que coincidir con cómo se ordenaron las filas del banco de prueba en el Step 2. Ajustar el banco de prueba, no el test.)
+(El orden del `toEqual` del tercer test tiene que coincidir con cómo se ordenaron las filas del banco de prueba en el Step 2. Con la variante, la última común de `mudanza` queda como `'mudanza'`, así que el array esperado es `['comun', 'comun', 'mudanza', 'mudanza', 'mudanza']`.)
 
 - [ ] **Step 4:** Correr `npx vitest run test/historia-temas.test.ts`. Tiene que FALLAR porque no existe `temas.ts`.
 
