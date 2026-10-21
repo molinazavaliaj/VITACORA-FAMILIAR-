@@ -16,3 +16,13 @@ Lo que Naza aprobó de `mensajes-ronda-1-borrador.md`. Lo redactó Fable. Los de
 | PR-H1 | 1.ª pregunta del que regala (después de HC9, antes de HC10) | Esta te la manda {{quien_regala}}, {{nombre}}. La dejó escrita para vos y te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Contale a {{quien_regala}}, aunque el audio me llegue a mí. |
 | PR-H2 | 2.ª | Otra de {{quien_regala}}, que quiso saber esto.<br><br>«{{pregunta}}»<br><br>Contestale como si estuviera ahí con vos. |
 | PR-H3 | 3.ª | La última de {{quien_regala}}.<br><br>«{{pregunta}}»<br><br>Hablale a {{quien_regala}}, aunque llegue por acá. |
+
+## Tanda B · aprobada por Naza tal cual (22/10/2026)
+
+Cambios de Claude sobre el borrador de Fable, que Naza aprobó: en FIN-H vuelve la frase de V3 «vas a poder repasar» (el panel tiene «Cerrar libro») y se saca «Ahora me toca a mí». HC1-A es nueva.
+
+| ID | Cuándo sale | Texto |
+|---|---|---|
+| FOTO-H | Después de la última del tema, antes de HC5; espera fotos o audio hasta 24 h; botón [No tengo fotos] + M31 | Otra cosa, {{nombre}}. ¿Tenés fotos de esa época? Buscá entre tres y diez, en el celular o en algún cajón, y mandámelas por acá. Si son de papel, sacales una foto con el celular. Después, si querés, contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarlas. La pregunta que sigue te la mando cuando me llegue algo o me digas que no tenés. Si no las encontrás ahora, no pasa nada, el libro va igual y las podés mandar más adelante. |
+| FIN-H | Después de HC10 | Hasta acá llegamos, {{nombre}}. Gracias por cada audio y por la confianza de contarme esta historia así, de cerca. Con todo lo que me diste se escribe el libro. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo.«sino:FOTO-H:  ‖  Si te quedó alguna foto de esa época por mandar, mandámela por acá cuando la encuentres, entra igual.» Fue un gusto enorme escucharte. |
+| HC1-A | Reemplaza a HC1 solo con tema abierto (estado.temaAbierto) | Empecemos por el antes, {{nombre}}. Antes de que empezara esta historia que elegiste, vos ya tenías una vida andando. Contame un día común de esa época, de poco antes de que pasara todo esto. Dónde vivías, en qué andabas, quién estaba cerca. |
