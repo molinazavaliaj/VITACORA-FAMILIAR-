@@ -149,8 +149,18 @@ function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown) 
     ...productosParaPedido(compra),
     ...(regalo ? { regalo: true } : {}),
     ...(origen ? { origen } : {}),
-    // El cupón de bienvenida (CONTRATO «Cupón de bienvenida»): se marca usado cuando el pago entra.
-    ...(compra.descuento ? { cupon: compra.descuento } : {}),
+    ...(compra.creador
+      ? {
+          // El código de un creador (CONTRATO «Programa de creadores»): NUNCA como
+          // `cupon` (lo marcaría usado y saldría el aviso de «cupón usado dos
+          // veces»). La comisión nace cuando el pago entra, con este porcentaje.
+          creador: { id: compra.creador.id, codigo: compra.creador.codigo, comision: compra.creador.comision },
+          ...(compra.descuento ? { descuento_creador: compra.descuento } : {}),
+        }
+      : // El cupón de bienvenida (CONTRATO «Cupón de bienvenida»): se marca usado cuando el pago entra.
+        compra.descuento
+        ? { cupon: compra.descuento }
+        : {}),
   };
 }
 
@@ -211,8 +221,8 @@ export async function POST(request: NextRequest) {
 
   const admin = crearClienteServidor();
 
-  // El cupón de bienvenida (rasca y gana, 20/10): se valida y se calcula acá,
-  // nunca en el navegador. Si no sirve, no se cobra: se le dice por qué (nunca
+  // El cupón de bienvenida (rasca y gana, 20/10) o el código de un creador
+  // (21/10, mismo casillero): se valida y se calcula acá, nunca en el navegador. Si no sirve, no se cobra: se le dice por qué (nunca
   // se cobra el precio entero a quien esperaba el descuento).
   if (body.cupon !== undefined && body.cupon !== null && body.cupon !== "") {
     const idiomaCupon = esIdiomaWeb(body.idiomaWeb) ? body.idiomaWeb : familiaAInsertar.region === "AR" ? "ar" : "es";

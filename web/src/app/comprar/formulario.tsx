@@ -79,12 +79,15 @@ export function Checkout({
   entregaWhatsApp = false,
   pasoInicial = 1,
   conCupon = false,
+  pistaCupon = true,
 }: {
   idioma: IdiomaWeb;
   catalogo: CatalogoRegion;
   promo?: number | null;
   /** El campo del cupón de bienvenida (RASCA_Y_GANA=1 y sin promo global: no se suma a precios rebajados). */
   conCupon?: boolean;
+  /** La pista «VITACORA10-…» en el campo: solo con el rasca prendido. */
+  pistaCupon?: boolean;
   /** Si se ofrece mandar el regalo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
   entregaWhatsApp?: boolean;
   /** Para probar cada paso sin navegador. */
@@ -118,7 +121,7 @@ export function Checkout({
   const yo = esPropia(e);
   const regalo = esRegalo(e);
   const ella = generoDe(e) === "mujer";
-  // El cupón de bienvenida: el importe lo dijo el servidor (/api/cupon/validar);
+  // El cupón de bienvenida o el código de un creador: el importe lo dijo el servidor (/api/cupon/validar);
   // acá solo se resta para mostrar el total. Lo que se cobra lo recalcula /api/compra.
   const [cupon, setCupon] = useState<CuponAplicado | null>(null);
   const [cuponInicial, setCuponInicial] = useState<string | null>(null);
@@ -127,7 +130,9 @@ export function Checkout({
     () => (cupon ? { ...lista, total: Math.round((lista.total - cupon.importe) * 100) / 100 } : lista),
     [lista, cupon],
   );
-  const f = (n: number) => formatearPrecio(n, cat.moneda, region, cupon !== null);
+  // El código de un creador sin descuento (o una compra sin libro digital) vale igual, con importe 0: sin línea.
+  const conDescuento = cupon !== null && cupon.importe > 0;
+  const f = (n: number) => formatearPrecio(n, cat.moneda, region, conDescuento);
 
   // Lo que se guarda justo antes de ir a la pasarela: lo elegido (para volver
   // de un pago fallido, con la prueba para retomar la misma compra) y la
@@ -599,6 +604,7 @@ export function Checkout({
                     aplicado={cupon}
                     alCambiar={setCupon}
                     inicial={cuponInicial}
+                    conPista={pistaCupon}
                   />
                 ) : null}
 
@@ -632,7 +638,7 @@ export function Checkout({
           incluye={R.incluye(yo)}
           tachado={tachado}
           ahorro={ahorro}
-          descuento={cupon ? { nombre: TEXTOS_CUPON[idioma].checkout.linea, importe: f(cupon.importe) } : null}
+          descuento={cupon && conDescuento ? { nombre: cupon.linea ?? TEXTOS_CUPON[idioma].checkout.linea, importe: f(cupon.importe) } : null}
         />
       </div>
 

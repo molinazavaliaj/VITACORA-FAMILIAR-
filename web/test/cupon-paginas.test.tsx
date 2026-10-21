@@ -64,6 +64,17 @@ describe("el checkout", () => {
     expect(sin).not.toContain('id="cupon"');
   });
 
+  it("la pista «VITACORA10-…» va solo con el rasca prendido: con solo creadores, el casillero va sin pista", async () => {
+    const { Checkout } = await import("../src/app/comprar/formulario");
+    const { catalogo } = await import("../src/lib/productos");
+    process.env.PRECIO_EUR = "49";
+    const conRasca = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} pasoInicial={3} conCupon />);
+    expect(conRasca).toContain('placeholder="VITACORA10-…"');
+    const soloCreadores = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} pasoInicial={3} conCupon pistaCupon={false} />);
+    expect(soloCreadores).toContain('id="cupon"');
+    expect(soloCreadores).not.toContain("VITACORA10");
+  });
+
   it("el resumen pinta la línea aprobada con el importe en negativo", async () => {
     const { Resumen } = await import("../src/app/_checkout/piezas");
     const { RESUMEN } = await import("../src/app/_textos/checkout");

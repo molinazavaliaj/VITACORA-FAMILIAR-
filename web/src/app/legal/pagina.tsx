@@ -9,6 +9,7 @@ import { Cabecera, Pie } from "../_publico";
 import { DOCUMENTOS_LEGALES, TEXTOS_LEGAL, type Bloque, type DocumentoLegal, type TextoDocumento, type TextosLegal } from "../_textos/legal";
 import { BASES_CUPON, privacidadConCupon } from "../_textos/legal-cupon";
 import { rascaPrendido } from "@/lib/cupon";
+import { CONDICIONES_CREADORES } from "../_textos/legal-creadores";
 import { CONTACTO, TITULARES, faltan, type Region } from "./titulares";
 import "../_direccion/tokens.css";
 import "./legal.css";
@@ -30,7 +31,7 @@ import "./legal.css";
  * Las páginas legales: los cuatro documentos de siempre y, con el rasca y gana
  * prendido (RASCA_Y_GANA=1, 20/10), las «Bases del cupón» (_textos/legal-cupon.ts).
  */
-export type PaginaLegalId = DocumentoLegal | "cupon";
+export type PaginaLegalId = DocumentoLegal | "cupon" | "creadores";
 
 const RUTA: Record<PaginaLegalId, string> = {
   terminos: "/legal/terminos",
@@ -38,11 +39,14 @@ const RUTA: Record<PaginaLegalId, string> = {
   arrepentimiento: "/legal/arrepentimiento",
   reclamaciones: "/legal/reclamaciones",
   cupon: "/legal/cupon",
+  creadores: "/legal/creadores",
 };
 
 /** El texto de cada página; con el rasca y gana, la privacidad suma lo del cupón. */
 export function textoDe(idioma: IdiomaWeb, documento: PaginaLegalId): TextoDocumento {
   if (documento === "cupon") return BASES_CUPON[idioma];
+  // Las condiciones del programa de creadores (21/10, CREADORES=1): no van en las solapas todavía.
+  if (documento === "creadores") return CONDICIONES_CREADORES[idioma];
   const d = TEXTOS_LEGAL[idioma][documento];
   return documento === "privacidad" && rascaPrendido() ? privacidadConCupon(d, idioma) : d;
 }

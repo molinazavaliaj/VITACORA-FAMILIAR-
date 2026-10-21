@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { catalogo } from "@/lib/productos";
 import { promoPorcentaje } from "@/lib/promo";
 import { rascaPrendido } from "@/lib/cupon";
+import { creadoresPrendido } from "@/lib/creadores";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { alternativas, regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { CHECKOUT } from "../_textos/checkout";
@@ -28,8 +29,10 @@ export function PaginaComprar({ idioma }: { idioma: IdiomaWeb }) {
         catalogo={catalogo(regionDeIdioma(idioma))}
         promo={promoPorcentaje()}
         entregaWhatsApp={entregaWhatsAppPrendida()}
-        // El cupón no se suma a precios ya rebajados: con la promo global prendida, no hay campo.
-        conCupon={rascaPrendido() && promoPorcentaje() === null}
+        // El casillero sirve para el cupón de bienvenida y para el código de un
+        // creador. No se suma a precios ya rebajados: con la promo global prendida, no hay campo.
+        conCupon={(rascaPrendido() || creadoresPrendido()) && promoPorcentaje() === null}
+        pistaCupon={rascaPrendido()}
       />
     </CascaronCheckout>
   );

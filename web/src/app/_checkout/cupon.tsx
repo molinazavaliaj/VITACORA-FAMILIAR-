@@ -11,7 +11,12 @@ import { AYUDA, CAMPO, ERROR, ETIQUETA } from "./piezas";
 // que vuelve. Al pagar, /api/compra lo vuelve a calcular todo. Vive dentro del
 // formulario del pago: Enter aplica el cupón, no paga.
 
-export type CuponAplicado = { codigo: string; importe: number };
+/**
+ * Lo que dijo el servidor. `linea` es el nombre de la línea del resumen (null
+ * si no hay descuento: el código de un creador sin descuento igual vale) y
+ * `aviso` el texto del casillero para el código de un creador.
+ */
+export type CuponAplicado = { codigo: string; importe: number; linea?: string | null; aviso?: string };
 
 const BOTON =
   "m-ghost inline-flex min-h-12 shrink-0 items-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-5 text-[15px] text-[var(--texto-oscuro)] disabled:opacity-60 [font-family:var(--fuente-micro)]";
@@ -22,6 +27,7 @@ export function CampoCupon({
   aplicado,
   alCambiar,
   inicial,
+  conPista = true,
 }: {
   idioma: IdiomaWeb;
   /** Lo que lleva el carrito (el descuento es el mismo, pero el servidor lo revisa con la compra entera). */
@@ -30,6 +36,8 @@ export function CampoCupon({
   alCambiar: (cupon: CuponAplicado | null) => void;
   /** Un código para aplicar solo al llegar (el link del mail, `?cupon=`). */
   inicial?: string | null;
+  /** La pista «VITACORA10-…» es del cupón del rasca: con solo creadores prendido, el casillero va sin pista. */
+  conPista?: boolean;
 }) {
   const T = TEXTOS_CUPON[idioma].checkout;
   const [codigo, setCodigo] = useState(inicial ?? "");
@@ -47,14 +55,19 @@ export function CampoCupon({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ codigo: valor.trim(), idiomaWeb: idioma, productos }),
       });
-      const json = (await r.json().catch(() => ({}))) as { error?: string; codigo?: string; importe?: number };
+      const json = (await r.json().catch(() => ({}))) as { error?: string; codigo?: string; importe?: number; linea?: string | null; aviso?: string };
       if (!r.ok || typeof json.codigo !== "string" || typeof json.importe !== "number") {
         setError(json.error ?? T.fallo);
         alCambiar(null);
         return;
       }
       setCodigo(json.codigo);
-      alCambiar({ codigo: json.codigo, importe: json.importe });
+      alCambiar({
+        codigo: json.codigo,
+        importe: json.importe,
+        ...(json.linea !== undefined ? { linea: json.linea } : {}),
+        ...(typeof json.aviso === "string" ? { aviso: json.aviso } : {}),
+      });
     } catch {
       setError(T.fallo);
     } finally {
@@ -73,7 +86,7 @@ export function CampoCupon({
   if (aplicado) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <p className={`${AYUDA} m-0`} aria-live="polite">{T.aplicado(aplicado.codigo)}</p>
+        <p className={`${AYUDA} m-0`} aria-live="polite">{aplicado.aviso ?? T.aplicado(aplicado.codigo)}</p>
         <button type="button" className={BOTON} onClick={() => alCambiar(null)}>{T.quitar}</button>
       </div>
     );
@@ -94,7 +107,7 @@ export function CampoCupon({
               void aplicar();
             }
           }}
-          placeholder={T.pista}
+          placeholder={conPista ? T.pista : undefined}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
