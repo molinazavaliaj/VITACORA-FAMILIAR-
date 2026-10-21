@@ -19,7 +19,7 @@ Los textos del panel de la empresa (`/admin/creadores`) no van acá: no los ve n
 
 ---
 
-## Tanda 1 — la página /colabora (arriba y cómo funciona)
+## Tanda 1 — la página /colabora (arriba y cómo funciona) — ✅ APROBADA por Naza el 21/10
 
 1. **CR-01 · Título de la pestaña y descripción para Google**
    «Colabora con Vitácora» · «Comparte Vitácora con tu comunidad y gana una comisión por cada venta con tu código.»
