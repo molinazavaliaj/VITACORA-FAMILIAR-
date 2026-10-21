@@ -13,7 +13,9 @@ import PaginaColaboraAr from "../src/app/ar/colabora/page";
 import CondicionesCreadores from "../src/app/legal/creadores/page";
 import { PaginaLegal } from "../src/app/legal/pagina";
 import { TEXTOS_COLABORA } from "../src/app/_textos/colabora";
-import { CONDICIONES_CREADORES } from "../src/app/_textos/legal-creadores";
+import { CONDICIONES_CREADORES, privacidadConCreadores } from "../src/app/_textos/legal-creadores";
+import { privacidadConCupon } from "../src/app/_textos/legal-cupon";
+import { TEXTOS_LEGAL } from "../src/app/_textos/legal";
 import { entradasSitemap } from "../src/lib/sitemap";
 
 // /colabora (programa de creadores, 21/10): la página, el alta (que no revela
@@ -233,5 +235,61 @@ describe("los textos de la casa", () => {
     expect(`${es} ${ar}`).not.toMatch(/\busted\b/i);
     expect(es).not.toMatch(/\b(querés|tenés|escribinos|contanos|sos)\b/);
     expect(ar).not.toMatch(/\b(quieres|tienes|escríbenos|cuéntanos|eres)\b/);
+  });
+});
+
+describe("los cambios legales (21/10)", () => {
+  const ids = (idioma: "es" | "ca" | "ar") => CONDICIONES_CREADORES[idioma].secciones.map((x) => x.id);
+  const todo = (idioma: "es" | "ca" | "ar") => texto(renderToStaticMarkup(<PaginaLegal idioma={idioma} documento="creadores" />));
+
+  it("las tres versiones tienen las mismas secciones, en el mismo orden, con las nuevas", () => {
+    expect(ids("es")).toEqual(["quien", "que", "relacion", "participar", "alta", "porcentajes", "calculo", "donde", "propias", "devoluciones", "pago", "como-compartir", "salir", "datos", "cambios"]);
+    expect(ids("ca")).toEqual(ids("es"));
+    expect(ids("ar")).toEqual(ids("es"));
+  });
+
+  it("España dice lo aprobado en la revisión legal", () => {
+    const t = todo("es");
+    expect(t).toContain("Colaborar con Vitácora no es un trabajo ni te hace agente nuestro.");
+    expect(t).toContain("Para sumarte tienes que ser mayor de 18 años.");
+    expect(t).toContain("Cada comisión queda en espera 14 días desde la compra. Pasado ese tiempo pasa a por cobrar.");
+    expect(t).not.toContain("Cuenta cuando el pago entra");
+    expect(t).toContain("Las compras que hagas tú con tu propio código no te dejan comisión.");
+    expect(t).toContain("Si se devuelve después, la descontamos de lo que tengas por cobrar.");
+    expect(t).toContain("la factura que corresponda en tu país");
+    expect(t).toContain("con #publi o «colaboración pagada»");
+    expect(t).not.toContain("Habla de Vitácora con tus palabras");
+    expect(t).toContain("durante 6 años");
+  });
+
+  it("Argentina, de vos", () => {
+    const t = todo("ar");
+    expect(t).toContain("Para sumarte tenés que ser mayor de 18 años.");
+    expect(t).toContain("Recomendás Vitácora por tu cuenta");
+    expect(t).not.toMatch(/\b(tienes|recomiendas|vendes|negocias|cobras|escríbenos|puedes)\b/);
+  });
+
+  it("la privacidad suma la sección de creadores después del 4, o después del 4 bis del cupón", () => {
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const base = TEXTOS_LEGAL[idioma].privacidad;
+      const solo = privacidadConCreadores(base, idioma).secciones;
+      const i = solo.findIndex((x) => x.id === "creadores");
+      expect(solo[i - 1].id).toBe("para-que");
+      expect(solo[i].titulo).toMatch(/^4 bis\. /);
+      const conCupon = privacidadConCreadores(privacidadConCupon(base, idioma), idioma).secciones;
+      const j = conCupon.findIndex((x) => x.id === "creadores");
+      expect(conCupon[j - 1].id).toBe("cupon");
+      expect(conCupon[j].titulo).toMatch(/^4 ter\. /);
+    }
+  });
+
+  it("la página de privacidad la muestra solo con CREADORES=1", () => {
+    const privacidad = () => texto(renderToStaticMarkup(<PaginaLegal idioma="es" documento="privacidad" />));
+    const con = privacidad();
+    expect(con).toContain("Programa de creadores");
+    expect(con).toContain("Guardamos tus datos mientras estés en el programa y después 6 años por la contabilidad.");
+    expect(con).toContain("soporte@vitacorafamiliar.com");
+    delete process.env.CREADORES;
+    expect(privacidad()).not.toContain("Programa de creadores");
   });
 });
