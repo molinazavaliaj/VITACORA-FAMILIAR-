@@ -9,9 +9,9 @@ Regla de nombres: lo que dice **vigente** es lo actual. Cuando algo se reemplaza
 - [`../superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md`](../superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md): el diseño aprobado por Naza (**empezar por acá**).
 - [`../superpowers/plans/2026-10-21-vitacora-de-una-historia.md`](../superpowers/plans/2026-10-21-vitacora-de-una-historia.md): el plan de implementación, por fases.
 - [`temas.md`](temas.md): los 7 temas de la compra en los 3 idiomas. **Vigente, aprobado el 21/10.**
+- [`banco.md`](banco.md): el banco de preguntas y mensajes en es-AR, con el formato de `docs/v3/entrevista/banco.md` y las columnas `Tema` y `Reemplaza` al final. **Vigente, aprobado el 21 y el 22/10.** Se compiló de [`banco-armado/`](banco-armado/), que queda como historial de las tandas.
 
 ## Lo que viene
 
-- `banco.md`: el banco de preguntas en es-AR, con el formato de `docs/v3/entrevista/banco.md` y la columna `Tema` (Task 0.2).
 - `idiomas/banco-es-ES.md` y `idiomas/banco-ca.md` (Task 0.3).
 - `escritor/receta.md`: la receta del libro (Task 0.4).
