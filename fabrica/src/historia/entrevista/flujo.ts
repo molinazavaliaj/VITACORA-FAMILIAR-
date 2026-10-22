@@ -237,13 +237,15 @@ export const RESPUESTAS_ANTES_DE_REPREGUNTAR = 3;
  * ¿Sale una repregunta de la cola? La primera pendiente que ya tiene 3 o más
  * respuestas del banco después de la de origen (FOTO-H, las de quien regala y
  * las repreguntas no cuentan), si lo último que contestó no fue una
- * repregunta: nunca dos seguidas. Antes de las de quien regala, del cierre o
- * del final salen todas las que queden: después ya no hay dónde.
+ * repregunta: nunca dos seguidas. Antes de las de quien regala o del cierre
+ * salen todas las que queden. Después del cierre no sale ninguna: FIN-H va
+ * directo después de HC10 (banco.md, regla 8).
  */
 function repreguntaLista(e: EstadoEntrevista, delBanco: Siguiente): Repregunta | undefined {
   const pendientes = (e.repreguntas ?? []).filter((r) => !e.respuestas.has(r.clave));
   if (pendientes.length === 0) return undefined;
-  const entraAlFinal = delBanco.tipo === 'propia' || delBanco.tipo === 'fin' || delBanco.tipo === 'terminada' || (delBanco.tipo === 'pregunta' && delBanco.pregunta.clase === 'cierre');
+  if (delBanco.tipo === 'fin' || delBanco.tipo === 'terminada') return undefined;
+  const entraAlFinal = delBanco.tipo === 'propia' || (delBanco.tipo === 'pregunta' && delBanco.pregunta.clase === 'cierre');
   if (entraAlFinal) return pendientes[0];
   const claves = [...e.respuestas.keys()];
   const ultima = claves.at(-1);
@@ -268,10 +270,11 @@ function siguienteDelBanco(e: EstadoEntrevista, banco: readonly PreguntaEntrevis
   const hecha = (clave: string) => e.respuestas.has(clave) || enviados.has(clave);
   const propias = e.propias ?? [];
   if (propias.length > MAX_PROPIAS) throw new Error(`historia: quien regala deja hasta ${MAX_PROPIAS} preguntas y llegaron ${propias.length}`);
-  const propia = propias.map((pregunta, i) => ({ clave: PROPIAS[i], pregunta })).find((x) => !hecha(x.clave));
-
   const ultimaDelTema = ultimoIndice(banco, (p) => p.tema !== 'comun' && !p.reemplaza);
   const cierre = ultimoIndice(banco, (p) => p.clase === 'cierre');
+  // Las de quien regala van antes del cierre: si el cierre ya se contestó (o ya salió FIN-H), no van más.
+  const cierreHecho = hecha(FIN) || (cierre >= 0 && hecha(banco[cierre].id));
+  const propia = cierreHecho ? undefined : propias.map((pregunta, i) => ({ clave: PROPIAS[i], pregunta })).find((x) => !hecha(x.clave));
   const foto = (): Siguiente => {
     const boton = botonFoto(idioma);
     return { tipo: 'foto', clave: FOTO, esperaFoto: true, ...(boton ? { botones: [boton], ayudaBotones: true as const } : {}) };

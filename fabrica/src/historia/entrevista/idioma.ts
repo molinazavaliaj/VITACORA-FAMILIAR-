@@ -1,13 +1,14 @@
 // El idioma de la entrevista (Naza, 04/10: la entrevista en catalán si quien
 // regala lo elige en la ficha; 05/10: Argentina va de vos, España de tú,
-// catalán en catalán). Cada idioma es un paquete: sus textos (banco.md para
-// es-AR, banco-ca.md para ca, banco-es-ES.md para es-ES), las frases del
+// catalán en catalán). Copia de src/v3/entrevista/idioma.ts. Cada idioma es
+// un paquete: sus textos (docs/historia/banco.md para es-AR,
+// docs/historia/idiomas/banco-ca.md y banco-es-ES.md), las frases del
 // detector (respuesta.ts), la transcripción (transcribir.ts) y el cazador
-// (cazador.ts, con su prompt entero por idioma). Diseño:
-// docs/v3/entrevista/catala/diseno.md (es-ES sigue el mismo molde).
+// (cazador.ts, con su prompt entero por idioma). Diseño en V3:
+// docs/v3/entrevista/catala/diseno.md.
 //
 // El castellano rioplatense es el de siempre y no cambia. Para sumar otro
-// idioma: su código acá, un banco-<idioma>.md con sus textos y su entrada en
+// idioma: su código acá, un idiomas/banco-<idioma>.md con sus textos y su entrada en
 // cada paquete (tsc avisa dónde falta).
 
 /** `es-AR`: castellano rioplatense, con vos (el de siempre). `ca`: catalán. `es-ES`: castellano de España, de tú. */

@@ -109,6 +109,20 @@ describe('flujo de historia', () => {
   });
 });
 
+describe('después del cierre (HC10) no sale nada más que FIN-H', () => {
+  const banco = bancoHistoria('mudanza');
+  const todo = () => new Map<string, string>([...banco.preguntas.map((q) => [q.id, CONTO] as const), [FOTO, CONTO]]);
+  const tarde: Repregunta = { clave: claveRepregunta('HC9'), origen: 'HC9', bloque: 6, cita: 'x', pregunta: '¿x?', tema: 'x' };
+
+  it('una repregunta que quedó en la cola después de HC10 no sale: va FIN-H', () => {
+    expect(siguientePregunta({ respuestas: todo(), tema: 'mudanza', repreguntas: [tarde] })).toEqual({ tipo: 'fin', clave: FIN });
+    expect(siguientePregunta({ respuestas: todo(), enviados: new Set([FIN]), tema: 'mudanza', repreguntas: [tarde] })).toEqual({ tipo: 'terminada' });
+  });
+  it('una propia que no salió antes de HC10 ya no sale', () => {
+    expect(siguientePregunta({ respuestas: todo(), tema: 'mudanza', propias: ['¿Y la casa?'] })).toEqual({ tipo: 'fin', clave: FIN });
+  });
+});
+
 describe('preguntas de quien regala (PR-H)', () => {
   const ficha = { nombre: 'Ana', genero: 'mujer' as const, tema: 'mudanza' as const, quienRegala: 'Pablo' };
 

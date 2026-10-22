@@ -200,7 +200,9 @@ export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuest
 export type Descartada = { id: string; cita: string; pregunta: string; tema?: string; fallas: string[] };
 
 /**
- * Pasa las elegidas (hasta MAX_ELEGIDAS, una) por los controles: además de los de
+ * Pasa las elegidas por los controles y se queda con las primeras
+ * MAX_ELEGIDAS (una) que pasan: si la primera falla, puede entrar la segunda.
+ * Los controles: además de los de
  * `controlarElegida`, la respuesta tiene que ser de este bloque, no puede
  * haber dos de la misma ni una ya repreguntada. La que falla se descarta
  * (plan, B1: hoy no se reintenta).
@@ -215,7 +217,8 @@ export function revisarElegidas(
   const repreguntas: Repregunta[] = [];
   const descartadas: Descartada[] = [];
   const vistas = new Set<string>();
-  for (const e of elegidas.slice(0, MAX_ELEGIDAS)) {
+  for (const e of elegidas) {
+    if (repreguntas.length >= MAX_ELEGIDAS) break;
     const suya = delBloque.find((r) => r.id === e.id);
     const fallas = controlarElegida(e, suya?.texto ?? '', idioma);
     if (!suya) fallas.push('la respuesta no es de este bloque');

@@ -3,7 +3,7 @@
 // (spec §4.2, banco.md regla 9), con el tope de USD 3 por entrevista. NINGÚN
 // test llama a la API: el cliente es falso.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import promptJson from '../src/historia/entrevista/cazador-prompt.json';
 import promptCaJson from '../src/historia/entrevista/cazador-prompt-ca.json';
@@ -68,6 +68,13 @@ describe('cazador de historia', () => {
     const r = await cazarBloque({ ...base, cliente });
     expect(r.repreguntas).toEqual([{ clave: claveRepregunta('HC2'), origen: 'HC2', bloque: 1, cita: ELEGIDA_1.cita, pregunta: ELEGIDA_1.pregunta, tema: 'el balde de agua' }]);
     expect(r.descartadas).toEqual([]);
+  });
+  it('si la primera elegida falla los controles, entra la siguiente que pasa', async () => {
+    const inventada = { ...ELEGIDA_2, cita: 'una cita que no dijo nunca' };
+    const { cliente } = falso([salida({ elegidas: [inventada, ELEGIDA_1], escenas_contadas_bloque: [] })]);
+    const r = await cazarBloque({ ...base, cliente });
+    expect(r.repreguntas.map((x) => x.origen)).toEqual(['HC2']);
+    expect(r.descartadas.map((x) => x.fallas)).toEqual([['la cita no es textual']]);
   });
   it('nunca dos veces sobre la misma respuesta', async () => {
     const ya: Repregunta = { clave: claveRepregunta('HC2'), origen: 'HC2', bloque: 1, cita: 'x', pregunta: '¿x?', tema: 'x' };
@@ -144,10 +151,15 @@ describe('lo que ve el modelo', () => {
 });
 
 describe('los prompts al día (si falla: cd fabrica && npx tsx scripts/historia-cazador-json.ts)', () => {
-  for (const [json, nombre] of [[promptJson, 'es-AR'], [promptCaJson, 'ca'], [promptEsEsJson, 'es-ES']] as const) {
-    it(`cazador-prompt ${nombre} = su md`, () => {
-      const { fuente, prompt } = json as { fuente: string; prompt: string };
-      expect(prompt).toBe(extraerPrompt(readFileSync(`../${fuente}`, 'utf8')));
+  for (const [json, propio, deV3] of [
+    [promptJson, 'docs/historia/cazador/prompt.md', 'docs/v3/entrevista/cazador/prompt-v3-1.md'],
+    [promptCaJson, 'docs/historia/cazador/prompt-ca.md', 'docs/v3/entrevista/cazador/prompt-v3-1-ca.md'],
+    [promptEsEsJson, 'docs/historia/cazador/prompt-es-ES.md', 'docs/v3/entrevista/cazador/prompt-v3-1-es-ES.md'],
+  ] as const) {
+    it(`el prompt sale de ${propio} si existe, si no de ${deV3}`, () => {
+      // La fuente se decide acá igual que en el script: si aparece el prompt de historia, el json viejo (de V3) falla.
+      const fuente = existsSync(`../${propio}`) ? propio : deV3;
+      expect(json).toEqual({ fuente, prompt: extraerPrompt(readFileSync(`../${fuente}`, 'utf8')) });
     });
   }
 });

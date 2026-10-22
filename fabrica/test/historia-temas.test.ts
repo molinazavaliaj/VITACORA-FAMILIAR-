@@ -39,7 +39,7 @@ describe('temas de historia', () => {
     expect(porId.get('HC5-M')!.bloque).toBe(porId.get('HC5')!.bloque);
     expect(porId.get('HC1-A')!.bloque).toBe(1);
   });
-  it('otra deja la común y las generales', () => {
+  it('otra deja la común y una sola propia del tema (HO1)', () => {
     expect(bancoDeTema(banco, 'otra').preguntas.filter((p) => p.tema !== 'comun')).toHaveLength(1);
   });
   it('la variante común (HC1-A) va solo con tema abierto', () => {
@@ -82,6 +82,12 @@ describe('parser de historia', () => {
     expect(() => parsearEntrevistaMd(conAbierto)).toThrow('reemplazan los dos a HC8');
     const deDosTemas = `${fila('HC8')}| HC8-Q | t |  | núcleo | historia |  | conocimos | HC8 |\n| HC8-P | t |  | núcleo | historia |  | padres | HC8 |\n`;
     expect(parsearEntrevistaMd(deDosTemas).preguntas).toHaveLength(3);
+  });
+  it('un Sensible que no es "sí" ni vacío es un error (antes valía false sin avisar)', () => {
+    expect(() => parsearEntrevistaMd(fila('HC1', '|  | núcleo | historia | si | comun |  |'))).toThrow('Sensible desconocido "si"');
+  });
+  it('un mensaje con un "|" suelto (más columnas que el encabezado) es un error, no se corta', () => {
+    expect(() => parsearEntrevistaMd('## Mensajes fijos\n\n| ID | Cuándo | Texto |\n|---|---|---|\n| M1 | x | uno | dos |\n')).toThrow('M1: la fila tiene 4 columnas y el encabezado 3');
   });
   it('un ID repetido es un error', () => {
     expect(() => parsearEntrevistaMd(`${fila('HC1')}| HC1 | t |  | núcleo | historia |  | comun |  |\n`)).toThrow('HC1: está dos veces');

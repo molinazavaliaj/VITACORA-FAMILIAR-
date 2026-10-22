@@ -181,6 +181,7 @@ export function parsearEntrevistaMd(md: string): BancoEntrevista {
   const filasBotones: string[][] = [];
   const ids = new Set<string>();
   let seccion: 'mensajes' | 'bloque' | 'botones' | null = null;
+  let columnas = 0; // las del encabezado de la tabla actual
   let bloque = 0;
 
   for (const linea of md.split(/\r?\n/)) {
@@ -206,7 +207,11 @@ export function parsearEntrevistaMd(md: string): BancoEntrevista {
     }
     if (!linea.startsWith('|') || seccion === null) continue;
     const c = celdas(linea);
-    if (c[0] === 'ID' || /^-+$/.test(c[0] ?? '')) continue; // encabezado o separador
+    if (c[0] === 'ID') {
+      columnas = c.length;
+      continue;
+    }
+    if (/^-+$/.test(c[0] ?? '')) continue; // separador
     if (!ID.test(c[0] ?? '')) throw new Error(`ID mal escrito: "${c[0]}"`);
 
     if (seccion === 'botones') {
@@ -216,12 +221,15 @@ export function parsearEntrevistaMd(md: string): BancoEntrevista {
     if (ids.has(c[0])) throw new Error(`${c[0]}: está dos veces`);
     ids.add(c[0]);
     if (seccion === 'mensajes') {
+      // Un "|" suelto en el texto partiría la celda y cortaría el mensaje sin avisar.
+      if (c.length !== columnas) throw new Error(`${c[0]}: la fila tiene ${c.length} columnas y el encabezado ${columnas}`);
       const [id, cuando, texto] = c;
       mensajes.push({ id, cuando, texto: saltos(texto) });
       continue;
     }
     if (c.length !== COLUMNAS_PREGUNTA) throw new Error(`${c[0]}: la fila tiene ${c.length} columnas y van ${COLUMNAS_PREGUNTA}`);
     const [id, texto, depende, parte, clase, sensible, tema, reemplaza] = c;
+    if (sensible !== '' && sensible !== 'sí') throw new Error(`${id}: Sensible desconocido "${sensible}" (va sí o vacío)`);
     preguntas.push({
       id,
       bloque,

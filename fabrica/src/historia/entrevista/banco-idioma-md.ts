@@ -8,7 +8,7 @@
 import { MAX_LETRAS_BOTON, PATRON_ID } from './banco-md.js';
 
 export type TextosIdioma = {
-  /** Texto de cada pregunta del banco, por ID (con sus marcas: {{nombre}}, {{nen/nena}}, «sino:X: … ‖ …»). */
+  /** Texto de cada pregunta del banco, por ID (con sus marcas: {{nombre}}, {{historia}}, {{sol/sola}}, «sino:X: … ‖ …»). */
   preguntas: Record<string, string>;
   /** Los botones de cada pregunta, en el mismo orden que en banco.md. */
   botones: Record<string, string[]>;
