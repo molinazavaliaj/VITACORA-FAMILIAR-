@@ -252,7 +252,7 @@ Duda: después de FIN-H la persona repasa lo que contó antes de que se escriba 
 
 ## Tanda 2 · La página `/historia`, arriba (pestaña, hero y cómo funciona)
 
-### H11 · El título de la pestaña (`<title>`)
+### H11 · El título de la pestaña (`<title>`) · APROBADO (Naza, 23/10)
 
 Sigue el patrón de Kids («Vitácora Kids · Mi Primer Capítulo»).
 
@@ -260,13 +260,13 @@ Sigue el patrón de Kids («Vitácora Kids · Mi Primer Capítulo»).
 - es-ES: Vitácora de una historia · Un solo capítulo, a fondo
 - ca: Vitácora d'una història · Un sol capítol, a fons
 
-### H12 · La descripción para buscadores
+### H12 · La descripción para buscadores · APROBADO (Naza, 23/10)
 
 - es-AR: Un libro sobre una sola historia. Irse a vivir lejos, el negocio propio, salir de una enfermedad. Preguntas por WhatsApp, de a una, contestadas en audio, y con eso se escribe el libro.
 - es-ES: Un libro sobre una sola historia. Irse a vivir fuera, el negocio propio, salir de una enfermedad. Preguntas por WhatsApp, de una en una, contestadas en audio, y con eso se escribe el libro.
 - ca: Un llibre sobre una sola història. Anar a viure lluny, el negoci propi, sortir d'una malaltia. Preguntes per WhatsApp, d'una en una, respostes amb àudios, i amb això s'escriu el llibre.
 
-### H13 · El título del hero
+### H13 · El título del hero · APROBADO (Naza, 23/10)
 
 En dos líneas, como en Kids; la segunda va en la cursiva. Sale de HO5 del banco («la historia que contás siempre, la que sale en las mesas»).
 
@@ -276,13 +276,13 @@ En dos líneas, como en Kids; la segunda va en la cursiva. Sale de HO5 del banco
 
 Alternativa: «Toda vida tiene una historia / que merece un libro entero.» / «Toda vida tiene una historia / que merece un libro entero.» / «Tota vida té una història / que mereix un llibre sencer.»
 
-### H14 · La bajada del hero
+### H14 · La bajada del hero · APROBADO (Naza, 23/10)
 
 - es-AR: Un libro sobre un solo capítulo de la vida, contado al máximo detalle. Irse a vivir lejos, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de a una, se contestan en audio, y con eso se escribe el libro.
 - es-ES: Un libro sobre un solo capítulo de la vida, contado con todo detalle. Irse a vivir fuera, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de una en una, se contestan en audio, y con eso se escribe el libro.
 - ca: Un llibre sobre un sol capítol de la vida, explicat amb tot detall. Anar a viure lluny, el negoci propi, la malaltia que va quedar enrere. Les preguntes arriben per WhatsApp, d'una en una, es contesten amb àudios, i amb això s'escriu el llibre.
 
-### H15 · El botón del hero
+### H15 · El botón del hero · APROBADO (Naza, 23/10)
 
 Lleva a `/comprar/historia`. El segundo botón, «Cómo funciona», se toma de la portada (`TEXTOS_PORTADA.inicio.comoFunciona`), como en Kids.
 
@@ -292,13 +292,13 @@ Lleva a `/comprar/historia`. El segundo botón, «Cómo funciona», se toma de l
 
 Alternativa: «Elegir la historia» / «Elegir la historia» / «Triar la història». Dice lo primero que va a pasar, pero suena menos a comprar.
 
-### H16 · «Cómo funciona», el título
+### H16 · «Cómo funciona», el título · APROBADO (Naza, 23/10)
 
 - es-AR: Una historia, una pregunta por vez, un libro.
 - es-ES: Una historia, una pregunta cada vez, un libro.
 - ca: Una història, una pregunta cada vegada, un llibre.
 
-### H17 · Paso 1 de «Cómo funciona»
+### H17 · Paso 1 de «Cómo funciona» · APROBADO (Naza, 23/10)
 
 Los pasos le hablan a quien compra. Quien contesta puede ser la misma persona o quien recibe el regalo, por eso los pasos 2 a 4 no dicen «te» ni «le».
 
@@ -314,7 +314,7 @@ Texto:
 - es-ES: Una de la lista o la que quieras. Puede ser tu libro o un regalo, y si es regalo puedes dejar que la elija quien la cuenta.
 - ca: Una de la llista o la que vulguis. Pot ser el teu llibre o un regal, i si és un regal pots deixar que la triï qui l'explica.
 
-### H18 · Paso 2 de «Cómo funciona»
+### H18 · Paso 2 de «Cómo funciona» · APROBADO (Naza, 23/10)
 
 Título:
 
@@ -328,7 +328,7 @@ Texto:
 - es-ES: De una en una, todas sobre esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cómo terminó. Si alguna no va, se dice paso y seguimos con otra.
 - ca: D'una en una, totes sobre aquesta història. Com era la vida abans, com va començar, el més difícil, com va acabar. Si alguna no va, es diu «passo» i en fem una altra.
 
-### H19 · Paso 3 de «Cómo funciona»
+### H19 · Paso 3 de «Cómo funciona» · APROBADO (Naza, 23/10)
 
 Título:
 
@@ -342,7 +342,7 @@ Texto:
 - es-ES: Cuando hay un rato, como si se lo contara a alguien en persona. A mitad de camino pedimos algunas fotos de esa época.
 - ca: Quan hi ha una estona, com si ho expliqués a algú en persona. A mig camí demanem algunes fotos d'aquella època.
 
-### H20 · Paso 4 de «Cómo funciona»
+### H20 · Paso 4 de «Cómo funciona» · APROBADO (Naza, 23/10)
 
 Título:
 
