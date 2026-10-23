@@ -196,6 +196,8 @@ export function entraALaV3(contexto: Record<string, unknown> | null | undefined)
   // Un chico de Kids nunca (plan-conexion-bot.md, T4): la web le pone modo 'kids'. La marca que vale es la fila de
   // kids_v2, que se mira donde se crea la fila V3 (v3/estado.ts crearFila, v3/pasar.ts); esto frena antes, sin base.
   if (contexto?.modo === 'kids') return false;
+  // Vitácora de una historia (plan 2026-10-21, Task 3.4): tiene su propio bot (src/historia), con o sin regalo.
+  if (contexto?.modo === 'historia') return false;
   if (contexto?.regalo === true) return true;
   return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
 }

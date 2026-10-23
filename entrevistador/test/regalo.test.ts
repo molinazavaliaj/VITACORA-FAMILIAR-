@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
+const historia = vi.hoisted(() => ({ bienvenidaAlCanjear: vi.fn(async () => true) }));
+vi.mock('../src/historia/bienvenida.js', () => ({ bienvenidaAlCanjear: historia.bienvenidaAlCanjear }));
+vi.mock('../src/historia/deps-reales.js', () => ({ depsHistoriaReales: () => ({ historia: true }) }));
 import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos, telefonosEnElLimite } from '../src/flujo/regalo.js';
 import { AVISOS, RECORDATORIO, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenidaDeRegalo } from '../src/flujo/regalo-arranque.js';
@@ -242,6 +245,12 @@ describe('mandarBienvenidaDeRegalo', () => {
     expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'otro', quienRegala: 'Lucía' }));
     expect(enviados[0].texto).toContain('Lucía te regaló');
     expect(enviados[0].texto).not.toContain('Lucía te hizo un regalo');
+  });
+  it('una historia recibe la bienvenida de su bot (BIEN-HR), no la de la V3', async () => {
+    const { deps, enviados } = armar({ contexto: { modo: 'historia', regalo: true, genero: 'mujer', historia: { tema: 'mudanza' } } });
+    expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
+    expect(historia.bienvenidaAlCanjear).toHaveBeenCalledWith({ historia: true }, 'n1');
+    expect(enviados).toEqual([]);
   });
   it('si no se puede anotar el envío, lo dice y devuelve false', async () => {
     const { base, deps, enviados } = armar();

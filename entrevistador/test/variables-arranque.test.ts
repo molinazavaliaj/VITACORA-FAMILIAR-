@@ -115,6 +115,17 @@ describe('revisarVariables', () => {
     expect(f.problema).toMatch(/es-AR:regalo_entrega\b(?!_)/);
   });
 
+  it('historia: la lista vacía no es una falta; una entrada que no es suya se marca y se sugiere la clave', () => {
+    const env = envCompleto();
+    expect(nombres(env)).toEqual([]);
+    env.WA_PLANTILLAS_HISTORIA_LISTAS = 'es-AR:bienvenida,ca:bienvenida_regalo_abierta,es-ES:bienvenida_historia_regalo_es_es,es-AR:pregunta';
+    const [f] = revisarVariables(env);
+    expect(f.variable).toBe('WA_PLANTILLAS_HISTORIA_LISTAS');
+    expect(f.problema).toMatch(/es-ES:bienvenida_historia_regalo_es_es.*es-ES:bienvenida_regalo\b(?!_)/);
+    expect(f.problema).toMatch(/es-AR:pregunta/);
+    expect(f.problema).not.toMatch(/«es-AR:bienvenida»/);
+  });
+
   it('nunca muestra el valor de una variable', () => {
     const env = envCompleto();
     env.V3_PARA_NUEVOS = '1';

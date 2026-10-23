@@ -10,6 +10,7 @@ import { PLANTILLAS_V3, entraALaV3 } from '../config.js';
 import { viajerosV2 } from '../viaje-v2/filas.js';
 import { asegurarAltaViajeV2, esModoViaje, ESTADOS_VIAJE_VIEJO, type DepsAlta } from '../viaje-v2/alta.js';
 import { chicosKids } from '../kids-v2/filas.js';
+import { esModoHistoria } from '../historia/alta.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
@@ -47,7 +48,8 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 let delTick: { v2YKids?: Promise<[Set<string>, Set<string>]> } | null = null;
 
 /**
- * Los narradores en esos estados, SIN ningún viajero ni los chicos de Kids (con fila en kids_v2): los de la Viaje V2
+ * Los narradores en esos estados, SIN ningún viajero, ni los chicos de Kids (con fila en kids_v2), ni los de «Vitácora
+ * de una historia» (modo historia, con su bot y su reloj en src/historia). Los de la Viaje V2
  * (con fila en viajes_v2) y los chicos tienen su propio reloj (viaje-v2/reloj.ts, kids-v2/reloj.ts), y un viajero sin
  * fila (modo viaje) o espera su alta o quedó en el viaje viejo, que ya no existe (16/10): ninguno recibe nada del
  * Familiar (ni la bienvenida, ni la pregunta, ni el recordatorio, ni el hito «silencio»). Si la base no deja saber
@@ -58,7 +60,7 @@ async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   // Quién es viajero V2 o chico de Kids se lee una vez por tick, no en cada fase (Disk IO, 20/10).
   const leer = () => Promise.all([viajerosV2(db), chicosKids(db)]);
   const [v2, kids] = await (delTick ? (delTick.v2YKids ??= leer()) : leer());
-  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id) && !esModoViaje(n.contexto));
+  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id) && !kids.has(n.id) && !esModoViaje(n.contexto) && !esModoHistoria(n.contexto));
 }
 
 async function ultimoEnvio(narradorId: string, tipo: string, orden?: number) {
@@ -177,6 +179,30 @@ async function atenderViajeros(): Promise<void> {
     'La Vitácora de Viaje vieja (V1) se borró el 16/10. Estos viajeros ya la habían empezado: quedaron en el Viaje viejo '
       + 'y el bot ya no les escribe (tampoco les contesta si escriben).\n'
       + viejos.map((n) => `- ${n.como_le_dicen} (${n.id}), estado '${n.estado}'`).join('\n'));
+}
+
+/**
+ * 0b. Vitácora de una historia (plan 2026-10-21, Task 3.4). Un invitado con modo historia recibe su alta y, si es
+ * para uno mismo, la plantilla de bienvenida (historia/bienvenida.ts). Un regalo no: su bienvenida sale como texto
+ * cuando escribe con el código (flujo/regalo.ts); acá solo se reintenta el alta, si quedó frenada.
+ */
+async function atenderHistorias(): Promise<void> {
+  const { data, error } = await db.from('narradores').select('*').eq('estado', 'invitado');
+  if (error) throw new Error(`No pude leer los narradores de historia: ${error.message}`);
+  // Los de la simulación (contexto.simulacion) los maneja el script.
+  const historias = ((data as Narrador[] | null) ?? []).filter((n) => esModoHistoria(n.contexto) && n.contexto?.simulacion !== true);
+  if (historias.length === 0) return;
+  const { asegurarAltaHistoria } = await import('../historia/alta.js');
+  const { bienvenidaPorPlantilla } = await import('../historia/bienvenida.js');
+  const { depsHistoriaReales } = await import('../historia/deps-reales.js');
+  const deps = depsHistoriaReales();
+  for (const n of historias) {
+    const nh = n as unknown as Parameters<typeof bienvenidaPorPlantilla>[1];
+    await aislado(n.id, async () => {
+      if (n.contexto?.regalo === true) await asegurarAltaHistoria(deps, nh);
+      else await bienvenidaPorPlantilla(deps, nh);
+    });
+  }
 }
 
 /** 1. Bienvenida: a los invitados que todavía no la recibieron. */
@@ -373,6 +399,7 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
   delTick = {};
   for (const [nombre, fase] of [
     ['viajeros', () => atenderViajeros()],
+    ['historias', () => atenderHistorias()],
     ['bienvenidas', () => enviarBienvenidas()],
     ['preguntas', () => enviarPreguntasDelDia(ahora)],
     ['recordatorios', () => enviarRecordatorios(ahora)],
@@ -487,10 +514,30 @@ export function iniciarRelojKids() {
   });
 }
 
+let corriendoHistoria = false;
+
+/** El reloj de «Vitácora de una historia» (historia/reloj.ts): cada 1 minuto, como los de la V3, la Viaje V2 y Kids. */
+export function iniciarRelojHistoria() {
+  return cron.schedule('* * * * *', async () => {
+    if (corriendoHistoria) return;
+    corriendoHistoria = true;
+    try {
+      const { tickHistoria } = await import('../historia/reloj.js');
+      const { depsHistoriaReales } = await import('../historia/deps-reales.js');
+      await tickHistoria(depsHistoriaReales());
+    } catch (err) {
+      console.error('Falló el tick del reloj de historia:', err);
+    } finally {
+      corriendoHistoria = false;
+    }
+  });
+}
+
 export function iniciarScheduler() {
   iniciarRelojV3();
   iniciarRelojViajeV2();
   iniciarRelojKids();
+  iniciarRelojHistoria();
   return cron.schedule('*/15 * * * *', async () => {
     if (corriendo) return; // que dos ticks no se pisen
     corriendo = true;

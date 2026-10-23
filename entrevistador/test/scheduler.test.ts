@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   armarHistoria: vi.fn(),
   ultimaTranscripcion: vi.fn(),
   asegurarAltaViajeV2: vi.fn(),
+  asegurarAltaHistoria: vi.fn(),
+  bienvenidaPorPlantilla: vi.fn(),
   // Filas que devuelve la base falsa, configurables por test.
   filas: {
     narradores: [] as any[],
@@ -110,6 +112,13 @@ vi.mock('../src/viaje-v2/alta.js', async (importar) => ({
   ...(await importar<typeof import('../src/viaje-v2/alta.js')>()),
   asegurarAltaViajeV2: mocks.asegurarAltaViajeV2,
 }));
+// Vitácora de una historia: el alta y la bienvenida se prueban en test/historia; acá, que el tick las llama.
+vi.mock('../src/historia/alta.js', async (importar) => ({
+  ...(await importar<typeof import('../src/historia/alta.js')>()),
+  asegurarAltaHistoria: mocks.asegurarAltaHistoria,
+}));
+vi.mock('../src/historia/bienvenida.js', () => ({ bienvenidaPorPlantilla: mocks.bienvenidaPorPlantilla }));
+vi.mock('../src/historia/deps-reales.js', () => ({ depsHistoriaReales: () => ({ historia: true }) }));
 vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
@@ -426,6 +435,46 @@ describe('tick con viajeros (solo V2)', () => {
     await tick(A_LAS_10_05);
     expect(mocks.asegurarAltaViajeV2).not.toHaveBeenCalled();
     expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'bienvenida', expect.anything());
+  });
+});
+
+describe('tick con historias', () => {
+  const historia = (extra: Record<string, any> = {}, contexto: Record<string, any> = {}) => narrador({
+    contexto: { modo: 'historia', genero: 'mujer', historia: { tema: 'mudanza' }, ...contexto }, ...extra,
+  });
+
+  it('una historia nueva (invitado) recibe su bienvenida de historia y ninguna del Familiar ni de la V3', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '1');
+    vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+    mocks.filas.narradores = [historia({ estado: 'invitado' })];
+    await tick(A_LAS_10_05);
+    vi.unstubAllEnvs();
+    expect(mocks.bienvenidaPorPlantilla).toHaveBeenCalledWith({ historia: true }, expect.objectContaining({ id: 'n1' }));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(inserts('envios')).toEqual([]);
+  });
+
+  it('un regalo de historia solo recibe el alta: la bienvenida le llega al canjear', async () => {
+    mocks.filas.narradores = [historia({ estado: 'invitado' }, { regalo: true })];
+    await tick(A_LAS_10_05);
+    expect(mocks.asegurarAltaHistoria).toHaveBeenCalledWith({ historia: true }, expect.objectContaining({ id: 'n1' }));
+    expect(mocks.bienvenidaPorPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
+  it('una historia activa no recibe la pregunta, el recordatorio ni la alerta del Familiar', async () => {
+    mocks.filas.narradores = [historia({ estado: 'activo', dia_actual: 3, ultima_respuesta_at: '2026-08-01T00:00:00Z' })];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
+  });
+
+  it('un narrador del Familiar no pasa por historia', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'invitado' })];
+    await tick(A_LAS_10_05);
+    expect(mocks.bienvenidaPorPlantilla).not.toHaveBeenCalled();
+    expect(mocks.asegurarAltaHistoria).not.toHaveBeenCalled();
   });
 });
 

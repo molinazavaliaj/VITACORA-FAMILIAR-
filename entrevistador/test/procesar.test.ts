@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
   faseDeCierre: vi.fn(),
   asegurarAltaViajeV2: vi.fn(),
   procesarEntranteViajeV2: vi.fn(),
+  asegurarAltaHistoria: vi.fn(),
+  procesarEntranteHistoria: vi.fn(),
   recibirFotoFamiliar: vi.fn(),
   pedirObjeto: vi.fn(),
   pedidoAbierto: vi.fn(),
@@ -112,6 +114,13 @@ vi.mock('../src/viaje-v2/alta.js', async (importar) => ({
 }));
 vi.mock('../src/viaje-v2/entrante.js', () => ({ procesarEntranteViajeV2: mocks.procesarEntranteViajeV2 }));
 vi.mock('../src/viaje-v2/deps-reales.js', () => ({ depsViajeReales: () => ({}) }));
+// Vitácora de una historia: el alta y el bot se prueban en test/historia; acá, que procesar los llama.
+vi.mock('../src/historia/alta.js', async (importar) => ({
+  ...(await importar<typeof import('../src/historia/alta.js')>()),
+  asegurarAltaHistoria: mocks.asegurarAltaHistoria,
+}));
+vi.mock('../src/historia/entrante.js', () => ({ procesarEntranteHistoria: mocks.procesarEntranteHistoria }));
+vi.mock('../src/historia/deps-reales.js', () => ({ depsHistoriaReales: () => ({ historia: true }) }));
 vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
 vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
 // Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
@@ -160,6 +169,10 @@ beforeEach(() => {
   mocks.faseDeCierre.mockResolvedValue(false);
   for (const fn of [mocks.recibirFotoFamiliar, mocks.procesarEntranteViajeV2]) fn.mockReset();
   mocks.asegurarAltaViajeV2.mockReset();
+  mocks.asegurarAltaHistoria.mockReset();
+  mocks.asegurarAltaHistoria.mockResolvedValue('creada');
+  mocks.procesarEntranteHistoria.mockReset();
+  mocks.procesarEntranteHistoria.mockResolvedValue(undefined);
   mocks.asegurarAltaViajeV2.mockImplementation(async (_deps: unknown, n: { estado: string }) => (n.estado === 'invitado' ? 'creada' : 'no-corresponde'));
   mocks.pedirObjeto.mockReset();
   mocks.pedirObjeto.mockResolvedValue(false);   // por defecto, la pregunta no cierra capítulo
@@ -574,6 +587,53 @@ describe('procesarEntrante', () => {
     expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
     expect(mocks.procesarEntranteViajeV2).not.toHaveBeenCalled();
     expect(mocks.estado.capturas).toEqual([]);
+  });
+
+  // ── Vitácora de una historia: todo por su bot (src/historia), nunca por la V3 ni por el Familiar ──
+  const HISTORIA = { modo: 'historia', regalo: true, genero: 'mujer', historia: { tema: 'mudanza' } };
+
+  it('(h1) una narradora nueva de historia que escribe antes del tick recibe el alta ahí y sigue por historia', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, HISTORIA);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.asegurarAltaHistoria).toHaveBeenCalledWith({ historia: true }, expect.objectContaining({ id: 'n1' }));
+    expect(mocks.procesarEntranteHistoria).toHaveBeenCalledWith({ historia: true }, expect.objectContaining({ id: 'n1' }), expect.objectContaining({ texto: 'hola' }));
+    expect(mocks.mandarBienvenidaDeRegalo).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
+  });
+
+  it('(h2) una historia activa con regalo va a historia, no a la V3', async () => {
+    mocks.estado.narrador = narradorEn('activo', 0, HISTORIA);
+    mocks.asegurarAltaHistoria.mockResolvedValue('ya-estaba');
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.procesarEntranteHistoria).toHaveBeenCalled();
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
+  });
+
+  it('(h3) si el alta queda frenada (faltan datos), no se le contesta nada', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, HISTORIA);
+    mocks.asegurarAltaHistoria.mockResolvedValue('frenada');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    expect(mocks.procesarEntranteHistoria).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(update('narradores')).toBeUndefined();
+  });
+
+  it('(h4) si la base falla en el alta, procesar no se cae y no le contesta (el tick reintenta)', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, HISTORIA);
+    mocks.asegurarAltaHistoria.mockRejectedValue(new Error('base caída'));
+    await expect(procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' })).resolves.toBeUndefined();
+    expect(mocks.procesarEntranteHistoria).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('(h5) sin pagar, una historia no recibe nada', async () => {
+    mocks.estado.narrador = narradorEn('pendiente_pago', 0, HISTORIA);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.asegurarAltaHistoria).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteHistoria).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 
   // Hasta el 22/09 este test afirmaba que la foto se IGNORABA. Era el bug

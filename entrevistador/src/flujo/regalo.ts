@@ -175,6 +175,12 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
       deps.db.from('narradores').select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle(),
       deps.db.from('regalos').select('quien_regala').eq('narrador_id', narradorId).maybeSingle(),
     ]);
+    // Vitácora de una historia (plan 2026-10-21, Task 3.4): su bienvenida es la de su bot (BIEN-HR), no la de la V3.
+    if (n?.contexto?.modo === 'historia') {
+      const { bienvenidaAlCanjear } = await import('../historia/bienvenida.js');
+      const { depsHistoriaReales } = await import('../historia/deps-reales.js');
+      return await bienvenidaAlCanjear(depsHistoriaReales(), narradorId);
+    }
     if (!n || !r) return false;
     // El BIEN no tiene marcas de género hoy; si llega a tenerlas, sin género cargado va 'otro'.
     const genero = esGenero(n.contexto?.genero) ? n.contexto.genero : 'otro';
