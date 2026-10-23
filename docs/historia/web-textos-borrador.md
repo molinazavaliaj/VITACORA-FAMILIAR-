@@ -2,7 +2,9 @@
 
 Redactó Fable el 23/10/2026. Para que Naza los apruebe de a 10, en el orden en que conviene: primero lo que bloquea la compra (la solapa y el paso «Tema»), después la página `/historia`.
 
-Qué dicen y qué no (del spec y del banco): unas quince preguntas, de a una, por WhatsApp, contestadas en audio; en cualquiera se puede decir «paso»; a mitad de la entrevista se piden de tres a diez fotos de esa época; antes de escribir el libro, quien contó la historia repasa lo que dijo; el libro va con sus palabras, sus fotos y un código QR para escuchar los audios; impreso en tapa dura o en PDF, como en Familiar. No dicen cantidad de páginas, plazos, tiempos ni precio (el precio lo pone el código con las variables de Familiar).
+Estado: tanda 1 revisada por Naza el 23/10 (H1, H2 y H4 a H10 aprobados tal cual; H3 reescrito por Naza y aprobado). Regla nueva de Naza, 23/10: **la web no dice cuántas preguntas son**, ni «unas quince» ni ninguna otra cantidad; se quitó de todos los textos. Tanda 1b (preguntas desde el panel) agregada el 23/10, para aprobar.
+
+Qué dicen y qué no (del spec y del banco): preguntas de a una, por WhatsApp, contestadas en audio, sin decir cuántas; en cualquiera se puede decir «paso»; a mitad de la entrevista se piden de tres a diez fotos de esa época; antes de escribir el libro, quien contó la historia repasa lo que dijo; el libro va con sus palabras, sus fotos y un código QR para escuchar los audios; impreso en tapa dura o en PDF, como en Familiar. No dicen cantidad de páginas, plazos, tiempos ni precio (el precio lo pone el código con las variables de Familiar).
 
 Reglas que siguen: sin dos puntos, sin rayas, sin oraciones que empiecen con «Y» después de un punto. es-AR de vos, es-ES de tú (sin argentinismos), catalán de tu. Donde la misma etiqueta la lee quien compra para sí y quien regala, va sin «tu» ni «su» (como los temas). Los nombres y los ejemplos son inventados. El catalán queda pendiente del corrector de Softcatalà y de la revisión a ciegas, como el banco.
 
@@ -12,7 +14,7 @@ Dónde van en el código, para Joaquín: la solapa en `web/src/app/_publico/cabe
 
 ## Tanda 1 · Lo que bloquea la compra (solapa y paso «Tema»)
 
-### H1 · La solapa de la cabecera
+### H1 · La solapa de la cabecera · APROBADO (Naza, 23/10)
 
 Junto a «Familiar · Kids · De viaje». Se prueba en 360 px en los tres idiomas antes de cerrar (spec §6).
 
@@ -22,7 +24,7 @@ Junto a «Familiar · Kids · De viaje». Se prueba en 360 px en los tres idioma
 
 Alternativa, si la palabra sola queda ambigua al lado de «Familiar»: «Una historia» / «Una historia» / «Una història». Es más larga y seguramente no entra en 360 px con cuatro solapas.
 
-### H2 · El título del paso «Tema»
+### H2 · El título del paso «Tema» · APROBADO (Naza, 23/10)
 
 Dos piezas. La etiqueta corta de la barra de pasos (hoy «Su libro · Para quién · Pago») y el título grande del paso, como «¿Cómo quieres su libro?». El título sirve igual para quien compra para sí y para quien regala.
 
@@ -40,15 +42,15 @@ Título del paso:
 
 Alternativa para la barra: «Tema» / «Tema» / «Tema». Más corta, pero «tema» suena a formulario; «la historia» dice lo que es.
 
-### H3 · La línea de ayuda del paso
+### H3 · La línea de ayuda del paso · APROBADO (Naza, 23/10; el es-AR lo escribió Naza)
 
 Debajo del título, antes de la lista de temas.
 
-- es-AR: Elegí una de la lista o escribí otra. Es un capítulo que ya pasó, contado a fondo, con unas quince preguntas.
-- es-ES: Elige una de la lista o escribe otra. Es un capítulo que ya pasó, contado a fondo, con unas quince preguntas.
-- ca: Tria'n una de la llista o escriu-ne una altra. És un capítol que ja ha passat, explicat a fons, amb unes quinze preguntes.
+- es-AR: Elegí una de la lista o escribí otra. Es una historia que ya pasó, contada al máximo detalle.
+- es-ES: Elige una de la lista o escribe otra. Es una historia que ya pasó, contada con todo detalle.
+- ca: Tria'n una de la llista o escriu-ne una altra. És una història que ja ha passat, explicada amb tot detall.
 
-### H4 · El campo de «Otra historia»
+### H4 · El campo de «Otra historia» · APROBADO (Naza, 23/10)
 
 La etiqueta del campo de una línea que aparece al elegir «Otra historia». El ejemplo de adentro del campo ya está aprobado (temas.md) y se repite acá solo para verlo junto.
 
@@ -66,7 +68,7 @@ Ejemplo dentro del campo (APROBADO, temas.md):
 
 Alternativa de etiqueta: «Contanos cuál, en una línea» / «Cuéntanos cuál, en una línea» / «Explica'ns quina, en una línia».
 
-### H5 · La casilla de regalo «que la elija quien la cuenta»
+### H5 · La casilla de regalo «que la elija quien la cuenta» · APROBADO (Naza, 23/10)
 
 Solo cuando es un regalo. La casilla y, debajo, su ayuda en gris.
 
@@ -82,7 +84,7 @@ Ayuda:
 - es-ES: Le preguntamos qué historia quiere contar antes de empezar. Si duda, le enseñamos esta misma lista.
 - ca: Li preguntem quina història vol explicar abans de començar. Si dubta, li ensenyem aquesta mateixa llista.
 
-### H6 · Las preguntas propias (título y ayuda)
+### H6 · Las preguntas propias (título y ayuda) · APROBADO (Naza, 23/10)
 
 Solo cuando es un regalo (spec §2). Hasta tres, que le llegan tal cual las escribió, cerca del final. El título sigue el de la compra de Viaje («Preguntas propias (opcional)») para que los dos checkouts hablen igual.
 
@@ -100,7 +102,7 @@ Ayuda:
 
 Alternativa de título: «Tus preguntas (opcional)» / «Tus preguntas (opcional)» / «Les teves preguntes (opcional)».
 
-### H7 · El ejemplo dentro del campo de una pregunta propia
+### H7 · El ejemplo dentro del campo de una pregunta propia · APROBADO (Naza, 23/10)
 
 Sirve para cualquier tema. En Viaje el ejemplo habla de la comida; acá no puede nombrar un tema.
 
@@ -110,7 +112,7 @@ Sirve para cualquier tema. En Viaje el ejemplo habla de la comida; acá no puede
 
 Los botones «+ Otra pregunta» y «Sacar pregunta» / «Quitar pregunta» / «Treure la pregunta» se toman tal cual de la compra de Viaje.
 
-### H8 · Error cuando no se eligió tema
+### H8 · Error cuando no se eligió tema · APROBADO (Naza, 23/10)
 
 Si sigue sin marcar nada en la lista (y, si es regalo, tampoco la casilla de H5).
 
@@ -118,19 +120,106 @@ Si sigue sin marcar nada en la lista (y, si es regalo, tampoco la casilla de H5)
 - es-ES: Elige de qué historia es el libro.
 - ca: Tria de quina història és el llibre.
 
-### H9 · Error cuando eligió «Otra historia» y no escribió cuál
+### H9 · Error cuando eligió «Otra historia» y no escribió cuál · APROBADO (Naza, 23/10)
 
 - es-AR: Contanos cuál es la historia. Con una línea alcanza.
 - es-ES: Cuéntanos cuál es la historia. Con una línea basta.
 - ca: Explica'ns quina és la història. Amb una línia n'hi ha prou.
 
-### H10 · Error cuando una pregunta propia pasa de 300 caracteres
+### H10 · Error cuando una pregunta propia pasa de 300 caracteres · APROBADO (Naza, 23/10)
 
 Es el de la compra de Viaje, tal cual. Se lista para que se vea que está cubierto.
 
 - es-AR: Una de las preguntas es muy larga. Acortala un poco.
 - es-ES: Una de las preguntas es muy larga. Acórtala un poco.
 - ca: Una de les preguntes és massa llarga. Escurça-la una mica.
+
+---
+
+## Tanda 1b · Preguntas desde el panel (pedido de Naza, 23/10)
+
+Naza quiere que en Historia cualquiera pueda sumar preguntas desde la página de su historia (el panel), también quien se compró el libro para sí. Son distintas de las de la compra (H6, PR-H1 a PR-H3, solo de quien regala): estas se escriben después, desde el panel, y el bot no sabe quién las escribió, así que no nombra a nadie. En V3 las presenta M15 («Esta pregunta te la hace tu familia.»), que acá mentiría cuando la escribió la persona misma.
+
+Dónde van en la entrevista: cerca del final, después de PR-H1 a PR-H3 (si las hay) y antes de HC10, con la notación de banco.md. Si llegan cuando ya pasó HC10, no se hacen (estado «tarde» del panel).
+
+### H39 · El mensaje del bot que presenta la primera pregunta sumada desde el panel (PF-H1)
+
+No nombra a nadie. Dice de dónde viene (la página de su historia), la pasa tal cual entre comillas y cierra con una línea corta, como PR-H1, pero sin «Contale a…» porque no hay a quién.
+
+| ID | Cuándo | es-AR |
+|---|---|---|
+| PF-H1 | 1.ª pregunta sumada desde el panel (después de PR-H3 si la hay, antes de HC10) | Esta te llega desde la página de tu historia, {{nombre}}. Quedó escrita ahí para que te la haga, y te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Contámela en audio, como las demás. |
+
+- es-ES: Esta te llega desde la página de tu historia, {{nombre}}. Quedó escrita allí para que te la haga, y te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Cuéntamela en un audio, como las demás.
+- ca: Aquesta t'arriba des de la pàgina de la teva història, {{nombre}}. Va quedar escrita allà perquè te la faci, i te la passo tal qual.<br><br>«{{pregunta}}»<br><br>Explica-m'ho amb un àudio, com les altres.
+
+Alternativa sin la línea final (como M15, más seca): «Esta te llega desde la página de tu historia, {{nombre}}, y te la paso tal cual.<br><br>«{{pregunta}}»» / es-ES igual / ca «Aquesta t'arriba des de la pàgina de la teva història, {{nombre}}, i te la passo tal qual.<br><br>«{{pregunta}}»». La línea final la recomiendo porque la pregunta ajena puede venir escrita de cualquier manera y conviene recordar que se contesta como siempre.
+
+### H40 · El mensaje del bot para las siguientes preguntas sumadas desde el panel (PF-H2)
+
+Si hay más de una, repetir PF-H1 cansa. A partir de la segunda va esta, siempre la misma.
+
+| ID | Cuándo | es-AR |
+|---|---|---|
+| PF-H2 | 2.ª y siguientes sumadas desde el panel | Otra que quedó escrita en la página de tu historia.<br><br>«{{pregunta}}»<br><br>Como siempre, en audio. |
+
+- es-ES: Otra que quedó escrita en la página de tu historia.<br><br>«{{pregunta}}»<br><br>Como siempre, en un audio.
+- ca: Una altra que va quedar escrita a la pàgina de la teva història.<br><br>«{{pregunta}}»<br><br>Com sempre, amb un àudio.
+
+No llevan M1 (no son de las tres primeras) y el acuse después es el común (M3), salvo que lo que cuente sea difícil, que ahí decide el código como con cualquier otra.
+
+### H41 · Los textos del panel que sirven tal cual
+
+Miré `web/src/lib/preguntas-familia-textos.ts` y `SumarPreguntaV3` en `web/src/app/tablero/[narradorId]/preguntas/acciones.tsx`. Sirven sin cambios para historia:
+
+- El botón «+ Sumar una pregunta».
+- La etiqueta del campo «Tu pregunta».
+- La ayuda «Te la hacemos / Se la hacemos antes de terminar la entrevista, con tus palabras.» y la confirmación «Guardada. Te la hacemos / Se la hacemos antes de terminar la entrevista.» Son verdad: en historia van antes de HC10.
+- Los cinco estados de cada pregunta («Ya la contestaste…», «Ya te la hicimos…», «Te la hicimos y la dejaste pasar.», «Todavía no te la hicimos. Te llega antes de terminar la entrevista.», «Llegó tarde y ya no te la hacemos.»), en las dos voces y en catalán. Ninguno habla de la foto ni de «su vida».
+
+Falta en el código: `SumarPreguntaV3` solo tiene vos y tú (no catalán) y el ejemplo del campo está escrito adentro del componente. Para historia hay que sacarlo a un archivo de textos, con catalán.
+
+### H42 · El título y la bajada del bloque en el panel, para historia
+
+Los de V3 («Las preguntas de la familia» / «Las que sumó la familia, con las mismas palabras.») mienten cuando la persona se compró el libro para sí y se anota algo que quiere contar. Versión neutra:
+
+Título:
+
+- es-AR: Preguntas sumadas desde acá
+- es-ES: Preguntas añadidas desde aquí
+- ca: Preguntes afegides des d'aquí
+
+Bajada:
+
+- es-AR: Las que se sumaron desde esta página, con las mismas palabras. Le llegan cerca del final de la entrevista.
+- es-ES: Las que se han añadido desde esta página, con las mismas palabras. Le llegan cerca del final de la entrevista.
+- ca: Les que s'han afegit des d'aquesta pàgina, amb les mateixes paraules. Li arriben cap al final de l'entrevista.
+
+Cuando la historia es de quien mira (`propia`), la bajada cambia «Le llegan» por «Te llegan» / «Te llegan» / «T'arriben», como hacen los estados.
+
+Alternativa de título: «Más preguntas» / «Más preguntas» / «Més preguntes».
+
+### H43 · El ejemplo dentro del campo, para historia
+
+El de V3 («¿cómo fue el viaje a Mendoza con los chicos?») es de una vida entera. Para historia tiene que servir con cualquier tema y también si lo escribe la persona para sí.
+
+- es-AR: Por ejemplo, ¿qué pasó después con la gente de esa época? ¿Seguís viendo a alguien?
+- es-ES: Por ejemplo, ¿qué pasó después con la gente de esa época? ¿Sigues viendo a alguien?
+- ca: Per exemple, què va passar després amb la gent d'aquella època? Encara veus algú?
+
+Alternativa: «Por ejemplo, ¿qué es lo que nunca contaste de esa época?» / «Por ejemplo, ¿qué es lo que nunca has contado de esa época?» / «Per exemple, què és el que mai has explicat d'aquella època?» (es la pareja de H7, que dice «nunca me contaste»).
+
+### H44 · El aviso cuando ya es tarde
+
+Hoy el panel no tiene un aviso de bloque, solo el estado «Llegó tarde y ya no se la hacemos» en cada pregunta. Para historia, cuando la entrevista ya llegó al final, en lugar del botón «+ Sumar una pregunta» va este aviso.
+
+- es-AR: La entrevista ya terminó, así que no entran preguntas nuevas. Lo que contó es lo que va al libro.
+- es-ES: La entrevista ya ha terminado, así que no entran preguntas nuevas. Lo que ha contado es lo que va al libro.
+- ca: L'entrevista ja s'ha acabat, així que no hi entren preguntes noves. El que ha explicat és el que va al llibre.
+
+Cuando la historia es de quien mira (`propia`): «Lo que contaste es lo que va al libro.» / «Lo que has contado es lo que va al libro.» / «El que has explicat és el que va al llibre.»
+
+Duda: después de FIN-H la persona repasa lo que contó antes de que se escriba el libro (spec §4.3). Si en ese repaso puede agregar cosas, la segunda frase conviene que lo diga («Lo que quiera agregar, lo suma en el repaso.»). No lo sé por falta de datos del panel de historia.
 
 ---
 
@@ -146,9 +235,9 @@ Sigue el patrón de Kids («Vitácora Kids · Mi Primer Capítulo»).
 
 ### H12 · La descripción para buscadores
 
-- es-AR: Un libro sobre una sola historia. Irse a vivir lejos, el negocio propio, salir de una enfermedad. Unas quince preguntas por WhatsApp, contestadas en audio, y con eso se escribe el libro.
-- es-ES: Un libro sobre una sola historia. Irse a vivir fuera, el negocio propio, salir de una enfermedad. Unas quince preguntas por WhatsApp, contestadas en audio, y con eso se escribe el libro.
-- ca: Un llibre sobre una sola història. Anar a viure lluny, el negoci propi, sortir d'una malaltia. Unes quinze preguntes per WhatsApp, respostes amb àudios, i amb això s'escriu el llibre.
+- es-AR: Un libro sobre una sola historia. Irse a vivir lejos, el negocio propio, salir de una enfermedad. Preguntas por WhatsApp, de a una, contestadas en audio, y con eso se escribe el libro.
+- es-ES: Un libro sobre una sola historia. Irse a vivir fuera, el negocio propio, salir de una enfermedad. Preguntas por WhatsApp, de una en una, contestadas en audio, y con eso se escribe el libro.
+- ca: Un llibre sobre una sola història. Anar a viure lluny, el negoci propi, sortir d'una malaltia. Preguntes per WhatsApp, d'una en una, respostes amb àudios, i amb això s'escriu el llibre.
 
 ### H13 · El título del hero
 
@@ -162,9 +251,9 @@ Alternativa: «Toda vida tiene una historia / que merece un libro entero.» / «
 
 ### H14 · La bajada del hero
 
-- es-AR: Un libro sobre un solo capítulo de la vida, contado a fondo. Irse a vivir lejos, el negocio propio, la enfermedad que quedó atrás. Unas quince preguntas por WhatsApp, en audio, y con eso se escribe el libro.
-- es-ES: Un libro sobre un solo capítulo de la vida, contado a fondo. Irse a vivir fuera, el negocio propio, la enfermedad que quedó atrás. Unas quince preguntas por WhatsApp, en audio, y con eso se escribe el libro.
-- ca: Un llibre sobre un sol capítol de la vida, explicat a fons. Anar a viure lluny, el negoci propi, la malaltia que va quedar enrere. Unes quinze preguntes per WhatsApp, amb àudios, i amb això s'escriu el llibre.
+- es-AR: Un libro sobre un solo capítulo de la vida, contado al máximo detalle. Irse a vivir lejos, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de a una, se contestan en audio, y con eso se escribe el libro.
+- es-ES: Un libro sobre un solo capítulo de la vida, contado con todo detalle. Irse a vivir fuera, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de una en una, se contestan en audio, y con eso se escribe el libro.
+- ca: Un llibre sobre un sol capítol de la vida, explicat amb tot detall. Anar a viure lluny, el negoci propi, la malaltia que va quedar enrere. Les preguntes arriben per WhatsApp, d'una en una, es contesten amb àudios, i amb això s'escriu el llibre.
 
 ### H15 · El botón del hero
 
@@ -178,9 +267,9 @@ Alternativa: «Elegir la historia» / «Elegir la historia» / «Triar la histò
 
 ### H16 · «Cómo funciona», el título
 
-- es-AR: Una historia, unas quince preguntas, un libro.
-- es-ES: Una historia, unas quince preguntas, un libro.
-- ca: Una història, unes quinze preguntes, un llibre.
+- es-AR: Una historia, una pregunta por vez, un libro.
+- es-ES: Una historia, una pregunta cada vez, un libro.
+- ca: Una història, una pregunta cada vegada, un llibre.
 
 ### H17 · Paso 1 de «Cómo funciona»
 
@@ -208,9 +297,9 @@ Título:
 
 Texto:
 
-- es-AR: Unas quince, de a una, sobre esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cómo terminó. Si alguna no va, se dice paso y seguimos con otra.
-- es-ES: Unas quince, de una en una, sobre esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cómo terminó. Si alguna no va, se dice paso y seguimos con otra.
-- ca: Unes quinze, d'una en una, sobre aquesta història. Com era la vida abans, com va començar, el més difícil, com va acabar. Si alguna no va, es diu «passo» i en fem una altra.
+- es-AR: De a una, todas sobre esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cómo terminó. Si alguna no va, se dice paso y seguimos con otra.
+- es-ES: De una en una, todas sobre esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cómo terminó. Si alguna no va, se dice paso y seguimos con otra.
+- ca: D'una en una, totes sobre aquesta història. Com era la vida abans, com va començar, el més difícil, com va acabar. Si alguna no va, es diu «passo» i en fem una altra.
 
 ### H19 · Paso 3 de «Cómo funciona»
 
@@ -342,19 +431,21 @@ Respuesta:
 - es-ES: Sí. Si es un regalo, marcas «que la elija quien la cuenta». Antes de empezar le preguntamos de qué historia quiere hacer su libro y, si duda, le enseñamos la lista.
 - ca: Sí. Si és un regal, marques «que la triï qui l'explica». Abans de començar li preguntem de quina història vol fer el seu llibre i, si dubta, li ensenyem la llista.
 
-### H30 · Pregunta frecuente 3 · Cuántas preguntas son
+### H30 · Pregunta frecuente 3 · Qué se pregunta
+
+Antes preguntaba «¿Cuántas preguntas son?». Naza no quiere cantidades en la web (23/10), así que la pregunta cambió a qué se pregunta.
 
 Pregunta:
 
-- es-AR: ¿Cuántas preguntas son?
-- es-ES: ¿Cuántas preguntas son?
-- ca: Quantes preguntes són?
+- es-AR: ¿Qué se pregunta?
+- es-ES: ¿Qué se pregunta?
+- ca: Què es pregunta?
 
 Respuesta:
 
-- es-AR: Unas quince, de a una, por WhatsApp. Van del antes al después. Cómo era la vida antes, cómo empezó, lo más difícil, cuándo empezó a cambiar y qué dejó. Cada una se contesta con un audio, cuando hay un rato.
-- es-ES: Unas quince, de una en una, por WhatsApp. Van del antes al después. Cómo era la vida antes, cómo empezó, lo más difícil, cuándo empezó a cambiar y qué dejó. Cada una se contesta con un audio, cuando hay un rato.
-- ca: Unes quinze, d'una en una, per WhatsApp. Van de l'abans al després. Com era la vida abans, com va començar, el més difícil, quan va començar a canviar i què en va quedar. Cada una es contesta amb un àudio, quan hi ha una estona.
+- es-AR: Van del antes al después de esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cuándo empezó a cambiar y qué dejó. Llegan por WhatsApp, de a una, y cada una se contesta con un audio, cuando hay un rato.
+- es-ES: Van del antes al después de esa historia. Cómo era la vida antes, cómo empezó, lo más difícil, cuándo empezó a cambiar y qué dejó. Llegan por WhatsApp, de una en una, y cada una se contesta con un audio, cuando hay un rato.
+- ca: Van de l'abans al després d'aquesta història. Com era la vida abans, com va començar, el més difícil, quan va començar a canviar i què en va quedar. Arriben per WhatsApp, d'una en una, i cada una es contesta amb un àudio, quan hi ha una estona.
 
 ---
 

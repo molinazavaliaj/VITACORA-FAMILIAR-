@@ -313,3 +313,42 @@ describe("PATCH /api/guion con un narrador V3", () => {
     expect(r.status).toBe(400);
   });
 });
+
+// «Vitácora de una historia» (plan 2026-10-21, Task 4.5): las preguntas desde el panel, como en la V3, antes de HC10.
+describe("PATCH /api/guion con un narrador de historia", () => {
+  function armarHistoria(opciones: { estado?: Fila; sinFila?: boolean } = {}) {
+    const { admin, escrituras } = crearAdmin({
+      familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
+      narradores: [narrador({ contexto: { modo: "historia", historia: { tema: "mudanza", preguntasPropias: [] } } })],
+      preguntas: [],
+      invitados: [{ id: "i1", narrador_id: "n1", auth_user_id: "u-primo", email: "primo@mail.com" }],
+      historias: opciones.sinFila ? [] : [{ narrador_id: "n1", estado: opciones.estado ?? { charla: [], respuestas: [] } }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+    return escrituras;
+  }
+
+  it("la dueña o un invitado suman una pregunta 'familia', también antes de que el bot le dé el alta", async () => {
+    sesion(martina);
+    const escrituras = armarHistoria({ sinFila: true });
+    expect((await PATCH(request({ accion: "agregar", texto: "¿Qué te llevaste de la casa?", capitulo: "c" }))).status).toBe(200);
+    sesion(invitado);
+    armarHistoria();
+    expect((await PATCH(request({ accion: "agregar", texto: "¿Quién te despidió en la estación?", capitulo: "c" }))).status).toBe(200);
+    expect(escrituras.filter((e) => e.tabla === "preguntas" && e.op === "insert")[0].valores).toMatchObject({ tipo: "familia", orden: 200 });
+  });
+
+  it("con la última pregunta (HC10) abierta o contestada, ya no la toma", async () => {
+    sesion(martina);
+    armarHistoria({ estado: { charla: [], respuestas: [], esperando: "HC10" } });
+    expect((await PATCH(request({ accion: "agregar", texto: "¿Llega tarde esta?", capitulo: "c" }))).status).toBe(400);
+    armarHistoria({ estado: { charla: [], respuestas: [["HC10", "Le diría que no tenga miedo."]] } });
+    expect((await PATCH(request({ accion: "agregar", texto: "¿Llega tarde esta?", capitulo: "c" }))).status).toBe(400);
+  });
+
+  it("no hay guion para editar", async () => {
+    sesion(martina);
+    armarHistoria();
+    expect((await PATCH(request({ accion: "saltar", id: "p1" }))).status).toBe(400);
+  });
+});
