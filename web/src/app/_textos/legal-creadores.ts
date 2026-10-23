@@ -35,11 +35,11 @@ const ES: TextoDocumento = {
       "Qué relación tenemos",
       p("Colaborar con Vitácora no es un trabajo ni te hace agente nuestro. Recomiendas Vitácora por tu cuenta y sin exclusividad. No vendes ni negocias nada en nuestro nombre."), // CR-L14 · PENDIENTE OK de Naza (tanda 6, legal 21/10)
     ),
-    s("participar", "Quién puede participar", p("Para sumarte tienes que ser mayor de 18 años.")), // CR-L16 · PENDIENTE OK de Naza (tanda 6, legal 21/10)
+    s("participar", "Quién puede participar", p("Para unirte tienes que ser mayor de 18 años.")), // CR-L16 · PENDIENTE OK de Naza (tanda 6, legal 21/10)
     s(
       "alta",
       "Cómo entras",
-      p("Te anotas en la web y revisamos cada solicitud a mano. Podemos decir que no. Si decimos que sí, te mandamos por correo tu código, tu link para compartir y el link a tu panel."), // CR-L04
+      p("Te apuntas en la web y revisamos cada solicitud a mano. Podemos decir que no. Si decimos que sí, te mandamos por correo tu código, tu enlace para compartir y el enlace a tu panel."), // CR-L04
     ),
     s(
       "porcentajes",
@@ -52,7 +52,7 @@ const ES: TextoDocumento = {
       "Cómo se calcula",
       p("La comisión se calcula sobre lo que la persona pagó de verdad, con el descuento ya aplicado."), // CR-L06 · PENDIENTE OK de Naza (tanda 6, legal 21/10)
       p("Cada comisión queda en espera 14 días desde la compra. Pasado ese tiempo pasa a por cobrar."), // CR-L06 · PENDIENTE OK de Naza (tanda 6, legal 21/10)
-      p("Una venta es una compra pagada en la web con tu código escrito en el casillero del código, o entrando por tu link."), // CR-L06
+      p("Una venta es una compra pagada en la web con tu código escrito en el casillero del código, o entrando por tu enlace."), // CR-L06
     ),
     s(
       "donde",
@@ -238,7 +238,7 @@ const PRIVACIDAD_CREADORES: Record<IdiomaWeb, { titulo: string; texto: string }>
   es: {
     titulo: "Programa de creadores",
     texto:
-      "Si te anotas como creador, tratamos tu nombre, tu correo, dónde publicas, tu perfil y lo que nos cuentes para gestionar el programa y pagarte las comisiones. Lo hacemos porque lo pides al anotarte. Guardamos tus datos mientras estés en el programa y después 6 años por la contabilidad. Puedes pedirnos verlos, corregirlos o borrarlos en {soporte}.",
+      "Si te apuntas como creador, tratamos tu nombre, tu correo, dónde publicas, tu perfil y lo que nos cuentes para gestionar el programa y pagarte las comisiones. Lo hacemos porque lo pides al anotarte. Guardamos tus datos mientras estés en el programa y después 6 años por la contabilidad. Puedes pedirnos verlos, corregirlos o borrarlos en {soporte}.",
   },
   ar: {
     titulo: "Programa de creadores",

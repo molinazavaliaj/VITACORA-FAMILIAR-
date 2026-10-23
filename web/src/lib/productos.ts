@@ -46,7 +46,7 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   // El pack (Naza 14/10): el PDF, el primer impreso y el primer marco, a un solo precio.
   pack: "Pack el regalo completo",
 };
-export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
+export const DETALLE_IMPRESO = "Tapa dura, en color, con un código que hace sonar su voz. Envío incluido.";
 export const DETALLE_MARCO = "Un marco con su foto y un chip. Se acerca el teléfono y suena su voz. Viaja con el libro.";
 
 /** Cómo se nombra la voz de un audiolibro ya comprado (solo pedidos anteriores al 21/09). */
@@ -247,7 +247,7 @@ export function validarCarrito(region: Region, carrito: Carrito): { ok: true } |
   if (impresos > 0 && !cat.impreso) return { ok: false, mensaje: "El libro impreso todavía no está disponible en tu región." };
   const copiasNuevas = impresosPrevios === 0 ? impresos - 1 : impresos;
   if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };
-  if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso: hay que agregar el libro impreso para sumar marcos." };
+  if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso. Primero hay que agregar el libro impreso." };
   if (marcos > 0 && !cat.marco) return { ok: false, mensaje: "Los marcos todavía no están disponibles en tu región." };
   if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Falta elegir al menos una cosa." };
   return { ok: true };

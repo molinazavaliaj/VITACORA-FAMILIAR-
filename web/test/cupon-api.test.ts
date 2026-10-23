@@ -253,7 +253,7 @@ describe("POST /api/cupon (el popup)", () => {
     expect(r.status).toBe(200);
     const alta = admin.ops.find((o) => o.tabla === "cupones" && o.op === "insert")!.valores as Record<string, unknown>;
     expect(alta).toMatchObject({ email: "ana@ejemplo.com", region: "ES", idioma: "es", acepta_recordatorios: false });
-    expect((alta.consentimiento as { textos: string[] }).textos).toEqual(["Quiero recibir el cupón en este mail."]);
+    expect((alta.consentimiento as { textos: string[] }).textos).toEqual(["Quiero recibir el cupón en este correo."]);
     expect(mails).toHaveLength(1);
     expect(mails[0].subject).toBe("Confirma tu correo para recibir tu cupón");
     expect(JSON.stringify(mails[0])).not.toMatch(/VITACORA10-[A-Z0-9]{6}/);

@@ -99,7 +99,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     compartir: "Compartir con la familia",
     copiado: "Enlace copiado",
     compartirTitulo: (nombre) => `${nombre}, en su voz`,
-    copiaEsteLink: "Copia este link",
+    copiaEsteLink: "Copia este enlace",
     // SV-13 · «En cada familia…» ya estaba (aprobado)
     cierre: "En cada familia hay un libro sin escribir.",
     // APROBADO por Naza 18/10 (tanda 1, #6) · SV-13 el botón, en vez del de la maqueta, para invitar a comprar
@@ -111,7 +111,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     libro: "El libro",
     libroNoEsta: "El libro se está armando. Vuelve en un rato.",
     mandarWhatsapp: "Mandar por WhatsApp",
-    copiarLink: "Copiar el link",
+    copiarLink: "Copiar el enlace",
     linkCopiado: "Link copiado",
     mensajeFrase: (texto, nombre) => `«${texto}» — ${nombre}, en su voz.`,
     escuchar: "Escuchar",

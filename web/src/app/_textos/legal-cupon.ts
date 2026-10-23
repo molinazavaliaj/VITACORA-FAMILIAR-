@@ -43,8 +43,8 @@ const BASES_ES: TextoDocumento = {
     s(
       "cuando",
       "Hasta cuándo",
-      p("Vale 30 días desde que te llega por mail. Después caduca solo."), // T2-15
-      p("El último día también vale. La fecha exacta va en cada mail."), // §1.6
+      p("Vale 30 días desde que te llega por correo. Después caduca solo."), // T2-15
+      p("El último día también vale. La fecha exacta va en cada correo."), // §1.6
     ),
     s(
       "cuantas",
@@ -156,7 +156,7 @@ const SECCION_PRIVACIDAD: Record<IdiomaWeb, SeccionLegal> = {
     "4 bis. El cupón de bienvenida",
     p("Si pides el cupón de bienvenida en la web, guardamos tu correo, el país, si aceptaste los recordatorios, y la fecha, la hora y la dirección IP de cuando lo pediste y lo confirmaste. Así podemos demostrar que lo pediste tú."),
     p("**Para mandarte el cupón** usamos tu correo porque lo pediste tú. Es una medida previa a una compra que tú solicitas."),
-    p("**Para los recordatorios** (hasta 4 en los 14 días siguientes) solo si marcaste esa casilla. Es tu consentimiento, y lo retiras cuando quieras con el enlace de baja de cada mail, sin dar explicaciones."),
+    p("**Para los recordatorios** (hasta 4 en los 14 días siguientes) solo si marcaste esa casilla. Es tu consentimiento, y lo retiras cuando quieras con el enlace de baja de cada correo, sin dar explicaciones."),
     p("No mandamos nada hasta que confirmas tu correo. Si no lo confirmas, borramos el pedido a los 30 días. Si lo confirmas, guardamos el cupón 24 meses desde que lo pediste."),
     p("Los mails los manda Resend (ver la tabla del punto 5). No le damos tu correo a nadie más."),
   ),

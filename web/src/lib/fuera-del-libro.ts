@@ -48,7 +48,7 @@ export async function aplicarFueraDelLibro(
   const nar = await admin.from("narradores").select("estado, libro_aprobado_at").eq("id", narradorId).maybeSingle();
   if (nar.error || !nar.data) return mal(500, o.error);
   const narrador = nar.data as { estado: string; libro_aprobado_at: string | null };
-  if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado: no se cambia más.");
+  if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado y no se cambia más.");
 
   let v3: Awaited<ReturnType<typeof entrevistaV3>>;
   try {

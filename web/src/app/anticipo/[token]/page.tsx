@@ -137,7 +137,7 @@ export default async function PaginaAnticipo({
             </div>
           ) : (
             <p className="mt-8 text-[15px] leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-              Todavía no hay audio suyo: sus primeras respuestas llegaron
+              Todavía no hay audio suyo. Sus primeras respuestas llegaron
               escritas.
             </p>
           )}
