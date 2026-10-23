@@ -27,6 +27,7 @@
     "viaje-v2-simular": "tsx scripts/viaje-v2-simular.ts",
     "kids-v2-copiar-nucleo": "tsx scripts/kids-v2-copiar-nucleo.ts",
     "kids-v2-simular": "tsx scripts/kids-v2-simular.ts",
+    "historia-copiar-nucleo": "tsx scripts/historia-copiar-nucleo.ts",
     "v3-recazar": "tsx scripts/v3-recazar.ts"
   },
   "keywords": [],
