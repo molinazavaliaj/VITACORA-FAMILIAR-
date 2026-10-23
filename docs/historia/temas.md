@@ -25,7 +25,7 @@ Aprobado por Naza el 23/10. Es cómo se nombra la historia dentro de HC1 («Este
 | enfermedad | cómo saliste de una enfermedad | cómo saliste de una enfermedad | com vas sortir d'una malaltia |
 | conocimos | cómo se conocieron | cómo os conocisteis | com us vau conèixer |
 | padres | la llegada de tu primer hijo | la llegada de tu primer hijo | l'arribada del teu primer fill |
-| trabajo | el trabajo de tu vida | el trabajo de tu vida | la feina de la teva vida |
+| trabajo | el trabajo de tu vida | el trabajo de tu vida | la teva gran feina |
 | otra | una historia de tu vida | una historia de tu vida | una història de la teva vida |
 
 ## Ejemplo dentro del campo libre («otra»)
