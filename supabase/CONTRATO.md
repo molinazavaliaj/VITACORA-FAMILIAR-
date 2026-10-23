@@ -15,10 +15,11 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
-| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
+| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. **23/10 (sin aplicar):** `tipo = 'historia'` para cada mensaje de «Vitácora de una historia». |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `respuestas_fuera` | web | fábrica, entrevistador | Nueva 21/10 (migración `20261021000100`, la aplica Naza). La dueña saca del libro **una** respuesta V3 desde el panel. Ver "Respuestas sacadas por la familia". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
+| `historias` | entrevistador (crea la fila desde `contexto.historia` y escribe `estado`, `version`, `ultimo_audio_at`, `tanda_*`, `enviando_hasta`; una vez `ficha.temaLibre` con lo que contestó en TEMA-ABIERTO) | entrevistador, fábrica | Nueva 23/10 (migración `20261023000000`, **sin aplicar, la aplica Naza**). Una fila por narrador de «Vitácora de una historia». Ver "Vitácora de una historia". |
 | `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **aplicada por Naza el 17/10** (migración 20261016000000). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | **Sin uso desde el 16/10/2026** (ni fábrica ni worker; ver "Narraciones"). Antes: fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | — (solo el panel de admin muestra las filas viejas) | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
@@ -1355,3 +1356,46 @@ lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `C
 - **Resumen mensual**: `/api/creadores/resumen` (cron de Vercel el día 1 a las 9, `vercel.json`, con
   `CRON_SECRET`) manda a los socios, por creador, lo pendiente que ya pasó la espera (y aparte lo que sigue
   en espera). Si nada pasó la espera, no manda nada.
+
+## Vitácora de una historia (migración 20261023000000 — **sin aplicar, la aplica Naza**)
+
+Spec: `docs/superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md`. Plan: `docs/superpowers/plans/2026-10-21-vitacora-de-una-historia.md` (Fase 2). Rama `vitacora-historia`.
+**Una fila en `historias` prende la entrevista de una historia para ese narrador**; sin fila, el entrevistador sigue como siempre.
+Es el molde de `entrevistas_v3`. La escribe el entrevistador (Fase 3, `entrevistador/src/historia/`) y la lee la fábrica (Fase 5).
+Hasta que exista ese código, nadie la escribe.
+
+| Columna | Qué guarda |
+|---|---|
+| `narrador_id` | Clave primaria y referencia a `narradores`. |
+| `idioma` | `es-AR`, `es-ES` o `ca`. |
+| `ficha` (jsonb) | `FichaHistoria` (`fabrica/src/historia/ficha.ts`) más `quienRegala?`: `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `tema` y `temaLibre?`. `tema` es una de las claves de `docs/historia/temas.md` (`mudanza`, `negocio`, `enfermedad`, `conocimos`, `padres`, `trabajo`, `otra`); la base lo controla (`historias_tema_conocido`). |
+| `compra` (jsonb) | `{ preguntasPropias?: string[] }`: las preguntas que dejó quien regala, en el orden de la compra, tal cual (hasta 3; la base lo controla con `historias_hasta_tres_propias`). Salen como PR-H1…PR-H3 antes de HC10. |
+| `estado` (jsonb) | El motor de `entrevistador/src/historia/turno.ts` (Fase 3; copia del de V3). `respuestas` (`[clave, texto][]` en orden de llegada) **es la verdad de la entrevista**. Suma `temaAbierto` (boolean): el narrador elige su historia en TEMA-ABIERTO. |
+| `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
+| `ultimo_audio_at`, `tanda_dia`, `tanda_cuenta`, `enviando_hasta` | Como en `entrevistas_v3`. |
+| `creada_at` | Cuándo nació la fila. |
+
+**De dónde sale la fila.** La web escribe la compra en `narradores.contexto` (`modo = 'historia'` y
+`contexto.historia = { tema, temaLibre?, temaAbierto?, preguntasPropias? }`, Fase 4) y el entrevistador crea la fila al
+dar el alta (Fase 3). Con **tema abierto** (quien regala marcó «que lo elija quien lo cuenta») la fila nace con
+`ficha.tema = 'otra'` y `estado.temaAbierto = true`. Lo que conteste en TEMA-ABIERTO se guarda en `ficha.temaLibre`.
+El tema queda `otra`, porque la respuesta libre no se clasifica con un modelo. Con `otra`, la primera pregunta es
+HC1-A, que no nombra la historia (Naza, 23/10).
+
+**`respuestas.clave_historia`** (text): a qué responde la fila. Puede ser:
+- un ID del banco (`HC1`, `HC8-Q`, `HC1-A`, `HM3`…);
+- `FOTO-H` (la foto y su descripción);
+- `PR-H1` a `PR-H3` (las de quien regala);
+- `RP~X` (la repregunta del cazador sobre X);
+- `TEMA` (lo que contestó en TEMA-ABIERTO).
+
+`∅` = se guardó y quedó afuera a propósito, igual que en V3. Null en todo lo que no es una historia (y, en una
+historia, la que todavía no se sumó: la retoma el reloj). Varias filas pueden tener la misma clave.
+`envios.tipo` suma `'historia'`; la lista se reescribe entera con todos los tipos de hoy (la última que la tocó fue
+`20261016000000_kids_v2`).
+
+Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la entrevista, `completado` después de
+FIN-H, `pausado` con «quiero parar», como en V3). Las fotos sueltas se guardan siempre.
+
+**Pendiente para fases siguientes:** el candado de la fábrica, para que el camino viejo (anticipo, estructura, paquete
+viejo) no toque a ningún narrador con fila en `historias`, y que el escritor V3 no lo tome como un narrador V3 (Fase 5).
