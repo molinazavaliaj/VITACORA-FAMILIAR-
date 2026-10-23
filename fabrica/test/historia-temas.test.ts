@@ -42,8 +42,9 @@ describe('temas de historia', () => {
   it('otra deja la común y una sola propia del tema (HO1)', () => {
     expect(bancoDeTema(banco, 'otra').preguntas.filter((p) => p.tema !== 'comun')).toHaveLength(1);
   });
-  it('la variante común (HC1-A) va solo con tema abierto', () => {
-    expect(bancoDeTema(banco, 'otra').preguntas.map((p) => p.id)).toEqual(['HC1', 'HC2', 'HO1', 'HC5', 'HC10']);
+  it('la variante común (HC1-A) va con tema abierto o con otra (Naza, 23/10)', () => {
+    expect(bancoDeTema(banco, 'mudanza').preguntas.map((p) => p.id)[0]).toBe('HC1');
+    expect(bancoDeTema(banco, 'otra').preguntas.map((p) => p.id)).toEqual(['HC1-A', 'HC2', 'HO1', 'HC5', 'HC10']);
     expect(bancoDeTema(banco, 'otra', { temaAbierto: true }).preguntas.map((p) => p.id)).toEqual(['HC1-A', 'HC2', 'HO1', 'HC5', 'HC10']);
     expect(bancoDeTema(banco, 'mudanza', { temaAbierto: true }).preguntas.map((p) => p.id)).toEqual(['HC1-A', 'HC2', 'HM1', 'HM2', 'HC5-M', 'HC10']);
   });
@@ -121,10 +122,10 @@ describe('el banco real (docs/historia/banco.md)', () => {
     expect(ids('padres')).toEqual([...COMUN_ANTES, 'HP1', 'HP2', 'HP3', 'HP4', 'HC5', 'HC6', 'HC7', 'HC8-P', 'HC9-P', 'HC10']);
     expect(ids('trabajo')).toEqual([...COMUN_ANTES, 'HT1', 'HT2', 'HT3', 'HT4', 'HT5', 'HC5', 'HC6', 'HC7', 'HC8-T', 'HC9-T', 'HC10']);
   });
-  it('negocio, enfermedad y otra van sin variantes', () => {
+  it('negocio y enfermedad van sin variantes; otra, con HC1-A', () => {
     expect(ids('negocio')).toEqual([...COMUN_ANTES, 'HN1', 'HN2', 'HN3', 'HN4', 'HC5', 'HC6', 'HC7', 'HC8', 'HC9', 'HC10']);
     expect(ids('enfermedad')).toEqual([...COMUN_ANTES, 'HE1', 'HE2', 'HE3', 'HE4', 'HC5', 'HC6', 'HC7', 'HC8', 'HC9', 'HC10']);
-    expect(ids('otra')).toEqual([...COMUN_ANTES, 'HO1', 'HO2', 'HO3', 'HO4', 'HO5', 'HC5', 'HC6', 'HC7', 'HC8', 'HC9', 'HC10']);
+    expect(ids('otra')).toEqual(['HC1-A', ...COMUN_ANTES.slice(1), 'HO1', 'HO2', 'HO3', 'HO4', 'HO5', 'HC5', 'HC6', 'HC7', 'HC8', 'HC9', 'HC10']);
   });
   it('con tema abierto, HC1-A en lugar de HC1, en cualquier tema', () => {
     for (const tema of TEMAS_HISTORIA) {

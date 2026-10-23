@@ -1,10 +1,10 @@
 // Llena un texto del banco de historia (docs/historia/banco.md, "Notación").
 // Copia de src/v3/entrevista/texto.ts: {{o/a}} (y en catalán la palabra
 // entera, {{sol/sola}}) según el género, {{nombre}}, {{quien_regala}} y la
-// variante «sino:X: a ‖ b» según la respuesta a X. Suma {{historia}} (lo que
-// escribió en el campo libre o en TEMA-ABIERTO; si no, la etiqueta del tema
-// en minúscula inicial) y {{pregunta}} (la que dejó escrita quien regala, tal
-// cual). Sin lo de V3: {{nombre_pila}} (OR6), {{etapa}} y {{tema}} (DD1/DD2).
+// variante «sino:X: a ‖ b» según la respuesta a X. Suma {{historia}} (el
+// tema en segunda persona, de temas.md) y {{pregunta}} (la que dejó escrita
+// quien regala, tal cual). Sin lo de V3: {{nombre_pila}} (OR6), {{etapa}} y
+// {{tema}} (DD1/DD2).
 // Puro: no lee nada de afuera.
 
 import type { FichaHistoria } from '../ficha.js';
@@ -36,9 +36,14 @@ export function tratoMasculino(ficha: Pick<FichaHistoria, 'genero' | 'formaTrato
   return ficha.genero === 'varon' || (ficha.genero === 'otro' && ficha.formaTrato === 'masculino');
 }
 
-/** {{historia}}: lo que escribió (en la compra o en TEMA-ABIERTO), tal cual; si no hay, la etiqueta del tema en minúscula inicial. */
-export function historiaDe(ficha: Pick<FichaTexto, 'tema' | 'temaLibre' | 'idioma'>): string {
-  return ficha.temaLibre?.trim() || nombreDelTema(ficha.tema, ficha.idioma ?? IDIOMA_POR_DEFECTO);
+/**
+ * {{historia}}: el tema en segunda persona (temas.md, «En la pregunta»). Lo
+ * que escribieron con sus palabras (`temaLibre`) no entra en una pregunta:
+ * suele venir en primera persona («cuando me quebré la pierna»), y por eso con
+ * `otra` va HC1-A, que no nombra la historia (Naza, 23/10).
+ */
+export function historiaDe(ficha: Pick<FichaTexto, 'tema' | 'idioma'>): string {
+  return nombreDelTema(ficha.tema, ficha.idioma ?? IDIOMA_POR_DEFECTO);
 }
 
 const VARIANTE = new RegExp(`«sino:(${PATRON_ID}): (.*?) ‖ (.*?)»`, 'g');

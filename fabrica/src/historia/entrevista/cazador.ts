@@ -20,7 +20,7 @@
 import promptJson from './cazador-prompt.json' with { type: 'json' };
 import promptCaJson from './cazador-prompt-ca.json' with { type: 'json' };
 import promptEsEsJson from './cazador-prompt-es-ES.json' with { type: 'json' };
-import { NOMBRES_BLOQUE, preguntaPorId, textosDe, type PreguntaEntrevista } from './banco.js';
+import { NOMBRES_BLOQUE, preguntaPorId, textosDe, TEXTOS_TEMAS, type PreguntaEntrevista } from './banco.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 import { claveRepregunta, type Repregunta, type Respuestas } from './flujo.js';
 import type { FichaTexto } from './texto.js';
@@ -39,9 +39,10 @@ export const PRECIO_CAZADOR = { entrada: 4 / 1e6, salida: 20 / 1e6 };
 /** Tope de gasto del cazador por entrevista (como en V3): alcanzado, no se llama más y la entrevista sigue sin cazador. */
 export const TOPE_GASTO_USD = 3;
 /**
- * Cuántas elegidas por bloque se miran: una (spec §4.2, "pide una vez un
- * momento concreto"; plan, Task 1.4). El prompt de V3 dice "como mucho DOS,
- * la más pesada primero": se toma la primera.
+ * Cuántas repreguntas por bloque: una (banco.md, regla 9; Naza, 23/10). El
+ * prompt de historia pide como mucho UNA; el de V3 (ca y es-ES, mientras no
+ * tengan el suyo) pide como mucho dos y se queda la primera que pasa los
+ * controles.
  */
 export const MAX_ELEGIDAS = 1;
 export const MAX_PALABRAS_PREGUNTA = 45;
@@ -74,15 +75,14 @@ export function loQueViene(bloque: number, banco: readonly PreguntaEntrevista[],
 // ---------------------------------------------------------------- entrada
 
 /** Una respuesta del bloque como la ve el modelo. `id` es el ID del banco. */
-export type RespuestaParaCazar = { id: string; pregunta: string; texto: string; pedidoDia: boolean; paso: boolean };
+export type RespuestaParaCazar = { id: string; pregunta: string; texto: string; paso: boolean };
 
 /**
  * Las respuestas del bloque que se le pasan al cazador, en el orden en que
  * llegaron. Solo las preguntas del banco (FOTO-H, las de quien regala y las
  * repreguntas no se cazan); un botón sin texto no va; de un botón con audio
- * atrás va el audio. `textoPregunta` da la pregunta como se mandó. En
- * historia ninguna pide un día con segunda oportunidad: `pedidoDia` va en
- * false (el prompt de V3 lo lee).
+ * atrás va el audio. `textoPregunta` da la pregunta como se mandó. Sin la
+ * marca `pedido_dia` de V3: en historia no hay segunda oportunidad.
  */
 export function respuestasParaCazar(respuestas: Respuestas, bloque: number, textoPregunta: (id: string) => string, idioma: Idioma = IDIOMA_POR_DEFECTO): RespuestaParaCazar[] {
   const out: RespuestaParaCazar[] = [];
@@ -91,15 +91,22 @@ export function respuestasParaCazar(respuestas: Respuestas, bloque: number, text
     if (!p || p.bloque !== bloque) continue;
     const texto = leerBoton(crudo).resto.trim();
     if (!texto) continue;
-    out.push({ id: clave, pregunta: textoPregunta(clave), texto, pedidoDia: false, paso: interpretar(p, crudo, idioma) === 'paso' });
+    out.push({ id: clave, pregunta: textoPregunta(clave), texto, paso: interpretar(p, crudo, idioma) === 'paso' });
   }
   return out;
 }
 
-/** La ficha que ve el cazador cuando no hay más que nombre y género (la página de prueba y las simulaciones). */
-export function fichaCorta(f: Pick<FichaTexto, 'nombre' | 'genero'>): string {
+/**
+ * La ficha que ve el cazador: nombre, género y el tema de su historia (la
+ * etiqueta de temas.md en el idioma de la entrevista) y, si la escribieron con
+ * sus palabras, cómo la dijeron. Sin el tema, el bloque «Lo propio del tema»
+ * no le dice nada y no sabe qué pesa (Fable; Naza, 23/10).
+ */
+export function fichaCazador(f: Pick<FichaTexto, 'nombre' | 'genero' | 'tema' | 'temaLibre' | 'idioma'>): string {
   const genero = f.genero === 'varon' ? 'varón' : f.genero;
-  return `<ficha>\nnombre: ${f.nombre}\ngénero: ${genero}\n</ficha>`;
+  const tema = TEXTOS_TEMAS[f.tema][f.idioma ?? IDIOMA_POR_DEFECTO].etiqueta;
+  const libre = f.temaLibre?.trim();
+  return ['<ficha>', `nombre: ${f.nombre}`, `género: ${genero}`, `tema: ${tema}`, ...(libre ? [`en sus palabras: ${libre}`] : []), '</ficha>'].join('\n');
 }
 
 export type EntradaCazador = {
@@ -121,7 +128,7 @@ export type EntradaCazador = {
 export function armarEntrada(e: EntradaCazador): string {
   const respuestas = e.respuestas
     .map((r) => {
-      const marcas = (r.pedidoDia ? ' pedido_dia="si"' : '') + (r.paso ? ' paso="si"' : '');
+      const marcas = r.paso ? ' paso="si"' : '';
       return `<respuesta id="${r.id}"${marcas}>\n<pregunta>${r.pregunta}</pregunta>\n<texto>${r.texto}</texto>\n</respuesta>`;
     })
     .join('\n');
@@ -269,7 +276,7 @@ export function costoUsd(usage: { input_tokens: number; output_tokens: number })
 
 export type PedidoCaza = {
   cliente: ClienteModelo;
-  /** La ficha ya armada (`fichaCorta`, o la del pedido). */
+  /** La ficha ya armada (`fichaCazador`). */
   ficha: string;
   /** El bloque que acaba de cerrar. */
   bloque: number;

@@ -7,7 +7,7 @@ import bancoJson from '../src/historia/entrevista/banco.json';
 import bancoCaJson from '../src/historia/entrevista/banco-ca.json';
 import bancoEsEsJson from '../src/historia/entrevista/banco-es-ES.json';
 import temasJson from '../src/historia/entrevista/temas.json';
-import { armarConTextos, bancoHistoria, comprobarTextos, mensajePorId, mensajesDe, nombreDelTema, preguntaPorId } from '../src/historia/entrevista/banco';
+import { armarConTextos, bancoHistoria, comprobarTextos, mensajePorId, mensajesDe, nombreDelTema, preguntaPorId, TEXTOS_TEMAS } from '../src/historia/entrevista/banco';
 import { parsearEntrevistaMd } from '../src/historia/entrevista/banco-md';
 import { parsearTextosIdiomaMd, type TextosIdioma } from '../src/historia/entrevista/banco-idioma-md';
 import { parsearTemasMd } from '../src/historia/entrevista/temas-md';
@@ -76,11 +76,15 @@ describe('el banco real en los tres idiomas', () => {
 });
 
 describe('nombreDelTema ({{historia}})', () => {
-  it('la etiqueta de temas.md en minúscula inicial', () => {
-    expect(nombreDelTema('mudanza', 'es-AR')).toBe('irse a vivir lejos');
-    expect(nombreDelTema('padres', 'es-AR')).toBe('el primer hijo');
-    expect(nombreDelTema('mudanza', 'es-ES')).toBe('irse a vivir fuera');
-    expect(nombreDelTema('negocio', 'ca')).toBe('el negoci propi');
+  it('la tabla «En la pregunta» de temas.md, en segunda persona (Naza, 23/10)', () => {
+    expect(nombreDelTema('mudanza', 'es-AR')).toBe('cuando te fuiste a vivir lejos');
+    expect(nombreDelTema('padres', 'es-AR')).toBe('la llegada de tu primer hijo');
+    expect(nombreDelTema('trabajo', 'es-AR')).toBe('el trabajo de tu vida');
+    expect(nombreDelTema('conocimos', 'es-ES')).toBe('cómo os conocisteis');
+    expect(nombreDelTema('conocimos', 'ca')).toBe('com us vau conèixer');
+  });
+  it('las etiquetas de la compra siguen como estaban', () => {
+    expect(TEXTOS_TEMAS.trabajo['es-AR']).toMatchObject({ etiqueta: 'El trabajo de su vida', ayuda: 'El primer sueldo, el oficio, los compañeros de siempre' });
   });
   it('todos los temas tienen etiqueta en los tres idiomas', () => {
     for (const tema of TEMAS_HISTORIA) for (const idioma of ['es-AR', 'es-ES', 'ca'] as const) expect(nombreDelTema(tema, idioma)).not.toBe('');

@@ -112,6 +112,14 @@
 | M32.1 | Con lo que me has dicho me basta, {{nombre}}. Lo demás queda para ti. Vamos con otra. |
 | M32.2 | Está bien. Lo que me has contado queda, y lo que no, no hace falta. Seguimos. |
 
+## Botones
+
+El botón de FOTO-H, que vale "no" (banco.md, regla 6; en es-AR es el [No tengo fotos] de la columna "Cuándo"). Aprobado por Naza el 23/10.
+
+| ID | N | Botón |
+|---|---|---|
+| FOTO-H | 1 | No tengo fotos |
+
 ## Repregunta del cazador
 
 Copiada tal cual de V3 ([`docs/v3/entrevista/banco-es-ES.md`](../../v3/entrevista/banco-es-ES.md)), porque el cazador de escenas es el mismo.
