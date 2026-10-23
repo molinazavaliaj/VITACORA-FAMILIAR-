@@ -124,11 +124,11 @@ export const TEXTOS_TEMAS: Readonly<TextosTemas> = temasJson as TextosTemas;
 
 /**
  * Cómo se nombra la historia en las preguntas ({{historia}}; banco.md,
- * "Notación"): la etiqueta de temas.md en minúscula inicial («sobre irse a
- * vivir lejos», «sobre el primer hijo»).
+ * "Notación"): la tabla «En la pregunta» de temas.md, en segunda persona y en
+ * minúscula («sobre cuando te fuiste a vivir lejos»; Naza, 23/10).
  */
 export function nombreDelTema(tema: TemaHistoria, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
-  const etiqueta = TEXTOS_TEMAS[tema]?.[idioma]?.etiqueta;
-  if (!etiqueta) throw new Error(`historia: falta la etiqueta de «${tema}» en ${idioma} (docs/historia/temas.md; después, cd fabrica && npx tsx scripts/historia-json.ts).`);
-  return etiqueta.charAt(0).toLocaleLowerCase(idioma) + etiqueta.slice(1);
+  const texto = TEXTOS_TEMAS[tema]?.[idioma]?.pregunta;
+  if (!texto) throw new Error(`historia: falta «${tema}» en ${idioma} en «En la pregunta» (docs/historia/temas.md; después, cd fabrica && npx tsx scripts/historia-json.ts).`);
+  return texto;
 }

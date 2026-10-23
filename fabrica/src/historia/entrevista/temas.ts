@@ -18,7 +18,7 @@ export type OpcionesTema = {
   /**
    * El narrador eligió su historia en TEMA-ABIERTO (`estado.temaAbierto`;
    * banco.md, regla 2): las variantes con `Tema = comun` (HC1-A) reemplazan a
-   * su común. Con el tema elegido en la compra, no.
+   * su común. Con el tema elegido en la compra, no, salvo con `otra`.
    */
   temaAbierto?: boolean;
 };
@@ -27,12 +27,15 @@ export type OpcionesTema = {
  * El banco que recibe un narrador: la parte común y las de su tema, en el
  * orden del md. Una variante ocupa el lugar de la común que reemplaza (HC8-Q
  * en lugar de HC8, en «conocimos»); las variantes con `Tema = comun` (HC1-A)
- * solo con `temaAbierto`. Los mensajes y los nombres de bloque son los mismos.
+ * con `temaAbierto` o con `otra` (Naza, 23/10: HC1 nombraría lo que
+ * escribieron con sus palabras, que suele venir en primera persona). Los
+ * mensajes y los nombres de bloque son los mismos.
  */
 export function bancoDeTema(banco: BancoEntrevista, tema: TemaHistoria, { temaAbierto = false }: OpcionesTema = {}): BancoEntrevista {
   const variantes = new Map<string, PreguntaEntrevista>();
+  const conComunes = temaAbierto || tema === 'otra';
   for (const p of banco.preguntas) {
-    if (p.reemplaza && (p.tema === tema || (p.tema === 'comun' && temaAbierto))) variantes.set(p.reemplaza, p);
+    if (p.reemplaza && (p.tema === tema || (p.tema === 'comun' && conComunes))) variantes.set(p.reemplaza, p);
   }
   const preguntas = banco.preguntas.filter((p) => !p.reemplaza && (p.tema === 'comun' || p.tema === tema)).map((p) => variantes.get(p.id) ?? p);
   return { ...banco, preguntas };

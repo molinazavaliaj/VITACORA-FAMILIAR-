@@ -2,99 +2,120 @@
   "mudanza": {
     "es-AR": {
       "etiqueta": "Irse a vivir lejos",
-      "ayuda": "Emigrar, cambiar de ciudad, empezar de cero"
+      "ayuda": "Emigrar, cambiar de ciudad, empezar de cero",
+      "pregunta": "cuando te fuiste a vivir lejos"
     },
     "ca": {
       "etiqueta": "Anar a viure lluny",
-      "ayuda": "Emigrar, canviar de ciutat, començar de zero"
+      "ayuda": "Emigrar, canviar de ciutat, començar de zero",
+      "pregunta": "quan te'n vas anar a viure lluny"
     },
     "es-ES": {
       "etiqueta": "Irse a vivir fuera",
-      "ayuda": "Emigrar, cambiar de ciudad, empezar de cero"
+      "ayuda": "Emigrar, cambiar de ciudad, empezar de cero",
+      "pregunta": "cuando te fuiste a vivir fuera"
     }
   },
   "negocio": {
     "es-AR": {
       "etiqueta": "El negocio propio",
-      "ayuda": "Abrir el local, los primeros clientes, sacarlo adelante"
+      "ayuda": "Abrir el local, los primeros clientes, sacarlo adelante",
+      "pregunta": "tu negocio propio"
     },
     "ca": {
       "etiqueta": "El negoci propi",
-      "ayuda": "Obrir la botiga, els primers clients, tirar-lo endavant"
+      "ayuda": "Obrir la botiga, els primers clients, tirar-lo endavant",
+      "pregunta": "el teu negoci propi"
     },
     "es-ES": {
       "etiqueta": "El negocio propio",
-      "ayuda": "Abrir el local, los primeros clientes, sacarlo adelante"
+      "ayuda": "Abrir el local, los primeros clientes, sacarlo adelante",
+      "pregunta": "tu negocio propio"
     }
   },
   "enfermedad": {
     "es-AR": {
       "etiqueta": "Salir de una enfermedad",
-      "ayuda": "El diagnóstico, el tratamiento, quién estuvo al lado"
+      "ayuda": "El diagnóstico, el tratamiento, quién estuvo al lado",
+      "pregunta": "cómo saliste de una enfermedad"
     },
     "ca": {
       "etiqueta": "Sortir d'una malaltia",
-      "ayuda": "El diagnòstic, el tractament, qui va estar a prop"
+      "ayuda": "El diagnòstic, el tractament, qui va estar a prop",
+      "pregunta": "com vas sortir d'una malaltia"
     },
     "es-ES": {
       "etiqueta": "Salir de una enfermedad",
-      "ayuda": "El diagnóstico, el tratamiento, quién estuvo al lado"
+      "ayuda": "El diagnóstico, el tratamiento, quién estuvo al lado",
+      "pregunta": "cómo saliste de una enfermedad"
     }
   },
   "conocimos": {
     "es-AR": {
       "etiqueta": "Cómo se conocieron",
-      "ayuda": "El primer encuentro, la primera cita, el casamiento"
+      "ayuda": "El primer encuentro, la primera cita, el casamiento",
+      "pregunta": "cómo se conocieron"
     },
     "ca": {
       "etiqueta": "Com es van conèixer",
-      "ayuda": "La primera trobada, la primera cita, el casament"
+      "ayuda": "La primera trobada, la primera cita, el casament",
+      "pregunta": "com us vau conèixer"
     },
     "es-ES": {
       "etiqueta": "Cómo se conocieron",
-      "ayuda": "El primer encuentro, la primera cita, la boda"
+      "ayuda": "El primer encuentro, la primera cita, la boda",
+      "pregunta": "cómo os conocisteis"
     }
   },
   "padres": {
     "es-AR": {
       "etiqueta": "El primer hijo",
-      "ayuda": "La noticia, el nacimiento, las primeras noches sin dormir"
+      "ayuda": "La noticia, el nacimiento, las primeras noches sin dormir",
+      "pregunta": "la llegada de tu primer hijo"
     },
     "ca": {
       "etiqueta": "El primer fill",
-      "ayuda": "La notícia, el naixement, les primeres nits sense dormir"
+      "ayuda": "La notícia, el naixement, les primeres nits sense dormir",
+      "pregunta": "l'arribada del teu primer fill"
     },
     "es-ES": {
       "etiqueta": "El primer hijo",
-      "ayuda": "La noticia, el nacimiento, las primeras noches sin dormir"
+      "ayuda": "La noticia, el nacimiento, las primeras noches sin dormir",
+      "pregunta": "la llegada de tu primer hijo"
     }
   },
   "trabajo": {
     "es-AR": {
       "etiqueta": "El trabajo de su vida",
-      "ayuda": "El primer sueldo, el oficio, los compañeros de siempre"
+      "ayuda": "El primer sueldo, el oficio, los compañeros de siempre",
+      "pregunta": "el trabajo de tu vida"
     },
     "ca": {
       "etiqueta": "La feina de la seva vida",
-      "ayuda": "El primer sou, l'ofici, els companys de sempre"
+      "ayuda": "El primer sou, l'ofici, els companys de sempre",
+      "pregunta": "la feina de la teva vida"
     },
     "es-ES": {
       "etiqueta": "El trabajo de su vida",
-      "ayuda": "El primer sueldo, el oficio, los compañeros de siempre"
+      "ayuda": "El primer sueldo, el oficio, los compañeros de siempre",
+      "pregunta": "el trabajo de tu vida"
     }
   },
   "otra": {
     "es-AR": {
       "etiqueta": "Otra historia",
-      "ayuda": "Un viaje, el club, una amistad de toda la vida"
+      "ayuda": "Un viaje, el club, una amistad de toda la vida",
+      "pregunta": "una historia de tu vida"
     },
     "ca": {
       "etiqueta": "Una altra història",
-      "ayuda": "Un viatge, el poble, una amistat de tota la vida"
+      "ayuda": "Un viatge, el poble, una amistat de tota la vida",
+      "pregunta": "una història de la teva vida"
     },
     "es-ES": {
       "etiqueta": "Otra historia",
-      "ayuda": "Un viaje, el pueblo, una amistad de toda la vida"
+      "ayuda": "Un viaje, el pueblo, una amistad de toda la vida",
+      "pregunta": "una historia de tu vida"
     }
   }
 }

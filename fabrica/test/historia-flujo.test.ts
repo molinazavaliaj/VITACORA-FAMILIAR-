@@ -204,10 +204,16 @@ describe('repreguntas del cazador en el flujo', () => {
 });
 
 describe('texto de historia', () => {
-  it('{{historia}}: lo que escribió, o la etiqueta del tema en minúscula inicial', () => {
-    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'padres' })).toBe('sobre el primer hijo');
-    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'otra', temaLibre: '  los veranos en la chacra ' })).toBe('sobre los veranos en la chacra');
-    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'mudanza', idioma: 'ca' })).toBe('sobre anar a viure lluny');
+  it('{{historia}}: el tema en segunda persona; lo que escribieron con sus palabras no entra en la pregunta', () => {
+    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'padres' })).toBe('sobre la llegada de tu primer hijo');
+    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'mudanza', idioma: 'ca' })).toBe("sobre quan te'n vas anar a viure lluny");
+    expect(renderizar('sobre {{historia}}', { nombre: 'Ana', genero: 'mujer', tema: 'otra', temaLibre: 'cuando me quebré la pierna' })).not.toContain('me quebré');
+  });
+  it('con «otra», la primera pregunta es HC1-A y no repite lo que escribieron (Naza, 23/10)', () => {
+    const [primera] = recorrerEntrevista({ ficha: { nombre: 'Marta', genero: 'mujer', tema: 'otra', temaLibre: 'cuando me quebré la pierna' }, contesta: 'todo' });
+    expect(primera.clave).toBe('HC1-A');
+    expect(primera.texto).toMatch(/^Empecemos por el antes, Marta\. Antes de que empezara esta historia que elegiste/);
+    expect(primera.texto).not.toContain('pierna');
   });
   it('género: {{o/a}} y la palabra entera del catalán', () => {
     expect(renderizar('sol{{o/a}}', { nombre: 'Ana', genero: 'mujer', tema: 'otra' })).toBe('sola');
@@ -215,7 +221,7 @@ describe('texto de historia', () => {
   });
   it('la primera pregunta real, renderizada', () => {
     const [primera] = recorrerEntrevista({ ficha: { nombre: 'Marta', genero: 'mujer', tema: 'mudanza' }, contesta: 'todo' });
-    expect(primera.texto).toMatch(/^Empecemos por el antes, Marta\. Este libro es sobre irse a vivir lejos, pero/);
+    expect(primera.texto).toMatch(/^Empecemos por el antes, Marta\. Este libro es sobre cuando te fuiste a vivir lejos, pero/);
   });
 });
 

@@ -14,6 +14,20 @@ Las etiquetas no van en primera ni en segunda persona, porque la misma la lee el
 | trabajo | El trabajo de su vida | El primer sueldo, el oficio, los compañeros de siempre | El trabajo de su vida | El primer sueldo, el oficio, los compañeros de siempre | La feina de la seva vida | El primer sou, l'ofici, els companys de sempre |
 | otra | Otra historia | Un viaje, el club, una amistad de toda la vida | Otra historia | Un viaje, el pueblo, una amistad de toda la vida | Una altra història | Un viatge, el poble, una amistat de tota la vida |
 
+## En la pregunta ({{historia}})
+
+Aprobado por Naza el 23/10. Es cómo se nombra la historia dentro de HC1 («Este libro es sobre {{historia}}, pero…»), que le habla al narrador. Por eso va en segunda persona y en minúscula, a diferencia de las etiquetas de la compra. Con `otra` la primera pregunta es siempre HC1-A, que no nombra la historia (banco.md, regla 4): lo que escribieron con sus palabras nunca entra en una pregunta, porque suele venir en primera persona («cuando me quebré la pierna»). La fila de `otra` queda de respaldo.
+
+| clave | es-AR | es-ES | ca |
+|---|---|---|---|
+| mudanza | cuando te fuiste a vivir lejos | cuando te fuiste a vivir fuera | quan te'n vas anar a viure lluny |
+| negocio | tu negocio propio | tu negocio propio | el teu negoci propi |
+| enfermedad | cómo saliste de una enfermedad | cómo saliste de una enfermedad | com vas sortir d'una malaltia |
+| conocimos | cómo se conocieron | cómo os conocisteis | com us vau conèixer |
+| padres | la llegada de tu primer hijo | la llegada de tu primer hijo | l'arribada del teu primer fill |
+| trabajo | el trabajo de tu vida | el trabajo de tu vida | la feina de la teva vida |
+| otra | una historia de tu vida | una historia de tu vida | una història de la teva vida |
+
 ## Ejemplo dentro del campo libre («otra»)
 
 - es-AR: Por ejemplo, los veranos en la chacra de los abuelos
