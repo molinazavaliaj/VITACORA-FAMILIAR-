@@ -360,19 +360,19 @@ Texto:
 
 ## Tanda 3 · La página, el medio (para quién, el libro, el precio y las primeras preguntas frecuentes)
 
-### H21 · «Para quién es», el título
+### H21 · «Para quién es», el título · APROBADO (Naza, 23/10)
 
 - es-AR: No hace falta una vida entera. Alcanza con una historia.
 - es-ES: No hace falta una vida entera. Basta con una historia.
 - ca: No cal una vida sencera. N'hi ha prou amb una història.
 
-### H22 · «Para quién es», el texto
+### H22 · «Para quién es», el texto · APROBADO (Naza, 23/10)
 
 - es-AR: Vitácora Familiar cuenta una vida de punta a punta. Este libro se queda en un solo capítulo que ya pasó y lo cuenta a fondo, con los detalles que en una vida entera no entran. Es para uno mismo o para regalar.
 - es-ES: Vitácora Familiar cuenta una vida de principio a fin. Este libro se queda en un solo capítulo que ya pasó y lo cuenta a fondo, con los detalles que en una vida entera no caben. Es para uno mismo o para regalar.
 - ca: Vitácora Familiar explica una vida de cap a cap. Aquest llibre es queda en un sol capítol que ja ha passat i l'explica a fons, amb els detalls que en una vida sencera no hi caben. És per a un mateix o per regalar.
 
-### H23 · Los ejemplos de historias
+### H23 · Los ejemplos de historias · APROBADO (Naza, 23/10)
 
 Una línea de entrada y la lista. Las seis son las etiquetas aprobadas de temas.md, tal cual; la última línea es «Otra historia» con su ayuda aprobada. No hay más ejemplos inventados para no sumar temas que la lista no tiene.
 
@@ -388,19 +388,19 @@ Lista es-ES: Irse a vivir fuera · El negocio propio · Salir de una enfermedad 
 
 Lista ca: Anar a viure lluny · El negoci propi · Sortir d'una malaltia · Com es van conèixer · El primer fill · La feina de la seva vida. Última línea: O qualsevol altra. Un viatge, el poble, una amistat de tota la vida.
 
-### H24 · «Qué recibe», el título
+### H24 · «Qué recibe», el título · APROBADO (Naza, 23/10)
 
 - es-AR: Esa historia, hecha libro.
 - es-ES: Esa historia, hecha libro.
 - ca: Aquesta història, feta llibre.
 
-### H25 · «Qué recibe», el texto
+### H25 · «Qué recibe», el texto · APROBADO (Naza, 23/10)
 
 - es-AR: Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar los audios. Impreso en tapa dura o en PDF, lo elegís al comprar.
 - es-ES: Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar los audios. Impreso en tapa dura o en PDF, lo eliges al comprar.
 - ca: Un relat amb les paraules de qui l'explica, no una transcripció. El que va explicar hi va tal com ho va explicar, sense inventar res. Amb les fotos d'aquella època i un codi QR per escoltar els àudios. Imprès en tapa dura o en PDF, ho tries en comprar.
 
-### H26 · El bloque del precio
+### H26 · El bloque del precio · APROBADO (Naza, 23/10)
 
 Como en Kids (título, texto, nota). La cifra la pone el código con `PRECIO_EUR` / `PRECIO_ARS`.
 
@@ -424,13 +424,13 @@ Nota:
 
 Alternativa de nota: «Sin suscripciones. El mismo precio que Vitácora Familiar.» / ca «Sense subscripcions. El mateix preu que Vitácora Familiar.» Es verdad por diseño (comparten variables), pero si un día cambia, queda mintiendo.
 
-### H27 · «Preguntas frecuentes», el título
+### H27 · «Preguntas frecuentes», el título · APROBADO (Naza, 23/10)
 
 - es-AR: Lo que nos suelen preguntar.
 - es-ES: Lo que suelen preguntarnos.
 - ca: El que ens solen preguntar.
 
-### H28 · Pregunta frecuente 1 · La historia no está en la lista
+### H28 · Pregunta frecuente 1 · La historia no está en la lista · APROBADO (Naza, 23/10)
 
 Pregunta:
 
@@ -444,7 +444,7 @@ Respuesta:
 - es-ES: Eliges «Otra historia» y la escribes en una línea. Las preguntas de esa parte son generales y sirven para cualquier capítulo. El resto de la entrevista es igual.
 - ca: Tries «Una altra història» i l'escrius en una línia. Les preguntes d'aquesta part són generals i serveixen per a qualsevol capítol. La resta de l'entrevista és igual.
 
-### H29 · Pregunta frecuente 2 · Que la elija quien la cuenta
+### H29 · Pregunta frecuente 2 · Que la elija quien la cuenta · APROBADO (Naza, 23/10)
 
 Pregunta:
 
@@ -458,7 +458,7 @@ Respuesta:
 - es-ES: Sí. Si es un regalo, marcas «que la elija quien la cuenta». Antes de empezar le preguntamos de qué historia quiere hacer su libro y, si duda, le enseñamos la lista.
 - ca: Sí. Si és un regal, marques «que la triï qui l'explica». Abans de començar li preguntem de quina història vol fer el seu llibre i, si dubta, li ensenyem la llista.
 
-### H30 · Pregunta frecuente 3 · Qué se pregunta
+### H30 · Pregunta frecuente 3 · Qué se pregunta · APROBADO (Naza, 23/10)
 
 Antes preguntaba «¿Cuántas preguntas son?». Naza no quiere cantidades en la web (23/10), así que la pregunta cambió a qué se pregunta.
 
