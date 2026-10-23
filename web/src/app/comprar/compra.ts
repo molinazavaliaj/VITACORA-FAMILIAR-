@@ -8,6 +8,8 @@ import { validarDireccion, type Direccion } from "@/lib/entregas";
 import type { Para, TextosCheckout } from "../_textos/checkout";
 import { errorDeEleccion, type EleccionEntrega } from "../regalar/entrega";
 import { eleccionInicial, type OpcionLibro } from "../_checkout/opciones-libro";
+import { PROPIA_MAXIMO, type TemaHistoria } from "@/lib/historia";
+import type { TextosHistoria } from "../_textos/historia";
 
 // La lógica del checkout del libro de una vida (rediseño 2026-10, DECISIONES D3),
 // sin React ni navegador para poder probarla: el estado, qué pide cada uno de los
@@ -17,7 +19,11 @@ import { eleccionInicial, type OpcionLibro } from "../_checkout/opciones-libro";
 // regalo (gift card) y su `retomar` cuando es un regalo, y el idioma de la web
 // para que la pasarela vuelva a la versión correcta.
 
-export type Paso = 1 | 2 | 3;
+/**
+ * En Familiar: 1 su libro, 2 para quién, 3 el pago. En «Vitácora de una historia» (23/10) hay uno más entre
+ * «Para quién» y el pago: 3 la historia, 4 el pago (pasoDelPago).
+ */
+export type Paso = 1 | 2 | 3 | 4;
 
 export type Formato = "digital" | "impreso";
 export type ModoFecha = "" | "navidad" | "otra";
@@ -60,7 +66,17 @@ export type EstadoCompra = {
   telefonoRecibe: string;
   direccion: Partial<Direccion>;
   retomar: Retomar | null;
+  /** Solo en «Vitácora de una historia» (/comprar/historia): el paso «La historia». */
+  historia?: EstadoHistoriaCompra;
 };
+
+/** El paso «La historia»: el tema (o «Otra historia» con sus palabras), el tema abierto y las preguntas de regalo. */
+export type EstadoHistoriaCompra = { tema: TemaHistoria | null; temaLibre: string; temaAbierto: boolean; preguntasPropias: string[] };
+
+export const historiaInicial = (): EstadoHistoriaCompra => ({ tema: null, temaLibre: "", temaAbierto: false, preguntasPropias: [""] });
+
+/** El paso del pago: el 3 en Familiar, el 4 en historia. */
+export const pasoDelPago = (e: Pick<EstadoCompra, "historia">): Paso => (e.historia ? 4 : 3);
 
 /** El idioma de la entrevista con el que arranca cada versión de la web. */
 export function idiomaInicial(idioma: IdiomaWeb): IdiomaRegalo {
@@ -127,8 +143,9 @@ const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type Falla = { texto: string; campo?: string };
 
 /** Lo que falta en un paso, con el campo a marcar; null si se puede seguir. */
-export function fallaDelPaso(paso: Paso, e: EstadoCompra, T: TextosCheckout, entrega: TextosEntrega, ahora: Date): Falla | null {
+export function fallaDelPaso(paso: Paso, e: EstadoCompra, T: TextosCheckout, entrega: TextosEntrega, ahora: Date, TH?: TextosHistoria["paso"]): Falla | null {
   if (paso === 1) return null;
+  if (paso === 3 && e.historia) return fallaDeLaHistoria(e, e.historia, TH);
   if (paso === 2) {
     const yo = esPropia(e);
     if (!e.para) return { texto: T.faltaPara, campo: "para" };
@@ -164,6 +181,25 @@ export function fallaDelPaso(paso: Paso, e: EstadoCompra, T: TextosCheckout, ent
   return null;
 }
 
+/** Lo que falta en el paso «La historia» (H8 a H10). El tema abierto y las preguntas propias son solo de regalo. */
+function fallaDeLaHistoria(e: EstadoCompra, h: EstadoHistoriaCompra, TH?: TextosHistoria["paso"]): Falla | null {
+  if (!TH) throw new Error("fallaDelPaso: falta el texto del paso «La historia»");
+  const regalo = esRegalo(e);
+  if (regalo && h.preguntasPropias.some((p) => p.trim().length > PROPIA_MAXIMO)) return { texto: TH.errorPropiaLarga, campo: "propias" };
+  if (regalo && h.temaAbierto) return null;
+  if (!h.tema) return { texto: TH.errorSinTema, campo: "tema" };
+  if (h.tema === "otra" && !h.temaLibre.trim()) return { texto: TH.errorSinOtra, campo: "tema-libre" };
+  return null;
+}
+
+/** Lo que va en `narrador.contexto.historia` (lib/historia.ts, CompraHistoria): lo de regalo, solo si es regalo. */
+function historiaDelCuerpo(e: EstadoCompra, h: EstadoHistoriaCompra) {
+  const regalo = esRegalo(e);
+  const preguntasPropias = regalo ? h.preguntasPropias.map((p) => p.trim()).filter(Boolean) : [];
+  if (regalo && h.temaAbierto) return { temaAbierto: true, preguntasPropias };
+  return { tema: h.tema, ...(h.tema === "otra" ? { temaLibre: h.temaLibre.trim() } : {}), preguntasPropias };
+}
+
 /** El cuerpo de POST /api/compra, el mismo contrato de siempre. */
 export function cuerpoDeLaCompra(e: EstadoCompra, idiomaWeb: IdiomaWeb) {
   const yo = esPropia(e);
@@ -190,6 +226,7 @@ export function cuerpoDeLaCompra(e: EstadoCompra, idiomaWeb: IdiomaWeb) {
         // "no tiene hijos" = arbol.hijos 'no tuvo': el capítulo «Los hijos» se reemplaza sin preguntar.
         ...(e.hijos === "no" ? { arbol: { hijos: "no tuvo" } } : {}),
         ...(e.dondeVive.trim() ? { dondeVive: e.dondeVive.trim() } : {}),
+        ...(e.historia ? { historia: historiaDelCuerpo(e, e.historia) } : {}),
       },
     },
     productos: { impresos: carrito.impresos, marcos: carrito.marcos },
@@ -217,6 +254,6 @@ export function proximaNavidad(hoy: Date): string {
 }
 
 /** Lo que se guarda para volver tras un pago fallido: todo menos los archivos (fotos y audio). */
-export function claveDeCompra(idiomaWeb: IdiomaWeb): string {
-  return `familiar-${idiomaWeb}`;
+export function claveDeCompra(idiomaWeb: IdiomaWeb, historia = false): string {
+  return `${historia ? "historia" : "familiar"}-${idiomaWeb}`;
 }

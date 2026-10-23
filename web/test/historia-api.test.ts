@@ -97,6 +97,13 @@ describe("compra de historia", () => {
     expect(contexto).toMatchObject({ modo: "historia", regalo: true, genero: "mujer", trato: "vos", historia: { tema: "otra", temaAbierto: true, preguntasPropias: ["¿Qué extrañabas?"] } });
   });
 
+  it("si no se cobra, la pasarela vuelve a /comprar/historia de su idioma", async () => {
+    const admin = feliz();
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+    await POST(peticion({ ...CUERPO, idiomaWeb: "ar" }));
+    expect(crearCheckout).toHaveBeenCalledWith(expect.anything(), expect.anything(), { idioma: "ar", pantalla: "historia" });
+  });
+
   it("con HISTORIA_VENTA apagado responde 400 y no crea nada", async () => {
     vi.stubEnv("HISTORIA_VENTA", "");
     const admin = feliz();

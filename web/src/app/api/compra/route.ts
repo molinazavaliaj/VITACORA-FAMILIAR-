@@ -126,6 +126,8 @@ function columnasEntrega(e: EntregaRegalo | null) {
 function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
   if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
   if (body.producto === "kids") return { idioma: body.idiomaWeb, pantalla: "kids" };
+  // «Vitácora de una historia»: si no se cobró, la pasarela vuelve a /comprar/historia (ahí se restaura lo elegido).
+  if (body.narrador?.contexto?.historia !== undefined) return { idioma: body.idiomaWeb, pantalla: "historia" };
   return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
 }
 

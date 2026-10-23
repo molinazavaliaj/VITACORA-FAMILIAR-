@@ -4,6 +4,7 @@ import path from "node:path";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { TEXTOS_VIAJE } from "../_textos/viaje";
 import { TEXTOS_KIDS } from "../_textos/kids";
+import { TEXTOS_HISTORIA } from "../_textos/historia";
 import type { IdiomaWeb } from "@/lib/idioma-web";
 
 // La imagen para compartir (og:image / twitter:image), 19/10. La que sale
@@ -15,6 +16,7 @@ import type { IdiomaWeb } from "@/lib/idioma-web";
 //   · Familiar: tinta con tela, la tapa del libro de ejemplo apenas girada.
 //   · Viaje: la noche y el azul (tokens --viaje-*), la foto del libro en la mesa.
 //   · Kids: el papel claro y el terracota (kids.css), la foto del libro.
+//   · Historia (23/10): la de Familiar (no hay fotos propias todavía), con su titular y su nombre.
 //
 // WhatsApp a veces la muestra cuadrada (recorta el centro, 630 × 630): todo
 // lo que importa vive en la franja del medio (x 285–915; el bloque mide ~610). A los costados solo
@@ -27,7 +29,7 @@ import type { IdiomaWeb } from "@/lib/idioma-web";
 export const TAMANO_IMAGEN = { width: 1200, height: 630 };
 export const TIPO_IMAGEN = "image/png";
 
-export type Producto = "familiar" | "viaje" | "kids";
+export type Producto = "familiar" | "viaje" | "kids" | "historia";
 
 type Paleta = {
   fondo: string;
@@ -39,7 +41,7 @@ type Paleta = {
   anillos: string;
 };
 
-const PALETAS: Record<Producto, Paleta> = {
+const PALETAS: Record<Exclude<Producto, "historia">, Paleta> = {
   // _direccion/tokens.css: --dir-tinta, --dir-sobre-tinta, --dir-dorado, --dir-tela.
   familiar: {
     fondo: "#0b0b0a",
@@ -76,12 +78,17 @@ const MARCA: Record<Producto, Record<IdiomaWeb, string>> = {
   familiar: { es: "Vitácora Familiar", ar: "Vitácora Familiar", ca: "Vitácora Familiar" },
   viaje: { es: "Vitácora de Viaje", ar: "Vitácora de Viaje", ca: "Vitácora de Viatge" },
   kids: { es: "Vitácora Kids", ar: "Vitácora Kids", ca: "Vitácora Kids" },
+  historia: { es: TEXTOS_HISTORIA.es.marca, ar: TEXTOS_HISTORIA.ar.marca, ca: TEXTOS_HISTORIA.ca.marca },
 };
+
+/** La paleta y el libro: historia usa los de Familiar. */
+const paletaDe = (producto: Producto): Paleta => PALETAS[producto === "historia" ? "familiar" : producto];
 
 /** El titular aprobado de la página, en sus dos partes (como lo arma el hero). */
 export function titularDe(producto: Producto, idioma: IdiomaWeb): [string, string] {
   if (producto === "viaje") return TEXTOS_VIAJE[idioma].titulo;
   if (producto === "kids") return TEXTOS_KIDS[idioma].titulo;
+  if (producto === "historia") return [TEXTOS_HISTORIA[idioma].hero.linea1, TEXTOS_HISTORIA[idioma].hero.linea2];
   return TEXTOS_PORTADA[idioma].hero.titulo;
 }
 
@@ -127,7 +134,7 @@ function Toroide({ color, tamano, style }: { color: string; tamano: number; styl
 
 /** El libro de cada producto: la tapa (Familiar) o la foto del libro (Viaje, Kids). */
 async function Libro({ producto }: { producto: Producto }) {
-  if (producto === "familiar") {
+  if (producto === "familiar" || producto === "historia") {
     // La tapa del libro de ejemplo (376 × 520), apenas girada, con su sombra.
     const src = await foto("libro-osvaldo-portada.jpg");
     return (
@@ -185,7 +192,7 @@ async function Libro({ producto }: { producto: Producto }) {
  * opengraph-image.tsx y twitter-image.tsx de cada sección.
  */
 export async function imagenParaCompartir(producto: Producto, idioma: IdiomaWeb) {
-  const p = PALETAS[producto];
+  const p = paletaDe(producto);
   const [linea1, linea2] = titularDe(producto, idioma);
   const largo = (linea1 + linea2).length;
   const palabras = [
