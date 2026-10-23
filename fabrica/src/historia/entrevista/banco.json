@@ -611,6 +611,16 @@
       "texto": "La última de {{quien_regala}}.\n\n«{{pregunta}}»\n\nHablale a {{quien_regala}}, aunque llegue por acá."
     },
     {
+      "id": "PF-H1",
+      "cuando": "1.ª pregunta sumada desde el panel (después de las de quien regala, antes de HC10)",
+      "texto": "Una pregunta más, {{nombre}}, que quedó anotada para vos. Te la paso tal cual.\n\n«{{pregunta}}»\n\nContámela en audio, como las demás."
+    },
+    {
+      "id": "PF-H2",
+      "cuando": "2.ª y siguientes sumadas desde el panel",
+      "texto": "Otra que quedó anotada para vos.\n\n«{{pregunta}}»\n\nComo siempre, en audio."
+    },
+    {
       "id": "FOTO-H",
       "cuando": "Después de la última del tema, antes de HC5; espera fotos o audio hasta 24 h; botón [No tengo fotos] + M31",
       "texto": "Otra cosa, {{nombre}}. ¿Tenés fotos de esa época? Buscá entre tres y diez, en el celular o en algún cajón, y mandámelas por acá. Si son de papel, sacales una foto con el celular. Después, si querés, contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarlas. La pregunta que sigue te la mando cuando me llegue algo o me digas que no tenés. Si no las encontrás ahora, no pasa nada, el libro va igual y las podés mandar más adelante."

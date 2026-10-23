@@ -160,6 +160,37 @@ describe('preguntas de quien regala (PR-H)', () => {
   });
 });
 
+describe('preguntas sumadas desde el panel (PF-H)', () => {
+  const ficha = { nombre: 'Ana', genero: 'mujer' as const, tema: 'mudanza' as const, quienRegala: 'Pablo' };
+  const panel = [{ id: 'f1', texto: '¿Seguís viendo a alguien de esa época?' }, { id: 'f2', texto: 'qué pasó con la casa??' }];
+
+  it('van después de las de quien regala y antes de HC10, con F:<id>; PF-H1 la primera y PF-H2 las siguientes, tal cual', () => {
+    const pasos = recorrerEntrevista({ ficha, contesta: 'todo', propias: ['a'], panel });
+    const esperan = pasos.filter((p) => p.tipo !== 'fin');
+    expect(esperan.map((p) => p.clave).slice(-5)).toEqual(['HC9', 'PR-H1', 'F:f1', 'F:f2', 'HC10']);
+    expect(esperan.at(-3)!.texto).toBe('Una pregunta más, Ana, que quedó anotada para vos. Te la paso tal cual.\n\n«¿Seguís viendo a alguien de esa época?»\n\nContámela en audio, como las demás.');
+    expect(esperan.at(-2)!.texto).toBe('Otra que quedó anotada para vos.\n\n«qué pasó con la casa??»\n\nComo siempre, en audio.');
+  });
+  it('sin las de quien regala, también para uno mismo', () => {
+    const ids = simularRecorrido({ ficha: { ...ficha, quienRegala: undefined }, contesta: 'todo', panel: [panel[0]] });
+    expect(ids.slice(-3)).toEqual(['HC9', 'F:f1', 'HC10']);
+  });
+  it('una sumada cuando HC10 ya está contestada no sale', () => {
+    const banco = bancoHistoria('mudanza');
+    const todo = new Map<string, string>([...banco.preguntas.map((q) => [q.id, CONTO] as const), [FOTO, CONTO]]);
+    expect(siguientePregunta({ respuestas: todo, tema: 'mudanza', panel })).toEqual({ tipo: 'fin', clave: FIN });
+  });
+  it('en catalán y en es-ES, sus textos', () => {
+    const ca = recorrerEntrevista({ ficha: { ...ficha, idioma: 'ca' }, contesta: 'todo', panel: [panel[0]] }).find((p) => p.tipo === 'panel')!;
+    expect(ca.texto).toContain('Una pregunta més, Ana, que ha quedat apuntada per a tu.');
+    const es = recorrerEntrevista({ ficha: { ...ficha, idioma: 'es-ES' }, contesta: 'todo', panel: [panel[0]] }).find((p) => p.tipo === 'panel')!;
+    expect(es.texto).toContain('Una pregunta más, Ana, que ha quedado apuntada para ti.');
+  });
+  it('una de la familia es una pregunta común (sin botones), en el bloque 0', () => {
+    expect(preguntaDeClave('F:f1')).toMatchObject({ id: 'F:f1', bloque: 0, clase: 'historia' });
+  });
+});
+
 describe('acuses de historia (banco.md, regla 8)', () => {
   const p = (id: string) => preguntaDeClave(id)!;
 

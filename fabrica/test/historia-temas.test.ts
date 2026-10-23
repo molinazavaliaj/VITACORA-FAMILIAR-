@@ -104,9 +104,9 @@ describe('el banco real (docs/historia/banco.md)', () => {
   const ids = (tema: Parameters<typeof bancoDeTema>[1], temaAbierto = false) => bancoDeTema(real, tema, { temaAbierto }).preguntas.map((p) => p.id);
   const COMUN_ANTES = ['HC1', 'HC2', 'HC3', 'HC4'];
 
-  it('tiene 50 preguntas y 44 mensajes', () => {
+  it('tiene 50 preguntas y 46 mensajes', () => {
     expect(real.preguntas).toHaveLength(50);
-    expect(real.mensajes).toHaveLength(44);
+    expect(real.mensajes).toHaveLength(46);
   });
   it('lee las variantes con guion, con su tema y lo que reemplazan', () => {
     const v = real.preguntas.filter((p) => p.reemplaza).map((p) => `${p.id}:${p.tema}:${p.reemplaza}`);

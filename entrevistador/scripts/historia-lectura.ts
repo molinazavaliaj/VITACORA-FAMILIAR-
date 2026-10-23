@@ -14,7 +14,7 @@ import { correr, type Narrador, type Vida } from './historia-simular.js';
 const MARTA: Narrador = {
   semilla: 1, idioma: 'es-AR', tema: 'mudanza', temaAbierto: false, dudaTema: false, regalo: true,
   propias: ['¿Qué te hizo decidir quedarte cuando los primeros años fueron tan duros?'],
-  genero: 'mujer', nombre: 'Marta', hora: '10:30:00', saluda: true, silencio: 0, foto: false,
+  genero: 'mujer', nombre: 'Marta', hora: '10:30:00', saluda: true, silencio: 0, foto: false, panel: 1,
 };
 
 const VIDA: Vida = {
@@ -35,6 +35,7 @@ const VIDA: Vida = {
     HC9: 'Cuando Pablo nació y me di cuenta de que le cantaba las canciones de mi mamá. Ahí entendí que no había dejado nada atrás, que lo había traído todo.',
     HC10: 'Le diría que no tenga miedo, que la valija pesa menos de lo que parece. Y que no se olvide de escribirle a la mamá.',
     'PR-H1': 'Por la señora Montse y por orgullo, Pablo. No quería volver vencida. Y porque en la panadería empecé a sentir que tenía un lugar.',
+    'F:sim-es-AR-1-p1': 'Con la señora Montse hablamos todos los domingos por teléfono, hasta que se murió. Y con una compañera del taller nos seguimos escribiendo cartas.',
     'RP~HM2': 'En el tren lloré hasta Córdoba. Después saqué la foto de mis viejos y me quedé dormida con ella en la mano.',
     'RP~HC6': 'Me hizo pasar a su cocina y me dijo «aquí nadie se rinde el primer invierno». Todavía tengo la taza en la que me dio ese café.',
   },
@@ -51,11 +52,11 @@ const mensajesBot = r.charla.filter((l) => l.de === 'bot').length;
 const lineas = [
   '# Vitácora de una historia · La entrevista leída de corrido',
   '',
-  `**Qué es:** la entrevista completa de una historia **inventada**, tal como le llegaría por WhatsApp. Marta, 74 años, se fue de Tucumán a Barcelona en 1976; se la regala su hijo Pablo, con una pregunta suya. Tema \`mudanza\` (en las preguntas: «${nombreDelTema('mudanza')}»). Al empezar saluda antes de decir que sí, y no tiene fotos.`,
+  `**Qué es:** la entrevista completa de una historia **inventada**, tal como le llegaría por WhatsApp. Marta, 74 años, se fue de Tucumán a Barcelona en 1976; se la regala su hijo Pablo, con una pregunta suya, y alguien de la familia le suma otra desde el panel. Tema \`mudanza\` (en las preguntas: «${nombreDelTema('mudanza')}»). Al empezar saluda antes de decir que sí, y no tiene fotos.`,
   '',
   `**Cómo se generó:** con el bot de verdad (\`entrevistador/src/historia/\`) y el banco aprobado, por \`entrevistador/scripts/historia-lectura.ts\`. No se escribió a mano. Lo único falso es el cazador: hace las dos repreguntas que trae la vida inventada, sin llamar a ningún modelo.`,
   '',
-  `**Cuenta:** ${r.preguntas} preguntas abiertas (contando la de Pablo y las dos repreguntas) · **${mensajesBot} mensajes del bot** en total.`,
+  `**Cuenta:** ${r.preguntas} preguntas abiertas (contando la de Pablo, la del panel y las dos repreguntas) · **${mensajesBot} mensajes del bot** en total.`,
   '',
   'Cómo leerlo: cada **Bot** es un mensaje de WhatsApp. **Marta** es lo que contesta: «🎤» es un audio, y acá va lo que dice. Los botones van entre corchetes al final del mensaje. El día cuenta desde que canjea el regalo.',
   '',

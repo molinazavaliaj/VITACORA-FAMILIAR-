@@ -142,7 +142,16 @@ Naza quiere que en Historia cualquiera pueda sumar preguntas desde la página de
 
 Dónde van en la entrevista: cerca del final, después de PR-H1 a PR-H3 (si las hay) y antes de HC10, con la notación de banco.md. Si llegan cuando ya pasó HC10, no se hacen (estado «tarde» del panel).
 
-### H39 · El mensaje del bot que presenta la primera pregunta sumada desde el panel (PF-H1)
+### H39 · El mensaje del bot que presenta la primera pregunta sumada desde el panel (PF-H1) · APROBADO (Naza, 23/10, con la versión de Claude)
+
+**Aprobado** (va en docs/historia/banco.md e idiomas/ como PF-H1):
+
+- es-AR: Una pregunta más, {{nombre}}, que quedó anotada para vos. Te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Contámela en audio, como las demás.
+- es-ES: Una pregunta más, {{nombre}}, que ha quedado apuntada para ti. Te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Cuéntamela en un audio, como las demás.
+- ca: Una pregunta més, {{nombre}}, que ha quedat apuntada per a tu. Te la passo tal qual.<br><br>«{{pregunta}}»<br><br>Explica-m'ho amb un àudio, com les altres.
+
+Lo que sigue es la propuesta de Fable, que no se usa (quien recibe un regalo no entra a la web: «la página de tu historia» no le dice nada).
+
 
 No nombra a nadie. Dice de dónde viene (la página de su historia), la pasa tal cual entre comillas y cierra con una línea corta, como PR-H1, pero sin «Contale a…» porque no hay a quién.
 
@@ -155,7 +164,16 @@ No nombra a nadie. Dice de dónde viene (la página de su historia), la pasa tal
 
 Alternativa sin la línea final (como M15, más seca): «Esta te llega desde la página de tu historia, {{nombre}}, y te la paso tal cual.<br><br>«{{pregunta}}»» / es-ES igual / ca «Aquesta t'arriba des de la pàgina de la teva història, {{nombre}}, i te la passo tal qual.<br><br>«{{pregunta}}»». La línea final la recomiendo porque la pregunta ajena puede venir escrita de cualquier manera y conviene recordar que se contesta como siempre.
 
-### H40 · El mensaje del bot para las siguientes preguntas sumadas desde el panel (PF-H2)
+### H40 · El mensaje del bot para las siguientes preguntas sumadas desde el panel (PF-H2) · APROBADO (Naza, 23/10, con la versión de Claude)
+
+**Aprobado** (PF-H2):
+
+- es-AR: Otra que quedó anotada para vos.<br><br>«{{pregunta}}»<br><br>Como siempre, en audio.
+- es-ES: Otra que ha quedado apuntada para ti.<br><br>«{{pregunta}}»<br><br>Como siempre, en un audio.
+- ca: Una altra que ha quedat apuntada per a tu.<br><br>«{{pregunta}}»<br><br>Com sempre, amb un àudio.
+
+Propuesta de Fable, que no se usa:
+
 
 Si hay más de una, repetir PF-H1 cansa. A partir de la segunda va esta, siempre la misma.
 
@@ -168,7 +186,7 @@ Si hay más de una, repetir PF-H1 cansa. A partir de la segunda va esta, siempre
 
 No llevan M1 (no son de las tres primeras) y el acuse después es el común (M3), salvo que lo que cuente sea difícil, que ahí decide el código como con cualquier otra.
 
-### H41 · Los textos del panel que sirven tal cual
+### H41 · Los textos del panel que sirven tal cual · APROBADO (Naza, 23/10)
 
 Miré `web/src/lib/preguntas-familia-textos.ts` y `SumarPreguntaV3` en `web/src/app/tablero/[narradorId]/preguntas/acciones.tsx`. Sirven sin cambios para historia:
 
@@ -179,7 +197,7 @@ Miré `web/src/lib/preguntas-familia-textos.ts` y `SumarPreguntaV3` en `web/src/
 
 Falta en el código: `SumarPreguntaV3` solo tiene vos y tú (no catalán) y el ejemplo del campo está escrito adentro del componente. Para historia hay que sacarlo a un archivo de textos, con catalán.
 
-### H42 · El título y la bajada del bloque en el panel, para historia
+### H42 · El título y la bajada del bloque en el panel, para historia · APROBADO (Naza, 23/10)
 
 Los de V3 («Las preguntas de la familia» / «Las que sumó la familia, con las mismas palabras.») mienten cuando la persona se compró el libro para sí y se anota algo que quiere contar. Versión neutra:
 
@@ -199,7 +217,7 @@ Cuando la historia es de quien mira (`propia`), la bajada cambia «Le llegan» p
 
 Alternativa de título: «Más preguntas» / «Más preguntas» / «Més preguntes».
 
-### H43 · El ejemplo dentro del campo, para historia
+### H43 · El ejemplo dentro del campo, para historia · APROBADO (Naza, 23/10)
 
 El de V3 («¿cómo fue el viaje a Mendoza con los chicos?») es de una vida entera. Para historia tiene que servir con cualquier tema y también si lo escribe la persona para sí.
 
@@ -209,7 +227,16 @@ El de V3 («¿cómo fue el viaje a Mendoza con los chicos?») es de una vida ent
 
 Alternativa: «Por ejemplo, ¿qué es lo que nunca contaste de esa época?» / «Por ejemplo, ¿qué es lo que nunca has contado de esa época?» / «Per exemple, què és el que mai has explicat d'aquella època?» (es la pareja de H7, que dice «nunca me contaste»).
 
-### H44 · El aviso cuando ya es tarde
+### H44 · El aviso cuando ya es tarde · APROBADO (Naza, 23/10, corregido)
+
+**Aprobado**, con «ya está en la última pregunta» en lugar de «ya terminó» (las preguntas dejan de entrar cuando sale HC10, no al terminar):
+
+- es-AR: La entrevista ya está en la última pregunta, así que no entran preguntas nuevas. Lo que contó es lo que va al libro. (propia: Lo que contaste…)
+- es-ES: La entrevista ya está en la última pregunta, así que no entran preguntas nuevas. Lo que ha contado es lo que va al libro. (propia: Lo que has contado…)
+- ca: L'entrevista ja és a l'última pregunta, així que no hi entren preguntes noves. El que ha explicat és el que va al llibre. (propia: El que has explicat…)
+
+Propuesta original de Fable:
+
 
 Hoy el panel no tiene un aviso de bloque, solo el estado «Llegó tarde y ya no se la hacemos» en cada pregunta. Para historia, cuando la entrevista ya llegó al final, en lugar del botón «+ Sumar una pregunta» va este aviso.
 

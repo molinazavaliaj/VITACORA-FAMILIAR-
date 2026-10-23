@@ -77,6 +77,8 @@
 | PR-H1 | Esta te la manda {{quien_regala}}, {{nombre}}. La ha dejado escrita para ti y te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Contéstale a {{quien_regala}}, aunque el audio me llegue a mí. |
 | PR-H2 | Otra de {{quien_regala}}, que ha querido saber esto.<br><br>«{{pregunta}}»<br><br>Contéstale como si estuviera ahí contigo. |
 | PR-H3 | La última de {{quien_regala}}.<br><br>«{{pregunta}}»<br><br>Háblale a {{quien_regala}}, aunque me llegue por aquí. |
+| PF-H1 | Una pregunta más, {{nombre}}, que ha quedado apuntada para ti. Te la paso tal cual.<br><br>«{{pregunta}}»<br><br>Cuéntamela en un audio, como las demás. |
+| PF-H2 | Otra que ha quedado apuntada para ti.<br><br>«{{pregunta}}»<br><br>Como siempre, en un audio. |
 | FOTO-H | Otra cosa, {{nombre}}. ¿Tienes fotos de esa época? Busca entre tres y diez, en el móvil o en algún cajón, y mándamelas por aquí. Si son de papel, hazles una foto con el móvil. Después, si quieres, cuéntame en un audio qué se ve y quiénes salen. Tómate el tiempo que necesites para buscarlas. La pregunta que sigue te la mando cuando me llegue algo o me digas que no tienes. Si ahora no las encuentras, no pasa nada, el libro sigue adelante igual y las puedes mandar más adelante. |
 | FIN-H | Hasta aquí llegamos, {{nombre}}. Gracias por cada audio y por la confianza de contarme esta historia así, de cerca. Con todo lo que me has dado se escribe el libro. Antes de escribirlo vas a poder repasar lo que has contado, por si quieres cambiar o añadir algo.«sino:FOTO-H:  ‖  Si te ha quedado alguna foto de esa época por mandar, mándamela por aquí cuando la encuentres, aún estás a tiempo.» Ha sido un gusto enorme escucharte. |
 | M1 | _Si no va contigo, di paso y vamos a otra._ |

@@ -598,6 +598,7 @@ async function armarLectura({
           horario={horario}
           alFinal={alFinal}
           trato={tratoPanel}
+          historia
         />
       ),
       voz,

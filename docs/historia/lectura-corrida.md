@@ -1,10 +1,10 @@
 # Vitácora de una historia · La entrevista leída de corrido
 
-**Qué es:** la entrevista completa de una historia **inventada**, tal como le llegaría por WhatsApp. Marta, 74 años, se fue de Tucumán a Barcelona en 1976; se la regala su hijo Pablo, con una pregunta suya. Tema `mudanza` (en las preguntas: «cuando te fuiste a vivir lejos»). Al empezar saluda antes de decir que sí, y no tiene fotos.
+**Qué es:** la entrevista completa de una historia **inventada**, tal como le llegaría por WhatsApp. Marta, 74 años, se fue de Tucumán a Barcelona en 1976; se la regala su hijo Pablo, con una pregunta suya, y alguien de la familia le suma otra desde el panel. Tema `mudanza` (en las preguntas: «cuando te fuiste a vivir lejos»). Al empezar saluda antes de decir que sí, y no tiene fotos.
 
 **Cómo se generó:** con el bot de verdad (`entrevistador/src/historia/`) y el banco aprobado, por `entrevistador/scripts/historia-lectura.ts`. No se escribió a mano. Lo único falso es el cazador: hace las dos repreguntas que trae la vida inventada, sin llamar a ningún modelo.
 
-**Cuenta:** 19 preguntas abiertas (contando la de Pablo y las dos repreguntas) · **25 mensajes del bot** en total.
+**Cuenta:** 20 preguntas abiertas (contando la de Pablo, la del panel y las dos repreguntas) · **26 mensajes del bot** en total.
 
 Cómo leerlo: cada **Bot** es un mensaje de WhatsApp. **Marta** es lo que contesta: «🎤» es un audio, y acá va lo que dice. Los botones van entre corchetes al final del mensaje. El día cuenta desde que canjea el regalo.
 
@@ -144,6 +144,16 @@ Cómo leerlo: cada **Bot** es un mensaje de WhatsApp. **Marta** es lo que contes
 > Contale a Pablo, aunque el audio me llegue a mí.
 
 **Marta:** 🎤 Por la señora Montse y por orgullo, Pablo. No quería volver vencida. Y porque en la panadería empecé a sentir que tenía un lugar.
+
+**Bot** (día 1):
+> Quedó guardado, Marta. Sigo con la que viene.
+> Una pregunta más, Marta, que quedó anotada para vos. Te la paso tal cual.
+> 
+> «¿Seguís viendo a alguien de esa época?»
+> 
+> Contámela en audio, como las demás.
+
+**Marta:** 🎤 Con la señora Montse hablamos todos los domingos por teléfono, hasta que se murió. Y con una compañera del taller nos seguimos escribiendo cartas.
 
 **Bot** (día 1):
 > Gracias, Marta.
