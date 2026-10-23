@@ -253,7 +253,7 @@ describe("los mails", () => {
 
 describe("los textos que ve una persona", () => {
   it("las casillas son las aprobadas (tanda 1, texto 10)", () => {
-    expect(TEXTOS_CUPON.es.popup.casillaCupon).toBe("Quiero recibir el cupón en este mail.");
+    expect(TEXTOS_CUPON.es.popup.casillaCupon).toBe("Quiero recibir el cupón en este correo.");
     expect(TEXTOS_CUPON.es.popup.casillaRecordatorios).toBe("Acepto que Vitácora me escriba hasta 4 veces para recordarme el descuento. Me doy de baja con un clic.");
     expect(TEXTOS_CUPON.es.checkout.linea).toBe("Cupón de bienvenida · 10 % del libro digital");
   });

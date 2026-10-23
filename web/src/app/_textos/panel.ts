@@ -107,7 +107,7 @@ const ES: TextosPanel = {
       if (t === "antes") return "Todo listo para tu primer mensaje.";
       if (t === "creciendo") return "Tu viaje ya se está guardando.";
       if (t === "pausa") return "Tu viaje está en pausa.";
-      if (t === "termino") return "Ya volviste. Falta elegir la tapa.";
+      if (t === "termino") return "Ya has vuelto. Falta elegir la tapa.";
       if (t === "escribiendo") return "Estamos escribiendo tu libro de viaje.";
       return "Tu libro de viaje está listo.";
     }
@@ -116,7 +116,7 @@ const ES: TextosPanel = {
     if (t === "antes") return `Todo listo para ${tuOSu(q)} primer mensaje.`;
     if (t === "creciendo") return `${libro} va creciendo.`;
     if (t === "pausa") return `${libro} está en pausa.`;
-    if (t === "termino") return q.propia ? "Terminaste de contar." : `${q.como} terminó de contar.`;
+    if (t === "termino") return q.propia ? "Has terminado de contar." : `${q.como} terminó de contar.`;
     if (t === "escribiendo") return `Estamos escribiendo ${libroMin}.`;
     return `${libro} está listo.`;
   },
@@ -157,7 +157,7 @@ const ES: TextosPanel = {
   guardarFecha: "Guardar la nueva fecha",
   guardando: "Guardando…",
   guardado: "Guardado",
-  errorFecha: "No pudimos guardar la fecha. Intenta de nuevo.",
+  errorFecha: "No pudimos guardar la fecha. Inténtalo de nuevo.",
   pausarOCerrar: "Pausar o cerrar el libro",
   cancelar: "Cancelar el pedido",
   pausarTitulo: "Pausar por ahora",

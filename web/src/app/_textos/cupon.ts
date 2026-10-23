@@ -114,7 +114,7 @@ const ES: TextosCupon = {
     premio: "Tienes un 10 % de descuento en tu Vitácora.", // APROBADO por Naza 19/10 · tanda 1, texto 9
     correo: "Tu correo", // APROBADO por Naza 20/10 · CU-04
     correoPista: "nombre@correo.com", // APROBADO por Naza 20/10 · CU-04
-    casillaCupon: "Quiero recibir el cupón en este mail.", // APROBADO por Naza 19/10 · tanda 1, texto 10
+    casillaCupon: "Quiero recibir el cupón en este correo.", // APROBADO por Naza 19/10 · tanda 1, texto 10
     // APROBADO por Naza 19/10 · tanda 1, texto 10
     casillaRecordatorios: "Acepto que Vitácora me escriba hasta 4 veces para recordarme el descuento. Me doy de baja con un clic.",
     recibir: "Recibir mi cupón", // APROBADO por Naza 19/10 · tanda 1, texto 9
@@ -125,9 +125,9 @@ const ES: TextosCupon = {
     letraChica: "Solo el libro digital, 30 días. Lo da Vitácora.", // APROBADO por Naza 20/10 (popup simple)
     faltaCorreo: "Escribe un correo válido.", // APROBADO por Naza 20/10 · CU-07
     faltaCasilla: "Marca la primera casilla para recibir el cupón.", // APROBADO por Naza 20/10 · CU-07
-    fallo: "No pudimos mandarlo. Intenta de nuevo en un rato.", // APROBADO por Naza 20/10 · CU-07
+    fallo: "No pudimos mandarlo. Inténtalo de nuevo en un rato.", // APROBADO por Naza 20/10 · CU-07
     enviadoTitulo: "Revisa tu correo.", // APROBADO por Naza 20/10 · CU-08
-    enviadoTexto: (correo) => `Te mandamos un mail a ${correo}. Toca el botón del mail y te llega tu cupón.`, // APROBADO por Naza 20/10 · CU-08
+    enviadoTexto: (correo) => `Te mandamos un correo a ${correo}. Toca el botón del correo y te llega tu cupón.`, // APROBADO por Naza 20/10 · CU-08
   },
   checkout: {
     pregunta: "¿Tienes un cupón?", // APROBADO por Naza 20/10 · CU-09
@@ -140,14 +140,14 @@ const ES: TextosCupon = {
     motivos: {
       // APROBADO por Naza 20/10 · CU-10
       no_existe: "Ese código no existe. Revisa que esté bien escrito.",
-      sin_confirmar: "Ese cupón todavía no está activo. Toca el botón del mail que te mandamos.",
-      vencido: "Ese cupón ya venció.",
+      sin_confirmar: "Ese cupón todavía no está activo. Toca el botón del correo que te mandamos.",
+      vencido: "Ese cupón ya ha caducado.",
       usado: "Ese cupón ya se usó.",
       otra_region: "Ese cupón es de la web de otro país. Solo vale allí.",
       no_aplica: "El cupón es para el libro digital. Esta compra no lo lleva.",
       con_promo: "El cupón no se suma a precios ya rebajados.",
     },
-    fallo: "No pudimos revisar el cupón. Intenta de nuevo en un momento.", // APROBADO por Naza 20/10 · CU-10
+    fallo: "No pudimos revisar el cupón. Inténtalo de nuevo en un momento.", // APROBADO por Naza 20/10 · CU-10
   },
   paginas: {
     // APROBADO por Naza 20/10 · CU-11
@@ -158,7 +158,7 @@ const ES: TextosCupon = {
     listoTitulo: "Tu cupón ya es tuyo",
     tuCodigo: "Tu código",
     vale: (fecha) => `Vale hasta el ${fecha}, ese día incluido.`,
-    tambienPorMail: "Te lo mandamos también por mail.",
+    tambienPorMail: "Te lo mandamos también por correo.",
     usar: "Usar mi cupón",
     // APROBADO por Naza 20/10 · CU-13
     enlaceVencido: "Este enlace ya no sirve. Pide el cupón otra vez desde la web y te mandamos uno nuevo.",

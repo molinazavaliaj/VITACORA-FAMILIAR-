@@ -171,7 +171,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       titulo: "Tú lo vas siguiendo de cerca.",
       pasos: [
         "Escuchas cada audio en cuanto lo manda.",
-        "Le sumas preguntas y fotos para su libro.",
+        "Le añades preguntas y fotos para su libro.",
         "Lo ves terminado y eliges la tapa antes de imprimirlo.",
       ],
     },
@@ -259,7 +259,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       paso: (n) => `Paso ${n}`,
       pasos: [
         {
-          titulo: "Lo anotas",
+          titulo: "Lo apuntas",
           texto:
             "Nos dices su nombre, su WhatsApp y a qué hora prefiere que le escribamos. Le llega un mensaje nuestro contándole de qué se trata, y arranca cuando quiera.",
         },
@@ -335,14 +335,14 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           respuesta: "No hay calendario ni prisa. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
         },
         {
-          pregunta: "¿Cuánto sale y cuándo se paga?",
+          pregunta: "¿Cuánto cuesta y cuándo se paga?",
           respuesta:
             "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar. El libro en PDF con «Su voz» va siempre, y el impreso y los marcos se suman si quieres.",
         },
         {
           pregunta: "¿Se puede tener el libro impreso?",
           respuesta:
-            "Sí. Se suma al comprar o después, desde la página de su historia, con el libro ya terminado. Tapa dura, en color, con un código en la contraportada que hace sonar su voz.",
+            "Sí. Se añade al comprar o después, desde la página de su historia, con el libro ya terminado. Tapa dura, en color, con un código en la contraportada que hace sonar su voz.",
         },
       ],
     },
@@ -375,7 +375,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Qué es Vitácora",
       titulo: "Un regalo para quien cuenta y otro para toda la familia.",
       bajada:
-        "A tu familiar le llegan preguntas sobre su vida, desde su infancia hasta hoy, y alguien que le escucha. La familia se queda con un libro que va a pasar de generación en generación.",
+        "A tu familiar le llegan preguntas sobre su vida, desde su infancia hasta hoy, y alguien que lo escucha. La familia se queda con un libro que va a pasar de generación en generación.",
     },
     siguiendo: {
       titulo: "Vos lo vas siguiendo de cerca.",

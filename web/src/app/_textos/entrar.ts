@@ -45,7 +45,7 @@ const ES: TextosEntrar = {
   escribiloAca: "Escríbelo aquí",
   entrar: "Entrar",
   entrando: "Entrando…",
-  errorCodigo: "El código no es correcto o ya venció. Revísalo o pide uno nuevo.",
+  errorCodigo: "El código no es correcto o ha caducado. Revísalo o pide uno nuevo.",
   otroEnviado: "Te mandamos otro código a",
   pedirOtro: "Pedir otro código",
   otroCorreo: "Usar otro correo",

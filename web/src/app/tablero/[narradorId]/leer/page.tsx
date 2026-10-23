@@ -91,7 +91,7 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
         <Tarjeta className="mt-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
             {enFabricacion
-              ? `Estamos armando el libro. Tarda unos minutos: ${tu ? "vuelve" : "volvé"} a esta página en un rato.`
+              ? `Estamos armando el libro. Tarda unos minutos. ${tu ? "Vuelve" : "Volvé"} a esta página en un rato.`
               : `Cuando el libro esté cerrado y producido, se lee y se escucha ${tu ? "aquí" : "acá"}.`}
           </p>
         </Tarjeta>

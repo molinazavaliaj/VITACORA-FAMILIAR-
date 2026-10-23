@@ -62,7 +62,7 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas
       });
       const j = (await r.json().catch(() => ({}))) as { error?: string };
       if (!r.ok) throw new Error(j.error ?? "No pudimos mandar la invitación.");
-      setAviso(`Listo: le mandamos la invitación a ${email}.`);
+      setAviso(`Listo. Le mandamos la invitación a ${email}.`);
       setEmail("");
       router.refresh();
     } catch (err) {
@@ -101,7 +101,7 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas
           {modo === "link" ? (
             <>
               <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                El libro de {nombre} está cerrado. {tu ? "Mándale" : "Mandale"} este link a quien quieras: ve una
+                El libro de {nombre} está cerrado. {tu ? "Mándale" : "Mandale"} este enlace a quien quieras. Ve una
                 muestra (la tapa, los capítulos, cómo empieza y un minuto de su voz) y puede
                 pedir su copia impresa o guardarlo en su cuenta. {tu ? "Tú no tienes" : "Vos no tenés"} que hacer nada más.
               </p>
