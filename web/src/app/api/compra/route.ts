@@ -201,6 +201,12 @@ export async function POST(request: NextRequest) {
 
   const validacion = validarYConstruir(body, { sinTelefono: esRegalo, regalo: esRegalo });
   if (!validacion.ok) {
+    // Los de historia («historia: …», lib/historia.ts) son para el log: el formulario no deja mandar nada de eso, y si
+    // llega (la venta se apagó con la página abierta), la persona ve el aviso de siempre.
+    if (validacion.mensaje.startsWith("historia:")) {
+      console.warn(`compra: ${validacion.mensaje}`);
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: validacion.status });
+    }
     return NextResponse.json({ error: validacion.mensaje }, { status: validacion.status });
   }
   const { familia: familiaAInsertar } = validacion;

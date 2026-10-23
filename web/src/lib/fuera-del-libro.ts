@@ -6,6 +6,7 @@
 
 import type { Rol } from "./panel";
 import { entrevistaV3, llegoAlFinalV3, MAXIMO_PREGUNTAS_FAMILIA_V3, ORDEN_FAMILIA_V3, preguntaDeLaFila } from "./v3";
+import { entrevistaHistoria, llegoAlFinalHistoria } from "./historia-panel";
 
 // Solo lo que se usa del cliente de Supabase (así el test no necesita uno de verdad).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,21 +46,33 @@ export async function aplicarFueraDelLibro(
   if (o.rol !== "duena") return mal(403, "No autorizado.");
   const { narradorId, pedido } = o;
 
-  const nar = await admin.from("narradores").select("estado, libro_aprobado_at").eq("id", narradorId).maybeSingle();
+  const nar = await admin.from("narradores").select("estado, libro_aprobado_at, contexto").eq("id", narradorId).maybeSingle();
   if (nar.error || !nar.data) return mal(500, o.error);
-  const narrador = nar.data as { estado: string; libro_aprobado_at: string | null };
+  const narrador = nar.data as { estado: string; libro_aprobado_at: string | null; contexto?: { modo?: unknown } | null };
   if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado: no se cambia más.");
+  // «Vitácora de una historia» (23/10): la misma regla, con su fila (`historias`), su columna (`clave_historia`) y
+  // su final (HC10). El bot de historia también lee respuestas_fuera (entrevistador/src/historia/fuera.ts).
+  const historia = narrador.contexto?.modo === "historia";
 
-  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  let v3: { estado: { charla?: unknown[] } } | null;
+  let alFinal: boolean;
   try {
-    v3 = await entrevistaV3(admin, narradorId);
+    if (historia) {
+      const h = await entrevistaHistoria(admin, narradorId);
+      v3 = h;
+      alFinal = llegoAlFinalHistoria(h?.estado);
+    } else {
+      const e = await entrevistaV3(admin, narradorId);
+      v3 = e;
+      alFinal = llegoAlFinalV3(e?.estado);
+    }
   } catch (e) {
     console.error("fuera-del-libro: fallo la lectura V3", e);
     return mal(500, o.error);
   }
   if (!v3) return mal(400, "Esta historia no se edita desde acá.");
 
-  const fila = await admin.from("respuestas").select("id, clave_v3").eq("id", pedido.respuestaId).eq("narrador_id", narradorId).maybeSingle();
+  const fila = await admin.from("respuestas").select(historia ? "id, clave_v3:clave_historia" : "id, clave_v3").eq("id", pedido.respuestaId).eq("narrador_id", narradorId).maybeSingle();
   if (fila.error) return mal(500, o.error);
   const clave = (fila.data as { clave_v3: string | null } | null)?.clave_v3;
   if (!clave || clave === SIN_CLAVE) return mal(404, "No encontramos esa respuesta.");
@@ -82,7 +95,7 @@ export async function aplicarFueraDelLibro(
   if (propias.error) { console.error("fuera-del-libro: fallo la lectura de preguntas", propias.error); return mal(500, o.error); }
   const filas = (propias.data as { orden: number; tipo: string; texto: string }[] | null) ?? [];
   const familia = filas.filter((p) => p.tipo === "familia");
-  const puede = texto && puedeVolverAPreguntar({ estadoNarrador: narrador.estado, alFinal: llegoAlFinalV3(v3.estado), preguntasFamilia: familia.length });
+  const puede = texto && puedeVolverAPreguntar({ estadoNarrador: narrador.estado, alFinal, preguntasFamilia: familia.length });
   if (!puede) return { status: 200, cuerpo: { ok: true, volvemosAPreguntar: false } };
   // Dos clics (o la misma pregunta sacada dos veces): una sola pregunta.
   if (familia.some((p) => p.texto?.trim() === texto)) return { status: 200, cuerpo: { ok: true, volvemosAPreguntar: true } };

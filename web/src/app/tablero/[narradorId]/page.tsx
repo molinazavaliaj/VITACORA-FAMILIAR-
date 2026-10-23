@@ -575,6 +575,7 @@ async function armarLectura({
     }
     const bloques = historiaDeHistoria(h?.estado, filas, fuera);
     const alFinal = llegoAlFinalHistoria(h?.estado);
+    const preguntasDelPanel = ((propias as FilaPreguntaFamiliaV3[] | null) ?? []).filter((p) => p.tipo === "familia").length;
     const voz = vozV3(bloques);
     return {
       cuerpo: (
@@ -597,6 +598,7 @@ async function armarLectura({
           ritmo={ritmo}
           horario={horario}
           alFinal={alFinal}
+          puedeVolverAPreguntar={puedeVolverAPreguntar({ estadoNarrador: n.estado, alFinal, preguntasFamilia: preguntasDelPanel })}
           trato={tratoPanel}
           historia
         />

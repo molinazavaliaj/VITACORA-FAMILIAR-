@@ -106,9 +106,13 @@ describe("compra de historia", () => {
 
   it("con HISTORIA_VENTA apagado responde 400 y no crea nada", async () => {
     vi.stubEnv("HISTORIA_VENTA", "");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     const admin = feliz();
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-    expect((await POST(peticion(CUERPO))).status).toBe(400);
+    const r = await POST(peticion(CUERPO));
+    expect(r.status).toBe(400);
+    // El mensaje interno queda en el log; a la persona, el aviso de siempre.
+    expect(((await r.json()) as { error: string }).error).not.toMatch(/^historia:/);
     expect(admin.inserts).toEqual({});
   });
 

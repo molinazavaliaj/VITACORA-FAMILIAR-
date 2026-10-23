@@ -84,8 +84,13 @@ function baseFalsa(tablas: Record<string, Fila[]>, errores: Record<string, { cod
     let op = "select";
     let valores: Fila | undefined;
     let uno = false;
+    // Los alias de columna («clave_v3:clave_historia») se leen como en PostgREST.
+    let alias: [string, string][] = [];
     const b: Record<string, unknown> = {};
-    b.select = () => b;
+    b.select = (cols?: string) => {
+      alias = (cols ?? "").split(",").map((c) => c.trim().split(":")).filter((x): x is [string, string] => x.length === 2);
+      return b;
+    };
     b.eq = (c: string, v: unknown) => { filtros[c] = v; return b; };
     b.maybeSingle = () => { uno = true; return b; };
     b.delete = () => { op = "delete"; return b; };
@@ -100,7 +105,8 @@ function baseFalsa(tablas: Record<string, Fila[]>, errores: Record<string, { cod
         if ((op === "upsert" || op === "insert") && valores) t.push(valores);
         return Promise.resolve({ data: null, error: null }).then(ok, ko);
       }
-      const lista = t.filter((f) => Object.entries(filtros).every(([k, v]) => f[k] === v));
+      const lista = t.filter((f) => Object.entries(filtros).every(([k, v]) => f[k] === v))
+        .map((f) => ({ ...f, ...Object.fromEntries(alias.map(([a, c]) => [a, f[c]])) }));
       return Promise.resolve({ data: uno ? (lista[0] ?? null) : lista, error: null }).then(ok, ko);
     };
     return b;
@@ -118,6 +124,34 @@ const armar = (extra: { narrador?: Fila; estado?: Fila; preguntas?: Fila[] } = {
 const ERROR = "No pudimos guardar. Probá de nuevo.";
 const aplicar = (b: ReturnType<typeof armar>, pedido: Parameters<typeof aplicarFueraDelLibro>[1]["pedido"], rol: "duena" | "invitado" = "duena") =>
   aplicarFueraDelLibro(b.admin, { narradorId: "n1", rol, usuarioId: "u1", pedido, error: ERROR });
+
+// «Vitácora de una historia» (23/10): su fila en `historias`, su columna `clave_historia` y su final (HC10).
+const armarHistoria = (estadoHistoria: Fila = { charla: [{ de: "bio", partes: [{ id: "HM2", texto: "Contame la despedida." }] }], respuestas: [] }) => baseFalsa({
+  narradores: [{ id: "n1", estado: "activo", libro_aprobado_at: null, contexto: { modo: "historia" } }],
+  historias: [{ narrador_id: "n1", estado: estadoHistoria, idioma: "es-AR" }],
+  respuestas: [{ id: "r-h", narrador_id: "n1", clave_v3: null, clave_historia: "HM2" }],
+  preguntas: [],
+  respuestas_fuera: [],
+});
+
+describe("aplicarFueraDelLibro en historia", () => {
+  beforeEach(() => { vi.spyOn(console, "error").mockImplementation(() => {}); });
+
+  it("saca la respuesta (clave_historia) y la vuelve a hacer como pregunta del panel", async () => {
+    const b = armarHistoria();
+    const r = await aplicarFueraDelLibro(b.admin, { narradorId: "n1", rol: "duena", usuarioId: "u1", pedido: { accion: "sacar", respuestaId: "r-h", volverAPreguntar: true }, error: ERROR });
+    expect(r).toEqual({ status: 200, cuerpo: { ok: true, volvemosAPreguntar: true } });
+    expect(b.tablas.respuestas_fuera).toEqual([{ respuesta_id: "r-h", narrador_id: "n1", marcada_por: "u1" }]);
+    expect(b.tablas.preguntas.at(-1)).toMatchObject({ tipo: "familia", texto: "Contame la despedida." });
+  });
+
+  it("con la última pregunta (HC10) abierta, la saca pero ya no la vuelve a hacer", async () => {
+    const b = armarHistoria({ charla: [{ de: "bio", partes: [{ id: "HM2", texto: "Contame la despedida." }] }], respuestas: [], esperando: "HC10" });
+    const r = await aplicarFueraDelLibro(b.admin, { narradorId: "n1", rol: "duena", usuarioId: "u1", pedido: { accion: "sacar", respuestaId: "r-h", volverAPreguntar: true }, error: ERROR });
+    expect(r).toEqual({ status: 200, cuerpo: { ok: true, volvemosAPreguntar: false } });
+    expect(b.tablas.preguntas).toEqual([]);
+  });
+});
 
 describe("aplicarFueraDelLibro", () => {
   beforeEach(() => { vi.spyOn(console, "error").mockImplementation(() => {}); });
