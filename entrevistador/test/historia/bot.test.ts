@@ -27,7 +27,7 @@ afterEach(() => {
 async function preparar(o: { ficha?: Partial<FichaFila>; temaAbierto?: boolean; propias?: string[]; idioma?: Idioma; estado?: string } = {}) {
   const narrador: NarradorHistoria = {
     id: 'n1', familia_id: 'f1', como_le_dicen: 'Marta', telefono_whatsapp: TEL, hora_preferida: '10:00:00',
-    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia' }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null,
+    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia' }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false,
   };
   const base = crearBaseFalsa({ narradores: [{ ...narrador }] }, { ahora: () => AHORA });
   const ficha: FichaFila = { nombre: 'Marta', genero: 'mujer', tema: 'mudanza', ...o.ficha };
@@ -75,6 +75,7 @@ describe('antes del SÍ', () => {
     const { entra, enviados, base, fila } = await preparar();
     await entra(texto('Sí'));
     expect(base.tablas.narradores[0].estado).toBe('activo');
+    expect(base.tablas.narradores[0].consentimiento_voz_at).toBe(AHORA.toISOString());
     expect(primeras(enviados)).toEqual(['Funciona así. Son unas quince preguntas ', 'Empecemos por el antes, Marta. Este libr']);
     expect((await fila())!.estado).toMatchObject({ fase: 'entrevista', esperando: 'HC1' });
     expect(base.tablas.envios.map((e) => e.tipo)).toEqual(['historia', 'historia']);
@@ -179,6 +180,21 @@ describe('fuera de la ventana, pausa y recordatorio', () => {
     pasar(2 * 86_400_000 + 60_000);
     await tickHistoria(deps);
     expect(enviados.at(-1)).toMatchObject({ tipo: 'plantilla', plantilla: 'm8_vos', variables: ['Marta'] });
+  });
+
+  it('a los 3 días sin contestar sale el mail de silencio a la familia, una vez; al contestar se apaga', async () => {
+    const { entra, pasar, deps, base, hitos } = await preparar();
+    await entra(texto('Sí'));
+    pasar(2 * 86_400_000);
+    await tickHistoria(deps);
+    expect(hitos).not.toContain('n1:silencio');
+    pasar(86_400_000 + 60_000);
+    await tickHistoria(deps);
+    await tickHistoria(deps);
+    expect(hitos.filter((h) => h === 'n1:silencio')).toHaveLength(1);
+    expect(base.tablas.narradores[0].alerta_silencio).toBe(true);
+    await entra(audio(CUENTA));
+    expect(base.tablas.narradores[0].alerta_silencio).toBe(false);
   });
 
   it('fuera de la ventana, lo abierto sale por la plantilla de la pregunta, solo la pregunta', async () => {

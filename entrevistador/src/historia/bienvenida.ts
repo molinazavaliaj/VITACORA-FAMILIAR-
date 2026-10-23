@@ -2,6 +2,8 @@
 //
 // - Regalo: el narrador escribe con su código (flujo/regalo.ts, canjearRegalo). La ventana está abierta y la
 //   bienvenida (BIEN-HR o BIEN-HR-A) sale como texto (bienvenidaAlCanjear).
+// A los 30 días sin SÍ se avisa para devolver y, 15 días después, se borra su ficha (como el Familiar).
+//
 // - Para uno mismo, o un regalo al que no le llegó el texto (el alta quedó frenada al canjear, o la cola no salió):
 //   el tick del scheduler (atenderInvitado) le da el alta y le manda la plantilla de Meta de su caso, si está aprobada
 //   (WA_PLANTILLAS_HISTORIA_LISTAS). Si no, no sale nada y se avisa: sale apenas se marque.
@@ -11,6 +13,7 @@
 // por salida la que tiene id de Meta); el fallo queda en `envios` y se avisa a los socios (una vez por día).
 
 import { PLANTILLAS_HISTORIA } from '../config.js';
+import { borrarFichaYFotos, DIAS_PARA_BORRAR_FICHA, leTocaBorrar } from '../flujo/borrado-no-acepto.js';
 import { asegurarAltaHistoria } from './alta.js';
 import { bienvenidaDe, textoDeBienvenida } from './arranque.js';
 import type { DepsHistoria } from './deps.js';
@@ -22,11 +25,12 @@ import { encolar } from './turno.js';
 /** El mismo plazo que el Familiar (DIAS_PARA_NO_ACEPTO de flujo/scheduler.ts, que no se importa: carga el cron y la base). */
 export const DIAS_PARA_NO_ACEPTO = 30;
 
-export type ResultadoInvitado = 'mandada' | 'ya-estaba' | 'frenada' | 'sin-plantilla' | 'fallo' | 'activado' | 'drenada' | 'no-acepto';
+export type ResultadoInvitado = 'mandada' | 'ya-estaba' | 'frenada' | 'sin-plantilla' | 'fallo' | 'activado' | 'drenada' | 'no-acepto' | 'borrada';
 
 /** Lo que el tick hace con un invitado de historia: alta, arreglos de un arranque cortado y la bienvenida. */
 export async function atenderInvitado(deps: DepsHistoria, n: NarradorHistoria): Promise<ResultadoInvitado> {
-  if (n.estado !== 'invitado') return 'ya-estaba';
+  if (n.estado !== 'invitado' || n.contexto?.borradoFicha) return 'ya-estaba';
+  if (leTocaBorrar(n, deps.ahora())) return borrarSiCorresponde(deps, n);
   if ((await asegurarAltaHistoria(deps, n)) === 'frenada') return 'frenada';
   const fila = await leerFila(deps.db, n.id);
   if (!fila) return 'ya-estaba';
@@ -97,10 +101,40 @@ async function avisarSiNoAcepto(deps: DepsHistoria, n: NarradorHistoria, fila: F
     return { cambio: { estado: { ...f.estado, avisoNoAcepto: ahora.toISOString() } }, resultado: true };
   });
   if (!marcada) return 'ya-estaba';
+  // La misma marca que el Familiar (contexto.noAcepto): de ahí cuentan los 15 días del borrado de su ficha.
+  const { data: fresco, error: errorLectura } = await deps.db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
+  if (errorLectura) throw new Error(`historia: no pude leer el contexto de ${n.id}: ${errorLectura.message}`);
+  const contexto = (fresco as { contexto?: Record<string, unknown> | null } | null)?.contexto ?? {};
+  const { error: errorMarca } = await deps.db.from('narradores')
+    .update({ contexto: { ...contexto, noAcepto: { cuando: ahora.toISOString(), dias: Math.floor(dias) } } }).eq('id', n.id);
+  if (errorMarca) throw new Error(`historia: no pude marcar que ${n.id} no aceptó: ${errorMarca.message}`);
   await deps.avisar(`no-acepto:${n.id}`, `${n.como_le_dicen ?? n.id} no aceptó su historia en ${DIAS_PARA_NO_ACEPTO} días`,
     `${n.como_le_dicen ?? n.id} (${n.id}) recibió la bienvenida de «Vitácora de una historia» hace ${Math.floor(dias)} días y no dijo SÍ. `
       + 'Corresponde devolverle el dinero a quien compró, completo y sin que lo pida (términos §8). El bot no le escribe más.');
   return 'no-acepto';
+}
+
+/**
+ * A los DIAS_PARA_BORRAR_FICHA días de la marca de no aceptó, se borran su ficha y sus fotos, como el Familiar
+ * (flujo/borrado-no-acepto.ts, privacidad §7), y también su fila de historias (la ficha de la historia y las
+ * preguntas de quien regala). El contexto queda anónimo pero con `modo: 'historia'`, para que el flujo viejo nunca
+ * lo tome como un invitado del Familiar. APAGADO como el del Familiar hasta BORRADO_NO_ACEPTO=1.
+ */
+async function borrarSiCorresponde(deps: DepsHistoria, n: NarradorHistoria): Promise<ResultadoInvitado> {
+  if ((process.env.BORRADO_NO_ACEPTO ?? '').trim() !== '1') return 'ya-estaba';
+  const ahora = deps.ahora();
+  const fotos = await borrarFichaYFotos(deps.db, n.id, ahora);
+  const { error: errorFila } = await deps.db.from('historias').delete().eq('narrador_id', n.id);
+  if (errorFila) throw new Error(`historia: borré la ficha de ${n.id} pero no su fila de historias: ${errorFila.message}`);
+  const { data } = await deps.db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
+  const anonimo = (data as { contexto?: Record<string, unknown> | null } | null)?.contexto ?? {};
+  const { error } = await deps.db.from('narradores').update({ contexto: { ...anonimo, modo: 'historia' } }).eq('id', n.id);
+  if (error) throw new Error(`historia: no pude dejar la marca de historia a ${n.id}: ${error.message}`);
+  await deps.avisar(`borrado-ficha:${n.id}`, 'Se borró la ficha de un narrador de historia que no aceptó',
+    `Pasaron ${DIAS_PARA_BORRAR_FICHA} días desde que ${n.id} quedó como «no aceptó».\n\n`
+      + `Se borraron su nombre, su número, su ficha, su historia y sus ${fotos} fotos, como prometen los legales.\n`
+      + 'El pedido y los datos de la compra siguen: los exige la ley fiscal.');
+  return 'borrada';
 }
 
 /**

@@ -168,8 +168,10 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
   }
   const que = r.resultado;
   if (que === 'si') {
-    // invitado → activo de una vez (como la Viaje V2): con el SÍ sale lo primero de la entrevista.
-    const { error } = await deps.db.from('narradores').update({ estado: 'activo', alerta_silencio: false }).eq('id', n.id).in('estado', ['invitado', 'acepto']);
+    // invitado → activo de una vez (como la Viaje V2): con el SÍ sale lo primero de la entrevista. El SÍ es también
+    // el permiso de voz, como en la V3 (procesar.ts): la bienvenida lleva el mismo pedido de SÍ.
+    const { error } = await deps.db.from('narradores')
+      .update({ estado: 'activo', alerta_silencio: false, consentimiento_voz_at: ahora.toISOString() }).eq('id', n.id).in('estado', ['invitado', 'acepto']);
     if (error) console.error(`historia: no pude dejar activo a ${n.id}: ${error.message}`);
     await marcarRespondido(deps.db, n.id, ahora);
   } else if (que === 'no') {

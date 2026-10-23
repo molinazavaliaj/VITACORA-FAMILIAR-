@@ -105,4 +105,22 @@ describe('bienvenida de historia', () => {
     expect(await atenderInvitado(d.deps, d.n)).toBe('ya-estaba');
     expect(d.avisos.filter((a) => a.clave === 'no-acepto:n1')).toHaveLength(1);
   });
+  it('15 días después de no aceptar se borran su ficha y su historia (con BORRADO_NO_ACEPTO=1), y queda como historia', async () => {
+    vi.stubEnv('WA_PLANTILLAS_HISTORIA_LISTAS', 'es-AR:bienvenida');
+    const d = preparar(PARA_MI);
+    const n = () => ({ ...d.n, ...d.base.tablas.narradores[0] }) as NarradorHistoria;
+    await atenderInvitado(d.deps, n());
+    d.pasar(31 * 86_400_000);
+    expect(await atenderInvitado(d.deps, n())).toBe('no-acepto');
+    expect(d.base.tablas.narradores[0].contexto.noAcepto).toBeTruthy();
+    d.pasar(16 * 86_400_000);
+    expect(await atenderInvitado(d.deps, n())).toBe('ya-estaba'); // apagado sin la variable
+    vi.stubEnv('BORRADO_NO_ACEPTO', '1');
+    expect(await atenderInvitado(d.deps, n())).toBe('borrada');
+    const quedo = d.base.tablas.narradores[0];
+    expect(quedo).toMatchObject({ como_le_dicen: 'Narrador borrado', telefono_whatsapp: 'borrado:n1' });
+    expect(quedo.contexto).toEqual({ modo: 'historia', noAcepto: expect.anything(), borradoFicha: expect.anything() });
+    expect(d.base.tablas.historias).toEqual([]);
+    expect(await atenderInvitado(d.deps, n())).toBe('ya-estaba');
+  });
 });

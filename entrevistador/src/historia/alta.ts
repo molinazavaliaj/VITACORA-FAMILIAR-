@@ -10,8 +10,7 @@
 
 import type { DepsHistoria } from './deps.js';
 import { crearFila, esNarradorHistoria } from './estado.js';
-import { quienLoRegala } from '../flujo/quien-regala.js';
-import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from './nucleo/entrevista/idioma.js';
+import { esIdioma, IDIOMA_POR_DEFECTO } from './nucleo/entrevista/idioma.js';
 import { MAX_PROPIAS } from './nucleo/entrevista/flujo.js';
 import { esGenero, esTema, estadoInicial, type FichaFila, type NarradorHistoria } from './tipos.js';
 
@@ -30,15 +29,14 @@ function texto(x: unknown): string | undefined {
 export type Alta = 'creada' | 'ya-estaba' | 'frenada';
 
 /**
- * Quién regala, como la bienvenida de regalo de la V3 (flujo/regalo.ts): el nombre de la tarjeta
- * (`regalos.quien_regala`) con el vínculo si se reconoce («Tu hijo Pablo»); sin tarjeta, el de quien compró
- * (`familias.nombre`).
+ * Quién regala: el nombre de la tarjeta (`regalos.quien_regala`), como la bienvenida de regalo de la V3; sin tarjeta,
+ * el de quien compró (`familias.nombre`). Sin el vínculo: el banco de historia usa {{quien_regala}} como un nombre,
+ * en medio de una oración («porque {{2}} te hizo un regalo») y para hablarle a esa persona («Hola, {{quien_regala}}»).
  */
-async function quienRegala(deps: DepsHistoria, n: NarradorHistoria, idioma: Idioma): Promise<string | undefined> {
+async function quienRegala(deps: DepsHistoria, n: NarradorHistoria): Promise<string | undefined> {
   const { data: r } = await deps.db.from('regalos').select('quien_regala').eq('narrador_id', n.id).maybeSingle();
   const { data: f } = await deps.db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
-  const nombre = texto((r as { quien_regala?: unknown } | null)?.quien_regala) ?? texto((f as { nombre?: unknown } | null)?.nombre);
-  return quienLoRegala(idioma, nombre, n.contexto?.vinculoComprador) ?? undefined;
+  return texto((r as { quien_regala?: unknown } | null)?.quien_regala) ?? texto((f as { nombre?: unknown } | null)?.nombre);
 }
 
 export async function asegurarAltaHistoria(deps: DepsHistoria, n: NarradorHistoria): Promise<Alta> {
@@ -57,7 +55,7 @@ export async function asegurarAltaHistoria(deps: DepsHistoria, n: NarradorHistor
   if (!esTema(tema)) return frenar(`el tema «${String(h.tema)}» no es uno de docs/historia/temas.md`);
   const idioma = c.idioma === undefined || c.idioma === null || c.idioma === '' ? IDIOMA_POR_DEFECTO : c.idioma;
   if (!esIdioma(idioma)) return frenar(`el idioma «${String(c.idioma)}» no es es-AR, es-ES ni ca`);
-  const regala = c.regalo === true ? await quienRegala(deps, n, idioma) : undefined;
+  const regala = c.regalo === true ? await quienRegala(deps, n) : undefined;
   if (c.regalo === true && !regala) return frenar('es un regalo y no encontré el nombre de quien regala (regalos.quien_regala ni familias.nombre), que va en la bienvenida');
 
   const todas = Array.isArray(h.preguntasPropias) ? h.preguntasPropias.map(texto).filter((p): p is string => p !== undefined) : [];

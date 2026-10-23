@@ -1,7 +1,8 @@
 // El reloj de «Vitácora de una historia» (copia de src/v3/reloj.ts): un tick por minuto. Todo sale de la base (ningún
 // setTimeout en memoria): si Railway se cae, el tick siguiente retoma. Por narrador activo, en orden: las filas de
-// respuestas que quedaron sin sumar (reconciliar), la cola que quedó, el cierre por 3' de silencio (también de lo que
-// contestó en TEMA-ABIERTO), la tanda del día a su hora y M8 a los 2 días sin respuesta.
+// respuestas que quedaron sin sumar (reconciliar), la cola que quedó, el mail de silencio a la familia a los 3 días
+// sin respuesta, el cierre por 3' de silencio (también de lo que contestó en TEMA-ABIERTO), la tanda del día a su hora
+// y M8 a los 2 días sin respuesta.
 //
 // Sin lo de V3: la familia (no hay preguntas de la familia) y la búsqueda junta de respuestas sin clave de a 100
 // narradores (conSinClave): historia arranca con pocos narradores y cada uno busca las suyas.
@@ -45,12 +46,30 @@ export function tocaM8(f: FilaHistoria, ahora: Date): boolean {
     && !!e.abiertaDesde && ahora.getTime() - Date.parse(e.abiertaDesde) >= DIAS_M8 * 86_400_000;
 }
 
+/** Días sin respuesta para el mail de silencio a la familia (DIAS_SILENCIO del Familiar, flujo/scheduler.ts). */
+export const DIAS_SILENCIO = 3;
+
+/** 3 días sin que conteste nada, con la entrevista andando y sin avisar todavía. Al contestar se apaga (marcarRespondido). */
+export function tocaSilencio(f: FilaHistoria, n: NarradorHistoria, ahora: Date): boolean {
+  return f.estado.fase === 'entrevista' && !f.estado.terminada && !n.alerta_silencio && !!n.ultima_respuesta_at
+    && ahora.getTime() - Date.parse(n.ultima_respuesta_at) >= DIAS_SILENCIO * 86_400_000;
+}
+
+/** El mail de silencio a la familia, una vez por silencio: la marca va primero y solo avisa quien la puso. */
+async function avisarSilencio(deps: DepsHistoria, n: NarradorHistoria): Promise<void> {
+  const { data, error } = await deps.db.from('narradores').update({ alerta_silencio: true }).eq('id', n.id).eq('alerta_silencio', false).select('id');
+  if (error) throw new Error(`reloj historia: no pude marcar el silencio de ${n.id}: ${error.message}`);
+  if ((data as unknown[] | null)?.length) await deps.hito(n.id, 'silencio');
+}
+
 export type Trabajo = 'nada' | 'reconciliar' | 'drenar' | 'cierre' | 'tanda' | 'm8';
 
 export async function trabajarNarrador(deps: DepsHistoria, fila: FilaHistoria, n: NarradorHistoria): Promise<Trabajo> {
   if (n.estado !== 'activo') return 'nada';
   const ahora = deps.ahora();
   if (tomaVigente(fila, ahora)) return 'nada';
+  // Antes que la cola: una cola trabada (la plantilla de M8 sin aprobar) no puede tapar el aviso a la familia.
+  if (tocaSilencio(fila, n, ahora)) await avisarSilencio(deps, n);
   if ((await reconciliar(deps, fila, n)) > 0) {
     await drenar(deps, n.id);
     return 'reconciliar';

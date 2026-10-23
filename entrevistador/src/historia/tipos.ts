@@ -156,6 +156,7 @@ export type NarradorHistoria = {
   estado: string;
   dia_actual: number;
   ultima_respuesta_at: string | null;
+  alerta_silencio?: boolean;
 };
 
 /** La respuesta de FOTO-H cuando llega la foto (la fábrica la saca al armar el material). Igual que en V3. */

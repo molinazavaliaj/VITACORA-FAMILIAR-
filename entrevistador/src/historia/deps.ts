@@ -26,8 +26,11 @@ export type DepsHistoria = {
   transcribir(audio: Buffer, o: { nombre: string; idioma: Idioma; narradorId: string }): Promise<Transcripcion>;
   /** Aviso a los socios (consola + mail). Nunca tira. */
   avisar(clave: string, asunto: string, detalle: string): Promise<void>;
-  /** Los mails de hito a la familia que ya existen (mail/hitos.ts). Nunca tira. 'acepto': el «dijo que sí» de un regalo. */
-  hito(narradorId: string, hito: 'acepto' | 'primera' | 'mitad'): Promise<void>;
+  /**
+   * Los mails de hito a la familia que ya existen (mail/hitos.ts). Nunca tira. 'acepto': el «dijo que sí» de un
+   * regalo; 'silencio': 3 días sin contestar («un llamado tuyo ayuda»).
+   */
+  hito(narradorId: string, hito: 'acepto' | 'primera' | 'mitad' | 'silencio'): Promise<void>;
   /** El cliente del cazador; null = apagado. */
   cazador: ClienteModelo | null;
   ahora(): Date;
