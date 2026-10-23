@@ -26,4 +26,11 @@ describe('entraALaV3', () => {
     expect(entraALaV3({})).toBe(true);
     vi.unstubAllEnvs();
   });
+  it('una historia (modo historia) no entra: tiene su propio bot', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '1');
+    const { entraALaV3 } = await import('../src/config.js');
+    expect(entraALaV3({ modo: 'historia', regalo: true })).toBe(false);
+    expect(entraALaV3({ modo: 'historia' })).toBe(false);
+    vi.unstubAllEnvs();
+  });
 });

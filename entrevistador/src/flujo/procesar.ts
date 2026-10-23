@@ -24,6 +24,8 @@ import { esNarradorV3 } from '../v3/estado.js';
 import { esViajeroV2 } from '../viaje-v2/filas.js';
 import { asegurarAltaViajeV2, esModoViaje } from '../viaje-v2/alta.js';
 import { esChicoKids } from '../kids-v2/filas.js';
+import { esModoHistoria } from '../historia/alta.js';
+import type { NarradorHistoria } from '../historia/tipos.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
@@ -204,6 +206,29 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
       await procesarEntranteViajeV2(depsViajeReales(), narrador, m);
       return;
     }
+  }
+
+  // Vitácora de una historia (plan 2026-10-21, Task 3.4): un narrador con `contexto.modo = 'historia'` va entero por
+  // su bot (src/historia), desde antes del SÍ hasta después del final, y a nada más. Si escribe antes de que el tick
+  // le dé el alta, la recibe acá. Si el alta queda frenada (faltan datos; los socios ya están avisados) o la base no
+  // responde, no se le contesta: el tick reintenta. Imports dinámicos, como la V3.
+  if (narrador.estado !== 'pendiente_pago' && esModoHistoria(narrador.contexto)) {
+    const { depsHistoriaReales } = await import('../historia/deps-reales.js');
+    const { asegurarAltaHistoria } = await import('../historia/alta.js');
+    const deps = depsHistoriaReales();
+    const n = narrador as unknown as NarradorHistoria;
+    try {
+      if ((await asegurarAltaHistoria(deps, n)) === 'frenada') {
+        console.warn(`historia: ${narrador.id} ('${narrador.estado}') no tiene historia: no se le contesta`);
+        return;
+      }
+    } catch (err) {
+      console.error(`historia: no pude darle el alta a ${narrador.id}:`, err instanceof Error ? err.message : err);
+      return;
+    }
+    const { procesarEntranteHistoria } = await import('../historia/entrante.js');
+    await procesarEntranteHistoria(deps, n, m);
+    return;
   }
 
   // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va
