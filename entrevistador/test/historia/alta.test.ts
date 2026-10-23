@@ -34,6 +34,12 @@ describe('alta de historia', () => {
     expect(fila.ficha).toMatchObject({ quienRegala: 'Pablo', tema: 'trabajo' });
     expect(fila.idioma).toBe('ca');
   });
+  it('un regalo con tarjeta lleva el nombre de la tarjeta y el vínculo, como la V3 («Tu hijo Naza»)', async () => {
+    const d = preparar({ modo: 'historia', regalo: true, genero: 'mujer', vinculoComprador: 'hijo', historia: { tema: 'trabajo' } }, { familia: null });
+    d.base.tablas.regalos = [{ narrador_id: 'n1', quien_regala: 'Naza' }];
+    expect(await asegurarAltaHistoria(d.deps, d.n)).toBe('creada');
+    expect((await d.fila())!.ficha.quienRegala).toBe('Tu hijo Naza');
+  });
   it('dos veces no duplica', async () => {
     const d = preparar({ modo: 'historia', genero: 'varon', historia: { tema: 'otra', temaLibre: 'El año en el campo' } });
     await asegurarAltaHistoria(d.deps, d.n);

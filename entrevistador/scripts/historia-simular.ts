@@ -21,7 +21,7 @@
 // Sale con código 1 si hay alguna violación.
 
 import { pathToFileURL } from 'node:url';
-import { bienvenidaAlCanjear, bienvenidaPorPlantilla } from '../src/historia/bienvenida.js';
+import { atenderInvitado, bienvenidaAlCanjear } from '../src/historia/bienvenida.js';
 import { esperarCazas } from '../src/historia/cazador.js';
 import type { DepsHistoria } from '../src/historia/deps.js';
 import { procesarEntranteHistoria } from '../src/historia/entrante.js';
@@ -246,7 +246,7 @@ export async function correr(nar: Narrador, vida?: Vida): Promise<Corrida> {
     charla.push({ en: reloj, de: 'narrador', texto: '(canjea el código del regalo)' });
     await bienvenidaAlCanjear(deps, id);
   } else {
-    await bienvenidaPorPlantilla(deps, leerN());
+    await atenderInvitado(deps, leerN());
   }
   pasar(r.entre(5, 40) * MIN);
   if (nar.saluda) {

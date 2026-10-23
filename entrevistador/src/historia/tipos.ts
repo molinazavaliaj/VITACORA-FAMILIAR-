@@ -110,6 +110,8 @@ export type EstadoHistoria = {
   bienvenida?: { en: string; por: 'plantilla' | 'texto' };
   /** Antes del SÍ ya se le contestó una vez algo que no era SÍ (`noEntendi` / `noQuiere`): después, silencio. */
   sePidioSi?: boolean;
+  /** Cuándo se avisó a los socios que no aceptó en DIAS_PARA_NO_ACEPTO días (una sola vez). */
+  avisoNoAcepto?: string;
 };
 
 /**

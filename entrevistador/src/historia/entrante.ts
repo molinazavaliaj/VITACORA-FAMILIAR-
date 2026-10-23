@@ -20,7 +20,7 @@ import { leerSiNo, respuestaAntesDelSi, textoDeBienvenida } from './arranque.js'
 import { lanzarCazador } from './cazador.js';
 import type { DepsHistoria, Transcripcion } from './deps.js';
 import { drenar, ventanaAbierta } from './enviar.js';
-import { conReintento, type CambioFila, type Paso } from './estado.js';
+import { conReintento, leerFila, type CambioFila, type Paso } from './estado.js';
 import { leerSacadas, type Sacadas } from './fuera.js';
 import {
   anotarTranscripcion, bajarAudioGuardado, guardarAudio, guardarFoto, guardarTexto, marcarRespondido, numeroDeLlegada, ponerClave, ponerClaveSiFalta, yaLlego,
@@ -157,7 +157,15 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
     }
     return { cambio: { estado: e }, resultado: dijo === 'no' ? 'no' : 'nada' };
   });
-  if (!r) return;
+  if (!r) {
+    // Otro mensaje (el SÍ, que llegó junto) ya arrancó la entrevista mientras este esperaba: no se pierde, va por el
+    // camino de después del SÍ con la fila nueva.
+    const ahoraFila = await leerFila(deps.db, n.id);
+    if (ahoraFila && ahoraFila.estado.fase !== 'bienvenida' && !yaVisto(ahoraFila.estado, m.waMessageId)) {
+      await procesarEntranteHistoria(deps, n, m);
+    }
+    return;
+  }
   const que = r.resultado;
   if (que === 'si') {
     // invitado → activo de una vez (como la Viaje V2): con el SÍ sale lo primero de la entrevista.

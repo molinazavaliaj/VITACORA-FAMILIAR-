@@ -182,9 +182,10 @@ async function atenderViajeros(): Promise<void> {
 }
 
 /**
- * 0b. Vitácora de una historia (plan 2026-10-21, Task 3.4). Un invitado con modo historia recibe su alta y, si es
- * para uno mismo, la plantilla de bienvenida (historia/bienvenida.ts). Un regalo no: su bienvenida sale como texto
- * cuando escribe con el código (flujo/regalo.ts); acá solo se reintenta el alta, si quedó frenada.
+ * 0b. Vitácora de una historia (plan 2026-10-21, Task 3.4). Cada invitado con modo historia pasa por
+ * historia/bienvenida.ts (atenderInvitado): el alta; la plantilla de bienvenida si no le llegó ninguna (para uno
+ * mismo; un regalo, si al canjear no le salió el texto); la cola que quedó antes del SÍ; el paso a activo si dijo
+ * SÍ y no se pudo marcar; y el aviso de no aceptó a los 30 días.
  */
 async function atenderHistorias(): Promise<void> {
   const { data, error } = await db.from('narradores').select('*').eq('estado', 'invitado');
@@ -192,16 +193,11 @@ async function atenderHistorias(): Promise<void> {
   // Los de la simulación (contexto.simulacion) los maneja el script.
   const historias = ((data as Narrador[] | null) ?? []).filter((n) => esModoHistoria(n.contexto) && n.contexto?.simulacion !== true);
   if (historias.length === 0) return;
-  const { asegurarAltaHistoria } = await import('../historia/alta.js');
-  const { bienvenidaPorPlantilla } = await import('../historia/bienvenida.js');
+  const { atenderInvitado } = await import('../historia/bienvenida.js');
   const { depsHistoriaReales } = await import('../historia/deps-reales.js');
   const deps = depsHistoriaReales();
   for (const n of historias) {
-    const nh = n as unknown as Parameters<typeof bienvenidaPorPlantilla>[1];
-    await aislado(n.id, async () => {
-      if (n.contexto?.regalo === true) await asegurarAltaHistoria(deps, nh);
-      else await bienvenidaPorPlantilla(deps, nh);
-    });
+    await aislado(n.id, async () => { await atenderInvitado(deps, n as unknown as Parameters<typeof atenderInvitado>[1]); });
   }
 }
 

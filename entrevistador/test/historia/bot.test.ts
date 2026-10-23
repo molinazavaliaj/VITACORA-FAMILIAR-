@@ -80,6 +80,14 @@ describe('antes del SÍ', () => {
     expect(base.tablas.envios.map((e) => e.tipo)).toEqual(['historia', 'historia']);
   });
 
+  it('un audio que llega junto con el SÍ no se pierde: va como respuesta a lo que abrió el SÍ', async () => {
+    const { entra, base, fila } = await preparar();
+    await entra(texto('Hola'));
+    await Promise.all([entra(texto('Sí')), entra(audio(CUENTA))]);
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+    expect((await fila())!.estado.borrador).toContain(CUENTA.slice(0, 30));
+  });
+
   it('la bienvenida que le toca: BIEN-H, BIEN-HR con quién regala, BIEN-HR-A con el tema abierto', async () => {
     const f = (ficha: Partial<FichaFila>, temaAbierto = false) =>
       bienvenidaDe({ idioma: 'es-AR', ficha: { nombre: 'Marta', genero: 'mujer', tema: 'padres', ...ficha }, estado: estadoInicial({ temaAbierto, propias: [] }) });

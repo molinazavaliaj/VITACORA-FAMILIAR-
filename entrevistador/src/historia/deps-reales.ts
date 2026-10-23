@@ -34,7 +34,9 @@ export function depsHistoriaReales(): DepsHistoria {
     hito: async (narradorId, hito) => {
       try {
         const { data } = await db.from('narradores').select('*').eq('id', narradorId).maybeSingle();
-        if (data) await mandarHito(data as NarradorParaMail, hito);
+        // Para uno mismo, el mail de la familia le llegaría al propio narrador hablando de él en tercera persona
+        // («Ya podés escuchar a Marta»): los hitos son solo de los regalos.
+        if (data && (data as { contexto?: { regalo?: unknown } | null }).contexto?.regalo === true) await mandarHito(data as NarradorParaMail, hito);
       } catch (err) {
         console.error(`historia: no pude mandar el hito '${hito}' de ${narradorId}:`, err instanceof Error ? err.message : err);
       }

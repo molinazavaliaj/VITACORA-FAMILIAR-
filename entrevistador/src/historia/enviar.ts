@@ -68,7 +68,10 @@ export type Envio =
   /** `abierta`: llevó la pregunta abierta (sin botones: al volver a escribir, se le reenvía con ellos). */
   | { tipo: 'plantilla'; nombre: string; idiomaMeta: string; variables: string[]; ids: number[]; abierta: boolean }
   | { tipo: 'sin-plantilla'; cual: 'pregunta' | 'recordatorio'; nombre: string }
-  /** La bienvenida como texto ya no sale (se cerró la ventana): la plantilla de bienvenida la manda el scheduler. */
+  /**
+   * La bienvenida como texto ya no sale (se cerró la ventana): se saca de la cola junto con su marca, y la plantilla
+   * de bienvenida la manda el tick del scheduler (historia/bienvenida.ts, atenderInvitado).
+   */
   | { tipo: 'descartar'; ids: number[] };
 
 /** Qué sale ahora de la cola (no vacía). Puro, salvo que lee las listas de plantillas aprobadas. */
@@ -114,7 +117,11 @@ export async function drenar(deps: DepsHistoria, narradorId: string): Promise<Re
       if (deps.ahora().getTime() - inicio.getTime() >= TIEMPO_MAXIMO_DRENAR_MS) return resultado;
       const envio = elegirEnvio(fila, deps.ahora());
       if (envio.tipo === 'descartar') {
-        const r = await conReintento(deps.db, narradorId, (f) => ({ cambio: { estado: quitarSalientes(f.estado, envio.ids) }, resultado: true }));
+        const r = await conReintento(deps.db, narradorId, (f) => {
+          const sin = quitarSalientes(f.estado, envio.ids);
+          const sinMarca = sin.fase === 'bienvenida' && sin.bienvenida?.por === 'texto' ? { ...sin, bienvenida: undefined } : sin;
+          return { cambio: { estado: sinMarca }, resultado: true };
+        });
         if (!r) return resultado;
         fila = r.fila;
         continue;
