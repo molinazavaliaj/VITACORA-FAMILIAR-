@@ -2,12 +2,14 @@
 import { describe, expect, it } from 'vitest';
 import { HISTORIA_TEMAS, historiaVende, historiaVendeEn, validarHistoria } from '@/lib/historia';
 
+const env = (x: Record<string, string>) => x as unknown as NodeJS.ProcessEnv;
+
 describe('historia en la web', () => {
   it('se vende solo con HISTORIA_VENTA=1', () => {
-    expect(historiaVende('ES', {} as NodeJS.ProcessEnv)).toBe(false);
-    expect(historiaVende('ES', { HISTORIA_VENTA: '1' } as NodeJS.ProcessEnv)).toBe(true);
-    expect(historiaVende('AR', { HISTORIA_VENTA: '0' } as NodeJS.ProcessEnv)).toBe(false);
-    expect(historiaVendeEn('ca', { HISTORIA_VENTA: '1' } as NodeJS.ProcessEnv)).toBe(true);
+    expect(historiaVende('ES', env({}))).toBe(false);
+    expect(historiaVende('ES', env({ HISTORIA_VENTA: '1' }))).toBe(true);
+    expect(historiaVende('AR', env({ HISTORIA_VENTA: '0' }))).toBe(false);
+    expect(historiaVendeEn('ca', env({ HISTORIA_VENTA: '1' }))).toBe(true);
   });
   it('los temas son los de docs/historia/temas.md, en ese orden', () => {
     expect(HISTORIA_TEMAS).toEqual(['mudanza', 'negocio', 'enfermedad', 'conocimos', 'padres', 'trabajo', 'otra']);

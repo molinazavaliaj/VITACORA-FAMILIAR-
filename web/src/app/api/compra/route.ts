@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     datosRegalo = v.regalo;
   }
 
-  const validacion = validarYConstruir(body, { sinTelefono: esRegalo });
+  const validacion = validarYConstruir(body, { sinTelefono: esRegalo, regalo: esRegalo });
   if (!validacion.ok) {
     return NextResponse.json({ error: validacion.mensaje }, { status: validacion.status });
   }
