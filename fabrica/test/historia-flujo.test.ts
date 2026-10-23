@@ -99,13 +99,27 @@ describe('flujo de historia', () => {
     const s = siguientePregunta({ respuestas, enviados: new Set([FOTO]), tema: 'negocio' });
     expect(s).toMatchObject({ tipo: 'pregunta', pregunta: { id: 'HC5' } });
   });
-  it('el botón de la foto sale de banco.md; en es-ES y ca no hay texto aprobado y la foto va sin botón ni M31', () => {
+  it('el botón de la foto sale del md de cada idioma (Naza, 23/10) y lleva M31 debajo', () => {
     expect(botonFoto('es-AR')).toEqual({ texto: 'No tengo fotos', vale: 'no' });
-    expect(botonFoto('es-ES')).toBeUndefined();
-    expect(botonFoto('ca')).toBeUndefined();
+    expect(botonFoto('es-ES')).toEqual({ texto: 'No tengo fotos', vale: 'no' });
+    expect(botonFoto('ca')).toEqual({ texto: 'No tinc fotos', vale: 'no' });
     const banco = bancoHistoria('negocio', 'ca');
     const respuestas = new Map(banco.preguntas.slice(0, 8).map((p) => [p.id, CONTO]));
-    expect(siguientePregunta({ respuestas, tema: 'negocio', idioma: 'ca' })).toEqual({ tipo: 'foto', clave: FOTO, esperaFoto: true });
+    expect(siguientePregunta({ respuestas, tema: 'negocio', idioma: 'ca' })).toEqual({
+      tipo: 'foto',
+      clave: FOTO,
+      esperaFoto: true,
+      botones: [{ texto: 'No tinc fotos', vale: 'no' }],
+      ayudaBotones: true,
+    });
+    expect(respondioNo(new Map([[FOTO, respuestaDeBoton('No tinc fotos')]]), FOTO, 'ca')).toBe(true);
+  });
+  it('FIN-H en catalán sin la frase de la foto si tocó [No tinc fotos]', () => {
+    const ficha = { nombre: 'Anna', genero: 'mujer' as const, tema: 'negocio' as const, idioma: 'ca' as const };
+    const sinFoto = recorrerEntrevista({ ficha, contesta: (clave) => (clave === FOTO ? respuestaDeBoton('No tinc fotos') : undefined) }).at(-1)!;
+    const conFoto = recorrerEntrevista({ ficha, contesta: 'todo' }).at(-1)!;
+    expect(conFoto.texto).toContain("Si t'ha quedat alguna foto");
+    expect(sinFoto.texto).not.toContain("Si t'ha quedat alguna foto");
   });
 });
 

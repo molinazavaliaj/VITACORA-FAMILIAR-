@@ -51,7 +51,11 @@
     "HC9-T": "Què t'ha deixat aquella feina, a part del sou? Explica'm una vegada, fora de la feina, en què et vas adonar que alguna cosa teva venia d'allà. Una manera de fer les coses, de tractar la gent, d'aguantar. Què estaves fent i què vas pensar.",
     "HC1-A": "Comencem per com era tot abans, {{nombre}}. Abans que comencés aquesta història que has triat, tu ja feies la teva vida. Explica'm un dia normal d'aquella època, de poc abans que passés tot això. On vivies, què feies, qui tenies a prop."
   },
-  "botones": {},
+  "botones": {
+    "FOTO-H": [
+      "No tinc fotos"
+    ]
+  },
   "mensajes": {
     "BIEN-H": "Hola, {{1}}, com estàs? Soc qui t'entrevistarà per fer el teu llibre sobre {{2}}. Ho farem aquí, per WhatsApp, amb calma. T'aniré enviant les preguntes d'una en una i tu m'ho expliques amb un àudio, com si parléssim en persona. Comencem? Contesta'm SÍ. Amb això em dones permís per guardar el que m'enviïs.",
     "BIEN-HR": "Hola, {{1}}, com estàs? T'escric perquè {{2}} t'ha fet un regal. És un llibre sobre {{3}}, explicat per tu, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma. T'aniré enviant les preguntes d'una en una i tu m'ho expliques amb un àudio, com si parléssim en persona. Comencem? Contesta'm SÍ. Amb això em dones permís per guardar el que m'enviïs.",

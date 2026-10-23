@@ -55,14 +55,14 @@ export function botonRepregunta(idioma: Idioma = IDIOMA_POR_DEFECTO): Boton {
 }
 
 /**
- * El botón de FOTO-H, [No tengo fotos], que vale "no" (banco.md, regla 6). El
- * texto sale de la columna "Cuándo" de FOTO-H en banco.md (`botón [No tengo
- * fotos]`). Los md de es-ES y ca no traen el texto del botón: sin texto
- * aprobado, undefined (la foto va sin botón y sin M31) en lugar de inventarlo.
+ * El botón de FOTO-H, [No tengo fotos], que vale "no" (banco.md, regla 6). En
+ * es-AR el texto sale de la columna "Cuándo" de FOTO-H en banco.md (`botón [No
+ * tengo fotos]`); en es-ES y ca, de la sección "## Botones" de su md (Naza,
+ * 23/10). Sin texto aprobado, undefined (la foto va sin botón y sin M31) en
+ * lugar de inventarlo.
  */
 export function botonFoto(idioma: Idioma = IDIOMA_POR_DEFECTO): Boton | undefined {
-  if (idioma !== 'es-AR') return undefined;
-  const texto = /botón \[([^\]]+)\]/.exec(mensajePorId(FOTO)?.cuando ?? '')?.[1];
+  const texto = idioma === 'es-AR' ? /botón \[([^\]]+)\]/.exec(mensajePorId(FOTO)?.cuando ?? '')?.[1] : textosDe(idioma).botones[FOTO]?.[0];
   return texto ? { texto, vale: 'no' } : undefined;
 }
 

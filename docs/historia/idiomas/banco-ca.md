@@ -112,6 +112,14 @@
 | M32.1 | Amb el que m'has dit ja en tinc prou, {{nombre}}. La resta te la pots guardar per a tu. Passem a una altra. |
 | M32.2 | Està bé. El que m'has explicat queda, i el que no, no cal. Seguim. |
 
+## Botones
+
+El botón de FOTO-H, que vale "no" (banco.md, regla 6; en es-AR es el [No tengo fotos] de la columna "Cuándo"). Aprobado por Naza el 23/10.
+
+| ID | N | Botón |
+|---|---|---|
+| FOTO-H | 1 | No tinc fotos |
+
 ## Repregunta del cazador
 
 Copiada tal cual de V3 ([`docs/v3/entrevista/banco-ca.md`](../../v3/entrevista/banco-ca.md)), porque el cazador de escenas es el mismo.

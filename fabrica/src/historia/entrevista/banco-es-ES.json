@@ -51,7 +51,11 @@
     "HC9-T": "¿Qué te ha dejado ese trabajo, aparte del sueldo? Cuéntame una vez, fuera del trabajo, en que te diste cuenta de que algo tuyo venía de allí. Una manera de hacer las cosas, de tratar a la gente, de aguantar. Qué estabas haciendo y qué pensaste.",
     "HC1-A": "Empecemos por el antes, {{nombre}}. Antes de que empezara esta historia que has elegido, tú ya tenías una vida en marcha. Cuéntame un día normal de esa época, de poco antes de que pasara todo esto. Dónde vivías, qué hacías, quién estaba cerca."
   },
-  "botones": {},
+  "botones": {
+    "FOTO-H": [
+      "No tengo fotos"
+    ]
+  },
   "mensajes": {
     "BIEN-H": "Hola, {{1}}, ¿cómo estás? Soy quien te va a entrevistar para hacer tu libro sobre {{2}}. Lo hacemos aquí, por WhatsApp, con calma. Te mando las preguntas de una en una y tú me contestas con un audio, como si me lo estuvieras contando en persona. ¿Empezamos? Contéstame SÍ. Con eso me das permiso para guardar lo que me mandes.",
     "BIEN-HR": "Hola, {{1}}, ¿cómo estás? Te escribo porque {{2}} te ha hecho un regalo. Es un libro sobre {{3}}, contado por ti, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma. Te mando las preguntas de una en una y tú me contestas con un audio, como si me lo estuvieras contando en persona. ¿Empezamos? Contéstame SÍ. Con eso me das permiso para guardar lo que me mandes.",
