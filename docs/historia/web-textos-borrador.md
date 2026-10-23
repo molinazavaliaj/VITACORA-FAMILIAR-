@@ -478,7 +478,7 @@ Respuesta:
 
 ## Tanda 4 · La página, el final (las otras preguntas frecuentes, el cierre y «Próximamente»)
 
-### H31 · Pregunta frecuente 4 · Lo que no quiere contar
+### H31 · Pregunta frecuente 4 · Lo que no quiere contar · APROBADO (Naza, 23/10)
 
 Pregunta:
 
@@ -492,7 +492,15 @@ Respuesta:
 - es-ES: En cualquier pregunta se puede decir paso y seguimos con otra. Lo que no cuenta no se inventa, y lo que cuenta va al libro como lo dijo.
 - ca: A qualsevol pregunta es pot dir «passo» i en fem una altra. El que no explica no s'inventa, i el que explica va al llibre tal com ho va dir.
 
-### H32 · Pregunta frecuente 5 · Preguntas propias
+### H32 · Pregunta frecuente 5 · Preguntas propias · APROBADO (Naza, 23/10)
+
+**Aprobado con la versión de Claude** (la de Fable, abajo, quedó vieja cuando Naza decidió que cualquiera suma preguntas desde el panel):
+
+- es-AR: **¿Puedo agregar preguntas mías?** Sí. Si es un regalo, al comprar podés dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para vos, se pueden sumar más hasta la última pregunta.
+- es-ES: **¿Puedo añadir preguntas mías?** Sí. Si es un regalo, al comprar puedes dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para ti, se pueden añadir más hasta la última pregunta.
+- ca: **Puc afegir-hi preguntes meves?** Sí. Si és un regal, en comprar en pots deixar fins a tres, que li arriben de part teva. I des de la pàgina de la història, també si és per a tu, se n'hi poden afegir més fins a l'última pregunta.
+
+Propuesta original de Fable, que no se usa:
 
 Pregunta:
 
@@ -506,7 +514,7 @@ Respuesta:
 - es-ES: Si es un regalo, hasta tres. Le llegan cerca del final, tal cual las escribes y de tu parte.
 - ca: Si és un regal, fins a tres. Li arriben cap al final, tal com les escrius i de part teva.
 
-### H33 · Pregunta frecuente 6 · Corregir antes del libro
+### H33 · Pregunta frecuente 6 · Corregir antes del libro · APROBADO (Naza, 23/10)
 
 Pregunta:
 
@@ -520,7 +528,7 @@ Respuesta:
 - es-ES: Sí. Cuando termina la entrevista, antes de escribir el libro, quien la contó repasa lo que dijo y puede cambiar o añadir lo que quiera.
 - ca: Sí. Quan acaba l'entrevista, abans d'escriure el llibre, qui l'ha explicat repassa el que ha dit i pot canviar o afegir el que vulgui.
 
-### H34 · Pregunta frecuente 7 · Las fotos
+### H34 · Pregunta frecuente 7 · Las fotos · APROBADO (Naza, 23/10)
 
 Pregunta:
 
@@ -534,7 +542,7 @@ Respuesta:
 - es-ES: No, el libro sale igual. A mitad de la entrevista pedimos entre tres y diez fotos de esa época, y si aparecen más tarde se pueden mandar después.
 - ca: No, el llibre surt igual. A mitja entrevista demanem entre tres i deu fotos d'aquella època, i si apareixen més tard es poden enviar després.
 
-### H35 · El cierre
+### H35 · El cierre · APROBADO (Naza, 23/10)
 
 En dos líneas, como en Kids; la segunda en cursiva. Debajo va el botón de H15.
 
@@ -544,13 +552,13 @@ En dos líneas, como en Kids; la segunda en cursiva. Debajo va el botón de H15.
 
 Alternativa: «La historia que se cuenta siempre, / por fin escrita.» / «La historia que se cuenta siempre, / por fin escrita.» / «La història que s'explica sempre, / per fi escrita.»
 
-### H36 · El enlace a Familiar, debajo del cierre
+### H36 · El enlace a Familiar, debajo del cierre · APROBADO (Naza, 23/10)
 
 - es-AR: ¿Buscás el libro de una vida entera? Vitácora Familiar
 - es-ES: ¿Buscas el libro de una vida entera? Vitácora Familiar
 - ca: Busques el llibre d'una vida sencera? Vitácora Familiar
 
-### H37 · «Próximamente», mientras `HISTORIA_VENTA` está apagada
+### H37 · «Próximamente», mientras `HISTORIA_VENTA` está apagada · APROBADO (Naza, 23/10)
 
 Como en Kids (título, texto, botón y correo).
 
@@ -578,7 +586,7 @@ Correo (asunto y cuerpo):
 - es-ES: Vitácora de una historia · Hola. Quiero que me aviséis cuando abra Vitácora de una historia.
 - ca: Vitácora d'una història · Hola. Vull que m'aviseu quan obri Vitácora d'una història.
 
-### H38 · El nombre del producto en el resumen del pedido
+### H38 · El nombre del producto en el resumen del pedido · APROBADO (Naza, 23/10)
 
 En el ticket de la derecha del checkout, donde Familiar dice «Vitácora Familiar» (`RESUMEN.marca`).
 
