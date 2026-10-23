@@ -12,6 +12,7 @@ import { bancoHistoria, preguntaPorId } from '../src/historia/entrevista/banco';
 import {
   cazarBloque,
   extraerPrompt,
+  fichaCazador,
   loQueViene,
   MAX_ELEGIDAS,
   PROMPT_CAZADOR_DE,
@@ -125,6 +126,23 @@ describe('cazador de historia', () => {
 });
 
 describe('lo que ve el modelo', () => {
+  it('la ficha trae el tema (la etiqueta de temas.md) y, si la hay, la historia en sus palabras', () => {
+    expect(fichaCazador({ nombre: 'Ana', genero: 'mujer', tema: 'mudanza' })).toBe('<ficha>\nnombre: Ana\ngénero: mujer\ntema: Irse a vivir lejos\n</ficha>');
+    expect(fichaCazador({ nombre: 'Juan', genero: 'varon', tema: 'otra', temaLibre: ' cuando me quebré la pierna ', idioma: 'ca' })).toBe(
+      '<ficha>\nnombre: Juan\ngénero: varón\ntema: Una altra història\nen sus palabras: cuando me quebré la pierna\n</ficha>',
+    );
+  });
+  it('en es-AR va el prompt de historia: como mucho UNA, sin bloque Hoy ni pedido_dia (Naza, 23/10)', () => {
+    const p = PROMPT_CAZADOR_DE['es-AR'];
+    expect(p).toContain('elegís como mucho UNA respuesta');
+    expect(p).toContain('el tema de su historia');
+    expect(p).not.toMatch(/bloque Hoy|pedido_dia|DOS respuestas|pareja de hoy/);
+    expect(p).toContain('{"elegidas": [');
+  });
+  it('ninguna respuesta lleva la marca pedido_dia', () => {
+    const r = respuestasParaCazar(new Map([['HC1', HC1]]), 1, (id) => id);
+    expect(r).toEqual([{ id: 'HC1', pregunta: 'HC1', texto: HC1, paso: false }]);
+  });
   it('el prompt del idioma, el nombre del bloque de banco.md y lo que viene del banco de su tema', async () => {
     const { cliente, pedidos } = falso([salida({ elegidas: [], escenas_contadas_bloque: [] })]);
     await cazarBloque({ ...base, cliente });
