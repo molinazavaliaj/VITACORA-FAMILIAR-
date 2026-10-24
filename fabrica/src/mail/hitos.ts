@@ -111,7 +111,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     ],
     boton: 'Leer el libro',
   },
-  // BORRADOR de Fable (24/10), versión recomendada: falta que Naza lo apruebe.
+  // Aprobado por Naza el 24/10 (la versión recomendada de Fable).
   libro_listo_sin_voz: {
     asunto: (quien) => `El libro de tu ${quien} está listo`,
     parrafos: (quien) => [

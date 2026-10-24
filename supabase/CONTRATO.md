@@ -1443,6 +1443,7 @@ título que elige la dueña, qué dejar afuera, encargar), con sus respuestas (`
 narrador tiene fila en `historias` (`web/src/lib/dudas-archivos.ts`, `carpetaDelEscritor`).
 
 **Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
-imprenta cuando la familia confirma las frases; historia no pasa por ahí). No existe el mail «el libro está listo» de
-historia. Las entregas del impreso (`entregas.ts`: el portón de
+imprenta cuando la familia confirma las frases; historia no pasa por ahí). El mail «el libro está listo» le sale a una
+historia en su trato (vos en `es-AR`, tú en `es-ES` y `ca`); si el libro salió sin frases con su voz (`frases.json` sin
+ninguna elegida con audio), va `libro_listo_sin_voz`, que no promete escucharla (mismo candado). Las entregas del impreso (`entregas.ts`: el portón de
 imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.
