@@ -11,7 +11,8 @@
 // Sin FIRMA_TOKENS se sigue usando SUPABASE_SERVICE_ROLE_KEY, como antes.
 
 export function secretoFirma(): string {
-  const s = process.env.FIRMA_TOKENS || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // .trim(): al pegar una clave en Vercel se cuela a veces un espacio o un salto de línea.
+  const s = process.env.FIRMA_TOKENS?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!s) throw new Error("Falta FIRMA_TOKENS (o SUPABASE_SERVICE_ROLE_KEY) para firmar los links.");
   return s;
 }
@@ -19,7 +20,7 @@ export function secretoFirma(): string {
 /** Los secretos que se aceptan al verificar: el actual y, si está, el anterior. */
 export function secretosVerificacion(): string[] {
   const lista = [secretoFirma()];
-  const anterior = process.env.FIRMA_TOKENS_ANTERIOR;
+  const anterior = process.env.FIRMA_TOKENS_ANTERIOR?.trim();
   if (anterior && !lista.includes(anterior)) lista.push(anterior);
   return lista;
 }

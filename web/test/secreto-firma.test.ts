@@ -71,6 +71,16 @@ describe("la firma de los links después del cambio de claves", () => {
     expect(verificarToken("cupon-baja", baja, "fila-2")).toBe(false);
   });
 
+  it("una clave pegada con espacios o salto de línea igual sirve", () => {
+    conClaves({ servicio: VIEJA });
+    const impreso = firmarTokenVoz("nar-1");
+    conClaves({ firma: ` ${NUEVA}\n`, anterior: `${VIEJA}\n ` });
+    expect(verificarTokenVoz(impreso)).toEqual({ narradorId: "nar-1" });
+    const nuevo = firmarTokenVoz("nar-1");
+    conClaves({ firma: NUEVA });
+    expect(verificarTokenVoz(nuevo)).toEqual({ narradorId: "nar-1" });
+  });
+
   it("un anticipo firmado con cualquier otra clave no abre", () => {
     conClaves({ firma: NUEVA, anterior: VIEJA });
     expect(verificarTokenAnticipo(anticipoFirmadoCon("cualquiera"))).toBeNull();
