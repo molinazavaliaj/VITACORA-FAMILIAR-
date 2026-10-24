@@ -12,8 +12,8 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import {
-  FORMATO_TAPA_DURA, MARGENES_MINIMOS, MAXIMO_BYTES_INTERIOR, PAGINAS_MINIMAS_TAPA_DURA, PPP_CUBIERTA,
-  PPP_FOTO_MINIMO, PPP_FOTO_RECOMENDADO, medidasCubierta, type Papel,
+  FORMATO_TAPA_DURA, MARGENES_MINIMOS, MAXIMO_BYTES_INTERIOR, PPP_CUBIERTA,
+  PPP_FOTO_MINIMO, PPP_FOTO_RECOMENDADO, formatoDe, medidasCubierta, paginasMinimasDe, type Encuadernacion, type Papel,
 } from './formato.js';
 import { pppDePng, type ResultadoCubierta } from './cubierta.js';
 
@@ -182,17 +182,19 @@ const lista = (ns: number[]) => (ns.length > 12 ? `${ns.slice(0, 12).join(', ')}
 /** Lo que tiene que cumplir el interior. Pura: recibe lo medido, para poder probarla sin navegador. */
 export function evaluarInterior(
   medidas: PaginaMedida[],
-  o: { bytes: number; papel?: Papel; formato?: { anchoMm: number; altoMm: number } },
+  o: { bytes: number; papel?: Papel; formato?: { anchoMm: number; altoMm: number }; encuadernacion?: Encuadernacion },
 ): InformeInterior {
   const papel = o.papel ?? 'crema';
-  const formato = o.formato ?? FORMATO_TAPA_DURA;
-  const minimo = PAGINAS_MINIMAS_TAPA_DURA[papel];
+  const encuadernacion = o.encuadernacion ?? 'tapa-dura';
+  const formato = o.formato ?? (encuadernacion === 'tapa-dura' ? FORMATO_TAPA_DURA : formatoDe(encuadernacion));
+  const minimo = paginasMinimasDe(encuadernacion, papel);
+  const tapa = encuadernacion === 'tapa-blanda' ? 'tapa blanda' : 'tapa dura';
   const errores: string[] = [];
   const avisos: string[] = [];
   const bien: string[] = [];
   const n = medidas.length;
 
-  if (n < minimo) errores.push(`Tiene ${n} páginas y el mínimo de tapa dura en papel ${papel} es ${minimo}.`);
+  if (n < minimo) errores.push(`Tiene ${n} páginas y el mínimo de ${tapa} en papel ${papel} es ${minimo}.`);
   else bien.push(`Páginas: ${n} (mínimo ${minimo}).`);
   if (n % 2 !== 0) errores.push(`Tiene ${n} páginas: tiene que ser un número par.`);
 
@@ -259,7 +261,7 @@ export function evaluarInterior(
 
   const ok = errores.length === 0;
   const texto = [
-    `VERIFICACIÓN BOOKMUNDO — TAPA DURA — interior ${formato.anchoMm}×${formato.altoMm} mm, papel ${papel}`,
+    `VERIFICACIÓN BOOKMUNDO — ${tapa.toUpperCase()} — interior ${formato.anchoMm}×${formato.altoMm} mm, papel ${papel}`,
     '',
     ...errores.map((e) => `✗ ${e}`),
     ...avisos.map((a) => `! ${a}`),
@@ -270,16 +272,17 @@ export function evaluarInterior(
   return { ok, errores, avisos, texto, paginas: n, paginasColor, paginasMedidas: medidas };
 }
 
-export async function verificarInterior(pdf: Buffer, o: { papel?: Papel; formato?: { anchoMm: number; altoMm: number } } = {}): Promise<InformeInterior> {
+export async function verificarInterior(pdf: Buffer, o: { papel?: Papel; formato?: { anchoMm: number; altoMm: number }; encuadernacion?: Encuadernacion } = {}): Promise<InformeInterior> {
   return evaluarInterior(await medirPdf(pdf), { ...o, bytes: pdf.length });
 }
 
 /** La cubierta: medida exacta a 300 ppp, el QR que lleva a su voz y la resolución de la foto de tapa. */
-export function verificarCubierta(c: Pick<ResultadoCubierta, 'png' | 'anchoPx' | 'altoPx' | 'qrLeido' | 'pppFoto' | 'medidas'>, o: { urlQr: string; paginas: number }): Informe {
+export function verificarCubierta(c: Pick<ResultadoCubierta, 'png' | 'anchoPx' | 'altoPx' | 'qrLeido' | 'pppFoto' | 'medidas'>, o: { urlQr: string; paginas: number; encuadernacion?: Encuadernacion }): Informe {
   const errores: string[] = [];
   const avisos: string[] = [];
   const bien: string[] = [];
-  const m = medidasCubierta(o.paginas);
+  const encuadernacion = o.encuadernacion ?? 'tapa-dura';
+  const m = medidasCubierta(o.paginas, formatoDe(encuadernacion), encuadernacion);
   if (Math.abs(c.medidas.lomoMm - m.lomoMm) > 0.05) errores.push(`El lomo de la cubierta (${unMm(c.medidas.lomoMm)} mm) no es el de ${o.paginas} páginas (${unMm(m.lomoMm)} mm).`);
   const esperadoAncho = Math.round((m.anchoTotalMm / 25.4) * PPP_CUBIERTA);
   const esperadoAlto = Math.round((m.altoTotalMm / 25.4) * PPP_CUBIERTA);
@@ -304,7 +307,9 @@ export function verificarCubierta(c: Pick<ResultadoCubierta, 'png' | 'anchoPx' |
     ...avisos.map((a) => `! ${a}`),
     ...bien.map((b) => `✓ ${b}`),
     '',
-    'Al subir: comparar con la medida de la vista previa de Bookmundo (con 88 págs, 401,6 × 280). Si no coincide, no subir.',
+    encuadernacion === 'tapa-blanda'
+      ? 'Al subir: comparar la medida y el lomo con la calculadora de Bookmundo (el lomo de tapa blanda con menos de 88 págs no está medido). Si no coincide, no subir.'
+      : 'Al subir: comparar con la medida de la vista previa de Bookmundo (con 88 págs, 401,6 × 280). Si no coincide, no subir.',
     ok ? 'RESULTADO: lista para subir.' : 'RESULTADO: HAY ERRORES — no subir todavía.',
   ].join('\n');
   return { ok, errores, avisos, texto };

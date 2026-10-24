@@ -118,6 +118,16 @@ const DEFINICIONES: Definicion[] = [
     carril: "libro", nombre: "Escribe el libro V3", modelo: "claude-opus-5-5", pasos: ["escritor-B", "escritor-C"],
     queHace: "Suma las correcciones de la familia y escribe el libro entero, revisado",
   },
+  // El escritor de «Vitácora de una historia» (fabrica/src/escritor-historia/produccion): anota un paso por etapa
+  // (escritor-historia-A, escritor-historia-B, escritor-historia-C).
+  {
+    carril: "libro", nombre: "Lee la entrevista de una historia", modelo: "claude-opus-5-5", pasos: ["escritor-historia-A"],
+    queHace: "Ordena lo que contó, arma el plan del libro y anota las dudas de datos",
+  },
+  {
+    carril: "libro", nombre: "Escribe el libro de una historia", modelo: "claude-opus-5-5", pasos: ["escritor-historia-B", "escritor-historia-C"],
+    queHace: "Suma las correcciones de la familia y escribe el libro entero, revisado",
+  },
   {
     carril: "libro", nombre: "Arma el PDF", modelo: "", dePdf: true,
     queHace: "Junta el texto y las fotos en el libro listo para imprimir",

@@ -173,7 +173,9 @@ export async function PATCH(request: NextRequest) {
   // Entrevista V3 (10/10) y «Vitácora de una historia» (21/10): no hay guion que copiar ni editar. La familia suma
   // preguntas suyas (tipo 'familia'), que el bot hace antes del final: en la V3, antes de la foto del final (FO1);
   // en historia, antes de la última pregunta (HC10). Después ya no le llegan.
-  const sumarDeLaFamilia = async (alFinal: boolean) => {
+  // `historia`: el tope no dice «de la familia» (las suma también quien se compró el libro para sí; Naza, 24/10), y
+  // después de guardar se vuelve a mirar: si el bot pasó a la última pregunta en el medio, no llega y se dice.
+  const sumarDeLaFamilia = async (alFinal: boolean, historia?: { releerAlFinal: () => Promise<boolean> }) => {
     if (body.accion !== "agregar") return respuesta(400, { error: "En esta entrevista no hay guion para editar. Se suman preguntas." });
     if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return respuesta(403, { error: "No autorizado." });
     if (alFinal) return respuesta(400, { error: "La entrevista ya está en las últimas preguntas. Las nuevas no llegan a tiempo." });
@@ -183,7 +185,11 @@ export async function PATCH(request: NextRequest) {
     if (errorPropias) { console.error("guion: fallo la lectura V3", errorPropias); return respuesta(500, { error: GENERICO(trato) }); }
     const filas = (propias as { orden: number; tipo: string }[] | null) ?? [];
     if (filas.filter((p) => p.tipo === "familia").length >= MAXIMO_PREGUNTAS_FAMILIA_V3) {
-      return respuesta(400, { error: `Ya hay ${MAXIMO_PREGUNTAS_FAMILIA_V3} preguntas de la familia, que es el máximo.` });
+      return respuesta(400, {
+        error: historia
+          ? `Ya hay ${MAXIMO_PREGUNTAS_FAMILIA_V3} preguntas sumadas, que es el máximo.`
+          : `Ya hay ${MAXIMO_PREGUNTAS_FAMILIA_V3} preguntas de la familia, que es el máximo.`,
+      });
     }
     const orden = Math.max(ORDEN_FAMILIA_V3, ...filas.map((p) => p.orden + 1));
     const capitulo = typeof body.capitulo === "string" && body.capitulo.trim() ? body.capitulo.trim() : "Preguntas de la familia";
@@ -191,6 +197,12 @@ export async function PATCH(request: NextRequest) {
       .insert({ narrador_id: narrador.id, orden, texto: texto.texto, capitulo, tipo: "familia", agregada_por: user.id })
       .select("id, orden").single();
     if (error) { console.error("guion: fallo agregar V3", error); return respuesta(500, { error: GENERICO(trato) }); }
+    if (historia && (await historia.releerAlFinal().catch(() => false))) {
+      // Llegó justo cuando salía la última pregunta: no se la va a hacer. Se saca y se avisa, como si hubiera llegado tarde.
+      const id = (data as { id?: string } | null)?.id;
+      if (id) await admin.from("preguntas").delete().eq("id", id);
+      return respuesta(400, { error: "La entrevista ya está en las últimas preguntas. Las nuevas no llegan a tiempo." });
+    }
     return respuesta(200, { ok: true, pregunta: data });
   };
 
@@ -204,7 +216,8 @@ export async function PATCH(request: NextRequest) {
       console.error("guion: fallo la lectura de historia", e);
       return respuesta(500, { error: GENERICO(trato) });
     }
-    return sumarDeLaFamilia(llegoAlFinalHistoria(h?.estado));
+    const releerAlFinal = async () => llegoAlFinalHistoria((await entrevistaHistoria(admin, narrador.id))?.estado);
+    return sumarDeLaFamilia(llegoAlFinalHistoria(h?.estado), { releerAlFinal });
   }
 
   let v3: Awaited<ReturnType<typeof entrevistaV3>>;

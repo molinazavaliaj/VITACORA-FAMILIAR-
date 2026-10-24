@@ -1397,5 +1397,47 @@ historia, la que todavía no se sumó: la retoma el reloj). Varias filas pueden 
 Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la entrevista, `completado` después de
 FIN-H, `pausado` con «quiero parar», como en V3). Las fotos sueltas se guardan siempre.
 
-**Pendiente para fases siguientes:** el candado de la fábrica, para que el camino viejo (anticipo, estructura, paquete
-viejo) no toque a ningún narrador con fila en `historias`, y que el escritor V3 no lo tome como un narrador V3 (Fase 5).
+### El libro de una historia en la fábrica (24/10 — rama `historia-libro`)
+
+**El candado** (`fabrica/src/historia/candado.ts`, `narradoresConHistoria`): un narrador con fila en `historias` no
+recibe nada del libro de siempre, en las mismas ramas del worker que un chico de Kids: anticipo, estructura,
+previsualización, paquete viejo, escritor V3, «el libro está listo», recordatorio de frases y audios originales.
+Los mails de cierre sí (Naza, 24/10): «terminó», los recordatorios de 3, 7 y 14 días y el cierre solo a los 30 días,
+con los textos de cierre de la V3 (no hablan de una vida entera), con vos en `es-AR` y tú en `es-ES` y `ca`. Sin la tabla (migración sin aplicar), nadie
+cuenta una historia; con otro error de base, esas ramas no corren ese tick.
+
+**El escritor** (`fabrica/src/escritor-historia/produccion/libro-historia.ts`, `revisarLibrosHistoria` en el tick),
+el mismo recorrido que el libro V3:
+- La entrevista terminó (`completado` o `cerrado_anticipado`) → Etapa A (registro, plan, dudas de datos). Las dudas
+  van por mail a los socios, una vez. Las respuestas se escriben a mano en `{id}/escritor-historia/correcciones.json`
+  (mismo formato que V3); la pantalla de dudas de la web todavía no lee historia.
+- Pedido `pagado` + `narradores.libro_aprobado_at` → lo reclama este módulo (no el worker): B con las correcciones
+  (y `edicion.correcciones`), C, `{id}/paquete/libro.html` y `libro.pdf`, «Su voz» (`frases.json`) y el pedido a
+  `entregado` (`libro_pdf_path`). Un error pasajero vuelve el pedido a `pagado`; uno definitivo, `fallido` y aviso.
+- Lo material lee `historias.estado.respuestas` (con el borrador abierto) y `respuestas` con `clave_historia` (sin `∅`),
+  menos lo reservado (`estado.reservadas`, `reservada`, `reservado_tramo`), lo destildado al cerrar
+  (`edicion.excluidas`) y lo sacado desde el panel (`respuestas_fuera`).
+
+| En Storage (`audios`) | Qué es |
+|---|---|
+| `{id}/escritor-historia/` | El almacén del escritor: `pasos/`, `lotes/`, `costos.json`, `carpeta-A/B/C.json`, `libro.md`, `informe.md`, `dudas-familia.json`, `dudas-avisadas.txt`, `fallo-A.json`, `correcciones.json`, `trabajando.json` |
+| `{id}/paquete/libro.html`, `libro.pdf` | El libro para leer y descargar, como V3, con la tapa de historia |
+| `{id}/bookmundo/` | Tapa dura para Bookmundo, sin hojas de Notas (`escritor-historia/produccion/imprenta.ts`, después de entregar). Con menos de 88 páginas queda solo `informe.txt` («NO SUBIR…»), sale un mail a los socios (una vez, `{id}/escritor-historia/aviso-flaco.txt`) y se le ofrece tapa blanda al cliente |
+| `{id}/bookmundo-tapa-blanda/` | La tapa blanda 170×240, que se arma a mano: `cd fabrica && npx tsx scripts/historia-tapa-blanda.ts <id>` |
+
+| Variable (Railway, fábrica) | Qué hace |
+|---|---|
+| `ESCRITOR_HISTORIA` | `1` = prendido para todos; `solo:<id>,<id>` = solo esos. Sin la variable, apagado: no se escribe nada, ni la Etapa A. |
+| `ESCRITOR_HISTORIA_TOPE_USD` | Tope de gasto por trabajo (Etapa A o libro). 10 por defecto. |
+
+Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B` o `-C`.
+
+**Los textos de tapa** de historia (la línea arriba del nombre, la etiqueta, la contratapa y el lema) están en
+`fabrica/src/escritor-historia/produccion/textos-tapa.ts`, uno por idioma; los aprobó Naza el 24/10
+(`docs/historia/libro-textos-borrador.md`). Si un idioma no los tuviera, el libro no se escribe: la Etapa A sí, el pedido
+sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/aviso-sin-textos-tapa.txt`).
+
+**Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
+imprenta cuando la familia confirma las frases; historia no pasa por ahí). La web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
+y en la pantalla de dudas; no existe el mail «el libro está listo» de historia. Las entregas del impreso (`entregas.ts`: el portón de
+imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

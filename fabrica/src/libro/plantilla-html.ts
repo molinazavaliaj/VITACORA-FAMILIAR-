@@ -562,9 +562,10 @@ function construirPortada(opts: {
   fotoUrl?: string | null;
   fotoFoco?: Foco;
   idioma: 'es' | 'ca';
+  eyebrow?: string;
 }): string {
   const { nombreNarrador, tapa, fotoUrl, fotoFoco, idioma } = opts;
-  const textos = TEXTOS_TAPA[idioma];
+  const textos = { ...TEXTOS_TAPA[idioma], ...(opts.eyebrow ? { eyebrow: escaparHtml(opts.eyebrow) } : {}) };
   // El título que eligió la dueña manda; sin título, el nombre. El subtítulo ya
   // no va en la tapa (Naza, 13/10): la tapa es foto, «el libro de su vida» y el nombre.
   const nombre = tapa.titulo ?? nombreNarrador;
@@ -948,7 +949,8 @@ function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: 
  *  - márgenes en espejo: el lomo queda a la izquierda en las impares y a la derecha en las pares;
  *  - fondo blanco (se pide papel crema) y sin el grano de papel de la pantalla;
  *  - fuentes TrueType estáticas incrustadas: las variables de Google, Chromium las imprime como Type 3;
- *  - páginas de notas hasta el mínimo de la encuadernación, y el colofón en la última.
+ *  - páginas de notas hasta el mínimo de la encuadernación (o, con `sinNotas`, blancas hasta un número par), y el
+ *    colofón en la última.
  * El libro de pantalla (el que descarga la familia) no cambia: todo esto vive detrás de `imprenta`.
  */
 export type OpcionesImprenta = {
@@ -956,6 +958,11 @@ export type OpcionesImprenta = {
   altoMm: number;
   /** Mínimo de páginas de la encuadernación (Bookmundo tapa dura, papel crema: 88). */
   paginasMinimas: number;
+  /**
+   * Sin páginas de notas («Vitácora de una historia», spec §5): ni su título ni sus renglones. Hasta el mínimo y
+   * hasta un número par se completa con páginas en blanco. Sin esto, como siempre.
+   */
+  sinNotas?: boolean;
   /** Los @font-face con las fuentes estáticas incrustadas (bookmundo/fuentes.ts). */
   fuentesCss: string;
 };
@@ -1250,6 +1257,7 @@ function construirScriptPaginador(): string {
     var b = document.body;
     var minimo = Number(b.getAttribute('data-paginas-min')) || 0;
     var renglones = Number(b.getAttribute('data-renglones')) || 0;
+    var sinNotas = b.getAttribute('data-sin-notas') === '1';
     var todos = Array.prototype.slice.call(document.querySelectorAll('.lienzo'));
     var colofon = null;
     var final = [];
@@ -1261,16 +1269,18 @@ function construirScriptPaginador(): string {
       if (el.classList.contains('apertura')) aImpar();
       final.push(el);
     }
-    aImpar();
-    var titulo = nuevaPagina('notas-titulo', '<div class="t"></div><div class="r"></div>');
-    titulo.querySelector('.t').textContent = b.getAttribute('data-notas') || '';
-    final.push(titulo);
+    if (!sinNotas) {
+      aImpar();
+      var titulo = nuevaPagina('notas-titulo', '<div class="t"></div><div class="r"></div>');
+      titulo.querySelector('.t').textContent = b.getAttribute('data-notas') || '';
+      final.push(titulo);
+    }
     var conColofon = final.length + (colofon ? 1 : 0);
     var total = Math.max(minimo, conColofon + (conColofon % 2));
     var renglon = '';
     for (var r = 0; r < renglones; r++) renglon += '<div></div>';
     while (final.length < total - (colofon ? 1 : 0)) {
-      final.push(nuevaPagina('notas', '<div class="renglones">' + renglon + '</div><div class="pie-pagina"><span class="adorno"><span class="p"></span><span class="r"></span></span><span class="folio"></span></div>'));
+      final.push(sinNotas ? nuevaPagina('blanca') : nuevaPagina('notas', '<div class="renglones">' + renglon + '</div><div class="pie-pagina"><span class="adorno"><span class="p"></span><span class="r"></span></span><span class="folio"></span></div>'));
     }
     if (colofon) final.push(colofon);
     var script = document.querySelector('script');
@@ -1355,6 +1365,8 @@ export async function construirHtmlLibro(datos: {
   trato?: 'vos' | 'tu';
   /** El libro para la imprenta (Bookmundo tapa dura), ver `OpcionesImprenta`. Sin esto, el de pantalla. */
   imprenta?: OpcionesImprenta;
+  /** La línea de arriba del nombre en la tapa, para otro producto («Vitácora de una historia»). Sin esto, «EL LIBRO DE SU VIDA». */
+  tapaEyebrow?: string;
 }): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
@@ -1386,7 +1398,7 @@ export async function construirHtmlLibro(datos: {
   const imprenta = datos.imprenta;
   const portadaHtml = imprenta
     ? construirPortadilla({ nombre: tapa.titulo ?? nombreNarrador, idioma: datos.idioma ?? 'es' })
-    : construirPortada({ nombreNarrador, tapa, fotoUrl, fotoFoco, idioma: datos.idioma ?? 'es' });
+    : construirPortada({ nombreNarrador, tapa, fotoUrl, fotoFoco, idioma: datos.idioma ?? 'es', ...(datos.tapaEyebrow ? { eyebrow: datos.tapaEyebrow } : {}) });
   // «Su voz» va después de todo el cuerpo y antes de las páginas de cierre
   // (colofón y contratapa), como pidió el plan: es una sección del libro, no una
   // página suelta pegada al final.
@@ -1401,7 +1413,7 @@ export async function construirHtmlLibro(datos: {
     ? `<style>${imprenta.fuentesCss}</style>`
     : '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">';
   const atributosImprenta = imprenta
-    ? ` data-imprenta="1" data-paginas-min="${imprenta.paginasMinimas}" data-renglones="${renglonesNotas(imprenta)}" data-notas="${escaparHtml(TEXTOS_LIBRO[lengua].notas)}"`
+    ? ` data-imprenta="1" data-paginas-min="${imprenta.paginasMinimas}" data-renglones="${renglonesNotas(imprenta)}" data-notas="${escaparHtml(TEXTOS_LIBRO[lengua].notas)}"${imprenta.sinNotas ? ' data-sin-notas="1"' : ''}`
     : '';
 
   return `<!DOCTYPE html>
