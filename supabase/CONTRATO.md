@@ -1439,3 +1439,6 @@ sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/av
 **Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
 imprenta cuando la familia confirma las frases; historia no pasa por ahí). La web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
 y en la pantalla de dudas; los mails a la familia de historia (libro listo, recordatorios de cierre) no existen.
+Tampoco corre el cierre solo a los 30 días (va junto con esos mails en `avisarHitosDeCierre`): un libro de historia
+pagado se escribe recién cuando la dueña aprieta «Cerrar libro». Las entregas del impreso (`entregas.ts`: el portón de
+imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

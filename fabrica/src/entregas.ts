@@ -12,6 +12,7 @@ import { productosDelPedido } from './libro/productos.js';
 import { calcularBulto } from './envio/bulto.js';
 import { proveedorDe } from './envio/proveedor.js';
 import { narradoresConKids } from './kids/candado.js';
+import { narradoresConHistoria } from './historia/candado.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -26,6 +27,20 @@ async function chicosOFrenar(db: Db, paso: string): Promise<Set<string> | null> 
     return await narradoresConKids(db);
   } catch (err) {
     console.error(`${paso}: no pude leer kids_v2; no corre este tick:`, err);
+    return null;
+  }
+}
+
+/**
+ * Los narradores de «Vitácora de una historia» (fila en historias): su libro va a Bookmundo por su lado
+ * (escritor-historia/produccion/imprenta.ts) y los mails de la entrega dicen cosas del libro de una vida. Ni el
+ * portón de imprenta ni esos mails los tocan. Null si no se pudo leer: ese paso no corre este tick.
+ */
+async function historiasOFrenar(db: Db, paso: string): Promise<Set<string> | null> {
+  try {
+    return await narradoresConHistoria(db);
+  } catch (err) {
+    console.error(`${paso}: no pude leer historias; no corre este tick:`, err);
     return null;
   }
 }
@@ -80,8 +95,11 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
 
   const kids = await chicosOFrenar(db, 'imprenta');
   if (!kids) return;
+  const historias = await historiasOFrenar(db, 'imprenta');
+  if (!historias) return;
 
   for (const entrega of (data ?? []) as { id: string; narrador_id: string }[]) {
+    if (historias.has(entrega.narrador_id)) continue;
     const esChico = kids.has(entrega.narrador_id);
     try {
       // Un chico de Kids: solo con su libro escrito (listo.json) y aprobado por el padre; antes, la entrega espera.
@@ -138,9 +156,11 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
   const { urlBase } = cargarConfig();
   const kids = await chicosOFrenar(db, 'entregas');
   if (!kids) return;
+  const historias = await historiasOFrenar(db, 'entregas');
+  if (!historias) return;
 
   for (const entrega of entregas) {
-    if (kids.has(entrega.narrador_id)) continue;
+    if (kids.has(entrega.narrador_id) || historias.has(entrega.narrador_id)) continue;
     try {
       const hito = HITO_POR_ESTADO[entrega.estado];
       if (!hito) continue;

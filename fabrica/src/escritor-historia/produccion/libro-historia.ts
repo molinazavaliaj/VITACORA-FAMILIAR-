@@ -471,7 +471,13 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
     try {
       await despuesDeEntregar(db, id);
     } catch (err) {
-      console.error(`historia ${id}: lo de después de entregar falló (el libro ya está entregado):`, err instanceof Error ? err.message : err);
+      const motivo = err instanceof Error ? err.message : String(err);
+      console.error(`historia ${id}: lo de después de entregar falló (el libro ya está entregado):`, motivo);
+      // No se reintenta solo (el pedido ya está entregado): que lo sepan los socios y cómo rehacerlo.
+      await avisarSocios(
+        `La imprenta del libro de historia de ${await quienEs(db, id)} no salió`,
+        `El libro está escrito y entregado, pero armar los archivos de Bookmundo falló: ${motivo}\n\nPara rehacerlo (no le paga nada al modelo):\n  cd fabrica && npx tsx scripts/historia-imprenta.ts ${id}`,
+      );
     }
   } catch (err) {
     const motivo = err instanceof Error ? err.message : String(err);
@@ -545,6 +551,8 @@ export async function revisarLibrosHistoria(db: Db, o: { motor?: MotorHistoria; 
       // Sin los textos de tapa aprobados de su idioma, el libro no se escribe (saldría con la tapa de Familiar). Un aviso.
       if (!(await textosDe(db, narrador.id))) {
         await avisarSinTextos(db, narrador.id);
+        // La Etapa A no depende de la tapa: se adelanta (y sus dudas van a los socios) mientras se esperan los textos.
+        await revisarEtapaA(db, narrador.id, o);
         continue;
       }
       if (await trabajaOtraCopia(db, narrador.id)) continue;

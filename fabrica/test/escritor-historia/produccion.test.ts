@@ -179,13 +179,27 @@ describe('el libro de historia en el worker', () => {
 
   it('sin los textos de tapa aprobados: la Etapa A sí, el libro no (el pedido sigue pagado) y un aviso a los socios', async () => {
     t.sinTextos = true;
-    const { db, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, tablas, archivos } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
     const { motor, modelo } = motorFalso(db);
     await vuelta(db, motor);
     await vuelta(db, motor);
     expect(tablas.pedidos[0].estado).toBe('pagado');
     expect(modelo.llamadas.some((p) => p.clave.startsWith('C/'))).toBe(false);
     expect(mails.filter((m) => m.subject.includes('espera los textos de tapa'))).toHaveLength(1);
+    // La Etapa A sí corre mientras tanto.
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/2-plan', 'A/dudas']);
+    expect(archivos.has(prefijo('carpeta-A.json'))).toBe(true);
+  });
+
+  it('si la imprenta falla después de entregar, el libro queda entregado y los socios reciben cómo rehacerla', async () => {
+    const { db, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { motor } = motorFalso(db);
+    alEntregarHistoria(async () => { throw new Error('Chromium se cayó'); });
+    await vuelta(db, motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    const aviso = mails.find((m) => m.subject.includes('La imprenta del libro de historia de Rubén'));
+    expect(aviso?.text).toContain('Chromium se cayó');
+    expect(aviso?.text).toContain(`npx tsx scripts/historia-imprenta.ts ${ID}`);
   });
 
   it('una entrevista sin terminar no arranca nada', async () => {
