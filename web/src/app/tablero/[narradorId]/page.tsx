@@ -306,6 +306,7 @@ async function Cabecera({
         titulo: edicion.titulo?.trim() || n.nombre,
         fotoSrc: portada ? `/api/fotos/${portada}` : null,
         idioma: idiomaDelLibro(contexto.idioma === "ca" ? "ca" : null),
+        producto: (contexto as { modo?: unknown }).modo === "historia" ? "historia" : "familiar",
       }}
       pasos={lineaDeTiempo({ estado: n.estado, aprobado, libroEntregado: pedido.libroEntregado, conImpreso: rol === "duena" && pedido.impresos > 0, impresoEnCasa: pedido.impresoEnCasa })}
       cifras={

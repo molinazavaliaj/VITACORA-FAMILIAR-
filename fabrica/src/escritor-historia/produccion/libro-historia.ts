@@ -247,7 +247,7 @@ export async function correrEtapaAHistoria(db: Db, id: string, motor: MotorHisto
 
 type DudaGuardada = { id: string; pregunta: string; opciones: string[]; que: string; citas: { id: string; texto: string }[] };
 
-/** El mail de las dudas a los socios (una vez). La pantalla de dudas de la web todavía no lee historia: van a mano. */
+/** El mail de las dudas a los socios (una vez), con el link a la pantalla de dudas (lee la carpeta de historia). */
 async function avisarDudas(db: Db, id: string): Promise<boolean> {
   const almacen = almacenDe(db, id);
   const t = await almacen.leer(DUDAS);
@@ -258,9 +258,10 @@ async function avisarDudas(db: Db, id: string): Promise<boolean> {
       `   Qué vio el lector: ${d.que}`,
       ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
     ].join('\n'));
+    const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${id}/dudas`;
     const salio = await avisarSocios(
       `Dudas de datos del libro de historia de ${await quienEs(db, id)} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. La pantalla de dudas de la web todavía no muestra las de historia: hay que preguntarle a la familia por otro lado.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Las respuestas se escriben en ese rato en ${PREFIJO_HISTORIA(id)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "El cuñado de Toni se llamaba Salva."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      `La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: ${link}. Lo que contesten ahí entra al libro.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo a mano, se escribe en ese rato en ${PREFIJO_HISTORIA(id)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "El cuñado de Toni se llamaba Salva."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
     if (!salio) return false;
   }

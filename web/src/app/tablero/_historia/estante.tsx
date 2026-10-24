@@ -34,7 +34,7 @@ export function LibroDelEstante({ h, r, region, fotoSrc }: { h: Historia; r: Res
   const quien: Quien = { como: n.como_le_dicen, propia, ella: esElla(n.contexto), viaje: Boolean(viaje) };
   const idioma = idiomaDelTrato(trato);
   const titulo = viaje ? (h.rol === "duena" ? "Tu viaje" : `El viaje de ${n.nombre}`) : tituloHistoria(n.nombre, propia);
-  const contexto = (n.contexto ?? {}) as { idioma?: unknown };
+  const contexto = (n.contexto ?? {}) as { idioma?: unknown; modo?: unknown };
   return (
     <li data-producto={viaje ? "viaje" : undefined} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-5 border-t border-[var(--linea)] py-8 sm:gap-x-10 md:py-10">
       <Link href={`/tablero/${n.id}`} aria-label={titulo} className="block self-start">
@@ -43,6 +43,7 @@ export function LibroDelEstante({ h, r, region, fotoSrc }: { h: Historia; r: Res
             titulo={r.titulo ?? n.nombre}
             fotoSrc={fotoSrc ?? (r.portadaFotoId ? `/api/fotos/${r.portadaFotoId}` : null)}
             idioma={idiomaDelLibro(contexto.idioma === "ca" ? "ca" : null)}
+            producto={contexto.modo === "historia" ? "historia" : "familiar"}
           />
         </div>
       </Link>

@@ -77,9 +77,10 @@ const DUDAS = JSON.stringify({
 const RUTA_DUDAS = "n1/escritor/dudas-familia.json";
 const RUTA_CORRECCIONES = "n1/escritor/correcciones.json";
 
-function armar(archivos: Record<string, string>, fallas: Record<string, unknown> = {}) {
+function armar(archivos: Record<string, string>, fallas: Record<string, unknown> = {}, historias: Fila[] = []) {
   const armado = crearAdmin(
     {
+      historias,
       familias: [{ id: "fam-laura", region: "AR", auth_user_id: "u-laura", nombre: "Laura", email: "laura@mail.com" }],
       narradores: [{
         id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "completado", dia_actual: 30,
@@ -106,6 +107,14 @@ const guardado = (subidas: { contenido: string }[]) => JSON.parse(subidas[subida
 beforeEach(() => vi.clearAllMocks());
 
 describe("POST /api/dudas", () => {
+  it("una historia (fila en historias) lee y guarda en la carpeta del escritor de historia", async () => {
+    sesion(laura);
+    const { subidas } = armar({ "n1/escritor-historia/dudas-familia.json": DUDAS }, {}, [{ narrador_id: "n1" }]);
+    const r = await POST(pedido([{ dudaId: "D01", texto: "Ofelia" }]));
+    expect(r.status).toBe(200);
+    expect(subidas.map((x) => x.ruta)).toEqual(["n1/escritor-historia/correcciones.json"]);
+  });
+
   it("junta con lo guardado: lo que contestó otro y lo que cargaron los socios no se pierde", async () => {
     sesion(tio);
     const { subidas } = armar({

@@ -1,6 +1,6 @@
 // Las dudas del escritor V3: la familia contesta lo que la Etapa A no pudo
 // resolver de los audios. Lee `{narrador}/escritor/dudas-familia.json` y escribe
-// `{narrador}/escritor/correcciones.json`, que la Etapa B lee antes de escribir
+// `{narrador}/escritor/correcciones.json` (en una historia, `escritor-historia/`), que la Etapa B lee antes de escribir
 // el libro (supabase/CONTRATO.md, "Escritor V3 en la fábrica").
 //
 // Contestan la dueña y los invitados (son los que conocen los datos reales); el
@@ -11,7 +11,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "@/lib/dudas";
-import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
+import { archivosDelEscritor, carpetaDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { regionDelRequest } from "@/lib/region";
@@ -106,9 +106,11 @@ export async function POST(request: NextRequest) {
   const autor = { quien: await nombreDeQuienContesta(admin, historia), mail: user.email ?? undefined };
   const correcciones = fusionarCorrecciones(guardadas, resultado.correcciones, dudas, autor);
 
+  // La carpeta ya se leyó arriba sin error (el listado la usa): una historia guarda en la suya.
+  const { carpeta } = await carpetaDelEscritor(admin, id);
   const { error: errorSubida } = await admin.storage
     .from("audios")
-    .upload(`${id}/escritor/correcciones.json`, JSON.stringify({ correcciones }), {
+    .upload(`${carpeta}/correcciones.json`, JSON.stringify({ correcciones }), {
       contentType: "application/json",
       upsert: true,
       cacheControl: "0",
