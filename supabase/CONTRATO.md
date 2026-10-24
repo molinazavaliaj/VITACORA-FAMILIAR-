@@ -1437,7 +1437,12 @@ Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B
 (`docs/historia/libro-textos-borrador.md`). Si un idioma no los tuviera, el libro no se escribe: la Etapa A sí, el pedido
 sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/aviso-sin-textos-tapa.txt`).
 
+**En la web** (24/10): «Encargar libro» (`/tablero/{id}/libro`) cierra una historia igual que la V3 (tapa con el
+título que elige la dueña, qué dejar afuera, encargar), con sus respuestas (`clave_historia`) y la tapa de historia
+(«UNA HISTORIA DE SU VIDA»). La pantalla de dudas y su API leen y escriben en `{id}/escritor-historia/` cuando el
+narrador tiene fila en `historias` (`web/src/lib/dudas-archivos.ts`, `carpetaDelEscritor`).
+
 **Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
-imprenta cuando la familia confirma las frases; historia no pasa por ahí). La web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
-y en la pantalla de dudas; no existe el mail «el libro está listo» de historia. Las entregas del impreso (`entregas.ts`: el portón de
+imprenta cuando la familia confirma las frases; historia no pasa por ahí). No existe el mail «el libro está listo» de
+historia. Las entregas del impreso (`entregas.ts`: el portón de
 imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

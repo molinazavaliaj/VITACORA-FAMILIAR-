@@ -23,6 +23,14 @@ describe("TapaLibro", () => {
     expect(html.match(/<svg/g)?.length).toBe(2);
   });
 
+  it("una historia: «UNA HISTORIA DE SU VIDA» arriba del título que eligió el cliente (Naza, 24/10)", () => {
+    const html = renderToStaticMarkup(<TapaLibro titulo="La valija verde" fotoSrc={null} producto="historia" />);
+    expect(html).toContain("UNA HISTORIA DE SU VIDA");
+    expect(html).not.toContain("EL LIBRO DE SU VIDA");
+    expect(html).toContain("La valija verde");
+    expect(renderToStaticMarkup(<TapaLibro titulo="Imma" fotoSrc={null} idioma="ca" producto="historia" />)).toContain("UNA HISTÒRIA DE LA SEVA VIDA");
+  });
+
   it("en catalán", () => {
     const html = renderToStaticMarkup(<TapaLibro titulo="Imma" fotoSrc={null} idioma="ca" />);
     expect(html).toContain("EL LLIBRE DE LA SEVA VIDA");
