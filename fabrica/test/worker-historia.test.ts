@@ -47,7 +47,7 @@ type Tablas = Record<string, Fila[]>;
 const HACE = (dias: number) => new Date(Date.now() - dias * 86_400_000).toISOString();
 
 /** Base falsa por tabla. `errores[tabla]` hace fallar toda lectura de esa tabla; `paquetes[narrador]` son sus archivos. */
-function base(t: Tablas, o: { errores?: Record<string, { code: string; message: string }>; paquetes?: Record<string, { name: string; created_at?: string }[]> } = {}) {
+function base(t: Tablas, o: { errores?: Record<string, { code: string; message: string }>; paquetes?: Record<string, { name: string; created_at?: string }[]>; descargas?: Record<string, string> } = {}) {
   const claims: string[] = [];
   const updates: { tabla: string; cambios: Fila; filas: string[] }[] = [];
   const listados: string[] = [];
@@ -88,7 +88,7 @@ function base(t: Tablas, o: { errores?: Record<string, { code: string; message: 
           listados.push(narrador);
           return { data: o.paquetes?.[narrador] ?? [], error: null };
         },
-        download: async () => ({ data: null, error: { message: 'Object not found' } }),
+        download: async (ruta: string) => (o.descargas?.[ruta] !== undefined ? { data: new Blob([o.descargas[ruta]]), error: null } : { data: null, error: { message: 'Object not found' } }),
         upload: async () => ({ error: null }),
       }),
     },
@@ -198,15 +198,25 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
     expect(t.pedidos[1].estado).toBe('pagado');
   });
 
-  it('pedido entregado: no le sale «el libro está listo» ni el recordatorio de frases', async () => {
-    const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico' }], familias };
+  it('pedido entregado: le sale «el libro está listo» en su trato (sin voz si no hay frases con audio), pero no el recordatorio de frases', async () => {
+    const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-AR' }], familias };
     const { db } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(30) }, { name: 'terminado_enviado.txt' }] } });
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(m.enviarMailHito).not.toHaveBeenCalled();
+    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
+    expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo_sin_voz', variante: 'vos' })]);
     expect(m.enviarMailRecordatorioFrases).not.toHaveBeenCalled();
     expect(await recordarFrasesPendientes()).toBe(0);
-    // Su paquete lo mira la rama de cierre (los candados de sus mails), no «libro listo» ni el recordatorio de frases.
+  });
+
+  it('con frases elegidas con su audio, el «libro listo» de siempre (con su voz); en España, con tú', async () => {
+    const frases = { version: 1, capitulos: [{ numero: 1, capitulo: 'I', candidatas: [{ id: 'R01', elegida: true, respuesta_id: 'r1' }] }] };
+    const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-ES' }], familias };
+    const { db } = base(t, { paquetes: { chico: [{ name: 'terminado_enviado.txt' }] }, descargas: { 'chico/paquete/frases.json': JSON.stringify(frases) } });
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
+    expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo', variante: 'tu' })]);
   });
 });
 

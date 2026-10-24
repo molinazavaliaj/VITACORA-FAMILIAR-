@@ -25,6 +25,8 @@ const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 export type Hito =
   | 'terminado'
   | 'libro_listo'
+  // «Vitácora de una historia» sin frases con su voz (el libro salió sin «Sus frases»): el mismo mail sin prometer la voz.
+  | 'libro_listo_sin_voz'
   // Lo físico que viaja (3t.26 fase 2; textos aprobados por Naza el 23/09).
   | 'falta_direccion'
   | 'enviado'
@@ -38,6 +40,8 @@ export type Hito =
 export const CANDADO_POR_HITO: Record<Hito, string> = {
   terminado: 'terminado_enviado.txt',
   libro_listo: 'libro_listo_enviado.txt',
+  // El mismo candado: es el mismo aviso, y sale uno solo de los dos.
+  libro_listo_sin_voz: 'libro_listo_enviado.txt',
   recordatorio_3: 'recordatorio_cierre_3.txt',
   recordatorio_7: 'recordatorio_cierre_7.txt',
   recordatorio_14: 'recordatorio_cierre_14.txt',
@@ -104,6 +108,15 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     parrafos: (quien) => [
       `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
       'Queda ahí para siempre. Entra cuando quieras a leerlo, escucharlo o descargarlo.',
+    ],
+    boton: 'Leer el libro',
+  },
+  // BORRADOR de Fable (24/10), versión recomendada: falta que Naza lo apruebe.
+  libro_listo_sin_voz: {
+    asunto: (quien) => `El libro de tu ${quien} está listo`,
+    parrafos: (quien) => [
+      `Ya está. El libro de tu ${quien}, escrito con sus palabras, para leer cuando quieras.`,
+      'Queda ahí para siempre. Entra cuando quieras a leerlo o descargarlo.',
     ],
     boton: 'Leer el libro',
   },
@@ -251,6 +264,14 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
       parrafos: (quien) => [
         `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
         'Queda ahí para siempre. Entrá cuando quieras a leerlo, escucharlo o descargarlo.',
+      ],
+      boton: 'Leer el libro',
+    },
+    libro_listo_sin_voz: {
+      asunto: (quien) => `El libro de tu ${quien} está listo`,
+      parrafos: (quien) => [
+        `Ya está. El libro de tu ${quien}, escrito con sus palabras, para leer cuando quieras.`,
+        'Queda ahí para siempre. Entrá cuando quieras a leerlo o descargarlo.',
       ],
       boton: 'Leer el libro',
     },

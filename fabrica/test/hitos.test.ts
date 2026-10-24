@@ -29,7 +29,18 @@ describe('asuntoHito / cuerpoHito', () => {
     expect(cuerpoHito('terminado', { comoLeDicen: '<b>', enlace: 'https://x' })).not.toContain('<b>');
   });
 
-  it('cada hito tiene su candado, todos distintos', () => {
+  it('«libro listo» sin voz (una historia sin frases con audio): no promete escucharla, en vos y en tú, con el candado de «libro listo»', () => {
+    const vos = cuerpoHito('libro_listo_sin_voz', { comoLeDicen: 'mamá', enlace: 'https://x', variante: 'vos' });
+    const tu = cuerpoHito('libro_listo_sin_voz', { comoLeDicen: 'mamá', enlace: 'https://x', variante: 'tu' });
+    expect(vos).toContain('escrito con sus palabras, para leer cuando quieras.');
+    expect(vos).toContain('Entrá cuando quieras a leerlo o descargarlo.');
+    expect(tu).toContain('Entra cuando quieras a leerlo o descargarlo.');
+    for (const c of [vos, tu]) expect(c).not.toMatch(/voz|escuch/i);
+    expect(asuntoHito('libro_listo_sin_voz', 'mamá')).toBe('El libro de tu mamá está listo');
+    expect(CANDADO_POR_HITO.libro_listo_sin_voz).toBe(CANDADO_POR_HITO.libro_listo);
+  });
+
+  it('cada hito tiene su candado, todos distintos (salvo «libro listo» sin voz, que comparte el suyo)', () => {
     expect(new Set(Object.values(CANDADO_POR_HITO)).size).toBe(HITOS.length);
     expect(CANDADO_POR_HITO.recordatorio_7).toBe('recordatorio_cierre_7.txt');
     expect(CANDADO_POR_HITO.libro_listo).toBe('libro_listo_enviado.txt');
