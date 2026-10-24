@@ -9,20 +9,13 @@
 // cerrado, por ejemplo) no sirve para abrir el anticipo. Son permisos distintos.
 
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { secretosVerificacion } from "./secreto-firma";
 
 interface PayloadAnticipo {
   narradorId: string;
 }
 
 const TIPO = "anticipo";
-
-function obtenerSecreto(): string {
-  const secreto = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!secreto) {
-    throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY para verificar el token de anticipo");
-  }
-  return secreto;
-}
 
 function firmarDatos(datos: string, secreto: string): string {
   return createHmac("sha256", secreto).update(datos).digest("base64url");
@@ -35,23 +28,19 @@ export function verificarTokenAnticipo(token: string): PayloadAnticipo | null {
   if (partes.length !== 3) return null;
   const [encabezado, payload, firma] = partes;
 
-  let secreto: string;
+  let secretos: string[];
   try {
-    secreto = obtenerSecreto();
+    secretos = secretosVerificacion();
   } catch {
     return null;
   }
 
-  const firmaEsperada = firmarDatos(`${encabezado}.${payload}`, secreto);
-
-  const bufferEsperado = Buffer.from(firmaEsperada);
   const bufferRecibido = Buffer.from(firma);
-  if (
-    bufferEsperado.length !== bufferRecibido.length ||
-    !timingSafeEqual(bufferEsperado, bufferRecibido)
-  ) {
-    return null;
-  }
+  const valida = secretos.some((secreto) => {
+    const bufferEsperado = Buffer.from(firmarDatos(`${encabezado}.${payload}`, secreto));
+    return bufferEsperado.length === bufferRecibido.length && timingSafeEqual(bufferEsperado, bufferRecibido);
+  });
+  if (!valida) return null;
 
   try {
     const datos = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
