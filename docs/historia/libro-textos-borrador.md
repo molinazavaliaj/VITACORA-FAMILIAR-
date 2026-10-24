@@ -1,6 +1,6 @@
-# Vitácora de una historia · Textos de la tapa del libro (BORRADOR)
+# Vitácora de una historia · Textos de la tapa del libro (aprobados)
 
-**Estado: BORRADOR, 24/10/2026. Falta que Naza los apruebe.** Los redactó Fable. Hasta que estén aprobados, la fábrica no arma la tapa del libro de una historia (`fabrica/src/escritor-historia/produccion/textos-tapa.ts`).
+**Estado: APROBADO por Naza el 24/10/2026, las versiones recomendadas** (HL1 a HL4, con el lema nuevo). Los redactó Fable. Están en `fabrica/src/escritor-historia/produccion/textos-tapa.ts`; las alternativas quedan acá como registro.
 
 **Por qué hacen falta.** Los textos fijos de la tapa de Familiar dicen «El libro de su vida» y «Estas páginas guardan la vida de…». Un libro que cuenta una sola historia necesita los suyos. El resto de la tapa («para siempre», «Escuchá su voz», el QR) queda igual que en Familiar.
 

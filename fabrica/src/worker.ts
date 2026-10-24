@@ -21,7 +21,7 @@ import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { narradoresConKids } from './kids/candado.js';
-import { narradoresConHistoria } from './historia/candado.js';
+import { idiomasHistoria, narradoresConHistoria } from './historia/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
@@ -504,19 +504,27 @@ async function avisarHitosDeCierre(): Promise<void> {
     return;
   }
   // Un chico de Kids termina en `completado` como cualquiera, pero no tiene «Cerrar libro» ni tablero: ni el mail
-  // «terminó», ni los recordatorios, ni el cierre solo a los 30 días.
+  // «terminó», ni los recordatorios, ni el cierre solo a los 30 días. Una historia sí (Naza, 24/10): con los textos
+  // de cierre de la V3, que no hablan de una vida entera, en su trato. Su libro se escribe recién cerrado.
   const aparte = await conAparteOFrenar(db, 'hitos de cierre');
   if (!aparte) return;
+  let deHistoria: Map<string, string>;
+  try {
+    deHistoria = await idiomasHistoria(db);
+  } catch (err) {
+    console.error('tick: no pude leer historias; los mails de cierre no salen este tick:', err);
+    return;
+  }
 
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
-    if (aparte.has(narrador.id)) continue;
+    if (aparte.has(narrador.id) && !deHistoria.has(narrador.id)) continue;
     // Libro cerrado y todos sus mails de cierre ya salieron: no queda nada (ver abajo, donde se anota). Si la web
     // lo reabriera (`libro_aprobado_at` en null), se vuelve a mirar.
     if (narrador.libro_aprobado_at != null && yaHecho(db, `cierre:${narrador.id}`)) continue;
     try {
       const archivos = await listarPaquete(db, narrador.id);
       const enlace = `${urlBase}/tablero/${narrador.id}`;
-      const idiomaV3 = idiomas.get(narrador.id);
+      const idiomaV3 = idiomas.get(narrador.id) ?? deHistoria.get(narrador.id);
       const variante: VarianteV3 | undefined = idiomaV3 === undefined ? undefined : idiomaV3 === 'es-AR' ? 'vos' : 'tu';
       const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos, variante);
 

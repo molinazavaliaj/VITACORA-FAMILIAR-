@@ -1401,8 +1401,9 @@ FIN-H, `pausado` con «quiero parar», como en V3). Las fotos sueltas se guardan
 
 **El candado** (`fabrica/src/historia/candado.ts`, `narradoresConHistoria`): un narrador con fila en `historias` no
 recibe nada del libro de siempre, en las mismas ramas del worker que un chico de Kids: anticipo, estructura,
-previsualización, mails de cierre (terminó, recordatorios, cierre solo a los 30 días), paquete viejo, escritor V3,
-«el libro está listo», recordatorio de frases y audios originales. Sin la tabla (migración sin aplicar), nadie
+previsualización, paquete viejo, escritor V3, «el libro está listo», recordatorio de frases y audios originales.
+Los mails de cierre sí (Naza, 24/10): «terminó», los recordatorios de 3, 7 y 14 días y el cierre solo a los 30 días,
+con los textos de cierre de la V3 (no hablan de una vida entera), con vos en `es-AR` y tú en `es-ES` y `ca`. Sin la tabla (migración sin aplicar), nadie
 cuenta una historia; con otro error de base, esas ramas no corren ese tick.
 
 **El escritor** (`fabrica/src/escritor-historia/produccion/libro-historia.ts`, `revisarLibrosHistoria` en el tick),
@@ -1432,13 +1433,11 @@ el mismo recorrido que el libro V3:
 Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B` o `-C`.
 
 **Los textos de tapa** de historia (la línea arriba del nombre, la etiqueta, la contratapa y el lema) están en
-`fabrica/src/escritor-historia/produccion/textos-tapa.ts`, uno por idioma, y entran solo aprobados por Naza (borrador:
-`docs/historia/libro-textos-borrador.md`). Sin los de su idioma, el libro no se escribe: la Etapa A sí, el pedido
+`fabrica/src/escritor-historia/produccion/textos-tapa.ts`, uno por idioma; los aprobó Naza el 24/10
+(`docs/historia/libro-textos-borrador.md`). Si un idioma no los tuviera, el libro no se escribe: la Etapa A sí, el pedido
 sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/aviso-sin-textos-tapa.txt`).
 
 **Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
 imprenta cuando la familia confirma las frases; historia no pasa por ahí). La web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
-y en la pantalla de dudas; los mails a la familia de historia (libro listo, recordatorios de cierre) no existen.
-Tampoco corre el cierre solo a los 30 días (va junto con esos mails en `avisarHitosDeCierre`): un libro de historia
-pagado se escribe recién cuando la dueña aprieta «Cerrar libro». Las entregas del impreso (`entregas.ts`: el portón de
+y en la pantalla de dudas; no existe el mail «el libro está listo» de historia. Las entregas del impreso (`entregas.ts`: el portón de
 imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

@@ -1,6 +1,6 @@
 // El worker con «Vitácora de una historia» (plan 2026-10-21, Task 5.3): un narrador con fila en historias no recibe
-// nada del libro de siempre (anticipo, estructura, previsualización, mails de cierre, paquete, escritor V3, libro
-// listo, recordatorio de frases); su libro lo reclama y lo escribe revisarLibrosHistoria. Sin la tabla, nadie cuenta
+// nada del libro de siempre (anticipo, estructura, previsualización, paquete, escritor V3, libro listo, recordatorio
+// de frases), pero sí los mails de cierre y el cierre solo a los 30 días (Naza, 24/10); su libro lo reclama y lo escribe revisarLibrosHistoria. Sin la tabla, nadie cuenta
 // una historia; con otro error de base, la rama no corre ese tick. Copia de worker-kids.test.ts: el candado de verdad
 // (src/historia/candado.ts) corre sobre la base falsa y solo se mockea lo que escribe o manda.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -142,24 +142,34 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
     expect(m.generarPrevisualizacion).not.toHaveBeenCalledWith('chico');
   });
 
-  it('mails de cierre: ni «terminó», ni recordatorios, ni el cierre solo a los 30 días', async () => {
+  it('mails de cierre: una historia sí los recibe (con los textos de la V3, en su trato) y se cierra sola a los 30 días', async () => {
     const t = {
       narradores: [
         adulto({ estado: 'completado', ultima_respuesta_at: HACE(31), libro_aprobado_at: null }),
         chico({ estado: 'completado', ultima_respuesta_at: HACE(31), libro_aprobado_at: null }),
       ],
-      historias: [{ narrador_id: 'chico' }],
+      historias: [{ narrador_id: 'chico', idioma: 'es-ES' }],
       familias,
     };
-    const { db, updates } = base(t);
+    const { db } = base(t);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    const comoLeDicen = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ comoLeDicen: string }])[0].comoLeDicen);
-    expect(comoLeDicen).toContain('papá');
-    expect(comoLeDicen).not.toContain('Marta');
-    expect(updates.filter((u) => u.tabla === 'narradores' && u.filas.includes('chico'))).toEqual([]);
-    expect(t.narradores[1].libro_aprobado_at).toBeNull();
-    expect(t.narradores[0].libro_aprobado_at).not.toBeNull(); // el adulto sí se cerró solo
+    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ comoLeDicen: string; hito: string; variante?: string }])[0]);
+    const deMarta = llamadas.filter((c) => c.comoLeDicen === 'Marta');
+    expect(deMarta.map((c) => c.hito)).toEqual(['terminado', 'cierre_automatico']);
+    expect(deMarta.every((c) => c.variante === 'tu')).toBe(true);
+    expect(t.narradores[1].libro_aprobado_at).not.toBeNull();
+    expect(t.narradores[0].libro_aprobado_at).not.toBeNull();
+  });
+
+  it('mails de cierre: a una historia de Argentina, con vos', async () => {
+    const t = { narradores: [chico({ estado: 'completado', ultima_respuesta_at: HACE(4), libro_aprobado_at: null })], historias: [{ narrador_id: 'chico', idioma: 'es-AR' }], familias };
+    const { db } = base(t);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
+    expect(llamadas.map((c) => c.hito)).toEqual(['terminado', 'recordatorio_3']);
+    expect(llamadas.every((c) => c.variante === 'vos')).toBe(true);
   });
 
   it('pedido pagado con el libro cerrado: no lo reclama ni la rama V3 ni la vieja; el tick llama a revisarLibrosHistoria', async () => {
@@ -190,13 +200,13 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
 
   it('pedido entregado: no le sale «el libro está listo» ni el recordatorio de frases', async () => {
     const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico' }], familias };
-    const { db, listados } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(30) }, { name: 'terminado_enviado.txt' }] } });
+    const { db } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(30) }, { name: 'terminado_enviado.txt' }] } });
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
     expect(m.enviarMailHito).not.toHaveBeenCalled();
     expect(m.enviarMailRecordatorioFrases).not.toHaveBeenCalled();
     expect(await recordarFrasesPendientes()).toBe(0);
-    expect(listados).not.toContain('chico'); // ni siquiera se le mira el paquete
+    // Su paquete lo mira la rama de cierre (los candados de sus mails), no «libro listo» ni el recordatorio de frases.
   });
 });
 

@@ -17,6 +17,19 @@ export function esTablaAusente(error: { code?: string; message?: string } | null
 }
 
 /**
+ * El idioma de cada narrador de historia (`historias.idioma`), para los mails de cierre. Sin la tabla, ninguno; con
+ * otro error, tira (como narradoresConHistoria).
+ */
+export async function idiomasHistoria(db: SupabaseClient): Promise<Map<string, string>> {
+  const { data, error } = await db.from(TABLA_HISTORIAS).select('narrador_id, idioma');
+  if (error) {
+    if (esTablaAusente(error)) return new Map();
+    throw new Error(`No pude leer historias: ${error.message}`);
+  }
+  return new Map(((data as { narrador_id: string; idioma: string | null }[] | null) ?? []).map((f) => [f.narrador_id, f.idioma ?? 'es-AR']));
+}
+
+/**
  * Los narradores que cuentan una historia. Sin la tabla (migración sin aplicar), ninguno; con otro error, tira:
  * quien llama no puede tratar a uno de historia como un narrador de siempre por no haber podido leer.
  */
