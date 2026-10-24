@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Foco } from "@/lib/encuadre";
-import type { IdiomaLibro } from "@/lib/tapa";
+import type { IdiomaLibro, ProductoTapa } from "@/lib/tapa";
 import { TapaLibro } from "../../tapa-libro";
 import { PANEL, type IdiomaPanel, type Quien } from "../../_textos/panel";
 import type { PasoLinea, Titular } from "../momento";
@@ -13,7 +13,7 @@ import type { PasoLinea, Titular } from "../momento";
 // Componente de servidor, sin estado. Las cifras llegan por un Suspense
 // aparte (dependen de lo contado, que tarda más que esto).
 
-export type DatosTapa = { titulo: string; fotoSrc: string | null; foco?: Foco; idioma: IdiomaLibro };
+export type DatosTapa = { titulo: string; fotoSrc: string | null; foco?: Foco; idioma: IdiomaLibro; producto?: ProductoTapa };
 
 export function PortadaHistoria({
   idioma,
@@ -43,7 +43,7 @@ export function PortadaHistoria({
   const T = PANEL[idioma];
   const libro = (
     <div className="pnl-libro w-[88px] sm:w-[128px] lg:w-[148px]">
-      <TapaLibro titulo={tapa.titulo} fotoSrc={tapa.fotoSrc} foco={tapa.foco} idioma={tapa.idioma} />
+      <TapaLibro titulo={tapa.titulo} fotoSrc={tapa.fotoSrc} foco={tapa.foco} idioma={tapa.idioma} producto={tapa.producto} />
     </div>
   );
   return (

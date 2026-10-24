@@ -682,12 +682,21 @@ async function avisarLibrosListos(): Promise<void> {
   }
 
   const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
-  // El libro de un chico de Kids se avisa por su lado (el mail lleva al tablero de biografías).
+  // El libro de un chico de Kids se avisa por su lado (el mail lleva al tablero de biografías). Una historia, acá, en su
+  // trato, y sin prometer su voz si el libro salió sin frases con audio.
   const aparte = await conAparteOFrenar(db, 'libro listo');
   if (!aparte) return;
+  let deHistoria: Map<string, string>;
+  try {
+    deHistoria = await idiomasHistoria(db);
+  } catch (err) {
+    console.error('tick: no pude leer historias; los mails de libro listo no salen este tick:', err);
+    return;
+  }
 
   for (const narradorId of narradoresEntregados) {
-    if (aparte.has(narradorId)) continue;
+    const idiomaHistoria = deHistoria.get(narradorId);
+    if (aparte.has(narradorId) && idiomaHistoria === undefined) continue;
     if (yaHecho(db, `libro-listo:${narradorId}`)) continue;
     try {
       const archivos = await listarPaquete(db, narradorId);
@@ -705,7 +714,14 @@ async function avisarLibrosListos(): Promise<void> {
         throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
       }
 
-      await mandarHito(db, narrador as NarradorConFamilia, 'libro_listo', `${urlBase}/tablero/${narradorId}`, archivos);
+      if (idiomaHistoria === undefined) {
+        await mandarHito(db, narrador as NarradorConFamilia, 'libro_listo', `${urlBase}/tablero/${narradorId}`, archivos);
+        continue;
+      }
+      // Su voz: alguna frase elegida con su audio en frases.json. Sin eso, el mail no promete escucharla.
+      const frases = await leerFrases(db, narradorId);
+      const conVoz = Boolean(frases?.capitulos?.some((c) => c.candidatas.some((k) => k.elegida && k.respuesta_id)));
+      await mandarHito(db, narrador as NarradorConFamilia, conVoz ? 'libro_listo' : 'libro_listo_sin_voz', `${urlBase}/tablero/${narradorId}`, archivos, idiomaHistoria === 'es-AR' ? 'vos' : 'tu');
     } catch (err) {
       console.error(`tick: falló el mail de libro listo de ${narradorId}:`, err);
     }

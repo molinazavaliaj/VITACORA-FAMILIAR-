@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas } from "./dudas";
 
-// Los archivos del escritor en Storage (`{narrador}/escritor/...`), para la
+// Los archivos del escritor en Storage (`{narrador}/escritor/...`, o `escritor-historia/` en una historia), para la
 // pantalla de dudas, su API y el aviso del Inicio. Lo escriben la fábrica, los
 // socios a mano y la web: cada lectura pide una URL distinta y sin caché (como
 // lib/frases.ts), porque una lectura vieja antes de escribir pisaría lo de otro.
@@ -22,6 +22,17 @@ export function esNoEncontrado(error: unknown): boolean {
 }
 
 /**
+ * La carpeta del escritor de ese narrador: `{id}/escritor` (Familiar V3) o, si cuenta una historia (fila en
+ * `historias`), `{id}/escritor-historia` (fabrica/src/escritor-historia/produccion). Sin la tabla, la de siempre.
+ * Un error de la base vuelve como error: leer la carpeta equivocada diría "no hay dudas".
+ */
+export async function carpetaDelEscritor(admin: SupabaseClient, narradorId: string): Promise<{ carpeta: string; error: string | null }> {
+  const { data, error } = await admin.from("historias").select("narrador_id").eq("narrador_id", narradorId).maybeSingle();
+  if (error && error.code !== "42P01" && error.code !== "PGRST205") return { carpeta: `${narradorId}/escritor`, error: error.message };
+  return { carpeta: `${narradorId}/${data ? "escritor-historia" : "escritor"}`, error: null };
+}
+
+/**
  * Un archivo del escritor como texto. `texto: null` sin error es que no existe
  * (la fábrica los crea a su ritmo). Cualquier otra falla vuelve como error: no
  * es lo mismo "no hay dudas" que "no pudimos leerlas".
@@ -31,10 +42,12 @@ export async function leerDelEscritor(
   narradorId: string,
   archivo: string,
 ): Promise<{ texto: string | null; error: string | null }> {
+  const c = await carpetaDelEscritor(admin, narradorId);
+  if (c.error) return { texto: null, error: c.error };
   const { data, error } = await admin.storage
     .from("audios")
     .download(
-      `${narradorId}/escritor/${archivo}`,
+      `${c.carpeta}/${archivo}`,
       { cacheNonce: `${Date.now()}-${Math.random().toString(36).slice(2)}` },
       { cache: "no-store" },
     );
@@ -51,7 +64,9 @@ export async function archivosDelEscritor(
   admin: SupabaseClient,
   narradorId: string,
 ): Promise<{ nombres: Set<string>; error: string | null }> {
-  const { data, error } = await admin.storage.from("audios").list(`${narradorId}/escritor`);
+  const c = await carpetaDelEscritor(admin, narradorId);
+  if (c.error) return { nombres: new Set(), error: c.error };
+  const { data, error } = await admin.storage.from("audios").list(c.carpeta);
   if (error) return { nombres: new Set(), error: error.message };
   return { nombres: new Set((data ?? []).map((a) => a.name)), error: null };
 }

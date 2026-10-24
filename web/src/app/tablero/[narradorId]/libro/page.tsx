@@ -18,6 +18,7 @@ import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasFuera, respuestasV3ParaCerrar, type FilaRespuestaV3, type RespuestaV3 } from "@/lib/v3";
 import { idiomaDelLibro } from "@/lib/tapa";
+import { entrevistaHistoria } from "@/lib/historia-panel";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../../proximo-paso";
 import { tratoDeLaFamilia } from "@/lib/trato";
@@ -27,6 +28,8 @@ import { tratoDeLaFamilia } from "@/lib/trato";
 // Contratapa · Marco; al terminar, los últimos retoques y el cierre (solo
 // dueña); y siempre, abajo, lo comprado y lo que se puede sumar.
 // Narrador V3 (10/10): sin miniatura (el libro se escribe recién al encargar) y el cierre en tres pasos.
+// «Vitácora de una historia» (24/10): el mismo cierre que la V3, con su entrevista (`historias`), sus respuestas
+// (`respuestas.clave_historia`) y la tapa de historia.
 
 type Pedido = {
   id: string;
@@ -60,7 +63,12 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const propia = esPropia(n);
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
-  const v3 = await entrevistaV3(admin, n.id);
+  // Una historia cierra igual que la V3 (su estado tiene la misma forma): `v3` es la entrevista de las dos.
+  const entrevistaFamiliar = await entrevistaV3(admin, n.id);
+  const deHistoria = entrevistaFamiliar ? null : await entrevistaHistoria(admin, n.id);
+  // Antes del alta del bot no hay fila en `historias`, pero la compra ya dice que es una historia (`contexto.modo`).
+  const esHistoria = deHistoria !== null || (!entrevistaFamiliar && n.contexto?.modo === "historia");
+  const v3 = entrevistaFamiliar ?? deHistoria ?? (esHistoria ? { estado: {}, idioma: (n.contexto?.idioma as string | undefined) ?? null } : null);
   // Dudas del escritor sin contestar (13/10): el aviso lleva a la pantalla. Vale aun encargado, mientras el libro no esté escrito.
   const dudasPendientes = terminado ? await hayDudasPendientes(admin, n.id) : false;
 
@@ -152,7 +160,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const [{ data: propias }, { data: globales }, { data: respuestas }, { data: fotosData }, { data: paquete }] = await Promise.all([
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
     admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
-    admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta, clave_v3, reservada, reservado_tramo").eq("narrador_id", n.id).order("pregunta_orden"),
+    // En una historia, la clave está en `clave_historia`: va con el alias `clave_v3`, como en el panel.
+    admin.from("respuestas").select(`id, pregunta_orden, transcripcion, texto_directo, es_repregunta, ${esHistoria ? "clave_v3:clave_historia" : "clave_v3"}, reservada, reservado_tramo`).eq("narrador_id", n.id).order("pregunta_orden"),
     // `select("*")`: `posicion` y `foco` (3b.6) existen recién con la migración 20260918; pedirlos por nombre tiraría la página antes.
     admin.from("fotos").select("*").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
@@ -330,6 +339,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             faltaDireccion={faltaDireccion}
             trato={trato}
             idioma={idiomaDelLibro(v3?.idioma)}
+            producto={esHistoria ? "historia" : "familiar"}
           />
         </section>
       ) : null}
