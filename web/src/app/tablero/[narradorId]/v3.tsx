@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { PUEDE, type Rol } from "@/lib/panel";
 import type { BloqueHistoriaV3, PreguntaFamiliaV3 } from "@/lib/v3";
-import { idiomaPreguntasFamilia, textosPreguntasFamilia } from "@/lib/preguntas-familia-textos";
+import { idiomaPreguntasFamilia, textosPanelHistoria, textosPreguntasFamilia } from "@/lib/preguntas-familia-textos";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { Ajustes, SubirFoto, SumarPreguntaV3 } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -28,8 +28,10 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, preguntasFamilia = [], fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false, puedeVolverAPreguntar = false,
+  n, rol, propia, bloques, preguntasFamilia = [], fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, dudasAbiertas = false, dudasPendientes = false, ritmo, horario, alFinal, trato = "vos", enMarco = false, puedeVolverAPreguntar = false, historia = false,
 }: {
+  /** «Vitácora de una historia» (21/10): el bloque de preguntas con sus textos (no dice «la familia») y el aviso de tarde. */
+  historia?: boolean;
   /**
    * Rediseño 2026-10 (fase 2): la historia va adentro del marco nuevo (MarcoHistoria), que ya trae la
    * cabecera (tapa, saludo, línea de tiempo) y el lateral (la familia con Compartir, tu pedido con el
@@ -75,6 +77,11 @@ export function HistoriaV3({
   const marcaFuera = textosFueraDelLibro(idiomaFueraDelLibro(trato)).marca;
   const suya = propia ? "tu" : "su";
   const tu = trato === "tu";
+  const TH = textosPanelHistoria(idiomaPreguntasFamilia(trato));
+  // En historia, con la entrevista en la última pregunta: en lugar de sumar, por qué ya no se puede.
+  const avisoTarde = historia && alFinal && !cerrado && PUEDE.agregarPreguntasYFotos(rol)
+    ? <p className="text-[15px] text-[var(--texto-suave)]">{TH.tarde(propia)}</p>
+    : null;
 
   const acciones = (
     <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado && !dudasAbiertas ? "opacity-50" : ""}`}>
@@ -157,14 +164,14 @@ export function HistoriaV3({
         ) : null}
 
         {preguntasFamilia.length > 0 ? (
-          <PreguntasDeLaFamilia preguntas={preguntasFamilia} propia={propia} trato={trato}>
-            {puedeSumar ? <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} /> : null}
+          <PreguntasDeLaFamilia preguntas={preguntasFamilia} propia={propia} trato={trato} historia={historia}>
+            {puedeSumar ? <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} ejemplo={historia ? TH.ejemplo : undefined} /> : avisoTarde}
           </PreguntasDeLaFamilia>
         ) : puedeSumar ? (
           <div className="mt-8">
-            <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} />
+            <SumarPreguntaV3 narradorId={n.id} propia={propia} trato={trato} ejemplo={historia ? TH.ejemplo : undefined} />
           </div>
-        ) : null}
+        ) : avisoTarde ? <div className="mt-8">{avisoTarde}</div> : null}
 
         <div className="mt-10 flex flex-col gap-14">
           {bloques.length === 0 ? (
@@ -259,14 +266,15 @@ export function HistoriaV3({
 
 /** Las preguntas que sumó la familia, con sus palabras, y si ya se le hicieron (Naza, 20/10). */
 function PreguntasDeLaFamilia({
-  preguntas, propia, trato, children,
-}: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; children?: ReactNode }) {
+  preguntas, propia, trato, historia = false, children,
+}: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; historia?: boolean; children?: ReactNode }) {
   const T = textosPreguntasFamilia(idiomaPreguntasFamilia(trato));
+  const TH = textosPanelHistoria(idiomaPreguntasFamilia(trato));
   return (
     <section aria-labelledby="preguntas-de-la-familia" className="mt-10">
       <div className="border-b border-[var(--texto)] pb-4">
-        <h2 id="preguntas-de-la-familia" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{T.titulo}</h2>
-        <p className="mt-3 text-[15px] text-[var(--texto-suave)]">{T.bajada}</p>
+        <h2 id="preguntas-de-la-familia" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{historia ? TH.titulo : T.titulo}</h2>
+        <p className="mt-3 text-[15px] text-[var(--texto-suave)]">{historia ? TH.bajada(propia) : T.bajada}</p>
       </div>
       <ol className="mt-6 flex flex-col gap-4">
         {preguntas.map((p) => {

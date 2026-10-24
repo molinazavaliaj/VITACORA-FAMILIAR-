@@ -83,6 +83,8 @@ export type Narrador = {
   semilla: number; idioma: Idioma; tema: TemaHistoria; temaAbierto: boolean; dudaTema: boolean; regalo: boolean;
   propias: string[]; genero: 'varon' | 'mujer' | 'otro'; formaTrato?: 'masculino' | 'femenino'; nombre: string;
   hora: string; saluda: boolean; silencio: number; foto: boolean;
+  /** Preguntas sumadas desde el panel (0 a 2): la primera antes de arrancar, la segunda a mitad de la entrevista. */
+  panel?: number;
 };
 
 export function narradorDe(semilla: number, idioma: Idioma): Narrador {
@@ -96,7 +98,7 @@ export function narradorDe(semilla: number, idioma: Idioma): Narrador {
     propias: regalo ? ['¿Qué fue lo que más extrañaste?', '¿Quién te ayudó más en ese tiempo?', '¿Qué le dirías hoy a quien eras entonces?'].slice(0, r.entre(0, 3)) : [],
     genero, ...(genero === 'otro' && r.si(0.5) ? { formaTrato: 'masculino' as const } : {}),
     nombre: r.uno(NOMBRES[genero]), hora: r.uno(HORAS_PREFERIDAS), saluda: r.si(0.15),
-    silencio: r.entre(2, 12), foto: r.si(0.5),
+    silencio: r.entre(2, 12), foto: r.si(0.5), panel: r.entre(0, 2),
   };
 }
 
@@ -198,6 +200,7 @@ export async function correr(nar: Narrador, vida?: Vida): Promise<Corrida> {
   const base = crearBaseFalsa({
     narradores: [{ id, familia_id: `f-${id}`, como_le_dicen: nar.nombre, telefono_whatsapp: tel, hora_preferida: nar.hora, zona_horaria: zona, contexto, estado: 'invitado', dia_actual: 0, ultima_respuesta_at: null }],
     familias: [{ id: `f-${id}`, nombre: 'Pablo' }],
+    preguntas: (nar.panel ?? 0) > 0 ? [{ id: `${id}-p1`, narrador_id: id, orden: 200, texto: '¿Seguís viendo a alguien de esa época?', tipo: 'familia' }] : [],
   }, { ahora: () => reloj });
 
   const salidas: Salida[] = [];
@@ -310,6 +313,8 @@ export async function correr(nar: Narrador, vida?: Vida): Promise<Corrida> {
       }
     }
     respuestas++;
+    // La segunda pregunta del panel se suma a mitad de la entrevista (la web la acepta hasta HC10).
+    if ((nar.panel ?? 0) > 1 && respuestas === 8) base.tablas.preguntas.push({ id: `${id}-p2`, narrador_id: id, orden: 201, texto: 'qué pasó con la casa??', tipo: 'familia' });
     // 3' de silencio y cierra; lo que sigue sale en ese tick.
     pasar(4 * MIN);
     await tick();
@@ -326,7 +331,8 @@ export async function correr(nar: Narrador, vida?: Vida): Promise<Corrida> {
     if (vistas.has(a)) mal('pregunta repetida', a);
     vistas.add(a);
     const origen = deRepregunta(a);
-    const valida = a === CLAVE_TEMA || a === FOTO || propias.has(a) || delBanco.has(a) || (origen !== undefined && delBanco.has(origen));
+    const delPanel = a.startsWith('F:') && base.tablas.preguntas.some((p) => `F:${p.id}` === a && p.narrador_id === id);
+    const valida = a === CLAVE_TEMA || a === FOTO || propias.has(a) || delPanel || delBanco.has(a) || (origen !== undefined && delBanco.has(origen));
     if (!valida) mal('pregunta de otro tema', `${a} (tema ${nar.tema})`);
   }
   for (const s of salidas) {

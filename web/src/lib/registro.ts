@@ -4,6 +4,7 @@
 
 import { EVITAR_MAXIMO, validarRitmo } from './guion';
 import { validarViaje } from './viaje';
+import { historiaVende, validarHistoria } from './historia';
 import { validarImprescindible, validarTemas } from './temas';
 import { esIdiomaRegalo, GENEROS, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
 import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, MENSAJE_PALABRA_DE_FAMILIA_TU } from './como-le-dicen';
@@ -51,6 +52,8 @@ export interface ContextoInput {
   evitar?: string;
   /** Vitácora de Viaje V2 (16/10): lo de `CompraViaje` (lib/viaje.ts), sin `v` ni `nombre` (los pone el servidor). */
   viaje?: unknown;
+  /** Vitácora de una historia (21/10): lo de `CompraHistoria` (lib/historia.ts). */
+  historia?: unknown;
 }
 
 export interface NarradorInput {
@@ -155,7 +158,11 @@ function esNoVacio(valor: unknown): valor is string {
   return typeof valor === 'string' && valor.trim().length > 0;
 }
 
-export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: boolean } = {}): ResultadoValidacion {
+/**
+ * `regalo`: la compra es un regalo (/api/compra: viene `body.regalo`). Historia lo usa para el tema abierto y las
+ * preguntas propias, que son solo de regalo; el género y la voz del regalo los pone después `contextoDeRegalo`.
+ */
+export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: boolean; regalo?: boolean } = {}): ResultadoValidacion {
   if (!esNoVacio(body?.nombreComprador)) {
     return { ok: false, status: 400, mensaje: 'Falta el nombre de quien regala la bitácora.' };
   }
@@ -318,6 +325,25 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
     if (v.viaje.idioma === 'es-AR') contextoFinal.trato = 'vos';
     else contextoFinal.idioma = v.viaje.idioma;
     contextoFinal.viaje = v.viaje;
+  }
+  // Vitácora de una historia (21/10): la compra de Familiar con el tema. La fila de `historias` la crea el bot
+  // (entrevistador/src/historia/alta.ts), que necesita el género y el idioma: sin género no arrancaría. El idioma
+  // va como en el regalo: es-AR de vos (sin `idioma`); en España, es-ES o ca con `idioma`. Un regalo los recibe
+  // después de `contextoDeRegalo` (/api/compra), con el idioma y el género del regalo.
+  if (contexto.historia !== undefined) {
+    if (!historiaVende(region)) return { ok: false, status: 400, mensaje: 'historia: no está a la venta' };
+    if (contexto.viaje !== undefined) return { ok: false, status: 400, mensaje: 'historia: no puede ser también un viaje' };
+    const h = validarHistoria(contexto.historia, { regalo: opciones.regalo === true });
+    if (!h.ok) return { ok: false, status: 400, mensaje: h.mensaje };
+    if (!opciones.regalo && !contextoFinal.genero) return { ok: false, status: 400, mensaje: 'historia: falta el género' };
+    contextoFinal.modo = 'historia';
+    contextoFinal.historia = h.historia;
+    if (!opciones.regalo) {
+      delete contextoFinal.trato;
+      delete contextoFinal.idioma;
+      if (region === 'AR') contextoFinal.trato = 'vos';
+      else contextoFinal.idioma = contexto.idioma === 'ca' ? 'ca' : 'es-ES';
+    }
   }
   // En un viaje, la hora y la zona del narrador son las del viaje validado (no las que
   // mande el navegador): la noche y la casa del contrato.

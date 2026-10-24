@@ -6,7 +6,7 @@
 // las preguntas de quien regala. Puro: sin base ni red.
 
 import type { Descartada, ResultadoCaza } from './nucleo/entrevista/cazador.js';
-import type { Repregunta } from './nucleo/entrevista/flujo.js';
+import type { PreguntaPanel, Repregunta } from './nucleo/entrevista/flujo.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
 import { vueltasEnCero, type AcusePendiente, type Vueltas } from './nucleo/entrevista/mensajes.js';
 import { esTema, type TemaHistoria } from './nucleo/entrevista/temas.js';
@@ -68,6 +68,11 @@ export type EstadoHistoria = {
   temaSinElegirAvisado?: boolean;
   /** Las preguntas de quien regala, en el orden de la compra (hasta 3; las copia el alta de `compra`). */
   propias: string[];
+  /**
+   * Las preguntas sumadas desde el panel (tabla `preguntas`, tipo 'familia'), con el id de su fila, en el orden en
+   * que se sumaron. Solo se agregan (panel.ts): si la familia borra una, lo que ya estaba no se toca.
+   */
+  panel?: PreguntaPanel[];
   /** Respuestas en el orden en que llegaron: [clave, texto]. Es la verdad de la entrevista. */
   respuestas: [string, string][];
   /** Lo que se mandó y no espera respuesta (FIN-H), o FOTO-H si pasaron 24 h sin foto. */

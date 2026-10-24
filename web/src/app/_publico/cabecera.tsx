@@ -2,11 +2,12 @@ import Link from "next/link";
 import { Toroide } from "../marca";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { kidsVendeEn } from "@/lib/kids";
+import { historiaVendeEn } from "@/lib/historia";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { EnlaceIdioma, SugerenciaCatalan } from "./idioma-cliente";
 
 // La cabecera pública del rediseño 2026-10 (maquetas Main/Movil, Ejemplo,
-// Checkout): logo + VITÁCORA, las solapas Familiar · Kids · De viaje,
+// Checkout): logo + VITÁCORA, las solapas Familiar · Kids · De viaje · Historia,
 // «Entrar», «Comprar el libro» y el selector ES · CA. La comparten la portada,
 // /ejemplo, /viaje y /kids. Kids aparece desde el 15/10 (Naza: va en la web
 // nueva, supera la D4); su compra solo vende con KIDS_VENTA (/comprar/kids).
@@ -16,7 +17,7 @@ import { EnlaceIdioma, SugerenciaCatalan } from "./idioma-cliente";
 
 // "eventos" (Vitácora Eventos, 17/10) no tiene solapa ni se compra: ninguna
 // va marcada y no hay botón de comprar.
-export type Producto = "familiar" | "kids" | "viaje" | "eventos";
+export type Producto = "familiar" | "kids" | "viaje" | "historia" | "eventos";
 
 export type PropsCabecera = {
   idioma: IdiomaWeb;
@@ -32,9 +33,9 @@ export type PropsCabecera = {
 
 export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = false, compacta = false }: PropsCabecera) {
   const t = TEXTOS_PUBLICO[idioma];
-  const comprar = ruta(idioma, producto === "viaje" ? "/comprar/viaje" : producto === "kids" ? "/comprar/kids" : "/comprar");
-  // En Kids, «Comprar» solo si se vende (KIDS_VENTA y precio): si no, no hay botón.
-  const conComprar = !compacta && producto !== "eventos" && (producto !== "kids" || kidsVendeEn(idioma));
+  const comprar = ruta(idioma, producto === "viaje" ? "/comprar/viaje" : producto === "kids" ? "/comprar/kids" : producto === "historia" ? "/comprar/historia" : "/comprar");
+  // En Kids y en Historia, «Comprar» solo si se vende (KIDS_VENTA, HISTORIA_VENTA): si no, no hay botón.
+  const conComprar = !compacta && producto !== "eventos" && (producto !== "kids" || kidsVendeEn(idioma)) && (producto !== "historia" || historiaVendeEn(idioma));
   return (
     <header
       className={`relative z-20 text-[var(--texto-oscuro)] ${sobreHero ? "" : "border-b border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)]"}`}
@@ -89,23 +90,23 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
 }
 
 /**
- * Familiar · Kids · De viaje (MOTION.md patrón 4). La pastilla blanca está
+ * Familiar · Kids · De viaje · Historia (MOTION.md patrón 4; Historia desde el 23/10). La pastilla blanca está
  * debajo de la solapa activa y se desliza hasta la que se señala, solo con
- * transform (las tres solapas miden lo mismo: translateX(100%) y (200%) son
- * exactos, sin medir nada). El texto va con mix-blend difference: blanco sobre
+ * transform (las cuatro solapas miden lo mismo: translateX(100%), (200%) y
+ * (300%) son exactos, sin medir nada). El texto va con mix-blend difference: blanco sobre
  * el fondo, negro sobre la pastilla, sin JS. Kids y Viaje llevan a /kids y
  * /viaje de su idioma.
  */
 export function Solapas({ idioma, producto = "familiar" }: { idioma: IdiomaWeb; producto?: Producto }) {
   const t = TEXTOS_PUBLICO[idioma];
-  const solapa = "relative z-10 flex min-h-9 items-center justify-center rounded-full px-3 text-[14px] text-white mix-blend-difference sm:px-4 [font-family:var(--fuente-micro)]";
+  const solapa = "relative z-10 flex min-h-9 items-center justify-center whitespace-nowrap rounded-full px-2 text-[14px] text-white mix-blend-difference sm:px-4 [font-family:var(--fuente-micro)]";
   return (
     <nav
       aria-label={t.productos}
       data-activa={producto}
-      className="m-solapas relative isolate grid grid-cols-3 rounded-full border border-[#2c2c28] bg-[var(--fondo-oscuro)] p-1"
+      className="m-solapas relative isolate grid grid-cols-4 rounded-full border border-[#2c2c28] bg-[var(--fondo-oscuro)] p-1"
     >
-      <span aria-hidden className="m-pill absolute inset-y-1 left-1 w-[calc((100%-8px)/3)] rounded-full bg-white" />
+      <span aria-hidden className="m-pill absolute inset-y-1 left-1 w-[calc((100%-8px)/4)] rounded-full bg-white" />
       <Link prefetch={false} href={ruta(idioma, "/")} data-solapa="familiar" aria-current={producto === "familiar" ? "page" : undefined} className={solapa}>
         {t.familiar}
       </Link>
@@ -114,6 +115,9 @@ export function Solapas({ idioma, producto = "familiar" }: { idioma: IdiomaWeb; 
       </Link>
       <Link prefetch={false} href={ruta(idioma, "/viaje")} data-solapa="viaje" aria-current={producto === "viaje" ? "page" : undefined} className={solapa}>
         {t.viaje}
+      </Link>
+      <Link prefetch={false} href={ruta(idioma, "/historia")} data-solapa="historia" aria-current={producto === "historia" ? "page" : undefined} className={solapa}>
+        {t.historia}
       </Link>
     </nav>
   );

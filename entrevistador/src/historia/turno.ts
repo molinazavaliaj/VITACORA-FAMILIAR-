@@ -288,7 +288,7 @@ export function avanzar(anterior: EstadoHistoria, ficha: FichaTexto, sacadas: Sa
     e.esperando = t.id;
   };
 
-  const s = siguientePregunta({ respuestas, enviados: new Set(e.enviados), tema: ficha.tema, temaAbierto: e.temaAbierto, propias: e.propias, repreguntas: e.repreguntas, idioma });
+  const s = siguientePregunta({ respuestas, enviados: new Set(e.enviados), tema: ficha.tema, temaAbierto: e.temaAbierto, propias: e.propias, panel: e.panel, repreguntas: e.repreguntas, idioma });
   switch (s.tipo) {
     case 'terminada':
       e.terminada = true;
@@ -320,6 +320,10 @@ export function avanzar(anterior: EstadoHistoria, ficha: FichaTexto, sacadas: Sa
     }
     case 'propia':
       mandar({ id: s.clave, solo: textoDelBanco(s.clave, ficha, respuestas, { pregunta: s.pregunta }), siguiente: { id: s.clave, clase: 'historia' } });
+      return { estado: e, abrio: true };
+    case 'panel':
+      // PF-H1 o PF-H2 con la pregunta tal cual; la parte va con la clave F:<id> (el panel la reconoce por eso).
+      mandar({ id: s.clave, solo: textoDelBanco(s.mensaje, ficha, respuestas, { pregunta: s.pregunta }), siguiente: { id: s.clave, clase: 'historia' } });
       return { estado: e, abrio: true };
     case 'pregunta': {
       const p = s.pregunta;

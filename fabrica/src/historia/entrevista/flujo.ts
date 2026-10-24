@@ -30,6 +30,18 @@ export const FIN = 'FIN-H';
 /** Las preguntas de quien regala (banco.md, regla 7): la primera, la segunda y la tercera que dejó escritas. */
 export const PROPIAS: readonly string[] = ['PR-H1', 'PR-H2', 'PR-H3'];
 
+/**
+ * Las preguntas sumadas desde el panel (banco.md, regla 7; Naza, 23/10): PF-H1 presenta la primera y PF-H2 cada
+ * una de las siguientes. Lo que contesta se guarda con "F:<id de la fila de preguntas>", como la familia en V3.
+ */
+export const MENSAJE_PANEL_PRIMERA = 'PF-H1';
+export const MENSAJE_PANEL_SIGUIENTE = 'PF-H2';
+export const PREFIJO_PANEL = 'F:';
+
+export function clavePanel(id: string): string {
+  return `${PREFIJO_PANEL}${id}`;
+}
+
 /** Lo que contesta a una repregunta del cazador sobre la respuesta X se guarda como "RP~X". */
 export const PREFIJO_REPREGUNTA = 'RP~';
 
@@ -90,7 +102,7 @@ export function preguntaDeClave(clave: string, idioma: Idioma = IDIOMA_POR_DEFEC
     const boton = botonFoto(idioma);
     return { id: FOTO, bloque: 0, clase: 'historia', sensible: false, texto: mensajePorId(FOTO, idioma)?.texto, ...(boton ? { botones: [boton] } : {}) };
   }
-  if (PROPIAS.includes(clave)) return { id: clave, bloque: 0, clase: 'historia', sensible: false };
+  if (PROPIAS.includes(clave) || clave.startsWith(PREFIJO_PANEL)) return { id: clave, bloque: 0, clase: 'historia', sensible: false };
   const origen = deRepregunta(clave);
   if (origen !== undefined) return { id: clave, bloque: preguntaPorId(origen)?.bloque ?? 0, clase: 'historia', sensible: false, botones: [botonRepregunta(idioma)] };
   return undefined;
@@ -164,11 +176,16 @@ export type EstadoEntrevista = {
   temaAbierto?: boolean;
   /** Las preguntas que dejó escritas quien regala, en el orden de la compra (hasta 3). Van tal cual, sin revisión. */
   propias?: readonly string[];
+  /** Las preguntas sumadas desde el panel, en el orden en que se sumaron. Van tal cual, sin revisión. */
+  panel?: readonly PreguntaPanel[];
   /** La cola de repreguntas del cazador: las que entraron, en orden; las que ya tienen respuesta ("RP~X") no salen más. */
   repreguntas?: readonly Repregunta[];
   /** El idioma de la entrevista. Sin idioma, es-AR. */
   idioma?: Idioma;
 };
+
+/** Una pregunta sumada desde el panel (tabla `preguntas`, tipo 'familia'). */
+export type PreguntaPanel = { id: string; texto: string };
 
 export type Siguiente =
   /** Mandar la pregunta; si `conM1`, con M1 abajo en línea aparte y en cursiva. Siempre espera respuesta. */
@@ -182,6 +199,11 @@ export type Siguiente =
   | { tipo: 'foto'; clave: typeof FOTO; esperaFoto: true; botones?: readonly Boton[]; ayudaBotones?: true }
   /** Mandar el mensaje `clave` (PR-H1…) con {{pregunta}} = `pregunta`, tal cual la escribió quien regala; lo que contesta va con `clave`. */
   | { tipo: 'propia'; clave: string; pregunta: string }
+  /**
+   * Una pregunta sumada desde el panel: el mensaje `mensaje` (PF-H1 la primera, PF-H2 las siguientes) con
+   * {{pregunta}} = `pregunta`; lo que contesta va con `clave` ("F:<id>").
+   */
+  | { tipo: 'panel'; clave: string; pregunta: string; mensaje: typeof MENSAJE_PANEL_PRIMERA | typeof MENSAJE_PANEL_SIGUIENTE }
   /** Una repregunta del cazador: `mensajeRepregunta` (cazador.ts) con `botones` ([Ya lo conté todo]); lo que contesta va con `repregunta.clave`. */
   | { tipo: 'repregunta'; repregunta: Repregunta; botones: readonly Boton[] }
   /** Mandar FIN-H (sin acuse delante) y anotarlo en `enviados`. */
@@ -219,7 +241,7 @@ function bancoDelEstado(e: EstadoEntrevista): readonly PreguntaEntrevista[] {
  * La próxima cosa para mandar (banco.md, regla 3): las preguntas del banco
  * del narrador en orden, salteando lo hecho y lo que no cumple; FOTO-H justo
  * después de la última pregunta de su tema (las que no son comunes ni
- * variantes); las de quien regala antes de la de clase `cierre`; y al final
+ * variantes); las de quien regala y después las sumadas desde el panel antes de la de clase `cierre`; y al final
  * FIN-H. Algo está hecho si tiene respuesta o figura en `enviados`. Antes de
  * todo eso, una repregunta del cazador, si toca.
  */
@@ -245,7 +267,7 @@ function repreguntaLista(e: EstadoEntrevista, delBanco: Siguiente): Repregunta |
   const pendientes = (e.repreguntas ?? []).filter((r) => !e.respuestas.has(r.clave));
   if (pendientes.length === 0) return undefined;
   if (delBanco.tipo === 'fin' || delBanco.tipo === 'terminada') return undefined;
-  const entraAlFinal = delBanco.tipo === 'propia' || (delBanco.tipo === 'pregunta' && delBanco.pregunta.clase === 'cierre');
+  const entraAlFinal = delBanco.tipo === 'propia' || delBanco.tipo === 'panel' || (delBanco.tipo === 'pregunta' && delBanco.pregunta.clase === 'cierre');
   if (entraAlFinal) return pendientes[0];
   const claves = [...e.respuestas.keys()];
   const ultima = claves.at(-1);
@@ -275,6 +297,14 @@ function siguienteDelBanco(e: EstadoEntrevista, banco: readonly PreguntaEntrevis
   // Las de quien regala van antes del cierre: si el cierre ya se contestó (o ya salió FIN-H), no van más.
   const cierreHecho = hecha(FIN) || (cierre >= 0 && hecha(banco[cierre].id));
   const propia = cierreHecho ? undefined : propias.map((pregunta, i) => ({ clave: PROPIAS[i], pregunta })).find((x) => !hecha(x.clave));
+  // Las sumadas desde el panel van después de las de quien regala, también antes del cierre.
+  const delPanel = (e.panel ?? []).map((p) => ({ clave: clavePanel(p.id), pregunta: p.texto }));
+  const iPanel = cierreHecho ? -1 : delPanel.findIndex((x) => !hecha(x.clave));
+  const panel: Siguiente | undefined = iPanel < 0 ? undefined : {
+    tipo: 'panel', ...delPanel[iPanel],
+    mensaje: delPanel.slice(0, iPanel).some((x) => hecha(x.clave)) ? MENSAJE_PANEL_SIGUIENTE : MENSAJE_PANEL_PRIMERA,
+  };
+  const antesDelCierre: Siguiente | undefined = propia ? { tipo: 'propia', ...propia } : panel;
   const foto = (): Siguiente => {
     const boton = botonFoto(idioma);
     return { tipo: 'foto', clave: FOTO, esperaFoto: true, ...(boton ? { botones: [boton], ayudaBotones: true as const } : {}) };
@@ -282,11 +312,11 @@ function siguienteDelBanco(e: EstadoEntrevista, banco: readonly PreguntaEntrevis
 
   for (const [i, p] of banco.entries()) {
     if (ultimaDelTema >= 0 && i > ultimaDelTema && !hecha(FOTO)) return foto();
-    if (i === cierre && propia) return { tipo: 'propia', ...propia };
+    if (i === cierre && antesDelCierre) return antesDelCierre;
     if (!hecha(p.id) && cumple(p, e.respuestas, idioma)) return { tipo: 'pregunta', pregunta: p, conM1: llevaM1(p, e.respuestas, banco) };
   }
   if (ultimaDelTema >= 0 && !hecha(FOTO)) return foto();
-  if (propia) return { tipo: 'propia', ...propia };
+  if (antesDelCierre) return antesDelCierre;
   return hecha(FIN) ? { tipo: 'terminada' } : { tipo: 'fin', clave: FIN };
 }
 

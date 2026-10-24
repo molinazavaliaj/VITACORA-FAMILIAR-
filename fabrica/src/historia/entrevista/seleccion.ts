@@ -5,7 +5,7 @@
 // historia es `bancoHistoria`). Puro.
 
 import { bancoHistoria, type BancoEntrevista } from './banco.js';
-import { FIN, siguientePregunta, type EstadoEntrevista, type Respuesta } from './flujo.js';
+import { FIN, siguientePregunta, type EstadoEntrevista, type PreguntaPanel, type Respuesta } from './flujo.js';
 import { renderizar, type FichaTexto } from './texto.js';
 
 /** Qué contesta: todo con una historia, "paso" en todo, o lo que diga la función (sin respuesta propia, cuenta algo). */
@@ -20,11 +20,13 @@ export type OpcionesRecorrido = {
   temaAbierto?: boolean;
   /** Las preguntas de quien regala, en el orden de la compra. */
   propias?: readonly string[];
+  /** Las sumadas desde el panel, en el orden en que se sumaron. */
+  panel?: readonly PreguntaPanel[];
 };
 
 /** Un mensaje de la entrevista, renderizado. `clave` es lo que se guarda (ID del banco, FOTO-H, PR-H1…, FIN-H). */
 export type PasoRecorrido = {
-  tipo: 'pregunta' | 'foto' | 'propia' | 'fin';
+  tipo: 'pregunta' | 'foto' | 'propia' | 'panel' | 'fin';
   clave: string;
   texto: string;
   /** M1 debajo (solo preguntas). */
@@ -58,7 +60,7 @@ export function recorrerEntrevista(o: OpcionesRecorrido): PasoRecorrido[] {
   const contesta = o.contesta ?? 'todo';
   const respuestas = new Map<string, Respuesta>();
   const enviados = new Set<string>();
-  const estado: EstadoEntrevista = { respuestas, enviados, tema: o.ficha.tema, temaAbierto: o.temaAbierto, propias: o.propias, idioma: o.ficha.idioma };
+  const estado: EstadoEntrevista = { respuestas, enviados, tema: o.ficha.tema, temaAbierto: o.temaAbierto, propias: o.propias, panel: o.panel, idioma: o.ficha.idioma };
   const pasos: PasoRecorrido[] = [];
   const contestar = (paso: Omit<PasoRecorrido, 'respuesta'>) => {
     const respuesta = responder(contesta, paso.clave);
@@ -82,6 +84,9 @@ export function recorrerEntrevista(o: OpcionesRecorrido): PasoRecorrido[] {
       case 'propia':
         contestar({ tipo: 'propia', clave: s.clave, texto: renderizar(texto(s.clave), o.ficha, respuestas, { pregunta: s.pregunta }) });
         break;
+      case 'panel':
+        contestar({ tipo: 'panel', clave: s.clave, texto: renderizar(texto(s.mensaje), o.ficha, respuestas, { pregunta: s.pregunta }) });
+        break;
       case 'pregunta':
         contestar({ tipo: 'pregunta', clave: s.pregunta.id, texto: renderizar(s.pregunta.texto, o.ficha, respuestas), conM1: s.conM1 });
         break;
@@ -90,7 +95,7 @@ export function recorrerEntrevista(o: OpcionesRecorrido): PasoRecorrido[] {
   throw new Error('recorrerEntrevista: más de 1000 vueltas (¿algo que nunca queda hecho?)');
 }
 
-/** Las claves de lo que se le pregunta (todo lo que espera respuesta), en orden: preguntas, FOTO-H y PR-H. */
+/** Las claves de lo que se le pregunta (todo lo que espera respuesta), en orden: preguntas, FOTO-H, PR-H y las del panel. */
 export function simularRecorrido(o: OpcionesRecorrido): string[] {
   return recorrerEntrevista(o)
     .filter((p) => p.tipo !== 'fin')

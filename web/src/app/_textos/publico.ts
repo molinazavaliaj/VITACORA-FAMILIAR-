@@ -12,6 +12,8 @@ export type TextosPublico = {
   /** La solapa de Vitácora Kids (15/10). */
   kids: string;
   viaje: string;
+  /** La cuarta solapa, «Vitácora de una historia» (Naza, 23/10, H1). */
+  historia: string;
   entrar: string;
   comprar: string;
   idioma: string;
@@ -45,6 +47,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     familiar: "Familiar",
     kids: "Kids",
     viaje: "De viaje",
+    historia: "Historia",
     entrar: "Entrar",
     comprar: "Iniciar Vitácora",
     idioma: "Idioma",
@@ -71,6 +74,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     familiar: "Familiar",
     kids: "Kids",
     viaje: "De viatge",
+    historia: "Història",
     entrar: "Entrar",
     comprar: "Iniciar Vitácora",
     idioma: "Idioma",
@@ -96,6 +100,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     familiar: "Familiar",
     kids: "Kids",
     viaje: "De viaje",
+    historia: "Historia",
     entrar: "Entrar",
     comprar: "Iniciar Vitácora",
     idioma: "Idioma",

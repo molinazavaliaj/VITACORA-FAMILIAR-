@@ -13,6 +13,7 @@ import { despuesDeCerrar, pasoDeCierre, reconciliar } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
 import { leerSacadas } from './fuera.js';
+import { actualizarPanel } from './panel.js';
 import { cuentaDeHoy, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaHistoria, type NarradorHistoria } from './tipos.js';
 import { avanzar, encolar, textoDelBanco } from './turno.js';
@@ -82,6 +83,7 @@ export async function trabajarNarrador(deps: DepsHistoria, fila: FilaHistoria, n
   const hoy = fechaLocal(ahora, n.zona_horaria);
 
   if (silencioCumplido(fila, ahora)) {
+    await actualizarPanel(deps.db, n.id);
     const sacadas = await leerSacadas(deps.db, n.id);
     const r = await conReintento(deps.db, n.id, (f) => {
       if (!silencioCumplido(f, ahora) || tomaVigente(f, ahora)) return null;
@@ -93,6 +95,7 @@ export async function trabajarNarrador(deps: DepsHistoria, fila: FilaHistoria, n
   }
 
   if (tocaTanda(fila, n, ahora, hoy) || quedoCortada(fila, hoy)) {
+    await actualizarPanel(deps.db, n.id);
     const sacadas = await leerSacadas(deps.db, n.id);
     const r = await conReintento(deps.db, n.id, (f) => {
       const cortada = quedoCortada(f, hoy);

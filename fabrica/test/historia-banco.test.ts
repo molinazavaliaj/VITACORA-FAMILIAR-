@@ -58,10 +58,10 @@ describe('el banco real en los tres idiomas', () => {
   const real = parsearEntrevistaMd(leer('../docs/historia/banco.md'));
   const ids = [...real.preguntas.map((p) => p.id), ...real.mensajes.map((m) => m.id)];
 
-  it('son 94 IDs: 50 preguntas y 44 mensajes', () => {
+  it('son 96 IDs: 50 preguntas y 46 mensajes (PF-H1 y PF-H2 desde el 23/10)', () => {
     expect(real.preguntas).toHaveLength(50);
-    expect(real.mensajes).toHaveLength(44);
-    expect(new Set(ids).size).toBe(94);
+    expect(real.mensajes).toHaveLength(46);
+    expect(new Set(ids).size).toBe(96);
   });
   for (const idioma of ['es-ES', 'ca'] as const) {
     it(`los 94 tienen texto en banco-${idioma}.md, y no sobra ninguno`, () => {

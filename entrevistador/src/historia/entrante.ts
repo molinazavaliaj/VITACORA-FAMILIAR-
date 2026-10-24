@@ -22,6 +22,7 @@ import type { DepsHistoria, Transcripcion } from './deps.js';
 import { drenar, ventanaAbierta } from './enviar.js';
 import { conReintento, leerFila, type CambioFila, type Paso } from './estado.js';
 import { leerSacadas, type Sacadas } from './fuera.js';
+import { actualizarPanel } from './panel.js';
 import {
   anotarTranscripcion, bajarAudioGuardado, guardarAudio, guardarFoto, guardarTexto, marcarRespondido, numeroDeLlegada, ponerClave, ponerClaveSiFalta, yaLlego,
 } from './filas.js';
@@ -254,6 +255,7 @@ async function reactivar(deps: DepsHistoria, narradorId: string): Promise<void> 
 /** La vuelta de una pausa sin nada abierto: lo siguiente sale ya, sin esperar su hora. */
 async function abrirAlVolver(deps: DepsHistoria, n: NarradorHistoria, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
+  await actualizarPanel(deps.db, n.id);
   const sacadas = await leerSacadas(deps.db, n.id);
   await conReintento(deps.db, n.id, (f) => {
     if (f.estado.esperando || f.estado.terminada) return null;
@@ -416,6 +418,7 @@ async function recibirBoton(deps: DepsHistoria, n: NarradorHistoria, m: MensajeE
 
 async function aplicarBoton(deps: DepsHistoria, n: NarradorHistoria, boton: string, guardada: FilaGuardada, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
+  await actualizarPanel(deps.db, n.id);
   const sacadas = await leerSacadas(deps.db, n.id);
   const r = await conReintento(deps.db, n.id, (f): Paso<Cerrado | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;

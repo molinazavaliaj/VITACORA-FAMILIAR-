@@ -128,6 +128,45 @@ describe('la entrevista entera', () => {
     expect(pr?.texto).toContain('«¿Qué te llevaste de casa?»');
   });
 
+  it('las preguntas sumadas desde el panel llegan después de las de quien regala y antes de HC10 (PF-H1, PF-H2), con su clave', async () => {
+    const { entra, silencio, enviados, base, fila } = await preparar({ propias: ['¿Qué te llevaste de casa?'], ficha: { quienRegala: 'Pablo' } });
+    await entra(texto('Sí'));
+    // Una se suma antes de arrancar y otra a mitad de la entrevista; una de otro narrador no cuenta.
+    base.tablas.preguntas = [
+      { id: 'p1', narrador_id: 'n1', orden: 200, texto: '¿Seguís viendo a alguien de esa época?', tipo: 'familia' },
+      { id: 'px', narrador_id: 'otro', orden: 200, texto: 'No es tuya', tipo: 'familia' },
+    ];
+    for (let vuelta = 0; vuelta < 40; vuelta++) {
+      const e = (await fila())!.estado;
+      if (e.terminada) break;
+      if (e.esperando === 'HC5') base.tablas.preguntas.push({ id: 'p2', narrador_id: 'n1', orden: 201, texto: 'qué pasó con la casa??', tipo: 'familia' });
+      if (e.esperando === 'FOTO-H') await entra(imagen());
+      await entra(audio(CUENTA));
+      await silencio();
+    }
+    const f = (await fila())!;
+    expect(f.estado.respuestas.map(([k]) => k).slice(-5)).toEqual(['HC9', 'PR-H1', 'F:p1', 'F:p2', 'HC10']);
+    expect(enviados.find((e) => e.texto?.includes('Una pregunta más, Marta, que quedó anotada para vos.'))?.texto).toContain('«¿Seguís viendo a alguien de esa época?»');
+    expect(enviados.find((e) => e.texto?.includes('Otra que quedó anotada para vos.'))?.texto).toContain('«qué pasó con la casa??»');
+    expect(base.tablas.respuestas.filter((r) => r.clave_historia === 'F:p1')).toHaveLength(1);
+    expect(JSON.stringify(f.estado.charla)).not.toContain('No es tuya');
+  });
+
+  it('una sumada cuando ya salió HC10 no llega', async () => {
+    const { entra, silencio, enviados, base, fila } = await preparar();
+    await entra(texto('Sí'));
+    for (let vuelta = 0; vuelta < 40 && (await fila())!.estado.esperando !== 'HC10'; vuelta++) {
+      if ((await fila())!.estado.esperando === 'FOTO-H') await entra(imagen());
+      await entra(audio(CUENTA));
+      await silencio();
+    }
+    base.tablas.preguntas = [{ id: 'tarde', narrador_id: 'n1', orden: 200, texto: '¿Llega?', tipo: 'familia' }];
+    await entra(audio(CUENTA));
+    await silencio();
+    expect((await fila())!.estado.terminada).toBe(true);
+    expect(enviados.some((e) => e.texto?.includes('«¿Llega?»'))).toBe(false);
+  });
+
   it('[No tengo fotos] cierra FOTO-H en el momento y sigue HC5', async () => {
     const { entra, silencio, enviados, fila } = await preparar();
     await entra(texto('Sí'));
