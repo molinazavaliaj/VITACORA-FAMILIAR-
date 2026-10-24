@@ -1,5 +1,6 @@
 // Rehace la imprenta de un libro de «Vitácora de una historia» ya escrito (la que corre sola después de entregar):
-// tapa dura sin Notas en `{narradorId}/bookmundo/`, o, con menos de 88 páginas, el informe y el aviso a los socios.
+// tapa dura sin Notas en `{narradorId}/bookmundo/` (con «Su voz» si la familia ya confirmó las frases), o, con menos de
+// 88 páginas, el informe y el aviso a los socios.
 // No le paga nada al modelo: el libro ya está en `{narradorId}/escritor-historia/libro.md`.
 //
 //   npx tsx scripts/historia-imprenta.ts <narradorId>
@@ -10,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { obtenerClienteDb } from '../src/db.js';
 import { imprentaHistoria } from '../src/escritor-historia/produccion/imprenta.js';
+import { leerFrases } from '../src/libro/publicar-frases.js';
 
 const [id] = process.argv.slice(2);
 if (!id) {
@@ -18,7 +20,10 @@ if (!id) {
 }
 const rutaEnv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.env');
 if (existsSync(rutaEnv)) process.loadEnvFile(rutaEnv);
-imprentaHistoria(obtenerClienteDb(), id)
+const db = obtenerClienteDb();
+// Con las frases ya confirmadas por la familia, con «Su voz»; si no, sin.
+leerFrases(db, id)
+  .then((frases) => imprentaHistoria(db, id, frases?.confirmado_at ? { frases } : {}))
   .then((r) => console.log(r === 'bookmundo' ? `Listo: ${id}/bookmundo/ (leer informe.txt antes de subir).` : 'Salió con menos de 88 páginas: ver el mail a los socios y scripts/historia-tapa-blanda.ts.'))
   .catch((err) => {
     console.error(err instanceof Error ? err.message : err);

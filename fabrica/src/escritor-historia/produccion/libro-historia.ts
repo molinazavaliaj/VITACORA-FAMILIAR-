@@ -45,7 +45,7 @@ import { esTablaAusente } from '../../historia/candado.js';
 import { carpetaDeHistoria } from '../material/carpeta.js';
 import { leerEntrevistaHistoria, type AudioHistoria } from '../material/de-base.js';
 import { etapaAHistoria, etapaBHistoria, etapaCHistoria, type ContextoHistoria, type ResultadoAHistoria } from '../orquestador.js';
-import { imprentaHistoria } from './imprenta.js';
+import { imprentaHistoria, suVozImpresaHistoria } from './imprenta.js';
 import { PREFIJO_HISTORIA, RUTA_LIBRO_HTML_HISTORIA, RUTA_LIBRO_MD_HISTORIA, RUTA_LIBRO_PDF_HISTORIA } from './rutas.js';
 import { lenguaDeHistoria, textosTapaHistoria, type TextosTapaHistoria } from './textos-tapa.js';
 
@@ -461,7 +461,9 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
 
     // «Su voz»: no frena la entrega.
     try {
-      if (x.c.existe(salida('sus_frases.md'))) await publicarFrases(db, soloConAudio(frasesParaSuVoz(x.c, { narradorId: id, pedidoId: pedido.id, fuentes: fuentesDeFrasesHistoria(x.c, desdeBase.audios) })));
+      // Solo con alguna frase que se pueda escuchar: una selección vacía no es nada que confirmar.
+      const suVoz = x.c.existe(salida('sus_frases.md')) ? soloConAudio(frasesParaSuVoz(x.c, { narradorId: id, pedidoId: pedido.id, fuentes: fuentesDeFrasesHistoria(x.c, desdeBase.audios) })) : null;
+      if (suVoz?.capitulos.length) await publicarFrases(db, suVoz);
     } catch (err) {
       x.log(`«Su voz» no salió (el libro se entrega igual): ${err instanceof Error ? err.message : err}`);
     }
@@ -511,6 +513,23 @@ async function avisarSinTextos(db: Db, id: string): Promise<void> {
   if (salio) await almacen.escribir(AVISO_SIN_TEXTOS, new Date().toISOString());
 }
 
+/** Narrador → hasta cuándo no se reintenta «Su voz» impresa tras una falla (en este proceso). */
+const esperaSuVoz = new Map<string, number>();
+
+/** «Su voz» impresa (imprenta.ts) sin frenar el tick: si falla, se avisa una vez por proceso y se reintenta en un rato. */
+async function suVozImpresa(db: Db, id: string): Promise<void> {
+  if (Date.now() < (esperaSuVoz.get(id) ?? 0)) return;
+  try {
+    await suVozImpresaHistoria(db, id);
+  } catch (err) {
+    const primera = !esperaSuVoz.has(id);
+    esperaSuVoz.set(id, Date.now() + ESPERA_TRAS_ERROR_MS);
+    const motivo = err instanceof Error ? err.message : String(err);
+    console.error(`historia ${id}: «Su voz» impresa no salió:`, motivo);
+    if (primera) await avisarSocios(`«Su voz» impresa del libro de historia de ${await quienEs(db, id)} no salió`, `La familia confirmó las frases, pero rehacer el libro de Bookmundo con «Su voz» falló: ${motivo}\n\nSe reintenta solo cada media hora. A mano: cd fabrica && npx tsx scripts/historia-imprenta.ts ${id}`);
+  }
+}
+
 // ---------------------------------------------------------------- el tick
 
 type NarradorFila = { id: string; estado: string; libro_aprobado_at: string | null };
@@ -539,7 +558,11 @@ export async function revisarLibrosHistoria(db: Db, o: { motor?: MotorHistoria; 
       if (!ESTADOS_TERMINADO.includes(narrador.estado)) continue;
       const suyos = pedidos.filter((x) => x.narrador_id === narrador.id);
       // Un libro ya entregado no se vuelve a escribir (un segundo pedido es un extra: eso es de la web y la imprenta).
-      if (suyos.some((x) => x.estado === 'entregado')) continue;
+      if (suyos.some((x) => x.estado === 'entregado')) {
+        // Ya entregado: lo único que queda es «Su voz» impresa cuando la familia confirma las frases.
+        await suVozImpresa(db, narrador.id);
+        continue;
+      }
       const pagado = suyos.find((x) => x.estado === 'pagado');
       // Sin pedido pagado o sin el libro cerrado, la Etapa A sola (y sus dudas). Con los dos, el libro, que corre la A
       // adentro si falta: lanzar la A aparte ocuparía la cola y el libro esperaría una vuelta más.

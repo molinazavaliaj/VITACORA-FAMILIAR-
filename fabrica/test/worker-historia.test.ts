@@ -198,7 +198,7 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
     expect(t.pedidos[1].estado).toBe('pagado');
   });
 
-  it('pedido entregado: le sale «el libro está listo» en su trato (sin voz si no hay frases con audio), pero no el recordatorio de frases', async () => {
+  it('pedido entregado sin frases con su voz: «el libro está listo» sin voz, en su trato, y ningún recordatorio de frases', async () => {
     const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-AR' }], familias };
     const { db } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(30) }, { name: 'terminado_enviado.txt' }] } });
     m.obtenerClienteDb.mockReturnValue(db);
@@ -206,17 +206,18 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
     const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
     expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo_sin_voz', variante: 'vos' })]);
     expect(m.enviarMailRecordatorioFrases).not.toHaveBeenCalled();
-    expect(await recordarFrasesPendientes()).toBe(0);
   });
 
-  it('con frases elegidas con su audio, el «libro listo» de siempre (con su voz); en España, con tú', async () => {
+  it('con frases elegidas con su audio: el «libro listo» de siempre (con su voz), en España con tú, y a los 15 días sin confirmar, el recordatorio', async () => {
     const frases = { version: 1, capitulos: [{ numero: 1, capitulo: 'I', candidatas: [{ id: 'R01', elegida: true, respuesta_id: 'r1' }] }] };
     const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-ES' }], familias };
-    const { db } = base(t, { paquetes: { chico: [{ name: 'terminado_enviado.txt' }] }, descargas: { 'chico/paquete/frases.json': JSON.stringify(frases) } });
+    const { db } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(16) }, { name: 'terminado_enviado.txt' }] }, descargas: { 'chico/paquete/frases.json': JSON.stringify(frases) } });
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
     const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
     expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo', variante: 'tu' })]);
+    // Su libro de Bookmundo espera esa confirmación para sumar «Su voz» (escritor-historia/produccion/imprenta.ts).
+    expect(m.enviarMailRecordatorioFrases).toHaveBeenCalledTimes(1);
   });
 });
 

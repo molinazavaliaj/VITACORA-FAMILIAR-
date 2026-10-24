@@ -770,13 +770,21 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
     impresoPorNarrador.set(p.narrador_id, (impresoPorNarrador.get(p.narrador_id) ?? false) || fisico);
   }
   const narradoresEntregados = new Set(impresoPorNarrador.keys());
-  // Un chico de Kids no tiene «Su voz» ni frases que confirmar.
+  // Un chico de Kids no tiene «Su voz» ni frases que confirmar. Una historia sí: su libro de Bookmundo suma «Su voz»
+  // cuando la familia confirma (escritor-historia/produccion/imprenta.ts), como el portón de Familiar.
   const aparte = await conAparteOFrenar(db, 'recordatorio de frases');
   if (!aparte) return 0;
+  let deHistoria: Set<string>;
+  try {
+    deHistoria = await narradoresConHistoria(db);
+  } catch (err) {
+    console.error('tick: no pude leer historias; el recordatorio de frases no sale este tick:', err);
+    return 0;
+  }
 
   let enviados = 0;
   for (const narradorId of narradoresEntregados) {
-    if (aparte.has(narradorId)) continue;
+    if (aparte.has(narradorId) && !deHistoria.has(narradorId)) continue;
     if (yaHecho(db, `frases:${narradorId}`)) continue;
     try {
       const { archivos, creados } = await listarPaqueteDeStorage(db, narradorId);
