@@ -21,7 +21,7 @@ function base64urlDeTexto(texto: string): string {
 
 export function firmarTokenAnticipo(narradorId: string): string {
   // FIRMA_TOKENS desde el 24/10 (ver web/src/lib/secreto-firma.ts); sin ella, la service_role como antes.
-  const secreto = process.env.FIRMA_TOKENS || cargarConfig().supabaseServiceRoleKey;
+  const secreto = process.env.FIRMA_TOKENS?.trim() || cargarConfig().supabaseServiceRoleKey;
   const encabezado = base64urlDeTexto(JSON.stringify(HEADER));
   const payload = base64urlDeTexto(JSON.stringify({ narradorId, tipo: TIPO }));
   const datos = `${encabezado}.${payload}`;
