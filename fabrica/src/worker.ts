@@ -21,9 +21,11 @@ import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { narradoresConKids } from './kids/candado.js';
+import { narradoresConHistoria } from './historia/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
+import { historiaTrabaja, revisarLibrosHistoria } from './escritor-historia/produccion/libro-historia.js';
 import { avisarVariablesAlArrancar } from './variables.js';
 import { iniciarSentry } from './sentry.js';
 import { revisarAudiosOriginales } from './audios-originales.js';
@@ -80,15 +82,21 @@ async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
 }
 
 /**
- * Los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4): la fábrica no les arma ni les
- * manda nada del libro de siempre; su libro se diseña aparte y arranca con `kids_v2.termino_at`. Sin la tabla, nadie
- * es chico. Null si no se pudo leer: la rama que llama no corre este tick (mejor nada que el libro viejo a un chico).
+ * Los narradores con su libro aparte: los chicos de Kids V2 (fila en kids_v2; docs/kids/v2/plan-conexion-bot.md, T4)
+ * y los de «Vitácora de una historia» (fila en historias; plan 2026-10-21, Task 5.3). La fábrica no les arma ni les
+ * manda nada del libro de siempre: el de Kids arranca con `kids_v2.termino_at` y el de historia lo escribe
+ * escritor-historia/produccion/libro-historia.ts. Sin una tabla, nadie es de ese producto. Null si no se pudo leer
+ * alguna: la rama que llama no corre este tick (mejor nada que el libro viejo a uno de ellos).
  */
-async function conKidsOFrenar(db: Db, rama: string): Promise<Set<string> | null> {
+async function conAparteOFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   try {
-    return await (delTick ? (delTick.kids ??= narradoresConKids(db)) : narradoresConKids(db));
+    const [kids, historia] = await Promise.all([
+      delTick ? (delTick.kids ??= narradoresConKids(db)) : narradoresConKids(db),
+      delTick ? (delTick.historia ??= narradoresConHistoria(db)) : narradoresConHistoria(db),
+    ]);
+    return new Set([...kids, ...historia]);
   } catch (err) {
-    console.error(`tick: no pude leer kids_v2; la rama '${rama}' no corre este tick:`, err);
+    console.error(`tick: no pude leer kids_v2 o historias; la rama '${rama}' no corre este tick:`, err);
     return null;
   }
 }
@@ -117,10 +125,10 @@ export function vueltaColgada(ahora = Date.now()): boolean {
 }
 
 /**
- * Quién es V3 y quién es chico de Kids, leído UNA vez por vuelta (antes, cada rama lo leía de nuevo: 5 y 7
- * veces por vuelta). Solo vive mientras corre `tick`; una rama llamada sola (los tests) lee como siempre.
+ * Quién es V3, quién es chico de Kids y quién cuenta una historia, leído UNA vez por vuelta (antes, cada rama lo
+ * leía de nuevo: 5 y 7 veces por vuelta). Solo vive mientras corre `tick`; una rama llamada sola (los tests) lee como siempre.
  */
-let delTick: { v3?: Promise<Set<string>>; kids?: Promise<Set<string>>; entregados?: Promise<Set<string>> } | null = null;
+let delTick: { v3?: Promise<Set<string>>; kids?: Promise<Set<string>>; historia?: Promise<Set<string>>; entregados?: Promise<Set<string>> } | null = null;
 
 /** Los narradores con algún pedido 'entregado', una vez por vuelta. Null si no se pudo leer: quien llama sigue como antes. */
 async function conLibroEntregado(db: Db): Promise<Set<string> | null> {
@@ -189,6 +197,9 @@ export async function tick(): Promise<void> {
     // El libro de Kids (escritor-kids/produccion/libro-kids.ts): la lectura al terminar de contar, el libro con el
     // pedido pagado, el mail al padre para revisarlo, la entrega cuando lo aprueba y el aviso de los 14 días.
     await revisarLibrosKids(obtenerClienteDb());
+    // El libro de «Vitácora de una historia» (escritor-historia/produccion/libro-historia.ts): la Etapa A al terminar
+    // la entrevista y el libro con el pedido pagado y el libro cerrado. Apagado sin ESCRITOR_HISTORIA.
+    await revisarLibrosHistoria(obtenerClienteDb());
     await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
@@ -271,8 +282,8 @@ async function generarAnticiposFaltantes(): Promise<void> {
 
   const v3 = await conV3OFrenar(db, 'anticipo');
   if (!v3) return;
-  const kids = await conKidsOFrenar(db, 'anticipo');
-  if (!kids) return;
+  const aparte = await conAparteOFrenar(db, 'anticipo');
+  if (!aparte) return;
 
   for (const narrador of (narradores ?? []) as {
     id: string;
@@ -283,7 +294,7 @@ async function generarAnticiposFaltantes(): Promise<void> {
     try {
       // La V3 no tiene anticipo; un chico de Kids tampoco. La Vitácora de Viaje tampoco (16/10: solo V2; el que
       // quedó en el viaje viejo no es un Familiar): el mail del anticipo cita la primera pregunta de una biografía.
-      if (v3.has(narrador.id) || kids.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
+      if (v3.has(narrador.id) || aparte.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
       if (yaHecho(db, `anticipo:${narrador.id}`)) continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) {
@@ -382,13 +393,13 @@ async function generarEstructurasFaltantes(): Promise<void> {
 
   const v3 = await conV3OFrenar(db, 'estructura');
   if (!v3) return;
-  const kids = await conKidsOFrenar(db, 'estructura');
-  if (!kids) return;
+  const aparte = await conAparteOFrenar(db, 'estructura');
+  if (!aparte) return;
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
       // Un chico de Kids: ni la estructura vieja ni el escritor V3 (su libro se diseña aparte).
-      if (kids.has(narrador.id)) continue;
+      if (aparte.has(narrador.id)) continue;
       // V3: en vez de la estructura vieja, la Etapa A del escritor nuevo (en segundo plano; no frena el tick).
       if (v3.has(narrador.id)) {
         // Con el libro ya entregado no queda nada de la Etapa A que hacer (ni lanzarla ni avisar sus dudas):
@@ -431,13 +442,13 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
 
   const v3 = await conV3OFrenar(db, 'previsualizacion');
   if (!v3) return;
-  const kids = await conKidsOFrenar(db, 'previsualizacion');
-  if (!kids) return;
+  const aparte = await conAparteOFrenar(db, 'previsualizacion');
+  if (!aparte) return;
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
       // La V3 no tiene previsualización; un chico de Kids tampoco.
-      if (v3.has(narrador.id) || kids.has(narrador.id)) continue;
+      if (v3.has(narrador.id) || aparte.has(narrador.id)) continue;
       if (yaHecho(db, `preview:${narrador.id}`)) continue;
       const archivos = await listarPaquete(db, narrador.id);
       const tieneEstructura = archivos.has('estructura.json');
@@ -494,11 +505,11 @@ async function avisarHitosDeCierre(): Promise<void> {
   }
   // Un chico de Kids termina en `completado` como cualquiera, pero no tiene «Cerrar libro» ni tablero: ni el mail
   // «terminó», ni los recordatorios, ni el cierre solo a los 30 días.
-  const kids = await conKidsOFrenar(db, 'hitos de cierre');
-  if (!kids) return;
+  const aparte = await conAparteOFrenar(db, 'hitos de cierre');
+  if (!aparte) return;
 
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
-    if (kids.has(narrador.id)) continue;
+    if (aparte.has(narrador.id)) continue;
     // Libro cerrado y todos sus mails de cierre ya salieron: no queda nada (ver abajo, donde se anota). Si la web
     // lo reabriera (`libro_aprobado_at` en null), se vuelve a mirar.
     if (narrador.libro_aprobado_at != null && yaHecho(db, `cierre:${narrador.id}`)) continue;
@@ -640,9 +651,9 @@ async function borrarAudiosOriginalesCadaHora(ahora = Date.now()): Promise<void>
   if (process.env.BORRADO_AUDIOS_ORIGINALES !== '1' || ahora - ultimaRevisionAudios < 3_600_000) return;
   ultimaRevisionAudios = ahora;
   const db = obtenerClienteDb();
-  const kids = await conKidsOFrenar(db, 'audios originales');
-  if (!kids) return;
-  await revisarAudiosOriginales(db, { kids, candadoLibroListo: CANDADO_POR_HITO.libro_listo });
+  const aparte = await conAparteOFrenar(db, 'audios originales');
+  if (!aparte) return;
+  await revisarAudiosOriginales(db, { kids: aparte, candadoLibroListo: CANDADO_POR_HITO.libro_listo });
 }
 
 /**
@@ -664,11 +675,11 @@ async function avisarLibrosListos(): Promise<void> {
 
   const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
   // El libro de un chico de Kids se avisa por su lado (el mail lleva al tablero de biografías).
-  const kids = await conKidsOFrenar(db, 'libro listo');
-  if (!kids) return;
+  const aparte = await conAparteOFrenar(db, 'libro listo');
+  if (!aparte) return;
 
   for (const narradorId of narradoresEntregados) {
-    if (kids.has(narradorId)) continue;
+    if (aparte.has(narradorId)) continue;
     if (yaHecho(db, `libro-listo:${narradorId}`)) continue;
     try {
       const archivos = await listarPaquete(db, narradorId);
@@ -736,12 +747,12 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
   }
   const narradoresEntregados = new Set(impresoPorNarrador.keys());
   // Un chico de Kids no tiene «Su voz» ni frases que confirmar.
-  const kids = await conKidsOFrenar(db, 'recordatorio de frases');
-  if (!kids) return 0;
+  const aparte = await conAparteOFrenar(db, 'recordatorio de frases');
+  if (!aparte) return 0;
 
   let enviados = 0;
   for (const narradorId of narradoresEntregados) {
-    if (kids.has(narradorId)) continue;
+    if (aparte.has(narradorId)) continue;
     if (yaHecho(db, `frases:${narradorId}`)) continue;
     try {
       const { archivos, creados } = await listarPaqueteDeStorage(db, narradorId);
@@ -836,6 +847,8 @@ async function liberarPedidosGenerandoHuerfanos(db: ReturnType<typeof obtenerCli
     if (pedidosGenerandoClaimados.has(pedido.id)) continue;
     // Otra copia de la fábrica (un deploy con las dos prendidas) lo está escribiendo: no es huérfano.
     if (pedido.narrador_id && (await trabajaOtraCopia(db, pedido.narrador_id))) continue;
+    // El libro de una historia lo reclama y lo escribe libro-historia.ts: mientras trabaja (acá o en otra copia), no es huérfano.
+    if (pedido.narrador_id && (await historiaTrabaja(db, pedido.narrador_id))) continue;
 
     console.warn(
       `tick: el pedido ${pedido.id} quedó huérfano en 'generando' (el proceso que lo reclamó no lo terminó) — lo devolvemos a 'pagado'.`
@@ -959,12 +972,13 @@ export async function procesarPedidosPagados(): Promise<void> {
   const v3 = await conV3OFrenar(db, 'pedidos');
   if (!v3) return;
   // El pedido de un chico de Kids no se reclama: ni generarPaquete, ni el escritor V3, ni la entrega con los mismos
-  // archivos. Su libro se diseña aparte y arranca con kids_v2.termino_at.
-  const kids = await conKidsOFrenar(db, 'pedidos');
-  if (!kids) return;
+  // archivos. Su libro se diseña aparte y arranca con kids_v2.termino_at. El de una historia lo reclama
+  // revisarLibrosHistoria (escritor-historia/produccion/libro-historia.ts).
+  const aparte = await conAparteOFrenar(db, 'pedidos');
+  if (!aparte) return;
 
   for (const pedido of pedidosPagados) {
-    if (kids.has(pedido.narrador_id)) continue;
+    if (aparte.has(pedido.narrador_id)) continue;
     if (!narradoresListos.has(pedido.narrador_id)) continue;
     if (narradoresEsperandoVoz.has(pedido.narrador_id)) continue;
     const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);

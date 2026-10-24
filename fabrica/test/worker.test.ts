@@ -22,6 +22,9 @@ const {
 
 // Sin chicos de Kids (el candado de Kids se prueba en worker-kids.test.ts).
 vi.mock('../src/kids/candado.js', () => ({ narradoresConKids: vi.fn(async () => new Set<string>()) }));
+// Sin historias (el candado de historia se prueba en worker-historia.test.ts).
+vi.mock('../src/historia/candado.js', () => ({ narradoresConHistoria: vi.fn(async () => new Set<string>()), esTablaAusente: () => false }));
+vi.mock('../src/escritor-historia/produccion/libro-historia.js', () => ({ revisarLibrosHistoria: vi.fn(async () => undefined), historiaTrabaja: vi.fn(async () => false) }));
 vi.mock('../src/v3/candado.js', () => ({
   idiomasV3: vi.fn(async () => new Map<string, string>()),
   narradoresConV3: vi.fn(async () => new Set<string>()),

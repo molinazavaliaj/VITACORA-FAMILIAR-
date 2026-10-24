@@ -1397,5 +1397,37 @@ historia, la que todavía no se sumó: la retoma el reloj). Varias filas pueden 
 Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la entrevista, `completado` después de
 FIN-H, `pausado` con «quiero parar», como en V3). Las fotos sueltas se guardan siempre.
 
-**Pendiente para fases siguientes:** el candado de la fábrica, para que el camino viejo (anticipo, estructura, paquete
-viejo) no toque a ningún narrador con fila en `historias`, y que el escritor V3 no lo tome como un narrador V3 (Fase 5).
+### El libro de una historia en la fábrica (24/10 — rama `historia-libro`)
+
+**El candado** (`fabrica/src/historia/candado.ts`, `narradoresConHistoria`): un narrador con fila en `historias` no
+recibe nada del libro de siempre, en las mismas ramas del worker que un chico de Kids: anticipo, estructura,
+previsualización, mails de cierre (terminó, recordatorios, cierre solo a los 30 días), paquete viejo, escritor V3,
+«el libro está listo», recordatorio de frases y audios originales. Sin la tabla (migración sin aplicar), nadie
+cuenta una historia; con otro error de base, esas ramas no corren ese tick.
+
+**El escritor** (`fabrica/src/escritor-historia/produccion/libro-historia.ts`, `revisarLibrosHistoria` en el tick),
+el mismo recorrido que el libro V3:
+- La entrevista terminó (`completado` o `cerrado_anticipado`) → Etapa A (registro, plan, dudas de datos). Las dudas
+  van por mail a los socios, una vez. Las respuestas se escriben a mano en `{id}/escritor-historia/correcciones.json`
+  (mismo formato que V3); la pantalla de dudas de la web todavía no lee historia.
+- Pedido `pagado` + `narradores.libro_aprobado_at` → lo reclama este módulo (no el worker): B con las correcciones
+  (y `edicion.correcciones`), C, `{id}/paquete/libro.html` y `libro.pdf`, «Su voz» (`frases.json`) y el pedido a
+  `entregado` (`libro_pdf_path`). Un error pasajero vuelve el pedido a `pagado`; uno definitivo, `fallido` y aviso.
+- Lo material lee `historias.estado.respuestas` (con el borrador abierto) y `respuestas` con `clave_historia` (sin `∅`),
+  menos lo reservado (`estado.reservadas`, `reservada`, `reservado_tramo`), lo destildado al cerrar
+  (`edicion.excluidas`) y lo sacado desde el panel (`respuestas_fuera`).
+
+| En Storage (`audios`) | Qué es |
+|---|---|
+| `{id}/escritor-historia/` | El almacén del escritor: `pasos/`, `lotes/`, `costos.json`, `carpeta-A/B/C.json`, `libro.md`, `informe.md`, `dudas-familia.json`, `dudas-avisadas.txt`, `fallo-A.json`, `correcciones.json`, `trabajando.json` |
+| `{id}/paquete/libro.html`, `libro.pdf` | El libro para leer y descargar, como V3 |
+
+| Variable (Railway, fábrica) | Qué hace |
+|---|---|
+| `ESCRITOR_HISTORIA` | `1` = prendido para todos; `solo:<id>,<id>` = solo esos. Sin la variable, apagado: no se escribe nada, ni la Etapa A. |
+| `ESCRITOR_HISTORIA_TOPE_USD` | Tope de gasto por trabajo (Etapa A o libro). 10 por defecto. |
+
+Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B` o `-C`.
+
+**Pendiente:** la web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
+y en la pantalla de dudas; los mails a la familia de historia (libro listo, recordatorios de cierre) no existen.

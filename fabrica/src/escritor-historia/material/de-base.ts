@@ -8,6 +8,7 @@
 // Las filas con `clave_historia` '∅' se ignoran. No escribe nada.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { sinLoSacado } from '../../escritor/material/de-base.js';
+import { esPublicable, textoRespuesta } from '../../libro/comun.js';
 import type { PreguntaPanel } from '../../historia/entrevista/flujo.js';
 import { idiomaDe } from '../../historia/entrevista/idioma.js';
 import { sumarAudio } from '../../historia/entrevista/respuesta.js';
@@ -34,8 +35,11 @@ export type FilaHistoriaBase = {
 
 type FilaRespuesta = {
   id: string; clave_historia: string; transcripcion: string | null; texto_directo?: string | null;
-  reservada?: boolean | null; reservado_tramo?: string | null;
+  audio_path?: string | null; reservada?: boolean | null; reservado_tramo?: string | null;
 };
+
+/** Un audio de la entrevista, para «Su voz» (el worker de audio corta la frase de esa fila). Como AudioV3. */
+export type AudioHistoria = { respuestaId: string; clave: string; audioPath: string | null; transcripcion: string | null };
 type Reserva = { total: boolean; tramos: string[] };
 
 const claveMadre = (k: string): string => (k.startsWith('RP~') ? k.slice(3) : k);
@@ -121,16 +125,16 @@ async function idsFuera(db: SupabaseClient, narradorId: string): Promise<Set<str
   return new Set(((data as { respuesta_id: string }[] | null) ?? []).map((r) => r.respuesta_id));
 }
 
-export async function leerEntrevistaHistoria(db: SupabaseClient, narradorId: string): Promise<EntrevistaHistoria | null> {
+export async function leerEntrevistaHistoria(db: SupabaseClient, narradorId: string): Promise<{ entrevista: EntrevistaHistoria; audios: AudioHistoria[] } | null> {
   const h = await db.from('historias').select('narrador_id,idioma,ficha,estado').eq('narrador_id', narradorId).maybeSingle();
   if (h.error) throw new Error(`No pude leer la historia de ${narradorId}: ${h.error.message}`);
   if (!h.data) return null;
   const fila = h.data as unknown as FilaHistoriaBase;
 
   const consulta = (campos: string) => db.from('respuestas').select(campos).eq('narrador_id', narradorId).not('clave_historia', 'is', null).order('recibido_at', { ascending: true });
-  let res = await consulta('id,clave_historia,transcripcion,texto_directo,reservada,reservado_tramo');
+  let res = await consulta('id,clave_historia,audio_path,transcripcion,texto_directo,reservada,reservado_tramo');
   // Sin la migración de las reservas (columna inexistente) nadie pudo reservar nada.
-  if (res.error?.code === '42703') res = await consulta('id,clave_historia,transcripcion,texto_directo');
+  if (res.error?.code === '42703') res = await consulta('id,clave_historia,audio_path,transcripcion,texto_directo');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
   const filas = ((res.data as unknown as FilaRespuesta[] | null) ?? []).filter((r) => r.clave_historia !== SIN_CLAVE_HISTORIA);
 
@@ -140,5 +144,14 @@ export async function leerEntrevistaHistoria(db: SupabaseClient, narradorId: str
   const reservadas = new Set(fila.estado.reservadas ?? []);
   for (const r of filas) if (excluidas.has(r.id)) reservadas.add(claveMadre(r.clave_historia));
 
-  return limpiarEntrevista(entrevistaDeFilaHistoria(fila), filas, await idsFuera(db, narradorId), reservadas);
+  const fuera = await idsFuera(db, narradorId);
+  const reservada = (r: FilaRespuesta): boolean => reservadas.has(claveMadre(r.clave_historia));
+  // Un tramo reservado no se recorta de una grabación: el audio queda afuera. Una fila sacada, también.
+  const audios: AudioHistoria[] = filas.map((r) => ({
+    respuestaId: r.id,
+    clave: r.clave_historia,
+    audioPath: esPublicable(r) && !reservada(r) && !fuera.has(r.id) ? r.audio_path ?? null : null,
+    transcripcion: fuera.has(r.id) || reservada(r) ? null : textoRespuesta({ transcripcion: r.transcripcion, texto_directo: r.texto_directo ?? null, reservada: r.reservada, reservado_tramo: r.reservado_tramo }),
+  }));
+  return { entrevista: limpiarEntrevista(entrevistaDeFilaHistoria(fila), filas, fuera, reservadas), audios };
 }

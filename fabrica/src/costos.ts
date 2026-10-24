@@ -241,6 +241,19 @@ export async function anotarUsoEscritorKids(db: Db, narradorId: string, f: UsoEs
   });
 }
 
+/**
+ * El escritor de «Vitácora de una historia» (escritor-historia/produccion/libro-historia.ts), igual que el de la
+ * casa pero con su propio `paso`: `escritor-historia-A`, `escritor-historia-B` o `escritor-historia-C`. Nunca tira.
+ */
+export async function anotarUsoEscritorHistoria(db: Db, narradorId: string, f: UsoEscritor): Promise<void> {
+  await anotarEnConsumoIa(db, narradorId, {
+    modelo: f.modelo,
+    paso: `escritor-historia-${/^[ABC]\//.test(f.clave) ? f.clave[0] : 'otro'}`,
+    usage: { input_tokens: f.input, output_tokens: f.output, cache_creation_input_tokens: f.cache_write, cache_read_input_tokens: f.cache_read },
+    usd: f.usd,
+  });
+}
+
 export type ResumenCostos = {
   totalUsd: number;
   llamadas: number;
