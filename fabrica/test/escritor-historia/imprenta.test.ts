@@ -21,7 +21,7 @@ vi.mock('../../src/escritor-historia/produccion/textos-tapa.js', async () => ({
 }));
 vi.mock('../../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave-prueba', urlBase: 'https://www.vitacorafamiliar.com', supabaseServiceRoleKey: 'secreto-de-prueba' }) }));
 
-import { imprentaHistoria } from '../../src/escritor-historia/produccion/imprenta.js';
+import { imprentaHistoria, suVozImpresaHistoria } from '../../src/escritor-historia/produccion/imprenta.js';
 
 const ID = '3f6c2a10-8b4e-4d71-9a2c-5e0b7d1f4c88'; // Rubén, inventado
 const LIBRO = '# La valija verde\n\n# I · El taller\n\nYo era tornero en Bahía Blanca. [[R01]]\n';
@@ -92,5 +92,24 @@ describe('imprentaHistoria', () => {
     const { db } = base('ca');
     await expect(imprentaHistoria(db, ID)).rejects.toThrow('faltan los textos de tapa de historia aprobados en ca');
     expect(m.opciones).toHaveLength(0);
+  });
+
+  it('«Su voz» impresa: con las frases confirmadas rehace Bookmundo con ellas y sus códigos, una vez por confirmación', async () => {
+    m.paginas = 92;
+    const { db, archivos } = base();
+    expect(await suVozImpresaHistoria(db, ID)).toBe(false); // sin frases.json
+    const frases = { version: 1, narrador_id: ID, pedido_id: 'p1', confirmado_at: null as string | null, capitulos: [] };
+    archivos.set(`${ID}/paquete/frases.json`, JSON.stringify(frases));
+    expect(await suVozImpresaHistoria(db, ID)).toBe(false); // sin confirmar
+    expect(m.opciones).toHaveLength(0);
+    archivos.set(`${ID}/paquete/frases.json`, JSON.stringify({ ...frases, confirmado_at: '2026-10-30T10:00:00.000Z' }));
+    expect(await suVozImpresaHistoria(db, ID)).toBe(true);
+    const d = m.datos[0] as { libro: { frases: { confirmado_at: string }; urlCliente: string } };
+    expect(d.libro.frases.confirmado_at).toBe('2026-10-30T10:00:00.000Z');
+    expect(d.libro.urlCliente).toContain('/voz/');
+    expect(await suVozImpresaHistoria(db, ID)).toBe(false); // la misma confirmación no se rehace
+    archivos.set(`${ID}/paquete/frases.json`, JSON.stringify({ ...frases, confirmado_at: '2026-10-31T10:00:00.000Z' }));
+    expect(await suVozImpresaHistoria(db, ID)).toBe(true);
+    expect(m.opciones).toHaveLength(2);
   });
 });

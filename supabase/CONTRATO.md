@@ -1442,8 +1442,11 @@ título que elige la dueña, qué dejar afuera, encargar), con sus respuestas (`
 («UNA HISTORIA DE SU VIDA»). La pantalla de dudas y su API leen y escriben en `{id}/escritor-historia/` cuando el
 narrador tiene fila en `historias` (`web/src/lib/dudas-archivos.ts`, `carpetaDelEscritor`).
 
-**Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
-imprenta cuando la familia confirma las frases; historia no pasa por ahí). El mail «el libro está listo» le sale a una
+**«Su voz» impresa** (24/10): cuando la familia confirma las frases (`frases.json.confirmado_at`, desde el panel), el
+libro de `{id}/bookmundo/` se rehace con «Su voz» y sus códigos (`suVozImpresaHistoria`, una vez por confirmación;
+`{id}/escritor-historia/imprenta-su-voz.txt` guarda con cuál). Hasta entonces lo de Bookmundo va sin «Su voz»: no se
+sube antes de la confirmación. A una historia le sale el recordatorio de frases a los 15 días, como en Familiar.
+`frases.json` solo se publica si hay alguna frase con audio. El mail «el libro está listo» le sale a una
 historia en su trato (vos en `es-AR`, tú en `es-ES` y `ca`); si el libro salió sin frases con su voz (`frases.json` sin
 ninguna elegida con audio), va `libro_listo_sin_voz`, que no promete escucharla (mismo candado). Las entregas del impreso (`entregas.ts`: el portón de
 imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

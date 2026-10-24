@@ -12,6 +12,8 @@ import { libroParaPlantilla } from '../../escritor/salida/plantilla.js';
 import { descargarTextoOpcional } from '../../libro/comun.js';
 import { leerEdicion } from '../../libro/edicion.js';
 import { cargarFotos } from '../../libro/fotos.js';
+import type { FrasesJson } from '../../libro/frases.js';
+import { leerFrases } from '../../libro/publicar-frases.js';
 import { urlVozDeNarrador } from '../../libro/token-voz.js';
 import { armarLibroBookmundo, ARCHIVOS_BOOKMUNDO, type DatosLibro, type LibroBookmundo } from '../../libro/bookmundo/armar.js';
 import type { DatosCubierta } from '../../libro/bookmundo/cubierta.js';
@@ -31,7 +33,7 @@ export class SinTextosTapaHistoria extends Error {
 }
 
 /** Lo que pide armarLibroBookmundo para el libro de una historia. Null si todavía no está escrito. */
-export async function datosBookmundoHistoria(db: Db, id: string): Promise<{ libro: DatosLibro; cubierta: Omit<DatosCubierta, 'paginas'>; nombre: string } | null> {
+export async function datosBookmundoHistoria(db: Db, id: string, o: { frases?: FrasesJson } = {}): Promise<{ libro: DatosLibro; cubierta: Omit<DatosCubierta, 'paginas'>; nombre: string } | null> {
   const md = await descargarTextoOpcional(db, RUTA_LIBRO_MD_HISTORIA(id));
   if (md === null) return null;
   const { data: n, error } = await db.from('narradores').select('id, nombre, como_le_dicen, contexto, foto_url, edicion').eq('id', id).maybeSingle();
@@ -52,6 +54,8 @@ export async function datosBookmundoHistoria(db: Db, id: string): Promise<{ libr
       titulo: p.titulo, nombreNarrador: narrador.nombre, tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
       anioNacimiento: null, indice: p.indice, libroMarkdown: p.libroMarkdown,
       idioma: lengua === 'ca' ? 'ca' : 'es', trato: lengua === 'es-AR' ? 'vos' : 'tu', tapaEyebrow: textos.eyebrow,
+      // «Su voz» impresa: las frases confirmadas, cada una con el código que la hace sonar.
+      ...(o.frases ? { frases: o.frases, urlCliente: urlVoz } : {}),
     },
     cubierta: {
       nombreTapa: edicion.titulo ?? narrador.nombre,
@@ -64,6 +68,25 @@ export async function datosBookmundoHistoria(db: Db, id: string): Promise<{ libr
       textos: textos.cubierta,
     },
   };
+}
+
+/** En `{id}/escritor-historia/`: el `confirmado_at` de las frases con que ya se armó «Su voz» impresa. */
+export const SU_VOZ_IMPRESA = 'imprenta-su-voz.txt';
+
+/**
+ * El portón de «Su voz» de una historia (como libro/imprenta.ts de Familiar, que una historia no usa): cuando la familia
+ * confirma las frases (`frases.json.confirmado_at`), el libro de Bookmundo se rehace con «Su voz» y sus códigos. Una vez
+ * por confirmación. Devuelve si lo rehízo. Tira si falla el armado: quien llama decide.
+ */
+export async function suVozImpresaHistoria(db: Db, id: string): Promise<boolean> {
+  const frases = await leerFrases(db, id);
+  if (!frases?.confirmado_at) return false;
+  const almacen = new AlmacenSupabase(db, PREFIJO_HISTORIA(id));
+  if ((await almacen.leer(SU_VOZ_IMPRESA))?.trim() === frases.confirmado_at) return false;
+  const r = await imprentaHistoria(db, id, { frases });
+  await almacen.escribir(SU_VOZ_IMPRESA, frases.confirmado_at);
+  console.log(`historia ${id}: «Su voz» impresa con las frases confirmadas (${r})`);
+  return true;
 }
 
 /** Sube los archivos de Bookmundo a su carpeta (y borra el interior del otro color, si quedó de antes). */
@@ -85,8 +108,8 @@ export async function subirBookmundo(db: Db, carpeta: string, r: LibroBookmundo,
  * con menos, solo el informe y el aviso a los socios ('flaco'). Tira si el libro no está escrito, si faltan los textos
  * de tapa aprobados o si falla Chromium o Storage: quien llama decide.
  */
-export async function imprentaHistoria(db: Db, id: string): Promise<'bookmundo' | 'flaco'> {
-  const d = await datosBookmundoHistoria(db, id);
+export async function imprentaHistoria(db: Db, id: string, o: { frases?: FrasesJson } = {}): Promise<'bookmundo' | 'flaco'> {
+  const d = await datosBookmundoHistoria(db, id, o);
   if (!d) throw new Error(`historia ${id}: no hay libro escrito (${RUTA_LIBRO_MD_HISTORIA(id)})`);
   const r = await armarLibroBookmundo(d.libro, d.cubierta, { sinNotas: true });
   const carpeta = CARPETA_BOOKMUNDO_HISTORIA(id);
