@@ -9,7 +9,8 @@
 //      `{id}/escritor-historia/correcciones.json` (como en V3) antes de que se escriba el libro.
 //   3. Pedido `pagado` + libro cerrado (`libro_aprobado_at`) → en segundo plano: A si faltaba (o si el material
 //      cambió), la espera por las dudas, B con las correcciones, C, plantilla → libro.html y libro.pdf, «Su voz» y el
-//      pedido a `entregado`. Después, la imprenta (Task 5.4). Si algo falla: `fallido` y aviso.
+//      pedido a `entregado`. Después, la imprenta (imprenta.ts: Bookmundo sin Notas, o el aviso de libro flaco).
+//      Si algo falla: `fallido` y aviso. Sin los textos de tapa aprobados del idioma (textos-tapa.ts), el libro espera.
 //
 // Se prende con `ESCRITOR_HISTORIA` (`1` = todos, `solo:<id>,<id>` = esos): apagado no se escribe nada, ni la A.
 // Tope por trabajo: `ESCRITOR_HISTORIA_TOPE_USD` (10 por defecto). Cada llamada va a consumo_ia con
@@ -36,27 +37,30 @@ import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
 import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
 import { Cola } from '../../escritor/produccion/cola.js';
-import { htmlLibroV3, type NarradorParaLibro } from '../../escritor/produccion/html.js';
-import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
+import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
+import { leerEdicion } from '../../libro/edicion.js';
+import { cargarFotos } from '../../libro/fotos.js';
+import { construirHtmlLibro } from '../../libro/plantilla-html.js';
 import { esTablaAusente } from '../../historia/candado.js';
 import { carpetaDeHistoria } from '../material/carpeta.js';
 import { leerEntrevistaHistoria, type AudioHistoria } from '../material/de-base.js';
 import { etapaAHistoria, etapaBHistoria, etapaCHistoria, type ContextoHistoria, type ResultadoAHistoria } from '../orquestador.js';
+import { imprentaHistoria } from './imprenta.js';
+import { PREFIJO_HISTORIA, RUTA_LIBRO_HTML_HISTORIA, RUTA_LIBRO_MD_HISTORIA, RUTA_LIBRO_PDF_HISTORIA } from './rutas.js';
+import { lenguaDeHistoria, textosTapaHistoria, type TextosTapaHistoria } from './textos-tapa.js';
 
 type Db = SupabaseClient;
 
 // ---------------------------------------------------------------- rutas
 
-export const PREFIJO_HISTORIA = (id: string): string => `${id}/escritor-historia`;
-export const RUTA_LIBRO_MD_HISTORIA = (id: string): string => `${PREFIJO_HISTORIA(id)}/libro.md`;
-export const RUTA_LIBRO_PDF_HISTORIA = (id: string): string => `${id}/paquete/libro.pdf`;
-export const RUTA_LIBRO_HTML_HISTORIA = (id: string): string => `${id}/paquete/libro.html`;
+export { PREFIJO_HISTORIA, RUTA_LIBRO_HTML_HISTORIA, RUTA_LIBRO_MD_HISTORIA, RUTA_LIBRO_PDF_HISTORIA };
 export const CARPETA_A = 'carpeta-A.json';
 export const FALLO_A = 'fallo-A.json';
 export const DUDAS = 'dudas-familia.json';
 export const DUDAS_AVISADAS = 'dudas-avisadas.txt';
 export const CORRECCIONES = 'correcciones.json';
 export const TRABAJANDO = 'trabajando.json';
+export const AVISO_SIN_TEXTOS = 'aviso-sin-textos-tapa.txt';
 
 const ESTADOS_TERMINADO = ['completado', 'cerrado_anticipado'];
 /** Tras un error (no un control que no pasa: eso es fallo-A.json), la Etapa A espera esto antes de reintentar. */
@@ -376,10 +380,40 @@ function esDefinitivo(err: unknown): boolean {
   return err instanceof FalloDelEscritorHistoria || err instanceof TopeDeGasto || err instanceof SinMaterialHistoria || err instanceof ErrorJSON || (err instanceof ErrorDelModelo && !err.reintentable);
 }
 
-/** Lo que hace la fábrica con el libro ya entregado (la imprenta, Task 5.4). Los tests lo cambian. */
+type NarradorParaLibro = { id: string; nombre: string; foto_url: string | null; edicion: unknown };
+
+/** El HTML del libro (libro.html y libro.pdf), como htmlLibroV3 de Familiar pero con la tapa de historia. */
+export async function htmlLibroHistoria(db: Db, a: { narrador: NarradorParaLibro; libroMd: string; idioma: 'es' | 'ca'; trato: 'vos' | 'tu'; textos: TextosTapaHistoria }): Promise<string> {
+  const p = libroParaPlantilla(a.libroMd);
+  const edicion = leerEdicion(a.narrador.edicion);
+  const fotoTapa = edicion.portadaFotoId ? (await cargarFotos(db, a.narrador.id)).porId.get(edicion.portadaFotoId) : undefined;
+  return construirHtmlLibro({
+    titulo: p.titulo,
+    nombreNarrador: a.narrador.nombre,
+    tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
+    anioNacimiento: null,
+    fotoUrl: fotoTapa?.dataUri ?? a.narrador.foto_url,
+    fotoFoco: fotoTapa?.foco,
+    indice: p.indice,
+    libroMarkdown: p.libroMarkdown,
+    idioma: a.idioma,
+    trato: a.trato,
+    tapaEyebrow: a.textos.eyebrow,
+  });
+}
+
+/** Los textos de tapa aprobados del idioma de esta historia, o null si todavía no están. */
+async function textosDe(db: Db, id: string): Promise<TextosTapaHistoria | null> {
+  const { data, error } = await db.from('historias').select('idioma').eq('narrador_id', id).maybeSingle();
+  if (error) throw new Error(`No pude leer el idioma de la historia de ${id}: ${error.message}`);
+  return textosTapaHistoria(lenguaDeHistoria((data as { idioma?: string } | null)?.idioma));
+}
+
+/** Lo que hace la fábrica con el libro ya entregado: la imprenta (Task 5.4). Los tests lo cambian. */
 export type DespuesDeEntregar = (db: Db, narradorId: string) => Promise<void>;
-let despuesDeEntregar: DespuesDeEntregar = async () => undefined;
-export const alEntregarHistoria = (f: DespuesDeEntregar): void => { despuesDeEntregar = f; };
+const imprentaPorDefecto: DespuesDeEntregar = async (db, id) => { await imprentaHistoria(db, id); };
+let despuesDeEntregar: DespuesDeEntregar = imprentaPorDefecto;
+export const alEntregarHistoria = (f: DespuesDeEntregar | null): void => { despuesDeEntregar = f ?? imprentaPorDefecto; };
 
 /**
  * El libro entero de un pedido ya reclamado ('generando'), como escribirLibroV3. Deja el pedido en 'entregado'. Ante
@@ -418,7 +452,9 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
 
     const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion').eq('id', id).maybeSingle();
     if (error || !n) throw new Error(`No se pudo leer el narrador ${id}: ${error?.message ?? 'no existe'}`);
-    const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma, trato: trato(x.c) });
+    const textos = await textosDe(db, id);
+    if (!textos) throw new FalloDelEscritorHistoria('faltan los textos de tapa de historia aprobados en este idioma (docs/historia/libro-textos-borrador.md)');
+    const html = await htmlLibroHistoria(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma, trato: trato(x.c), textos });
     await subir(db, RUTA_LIBRO_HTML_HISTORIA(id), html, 'text/html; charset=utf-8');
     await subir(db, RUTA_LIBRO_PDF_HISTORIA(id), await (motor.aPdf ?? htmlAPdf)(html), 'application/pdf');
 
@@ -456,6 +492,16 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
       `${motivo}\n\nEl pedido quedó 'fallido'. Lo pagado al modelo quedó en ${PREFIJO_HISTORIA(id)}/: para reintentar, volver el pedido a 'pagado' (retoma sin repagar).`,
     );
   }
+}
+
+async function avisarSinTextos(db: Db, id: string): Promise<void> {
+  const almacen = almacenDe(db, id);
+  if ((await almacen.leer(AVISO_SIN_TEXTOS)) !== null) return;
+  const salio = await avisarSocios(
+    `El libro de historia de ${await quienEs(db, id)} espera los textos de tapa`,
+    `El pedido está pagado y el libro cerrado, pero faltan los textos de tapa de «Vitácora de una historia» aprobados en su idioma (docs/historia/libro-textos-borrador.md). La fábrica no escribe el libro hasta que estén en fabrica/src/escritor-historia/produccion/textos-tapa.ts. Cuando estén, sigue solo. Este aviso sale una vez.`,
+  );
+  if (salio) await almacen.escribir(AVISO_SIN_TEXTOS, new Date().toISOString());
 }
 
 // ---------------------------------------------------------------- el tick
@@ -496,6 +542,11 @@ export async function revisarLibrosHistoria(db: Db, o: { motor?: MotorHistoria; 
       }
       const ahora = o.ahora ?? Date.now();
       if (!cola.hayLugar(narrador.id) || ahora < (esperaLibro.get(narrador.id) ?? 0)) continue;
+      // Sin los textos de tapa aprobados de su idioma, el libro no se escribe (saldría con la tapa de Familiar). Un aviso.
+      if (!(await textosDe(db, narrador.id))) {
+        await avisarSinTextos(db, narrador.id);
+        continue;
+      }
       if (await trabajaOtraCopia(db, narrador.id)) continue;
       const { data: reclamado, error } = await db.from('pedidos').update({ estado: 'generando' }).eq('id', pagado.id).eq('estado', 'pagado').select('id');
       if (error) { console.error(`historia ${narrador.id}: no se pudo reclamar el pedido ${pagado.id}:`, error.message); continue; }

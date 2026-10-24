@@ -1420,7 +1420,9 @@ el mismo recorrido que el libro V3:
 | En Storage (`audios`) | Qué es |
 |---|---|
 | `{id}/escritor-historia/` | El almacén del escritor: `pasos/`, `lotes/`, `costos.json`, `carpeta-A/B/C.json`, `libro.md`, `informe.md`, `dudas-familia.json`, `dudas-avisadas.txt`, `fallo-A.json`, `correcciones.json`, `trabajando.json` |
-| `{id}/paquete/libro.html`, `libro.pdf` | El libro para leer y descargar, como V3 |
+| `{id}/paquete/libro.html`, `libro.pdf` | El libro para leer y descargar, como V3, con la tapa de historia |
+| `{id}/bookmundo/` | Tapa dura para Bookmundo, sin hojas de Notas (`escritor-historia/produccion/imprenta.ts`, después de entregar). Con menos de 88 páginas queda solo `informe.txt` («NO SUBIR…»), sale un mail a los socios (una vez, `{id}/escritor-historia/aviso-flaco.txt`) y se le ofrece tapa blanda al cliente |
+| `{id}/bookmundo-tapa-blanda/` | La tapa blanda 170×240, que se arma a mano: `cd fabrica && npx tsx scripts/historia-tapa-blanda.ts <id>` |
 
 | Variable (Railway, fábrica) | Qué hace |
 |---|---|
@@ -1429,5 +1431,11 @@ el mismo recorrido que el libro V3:
 
 Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B` o `-C`.
 
-**Pendiente:** la web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
+**Los textos de tapa** de historia (la línea arriba del nombre, la etiqueta, la contratapa y el lema) están en
+`fabrica/src/escritor-historia/produccion/textos-tapa.ts`, uno por idioma, y entran solo aprobados por Naza (borrador:
+`docs/historia/libro-textos-borrador.md`). Sin los de su idioma, el libro no se escribe: la Etapa A sí, el pedido
+sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/aviso-sin-textos-tapa.txt`).
+
+**Pendiente:** el libro impreso de historia todavía no lleva «Su voz» con sus QR (en Familiar los suma el portón de
+imprenta cuando la familia confirma las frases; historia no pasa por ahí). La web todavía trata a un narrador de historia como uno viejo en «Cerrar libro» (`/tablero/{id}/libro`)
 y en la pantalla de dudas; los mails a la familia de historia (libro listo, recordatorios de cierre) no existen.

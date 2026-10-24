@@ -1,4 +1,5 @@
-// Las medidas de Bookmundo tapa dura (docs/bookmundo/especificaciones-bookmundo-2026-10.md, relevado el 17/10/2026).
+// Las medidas de Bookmundo tapa dura y, para la que se arma a mano, tapa blanda
+// (docs/bookmundo/especificaciones-bookmundo-2026-10.md, relevado el 17/10/2026).
 //
 // Bookmundo no tiene API: todo esto sale de su calculadora (covercalc / pricecalc) y de la vista previa real
 // de la cubierta del libro de Imma (pedido JMBS3000000112287). Si Bookmundo cambia algo, se cambia acá.
@@ -20,6 +21,35 @@ export const PAGINAS_MINIMAS_TAPA_DURA: Record<Papel, number> = { crema: 88, bla
 
 /** Lo que el cartón dobla hacia adentro en cada borde de la cubierta (calculadora: «sangrado 20,0 mm»). */
 export const SOLAPA_CARTON_MM = 20;
+
+/** Tapa dura (lo de siempre) o tapa blanda (la que se ofrece a mano cuando un libro de una historia sale flaco). */
+export type Encuadernacion = 'tapa-dura' | 'tapa-blanda';
+
+/** En tapa blanda, «Mediano 2» es 170×240 (especificaciones, sección de formatos). */
+export const FORMATO_TAPA_BLANDA = { anchoMm: 170, altoMm: 240, nombre: 'Mediano 2 tapa blanda (170 × 240)' } as const;
+
+/** Mínimo de páginas en tapa blanda (ES-man: 44 crema, 44 blanco, 42 semibrillante; la calculadora acepta 43). */
+export const PAGINAS_MINIMAS_TAPA_BLANDA: Record<Papel, number> = { crema: 44, blanco: 44, semibrillante: 42 };
+
+/** El sangrado de la cubierta de tapa blanda en cada borde (calculadora: «sangrado de 3,0 mm»). */
+export const SANGRADO_TAPA_BLANDA_MM = 3;
+
+export const formatoDe = (e: Encuadernacion): { anchoMm: number; altoMm: number; nombre: string } => (e === 'tapa-blanda' ? FORMATO_TAPA_BLANDA : FORMATO_TAPA_DURA);
+export const paginasMinimasDe = (e: Encuadernacion, papel: Papel): number => (e === 'tapa-blanda' ? PAGINAS_MINIMAS_TAPA_BLANDA : PAGINAS_MINIMAS_TAPA_DURA)[papel];
+
+/**
+ * El lomo de tapa blanda en papel crema, medido en la calculadora (A5, 17/10): 88 págs 5,3 mm, 100 págs 5,9, 200 págs
+ * 10,5. Debajo de 88 se sigue la pendiente de 88 a 100 (0,05 mm por página): no está medido, hay que mirarlo en la
+ * calculadora antes de subir (lo dice el informe).
+ */
+const LOMO_CREMA_TAPA_BLANDA: [paginas: number, lomoMm: number][] = [[88, 5.3], [100, 5.9], [200, 10.5]];
+
+export function lomoTapaBlandaMm(paginas: number): number {
+  const t = LOMO_CREMA_TAPA_BLANDA;
+  const tramo = paginas <= t[1][0] ? [t[0], t[1]] : [t[1], t[2]];
+  const [[p0, l0], [p1, l1]] = tramo;
+  return Math.max(0, Math.round((l0 + ((l1 - l0) * (paginas - p0)) / (p1 - p0)) * 10) / 10);
+}
 
 /**
  * El lomo en papel crema, medido en la calculadora (17/10) para varias cantidades de páginas. No hay
@@ -65,7 +95,20 @@ export type MedidasCubierta = {
  * pero la plantilla real de la vista previa mide 2 mm más (401,6 × 280): cada tapa es ancho + 8. Con la
  * medida de la calculadora Bookmundo estiraba la imagen. Se usa la de la vista previa.
  */
-export function medidasCubierta(paginas: number, formato: { anchoMm: number; altoMm: number } = FORMATO_TAPA_DURA): MedidasCubierta {
+export function medidasCubierta(paginas: number, formato: { anchoMm: number; altoMm: number } = FORMATO_TAPA_DURA, encuadernacion: Encuadernacion = 'tapa-dura'): MedidasCubierta {
+  if (encuadernacion === 'tapa-blanda') {
+    // Sin cartón: cada tapa es el formato, con 3 mm de sangrado alrededor (A5, 88 págs: 2 × 148 + 5,3 + 6 = 307,3 × 216).
+    const lomo = lomoTapaBlandaMm(paginas);
+    const s = SANGRADO_TAPA_BLANDA_MM;
+    return {
+      anchoTotalMm: Math.round((2 * formato.anchoMm + lomo + 2 * s) * 10) / 10,
+      altoTotalMm: formato.altoMm + 2 * s,
+      anchoTapaMm: formato.anchoMm,
+      altoTapaMm: formato.altoMm,
+      lomoMm: lomo,
+      solapaMm: s,
+    };
+  }
   const lomo = lomoMm(paginas);
   const anchoTapa = formato.anchoMm + 8;
   const altoTapa = formato.altoMm;

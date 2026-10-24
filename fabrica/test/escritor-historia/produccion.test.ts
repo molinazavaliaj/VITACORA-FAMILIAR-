@@ -5,6 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../src/libro/pdf.js', () => ({ htmlAPdf: vi.fn(async () => Buffer.from('%PDF-1.4 de mentira')) }));
 vi.mock('../../src/libro/publicar-frases.js', () => ({ publicarFrases: vi.fn(async () => undefined) }));
+// Los textos de tapa todavía no están aprobados: el test pone unos de prueba (salvo `sinTextos`).
+const t = vi.hoisted(() => ({ sinTextos: false }));
+vi.mock('../../src/escritor-historia/produccion/textos-tapa.js', async () => {
+  const real = await vi.importActual<typeof import('../../src/escritor-historia/produccion/textos-tapa.js')>('../../src/escritor-historia/produccion/textos-tapa.js');
+  const prueba = { eyebrow: 'TAPA DE PRUEBA', cubierta: { etiqueta: 'Etiqueta de prueba', contra: (n: string) => `Contra de ${n}`, lema: 'Lema de prueba' } };
+  return { ...real, textosTapaHistoria: () => (t.sinTextos ? null : prueba) };
+});
 vi.mock('../../src/config.js', () => ({
   cargarConfig: () => ({ resendApiKey: 'clave-prueba', urlBase: 'https://www.vitacorafamiliar.com', anthropicApiKey: 'x', supabaseServiceRoleKey: 'secreto-de-prueba' }),
 }));
@@ -105,7 +112,8 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await colaHistoria.esperarTodo();
-  alEntregarHistoria(async () => undefined);
+  alEntregarHistoria(null);
+  t.sinTextos = false;
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -156,6 +164,8 @@ describe('el libro de historia en el worker', () => {
     expect(String(archivos.get(prefijo('libro.md')))).toContain('# La valija verde');
     expect(archivos.has(`${ID}/paquete/libro.pdf`) && archivos.has(`${ID}/paquete/libro.html`)).toBe(true);
     expect(String(archivos.get(`${ID}/paquete/libro.html`))).toContain('La valija verde');
+    expect(String(archivos.get(`${ID}/paquete/libro.html`))).toContain('TAPA DE PRUEBA');
+    expect(String(archivos.get(`${ID}/paquete/libro.html`))).not.toContain('<div class="tapa-eyebrow">EL LIBRO DE SU VIDA');
     expect(entregados).toEqual([ID]);
     expect(modelo.llamadas.some((p) => p.clave === 'C/3b-capitulo-04')).toBe(true);
     const pasos = new Set(tablas.consumo_ia.map((f) => f.paso));
@@ -165,6 +175,17 @@ describe('el libro de historia en el worker', () => {
     const antes = modelo.llamadas.length;
     await vuelta(db, motor);
     expect(modelo.llamadas).toHaveLength(antes);
+  });
+
+  it('sin los textos de tapa aprobados: la Etapa A sí, el libro no (el pedido sigue pagado) y un aviso a los socios', async () => {
+    t.sinTextos = true;
+    const { db, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { motor, modelo } = motorFalso(db);
+    await vuelta(db, motor);
+    await vuelta(db, motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(modelo.llamadas.some((p) => p.clave.startsWith('C/'))).toBe(false);
+    expect(mails.filter((m) => m.subject.includes('espera los textos de tapa'))).toHaveLength(1);
   });
 
   it('una entrevista sin terminar no arranca nada', async () => {

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { PNG } from 'pngjs';
 import { construirHtmlLibro } from '../src/libro/plantilla-html.js';
 import { medidaExacta } from '../src/libro/pdf.js';
-import { lomoMm, medidasCubierta, PAGINAS_MINIMAS_TAPA_DURA } from '../src/libro/bookmundo/formato.js';
+import { FORMATO_TAPA_BLANDA, lomoMm, lomoTapaBlandaMm, medidasCubierta, PAGINAS_MINIMAS_TAPA_BLANDA, PAGINAS_MINIMAS_TAPA_DURA } from '../src/libro/bookmundo/formato.js';
 import { fuentesImprentaCss } from '../src/libro/bookmundo/fuentes.js';
 import { conPpp, deCatalan, nombreEnRenglones, pppDePng, cuerpoNombreCubierta, htmlCubierta } from '../src/libro/bookmundo/cubierta.js';
 import { evaluarInterior, type PaginaMedida } from '../src/libro/bookmundo/verificar.js';
@@ -53,6 +53,19 @@ describe('medidas de Bookmundo tapa dura', () => {
 
   it('el mínimo en papel crema es 88', () => {
     expect(PAGINAS_MINIMAS_TAPA_DURA.crema).toBe(88);
+  });
+});
+
+describe('medidas de Bookmundo tapa blanda (la de las historias flacas)', () => {
+  it('es 170×240, el mínimo es 44 en crema y la cubierta lleva 3 mm de sangrado', () => {
+    expect(FORMATO_TAPA_BLANDA).toMatchObject({ anchoMm: 170, altoMm: 240 });
+    expect(PAGINAS_MINIMAS_TAPA_BLANDA).toEqual({ crema: 44, blanco: 44, semibrillante: 42 });
+    // La medida de la calculadora en A5 (148×210), 88 págs: 307,3 × 216 con lomo 5,3.
+    const a5 = medidasCubierta(88, { anchoMm: 148, altoMm: 210 }, 'tapa-blanda');
+    expect(a5).toMatchObject({ anchoTotalMm: 307.3, altoTotalMm: 216, lomoMm: 5.3, solapaMm: 3 });
+    expect(lomoTapaBlandaMm(100)).toBe(5.9);
+    expect(lomoTapaBlandaMm(200)).toBe(10.5);
+    expect(medidasCubierta(60, FORMATO_TAPA_BLANDA, 'tapa-blanda').anchoTapaMm).toBe(170);
   });
 });
 
@@ -167,6 +180,12 @@ describe('evaluarInterior (sin navegador)', () => {
     expect(r.ok).toBe(true);
   });
 
+  it('en tapa blanda el mínimo es 44', () => {
+    const tb = (n: number) => Array.from({ length: n }, (_, i) => pagina(i + 1, { anchoMm: 170 }));
+    expect(evaluarInterior(tb(44), { bytes: 1e6, encuadernacion: 'tapa-blanda' }).ok).toBe(true);
+    expect(evaluarInterior(tb(40), { bytes: 1e6, encuadernacion: 'tapa-blanda' }).errores.join()).toContain('mínimo de tapa blanda en papel crema es 44');
+  });
+
   it('frena con menos de 88 páginas o impares', () => {
     expect(evaluarInterior(libro(() => ({}), 34), { bytes: 1e6 }).errores.join()).toContain('mínimo de tapa dura');
     expect(evaluarInterior(libro(() => ({}), 89), { bytes: 1e6 }).errores.join()).toContain('número par');
@@ -225,6 +244,32 @@ describe('de punta a punta con Chromium', () => {
     expect(r.informe.split(/\r?\n/)[0]).toContain('MARCAR «BLANCO Y NEGRO»');
     expect(r.archivoInterior).toBe('interior-168x240-BLANCO-Y-NEGRO.pdf');
     expect(r.color).toBe(false);
+  }, 180_000);
+
+  // «Vitácora de una historia» (Task 5.4): sin hojas de Notas, y la tapa blanda en 170×240.
+  const libroCorto = {
+    ...datosLibro,
+    indice: ['I · La casa', 'II · El trabajo'],
+    libroMarkdown: ['# I · La casa', '', parrafo.repeat(3), '', '# II · El trabajo', '', parrafo.repeat(2)].join('\n'),
+  };
+  const cubiertaDePrueba = { nombreTapa: 'ROBERTO PÉREZ', nombreNarrador: 'Roberto Pérez', lengua: 'es-AR' as const, foto: null, urlQr: 'https://www.vitacorafamiliar.com/voz/prueba.token.firma' };
+
+  it('sinNotas no agrega hojas de Notas', async () => {
+    const r = await armarLibroBookmundo(libroCorto, cubiertaDePrueba, { sinNotas: true });
+    expect(r.informeInterior.paginas).toBeLessThan(PAGINAS_MINIMAS_TAPA_DURA.crema);
+    expect(r.informeInterior.paginas % 2).toBe(0);
+    expect(r.informeInterior.errores.join()).toContain('mínimo de tapa dura');
+  }, 180_000);
+
+  it('tapa blanda usa 170×240', async () => {
+    const r = await armarLibroBookmundo(libroCorto, { ...cubiertaDePrueba, textos: { etiqueta: 'Una historia de prueba' } }, { formato: 'tapa-blanda', sinNotas: true });
+    expect(r.archivoInterior).toContain('170x240');
+    expect(r.informeInterior.paginasMedidas[0].anchoMm).toBeCloseTo(170, 1);
+    const m = medidasCubierta(r.informeInterior.paginas, FORMATO_TAPA_BLANDA, 'tapa-blanda');
+    expect(r.cubierta.medidas).toEqual(m);
+    expect(r.cubierta.anchoPx).toBe(Math.round((m.anchoTotalMm / 25.4) * 300));
+    expect(r.informeCubierta.errores).toEqual([]);
+    expect(r.informe).toContain('tapa blanda');
   }, 180_000);
 
   it('ordena como un libro: capítulos en impar, notas, colofón en la última, márgenes en espejo', async () => {
