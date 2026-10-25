@@ -192,6 +192,17 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               <figcaption className="dir-pie text-center text-[var(--dir-sobre-papel-suave)]">{t.pieTelefono}</figcaption>
             </figure>
           </div>
+
+          {/* Cómo cuidamos lo que cuenta (Naza, 25/10): solo lo que ya dice la política de privacidad. */}
+          <div className="aparece mt-20 grid grid-cols-1 gap-6 border-t border-[var(--dir-hilo-papel)] pt-14 md:mt-24 md:grid-cols-12 md:gap-8 md:pt-16">
+            <h3 className="dir-titular dir-t4 md:col-span-5">{t.privacidad.titulo}</h3>
+            <div className="flex flex-col gap-5 md:col-span-6 md:col-start-7">
+              <p className="dir-parrafo max-w-[52ch]">{t.privacidad.texto}</p>
+              <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className="dir-enlace-papel self-start text-[15px]">
+                {t.privacidad.enlace} <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
