@@ -68,7 +68,7 @@ export function SelectorDeFrases({
       const actuales = s[numero] ?? [];
       if (actuales.includes(id)) return { ...s, [numero]: actuales.filter((x) => x !== id) };
       if (actuales.length >= FRASES_POR_CAPITULO) {
-        setError(`En un capítulo van como mucho ${FRASES_POR_CAPITULO} frases: ${tu ? "saca" : "sacá"} una para poner esta.`);
+        setError(`En un capítulo van como mucho ${FRASES_POR_CAPITULO} frases. ${tu ? "Saca" : "Sacá"} una para poner esta.`);
         return s;
       }
       setError(null);
@@ -173,7 +173,7 @@ export function SelectorDeFrases({
                               <ReproductorRespuesta src={`/api/frases/audio/${f.id}?narrador=${narradorId}`} duracion={f.segundos} etiqueta={`la frase «${f.texto.slice(0, 40)}»`} />
                             ) : (
                               <p className="text-[12px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                                {f.estado === "fallida" ? "No pudimos recortar esta del audio: va impresa, sin escuchar." : "Recortando el audio…"}
+                                {f.estado === "fallida" ? "No pudimos recortar esta del audio. Va impresa, sin escuchar." : "Recortando el audio…"}
                               </p>
                             )}
                           </div>
@@ -250,7 +250,7 @@ export function SelectorDeFrases({
               Al confirmar, el libro se manda a imprimir tal como está ahora. Dale una última mirada a
               <strong className="font-medium text-[var(--texto)]"> los nombres</strong>,
               <strong className="font-medium text-[var(--texto)]"> el orden de los capítulos</strong> y
-              <strong className="font-medium text-[var(--texto)]"> estas frases</strong>: se imprime en papel y de ahí no tiene vuelta.
+              <strong className="font-medium text-[var(--texto)]"> estas frases</strong>. Se imprime en papel y de ahí no tiene vuelta.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" className={`${boton} border border-[var(--linea-fuerte)] hover:bg-[var(--bruma)]`} onClick={() => setAvisoImprenta(false)}>
@@ -273,7 +273,7 @@ export function SelectorDeFrases({
         <div className="rounded-xl border border-[var(--linea)] p-5">
           <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">El link del código impreso</p>
           <p className="mt-2 text-[14px] leading-relaxed text-[var(--texto-suave)]">
-            Es lo que abre el código del libro y el chip del marco: el libro entero y estas frases, sin cuenta. Para escucharlas ahora o mandarlas por WhatsApp.
+            Abre el libro entero y estas frases, sin cuenta. Es lo mismo que abren el código del libro y el chip del marco. Para escucharlas ahora o mandarlas por WhatsApp.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <code className="max-w-full truncate rounded bg-[var(--bruma)] px-3 py-2 text-[12px]">{linkPublico}</code>

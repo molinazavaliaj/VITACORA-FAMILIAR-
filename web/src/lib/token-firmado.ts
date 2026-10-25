@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { secretoFirma, secretosVerificacion } from "./secreto-firma";
 
 // Un token firmado por el servidor: atado a un PROPÓSITO y a un SUJETO, con
 // vencimiento corto. Sirve para dar un permiso puntual a quien todavía no
@@ -13,14 +14,8 @@ export type Proposito = "fotos" | "vuelta" | "cupon-confirmar" | "cupon-baja";
 
 const VIGENCIA_MS = 60 * 60 * 1000; // una hora
 
-function clave(): string {
-  const k = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!k) throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY para firmar tokens.");
-  return k;
-}
-
-function firma(proposito: Proposito, sujeto: string, vence: number): string {
-  return createHmac("sha256", clave()).update(`${proposito}:${sujeto}:${vence}`).digest("hex");
+function firma(proposito: Proposito, sujeto: string, vence: number, clave = secretoFirma()): string {
+  return createHmac("sha256", clave).update(`${proposito}:${sujeto}:${vence}`).digest("hex");
 }
 
 export function firmarToken(proposito: Proposito, sujeto: string, ahora = Date.now(), vigenciaMs = VIGENCIA_MS): string {
@@ -33,7 +28,9 @@ export function verificarToken(proposito: Proposito, token: string | null, sujet
   const [venceTexto, firmaRecibida] = token.split(".");
   const vence = Number(venceTexto);
   if (!Number.isFinite(vence) || vence < ahora || !firmaRecibida || !/^[0-9a-f]+$/.test(firmaRecibida)) return false;
-  const esperada = Buffer.from(firma(proposito, sujeto, vence), "hex");
   const recibida = Buffer.from(firmaRecibida, "hex");
-  return recibida.length === esperada.length && timingSafeEqual(recibida, esperada);
+  return secretosVerificacion().some((clave) => {
+    const esperada = Buffer.from(firma(proposito, sujeto, vence, clave), "hex");
+    return recibida.length === esperada.length && timingSafeEqual(recibida, esperada);
+  });
 }

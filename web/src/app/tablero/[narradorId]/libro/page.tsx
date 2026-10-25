@@ -250,7 +250,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
           {v3
             ? `Ya lo estamos escribiendo, con sus mejores frases en su voz${yaTieneImpreso ? ", y después va a la imprenta" : ""}. Tarda un par de días y te avisamos por mail cuando esté. Se lee y se escucha ${tu ? "aquí" : "acá"} mismo, en la web.`
-            : <>Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha {tu ? "aquí" : "acá"} mismo, en la web.</>}
+            : <>Ya lo estamos armando, con el texto y sus mejores frases en su voz{yaTieneImpreso ? ", y después la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha {tu ? "aquí" : "acá"} mismo, en la web.</>}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar su voz</ProximoPaso>

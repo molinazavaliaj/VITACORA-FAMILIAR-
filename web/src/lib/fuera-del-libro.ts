@@ -49,7 +49,7 @@ export async function aplicarFueraDelLibro(
   const nar = await admin.from("narradores").select("estado, libro_aprobado_at, contexto").eq("id", narradorId).maybeSingle();
   if (nar.error || !nar.data) return mal(500, o.error);
   const narrador = nar.data as { estado: string; libro_aprobado_at: string | null; contexto?: { modo?: unknown } | null };
-  if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado: no se cambia más.");
+  if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado y no se cambia más.");
   // «Vitácora de una historia» (23/10): la misma regla, con su fila (`historias`), su columna (`clave_historia`) y
   // su final (HC10). El bot de historia también lee respuestas_fuera (entrevistador/src/historia/fuera.ts).
   const historia = narrador.contexto?.modo === "historia";

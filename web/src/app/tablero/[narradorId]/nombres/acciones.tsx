@@ -172,7 +172,7 @@ export function FormularioNombres({ entidades, narradorId, trato = "vos" }: { en
           href="/tablero"
           className="text-sm font-medium text-[var(--texto)] underline underline-offset-2"
         >
-          Siguiente paso: su libro →
+          Seguir con su libro →
         </Link>
       ) : null}
     </div>

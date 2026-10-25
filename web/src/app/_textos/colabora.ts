@@ -119,8 +119,8 @@ const ES: TextosColabora = {
     titulo: "Cómo funciona", // CR-05
     paso: "Paso",
     pasos: [
-      { titulo: "Te anotas", texto: "Nos cuentas quién eres y dónde publicas. Leemos cada solicitud con calma." }, // CR-05
-      { titulo: "Te damos tu código", texto: "Si encaja, te escribimos con tu código, tu link para compartir y tu panel." }, // CR-06
+      { titulo: "Te apuntas", texto: "Nos cuentas quién eres y dónde publicas. Leemos cada solicitud con calma." }, // CR-05
+      { titulo: "Te damos tu código", texto: "Si encaja, te escribimos con tu código, tu enlace para compartir y tu panel." }, // CR-06
       { titulo: "Lo compartes", texto: "Cada venta con tu código te deja una comisión. Lo ves todo en tu panel." }, // CR-07
     ],
   },
@@ -132,7 +132,7 @@ const ES: TextosColabora = {
     red: "Dónde publicas", // CR-09
     elegir: "Elige una opción", // CR-09
     redes: { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", otra: "Otra" }, // CR-09
-    perfil: "El link de tu perfil", // CR-10
+    perfil: "El enlace de tu perfil", // CR-10
     perfilPista: "instagram.com/tuperfil", // CR-10
     seguidores: "Cuántas personas te siguen (si quieres)", // CR-10
     seguidoresPista: "Por ejemplo, 5.000", // CR-10
@@ -146,7 +146,7 @@ const ES: TextosColabora = {
   errores: {
     faltan: "Faltan datos. Revisa los campos obligatorios.", // CR-14
     email: "Escribe un correo válido.", // CR-14
-    perfil: "Escribe el link de tu perfil o tu usuario con @.", // CR-14
+    perfil: "Escribe el enlace de tu perfil o tu usuario con @.", // CR-14
     condiciones: "Marca la casilla para aceptar las condiciones.", // CR-14
     mayor: "Marca la casilla para confirmar que eres mayor de 18 años.", // CR-26 · APROBADO por Naza 21/10 (tanda 6)
     envio: (correo) => `No pudimos enviarlo. Prueba de nuevo o escríbenos a ${correo}.`, // CR-14
@@ -165,19 +165,19 @@ const ES: TextosColabora = {
       asunto: "Recibimos tu solicitud para colaborar con Vitácora", // CR-18
       vistaPrevia: "Te escribimos cuando la revisemos.", // CR-18
       titulo: "Lo recibimos", // CR-18
-      texto: "Gracias por querer sumarte. Leemos cada solicitud con calma. Te escribimos a este correo cuando la revisemos.", // CR-18
+      texto: "Gracias por querer unirte. Leemos cada solicitud con calma. Te escribimos a este correo cuando la revisemos.", // CR-18
       siNoFuiste: "Si no te anotaste tú, escríbenos y borramos tus datos.", // CR-18
     },
     bienvenida: {
       asunto: "Ya eres parte de Vitácora. Este es tu código", // CR-19
-      vistaPrevia: "Tu código, tu link para compartir y tu panel.", // CR-19
+      vistaPrevia: "Tu código, tu enlace para compartir y tu panel.", // CR-19
       titulo: "Ya eres parte de Vitácora", // CR-19
       texto: "Revisamos tu solicitud y nos encantaría trabajar contigo.", // CR-19
       tuCodigo: "TU CÓDIGO", // CR-19
       descuento: (porcentaje) => `Con tu código, tu comunidad tiene un ${porcentaje} % de descuento en el libro digital.`, // CR-20
       sinDescuento: "Tu código no lleva descuento. Cada venta con tu código cuenta igual.", // CR-20
       comision: (porcentaje) => `Por cada venta con tu código te queda un ${porcentaje} % de lo que pagó la persona.`, // CR-20
-      compartir: "Comparte este link. Quien entra por él ya tiene tu código puesto.", // CR-20
+      compartir: "Comparte este enlace. Quien entra por él ya tiene tu código puesto.", // CR-20
       panel: "En tu panel ves tus ventas y lo que te toca cobrar. Es privado, no lo compartas.", // CR-20
       boton: "Ver mi panel", // CR-20
     },
@@ -185,7 +185,7 @@ const ES: TextosColabora = {
   panel: {
     titulo: (nombre) => `Hola, ${nombre}`, // CR-21
     tuCodigo: "Tu código", // CR-21
-    link: "Tu link para compartir", // CR-21
+    link: "Tu enlace para compartir", // CR-21
     copiar: "Copiar", // CR-21
     copiado: "Copiado", // CR-21
     descuento: (porcentaje) => `Tu comunidad tiene un ${porcentaje} % de descuento en el libro digital.`, // CR-22

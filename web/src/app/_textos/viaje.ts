@@ -70,7 +70,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     precioBloque: {
       titulo: "Un precio por viaje, no por día.",
       // TEXTO PARA NAZA
-      texto: "Lo pagas una vez, antes de salir. Incluye el viaje entero, el libro en PDF con el álbum de fotos y el código para escuchar tu voz. El libro impreso se suma si quieres.",
+      texto: "Lo pagas una vez, antes de salir. Incluye el viaje entero, el libro en PDF con el álbum de fotos y el código para escuchar tu voz. El libro impreso se añade si quieres.",
       nota: "Pago único, sin suscripciones",
     },
     faq: {
@@ -78,7 +78,7 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
       // TEXTO PARA NAZA (menos la última, la garantía aprobada)
       preguntas: [
         { pregunta: "¿Tengo que saber las ciudades?", respuesta: "No. Solo la fecha de salida, la de vuelta y el país principal. Las ciudades salen de lo que cuentas." },
-        { pregunta: "¿Se lo puedo regalar a alguien?", respuesta: "Sí. Nos dejas su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si quieres, le sumas hasta cinco preguntas tuyas." },
+        { pregunta: "¿Se lo puedo regalar a alguien?", respuesta: "Sí. Nos dejas su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si quieres, le añades hasta cinco preguntas tuyas." },
         { pregunta: "¿Cuántas fotos puedo mandar?", respuesta: "Las que quieras, durante todo el viaje. Al volver eliges tus favoritas y van al álbum del final del libro." },
         { pregunta: "¿En qué idioma me escribe?", respuesta: "En castellano de España, de Argentina o en catalán. Lo eliges al comprar." },
         { pregunta: "¿Cuándo llega el libro?", respuesta: "Cuando vuelves y mandas las fotos del álbum, lo escribimos. Lo revisas en la página del viaje antes de cerrarlo y, si es impreso, te avisamos cuando salga de imprenta." },

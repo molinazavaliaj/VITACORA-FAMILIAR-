@@ -58,7 +58,7 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
         <Tarjeta className="mt-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
             {libroCerrado
-              ? `El biógrafo está eligiendo las frases: aparecen ${tu ? "aquí" : "acá"} apenas termine de armar el libro.`
+              ? `El biógrafo está eligiendo las frases. Aparecen ${tu ? "aquí" : "acá"} apenas termine de armar el libro.`
               : `Cuando el libro esté cerrado, el biógrafo elige sus mejores frases y se escuchan ${tu ? "aquí" : "acá"}, en su voz.`}
           </p>
         </Tarjeta>
@@ -80,13 +80,13 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
       <p className="mt-2 max-w-prose text-[15px] leading-relaxed text-[var(--texto-suave)]">
         {propia
           ? tu
-            ? "El biógrafo eligió, leyendo tu libro, las frases que más suenan a ti: se imprimen en el libro con un código para escucharlas, tal como las dijiste. Puedes cambiarlas por otras de la lista, sacar una o reordenarlas."
-            : "El biógrafo eligió, leyendo tu libro, las frases que más suenan a vos: se imprimen en el libro con un código para escucharlas, tal como las dijiste. Podés cambiarlas por otras de la lista, sacar una o reordenarlas."
-          : `El biógrafo eligió, leyendo el libro, las frases que más suenan a ${n.como_le_dicen}: se imprimen en el libro con un código para escucharlas, tal como las dijo. ${puedeEditar ? `${tu ? "Puedes" : "Podés"} cambiarlas por otras de la lista, sacar una o reordenarlas.` : ""}`}
+            ? "El biógrafo eligió, leyendo tu libro, las frases que más suenan a ti. Se imprimen en el libro con un código para escucharlas, tal como las dijiste. Puedes cambiarlas por otras de la lista, sacar una o reordenarlas."
+            : "El biógrafo eligió, leyendo tu libro, las frases que más suenan a vos. Se imprimen en el libro con un código para escucharlas, tal como las dijiste. Podés cambiarlas por otras de la lista, sacar una o reordenarlas."
+          : `El biógrafo eligió, leyendo el libro, las frases que más suenan a ${n.como_le_dicen}. Se imprimen en el libro con un código para escucharlas, tal como las dijo. ${puedeEditar ? `${tu ? "Puedes" : "Podés"} cambiarlas por otras de la lista, sacar una o reordenarlas.` : ""}`}
       </p>
       {cortando ? (
         <p className="mt-3 text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-          Estamos recortando los audios: {resumen.cortadas} de {resumen.total} listos. Los que faltan aparecen solos.
+          Estamos recortando los audios, van {resumen.cortadas} de {resumen.total}. Los que faltan aparecen solos.
         </p>
       ) : null}
 

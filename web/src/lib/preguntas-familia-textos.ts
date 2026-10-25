@@ -32,7 +32,7 @@ const ES_AR: Record<"es" | "ar", TextosPreguntasFamilia> = {
   },
   es: {
     titulo: "Las preguntas de la familia",
-    bajada: "Las que ha sumado la familia, con las mismas palabras.",
+    bajada: "Las que ha añadido la familia, con las mismas palabras.",
     estado: (e, propia) => ({
       contestada: propia ? "Ya la has contestado. Tu respuesta está más abajo." : "Ya la ha contestado. Su respuesta está más abajo.",
       esperando: propia ? "Ya te la hemos hecho. Falta que contestes." : "Ya se la hemos hecho. Falta que conteste.",

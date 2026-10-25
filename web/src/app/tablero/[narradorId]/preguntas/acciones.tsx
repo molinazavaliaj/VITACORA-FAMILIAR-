@@ -324,7 +324,7 @@ export function AgregarPregunta({
         fotoId = subida.id;
       }
       await patchGuion(narradorId, { accion: "agregar", texto, capitulo, fotoId }, trato);
-      setListo(modo === "foto" ? "Listo: la foto y su pregunta van al final del guion." : "Listo: la pregunta va al final del guion.");
+      setListo(modo === "foto" ? "Listo. La foto y su pregunta van al final del guion." : "Listo. La pregunta va al final del guion.");
       setTexto("");
       setArchivo(null);
       setMedida(null);
@@ -350,7 +350,7 @@ export function AgregarPregunta({
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">Agregar una pregunta</span>
             <span className="text-sm text-[var(--texto-menor)]">
-              {sinLugar ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.") : `Con o sin foto, al capítulo que elijas. Lugar libre: ${lugarLibre} de ${MAXIMO_FAMILIA}.`}
+              {sinLugar ? (tu ? "El guion está completo. Para sumar una, saca otra." : "El guion está completo. Para sumar una, sacá otra.") : `Con o sin foto, al capítulo que elijas. Quedan ${lugarLibre} de ${MAXIMO_FAMILIA} lugares.`}
             </span>
           </span>
           <span aria-hidden className="text-[var(--acento)]">→</span>
@@ -599,8 +599,8 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
       <div className="flex flex-col gap-4">
         <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
           {tu
-            ? "Si es una foto de papel: apóyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subes. Puedes elegir varias de una."
-            : "Si es una foto de papel: apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís. Podés elegir varias de una."}
+            ? "Si es una foto de papel, apóyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subes. Puedes elegir varias de una."
+            : "Si es una foto de papel, apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís. Podés elegir varias de una."}
         </p>
         <CampoFoto multiple onElegir={agregar} etiqueta={elegidas.length > 0 ? "Agregar más" : undefined} />
         {elegidas.length > 0 ? (
@@ -619,7 +619,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde {elegidas.length > 1 ? "van" : "va"}</span>
           <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
           {capitulo === SIN_CAPITULO ? (
-            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? (tu ? "las pones" : "las ponés") : tu ? "la pones" : "la ponés"} donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
+            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? (tu ? "las pones" : "las ponés") : tu ? "la pones" : "la ponés"} donde quieras, en la portada de un capítulo, la tapa, la contratapa o un marco.</span>
           ) : null}
         </label>
         {unaSola ? (
@@ -745,8 +745,8 @@ export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, tr
         <fieldset disabled={!trato.editable || ocupado !== null} className={trato.editable ? "" : "opacity-60"}>
           <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "Cómo te habla el biógrafo" : "Cómo le habla el biógrafo"}</legend>
           <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-            {trato.valor ? <>Hoy: <strong className="font-medium text-[var(--texto)]">de {trato.valor}</strong>.</> : "Hoy: lo decide el biógrafo con la ficha (la edad manda)."}{" "}
-            {trato.editable ? "Se puede cambiar hasta la primera pregunta." : "Se fijó con la primera pregunta: ya no se cambia, para que suene siempre igual."}
+            {trato.valor ? <>Hoy {propia ? "te" : "le"} habla <strong className="font-medium text-[var(--texto)]">de {trato.valor}</strong>.</> : "Por ahora lo decide el biógrafo con la ficha (la edad manda)."}{" "}
+            {trato.editable ? "Se puede cambiar hasta la primera pregunta." : "Se fijó con la primera pregunta y ya no se cambia, para que suene siempre igual."}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Trato">
             {(["usted", "vos"] as const).map((t) => (
@@ -766,7 +766,7 @@ export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, tr
         <fieldset>
           <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "A qué hora te llega la pregunta" : "A qué hora le llega la pregunta"}</legend>
           <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-            Hoy: <strong className="font-medium text-[var(--texto)]">{horario.hora}</strong>, hora de {nombreDeZona(horario.zona)}. {propia ? (tu ? "Si quieres que te llegue antes o después" : "Si querés que te llegue antes o después") : "Si conviene que le llegue antes o después"}, {tu ? "cámbiala aquí" : "cambiala acá"}: vale desde la próxima.
+            Hoy llega a las <strong className="font-medium text-[var(--texto)]">{horario.hora}</strong>, hora de {nombreDeZona(horario.zona)}. {propia ? (tu ? "Si quieres que te llegue antes o después" : "Si querés que te llegue antes o después") : "Si conviene que le llegue antes o después"}, {tu ? "cámbiala aquí" : "cambiala acá"}. Vale desde la próxima.
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
@@ -808,7 +808,7 @@ export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, tr
             <span>
               <span className="block text-[16px] [font-family:var(--fuente-titulo)]">{propia ? "Pedirme fotos de mis cosas" : "Pedirle fotos de sus cosas"}</span>
               <span className="block text-sm text-[var(--texto-menor)]">
-                Si {propia ? "no te" : "no le"} resulta fácil sacar una foto y mandarla, {tu ? "apágalo" : "apagalo"}: nunca {propia ? "te" : "le"} vamos a pedir ninguna y la entrevista sigue igual.
+                Si {propia ? "no te" : "no le"} resulta fácil sacar una foto y mandarla, {tu ? "apágalo" : "apagalo"}. Nunca {propia ? "te" : "le"} vamos a pedir ninguna y la entrevista sigue igual.
               </span>
             </span>
           </label>
@@ -834,7 +834,7 @@ export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, tr
       <div>
         <label className="flex flex-col gap-2">
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Temas que no se preguntan</span>
-          <textarea value={textoEvitar} onChange={(e) => setTextoEvitar(e.target.value)} rows={3} className={campo} placeholder="Por ejemplo: no preguntar por su hermano Rubén. No hablar del accidente del 92." maxLength={EVITAR_MAXIMO} />
+          <textarea value={textoEvitar} onChange={(e) => setTextoEvitar(e.target.value)} rows={3} className={campo} placeholder="Por ejemplo, no preguntar por su hermano Rubén. No hablar del accidente del 92." maxLength={EVITAR_MAXIMO} />
         </label>
         <p className="mt-2 text-sm text-[var(--texto-menor)]">El biógrafo lo tiene presente en todas sus preguntas.</p>
         <div className="mt-3 flex items-center gap-3">

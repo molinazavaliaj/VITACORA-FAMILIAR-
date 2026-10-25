@@ -216,7 +216,7 @@ export function LibroMiniatura({ datos, trato = "vos" }: { datos: LibroDatos; tr
       <p className="max-w-md text-center text-[12px] leading-relaxed text-[var(--texto-menor)]">
         {datos.blancoYNegro
           ? "Las fotos se ven en gris porque el libro impreso que elegiste es en blanco y negro. En el PDF y en el lector van a color."
-          : "Vista estimada: el libro real lo escribe el biógrafo después de encargarlo, y la paginación puede cambiar."}
+          : "Es una vista estimada. El libro real lo escribe el biógrafo después de encargarlo, y la paginación puede cambiar."}
       </p>
     </figure>
   );

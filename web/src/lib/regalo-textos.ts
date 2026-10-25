@@ -203,7 +203,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     escuchar: "Escuchar",
     borrar: "Borrar",
     elegirAudio: "Elegí un audio",
-    audioNoSirve: "No pudimos usar ese audio. Probá grabarlo de nuevo.",
+    audioNoSirve: "No pudimos usar ese audio. Grabalo de nuevo.",
     atras: "Atrás",
     seguir: "Seguir",
     unMomento: "Un momento…",

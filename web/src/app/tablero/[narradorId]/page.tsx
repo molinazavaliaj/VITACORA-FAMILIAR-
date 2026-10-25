@@ -768,7 +768,7 @@ function HistoriaClasica({
     </Link>
   ) : cerrado && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
     // Terminó de contar: el guion queda cerrado. El botón se queda, en gris, para que se entienda por qué.
-    <span aria-disabled className={`${botonBarraSec} cursor-not-allowed opacity-50`} title="El guion se cerró al terminar de contar: no se agregan más preguntas.">
+    <span aria-disabled className={`${botonBarraSec} cursor-not-allowed opacity-50`} title="El guion se cerró al terminar de contar. Ya no se agregan preguntas.">
       <IconoBarra nombre="lapiz" />
       {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
     </span>
@@ -789,8 +789,8 @@ function HistoriaClasica({
           <Etiqueta>Historia · editando el guion</Etiqueta>
           <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
             {tratoPanel === "tu"
-              ? "Las que ya se mandaron no se tocan. Las que vienen, sí: edita, saca, mueve."
-              : "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové."}
+              ? "Las que ya se mandaron no se tocan. Las que vienen se pueden editar, sacar o mover."
+              : "Las que ya se mandaron no se tocan. Las que vienen se pueden editar, sacar o mover."}
           </p>
         </div>
       ) : botonPreguntas || botonCerrar ? (

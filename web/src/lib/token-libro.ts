@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { secretoFirma, secretosVerificacion } from "./secreto-firma";
 
 // El link público del libro cerrado (docs/panel-usuario.md §8). Mismo esquema
 // que el token del anticipo: JWT HS256 a mano, firmado con
@@ -15,14 +16,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 type Tipo = "libro" | "voz";
 const ENCABEZADO = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
 
-function secreto(): string {
-  const s = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!s) throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY para firmar el link del libro");
-  return s;
-}
-
-function firmar(datos: string): string {
-  return createHmac("sha256", secreto()).update(datos).digest("base64url");
+function firmar(datos: string, secreto = secretoFirma()): string {
+  return createHmac("sha256", secreto).update(datos).digest("base64url");
 }
 
 function firmarToken(narradorId: string, tipo: Tipo): string {
@@ -35,15 +30,18 @@ function verificarToken(token: string, tipo: Tipo): { narradorId: string } | nul
   const partes = token.split(".");
   if (partes.length !== 3) return null;
   const [encabezado, payload, firma] = partes;
-  let esperada: string;
+  let secretos: string[];
   try {
-    esperada = firmar(`${encabezado}.${payload}`);
+    secretos = secretosVerificacion();
   } catch {
     return null;
   }
-  const a = Buffer.from(esperada);
   const b = Buffer.from(firma);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  const valida = secretos.some((s) => {
+    const a = Buffer.from(firmar(`${encabezado}.${payload}`, s));
+    return a.length === b.length && timingSafeEqual(a, b);
+  });
+  if (!valida) return null;
   try {
     const datos = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { narradorId?: unknown; tipo?: unknown };
     if (datos.tipo !== tipo || typeof datos.narradorId !== "string" || !datos.narradorId) return null;

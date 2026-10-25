@@ -27,7 +27,7 @@ const AVISO: Record<CalidadFoto, string | null> = {
   marco: null,
   libro: "alcanza para el libro; en un marco se vería pixelada",
   chica: "alcanza a tamaño chico; acá, a página entera, se vería pixelada",
-  baja: "es chica: impresa se va a ver pixelada",
+  baja: "es chica, impresa se va a ver pixelada",
 };
 const AVISO_TU: Record<CalidadFoto, string | null> = {
   ...AVISO,

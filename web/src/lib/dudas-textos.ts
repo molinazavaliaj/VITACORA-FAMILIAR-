@@ -37,7 +37,7 @@ export function textosPantallaDudas(paraMi: boolean, comoLeDicen: string): Texto
   return {
     titulo: `Dudas sobre lo que contó ${comoLeDicen}`,
     intro:
-      "Al escuchar los audios quedaron algunas cosas sin resolver: un nombre que se oye de dos formas, una fecha que no cierra. Lo que sepas entra al libro. Lo que dejes vacío queda tal como lo contó.",
+      "Al escuchar los audios quedaron algunas cosas sin resolver, como un nombre que se oye de dos formas o una fecha que no cierra. Lo que sepas entra al libro. Lo que dejes vacío queda tal como lo contó.",
     loQueDijo: "Lo que dijo",
     sinDudas: `Todavía no hay dudas sobre lo que contó ${comoLeDicen}.`,
     ningunaDuda: "No quedó ninguna duda. El biógrafo entendió todo lo que contó.",

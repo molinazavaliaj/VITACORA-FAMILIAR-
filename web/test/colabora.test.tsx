@@ -251,7 +251,7 @@ describe("los cambios legales (21/10)", () => {
   it("España dice lo aprobado en la revisión legal", () => {
     const t = todo("es");
     expect(t).toContain("Colaborar con Vitácora no es un trabajo ni te hace agente nuestro.");
-    expect(t).toContain("Para sumarte tienes que ser mayor de 18 años.");
+    expect(t).toContain("Para unirte tienes que ser mayor de 18 años.");
     expect(t).toContain("Cada comisión queda en espera 14 días desde la compra. Pasado ese tiempo pasa a por cobrar.");
     expect(t).not.toContain("Cuenta cuando el pago entra");
     expect(t).toContain("Las compras que hagas tú con tu propio código no te dejan comisión.");

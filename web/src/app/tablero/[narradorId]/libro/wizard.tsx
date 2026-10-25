@@ -358,7 +358,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
 
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Correcciones (opcional)</span>
-            <textarea value={correcciones} onChange={(e) => setCorrecciones(e.target.value)} rows={4} maxLength={4000} className={campo} placeholder={tu ? "Por ejemplo: el taller estaba en Getafe, no en Leganés. La hermana se llama Marta, no Martha." : "Por ejemplo: el taller estaba en Villa Domínico, no en Avellaneda. La hermana se llama Marta, no Martha."} />
+            <textarea value={correcciones} onChange={(e) => setCorrecciones(e.target.value)} rows={4} maxLength={4000} className={campo} placeholder={tu ? "Por ejemplo, el taller estaba en Getafe, no en Leganés. La hermana se llama Marta, no Martha." : "Por ejemplo, el taller estaba en Villa Domínico, no en Avellaneda. La hermana se llama Marta, no Martha."} />
             <span className="text-sm text-[var(--texto-menor)]">{v3 ? "Lo tiene en cuenta el biógrafo cuando escribe el libro." : "Lo lee el biógrafo antes de producir el libro."}</span>
           </label>
 
@@ -403,7 +403,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
               </p>
             ) : (
             <p className="text-[17px] leading-relaxed">
-              <strong className="font-medium">Al encargar, el libro se produce tal como está:</strong> se arma el PDF con sus mejores frases en su voz, se
+              <strong className="font-medium">Al encargar, el libro se produce tal como está.</strong> Se arma el PDF con sus mejores frases en su voz, se
               mandan a imprimir las copias y las fotos de los marcos que compraste, y se prepara el envío. Después de este paso no
               se puede volver atrás ni pedir devolución por cómo quedó escrito o armado. Este es el momento de revisar.
             </p>
@@ -427,7 +427,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
               {ocupado ? "Encargando…" : "Encargar"}
             </button>
             <span className="text-sm text-[var(--texto-menor)]">
-              {todoAfuera ? "Dejaste todo afuera. Para encargar el libro tiene que quedar algo de lo que contó." : faltaDireccion ? `Falta la dirección de envío, ${tu ? "aquí" : "acá"} arriba: el libro impreso tiene que llegar a algún lado.` : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
+              {todoAfuera ? "Dejaste todo afuera. Para encargar el libro tiene que quedar algo de lo que contó." : faltaDireccion ? `Falta la dirección de envío, ${tu ? "aquí" : "acá"} arriba. El libro impreso tiene que llegar a algún lado.` : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
             </span>
             <button type="button" className={chico} disabled={ocupado} onClick={() => irAlPaso(ultimo - 1)}>Volver a revisar</button>
           </div>
