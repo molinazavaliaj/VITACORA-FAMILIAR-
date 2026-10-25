@@ -103,7 +103,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo eliges al comprar. Si es al tuyo, os sentáis juntos y responde con sus palabras." },
-        { titulo: "Contesta con audios y fotos", texto: "Preguntas de su mundo, su gente, sus cosas y lo que le pasó. Si una no le gusta, la salta y seguimos." },
+        // PARA NAZA (25/10): texto de Naza.
+        { titulo: "Contesta con audios y fotos", texto: "Preguntas divertidas sobre su mundo, qué le gusta hacer en su tiempo libre, qué quiere ser de mayor. Le preguntamos por sus juguetes para que queden en fotos dentro de su libro. Los padres ven cada pregunta y cada respuesta desde su cuenta en vitacorafamiliar.com. Si una pregunta no le gusta, la salta." },
         { titulo: "Se vuelve un libro de verdad", texto: "Con sus palabras y sus fotos. La última parte va en un sobre cerrado, para que lo abra cuando sea mayor." },
       ],
     },
@@ -226,7 +227,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       paso: (n) => `Pas ${n}`,
       pasos: [
         { titulo: "Li escrivim per WhatsApp", texto: "Al seu WhatsApp o al teu, ho tries en comprar. Si és al teu, us asseieu junts i respon amb les seves paraules." },
-        { titulo: "Contesta amb àudios i fotos", texto: "Preguntes del seu món, la seva gent, les seves coses i el que li va passar. Si una no li agrada, se la salta i seguim." },
+        // PARA NAZA (25/10): traducció del text de Naza.
+        { titulo: "Contesta amb àudios i fotos", texto: "Preguntes divertides sobre el seu món, què li agrada fer en el seu temps lliure, què vol ser de gran. Li preguntem per les seves joguines perquè quedin en fotos dins del seu llibre. Els pares veuen cada pregunta i cada resposta des del seu compte a vitacorafamiliar.com. Si una pregunta no li agrada, se la salta." },
         { titulo: "Es converteix en un llibre de debò", texto: "Amb les seves paraules i les seves fotos. L'última part va en un sobre tancat, perquè l'obri quan sigui gran." },
       ],
     },
@@ -347,7 +349,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo elegís al comprar. Si es al tuyo, te sentás al lado y responde con sus palabras." },
-        { titulo: "Contesta con audios y fotos", texto: "Preguntas de su mundo, su gente, sus cosas y lo que le pasó. Si una pregunta no le gusta, la salta y seguimos." },
+        // PARA NAZA (25/10): texto de Naza.
+        { titulo: "Contesta con audios y fotos", texto: "Preguntas divertidas sobre su mundo, qué le gusta hacer en su tiempo libre, qué quiere ser de grande. Le preguntamos por sus juguetes para que queden en fotos dentro de su libro. Los padres ven cada pregunta y cada respuesta desde su cuenta en vitacorafamiliar.com. Si una pregunta no le gusta, la saltea." },
         { titulo: "Se vuelve un libro de verdad", texto: "Con sus palabras y sus fotos. La última parte va en un sobre cerrado, para que lo abra cuando sea grande." },
       ],
     },
