@@ -33,6 +33,8 @@ export type TextosKids = {
   bajada: string;
   empezar: string;
   desde: (precio: string) => string;
+  /** Debajo de los botones del inicio, en lugar del precio (Naza, 25/10): quién escucha lo que cuenta. */
+  privacidad: { texto: string; enlace: string };
   proximamente: string;
   proximamenteTexto: string;
   /** El botón para escribirnos mientras no se vende (WhatsApp de dudas o correo). */
@@ -80,6 +82,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     bajada: "Imagina tener un libro de cómo era tu vida de niño. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Sus audios solo los escuchas tú y quienes escriben su libro. No los vendemos ni entrenamos ninguna inteligencia artificial con ellos.", enlace: "Cómo cuidamos sus datos" },
     proximamente: "Próximamente",
     proximamenteTexto: "Todavía no se vende. Escríbenos y te avisamos cuando abra.",
     escribir: "Escríbenos",
@@ -198,6 +202,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     bajada: "Imagina tenir un llibre de com era la teva vida de petit. Aquesta edat només es viu una vegada, és de les més importants i la que més de pressa s'oblida. Avui és un regal divertit i, quan siguin grans, entendran de debò el que val tenir la seva Vitácora Kids.",
     empezar: "Començar el seu llibre",
     desde: (p) => `Un sol pagament, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Els seus àudios només els escoltes tu i qui escriu el seu llibre. No els venem ni entrenem cap intel·ligència artificial amb ells.", enlace: "Com cuidem les seves dades" },
     proximamente: "Aviat",
     proximamenteTexto: "Encara no es ven. Escriu-nos i t'avisem quan obri.",
     escribir: "Escriu-nos",
@@ -316,6 +322,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     bajada: "Imaginate tener un libro de cómo era tu vida de chico. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Sus audios solo los escuchás vos y quienes escriben su libro. No los vendemos ni entrenamos ninguna inteligencia artificial con ellos.", enlace: "Cómo cuidamos sus datos" },
     proximamente: "Próximamente",
     proximamenteTexto: "Todavía no se vende. Escribinos y te avisamos cuando abra.",
     escribir: "Escribinos",
