@@ -238,10 +238,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pago único, sin suscripciones",
     },
     marcos: {
-      titulo: "Un marco con su voz para cada uno.",
-      // Naza: el marco a 19 € todos, literal en España.
+      // PARA NAZA (25/10): título y texto nuevos. Naza: el marco a 19 € todos, literal en España.
+      titulo: "Una foto para sus fans.",
       texto: () =>
-        "Un marco con su foto y un chip por dentro. Acercas el móvil y suena su voz. Puedes pedir uno para cada hermano, cada hijo o cada nieto, a 19 € cada uno.",
+        "En Vitácora creemos que la forma más bonita de celebrar este regalo es compartirlo con la familia. Por eso, estas Navidades, puedes sumar una foto enmarcada para regalar a cada hermano, hijo o nieto, a 19 € cada una. Lleva un chip por dentro: acercas el móvil y se abre su historia, con su voz.",
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -456,10 +456,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pago único, sin suscripciones",
     },
     marcos: {
-      titulo: "Un marco con su voz para cada uno.",
-      // En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
+      // PARA NAZA (25/10): título y texto nuevos. En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
+      titulo: "Una foto para sus fanáticos.",
       texto: (p) =>
-        `Un marco con su foto y un chip por dentro. Acercás el celular y suena su voz. Podés pedir uno para cada hermano, cada hijo o cada nieto${p ? `, a ${p} cada uno` : ""}.`,
+        `En Vitácora creemos que la forma más linda de celebrar este regalo es compartirlo con la familia. Por eso, para estas fiestas, podés sumar una foto enmarcada para regalarle a cada hermano, hijo o nieto${p ? `, a ${p} cada una` : ""}. Lleva un chip por dentro: acercás el celular y se abre su historia, con su voz.`,
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -681,9 +681,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pagament únic, sense subscripcions",
     },
     marcos: {
-      titulo: "Un marc amb la seva veu per a cadascú.",
+      // PARA NAZA (25/10): traducción del texto nuevo.
+      titulo: "Una foto per als seus fans.",
       texto: () =>
-        "Un marc amb la seva foto i un xip a dins. Hi apropes el mòbil i sona la seva veu. Pots demanar-ne un per a cada germà, cada fill o cada net, a 19 € cadascun.",
+        "A Vitácora creiem que la manera més bonica de celebrar aquest regal és compartir-lo amb la família. Per això, aquest Nadal, pots afegir una foto emmarcada per regalar a cada germà, fill o net, a 19 € cadascuna. Porta un xip a dins: hi apropes el mòbil i s'obre la seva història, amb la seva veu.",
     },
     regalo: {
       titulo: "No li regalis la mateixa camisa de cada any.",

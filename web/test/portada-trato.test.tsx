@@ -38,7 +38,7 @@ const DE_TU = [
   "Muchos niños van a conocer a sus abuelos solo por fotos",
   "Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
   "Léelo",
-  "Acercas el móvil y suena su voz. Puedes pedir uno",
+  "acercas el móvil y se abre su historia, con su voz.",
   "Regálale algo que va a quedar para toda la vida. Eliges el día",
   "Las preguntas te llegan a ti",
   "se suman si quieres.",
@@ -55,7 +55,7 @@ const DE_VOS = [
   "Muchos chicos van a conocer a sus abuelos solo por fotos",
   "Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
   "Leelo",
-  "Acercás el celular y suena su voz. Podés pedir uno",
+  "acercás el celular y se abre su historia, con su voz.",
   "Regalale algo que va a quedar para toda la vida. Elegís el día",
   "Las preguntas te llegan a vos",
   "se suman si querés.",
@@ -155,7 +155,7 @@ describe("la portada según el idioma", () => {
       "Un día vas a querer preguntarle algo y ya no va a estar para contártelo.",
       "Su voz, guardada en su libro.",
       "Cada vida merece su propio libro.",
-      "Un marco con su voz para cada uno.",
+      "Una foto para sus fans.",
       "No le regales la misma camisa de todos los años.",
       'id="preguntas"',
       "¿Te queda alguna duda?",
@@ -174,12 +174,12 @@ describe("la portada según el idioma", () => {
     expect(es).not.toMatch(/[Dd]esde\s*(<!-- -->)?\s*\d/);
     expect(es).toContain(escapar("pago único, sin suscripciones"));
     // El marco, literal a 19 € en España.
-    expect(es).toContain(escapar("a 19 € cada uno."));
+    expect(es).toContain(escapar("a 19 € cada una."));
     const ar = portada("ar");
     expect(ar).toContain(escapar(ars(65000 + 90000)));
     expect(ar).not.toContain(escapar(ars(65000)));
     // Sin PRECIO_MARCO_ARS la frase del marco va sin número.
-    expect(ar).toContain(escapar("cada hijo o cada nieto."));
+    expect(ar).toContain(escapar("cada hermano, hijo o nieto. Lleva un chip"));
     // Sin impreso en la región no hay ningún número ni barra fija.
     delete process.env.PRECIO_IMPRESO_EUR;
     const sinImpreso = portada("es");
