@@ -11,6 +11,8 @@ export type TextosHistoria = {
   meta: { titulo: string; descripcion: string };
   /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
   ventajas: [string, string, string, string];
+  /** El texto alternativo de la foto de «Para quién» (revisión del 25/10; persona generada). */
+  altAudio: string;
   /** H13: dos líneas; la segunda va en cursiva. */
   hero: { linea1: string; linea2: string; bajada: string };
   /** H15. */
@@ -62,6 +64,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     empezar: "Empezar el libro",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
+    altAudio: "Una mujer mayor graba un audio en la cocina, con fotos viejas de su panadería sobre la mesa",
     como: {
       titulo: "Una historia, una pregunta por vez, un libro.",
       pasos: [
@@ -144,6 +147,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     empezar: "Empezar el libro",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
+    altAudio: "Una mujer mayor graba un audio en la cocina, con fotos antiguas de su panadería sobre la mesa",
     como: {
       titulo: "Una historia, una pregunta cada vez, un libro.",
       pasos: [
@@ -226,6 +230,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     empezar: "Començar el llibre",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["S'explica amb àudios, sense escriure res", "Sense aplicacions ni contrasenyes", "Una sola història, explicada a fons", "Amb les seves fotos i la seva veu en un QR"],
+    altAudio: "Una dona gran grava un àudio a la cuina, amb fotos antigues de la seva fleca sobre la taula",
     como: {
       titulo: "Una història, una pregunta cada vegada, un llibre.",
       pasos: [
@@ -295,4 +300,33 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       otra: { nombre: "Una altra història", ayuda: "Un viatge, el poble, una amistat de tota la vida" },
     },
   },
+};
+
+/**
+ * El libro de ejemplo del inicio de /historia, en 3D (revisión del 25/10: la
+ * página no tenía ni una foto). La historia es inventada y las fotos son
+ * personas generadas. PARA NAZA: borrador. Va igual en los tres idiomas, como
+ * el de Viaje (LIBRO_VIAJE_EJEMPLO): es lo impreso en un libro en castellano.
+ */
+export const LIBRO_HISTORIA_EJEMPLO = {
+  etiqueta: "El libro de una historia",
+  nombre: ["La panadería", "de Carmen"] as [string, string],
+  paraSiempre: "Carmen Ruiz",
+  iniciales: "C · R",
+  lomo: "La panadería de Carmen · El libro de una historia",
+  contra: "Estas páginas guardan cómo Carmen abrió su panadería en 1984, contado con sus propias palabras y las fotos de esa época. En este QR, su voz.",
+  escucha: "Escucha su voz",
+  web: "vitacorafamiliar.com",
+};
+
+export const CAPITULO_HISTORIA_EJEMPLO = {
+  capitulo: "Capítulo 1",
+  tituloCapitulo: "El primer horno",
+  citaCapitulo: "«El primer día vendimos once barras. Las conté dos veces.»",
+  parrafos: [
+    "Alquilamos el local con lo que mi madre había ahorrado para la boda de mi hermana. Ella nunca me lo reclamó.",
+    "El horno llegó de un pueblo de Teruel con la puerta rota. La primera semana horneamos con la puerta atada con alambre.",
+  ] as [string, string],
+  altFoto: "Carmen joven detrás del mostrador de su panadería",
+  pieFoto: "Carmen en el mostrador, el año que abrió.",
 };
