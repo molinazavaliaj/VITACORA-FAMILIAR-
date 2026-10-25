@@ -19,6 +19,8 @@ type Duda = { pregunta: string; respuesta: string };
 
 export type TextosViajePagina = {
   meta: { titulo: string; descripcion: string };
+  /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
+  ventajas: [string, string, string, string];
   etiqueta: string;
   titulo: [string, string];
   bajada: string;
@@ -55,6 +57,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     // TEXTO PARA NAZA: sin Lisboa.
     altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la maleta abierta y los tejados de una ciudad por la ventana",
     altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Le cuentas el viaje con audios", "Dices «paso» y seguimos", "Tus fotos, en el álbum del final", "Tu voz, en un código QR"],
     como: {
       titulo: "Cómo funciona.",
       // TEXTO PARA NAZA
@@ -103,6 +107,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     proximamente: "Próximamente",
     altHotel: "Una mujer graba un audio sentada en la cama de un hotel, con la valija abierta y los techos de una ciudad por la ventana",
     altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Le contás el viaje con audios", "Decís «paso» y seguimos", "Tus fotos, en el álbum del final", "Tu voz, en un código QR"],
     como: {
       titulo: "Cómo funciona.",
       pasos: [
@@ -147,6 +153,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     proximamente: "Aviat",
     altHotel: "Una dona grava un àudio asseguda al llit d'un hotel, amb la maleta oberta i les teulades d'una ciutat a la finestra",
     altLibro: "El llibre d'un viatge sobre una taula, al costat d'una espelma",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Li expliques el viatge amb àudios", "Dius «passo» i seguim", "Les teves fotos, a l'àlbum del final", "La teva veu, en un codi QR"],
     como: {
       titulo: "Com funciona.",
       pasos: [

@@ -9,6 +9,8 @@ import type { TemaHistoria } from "@/lib/historia";
 
 export type TextosHistoria = {
   meta: { titulo: string; descripcion: string };
+  /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
+  ventajas: [string, string, string, string];
   /** H13: dos líneas; la segunda va en cursiva. */
   hero: { linea1: string; linea2: string; bajada: string };
   /** H15. */
@@ -58,6 +60,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un libro sobre un solo capítulo de la vida, contado al máximo detalle. Irse a vivir lejos, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de a una, se contestan en audio, y con eso se escribe el libro.",
     },
     empezar: "Empezar el libro",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
     como: {
       titulo: "Una historia, una pregunta por vez, un libro.",
       pasos: [
@@ -138,6 +142,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un libro sobre un solo capítulo de la vida, contado con todo detalle. Irse a vivir fuera, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de una en una, se contestan en audio, y con eso se escribe el libro.",
     },
     empezar: "Empezar el libro",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
     como: {
       titulo: "Una historia, una pregunta cada vez, un libro.",
       pasos: [
@@ -218,6 +224,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un llibre sobre un sol capítol de la vida, explicat amb tot detall. Anar a viure lluny, el negoci propi, la malaltia que va quedar enrere. Les preguntes arriben per WhatsApp, d'una en una, es contesten amb àudios, i amb això s'escriu el llibre.",
     },
     empezar: "Començar el llibre",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["S'explica amb àudios, sense escriure res", "Sense aplicacions ni contrasenyes", "Una sola història, explicada a fons", "Amb les seves fotos i la seva veu en un QR"],
     como: {
       titulo: "Una història, una pregunta cada vegada, un llibre.",
       pasos: [

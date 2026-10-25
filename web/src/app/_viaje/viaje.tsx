@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
-import { Foto, Palabras, conVar } from "../_direccion/piezas";
+import { Foto, Palabras, Ventajas, conVar } from "../_direccion/piezas";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { CAPITULO_VIAJE_EJEMPLO, LIBRO_VIAJE_EJEMPLO, TEXTOS_VIAJE } from "../_textos/viaje";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
@@ -115,6 +115,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
               v.proximamente
             )}
           </p>
+          <Ventajas items={v.ventajas} className="dir-entra mt-10 text-[var(--dir-sobre-tinta)]" style={conVar({ "--e": "1.15s" })} />
         </div>
       </section>
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}

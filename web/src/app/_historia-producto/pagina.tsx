@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
-import { conVar } from "../_direccion/piezas";
+import { Ventajas, conVar } from "../_direccion/piezas";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { enlaceEscribir } from "../_kids/piezas";
 import { TEXTOS_HISTORIA } from "../_textos/historia";
@@ -75,6 +75,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
               {t.proximamente.titulo}
             </p>
           )}
+          <Ventajas items={t.ventajas} className="dir-entra mt-10 text-[var(--dir-sobre-tinta)]" style={conVar({ "--e": "1.05s" })} />
         </div>
       </section>
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}

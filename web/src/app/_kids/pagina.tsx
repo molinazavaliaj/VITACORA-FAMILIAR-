@@ -14,6 +14,7 @@ import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idio
 import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } from "./piezas";
 import { VideoLibro } from "../_direccion/video-libro";
 import { LogoTrazo } from "../_direccion/logo-trazo";
+import { Ventajas } from "../_direccion/piezas";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 
 // /kids, /ca/kids y /ar/kids: Vitácora Kids («Mi Primer Capítulo», 15/10). La
@@ -119,6 +120,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
           <p className="kids-dato kids-entra mt-6" style={conVar({ "--e": "1.05s" })}>
             {dato}
           </p>
+          <Ventajas items={t.ventajas} className="kids-entra mt-10 text-[var(--kids-texto)]" style={conVar({ "--e": "1.15s" })} />
         </div>
       </section>
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}

@@ -877,6 +877,13 @@ body {
 /* ── 2.ª vuelta (13–14/10): capas, frases que se completan solas, dibujos y
    fotos que se revelan en sepia ─────────────────────────────────────────── */
 
+/* Las ventajas con tilde (_direccion/piezas.tsx, Ventajas): las de la portada
+   (prt-ventajas) con el color heredado, para Viaje, Historia y Kids. */
+.dir-ventajas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; width: 100%; max-width: 560px; text-align: left; }
+@media (min-width: 768px) { .dir-ventajas { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 900px; gap: 24px; } }
+.dir-ventajas li { display: flex; align-items: flex-start; gap: 10px; font-family: var(--fuente-micro), sans-serif; font-size: 14px; line-height: 1.4; }
+.dir-ventajas-tilde { flex: none; width: 15px; height: 15px; margin-top: 2px; color: #b59a68; }
+
 /* El WhatsApp flotante se esconde en el teléfono mientras se ve la barra de
    compra (cta-sticky.tsx marca <html data-barra-compra>; revisión del 25/10). */
 .wa-flotante { transition: opacity var(--d-base, 200ms) ease-out, transform var(--d-base, 200ms) ease-out; }

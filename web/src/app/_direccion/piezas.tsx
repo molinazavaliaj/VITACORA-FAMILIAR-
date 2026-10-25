@@ -124,3 +124,23 @@ export function OndaQuieta({ duracion, conPlay = true }: { duracion: string; /**
     </div>
   );
 }
+
+/**
+ * Las cuatro ventajas con tilde del inicio (las de la portada, «prt-ventajas»),
+ * para Viaje, Historia y Kids (revisión del 25/10). El color lo hereda: sirve
+ * sobre tinta y sobre el papel claro de Kids. Estilo en globals.css.
+ */
+export function Ventajas({ items, className = "", style }: { items: readonly string[]; className?: string; style?: CSSProperties }) {
+  return (
+    <ul className={`dir-ventajas ${className}`} style={style}>
+      {items.map((v) => (
+        <li key={v}>
+          <svg viewBox="0 0 16 16" aria-hidden className="dir-ventajas-tilde" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2.5 8.6c1.3 1 2.3 2.2 3.2 3.6C7.6 8.4 10.2 5.3 13.6 3" />
+          </svg>
+          <span>{v}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
