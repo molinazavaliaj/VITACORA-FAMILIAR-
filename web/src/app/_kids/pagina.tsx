@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Cabecera, Pie } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
+import { CtaSticky } from "../cta-sticky";
+import { DudaWhatsApp } from "../_landing/landing";
+import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Acordeon } from "../_ui/acordeon";
 import { TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
 import { obtenerPrecioKids } from "@/lib/precios";
@@ -26,7 +29,7 @@ import { TEXTOS_PORTADA } from "../_textos/portada";
 // conecte el motor y esté aplicada la migración de kids_v2 (lib/kids.ts).
 //
 // Lo que NO dice, a propósito: tiempos (días, semanas), «9 días», marco, «Su
-// voz», reseñas, garantía (Kids no tiene texto aprobado: PENDIENTES). La
+// voz» ni reseñas. La garantía es la de Familiar, en las preguntas (Naza, 25/10). La
 // conversación de ejemplo usa una pregunta del banco y un acuse aprobados: el
 // bot nunca dice que algo le gusta.
 //
@@ -51,6 +54,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_KIDS[idioma];
   const { vende, precio, formatear, promo, lista } = preciosKids(idioma);
   const comprar = ruta(idioma, "/comprar/kids");
+  const whatsapp = urlWhatsAppDudas();
 
   const Promo = () =>
     lista && promo ? (
@@ -117,6 +121,8 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
           </p>
         </div>
       </section>
+      {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
+      <div id="hero" aria-hidden className="relative h-px" />
 
       {/* ═══ 2 · LOS DIBUJOS SE PIERDEN: una frase sola, centrada, y el chico que graba, en arco ═══ */}
       <section className="kids-hilo-arriba">
@@ -233,7 +239,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 8 · EL PRECIO, o «Próximamente» ═══ */}
-      <section className="kids-hondo">
+      <section data-cta-propio className="kids-hondo">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-32 lg:px-12">
           <FotoKids src={FOTOS_KIDS.libroTapa.src} alt="" forma="ancha" sizes="(min-width: 768px) 46vw, 92vw" className="w-full md:col-span-6 md:col-start-7 md:row-start-1" />
           <div className="flex flex-col items-start gap-6 md:col-span-5 md:col-start-1 md:row-start-1">
@@ -269,18 +275,22 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
       <section>
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-10 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
           <h2 className="kids-titular kids-t3 kids-aparece md:col-span-4">{t.faq.titulo}</h2>
-          <div className="kids-aparece border-t border-[var(--kids-hilo)] md:col-span-7 md:col-start-6">
-            {t.faq.preguntas.map((d, i) => (
-              <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas-kids">
-                {d.respuesta}
-              </Acordeon>
-            ))}
+          <div className="kids-aparece flex flex-col gap-14 md:col-span-7 md:col-start-6">
+            <div className="border-t border-[var(--kids-hilo)]">
+              {t.faq.preguntas.map((d, i) => (
+                <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas-kids">
+                  {d.respuesta}
+                </Acordeon>
+              ))}
+            </div>
+            {/* «¿Te queda alguna duda?», como en la portada (revisión del 25/10). */}
+            {whatsapp ? <DudaWhatsApp duda={TEXTOS_PORTADA[idioma].faq.duda} href={whatsapp} papel /> : null}
           </div>
         </div>
       </section>
 
       {/* ═══ 10 · CIERRE ═══ */}
-      <section className="kids-hilo-arriba">
+      <section data-cta-propio className="kids-hilo-arriba">
         <div className="flex flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
           <h2 className="kids-titular kids-t2 kids-aparece max-w-[20ch]">
             <span className="block">{t.cierre.titulo[0]}</span>
@@ -296,6 +306,17 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
         </div>
         <Pie idioma={idioma} camino="/kids" />
       </section>
+
+      {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono, si se vende. */}
+      <WhatsAppFlotante idioma={idioma} />
+      {vende && precio !== null ? (
+        <CtaSticky
+          precio={formatear(precio)}
+          href={comprar}
+          variante="kids"
+          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: t.empezar }}
+        />
+      ) : null}
     </PaginaKids>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Cabecera, Pie } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
+import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
 import { conVar } from "../_direccion/piezas";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
@@ -76,6 +77,8 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
           )}
         </div>
       </section>
+      {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
+      <div id="hero" aria-hidden className="relative h-px" />
 
       {/* ═══ 2 · PARA QUIÉN, con las historias de la lista (las etiquetas de temas.md) ═══ */}
       <section className="dir-papel dir-hoja dir-deckle relative">
@@ -143,7 +146,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 5 · PREGUNTAS FRECUENTES ═══ */}
-      <MiniFaq titulo={t.faq.titulo} dudas={t.faq.preguntas.map((d) => ({ pregunta: d.p, respuesta: d.r }))} />
+      <MiniFaq titulo={t.faq.titulo} dudas={t.faq.preguntas.map((d) => ({ pregunta: d.p, respuesta: d.r }))} duda={TEXTOS_PORTADA[idioma].faq.duda} />
 
       {/* ═══ 6 · CIERRE ═══ */}
       <section data-cta-propio className="dir-tinta relative">
@@ -162,6 +165,16 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
         </div>
         <Pie idioma={idioma} camino="/historia" />
       </section>
+
+      {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono, si se vende. */}
+      <WhatsAppFlotante idioma={idioma} />
+      {precio !== null ? (
+        <CtaSticky
+          precio={formatear(precio)}
+          href={comprar}
+          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: t.empezar }}
+        />
+      ) : null}
     </Pagina>
   );
 }

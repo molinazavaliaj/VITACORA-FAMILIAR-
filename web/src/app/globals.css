@@ -877,6 +877,13 @@ body {
 /* ── 2.ª vuelta (13–14/10): capas, frases que se completan solas, dibujos y
    fotos que se revelan en sepia ─────────────────────────────────────────── */
 
+/* El WhatsApp flotante se esconde en el teléfono mientras se ve la barra de
+   compra (cta-sticky.tsx marca <html data-barra-compra>; revisión del 25/10). */
+.wa-flotante { transition: opacity var(--d-base, 200ms) ease-out, transform var(--d-base, 200ms) ease-out; }
+@media (max-width: 1023.98px) {
+  html[data-barra-compra] .wa-flotante { opacity: 0; transform: translateY(12px); pointer-events: none; }
+}
+
 /* Las capas: una sección con [data-capa] queda fija detrás cuando su borde de
    abajo llega al de la pantalla, y la siguiente (más arriba en z) sube y la
    tapa como una hoja. --alto lo mide Coreografia; sin JS no hay

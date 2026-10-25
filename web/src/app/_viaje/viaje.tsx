@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Cabecera, Pie } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
+import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Foto, Palabras, conVar } from "../_direccion/piezas";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
@@ -116,6 +117,8 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
           </p>
         </div>
       </section>
+      {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
+      <div id="hero" aria-hidden className="relative h-px" />
 
       {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola y la foto del hotel en arco ═══ */}
       <section className="dir-tinta dir-hoja relative">
@@ -187,7 +190,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 5 · PREGUNTAS (la garantía de Viaje vive acá: D1) ═══ */}
-      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} papel />
+      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} papel duda={TEXTOS_PORTADA[idioma].faq.duda} />
 
       {/* ═══ 6 · CIERRE ═══ */}
       <section data-cta-propio className="dir-tinta relative">
@@ -208,6 +211,16 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         </div>
         <Pie idioma={idioma} camino="/viaje" />
       </section>
+
+      {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono. */}
+      <WhatsAppFlotante idioma={idioma} />
+      {precio !== null ? (
+        <CtaSticky
+          precio={formatear(precio)}
+          href={comprar}
+          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: v.comprar }}
+        />
+      ) : null}
     </Pagina>
   );
 }
