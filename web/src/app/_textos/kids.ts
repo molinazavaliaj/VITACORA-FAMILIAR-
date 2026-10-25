@@ -122,9 +122,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un niño sentado en la alfombra de su cuarto hace una foto a sus juguetes con el móvil",
     },
     libro: {
-      titulo: "Cinco partes, y la última cerrada.",
-      texto: "Con sus palabras y sus fotos, contado como un relato. La quinta parte es lo que le dice a quien va a ser de mayor, y va en un sobre cerrado.",
-      capitulos: ["De pequeño", "Mi gente", "Mi mundo ahora", "Lo que me pasó", "Para cuando seas mayor"],
+      // PARA NAZA (25/10): título y texto nuevos.
+      titulo: "Un mensaje para su futuro.",
+      texto: "Con sus palabras y sus fotos escribimos la historia de su vida, contada como un relato. Y en la última parte le habla a quien va a ser de mayor. Esas respuestas van en un sobre cerrado, para abrirlo cuando crezca.",
+      capitulos: ["De pequeño", "Mi gente", "Mi mundo ahora", "Mis aventuras", "Para cuando seas mayor"],
       sobre: "en un sobre cerrado",
       altFoto: "Un libro abierto por el capítulo 1, con la foto de un niño sonriendo, sobre una colcha de colores",
     },
@@ -246,9 +247,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un nen assegut a la catifa de la seva habitació fa una foto a les seves joguines amb el mòbil",
     },
     libro: {
-      titulo: "Cinc parts, i l'última tancada.",
-      texto: "Amb les seves paraules i les seves fotos, explicat com un relat. La cinquena part és el que li diu a qui serà de gran, i va en un sobre tancat.",
-      capitulos: ["De petit", "La meva gent", "El meu món ara", "El que em va passar", "Per a quan siguis gran"],
+      // PARA NAZA (25/10): traducció del text nou.
+      titulo: "Un missatge per al seu futur.",
+      texto: "Amb les seves paraules i les seves fotos escrivim la història de la seva vida, explicada com un relat. I a l'última part li parla a qui serà de gran. Aquestes respostes van en un sobre tancat, per obrir-lo quan creixi.",
+      capitulos: ["De petit", "La meva gent", "El meu món ara", "Les meves aventures", "Per a quan siguis gran"],
       sobre: "en un sobre tancat",
       altFoto: "Un llibre obert pel capítol 1, amb la foto d'un nen somrient, sobre un cobrellit de colors",
     },
@@ -368,9 +370,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un chico sentado en la alfombra de su cuarto les saca una foto a sus juguetes con el celular",
     },
     libro: {
-      titulo: "Cinco partes, y la última cerrada.",
-      texto: "Con sus palabras y sus fotos, contado como un relato. La quinta parte es lo que le dice a quien va a ser de grande, y va en un sobre cerrado.",
-      capitulos: ["De chiquito", "Mi gente", "Mi mundo ahora", "Lo que me pasó", "Para cuando seas grande"],
+      // PARA NAZA (25/10): título y texto nuevos.
+      titulo: "Un mensaje para su futuro.",
+      texto: "Con sus palabras y sus fotos escribimos la historia de su vida, contada como un relato. Y en la última parte le habla a quien va a ser de grande. Esas respuestas van en un sobre cerrado, para abrirlo cuando crezca.",
+      capitulos: ["De chiquito", "Mi gente", "Mi mundo ahora", "Mis aventuras", "Para cuando seas grande"],
       sobre: "en un sobre cerrado",
       altFoto: "Un libro abierto en el capítulo 1, con la foto de un chico sonriendo, sobre una colcha de colores",
     },

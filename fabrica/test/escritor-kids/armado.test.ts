@@ -22,7 +22,7 @@ describe('armado del libro de Kids', () => {
     const { libro } = await libroDelChico();
     const md = libroMd(libro);
     expect(md.startsWith('# Benjamín Sosa\n\nCapítulo Uno: 11 años\n\n## De chiquito\n\n### Una pileta azul\n')).toBe(true);
-    for (const t of ['## Mi gente', '## Mi mundo ahora', '## Lo que me pasó', '## Mis cosas a los 11', '## Su voz']) expect(md).toContain(t);
+    for (const t of ['## Mi gente', '## Mi mundo ahora', '## Mis aventuras', '## Mis cosas a los 11', '## Su voz']) expect(md).toContain(t);
     expect(md).toContain('*Esta pregunta te la manda tu mamá*\n\n**¿Qué es lo que más te gusta de tu hermana Delfi, aunque se peleen?**');
     expect(md).toContain('**¿Qué te acordás del día que nació Simón?**'); // sin línea
     expect(md).not.toContain('Esta pregunta te la manda tu mamá*\n\n**¿Qué te acordás');

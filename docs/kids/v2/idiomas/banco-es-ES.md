@@ -35,7 +35,7 @@ Una línea por texto, `ID | texto`, como en Viaje (`docs/viajes-v2/idiomas/banco
 CAP-1 | De pequeño
 CAP-2 | Mi gente
 CAP-3 | Mi mundo ahora
-CAP-4 | Lo que me ha pasado
+CAP-4 | Mis aventuras
 CAP-5 | Para cuando seas mayor (el sobre cerrado)
 BOTON-PASO | Paso
 ENTRADA-1 | Empezamos por cuando eras más pequeñ{{o/a}}. Tú cuenta como te salga.
