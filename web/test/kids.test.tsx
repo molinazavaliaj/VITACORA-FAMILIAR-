@@ -184,7 +184,7 @@ describe("/kids por idioma", () => {
 
   it("los textos aprobados de la rama de Kids, en vos, en /ar", () => {
     const html = pagina(KidsAr);
-    expect(html).toContain(escapar("Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad."));
+    expect(html).toContain(escapar("Imaginate tener un libro de cómo era tu vida de chico."));
     for (const cap of ["De chiquito", "Mi gente", "Mi mundo ahora", "Lo que me pasó", "Para cuando seas grande"]) expect(html).toContain(escapar(cap));
     expect(html).toContain(escapar("Eso va al libro, con tus palabras."));
     expect(html).toContain(escapar("Hacele una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras."));
