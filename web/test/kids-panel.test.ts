@@ -145,7 +145,7 @@ describe("el banco en catalán (tanda 10)", () => {
   });
 
   it("tiene los mismos ids que usa el panel, con los textos en catalán", () => {
-    expect(ca.capitulos.map((c) => c.titulo)).toEqual(["Els primers anys", "La meva gent", "El meu món ara", "El que m'ha passat", "Per a quan siguis gran (el sobre tancat)"]);
+    expect(ca.capitulos.map((c) => c.titulo)).toEqual(["Els primers anys", "La meva gent", "El meu món ara", "Les meves aventures", "Per a quan siguis gran (el sobre tancat)"]);
     for (let i = 1; i <= 47; i++) expect(ca.preguntas.some((p) => p.id === `K${i}`), `K${i}`).toBe(true);
     for (const id of MENSAJES_DEL_PANEL) expect(ca.mensajes.some((m) => m.id === id), id).toBe(true);
     expect(ca.extras.map((x) => x.id)).toEqual(banco.extras.map((x) => x.id));

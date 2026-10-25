@@ -71,7 +71,7 @@ export function PortadaHistoria({
 }
 
 /** «11 respuestas · 34 min de su voz», en grande. Sin respuestas no se muestra nada. */
-export function CifrasHistoria({ idioma, quien, respuestas, segundos }: { idioma: IdiomaPanel; quien: Quien; respuestas: number; segundos: number }) {
+export function CifrasHistoria({ idioma, quien, respuestas, segundos, avance }: { idioma: IdiomaPanel; quien: Quien; respuestas: number; segundos: number; /** 0 a 100 (V3), o nada. */ avance?: number | null }) {
   if (respuestas <= 0) return null;
   const T = PANEL[idioma];
   const minutos = Math.round(segundos / 60);
@@ -85,6 +85,13 @@ export function CifrasHistoria({ idioma, quien, respuestas, segundos }: { idioma
         <div className="flex flex-col-reverse gap-1.5">
           <dt className="pnl-dato">{T.minutosDeVoz(quien)}</dt>
           <dd className="pnl-cifra">{minutos}</dd>
+        </div>
+      ) : null}
+      {/* Cuánto del libro lleva (Naza, 25/10; lib/v3.ts, avanceV3). */}
+      {typeof avance === "number" ? (
+        <div className="flex flex-col-reverse gap-1.5">
+          <dt className="pnl-dato">{T.delLibro}</dt>
+          <dd className="pnl-cifra">{avance}%</dd>
         </div>
       ) : null}
     </dl>

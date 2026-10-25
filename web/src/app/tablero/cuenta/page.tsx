@@ -48,7 +48,7 @@ export default async function PaginaCuenta() {
 
       <p className="mt-6 text-[14px] leading-relaxed text-[var(--texto-menor)]">
         Para cambiar el correo o borrar la cuenta, {panel.familia?.region === "ES" ? "escríbenos" : "escribinos"} a{" "}
-        <a href="mailto:hola@vitacorafamiliar.com" className="underline decoration-[var(--linea-fuerte)] underline-offset-4">hola@vitacorafamiliar.com</a>.
+        <a href="mailto:soporte@vitacorafamiliar.com" className="underline decoration-[var(--linea-fuerte)] underline-offset-4">soporte@vitacorafamiliar.com</a>.
         Los audios y las fotos son de tu familia: se borran todos cuando lo pidas.
       </p>
 

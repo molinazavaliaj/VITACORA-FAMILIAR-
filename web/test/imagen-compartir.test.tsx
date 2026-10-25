@@ -88,7 +88,7 @@ describe("imagen para compartir", () => {
     expect(titularDe("familiar", "ar")).toEqual(titularDe("familiar", "es"));
     expect(titularDe("familiar", "ca").join(" ")).toBe("En cada família hi ha un llibre per escriure.");
     expect(altDe("viaje", "es")).toBe("Vitácora de Viaje. En cada viaje hay un libro sin escribir.");
-    expect(altDe("kids", "es")).toBe("Vitácora Kids. Un día no vas a recordar cómo pensabas a los once.");
+    expect(altDe("kids", "es")).toBe("Vitácora Kids. ¿Recuerdas cómo pensabas a los 11?");
     const imagen = readFileSync(path.join(APP, "_compartir/imagen.tsx"), "utf8");
     expect(imagen).not.toMatch(/libro sin escribir|llibre per escriure|pensabas a los once/);
   });

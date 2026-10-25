@@ -247,6 +247,23 @@ export function llegoAlFinalV3(estado: (EstadoV3 & { esperando?: string; termina
   return charla.some((g) => g?.de === "bio" && Array.isArray(g.partes) && g.partes.some((p) => p?.id === "FO1"));
 }
 
+/** Los bloques de la entrevista V3 (docs/v3/entrevista/banco.md: de «Origen y raíces» a «Legado y cierre»). */
+export const BLOQUES_V3 = 15;
+
+/**
+ * Cuánto del libro lleva (Naza, 25/10), de 0 a 100. Las preguntas cambian según lo que cuenta, así que se mide
+ * por bloque: el bloque en el que va (`bloqueActual`, lo escribe el entrevistador) sobre los 15. Al llegar a la
+ * foto del final es 97, y terminada, 100. Sin bloque todavía, null (no se muestra).
+ */
+export function avanceV3(estado: (EstadoV3 & { bloqueActual?: unknown; esperando?: string; terminada?: boolean; enviados?: string[] }) | null | undefined): number | null {
+  if (!estado) return null;
+  if (estado.terminada === true) return 100;
+  if (llegoAlFinalV3(estado)) return 97;
+  const b = typeof estado.bloqueActual === "number" ? estado.bloqueActual : null;
+  if (!b || b < 1) return null;
+  return Math.min(95, Math.round((Math.min(b, BLOQUES_V3) / BLOQUES_V3) * 100));
+}
+
 /** Cuántas preguntas suyas puede sumar la familia en la V3. */
 export const MAXIMO_PREGUNTAS_FAMILIA_V3 = 10;
 /** La banda de `orden` de las preguntas de la familia V3: lejos del guion viejo (1-40) y de los objetos (101-108). */

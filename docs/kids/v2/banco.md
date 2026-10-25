@@ -80,7 +80,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 **Cierre:** Eso fue tu vida de ahora. ¿Quedó algo de tu día a día que no te pregunté y va en el libro? — [No, eso fue todo] [Sí, hay algo] *(botones, 05/10; ver Mensajes ya aprobados → Cierres de capítulo)*
 
-## Capítulo 4 · Lo que me pasó
+## Capítulo 4 · Mis aventuras
 
 **Entrada:** Cuarta parte. Cosas que te pasaron. Acá no hay fotos, solo vos contando. Y siempre podés pasar.
 

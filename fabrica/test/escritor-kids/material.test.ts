@@ -32,7 +32,7 @@ describe('material de Kids', () => {
   });
 
   it('agrupa por item del banco en su orden: principal, rama y otra puerta; extras y cierre al final; las del padre al final de la 4', () => {
-    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Lo que me pasó']);
+    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Mis aventuras']);
     expect(item('K12')?.respuestas.map((r) => r.clave)).toEqual(['K12-R1', 'K12-OP']);
     expect(item('K12')?.respuestas[0].pregunta).toContain('Contame la última vez que te reíste mucho con un hermano');
     expect(m.partes[1].items.map((i) => i.clave).slice(-2)).toEqual(['X2-9', 'CIERRE-2']);
@@ -135,7 +135,7 @@ describe('material de Kids en el idioma del chico (ficha.idioma)', () => {
   });
 
   it('los títulos de las partes y del sobre salen del banco de España', () => {
-    expect(es.partes.map((p) => p.titulo)).toEqual(['De pequeño', 'Mi gente', 'Mi mundo ahora', 'Lo que me ha pasado']);
+    expect(es.partes.map((p) => p.titulo)).toEqual(['De pequeño', 'Mi gente', 'Mi mundo ahora', 'Mis aventuras']);
     expect(es.partes.map((p) => p.titulo)).toEqual(bancoDe('es-ES').capitulos.slice(0, 4).map((c) => c.titulo));
     expect(es.sobre.titulo).toBe('Para cuando seas mayor');
   });
@@ -158,7 +158,7 @@ describe('material de Kids en el idioma del chico (ficha.idioma)', () => {
   });
 
   it('es-AR queda igual que antes', () => {
-    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Lo que me pasó']);
+    expect(m.partes.map((p) => p.titulo)).toEqual(['De chiquito', 'Mi gente', 'Mi mundo ahora', 'Mis aventuras']);
   });
 });
 
@@ -172,7 +172,7 @@ describe('material de Kids en catalán (ficha.idioma = ca)', () => {
   it('los títulos de las partes y del sobre salen de banco-ca.md', () => {
     expect(ca.ficha.idioma).toBe('ca');
     expect(ca.ficha.quienRegala).toBe('la teva mare');
-    expect(ca.partes.map((p) => p.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat"]);
+    expect(ca.partes.map((p) => p.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "Les meves aventures"]);
     expect(ca.sobre.titulo).toBe('Per a quan siguis gran');
   });
 

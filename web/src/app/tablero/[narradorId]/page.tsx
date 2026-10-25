@@ -19,7 +19,7 @@ import { HistoriaV3 } from "./v3";
 import { PanelKids } from "./kids";
 import { esKids } from "@/lib/kids-panel";
 import { leerPanelKids } from "@/lib/kids-panel-base";
-import { entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
+import { avanceV3, entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
 import { puedeVolverAPreguntar } from "@/lib/fuera-del-libro";
 import { viajeDelContexto } from "@/lib/viaje";
 import { entrevistaHistoria, historiaDeHistoria, llegoAlFinalHistoria, preguntasDelPanelHistoria } from "@/lib/historia-panel";
@@ -250,7 +250,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   const contexto = (n.contexto ?? {}) as Record<string, unknown>;
   const quien: Quien = { como: n.como_le_dicen, propia, ella: esElla(contexto), viaje: contexto.modo === "viaje" && Boolean(contexto.viaje) };
-  const contacto = { whatsapp: urlWhatsAppDudas(), correo: CONTACTO.hola };
+  const contacto = { whatsapp: urlWhatsAppDudas(), correo: CONTACTO.soporte };
 
   return (
     <MarcoHistoria
@@ -321,7 +321,7 @@ async function Cabecera({
 
 async function Cifras({ pLectura, idioma, quien }: { pLectura: Promise<Lectura>; idioma: ReturnType<typeof idiomaDelTrato>; quien: Quien }) {
   const { voz } = await pLectura;
-  return voz ? <CifrasHistoria idioma={idioma} quien={quien} respuestas={voz.respuestas} segundos={voz.segundos} /> : null;
+  return voz ? <CifrasHistoria idioma={idioma} quien={quien} respuestas={voz.respuestas} segundos={voz.segundos} avance={voz.avance} /> : null;
 }
 
 async function Cuerpo({ pLectura }: { pLectura: Promise<Lectura> }) {
@@ -626,7 +626,7 @@ async function armarLectura({
     const bloques = historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? [], fuera);
     const alFinal = llegoAlFinalV3(v3.estado);
     const preguntasDeFamilia = ((propias as FilaPreguntaFamiliaV3[] | null) ?? []).filter((p) => p.tipo === "familia").length;
-    const voz = vozV3(bloques);
+    const voz = { ...vozV3(bloques), avance: avanceV3(v3.estado) };
     return {
       cuerpo: (
         <HistoriaV3

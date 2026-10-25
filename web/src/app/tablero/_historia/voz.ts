@@ -13,7 +13,7 @@ export type AudioReciente = {
   recibidoAt: string;
 };
 
-export type ResumenVoz = { respuestas: number; segundos: number; ultimas: AudioReciente[] };
+export type ResumenVoz = { respuestas: number; segundos: number; ultimas: AudioReciente[]; /** Cuánto del libro lleva, 0 a 100 (solo la V3: avanceV3). */ avance?: number | null };
 
 const CUANTAS = 3;
 

@@ -33,12 +33,12 @@ const DE_TU = [
   "Tú lo vas siguiendo de cerca.",
   "Escuchas cada audio en cuanto lo manda.",
   "Lo ves terminado y eliges la tapa antes de imprimirlo.",
-  "Nos dices quién es",
-  "Nos dejas su nombre, su WhatsApp y el día en que quieres que empiece.",
+  "Si la Vitácora es para ti, la empezamos ahora mismo.",
+  "puedes llevarte la tarjeta de regalo al pagar",
   "Muchos niños van a conocer a sus abuelos solo por fotos",
   "Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
   "Léelo",
-  "Acercas el móvil y suena su voz. Puedes pedir uno",
+  "acercas el móvil y se abre su historia, contada a su manera.",
   "Regálale algo que va a quedar para toda la vida. Eliges el día",
   "Las preguntas te llegan a ti",
   "se suman si quieres.",
@@ -50,12 +50,12 @@ const DE_VOS = [
   "Vos lo vas siguiendo de cerca.",
   "Escuchás cada audio en cuanto lo manda.",
   "Lo ves terminado y elegís la tapa antes de imprimirlo.",
-  "Nos decís quién es",
-  "Nos dejás su nombre, su WhatsApp y el día en que querés que empiece.",
+  "Si la Vitácora es para vos, la empezamos ahora mismo.",
+  "podés llevarte la tarjeta de regalo al pagar",
   "Muchos chicos van a conocer a sus abuelos solo por fotos",
   "Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
   "Leelo",
-  "Acercás el celular y suena su voz. Podés pedir uno",
+  "acercás el celular y se abre su historia, contada a su manera.",
   "Regalale algo que va a quedar para toda la vida. Elegís el día",
   "Las preguntas te llegan a vos",
   "se suman si querés.",
@@ -151,11 +151,11 @@ describe("la portada según el idioma", () => {
       "Un regalo para quien cuenta y otro para toda la familia.",
       "Así se ve la página de su historia.",
       'id="como-funciona"',
-      "Su familia lo lee y lo escucha",
+      "Cuando llega a casa",
       "Un día vas a querer preguntarle algo y ya no va a estar para contártelo.",
       "Su voz, guardada en su libro.",
       "Cada vida merece su propio libro.",
-      "Un marco con su voz para cada uno.",
+      "Una foto para sus fans.",
       "No le regales la misma camisa de todos los años.",
       'id="preguntas"',
       "¿Te queda alguna duda?",
@@ -174,12 +174,12 @@ describe("la portada según el idioma", () => {
     expect(es).not.toMatch(/[Dd]esde\s*(<!-- -->)?\s*\d/);
     expect(es).toContain(escapar("pago único, sin suscripciones"));
     // El marco, literal a 19 € en España.
-    expect(es).toContain(escapar("a 19 € cada uno."));
+    expect(es).toContain(escapar("a 19 € cada una."));
     const ar = portada("ar");
     expect(ar).toContain(escapar(ars(65000 + 90000)));
     expect(ar).not.toContain(escapar(ars(65000)));
     // Sin PRECIO_MARCO_ARS la frase del marco va sin número.
-    expect(ar).toContain(escapar("cada hijo o cada nieto."));
+    expect(ar).toContain(escapar("cada hermano, hijo o nieto. Lleva un chip"));
     // Sin impreso en la región no hay ningún número ni barra fija.
     delete process.env.PRECIO_IMPRESO_EUR;
     const sinImpreso = portada("es");
@@ -196,15 +196,14 @@ describe("la portada según el idioma", () => {
     expect(portada("ar")).toContain(escapar("Todas las vidas merecen su propio libro."));
   });
 
-  it("Escúchalo suena con la voz de Naza (el campo, 0:30) si no hay otro fragmento cargado", () => {
+  it("Escúchalo muestra la frase y la onda quieta, sin audio que suene (Naza, 25/10)", () => {
     const html = portada("es");
-    expect(html).toContain('src="/rediseno/su-voz-campo.mp3"');
+    expect(html).not.toContain("su-voz-campo.mp3");
+    expect(html).not.toContain("<audio");
     expect(html).toContain(escapar("El campo"));
     expect(html).toContain("0:30");
     expect(html).toContain(escapar("«En el campo andábamos a caballo, hacíamos vida de campo"));
     expect(portada("ca")).toContain(escapar("«En el campo andábamos a caballo"));
-    process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO = "https://ejemplo.com/fragmento.mp3";
-    expect(portada("es")).toContain('src="https://ejemplo.com/fragmento.mp3"');
   });
 
   it("sin «padre» en la portada general (se dice «tu familiar»), ni en el título ni en la descripción", () => {
@@ -219,7 +218,7 @@ describe("la portada según el idioma", () => {
       expect(texto).not.toMatch(/padre|papá|\bpare\b/);
     }
     expect(metaEs.description).toBe(
-      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
+      "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
     );
   });
 

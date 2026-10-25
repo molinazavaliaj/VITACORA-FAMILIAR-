@@ -117,8 +117,12 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
               {TEXTOS_PORTADA[idioma].inicio.comoFunciona}
             </a>
           </div>
-          <p className="kids-dato kids-entra mt-6" style={conVar({ "--e": "1.05s" })}>
-            {dato}
+          {/* En lugar del precio, quién escucha lo que cuenta (Naza, 25/10). El precio sigue en su bloque, en el cierre y en la barra del teléfono. */}
+          <p className="kids-dato kids-entra mt-6 max-w-[46ch]" style={conVar({ "--e": "1.05s" })}>
+            {t.privacidad.texto}{" "}
+            <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className="underline underline-offset-4">
+              {t.privacidad.enlace}
+            </Link>
           </p>
           <Ventajas items={t.ventajas} className="kids-entra mt-10 text-[var(--kids-texto)]" style={conVar({ "--e": "1.15s" })} />
         </div>

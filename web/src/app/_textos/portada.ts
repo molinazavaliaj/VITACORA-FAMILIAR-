@@ -45,6 +45,8 @@ export type TextosPortada = {
   queEs: { etiqueta: string; titulo: string; bajada: string };
   /** 9 · quien regala lo va siguiendo. */
   siguiendo: { titulo: string; pasos: [string, string, string] };
+  /** Debajo de «lo vas siguiendo»: cómo cuidamos lo que cuenta (Naza, 25/10). Solo dice lo que ya promete la política de privacidad. */
+  privacidad: { titulo: string; texto: string; enlace: string };
   /** 10 · el pie del teléfono con la página de su historia. */
   pieTelefono: string;
   /** 11 a 15 · «Cómo funciona» en cuatro pasos (el 4, el que emociona). */
@@ -151,21 +153,21 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
-      ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
+      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas a su manera y guardadas para siempre"],
       propio: { pregunta: "¿Quieres contar tu propia vida?", enlace: "También puedes hacer tu libro." },
     },
     queEs: {
       etiqueta: "Qué es Vitácora",
       titulo: "Un regalo para quien cuenta y otro para toda la familia.",
       bajada:
-        "A tu familiar le llegan preguntas sobre su vida, desde su infancia hasta hoy, y alguien que le escucha. La familia se queda con un libro que va a pasar de generación en generación.",
+        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
     },
     siguiendo: {
       titulo: "Tú lo vas siguiendo de cerca.",
@@ -175,27 +177,34 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         "Lo ves terminado y eliges la tapa antes de imprimirlo.",
       ],
     },
+    // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
+    privacidad: {
+      titulo: "Su historia es de tu familia.",
+      texto: "Sabemos que lo que cuenta es personal. Sus audios y su libro solo los ven tu familia y quienes lo escriben. Se guardan en la Unión Europea, no los vendemos, no los usamos para publicidad y no entrenamos ninguna inteligencia artificial con ellos. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pides.",
+      enlace: "Cómo cuidamos sus datos",
+    },
     pieTelefono: "Así se ve la página de su historia.",
     funciona: {
       titulo: "Cómo funciona",
       bajada:
         "Entrevistamos a tu familiar por WhatsApp, a su ritmo, y con lo que nos cuenta escribimos el libro de su vida. Si sabe mandar un audio, ya sabe hacerlo.",
+      // PARA NAZA (25/10): pasos nuevos de «Cómo funciona».
       pasos: [
         {
-          titulo: "Nos dices quién es",
-          texto: "Nos dejas su nombre, su WhatsApp y el día en que quieres que empiece. Si es un regalo, te damos una tarjeta para entregárselo.",
+          titulo: "¿Para quién es?",
+          texto: "Si la Vitácora es para ti, la empezamos ahora mismo. Si es un regalo, puedes llevarte la tarjeta de regalo al pagar o dejarnos sus datos para que empecemos su libro el día que nos digas.",
         },
         {
-          titulo: "Solo manda audios",
-          texto: "Le llega una pregunta por WhatsApp y la contesta con un audio cuando quiere, como hace todos los días. Sin apps ni nada que aprender.",
+          titulo: "Con audios o escribiendo",
+          texto: "Las preguntas le llegan por WhatsApp y nos contesta como más cómodo se sienta, cuando tiene un rato libre. Sin apps ni nada que aprender.",
         },
         {
           titulo: "Escribimos su libro",
-          texto: "Con todo lo que cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras.",
+          texto: "Con todas las historias que nos cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras, como si fuera el autor.",
         },
         {
-          titulo: "Su familia lo lee y lo escucha",
-          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contraportada vuelven a escuchar su voz.",
+          titulo: "Cuando llega a casa",
+          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contraportada hay un código QR que abre sus historias, contadas a su manera y guardadas para siempre.",
         },
       ],
     },
@@ -208,7 +217,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     escuchalo: {
       titulo: "Su voz, guardada en su libro.",
       texto:
-        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
+        "El libro lleva sus mejores frases con su voz real y su forma de hablar. Las escuchas con el código de la contraportada o desde el móvil, cuando quieras.",
       etiqueta: "El campo",
       cita: CITA_CAMPO,
       duracion: "0:30",
@@ -229,10 +238,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pago único, sin suscripciones",
     },
     marcos: {
-      titulo: "Un marco con su voz para cada uno.",
-      // Naza: el marco a 19 € todos, literal en España.
+      // PARA NAZA (25/10): título y texto nuevos. Naza: el marco a 19 € todos, literal en España.
+      titulo: "Una foto para sus fans.",
       texto: () =>
-        "Un marco con su foto y un chip por dentro. Acercas el móvil y suena su voz. Puedes pedir uno para cada hermano, cada hijo o cada nieto, a 19 € cada uno.",
+        "En Vitácora creemos que la forma más bonita de celebrar este regalo es compartirlo con la familia. Por eso, estas Navidades, puedes sumar una foto enmarcada para regalar a cada hermano, hijo o nieto, a 19 € cada una. Lleva un chip por dentro: acercas el móvil y se abre su historia, contada a su manera.",
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -361,21 +370,21 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
       bajada:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y de que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
-      ventajas: ["Solo manda audios, no escribe nada", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores frases, con su voz"],
+      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas a su manera y guardadas para siempre"],
       propio: { pregunta: "¿Querés contar tu propia vida?", enlace: "También podés hacer tu libro." },
     },
     queEs: {
       etiqueta: "Qué es Vitácora",
       titulo: "Un regalo para quien cuenta y otro para toda la familia.",
       bajada:
-        "A tu familiar le llegan preguntas sobre su vida, desde su infancia hasta hoy, y alguien que lo escucha. La familia se queda con un libro que va a pasar de generación en generación.",
+        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
     },
     siguiendo: {
       titulo: "Vos lo vas siguiendo de cerca.",
@@ -385,27 +394,34 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         "Lo ves terminado y elegís la tapa antes de imprimirlo.",
       ],
     },
+    // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
+    privacidad: {
+      titulo: "Su historia es de tu familia.",
+      texto: "Sabemos que lo que cuenta es personal. Sus audios y su libro solo los ven tu familia y quienes lo escriben. Se guardan en la Unión Europea, no los vendemos, no los usamos para publicidad y no entrenamos ninguna inteligencia artificial con ellos. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pedís.",
+      enlace: "Cómo cuidamos sus datos",
+    },
     pieTelefono: "Así se ve la página de su historia.",
     funciona: {
       titulo: "Cómo funciona",
       bajada:
         "Entrevistamos a tu familiar por WhatsApp, a su ritmo, y con lo que nos cuenta escribimos el libro de su vida. Si sabe mandar un audio, ya sabe hacerlo.",
+      // PARA NAZA (25/10): pasos nuevos de «Cómo funciona».
       pasos: [
         {
-          titulo: "Nos decís quién es",
-          texto: "Nos dejás su nombre, su WhatsApp y el día en que querés que empiece. Si es un regalo, te damos una tarjeta para entregárselo.",
+          titulo: "¿Para quién es?",
+          texto: "Si la Vitácora es para vos, la empezamos ahora mismo. Si es un regalo, podés llevarte la tarjeta de regalo al pagar o dejarnos sus datos para que empecemos su libro el día que nos digas.",
         },
         {
-          titulo: "Solo manda audios",
-          texto: "Le llega una pregunta por WhatsApp y la contesta con un audio cuando quiere, como hace todos los días. Sin apps ni nada que aprender.",
+          titulo: "Con audios o escribiendo",
+          texto: "Las preguntas le llegan por WhatsApp y nos contesta como más cómodo se sienta, cuando tiene un rato libre. Sin apps ni nada que aprender.",
         },
         {
           titulo: "Escribimos su libro",
-          texto: "Con todo lo que cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras.",
+          texto: "Con todas las historias que nos cuenta, nuestro biógrafo escribe el libro de su vida con sus propias palabras, como si fuera el autor.",
         },
         {
-          titulo: "Su familia lo lee y lo escucha",
-          texto: "Llega el libro impreso a casa. Lo abren, leen su vida y con el código de la contratapa vuelven a escuchar su voz.",
+          titulo: "Cuando llega a casa",
+          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contratapa hay un código QR que abre sus historias, contadas a su manera y guardadas para siempre.",
         },
       ],
     },
@@ -419,7 +435,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     escuchalo: {
       titulo: "Su voz, guardada en su libro.",
       texto:
-        "El libro lleva sus mejores frases con su voz real, su forma de contar y su risa. Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
+        "El libro lleva sus mejores frases con su voz real y su forma de hablar. Las escuchás con el código de la contratapa o desde el celular, cuando quieras.",
       etiqueta: "El campo",
       cita: CITA_CAMPO,
       duracion: "0:30",
@@ -440,10 +456,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pago único, sin suscripciones",
     },
     marcos: {
-      titulo: "Un marco con su voz para cada uno.",
-      // En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
+      // PARA NAZA (25/10): título y texto nuevos. En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
+      titulo: "Una foto para sus fanáticos.",
       texto: (p) =>
-        `Un marco con su foto y un chip por dentro. Acercás el celular y suena su voz. Podés pedir uno para cada hermano, cada hijo o cada nieto${p ? `, a ${p} cada uno` : ""}.`,
+        `En Vitácora creemos que la forma más linda de celebrar este regalo es compartirlo con la familia. Por eso, para estas fiestas, podés sumar una foto enmarcada para regalarle a cada hermano, hijo o nieto${p ? `, a ${p} cada una` : ""}. Lleva un chip por dentro: acercás el celular y se abre su historia, contada a su manera.`,
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -582,10 +598,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         "El teu familiar ens explica la seva vida amb àudios de WhatsApp. Nosaltres ens encarreguem d'escriure el seu llibre i que quedi a la teva família per sempre.",
       comoFunciona: "Com funciona ↓",
       ventajas: [
-        "Només envia àudios, no escriu res",
+        "Respon amb àudios o escrivint, com se senti més còmode",
         "Sense aplicacions ni contrasenyes",
         "El seu llibre imprès, en tapa dura",
-        "Les seves millors frases, amb la seva veu",
+        "Les seves millors històries, explicades a la seva manera i guardades per sempre",
       ],
       propio: { pregunta: "Vols explicar la teva pròpia vida?", enlace: "També pots fer el teu llibre." },
     },
@@ -593,7 +609,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Què és Vitácora",
       titulo: "Un regal per a qui explica i un altre per a tota la família.",
       bajada:
-        "Al teu familiar li arriben preguntes sobre la seva vida, des de la infància fins avui, i algú que l'escolta. La família es queda amb un llibre que passarà de generació en generació.",
+        "Entrevistem el teu familiar per WhatsApp. Li fem preguntes sobre la seva vida, des de la infància fins avui. En acabar l'entrevista escrivim la història de la seva vida. Vitácora és un regal emotiu, un llibre que passarà de generació en generació.",
     },
     siguiendo: {
       titulo: "Tu ho vas seguint de prop.",
@@ -603,27 +619,34 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         "El veus acabat i tries la tapa abans d'imprimir-lo.",
       ],
     },
+    // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
+    privacidad: {
+      titulo: "La seva història és de la teva família.",
+      texto: "Sabem que el que explica és personal. Els seus àudios i el seu llibre només els veuen la teva família i qui l'escriu. Es guarden a la Unió Europea, no els venem, no els fem servir per a publicitat i no entrenem cap intel·ligència artificial amb ells. Els àudios originals s'esborren tres mesos després d'acabar el llibre, o abans si ho demanes.",
+      enlace: "Com cuidem les seves dades",
+    },
     pieTelefono: "Així es veu la pàgina de la seva història.",
     funciona: {
       titulo: "Com funciona",
       bajada:
         "Entrevistem el teu familiar per WhatsApp, al seu ritme, i amb el que ens explica escrivim el llibre de la seva vida. Si sap enviar un àudio, ja sap fer-ho.",
+      // PARA NAZA (25/10): pasos nuevos de «Cómo funciona».
       pasos: [
         {
-          titulo: "Ens dius qui és",
-          texto: "Ens deixes el seu nom, el seu WhatsApp i el dia que vols que comenci. Si és un regal, et donem una targeta per donar-li.",
+          titulo: "Per a qui és?",
+          texto: "Si la Vitácora és per a tu, la comencem ara mateix. Si és un regal, pots endur-te la targeta de regal en pagar o deixar-nos les seves dades perquè comencem el seu llibre el dia que ens diguis.",
         },
         {
-          titulo: "Només envia àudios",
-          texto: "Li arriba una pregunta per WhatsApp i la contesta amb un àudio quan vol, com fa cada dia. Sense aplicacions ni res a aprendre.",
+          titulo: "Amb àudios o escrivint",
+          texto: "Les preguntes li arriben per WhatsApp i ens contesta com més còmode se senti, quan té una estona lliure. Sense aplicacions ni res a aprendre.",
         },
         {
           titulo: "Escrivim el seu llibre",
-          texto: "Amb tot el que explica, el nostre biògraf escriu el llibre de la seva vida amb les seves pròpies paraules.",
+          texto: "Amb totes les històries que ens explica, el nostre biògraf escriu el llibre de la seva vida amb les seves pròpies paraules, com si en fos l'autor.",
         },
         {
-          titulo: "La seva família el llegeix i l'escolta",
-          texto: "Arriba el llibre imprès a casa. L'obren, llegeixen la seva vida i amb el codi de la contraportada tornen a escoltar la seva veu.",
+          titulo: "Quan arriba a casa",
+          texto: "Arriba el dia de tenir-lo a casa, per sempre. Si un altre familiar en vol un exemplar, ens demana una altra còpia i l'hi enviem. A la contraportada hi ha un codi QR que obre les seves històries, explicades a la seva manera i guardades per sempre.",
         },
       ],
     },
@@ -637,7 +660,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     escuchalo: {
       titulo: "La seva veu, guardada al seu llibre.",
       texto:
-        "El llibre porta les seves millors frases amb la seva veu real, la seva manera d'explicar i el seu riure. Les escoltes amb el codi de la contraportada o des del mòbil, quan vulguis.",
+        "El llibre porta les seves millors frases amb la seva veu real i la seva manera de parlar. Les escoltes amb el codi de la contraportada o des del mòbil, quan vulguis.",
       etiqueta: "El camp",
       cita: CITA_CAMPO,
       duracion: "0:30",
@@ -658,9 +681,10 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       pagoUnico: "pagament únic, sense subscripcions",
     },
     marcos: {
-      titulo: "Un marc amb la seva veu per a cadascú.",
+      // PARA NAZA (25/10): traducción del texto nuevo.
+      titulo: "Una foto per als seus fans.",
       texto: () =>
-        "Un marc amb la seva foto i un xip a dins. Hi apropes el mòbil i sona la seva veu. Pots demanar-ne un per a cada germà, cada fill o cada net, a 19 € cadascun.",
+        "A Vitácora creiem que la manera més bonica de celebrar aquest regal és compartir-lo amb la família. Per això, aquest Nadal, pots afegir una foto emmarcada per regalar a cada germà, fill o net, a 19 € cadascuna. Porta un xip a dins: hi apropes el mòbil i s'obre la seva història, explicada a la seva manera.",
     },
     regalo: {
       titulo: "No li regalis la mateixa camisa de cada any.",

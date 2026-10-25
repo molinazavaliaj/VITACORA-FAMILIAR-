@@ -75,7 +75,7 @@ describe('kids v2 catalán: banco-ca.md atado a banco.md', () => {
     expect(entradasDelBanco(b).map((e) => [e.id, e.texto])).toEqual(ENTRADAS.map((e) => [e.id, TEXTOS[e.id]]));
     expect(preguntaEn('K12', 'ca').ramas.map((r) => r.boton)).toEqual(['Tinc germans', 'No tinc germans']);
     expect(fijoEn('B-SEGUIR', 'ca').botones).toEqual(["Vinga, una altra", 'Demà segueixo']);
-    expect(bancoDe('ca').capitulos.map((c) => c.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "El que m'ha passat", 'Per a quan siguis gran (el sobre tancat)']);
+    expect(bancoDe('ca').capitulos.map((c) => c.titulo)).toEqual(['Els primers anys', 'La meva gent', 'El meu món ara', "Les meves aventures", 'Per a quan siguis gran (el sobre tancat)']);
   });
 
   it('las plantillas: mismo nombre con _ca, idioma de Meta «ca», y son las 13 de plantillas-meta-kids-ca.md', () => {

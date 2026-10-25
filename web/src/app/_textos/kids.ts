@@ -33,6 +33,8 @@ export type TextosKids = {
   bajada: string;
   empezar: string;
   desde: (precio: string) => string;
+  /** Debajo de los botones del inicio, en lugar del precio (Naza, 25/10): quién escucha lo que cuenta. */
+  privacidad: { texto: string; enlace: string };
   proximamente: string;
   proximamenteTexto: string;
   /** El botón para escribirnos mientras no se vende (WhatsApp de dudas o correo). */
@@ -75,28 +77,34 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       descripcion: "Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad.",
     },
     etiqueta: "Vitácora Kids · Mi Primer Capítulo",
-    titulo: ["Un día no vas a recordar", "cómo pensabas a los once."],
-    bajada: "Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad.",
+    // PARA NAZA (25/10): el inicio le habla a quien compra (el padre o la madre), no al chico.
+    titulo: ["¿Recuerdas cómo", "pensabas a los 11?"],
+    bajada: "Imagina tener un libro de cómo era tu vida de niño. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Sus audios solo los escuchas tú y quienes escriben su libro. No los vendemos ni entrenamos ninguna inteligencia artificial con ellos.", enlace: "Cómo cuidamos sus datos" },
     proximamente: "Próximamente",
     proximamenteTexto: "Todavía no se vende. Escríbenos y te avisamos cuando abra.",
     escribir: "Escríbenos",
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Quiero que me aviséis cuando abra Vitácora Kids." },
     altHero: "Un niño sentado en su cama graba un audio en el móvil, entre dibujos y un oso de peluche",
     dibujos: {
-      frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
-      texto: "Guardamos sus fotos y sus notas del cole, pero no cómo pensaba a esa edad. Ni siquiera lo va a recordar.",
+      // PARA NAZA (25/10): opción A.
+      frase: ["Los juguetes terminan en una caja.", "Su libro se queda para siempre."],
+      texto: "Los juguetes de hoy un día van a terminar en una caja para regalar. El libro de cómo era su vida a los 11 lo va a guardar para siempre.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Tú lo ves todo", "Un sobre cerrado para cuando crezca"],
     como: {
-      titulo: "Si sabe mandar un audio, ya puede contar su libro.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "A los 11 usa el móvil mejor que tú. Contar su vida le va a resultar fácil.",
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo eliges al comprar. Si es al tuyo, os sentáis juntos y responde con sus palabras." },
-        { titulo: "Contesta con audios y fotos", texto: "Preguntas de su mundo, su gente, sus cosas y lo que le pasó. Si una no le gusta, la salta y seguimos." },
+        // PARA NAZA (25/10): texto de Naza.
+        { titulo: "Contesta con audios y fotos", texto: "Preguntas divertidas sobre su mundo, qué le gusta hacer en su tiempo libre, qué quiere ser de mayor. Le preguntamos por sus juguetes para que queden en fotos dentro de su libro. Los padres ven cada pregunta y cada respuesta desde su cuenta en vitacorafamiliar.com. Si una pregunta no le gusta, la salta." },
         { titulo: "Se vuelve un libro de verdad", texto: "Con sus palabras y sus fotos. La última parte va en un sobre cerrado, para que lo abra cuando sea mayor." },
       ],
     },
@@ -114,9 +122,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un niño sentado en la alfombra de su cuarto hace una foto a sus juguetes con el móvil",
     },
     libro: {
-      titulo: "Cinco partes, y la última cerrada.",
-      texto: "Con sus palabras y sus fotos, contado como un relato. La quinta parte es lo que le dice a quien va a ser de mayor, y va en un sobre cerrado.",
-      capitulos: ["De pequeño", "Mi gente", "Mi mundo ahora", "Lo que me pasó", "Para cuando seas mayor"],
+      // PARA NAZA (25/10): título y texto nuevos.
+      titulo: "Un mensaje para su futuro.",
+      texto: "Con sus palabras y sus fotos escribimos la historia de su vida, contada como un relato. Y en la última parte le habla a quien va a ser de mayor. Esas respuestas van en un sobre cerrado, para abrirlo cuando crezca.",
+      capitulos: ["De pequeño", "Mi gente", "Mi mundo ahora", "Mis aventuras", "Para cuando seas mayor"],
       sobre: "en un sobre cerrado",
       altFoto: "Un libro abierto por el capítulo 1, con la foto de un niño sonriendo, sobre una colcha de colores",
     },
@@ -192,29 +201,35 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       descripcion: "Li fem preguntes per WhatsApp, respon amb àudios i amb fotos, i tot això es converteix en un llibre de debò.",
     },
     etiqueta: "Vitácora Kids · El meu primer capítol",
-    titulo: ["Un dia no recordaràs", "com pensaves als onze anys."],
-    bajada: "Li fem preguntes per WhatsApp, respon amb àudios i amb fotos, i tot això es converteix en un llibre de debò.",
+    // PARA NAZA (25/10): traducció del nou inici.
+    titulo: ["Recordes com", "pensaves als 11 anys?"],
+    bajada: "Imagina tenir un llibre de com era la teva vida de petit. Aquesta edat només es viu una vegada, és de les més importants i la que més de pressa s'oblida. Avui és un regal divertit i, quan siguin grans, entendran de debò el que val tenir la seva Vitácora Kids.",
     empezar: "Començar el seu llibre",
     desde: (p) => `Un sol pagament, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Els seus àudios només els escoltes tu i qui escriu el seu llibre. No els venem ni entrenem cap intel·ligència artificial amb ells.", enlace: "Com cuidem les seves dades" },
     proximamente: "Aviat",
     proximamenteTexto: "Encara no es ven. Escriu-nos i t'avisem quan obri.",
     escribir: "Escriu-nos",
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Vull que m'aviseu quan obri Vitácora Kids." },
     altHero: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un os de peluix",
     dibujos: {
-      frase: ["Els dibuixos es perden.", "El que pensava, també."],
-      texto: "Guardem les seves fotos i les notes de l'escola, però no com pensava a aquesta edat. Ni tan sols se'n recordarà.",
+      // PARA NAZA (25/10): opció A, traducció.
+      frase: ["Les joguines acaben en una caixa.", "El seu llibre es queda per sempre."],
+      texto: "Les joguines d'avui un dia acabaran en una caixa per regalar. El llibre de com era la seva vida als 11 anys el guardarà per sempre.",
       // ca: revisado con el corrector de Softcatalà (19/10)
       altVideo: "El llibre del Nico sobre un cobrellit de colors, entre els seus dibuixos",
     },
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Respon amb àudios, sense escriure", "Sense aplicacions noves", "Tu ho veus tot", "Un sobre tancat per quan sigui gran"],
     como: {
-      titulo: "Si sap enviar un àudio, ja pot explicar el seu llibre.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "Als 11 anys fa servir el mòbil millor que tu. Explicar la seva vida li resultarà fàcil.",
       paso: (n) => `Pas ${n}`,
       pasos: [
         { titulo: "Li escrivim per WhatsApp", texto: "Al seu WhatsApp o al teu, ho tries en comprar. Si és al teu, us asseieu junts i respon amb les seves paraules." },
-        { titulo: "Contesta amb àudios i fotos", texto: "Preguntes del seu món, la seva gent, les seves coses i el que li va passar. Si una no li agrada, se la salta i seguim." },
+        // PARA NAZA (25/10): traducció del text de Naza.
+        { titulo: "Contesta amb àudios i fotos", texto: "Preguntes divertides sobre el seu món, què li agrada fer en el seu temps lliure, què vol ser de gran. Li preguntem per les seves joguines perquè quedin en fotos dins del seu llibre. Els pares veuen cada pregunta i cada resposta des del seu compte a vitacorafamiliar.com. Si una pregunta no li agrada, se la salta." },
         { titulo: "Es converteix en un llibre de debò", texto: "Amb les seves paraules i les seves fotos. L'última part va en un sobre tancat, perquè l'obri quan sigui gran." },
       ],
     },
@@ -232,9 +247,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un nen assegut a la catifa de la seva habitació fa una foto a les seves joguines amb el mòbil",
     },
     libro: {
-      titulo: "Cinc parts, i l'última tancada.",
-      texto: "Amb les seves paraules i les seves fotos, explicat com un relat. La cinquena part és el que li diu a qui serà de gran, i va en un sobre tancat.",
-      capitulos: ["De petit", "La meva gent", "El meu món ara", "El que em va passar", "Per a quan siguis gran"],
+      // PARA NAZA (25/10): traducció del text nou.
+      titulo: "Un missatge per al seu futur.",
+      texto: "Amb les seves paraules i les seves fotos escrivim la història de la seva vida, explicada com un relat. I a l'última part li parla a qui serà de gran. Aquestes respostes van en un sobre tancat, per obrir-lo quan creixi.",
+      capitulos: ["De petit", "La meva gent", "El meu món ara", "Les meves aventures", "Per a quan siguis gran"],
       sobre: "en un sobre tancat",
       altFoto: "Un llibre obert pel capítol 1, amb la foto d'un nen somrient, sobre un cobrellit de colors",
     },
@@ -309,28 +325,34 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       descripcion: "Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad.",
     },
     etiqueta: "Vitácora Kids · Mi Primer Capítulo",
-    titulo: ["Un día no te vas a acordar", "de cómo pensabas a los once."],
-    bajada: "Le hacemos preguntas por WhatsApp, responde con audios y con fotos, y todo eso se vuelve un libro de verdad.",
+    // PARA NAZA (25/10): el inicio le habla a quien compra (el padre o la madre), no al chico.
+    titulo: ["¿Te acordás cómo", "pensabas a los 11?"],
+    bajada: "Imaginate tener un libro de cómo era tu vida de chico. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
+    // PARA NAZA (25/10): el aviso de privacidad del inicio (la respuesta aprobada de «¿Quién escucha sus audios?» y la política).
+    privacidad: { texto: "Sus audios solo los escuchás vos y quienes escriben su libro. No los vendemos ni entrenamos ninguna inteligencia artificial con ellos.", enlace: "Cómo cuidamos sus datos" },
     proximamente: "Próximamente",
     proximamenteTexto: "Todavía no se vende. Escribinos y te avisamos cuando abra.",
     escribir: "Escribinos",
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Quiero que me avisen cuando abra Vitácora Kids." },
     altHero: "Un chico sentado en su cama graba un audio en el celular, entre dibujos y un oso de peluche",
     dibujos: {
-      frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
-      texto: "Guardamos sus fotos y sus boletines, pero no cómo pensaba a esa edad. Ni siquiera se va a acordar.",
+      // PARA NAZA (25/10): opción A.
+      frase: ["Los juguetes terminan en una caja.", "Su libro se queda para siempre."],
+      texto: "Los juguetes de hoy un día van a terminar en una caja para regalar. El libro de cómo era su vida a los 11 lo va a guardar para siempre.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Vos ves todo", "Un sobre cerrado para cuando sea grande"],
     como: {
-      titulo: "Si sabe mandar un audio, ya puede contar su libro.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "A los 11 usa el celular mejor que vos. Contar su vida le va a resultar fácil.",
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo elegís al comprar. Si es al tuyo, te sentás al lado y responde con sus palabras." },
-        { titulo: "Contesta con audios y fotos", texto: "Preguntas de su mundo, su gente, sus cosas y lo que le pasó. Si una pregunta no le gusta, la salta y seguimos." },
+        // PARA NAZA (25/10): texto de Naza.
+        { titulo: "Contesta con audios y fotos", texto: "Preguntas divertidas sobre su mundo, qué le gusta hacer en su tiempo libre, qué quiere ser de grande. Le preguntamos por sus juguetes para que queden en fotos dentro de su libro. Los padres ven cada pregunta y cada respuesta desde su cuenta en vitacorafamiliar.com. Si una pregunta no le gusta, la saltea." },
         { titulo: "Se vuelve un libro de verdad", texto: "Con sus palabras y sus fotos. La última parte va en un sobre cerrado, para que lo abra cuando sea grande." },
       ],
     },
@@ -348,9 +370,10 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       altFoto: "Un chico sentado en la alfombra de su cuarto les saca una foto a sus juguetes con el celular",
     },
     libro: {
-      titulo: "Cinco partes, y la última cerrada.",
-      texto: "Con sus palabras y sus fotos, contado como un relato. La quinta parte es lo que le dice a quien va a ser de grande, y va en un sobre cerrado.",
-      capitulos: ["De chiquito", "Mi gente", "Mi mundo ahora", "Lo que me pasó", "Para cuando seas grande"],
+      // PARA NAZA (25/10): título y texto nuevos.
+      titulo: "Un mensaje para su futuro.",
+      texto: "Con sus palabras y sus fotos escribimos la historia de su vida, contada como un relato. Y en la última parte le habla a quien va a ser de grande. Esas respuestas van en un sobre cerrado, para abrirlo cuando crezca.",
+      capitulos: ["De chiquito", "Mi gente", "Mi mundo ahora", "Mis aventuras", "Para cuando seas grande"],
       sobre: "en un sobre cerrado",
       altFoto: "Un libro abierto en el capítulo 1, con la foto de un chico sonriendo, sobre una colcha de colores",
     },

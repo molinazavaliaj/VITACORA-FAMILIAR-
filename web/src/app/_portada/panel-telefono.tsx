@@ -44,7 +44,7 @@ export function PanelEnTelefono({ idioma }: { idioma: IdiomaPanel }) {
               estado={estadoEnHumano(ESTADO, false, trato)}
               tapa={{ titulo: "Antonio García", fotoSrc: "/rediseno/libro-tapa-foto.jpg", idioma: "es" }}
               pasos={lineaDeTiempo({ estado: ESTADO, aprobado: false, libroEntregado: false, conImpreso: true, impresoEnCasa: false })}
-              cifras={<CifrasHistoria idioma={idioma} quien={QUIEN} respuestas={voz.respuestas} segundos={voz.segundos} />}
+              cifras={<CifrasHistoria idioma={idioma} quien={QUIEN} respuestas={voz.respuestas} segundos={voz.segundos} avance={47} />}
             />
           }
           // Los dos audios más nuevos (la muestra trae tres).
