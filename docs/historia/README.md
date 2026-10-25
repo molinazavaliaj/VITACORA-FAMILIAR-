@@ -1,0 +1,21 @@
+# Vitácora de una historia
+
+Un libro corto sobre un capítulo de la vida que ya pasó. Se diseñó el 21/10/2026.
+
+Regla de nombres: lo que dice **vigente** es lo actual. Cuando algo se reemplaza, la versión vieja va a `historial/` con la fecha y el motivo en el nombre.
+
+## Qué hay acá
+
+- [`../superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md`](../superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md): el diseño aprobado por Naza (**empezar por acá**).
+- [`../superpowers/plans/2026-10-21-vitacora-de-una-historia.md`](../superpowers/plans/2026-10-21-vitacora-de-una-historia.md): el plan de implementación, por fases.
+- [`temas.md`](temas.md): los 7 temas de la compra en los 3 idiomas. **Vigente, aprobado el 21/10.**
+- [`banco.md`](banco.md): el banco de preguntas y mensajes en es-AR, con el formato de `docs/v3/entrevista/banco.md` y las columnas `Tema` y `Reemplaza` al final. **Vigente, aprobado el 21 y el 22/10.** Se compiló de [`banco-armado/`](banco-armado/), que queda como historial de las tandas.
+
+- [`idiomas/banco-es-ES.md`](idiomas/banco-es-ES.md) y [`idiomas/banco-ca.md`](idiomas/banco-ca.md): los textos del banco en castellano de España (tú) y en catalán (tu), solo por ID. Hechos el 22/10, con revisión a ciegas y Softcatalà ([`idiomas/revision-2026-10-22.md`](idiomas/revision-2026-10-22.md)). **Vigentes desde el 22/10:** Naza decidió los 6 puntos de la revisión (ver «Decisiones de Naza»), y el mismo día se sumaron las variantes de `padres` y `trabajo` (HC8-P, HC9-P, HC8-T, HC9-T).
+
+- [`escritor/receta.md`](escritor/receta.md) y [`escritor/que-cambia.md`](escritor/que-cambia.md): la receta del libro. **Vigente, aprobada el 22/10.**
+
+## Lo que viene
+
+
+- El código, fases 1 a 6 del plan. La fase 0 (contenido) está cerrada.

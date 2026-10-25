@@ -51,6 +51,41 @@ export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta
   ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' }, bienvenida: { nombre: 'bienvenida_v3_ca', idiomaMeta: 'ca' }, bienvenida_quien: { nombre: 'bienvenida_v3_quien_ca', idiomaMeta: 'ca' } },
 };
 
+export type CualPlantillaHistoria = 'pregunta' | 'recordatorio' | 'bienvenida' | 'bienvenida_regalo' | 'bienvenida_regalo_abierta';
+
+/**
+ * Las plantillas de Meta de «Vitácora de una historia» (docs/historia/banco.md, «Arranque»), por idioma.
+ * `pregunta` y `recordatorio` son las mismas de la V3 (`pregunta_diaria_*`, `m8_*`: M8 es el mismo texto) y se dan
+ * por aprobadas con WA_PLANTILLAS_V3_LISTAS. Las tres bienvenidas son nuevas y las carga Joaquín en Meta:
+ * `bienvenida` = BIEN-H (para uno mismo: {{1}} cómo le dicen, {{2}} la historia), `bienvenida_regalo` = BIEN-HR
+ * ({{1}}, {{2}} quién regala, {{3}} la historia) y `bienvenida_regalo_abierta` = BIEN-HR-A ({{1}}, {{2}}). Se marcan
+ * como aprobadas en WA_PLANTILLAS_HISTORIA_LISTAS (`es-AR:bienvenida,…`); hasta entonces no salen. Si cambia un
+ * nombre en Meta, se cambia acá.
+ */
+export const PLANTILLAS_HISTORIA: Readonly<Record<'es-AR' | 'es-ES' | 'ca', Record<CualPlantillaHistoria, PlantillaV3>>> = {
+  'es-AR': {
+    pregunta: PLANTILLAS_V3['es-AR'].pregunta,
+    recordatorio: PLANTILLAS_V3['es-AR'].recordatorio,
+    bienvenida: { nombre: 'bienvenida_historia_vos', idiomaMeta: 'es' },
+    bienvenida_regalo: { nombre: 'bienvenida_historia_regalo_vos', idiomaMeta: 'es' },
+    bienvenida_regalo_abierta: { nombre: 'bienvenida_historia_regalo_abierta_vos', idiomaMeta: 'es' },
+  },
+  'es-ES': {
+    pregunta: PLANTILLAS_V3['es-ES'].pregunta,
+    recordatorio: PLANTILLAS_V3['es-ES'].recordatorio,
+    bienvenida: { nombre: 'bienvenida_historia_es_es', idiomaMeta: 'es_ES' },
+    bienvenida_regalo: { nombre: 'bienvenida_historia_regalo_es_es', idiomaMeta: 'es_ES' },
+    bienvenida_regalo_abierta: { nombre: 'bienvenida_historia_regalo_abierta_es_es', idiomaMeta: 'es_ES' },
+  },
+  ca: {
+    pregunta: PLANTILLAS_V3.ca.pregunta,
+    recordatorio: PLANTILLAS_V3.ca.recordatorio,
+    bienvenida: { nombre: 'bienvenida_historia_ca', idiomaMeta: 'ca' },
+    bienvenida_regalo: { nombre: 'bienvenida_historia_regalo_ca', idiomaMeta: 'ca' },
+    bienvenida_regalo_abierta: { nombre: 'bienvenida_historia_regalo_abierta_ca', idiomaMeta: 'ca' },
+  },
+};
+
 /**
  * La plantilla del regalo que llega solo el día elegido (spec 2026-10-10), una
  * por idioma. La carga Joaquín en Meta (textos en docs/regalo/dia-de-entrega-textos.md,
@@ -161,6 +196,8 @@ export function entraALaV3(contexto: Record<string, unknown> | null | undefined)
   // Un chico de Kids nunca (plan-conexion-bot.md, T4): la web le pone modo 'kids'. La marca que vale es la fila de
   // kids_v2, que se mira donde se crea la fila V3 (v3/estado.ts crearFila, v3/pasar.ts); esto frena antes, sin base.
   if (contexto?.modo === 'kids') return false;
+  // Vitácora de una historia (plan 2026-10-21, Task 3.4): tiene su propio bot (src/historia), con o sin regalo.
+  if (contexto?.modo === 'historia') return false;
   if (contexto?.regalo === true) return true;
   return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
 }

@@ -15,10 +15,11 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
-| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
+| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. **23/10 (sin aplicar):** `tipo = 'historia'` para cada mensaje de «Vitácora de una historia». |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). **Actualizado 15/10:** aplicada el 07/10 y en producción (main `08d91f4`). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `respuestas_fuera` | web | fábrica, entrevistador | Nueva 21/10 (migración `20261021000100`, la aplica Naza). La dueña saca del libro **una** respuesta V3 desde el panel. Ver "Respuestas sacadas por la familia". |
 | `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
+| `historias` | entrevistador (crea la fila desde `contexto.historia` y escribe `estado`, `version`, `ultimo_audio_at`, `tanda_*`, `enviando_hasta`; una vez `ficha.temaLibre` con lo que contestó en TEMA-ABIERTO) | entrevistador, fábrica | Nueva 23/10 (migración `20261023000000`, **sin aplicar, la aplica Naza**). Una fila por narrador de «Vitácora de una historia». Ver "Vitácora de una historia". |
 | `kids_v2` | web (crea la fila al comprar con `ficha`; después solo `cambios_panel` y `correcciones`) / entrevistador (`estado`, `avance`, `marcas`, `cambios_error`, `empezo_at`, `termino_at`, `enviando_hasta`) | entrevistador, web (panel), fábrica | Nueva 15/10, **aplicada por Naza el 17/10** (migración 20261016000000). Una fila por chico de Vitácora Kids. Ver "Vitácora Kids V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | **Sin uso desde el 16/10/2026** (ni fábrica ni worker; ver "Narraciones"). Antes: fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | — (solo el panel de admin muestra las filas viejas) | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
@@ -1355,3 +1356,97 @@ lee y escribe; la fábrica y el entrevistador no la miran. Todo apagado hasta `C
 - **Resumen mensual**: `/api/creadores/resumen` (cron de Vercel el día 1 a las 9, `vercel.json`, con
   `CRON_SECRET`) manda a los socios, por creador, lo pendiente que ya pasó la espera (y aparte lo que sigue
   en espera). Si nada pasó la espera, no manda nada.
+
+## Vitácora de una historia (migración 20261023000000 — **sin aplicar, la aplica Naza**)
+
+Spec: `docs/superpowers/specs/2026-10-21-vitacora-de-una-historia-design.md`. Plan: `docs/superpowers/plans/2026-10-21-vitacora-de-una-historia.md` (Fase 2). Rama `vitacora-historia`.
+**Una fila en `historias` prende la entrevista de una historia para ese narrador**; sin fila, el entrevistador sigue como siempre.
+Es el molde de `entrevistas_v3`. La escribe el entrevistador (Fase 3, `entrevistador/src/historia/`) y la lee la fábrica (Fase 5).
+Hasta que exista ese código, nadie la escribe.
+
+| Columna | Qué guarda |
+|---|---|
+| `narrador_id` | Clave primaria y referencia a `narradores`. |
+| `idioma` | `es-AR`, `es-ES` o `ca`. |
+| `ficha` (jsonb) | `FichaHistoria` (`fabrica/src/historia/ficha.ts`) más `quienRegala?`: `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `tema` y `temaLibre?`. `tema` es una de las claves de `docs/historia/temas.md` (`mudanza`, `negocio`, `enfermedad`, `conocimos`, `padres`, `trabajo`, `otra`); la base lo controla (`historias_tema_conocido`). |
+| `compra` (jsonb) | `{ preguntasPropias?: string[] }`: las preguntas que dejó quien regala, en el orden de la compra, tal cual (hasta 3; la base lo controla con `historias_hasta_tres_propias`). Salen como PR-H1…PR-H3 antes de HC10. |
+| `estado` (jsonb) | El motor de `entrevistador/src/historia/turno.ts` (Fase 3; copia del de V3). `respuestas` (`[clave, texto][]` en orden de llegada) **es la verdad de la entrevista**. Suma `temaAbierto` (boolean): el narrador elige su historia en TEMA-ABIERTO. |
+| `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
+| `ultimo_audio_at`, `tanda_dia`, `tanda_cuenta`, `enviando_hasta` | Como en `entrevistas_v3`. |
+| `creada_at` | Cuándo nació la fila. |
+
+**De dónde sale la fila.** La web escribe la compra en `narradores.contexto` (`modo = 'historia'` y
+`contexto.historia = { tema, temaLibre?, temaAbierto?, preguntasPropias? }`, Fase 4) y el entrevistador crea la fila al
+dar el alta (Fase 3). Con **tema abierto** (quien regala marcó «que lo elija quien lo cuenta») la fila nace con
+`ficha.tema = 'otra'` y `estado.temaAbierto = true`. Lo que conteste en TEMA-ABIERTO se guarda en `ficha.temaLibre`.
+El tema queda `otra`, porque la respuesta libre no se clasifica con un modelo. Con `otra`, la primera pregunta es
+HC1-A, que no nombra la historia (Naza, 23/10).
+
+**`respuestas.clave_historia`** (text): a qué responde la fila. Puede ser:
+- un ID del banco (`HC1`, `HC8-Q`, `HC1-A`, `HM3`…);
+- `FOTO-H` (la foto y su descripción);
+- `PR-H1` a `PR-H3` (las de quien regala);
+- `RP~X` (la repregunta del cazador sobre X);
+- `TEMA` (lo que contestó en TEMA-ABIERTO).
+
+`∅` = se guardó y quedó afuera a propósito, igual que en V3. Null en todo lo que no es una historia (y, en una
+historia, la que todavía no se sumó: la retoma el reloj). Varias filas pueden tener la misma clave.
+`envios.tipo` suma `'historia'`; la lista se reescribe entera con todos los tipos de hoy (la última que la tocó fue
+`20261016000000_kids_v2`).
+
+Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la entrevista, `completado` después de
+FIN-H, `pausado` con «quiero parar», como en V3). Las fotos sueltas se guardan siempre.
+
+### El libro de una historia en la fábrica (24/10 — rama `historia-libro`)
+
+**El candado** (`fabrica/src/historia/candado.ts`, `narradoresConHistoria`): un narrador con fila en `historias` no
+recibe nada del libro de siempre, en las mismas ramas del worker que un chico de Kids: anticipo, estructura,
+previsualización, paquete viejo, escritor V3, «el libro está listo», recordatorio de frases y audios originales.
+Los mails de cierre sí (Naza, 24/10): «terminó», los recordatorios de 3, 7 y 14 días y el cierre solo a los 30 días,
+con los textos de cierre de la V3 (no hablan de una vida entera), con vos en `es-AR` y tú en `es-ES` y `ca`. Sin la tabla (migración sin aplicar), nadie
+cuenta una historia; con otro error de base, esas ramas no corren ese tick.
+
+**El escritor** (`fabrica/src/escritor-historia/produccion/libro-historia.ts`, `revisarLibrosHistoria` en el tick),
+el mismo recorrido que el libro V3:
+- La entrevista terminó (`completado` o `cerrado_anticipado`) → Etapa A (registro, plan, dudas de datos). Las dudas
+  van por mail a los socios, una vez. Las respuestas se escriben a mano en `{id}/escritor-historia/correcciones.json`
+  (mismo formato que V3); la pantalla de dudas de la web todavía no lee historia.
+- Pedido `pagado` + `narradores.libro_aprobado_at` → lo reclama este módulo (no el worker): B con las correcciones
+  (y `edicion.correcciones`), C, `{id}/paquete/libro.html` y `libro.pdf`, «Su voz» (`frases.json`) y el pedido a
+  `entregado` (`libro_pdf_path`). Un error pasajero vuelve el pedido a `pagado`; uno definitivo, `fallido` y aviso.
+- Lo material lee `historias.estado.respuestas` (con el borrador abierto) y `respuestas` con `clave_historia` (sin `∅`),
+  menos lo reservado (`estado.reservadas`, `reservada`, `reservado_tramo`), lo destildado al cerrar
+  (`edicion.excluidas`) y lo sacado desde el panel (`respuestas_fuera`).
+
+| En Storage (`audios`) | Qué es |
+|---|---|
+| `{id}/escritor-historia/` | El almacén del escritor: `pasos/`, `lotes/`, `costos.json`, `carpeta-A/B/C.json`, `libro.md`, `informe.md`, `dudas-familia.json`, `dudas-avisadas.txt`, `fallo-A.json`, `correcciones.json`, `trabajando.json` |
+| `{id}/paquete/libro.html`, `libro.pdf` | El libro para leer y descargar, como V3, con la tapa de historia |
+| `{id}/bookmundo/` | Tapa dura para Bookmundo, sin hojas de Notas (`escritor-historia/produccion/imprenta.ts`, después de entregar). Con menos de 88 páginas queda solo `informe.txt` («NO SUBIR…»), sale un mail a los socios (una vez, `{id}/escritor-historia/aviso-flaco.txt`) y se le ofrece tapa blanda al cliente |
+| `{id}/bookmundo-tapa-blanda/` | La tapa blanda 170×240, que se arma a mano: `cd fabrica && npx tsx scripts/historia-tapa-blanda.ts <id>` |
+
+| Variable (Railway, fábrica) | Qué hace |
+|---|---|
+| `ESCRITOR_HISTORIA` | `1` = prendido para todos; `solo:<id>,<id>` = solo esos. Sin la variable, apagado: no se escribe nada, ni la Etapa A. |
+| `ESCRITOR_HISTORIA_TOPE_USD` | Tope de gasto por trabajo (Etapa A o libro). 10 por defecto. |
+
+Cada llamada al modelo va a `consumo_ia` con `paso = 'escritor-historia-A'`, `-B` o `-C`.
+
+**Los textos de tapa** de historia (la línea arriba del nombre, la etiqueta, la contratapa y el lema) están en
+`fabrica/src/escritor-historia/produccion/textos-tapa.ts`, uno por idioma; los aprobó Naza el 24/10
+(`docs/historia/libro-textos-borrador.md`). Si un idioma no los tuviera, el libro no se escribe: la Etapa A sí, el pedido
+sigue `pagado` y sale un aviso a los socios (una vez, `{id}/escritor-historia/aviso-sin-textos-tapa.txt`).
+
+**En la web** (24/10): «Encargar libro» (`/tablero/{id}/libro`) cierra una historia igual que la V3 (tapa con el
+título que elige la dueña, qué dejar afuera, encargar), con sus respuestas (`clave_historia`) y la tapa de historia
+(«UNA HISTORIA DE SU VIDA»). La pantalla de dudas y su API leen y escriben en `{id}/escritor-historia/` cuando el
+narrador tiene fila en `historias` (`web/src/lib/dudas-archivos.ts`, `carpetaDelEscritor`).
+
+**«Su voz» impresa** (24/10): cuando la familia confirma las frases (`frases.json.confirmado_at`, desde el panel), el
+libro de `{id}/bookmundo/` se rehace con «Su voz» y sus códigos (`suVozImpresaHistoria`, una vez por confirmación;
+`{id}/escritor-historia/imprenta-su-voz.txt` guarda con cuál). Hasta entonces lo de Bookmundo va sin «Su voz»: no se
+sube antes de la confirmación. A una historia le sale el recordatorio de frases a los 15 días, como en Familiar.
+`frases.json` solo se publica si hay alguna frase con audio. El mail «el libro está listo» le sale a una
+historia en su trato (vos en `es-AR`, tú en `es-ES` y `ca`); si el libro salió sin frases con su voz (`frases.json` sin
+ninguna elegida con audio), va `libro_listo_sin_voz`, que no promete escucharla (mismo candado). Las entregas del impreso (`entregas.ts`: el portón de
+imprenta y sus mails) tampoco tocan a un narrador de historia: su libro va a Bookmundo por `imprenta.ts`.

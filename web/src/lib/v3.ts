@@ -184,7 +184,14 @@ type GloboHistoria = { de?: string; nombre?: unknown; partes?: { id?: unknown; t
  * `respuestas`, con audio). Lo que quedó afuera a propósito (∅) no aparece. Lo reservado por WhatsApp se
  * marca y no se muestra.
  */
-export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[], fuera: ReadonlySet<string> = new Set()): BloqueHistoriaV3[] {
+/**
+ * Qué parte de un globo es una pregunta y con qué clave se guarda lo que contestó. Por defecto, las de la V3;
+ * «Vitácora de una historia» pasa las suyas (lib/historia-panel.ts).
+ */
+export type ReglasHistoria = { esPregunta: (id: string) => boolean; clave: (id: string) => string };
+const REGLAS_V3: ReglasHistoria = { esPregunta, clave: sinVariante };
+
+export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[], fuera: ReadonlySet<string> = new Set(), reglas: ReglasHistoria = REGLAS_V3): BloqueHistoriaV3[] {
   const charla = (Array.isArray(estado?.charla) ? estado.charla : []) as GloboHistoria[];
   const contestadas = new Set((Array.isArray(estado?.respuestas) ? estado.respuestas : []).map((r) => (Array.isArray(r) ? r[0] : "")));
   // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X.
@@ -203,8 +210,8 @@ export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | 
     }
     if (g?.de !== "bio" || !Array.isArray(g.partes)) continue;
     for (const p of g.partes) {
-      if (typeof p?.id !== "string" || typeof p.texto !== "string" || !esPregunta(p.id)) continue;
-      const clave = sinVariante(p.id);
+      if (typeof p?.id !== "string" || typeof p.texto !== "string" || !reglas.esPregunta(p.id)) continue;
+      const clave = reglas.clave(p.id);
       const ya = vistas.get(clave);
       if (ya) { ya.pregunta = p.texto; continue; } // la reenviada: vale la última, en su lugar de antes
       const item: PreguntaHistoriaV3 = { clave, pregunta: p.texto, estado: "sin respuesta", reservada: false, respuestas: [] };
@@ -262,7 +269,7 @@ type EstadoConFamilia = EstadoV3 & { esperando?: string; terminada?: boolean; en
  * texto como lo escribió. El bot las hace con la clave `F:<id>` (entrevistador/src/v3/filas.ts) y lo que
  * contesta queda en `estado.respuestas` con esa clave (o su repregunta / segunda oportunidad).
  */
-export function preguntasDeLaFamiliaV3(estado: EstadoConFamilia | null | undefined, filas: FilaPreguntaFamiliaV3[]): PreguntaFamiliaV3[] {
+export function preguntasDeLaFamiliaV3(estado: EstadoConFamilia | null | undefined, filas: FilaPreguntaFamiliaV3[], alFinal: boolean = llegoAlFinalV3(estado)): PreguntaFamiliaV3[] {
   const contestadas = new Set(
     (Array.isArray(estado?.respuestas) ? estado.respuestas : []).filter((r) => Array.isArray(r) && typeof r[0] === "string").map((r) => claveMadre(r[0])),
   );
@@ -272,7 +279,6 @@ export function preguntasDeLaFamiliaV3(estado: EstadoConFamilia | null | undefin
     for (const p of g.partes) if (typeof p?.id === "string" && p.id.startsWith("F:")) hechas.add(p.id);
   }
   const tarde = new Set((Array.isArray(estado?.familiaTarde) ? estado.familiaTarde : []).filter((k) => typeof k === "string"));
-  const alFinal = llegoAlFinalV3(estado);
   return filas
     .filter((f) => f.tipo === "familia" && typeof f.texto === "string" && f.texto.trim())
     .sort((a, b) => a.orden - b.orden)

@@ -15,16 +15,15 @@ import { PNG } from 'pngjs';
 import { escaparHtml } from '../comun.js';
 import type { LenguaLibro } from '../plantilla-html.js';
 import { fuentesImprentaCss } from './fuentes.js';
-import { LOMO_MINIMO_TEXTO_MM, PPP_CUBIERTA, medidasCubierta, type MedidasCubierta } from './formato.js';
+import { formatoDe, LOMO_MINIMO_TEXTO_MM, PPP_CUBIERTA, medidasCubierta, type Encuadernacion, type MedidasCubierta } from './formato.js';
 
 /**
  * Los textos de la cubierta. Los de Imma (17/10) salieron de la web (portada.ts → direccion.libro y
  * publico.ts → lema). Acá van sin género («tal como las vivió») y en las tres lenguas del libro.
  * Aprobados por Naza el 17/10.
  */
-export const TEXTOS_CUBIERTA: Record<LenguaLibro, {
-  etiqueta: string; siempre: string; contra: (nombre: string) => string; escucha: string; lema: string;
-}> = {
+export type TextosCubierta = { etiqueta: string; siempre: string; contra: (nombre: string) => string; escucha: string; lema: string };
+export const TEXTOS_CUBIERTA: Record<LenguaLibro, TextosCubierta> = {
   'es-AR': {
     etiqueta: 'El libro de su vida',
     siempre: 'para siempre',
@@ -92,7 +91,15 @@ export type DatosCubierta = {
   urlQr: string;
   /** Páginas del interior ya armado: definen el lomo. */
   paginas: number;
+  /** Tapa dura (lo de siempre) o tapa blanda: cambian la medida, el sangrado y el lomo. */
+  encuadernacion?: Encuadernacion;
+  /** Los textos de otro producto («Vitácora de una historia»): lo que no venga, el de TEXTOS_CUBIERTA. */
+  textos?: Partial<TextosCubierta>;
 };
+
+/** Las medidas de la cubierta de estos datos (con su encuadernación). */
+export const medidasDe = (d: Pick<DatosCubierta, 'paginas' | 'encuadernacion'>): MedidasCubierta =>
+  medidasCubierta(d.paginas, formatoDe(d.encuadernacion ?? 'tapa-dura'), d.encuadernacion ?? 'tapa-dura');
 
 function toroide(clase: string): string {
   const anillos: [number, number, number][] = [[86.14, 13.86, 17.63], [73.23, 26.77, 34.07], [60.65, 39.35, 50.08], [48.29, 51.71, 65.82], [36.08, 63.92, 81.36], [23.99, 76.01, 96.74], [12.0, 88.0, 112.0]];
@@ -109,8 +116,8 @@ function qrSvg(url: string): string {
   return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" style="width:100%;height:100%;display:block" shape-rendering="crispEdges"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#161513"/></svg>`;
 }
 
-export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasCubierta(d.paginas)): string {
-  const t = TEXTOS_CUBIERTA[d.lengua];
+export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)): string {
+  const t: TextosCubierta = { ...TEXTOS_CUBIERTA[d.lengua], ...(d.textos ?? {}) };
   const s = m.solapaMm;
   const A = m.anchoTapaMm;
   const H = m.altoTapaMm;
@@ -202,7 +209,7 @@ type LectorQr = (datos: Uint8ClampedArray, ancho: number, alto: number) => { dat
 const jsQR: LectorQr = ((jsQRModulo as unknown as { default?: LectorQr }).default ?? jsQRModulo) as unknown as LectorQr;
 
 export async function generarCubierta(d: DatosCubierta): Promise<ResultadoCubierta> {
-  const m = medidasCubierta(d.paginas);
+  const m = medidasDe(d);
   const ancho = m.anchoTotalMm * PX_CSS_POR_MM;
   const alto = m.altoTotalMm * PX_CSS_POR_MM;
   const browser = await chromium.launch();

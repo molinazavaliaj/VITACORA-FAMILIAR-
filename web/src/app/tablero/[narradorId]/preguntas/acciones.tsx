@@ -857,7 +857,7 @@ export function Ajustes({ narradorId, ritmo, evitar, horario, propia = false, tr
 
 export const CAPITULO_FAMILIA_V3 = "Preguntas de la familia";
 
-export function SumarPreguntaV3({ narradorId, propia = false, trato = "vos" }: { narradorId: string; propia?: boolean; trato?: TratoComprador }) {
+export function SumarPreguntaV3({ narradorId, propia = false, trato = "vos", ejemplo }: { narradorId: string; propia?: boolean; trato?: TratoComprador; /** El ejemplo del campo; por defecto, el de la V3. */ ejemplo?: string }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -895,7 +895,7 @@ export function SumarPreguntaV3({ narradorId, propia = false, trato = "vos" }: {
     <div className="flex flex-col gap-3 rounded-xl border border-[var(--linea)] p-5">
       <label className="flex flex-col gap-2">
         <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Tu pregunta</span>
-        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} maxLength={500} placeholder={trato === "tu" ? "Por ejemplo, ¿cómo fue el viaje a Galicia con los niños?" : "Por ejemplo, ¿cómo fue el viaje a Mendoza con los chicos?"} />
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} maxLength={500} placeholder={ejemplo ?? (trato === "tu" ? "Por ejemplo, ¿cómo fue el viaje a Galicia con los niños?" : "Por ejemplo, ¿cómo fue el viaje a Mendoza con los chicos?")} />
       </label>
       <p className="text-sm text-[var(--texto-menor)]">{propia ? "Te la hacemos" : "Se la hacemos"} antes de terminar la entrevista, con tus palabras.</p>
       <div className="flex items-center gap-3">

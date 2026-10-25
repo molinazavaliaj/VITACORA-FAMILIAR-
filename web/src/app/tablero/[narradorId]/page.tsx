@@ -22,6 +22,7 @@ import { leerPanelKids } from "@/lib/kids-panel-base";
 import { entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
 import { puedeVolverAPreguntar } from "@/lib/fuera-del-libro";
 import { viajeDelContexto } from "@/lib/viaje";
+import { entrevistaHistoria, historiaDeHistoria, llegoAlFinalHistoria, preguntasDelPanelHistoria } from "@/lib/historia-panel";
 import { type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -125,6 +126,29 @@ async function leerV3(admin: SupabaseClient, narradorId: string): Promise<Lectur
   ]);
   if (fuera instanceof Error) return { v3, filasV3: null, e4: { message: fuera.message } };
   return { v3, filasV3: data, fuera, e4: error };
+}
+
+/**
+ * «Vitácora de una historia» (plan 2026-10-21, Task 4.5): su fila en `historias` y sus respuestas, con la clave de
+ * historia en `clave_v3` (alias), para reusar la pantalla de la V3. Sin fila todavía (el bot no le dio el alta), la
+ * historia vacía. Nunca rechaza: un error vuelve en `e4`.
+ */
+async function leerHistoriaProducto(admin: SupabaseClient, narradorId: string) {
+  try {
+    const h = await entrevistaHistoria(admin, narradorId);
+    if (!h) return { h, filas: [] as FilaHistoriaV3[], fuera: new Set<string>(), e4: null };
+    const [{ data, error }, fuera] = await Promise.all([
+      admin
+        .from("respuestas")
+        .select("id, clave_v3:clave_historia, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
+        .eq("narrador_id", narradorId)
+        .order("recibido_at", { ascending: true }),
+      respuestasFuera(admin, narradorId),
+    ]);
+    return { h, filas: (data as FilaHistoriaV3[] | null) ?? [], fuera, e4: error };
+  } catch (e) {
+    return { h: null, filas: [] as FilaHistoriaV3[], fuera: new Set<string>(), e4: e };
+  }
 }
 
 /** "22 de septiembre" desde YYYY-MM-DD, sin que la zona del servidor corra el día (como en viaje.tsx). */
@@ -282,6 +306,7 @@ async function Cabecera({
         titulo: edicion.titulo?.trim() || n.nombre,
         fotoSrc: portada ? `/api/fotos/${portada}` : null,
         idioma: idiomaDelLibro(contexto.idioma === "ca" ? "ca" : null),
+        producto: (contexto as { modo?: unknown }).modo === "historia" ? "historia" : "familiar",
       }}
       pasos={lineaDeTiempo({ estado: n.estado, aprobado, libroEntregado: pedido.libroEntregado, conImpreso: rol === "duena" && pedido.impresos > 0, impresoEnCasa: pedido.impresoEnCasa })}
       cifras={
@@ -532,6 +557,51 @@ async function armarLectura({
           historiaCerrada={historiaCerrada}
           puedeCambiarFechas={puedeCambiarFechas}
           trato={tratoPanel}
+        />
+      ),
+      voz,
+      subirFoto: subir([]),
+      familia,
+      cierre: cierre(voz.respuestas),
+    };
+  }
+
+  // «Vitácora de una historia» (21/10): la pantalla de la V3 con lo suyo (lib/historia-panel.ts). Las preguntas
+  // que se suman desde el panel le llegan antes de la última (HC10).
+  if (contexto.modo === "historia") {
+    const { h, filas, fuera, e4 } = await leerHistoriaProducto(admin, n.id);
+    if (e4) {
+      console.error("historia: fallo la carga de historia", e4);
+      return error();
+    }
+    const bloques = historiaDeHistoria(h?.estado, filas, fuera);
+    const alFinal = llegoAlFinalHistoria(h?.estado);
+    const preguntasDelPanel = ((propias as FilaPreguntaFamiliaV3[] | null) ?? []).filter((p) => p.tipo === "familia").length;
+    const voz = vozV3(bloques);
+    return {
+      cuerpo: (
+        <HistoriaV3
+          enMarco
+          n={n}
+          rol={rol}
+          propia={propia}
+          bloques={bloques}
+          preguntasFamilia={preguntasDelPanelHistoria(h?.estado, (propias as FilaPreguntaFamiliaV3[] | null) ?? [])}
+          fotos={fotosData}
+          usuarioId={user.id}
+          historiasRiel={historiasRiel}
+          aprobado={aprobado}
+          historiaCerrada={historiaCerrada}
+          linkPublico={linkPublico}
+          invitados={soloInvitados}
+          dudasAbiertas={dudasAbiertas}
+          dudasPendientes={dudasPendientes}
+          ritmo={ritmo}
+          horario={horario}
+          alFinal={alFinal}
+          puedeVolverAPreguntar={puedeVolverAPreguntar({ estadoNarrador: n.estado, alFinal, preguntasFamilia: preguntasDelPanel })}
+          trato={tratoPanel}
+          historia
         />
       ),
       voz,

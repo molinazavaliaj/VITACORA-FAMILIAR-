@@ -10,6 +10,18 @@ export const TEXTOS_TAPA: Record<IdiomaLibro, { eyebrow: string; siempre: string
 };
 
 /**
+ * La línea de arriba del nombre en la tapa de un libro de «Vitácora de una historia» (aprobada por Naza el 24/10).
+ * Copia de TEXTOS_TAPA_HISTORIA de fabrica/src/escritor-historia/produccion/textos-tapa.ts (el eyebrow).
+ */
+export const EYEBROW_HISTORIA: Record<IdiomaLibro, string> = {
+  es: "UNA HISTORIA DE SU VIDA",
+  ca: "UNA HISTÒRIA DE LA SEVA VIDA",
+};
+
+/** El producto del libro, para la tapa: Familiar (lo de siempre) o una historia. */
+export type ProductoTapa = "familiar" | "historia";
+
+/**
  * El tamaño del nombre en la tapa, en cqw (13/10): la misma cuenta que
  * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que la palabra más larga
  * no entre en 465px). Una palabra nunca se corta.

@@ -58,3 +58,39 @@ const CA: TextosPreguntasFamilia = {
 export function textosPreguntasFamilia(idioma: IdiomaPreguntasFamilia): TextosPreguntasFamilia {
   return idioma === "ca" ? CA : ES_AR[idioma];
 }
+
+// «Vitácora de una historia» (Naza, 23/10; docs/historia/web-textos-borrador.md, H42 a H44): el mismo bloque, con
+// un título que no dice «la familia» (las suma también quien se compró el libro para sí), su ejemplo y el aviso
+// cuando la entrevista ya está en la última pregunta (HC10) y no entran más. Los estados son los de arriba.
+export type TextosPanelHistoria = {
+  titulo: string;
+  /** `propia`: la historia es de quien mira. */
+  bajada: (propia: boolean) => string;
+  ejemplo: string;
+  tarde: (propia: boolean) => string;
+};
+
+const PANEL_HISTORIA: Record<IdiomaPreguntasFamilia, TextosPanelHistoria> = {
+  ar: {
+    titulo: "Preguntas sumadas desde acá",
+    bajada: (propia) => `Las que se sumaron desde esta página, con las mismas palabras. ${propia ? "Te llegan" : "Le llegan"} cerca del final de la entrevista.`,
+    ejemplo: "Por ejemplo, ¿qué pasó después con la gente de esa época? ¿Seguís viendo a alguien?",
+    tarde: (propia) => `La entrevista ya está en la última pregunta, así que no entran preguntas nuevas. ${propia ? "Lo que contaste" : "Lo que contó"} es lo que va al libro.`,
+  },
+  es: {
+    titulo: "Preguntas añadidas desde aquí",
+    bajada: (propia) => `Las que se han añadido desde esta página, con las mismas palabras. ${propia ? "Te llegan" : "Le llegan"} cerca del final de la entrevista.`,
+    ejemplo: "Por ejemplo, ¿qué pasó después con la gente de esa época? ¿Sigues viendo a alguien?",
+    tarde: (propia) => `La entrevista ya está en la última pregunta, así que no entran preguntas nuevas. ${propia ? "Lo que has contado" : "Lo que ha contado"} es lo que va al libro.`,
+  },
+  ca: {
+    titulo: "Preguntes afegides des d'aquí",
+    bajada: (propia) => `Les que s'han afegit des d'aquesta pàgina, amb les mateixes paraules. ${propia ? "T'arriben" : "Li arriben"} cap al final de l'entrevista.`,
+    ejemplo: "Per exemple, què va passar després amb la gent d'aquella època? Encara veus algú?",
+    tarde: (propia) => `L'entrevista ja és a l'última pregunta, així que no hi entren preguntes noves. ${propia ? "El que has explicat" : "El que ha explicat"} és el que va al llibre.`,
+  },
+};
+
+export function textosPanelHistoria(idioma: IdiomaPreguntasFamilia): TextosPanelHistoria {
+  return PANEL_HISTORIA[idioma];
+}

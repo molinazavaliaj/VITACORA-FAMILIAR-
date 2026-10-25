@@ -1,5 +1,5 @@
 import { objectPosition, type Foco } from "@/lib/encuadre";
-import { TEXTOS_TAPA, tamanoNombreTapa, type IdiomaLibro } from "@/lib/tapa";
+import { EYEBROW_HISTORIA, TEXTOS_TAPA, tamanoNombreTapa, type IdiomaLibro, type ProductoTapa } from "@/lib/tapa";
 import { Toroide } from "./marca";
 
 // La tapa del libro, como sale impresa (Naza, 13/10): la foto arriba a sangre,
@@ -15,6 +15,7 @@ export function TapaLibro({
   idioma = "es",
   gris = false,
   llenar = false,
+  producto = "familiar",
   className = "",
 }: {
   titulo: string;
@@ -26,9 +27,11 @@ export function TapaLibro({
   gris?: boolean;
   /** Ocupa todo el alto del contenedor (la página de la miniatura) en vez de su propia proporción A5. */
   llenar?: boolean;
+  /** Una historia lleva su propia línea de arriba del nombre («UNA HISTORIA DE SU VIDA»). */
+  producto?: ProductoTapa;
   className?: string;
 }) {
-  const textos = TEXTOS_TAPA[idioma];
+  const textos = producto === "historia" ? { ...TEXTOS_TAPA[idioma], eyebrow: EYEBROW_HISTORIA[idioma] } : TEXTOS_TAPA[idioma];
   return (
     <div className={`relative ${llenar ? "h-full" : "aspect-[148/210]"} w-full overflow-hidden bg-[#faf7f1] text-[#1c1917] [container-type:inline-size] ${className}`}>
       <div className="absolute inset-y-0 left-0 bg-[#1c1917]" style={{ width: "2.5cqw" }} />

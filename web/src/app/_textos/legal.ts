@@ -134,7 +134,7 @@ const hoja = (con: string, sin: string): Bloque => ({ tipo: "hoja", con, sin });
 export type TextosGarantia = {
   titulo: string;
   ley: { subtitulo: string; plazo: string; formulario: string; derecho: string };
-  nuestra: { subtitulo: string; familiar: string; viaje: string; propia: string };
+  nuestra: { subtitulo: string; familiar: string; viaje: string; propia: string; historia: string };
   cierre: { subtitulo: string; diez: string; regla: string };
 };
 
@@ -153,6 +153,8 @@ export const GARANTIA: Textos<TextosGarantia> = {
       familiar: "**Familiar.** Si la persona a la que se lo regalas no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo, aunque ya haya empezado.",
       viaje: "**De viaje.** Si el viaje no se hace, por el motivo que sea, y nos avisas antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó, vale la regla de las diez preguntas.",
       propia: "**Para ti.** Si el libro es el tuyo, te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.",
+      // APROBADO por Naza el 24/10 (Vitácora de una historia, T2)
+      historia: "**Historia.** Si la regalas, vale lo mismo que en Familiar. Si la persona no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo, aunque ya haya empezado. Si la historia es la tuya, vale lo mismo que en Para ti. Te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.",
     },
     cierre: {
       subtitulo: "Cuándo cerramos el libro",
@@ -174,6 +176,8 @@ export const GARANTIA: Textos<TextosGarantia> = {
       familiar: "**Familiar.** Si la persona a qui li regales no accepta l'entrevista, et retornem tot el que vas pagar. Si accepta i contesta menys de deu preguntes, també t'ho retornem tot, encara que ja hagi començat.",
       viaje: "**De viatge.** Si el viatge no es fa, sigui pel motiu que sigui, i ens avises abans que la persona que viatja accepti l'entrevista, t'ho retornem tot. Si ja ha acceptat, val la regla de les deu preguntes.",
       propia: "**Per a tu.** Si el llibre és el teu, t'ho retornem tot fins que enviïs la teva primera resposta. Després val la regla de les deu preguntes.",
+      // APROBADO por Naza el 24/10 (Vitácora de una historia, T2)
+      historia: "**Història.** Si la regales, val el mateix que a Familiar. Si la persona no accepta l'entrevista, et retornem tot el que vas pagar. Si accepta i respon menys de deu preguntes, també t'ho retornem tot, encara que ja hagi començat. Si la història és la teva, val el mateix que a Per a tu. T'ho retornem tot fins que enviïs la primera resposta. Després val la regla de les deu preguntes.",
     },
     cierre: {
       subtitulo: "Quan tanquem el llibre",
@@ -197,6 +201,8 @@ export const GARANTIA: Textos<TextosGarantia> = {
       familiar: "**Familiar.** Si la persona a la que se lo regalás no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo, aunque ya haya empezado.",
       viaje: "**De viaje.** Si el viaje no se hace, por el motivo que sea, y nos avisás antes de que la persona que viaja acepte la entrevista, te devolvemos todo. Si ya aceptó, vale la regla de las diez preguntas.",
       propia: "**Para vos.** Si el libro es el tuyo, te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.",
+      // APROBADO por Naza el 24/10 (Vitácora de una historia, T2)
+      historia: "**Historia.** Si la regalás, vale lo mismo que en Familiar. Si la persona no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo, aunque ya haya empezado. Si la historia es la tuya, vale lo mismo que en Para vos. Te devolvemos todo hasta que mandes tu primera respuesta. Después vale la regla de las diez preguntas.",
     },
     cierre: {
       subtitulo: "Cuándo cerramos el libro",
@@ -219,7 +225,7 @@ function seccionGarantia(idioma: keyof typeof GARANTIA, numero = ""): SeccionLeg
       p(g.ley.formulario),
       p(g.ley.derecho),
       subtitulo(g.nuestra.subtitulo),
-      lista(g.nuestra.familiar, g.nuestra.viaje, g.nuestra.propia),
+      lista(g.nuestra.familiar, g.nuestra.viaje, g.nuestra.propia, g.nuestra.historia),
       subtitulo(g.cierre.subtitulo),
       p(g.cierre.diez),
       p(g.cierre.regla),
@@ -231,7 +237,7 @@ function seccionGarantia(idioma: keyof typeof GARANTIA, numero = ""): SeccionLeg
 
 const ES: TextosLegal = {
   actualizado: "Última actualización",
-  fecha: "19 de octubre de 2026",
+  fecha: "24 de octubre de 2026",
   enCorto: "En corto",
   indice: "En esta página",
   documentos: "Textos legales",
@@ -282,11 +288,13 @@ const ES: TextosLegal = {
         bloques: [
           p("Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro, en primera persona y con sus propias palabras."),
           // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
-          p("Hay tres libros:"),
+          // «Hay cuatro libros» y la línea de Historia: APROBADO por Naza el 24/10 (Vitácora de una historia, T1)
+          p("Hay cuatro libros:"),
           lista(
             "**Familiar**: el libro de una vida, la de otra persona, que tú le regalas. El narrador es esa persona.",
             "**Para ti**: tu propio libro. El narrador eres tú, y las preguntas te llegan a tu WhatsApp.",
             "**De viaje**: el libro de un viaje. Las preguntas le llegan al viajero por WhatsApp antes de salir y durante el viaje, las contesta con audios cuando quiere, y al volver nos manda las fotos para el álbum. Con eso escribimos el libro del viaje, con el álbum al final. Puede ser para ti o un regalo.",
+            "**Historia**: el libro de una sola historia de una vida, contada por quien la vivió. Por ejemplo, irse a vivir lejos, abrir un negocio, una enfermedad, cómo se conocieron, ser madre o padre, un trabajo u otra que elijas tú o quien la cuenta. Las preguntas llegan por WhatsApp, como en Familiar, y se contestan con audios. Puede ser para ti o un regalo. Si lo regalas, puedes dejar hasta tres preguntas tuyas.",
           ),
           p("Lo que puedes comprar:"),
           lista(
@@ -295,6 +303,8 @@ const ES: TextosLegal = {
             "**El libro impreso**, en blanco y negro o en color: tapa dura, con un código en la contraportada que hace sonar su voz.",
             "**Marcos con su voz**: un marco con su foto y un chip; se acerca el teléfono y suena su voz.",
           ),
+          // APROBADO por Naza el 24/10 (Vitácora de una historia, T3)
+          p("La tapa dura de la imprenta pide un mínimo de páginas. Si una historia sale más corta, nos ponemos en contacto contigo y te ofrecemos tapa blanda."),
           p("Hace falta comprar al menos uno de los dos primeros; los marcos van con el libro impreso. Solo se ofrece lo que tiene precio publicado en tu región."),
           p("Desde tu cuenta puedes invitar a familiares para que lean el libro y suban fotos, y compartir una muestra pública (portada, títulos de los capítulos, el primer párrafo y un minuto de audio). La muestra solo existe si tú compartes el enlace."),
           p("El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace sonar, y otro en la contraportada, que abre en el teléfono el libro entero —el texto y todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la mano puede abrirlos y reenviar ese enlace: cuéntaselo a quien se lo regales."),
@@ -692,7 +702,7 @@ const ES: TextosLegal = {
 
 const AR: TextosLegal = {
   actualizado: "Última actualización",
-  fecha: "19 de octubre de 2026",
+  fecha: "24 de octubre de 2026",
   enCorto: "En corto",
   indice: "En esta página",
   documentos: "Textos legales",
@@ -743,11 +753,13 @@ const AR: TextosLegal = {
         bloques: [
           p("Entrevistamos por WhatsApp a la persona que nos indicás (el «narrador»): le llega una pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de contar le llega la siguiente. Con sus respuestas escribimos el libro, en primera persona y con sus propias palabras."),
           // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
-          p("Hay tres libros:"),
+          // «Hay cuatro libros» y la línea de Historia: APROBADO por Naza el 24/10 (Vitácora de una historia, T1)
+          p("Hay cuatro libros:"),
           lista(
             "**Familiar**: el libro de una vida, la de otra persona, que vos le regalás. El narrador es esa persona.",
             "**Para vos**: tu propio libro. El narrador sos vos, y las preguntas te llegan a tu WhatsApp.",
             "**De viaje**: el libro de un viaje. Las preguntas le llegan al viajero por WhatsApp antes de salir y durante el viaje, las contesta con audios cuando quiere, y al volver nos manda las fotos para el álbum. Con eso escribimos el libro del viaje, con el álbum al final. Puede ser para vos o un regalo.",
+            "**Historia**: el libro de una sola historia de una vida, contada por quien la vivió. Por ejemplo, irse a vivir lejos, abrir un negocio, una enfermedad, cómo se conocieron, ser madre o padre, un trabajo u otra que elijas vos o quien la cuenta. Las preguntas llegan por WhatsApp, como en Familiar, y se contestan con audios. Puede ser para vos o un regalo. Si lo regalás, podés dejar hasta tres preguntas tuyas.",
           ),
           p("Lo que podés comprar:"),
           lista(
@@ -756,6 +768,8 @@ const AR: TextosLegal = {
             "**El libro impreso**, en blanco y negro o a color: tapa dura, con un código en la contratapa que hace sonar su voz.",
             "**Marcos con su voz**: un marco con su foto y un chip; se acerca el celular y suena su voz.",
           ),
+          // APROBADO por Naza el 24/10 (Vitácora de una historia, T3)
+          p("La tapa dura de la imprenta pide un mínimo de páginas. Si una historia sale más corta, nos ponemos en contacto con vos y te ofrecemos tapa blanda."),
           p("Hace falta comprar al menos uno de los dos primeros; los marcos van con el libro impreso. Solo se ofrece lo que tiene precio publicado en tu región."),
           p("Desde tu cuenta podés invitar a familiares para que lean el libro y suban fotos, y compartir una muestra pública (portada, títulos de los capítulos, el primer párrafo y un minuto de audio). La muestra solo existe si vos compartís el enlace."),
           p("El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace sonar, y otro en la contratapa, que abre en el celular el libro entero —el texto y todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la mano puede abrirlos y reenviar ese enlace: contáselo a quien se lo regales."),
@@ -1151,7 +1165,7 @@ const AR: TextosLegal = {
 
 const CA: TextosLegal = {
   actualizado: "Darrera actualització",
-  fecha: "19 d'octubre de 2026",
+  fecha: "24 d'octubre de 2026",
   enCorto: "En resum",
   indice: "En aquesta pàgina",
   documentos: "Textos legals",
@@ -1202,11 +1216,13 @@ const CA: TextosLegal = {
         bloques: [
           p("Entrevistem per WhatsApp la persona que ens indiques (el «narrador»): li arriba una pregunta, la respon amb un àudio quan vol, sense instal·lar res, i quan acaba d'explicar li arriba la següent. Amb les seves respostes escrivim el llibre, en primera persona i amb les seves pròpies paraules."),
           // APROBADO por Naza · L2-03 (18/10, con sus correcciones)
-          p("Hi ha tres llibres:"),
+          // «Hi ha quatre llibres» i la línia d'Història: APROBADO por Naza el 24/10 (Vitácora de una historia, T1)
+          p("Hi ha quatre llibres:"),
           lista(
             "**Familiar**: el llibre d'una vida, la d'una altra persona, que tu li regales. El narrador és aquesta persona.",
             "**Per a tu**: el teu propi llibre. El narrador ets tu, i les preguntes t'arriben al teu WhatsApp.",
             "**De viatge**: el llibre d'un viatge. Les preguntes arriben al viatger per WhatsApp abans de sortir i durant el viatge, les contesta amb àudios quan vol, i en tornar ens envia les fotos per a l'àlbum. Amb això escrivim el llibre del viatge, amb l'àlbum al final. Pot ser per a tu o un regal.",
+            "**Història**: el llibre d'una sola història d'una vida, explicada per qui la va viure. Per exemple, anar-se'n a viure lluny, obrir un negoci, una malaltia, com es van conèixer, ser mare o pare, una feina o una altra que triïs tu o qui l'explica. Les preguntes arriben per WhatsApp, com a Familiar, i es responen amb àudios. Pot ser per a tu o un regal. Si el regales, pots deixar fins a tres preguntes teves.",
           ),
           p("El que pots comprar:"),
           lista(
@@ -1215,6 +1231,8 @@ const CA: TextosLegal = {
             "**El llibre imprès**, en blanc i negre o en color: tapa dura, amb un codi a la contracoberta que fa sonar la seva veu.",
             "**Marcs amb la seva veu**: un marc amb la seva foto i un xip; s'hi apropa el mòbil i sona la seva veu.",
           ),
+          // APROBADO por Naza el 24/10 (Vitácora de una historia, T3)
+          p("La tapa dura de la impremta demana un mínim de pàgines. Si una història surt més curta, ens posem en contacte amb tu i t'oferim tapa tova."),
           p("Cal comprar com a mínim un dels dos primers; els marcs van amb el llibre imprès. Només s'ofereix el que té preu publicat a la teva regió."),
           p("Des del teu compte pots convidar familiars perquè llegeixin el llibre i pugin fotos, i compartir una mostra pública (portada, títols dels capítols, el primer paràgraf i un minut d'àudio). La mostra només existeix si tu comparteixes l'enllaç."),
           p("El llibre imprès porta dos codis: un al costat de cada frase de «La seva veu», que la fa sonar, i un altre a la contracoberta, que obre al mòbil el llibre sencer —el text i totes les seves frases— sense necessitat de compte ni contrasenya. Qui tingui el llibre a la mà els pot obrir i reenviar aquest enllaç: explica-ho a qui li regalis."),

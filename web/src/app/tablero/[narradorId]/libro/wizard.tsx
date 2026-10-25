@@ -7,7 +7,7 @@ import type { Edicion, EdicionCompleta } from "@/lib/edicion";
 import type { RespuestaV3 } from "@/lib/v3";
 import type { TratoComprador } from "@/lib/regalo-textos";
 import type { Foco } from "@/lib/encuadre";
-import type { IdiomaLibro } from "@/lib/tapa";
+import type { IdiomaLibro, ProductoTapa } from "@/lib/tapa";
 import { TapaLibro } from "../../../tapa-libro";
 
 // La edición final en 4 pasos (docs/panel-usuario.md §7.2). Siempre arranca
@@ -43,6 +43,8 @@ type Props = {
   trato?: TratoComprador;
   /** El idioma del libro: la tapa dice «el libro de su vida» o «el llibre de la seva vida». */
   idioma?: IdiomaLibro;
+  /** Una historia: la tapa dice «una historia de su vida». */
+  producto?: ProductoTapa;
 };
 
 type PasoId = "portada" | "capitulos" | "contenido" | "encargar";
@@ -66,7 +68,7 @@ async function guardarEdicion(narradorId: string, cambios: Edicion) {
   if (!r.ok) throw new Error(j.error ?? "No pudimos guardar.");
 }
 
-export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell, envio, faltaDireccion = false, v3, trato = "vos", idioma = "es" }: Props) {
+export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell, envio, faltaDireccion = false, v3, trato = "vos", idioma = "es", producto = "familiar" }: Props) {
   const tu = trato === "tu";
   const PASOS = v3 ? PASOS_V3 : PASOS_VIEJOS;
   const router = useRouter();
@@ -222,6 +224,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             fotoSrc={fotoPortada ? `/api/fotos/${fotoPortada.id}` : null}
             foco={fotoPortada?.foco}
             idioma={idioma}
+            producto={producto}
             className="rounded-sm shadow-lg"
           />
 

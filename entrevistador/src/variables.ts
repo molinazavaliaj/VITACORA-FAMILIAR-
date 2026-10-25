@@ -9,7 +9,7 @@
 // día con la marca en Storage). Nunca frena el arranque y nunca tira.
 //
 // Regla del proyecto: nunca se muestra el valor de una variable, solo su nombre. La
-// única excepción son las entradas que no se reconocen en las dos listas de
+// única excepción son las entradas que no se reconocen en las listas de
 // plantillas (no son secretas y sin verlas no se encuentra el error de tipeo).
 //
 // Los interruptores apagados (V3_PARA_NUEVOS, WA_BIENVENIDA_PIDE_VOZ, V3_CAZADOR=0,
@@ -20,7 +20,7 @@
 // REGALO_ENTREGA_WHATSAPP vive solo en Vercel (CONTRATO.md): ninguna se revisa acá.
 
 import { createHash } from 'node:crypto';
-import { PLANTILLAS_V3, PLANTILLAS_VIAJE_V2, PLANTILLA_REGALO_ENTREGA } from './config.js';
+import { PLANTILLAS_HISTORIA, PLANTILLAS_V3, PLANTILLAS_VIAJE_V2, PLANTILLA_REGALO_ENTREGA } from './config.js';
 import { avisarSocios } from './v3/avisos.js';
 
 export type Falta = { variable: string; problema: string };
@@ -50,6 +50,9 @@ const NECESARIAS: ReadonlyArray<readonly [string, string]> = [
 
 const VALIDAS_V3 = new Set(IDIOMAS.flatMap((i) => [...Object.keys(PLANTILLAS_V3[i]), 'regalo_entrega'].map((c) => `${i}:${c}`)));
 const VALIDAS_VIAJE = new Set(IDIOMAS.flatMap((i) => Object.keys(PLANTILLAS_VIAJE_V2[i]).map((c) => `${i}:${c}`)));
+// Historia: solo sus bienvenidas. La pregunta y el recordatorio son los de la V3 y se marcan en WA_PLANTILLAS_V3_LISTAS.
+const BIENVENIDAS_HISTORIA = ['bienvenida', 'bienvenida_regalo', 'bienvenida_regalo_abierta'] as const;
+const VALIDAS_HISTORIA = new Set(IDIOMAS.flatMap((i) => BIENVENIDAS_HISTORIA.map((c) => `${i}:${c}`)));
 
 /** Nombre de Meta → la entrada que va en la lista (el error de regalo_entrega_vos). */
 const POR_NOMBRE_META_V3 = new Map<string, string>(IDIOMAS.flatMap((i) => [
@@ -58,6 +61,8 @@ const POR_NOMBRE_META_V3 = new Map<string, string>(IDIOMAS.flatMap((i) => [
 ]));
 const POR_NOMBRE_META_VIAJE = new Map<string, string>(IDIOMAS.flatMap((i) =>
   Object.entries(PLANTILLAS_VIAJE_V2[i]).map(([c, p]) => [p.nombre, `${i}:${c}`] as [string, string])));
+const POR_NOMBRE_META_HISTORIA = new Map<string, string>(IDIOMAS.flatMap((i) =>
+  BIENVENIDAS_HISTORIA.map((c) => [PLANTILLAS_HISTORIA[i][c].nombre, `${i}:${c}`] as [string, string])));
 
 function distancia(a: string, b: string): number {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)]);
@@ -122,6 +127,8 @@ export function revisarVariables(env: Env = process.env): Falta[] {
 
   faltas.push(...desconocidas(env, 'WA_PLANTILLAS_V3_LISTAS', VALIDAS_V3, POR_NOMBRE_META_V3));
   faltas.push(...desconocidas(env, 'WA_PLANTILLAS_VIAJE_V2_LISTAS', VALIDAS_VIAJE, POR_NOMBRE_META_VIAJE));
+  // «Vitácora de una historia» todavía no se vende: la lista vacía no es una falta, pero una entrada mal escrita sí.
+  faltas.push(...desconocidas(env, 'WA_PLANTILLAS_HISTORIA_LISTAS', VALIDAS_HISTORIA, POR_NOMBRE_META_HISTORIA));
 
   faltas.push(...faltanEnLista(env, 'V3_PARA_NUEVOS', 'WA_PLANTILLAS_V3_LISTAS', ['es-AR:bienvenida', 'es-AR:recordatorio'],
     'Los narradores nuevos entran a la V3 y sin esa plantilla no les sale la bienvenida o el recordatorio.'));

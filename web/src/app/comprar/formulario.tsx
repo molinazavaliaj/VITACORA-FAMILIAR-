@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { origenDelNavegador } from "@/lib/origen";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
 import { ahorroDelPack, armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO } from "@/lib/regalo-reglas";
@@ -13,6 +13,9 @@ import { medirImagen } from "@/lib/medir-imagen";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
+import { TEXTOS_HISTORIA, type TextosHistoria } from "../_textos/historia";
+import { CHECKOUT_VIAJE, type TextosViaje } from "../_textos/checkout-viaje";
+import { HISTORIA_TEMAS, MAX_PROPIAS_HISTORIA, PROPIA_MAXIMO, TEMA_LIBRE_MAXIMO } from "@/lib/historia";
 import { COMPRADOR_WEB } from "../_textos/regalar";
 import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
 import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../_checkout/memoria";
@@ -27,8 +30,8 @@ import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { formatearPrecio, listaDe } from "./productos-ui";
 import {
-  carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, idiomaInicial, llevaDireccion, proximaNavidad,
-  type EstadoCompra, type Falla, type Paso,
+  carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, historiaInicial, idiomaInicial, llevaDireccion, pasoDelPago, proximaNavidad,
+  type EstadoCompra, type EstadoHistoriaCompra, type Falla, type Paso,
 } from "./compra";
 
 // El checkout del libro de una vida (rediseño 2026-10, maquetas Checkout y
@@ -80,7 +83,10 @@ export function Checkout({
   pasoInicial = 1,
   conCupon = false,
   pistaCupon = true,
+  historia = false,
 }: {
+  /** «Vitácora de una historia» (/comprar/historia, 23/10): el paso «La historia» entre «Para quién» y el pago. */
+  historia?: boolean;
   idioma: IdiomaWeb;
   catalogo: CatalogoRegion;
   promo?: number | null;
@@ -100,7 +106,14 @@ export function Checkout({
   const trato = idioma === "ar" ? "vos" : "tu";
 
   const [paso, setPaso] = useState<Paso>(pasoInicial);
-  const [e, setE] = useState<EstadoCompra>(() => estadoInicial(idioma, cat));
+  const [e, setE] = useState<EstadoCompra>(() => ({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}) }));
+  const TH = TEXTOS_HISTORIA[idioma];
+  // Historia tiene un paso más: «La historia» (3) antes del pago (4).
+  const pago = pasoDelPago({ historia: historia ? historiaInicial() : undefined });
+  const pasos = historia ? [T.pasos[0], T.pasos[1], TH.paso.barra, T.pasos[2]] : T.pasos;
+  const total = pasos.length;
+  const cambiarHistoria = (cambios: Partial<EstadoHistoriaCompra>) =>
+    setE((x) => ({ ...x, historia: { ...(x.historia ?? historiaInicial()), ...cambios } }));
   const [falla, setFalla] = useState<Falla | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [progreso, setProgreso] = useState<string | null>(null);
@@ -140,7 +153,7 @@ export function Checkout({
   useEffect(() => {
     audioRef.current = audio;
     antesDeIr.current = (c) => {
-      guardar(sesion, CLAVE_COMPRA, claveDeCompra(idioma), { ...e, retomar: { narradorId: c.narradorId, token: c.tokenFotos } });
+      guardar(sesion, CLAVE_COMPRA, claveDeCompra(idioma, historia), { ...e, retomar: { narradorId: c.narradorId, token: c.tokenFotos } });
       if (llevaDireccion(e)) {
         guardar(sesion, CLAVE_DIRECCION, c.narradorId, { destinatarioNombre: e.recibe.trim(), destinatarioTelefono: e.telefonoRecibe.trim(), direccion: e.direccion });
       } else {
@@ -203,15 +216,15 @@ export function Checkout({
   // en el paso del pago, y el parámetro se saca de la barra.
   useEffect(() => {
     if (!vieneDePagoFallido(window.location.search)) return;
-    const guardado = leer<EstadoCompra>(sesion, CLAVE_COMPRA, claveDeCompra(idioma));
+    const guardado = leer<EstadoCompra>(sesion, CLAVE_COMPRA, claveDeCompra(idioma, historia));
     // Lo dice la URL de vuelta: en una página estática solo se puede leer acá, ya en el navegador.
     setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
-      setE({ ...estadoInicial(idioma, cat), ...guardado });
-      setPaso(3);
+      setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...guardado });
+      setPaso(pago);
     }
     window.history.replaceState(null, "", window.location.pathname);
-  }, [idioma, cat]);
+  }, [idioma, cat, historia, pago]);
 
   // Si el navegador vuelve de la pasarela con la página tal cual estaba (bfcache), «Pagar» vuelve a andar.
   useEffect(() => {
@@ -246,12 +259,12 @@ export function Checkout({
   function irA(siguiente: Paso) {
     setFalla(null);
     // Si se vuelve a cambiar algo, la compra se crea de nuevo al pagar.
-    if (siguiente < 3) pagador.olvidar();
+    if (siguiente < pago) pagador.olvidar();
     setPaso(siguiente);
   }
 
   function seguir(desde: Paso) {
-    const problema = fallaDelPaso(desde, e, T, TR.entrega, new Date());
+    const problema = fallaDelPaso(desde, e, T, TR.entrega, new Date(), TH.paso);
     if (problema) return setFalla(problema);
     irA((desde + 1) as Paso);
   }
@@ -301,7 +314,7 @@ export function Checkout({
   async function pagar(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     if (pagador.ocupado) return;
-    const problema = fallaDelPaso(3, e, T, TR.entrega, new Date());
+    const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso);
     if (problema) return setFalla(problema);
     setFalla(null);
     setEnviando(true);
@@ -331,7 +344,7 @@ export function Checkout({
         <TapaLibro titulo={e.nombre.trim()} fotoSrc={null} idioma={idiomaDelLibro(e.idioma)} />
       </div>
       <div className="flex min-w-0 flex-col gap-1">
-        <Etiqueta>{R.marca}</Etiqueta>
+        <Etiqueta>{historia ? TH.marca : R.marca}</Etiqueta>
         <span className="chk-ficha-titulo">
           {yo ? R.tuLibro : nombreVisible ? R.libroDe(nombreVisible) : R.suLibro}
         </span>
@@ -343,14 +356,14 @@ export function Checkout({
   return (
     <div className="chk-con-barra mx-auto w-full max-w-[1240px] px-4 pb-28 pt-10 sm:px-8 sm:pt-14">
       <div className="mb-10 sm:mb-14">
-        <PasosLibro pasos={T.pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
+        <PasosLibro pasos={pasos} actual={paso} etiqueta={T.pasosEtiqueta} />
       </div>
       <div className="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_372px] lg:gap-20">
         <div className="min-w-0">
           {/* ── 1 · Su libro ── */}
           {paso === 1 && (
             <ContenidoPaso key="p1" animar={animar} className="flex flex-col gap-7">
-              <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, 3)} titulo={T.libroTitulo} bajada={T.libroBajada} />
+              <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, total)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
                 textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }}
@@ -367,7 +380,7 @@ export function Checkout({
           {/* ── 2 · Para quién ── */}
           {paso === 2 && (
             <ContenidoPaso key="p2" animar={animar} className="flex flex-col gap-7">
-              <TituloPaso ref={titulo} antetitulo={T.pasoDe(2, 3)} titulo={T.paraTitulo} bajada={yo ? T.introYo : T.introOtro} />
+              <TituloPaso ref={titulo} antetitulo={T.pasoDe(2, total)} titulo={T.paraTitulo} bajada={yo ? T.introYo : T.introOtro} />
 
               <fieldset {...describe("para")}>
                 <legend className={`${ETIQUETA} mb-3`}>{T.esPara}</legend>
@@ -567,11 +580,30 @@ export function Checkout({
             </ContenidoPaso>
           )}
 
-          {/* ── 3 · Tus datos y el pago ── */}
-          {paso === 3 && (
+          {/* ── 3 · La historia (solo en «Vitácora de una historia») ── */}
+          {historia && paso === 3 && e.historia ? (
+            <ContenidoPaso key="p3h" animar={animar} className="flex flex-col gap-7">
+              <PasoHistoria
+                h={e.historia}
+                regalo={regalo}
+                textos={TH}
+                viaje={CHECKOUT_VIAJE[idioma]}
+                titulo={titulo}
+                antetitulo={T.pasoDe(3, total)}
+                onCambio={cambiarHistoria}
+                marca={marca}
+                describe={describe}
+              />
+              <ErrorPaso texto={falla?.texto ?? null} />
+              <Botonera atras={() => irA(2)} siguiente={() => seguir(3)} textoAtras={T.atras} textoSiguiente={T.continuar} />
+            </ContenidoPaso>
+          ) : null}
+
+          {/* ── 3 (4 en historia) · Tus datos y el pago ── */}
+          {paso === pago && (
             <ContenidoPaso key="p3" animar={animar}>
               <form id={FORM_PAGO} onSubmit={pagar} noValidate className="flex flex-col gap-7">
-                <TituloPaso ref={titulo} antetitulo={T.pasoDe(3, 3)} titulo={T.pagoTitulo} bajada={T.pagoBajada(yo, regalo)} />
+                <TituloPaso ref={titulo} antetitulo={T.pasoDe(pago, total)} titulo={T.pagoTitulo} bajada={T.pagoBajada(yo, regalo)} />
                 {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
 
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -621,7 +653,7 @@ export function Checkout({
                   {T.legalDespues} {yo ? T.garantiaPropia : T.garantiaFamiliar}
                 </p>
                 <div>
-                  <button type="button" disabled={enviando} onClick={() => irA(2)} className={BOTON_FANTASMA}>
+                  <button type="button" disabled={enviando} onClick={() => irA((pago - 1) as Paso)} className={BOTON_FANTASMA}>
                     {T.atras}
                   </button>
                 </div>
@@ -644,7 +676,7 @@ export function Checkout({
 
       {/* En el teléfono: el total y el botón del paso, abajo y después del resumen. */}
       <BarraPaso etiqueta={R.total} total={f(compra.total)}>
-        {paso === 3 ? (
+        {paso === pago ? (
           <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.pagar(f(compra.total))} procesando={progreso ?? T.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
         ) : (
           <button type="button" onClick={() => seguir(paso)} className={BOTON_BARRA}>
@@ -678,5 +710,80 @@ function TarjetaChica({ comoLeDicen, mensaje, firma }: { comoLeDicen: string; me
       <p className="flex-1 overflow-hidden whitespace-pre-line text-[9px] italic leading-[1.5] [overflow-wrap:anywhere] [font-family:var(--fuente-titulo)]">{mensaje}</p>
       <p className="self-end text-[11px] italic [font-family:var(--fuente-titulo)]">{firma}</p>
     </div>
+  );
+}
+
+const BOTON_CHICO =
+  "m-ghost inline-flex min-h-12 items-center self-start rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)]";
+
+type Atributos = Record<string, unknown>;
+
+/**
+ * El paso «La historia» (Naza, 23/10; H2 a H7): los temas de la lista con su ayuda (temas.md), «Otra historia»
+ * con su campo de una línea y, si es regalo, «que la elija quien la cuenta» y hasta tres preguntas propias, con
+ * los botones de la compra de Viaje.
+ */
+function PasoHistoria({ h, regalo, textos, viaje, titulo, antetitulo, onCambio, marca, describe }: {
+  h: EstadoHistoriaCompra;
+  regalo: boolean;
+  textos: TextosHistoria;
+  viaje: Pick<TextosViaje, "otraPregunta" | "sacarPregunta">;
+  titulo: RefObject<HTMLHeadingElement | null>;
+  antetitulo: string;
+  onCambio: (cambios: Partial<EstadoHistoriaCompra>) => void;
+  marca: (campo: string) => Atributos;
+  describe: (campo: string) => Atributos;
+}) {
+  const P = textos.paso;
+  const abierto = regalo && h.temaAbierto;
+  const editarPregunta = (i: number, texto: string) => onCambio({ preguntasPropias: h.preguntasPropias.map((p, j) => (j === i ? texto : p)) });
+  return (
+    <>
+      <TituloPaso ref={titulo} antetitulo={antetitulo} titulo={P.titulo} bajada={P.ayuda} />
+
+      {regalo ? (
+        <Opcion tipo="checkbox" name="tema-abierto" checked={h.temaAbierto} onChange={(ev) => onCambio({ temaAbierto: ev.target.checked })} titulo={P.abiertaCasilla} detalle={P.abiertaAyuda} />
+      ) : null}
+
+      {abierto ? null : (
+        <fieldset {...describe("tema")} className="flex flex-col gap-3">
+          <legend className="sr-only">{P.titulo}</legend>
+          {HISTORIA_TEMAS.map((tema) => (
+            <Opcion key={tema} name="tema" value={tema} checked={h.tema === tema} onChange={() => onCambio({ tema })} titulo={textos.temas[tema].nombre} detalle={textos.temas[tema].ayuda} />
+          ))}
+        </fieldset>
+      )}
+
+      {!abierto && h.tema === "otra" ? (
+        <div>
+          <label className={ETIQUETA} htmlFor="tema-libre">{P.otraEtiqueta}</label>
+          <input id="tema-libre" {...marca("tema-libre")} className={`${CAMPO} mt-2`} value={h.temaLibre} maxLength={TEMA_LIBRE_MAXIMO}
+            placeholder={P.otraEjemplo} onChange={(ev) => onCambio({ temaLibre: ev.target.value })} />
+        </div>
+      ) : null}
+
+      {regalo ? (
+        <div className="flex flex-col gap-3">
+          <p className={ETIQUETA}>{P.propiasTitulo}</p>
+          <p className={AYUDA}>{P.propiasAyuda}</p>
+          <ul className="flex flex-col gap-3">
+            {h.preguntasPropias.map((p, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <textarea aria-label={`${P.propiasTitulo} ${i + 1}`} {...marca("propias")} className={`${CAMPO} min-h-[56px] flex-1`} rows={2} value={p}
+                  maxLength={PROPIA_MAXIMO} onChange={(ev) => editarPregunta(i, ev.target.value)} placeholder={i === 0 ? P.propiaEjemplo : undefined} />
+                <button type="button" aria-label={viaje.sacarPregunta}
+                  onClick={() => onCambio({ preguntasPropias: h.preguntasPropias.length > 1 ? h.preguntasPropias.filter((_, j) => j !== i) : [""] })}
+                  className="m-ghost h-11 w-11 shrink-0 rounded-full border border-[var(--borde-oscuro-fuerte)] text-lg text-[var(--texto-oscuro-fuerte)] [touch-action:manipulation]">
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button type="button" disabled={h.preguntasPropias.length >= MAX_PROPIAS_HISTORIA} onClick={() => onCambio({ preguntasPropias: [...h.preguntasPropias, ""] })} className={BOTON_CHICO}>
+            {viaje.otraPregunta}
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -126,6 +126,8 @@ function columnasEntrega(e: EntregaRegalo | null) {
 function origenDe(body: CompraBody, region: "ES" | "AR"): OrigenCompra | undefined {
   if (!esIdiomaWeb(body.idiomaWeb) || regionDeIdioma(body.idiomaWeb) !== region) return undefined;
   if (body.producto === "kids") return { idioma: body.idiomaWeb, pantalla: "kids" };
+  // «Vitácora de una historia»: si no se cobró, la pasarela vuelve a /comprar/historia (ahí se restaura lo elegido).
+  if (body.narrador?.contexto?.historia !== undefined) return { idioma: body.idiomaWeb, pantalla: "historia" };
   return { idioma: body.idiomaWeb, pantalla: body.pantalla === "regalar" ? "regalar" : "comprar" };
 }
 
@@ -197,8 +199,14 @@ export async function POST(request: NextRequest) {
     datosRegalo = v.regalo;
   }
 
-  const validacion = validarYConstruir(body, { sinTelefono: esRegalo });
+  const validacion = validarYConstruir(body, { sinTelefono: esRegalo, regalo: esRegalo });
   if (!validacion.ok) {
+    // Los de historia («historia: …», lib/historia.ts) son para el log: el formulario no deja mandar nada de eso, y si
+    // llega (la venta se apagó con la página abierta), la persona ve el aviso de siempre.
+    if (validacion.mensaje.startsWith("historia:")) {
+      console.warn(`compra: ${validacion.mensaje}`);
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: validacion.status });
+    }
     return NextResponse.json({ error: validacion.mensaje }, { status: validacion.status });
   }
   const { familia: familiaAInsertar } = validacion;
