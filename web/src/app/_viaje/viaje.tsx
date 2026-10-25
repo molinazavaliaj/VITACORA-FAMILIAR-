@@ -11,6 +11,7 @@ import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import "../_direccion/direccion.css";
+import "../_portada/portada.css";
 
 // /viaje, /ca/viaje y /ar/viaje (rediseño 2026-10, fase 4; maquetas Viaje y
 // ViajeMovil, pasadas a la dirección «la web es un libro»). Antes era una sola
@@ -73,7 +74,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
           </p>
           {/* El libro de Sara y Dani: gira y se abre cuando está entero en el medio
               de la pantalla (Coreografia, data-libro-3d); tocarlo lo repite. */}
-          <div data-libro-3d className="l3-seccion dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
+          <div data-libro-3d className="l3-seccion prt-libro dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
             <Libro3D
               idioma={idioma}
               b={LIBRO_VIAJE_EJEMPLO}
