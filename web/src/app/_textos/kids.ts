@@ -90,8 +90,9 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Quiero que me aviséis cuando abra Vitácora Kids." },
     altHero: "Un niño sentado en su cama graba un audio en el móvil, entre dibujos y un oso de peluche",
     dibujos: {
-      frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
-      texto: "Guardamos sus fotos y sus notas del cole, pero no cómo pensaba a esa edad. Ni siquiera lo va a recordar.",
+      // PARA NAZA (25/10): opción A.
+      frase: ["Los juguetes terminan en una caja.", "Su libro se queda para siempre."],
+      texto: "Los juguetes de hoy un día van a terminar en una caja para regalar. El libro de cómo era su vida a los 11 lo va a guardar para siempre.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
@@ -210,8 +211,9 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Vull que m'aviseu quan obri Vitácora Kids." },
     altHero: "Un nen assegut al llit grava un àudio amb el mòbil, entre dibuixos i un os de peluix",
     dibujos: {
-      frase: ["Els dibuixos es perden.", "El que pensava, també."],
-      texto: "Guardem les seves fotos i les notes de l'escola, però no com pensava a aquesta edat. Ni tan sols se'n recordarà.",
+      // PARA NAZA (25/10): opció A, traducció.
+      frase: ["Les joguines acaben en una caixa.", "El seu llibre es queda per sempre."],
+      texto: "Les joguines d'avui un dia acabaran en una caixa per regalar. El llibre de com era la seva vida als 11 anys el guardarà per sempre.",
       // ca: revisado con el corrector de Softcatalà (19/10)
       altVideo: "El llibre del Nico sobre un cobrellit de colors, entre els seus dibuixos",
     },
@@ -330,8 +332,9 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     correo: { asunto: "Vitácora Kids", cuerpo: "Hola. Quiero que me avisen cuando abra Vitácora Kids." },
     altHero: "Un chico sentado en su cama graba un audio en el celular, entre dibujos y un oso de peluche",
     dibujos: {
-      frase: ["Los dibujos se pierden.", "Lo que pensaba, también."],
-      texto: "Guardamos sus fotos y sus boletines, pero no cómo pensaba a esa edad. Ni siquiera se va a acordar.",
+      // PARA NAZA (25/10): opción A.
+      frase: ["Los juguetes terminan en una caja.", "Su libro se queda para siempre."],
+      texto: "Los juguetes de hoy un día van a terminar en una caja para regalar. El libro de cómo era su vida a los 11 lo va a guardar para siempre.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
