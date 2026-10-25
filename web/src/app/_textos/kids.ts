@@ -98,7 +98,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Tú lo ves todo", "Un sobre cerrado para cuando crezca"],
     como: {
-      titulo: "Si sabe mandar un audio, ya puede contar su libro.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "A los 11 usa el móvil mejor que tú. Contar su vida le va a resultar fácil.",
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo eliges al comprar. Si es al tuyo, os sentáis juntos y responde con sus palabras." },
@@ -220,7 +221,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Respon amb àudios, sense escriure", "Sense aplicacions noves", "Tu ho veus tot", "Un sobre tancat per quan sigui gran"],
     como: {
-      titulo: "Si sap enviar un àudio, ja pot explicar el seu llibre.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "Als 11 anys fa servir el mòbil millor que tu. Explicar la seva vida li resultarà fàcil.",
       paso: (n) => `Pas ${n}`,
       pasos: [
         { titulo: "Li escrivim per WhatsApp", texto: "Al seu WhatsApp o al teu, ho tries en comprar. Si és al teu, us asseieu junts i respon amb les seves paraules." },
@@ -340,7 +342,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Vos ves todo", "Un sobre cerrado para cuando sea grande"],
     como: {
-      titulo: "Si sabe mandar un audio, ya puede contar su libro.",
+      // PARA NAZA (25/10): opción A, con «su vida».
+      titulo: "A los 11 usa el celular mejor que vos. Contar su vida le va a resultar fácil.",
       paso: (n) => `Paso ${n}`,
       pasos: [
         { titulo: "Le escribimos por WhatsApp", texto: "A su WhatsApp o al tuyo, lo elegís al comprar. Si es al tuyo, te sentás al lado y responde con sus palabras." },
