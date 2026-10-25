@@ -21,6 +21,8 @@ export type TextosViajePagina = {
   meta: { titulo: string; descripcion: string };
   /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
   ventajas: [string, string, string, string];
+  /** La sección de regalo, con la foto del aeropuerto (revisión del 25/10). */
+  regalo: { titulo: string; texto: string; enlace: string; altFoto: string };
   etiqueta: string;
   titulo: [string, string];
   bajada: string;
@@ -59,6 +61,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Le cuentas el viaje con audios", "Dices «paso» y seguimos", "Tus fotos, en el álbum del final", "Tu voz, en un código QR"],
+    // PARA NAZA (25/10): la sección de regalo, borrador (sale de la pregunta «¿Se lo puedo regalar?» aprobada).
+    regalo: { titulo: "Un viaje también se regala.", texto: "Para una luna de miel, un viaje de fin de carrera o la jubilación. Nos dejas su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si quieres, añades hasta cinco preguntas tuyas.", enlace: "Regalar un viaje", altFoto: "Una pareja en el aeropuerto abre un sobre con su regalo antes de embarcar" },
     como: {
       titulo: "Cómo funciona.",
       // TEXTO PARA NAZA
@@ -109,6 +113,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     altLibro: "El libro de un viaje sobre una mesa, junto a una vela",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Le contás el viaje con audios", "Decís «paso» y seguimos", "Tus fotos, en el álbum del final", "Tu voz, en un código QR"],
+    // PARA NAZA (25/10): la sección de regalo, borrador (sale de la pregunta «¿Se lo puedo regalar?» aprobada).
+    regalo: { titulo: "Un viaje también se regala.", texto: "Para una luna de miel, un viaje de egresados o la jubilación. Nos dejás su WhatsApp y el biógrafo le escribe para contarle que es tu regalo. Si querés, sumás hasta cinco preguntas tuyas.", enlace: "Regalar un viaje", altFoto: "Una pareja en el aeropuerto abre un sobre con su regalo antes de embarcar" },
     como: {
       titulo: "Cómo funciona.",
       pasos: [
@@ -155,6 +161,8 @@ export const TEXTOS_VIAJE: Textos<TextosViajePagina> = {
     altLibro: "El llibre d'un viatge sobre una taula, al costat d'una espelma",
     // PARA NAZA (25/10): las ventajas del inicio, borrador.
     ventajas: ["Li expliques el viatge amb àudios", "Dius «passo» i seguim", "Les teves fotos, a l'àlbum del final", "La teva veu, en un codi QR"],
+    // PARA NAZA (25/10): la sección de regalo, borrador (sale de la pregunta «¿Se lo puedo regalar?» aprobada).
+    regalo: { titulo: "Un viatge també es regala.", texto: "Per a una lluna de mel, un viatge de fi de carrera o la jubilació. Ens deixes el seu WhatsApp i el biògraf li escriu per explicar-li que és el teu regal. Si vols, hi afegeixes fins a cinc preguntes teves.", enlace: "Regalar un viatge", altFoto: "Una parella a l'aeroport obre un sobre amb el seu regal abans d'embarcar" },
     como: {
       titulo: "Com funciona.",
       pasos: [

@@ -34,6 +34,7 @@ const FOTOS = {
   hotel: "/rediseno/viaje-audio-hotel.jpg",
   tapa: "/rediseno/viaje-mirador-lisboa.jpg",
   libro: "/rediseno/viaje-libro-mesa.jpg",
+  regalo: "/rediseno/viaje-regalo-aeropuerto.jpg",
 } as const;
 
 // El álbum que se ve al abrir el libro (Naza, 25/10: un fotolibro, muchas fotos
@@ -190,8 +191,25 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
+      {/* ═══ 4b · REGALO, en papel, con la pareja del aeropuerto (revisión del 25/10: Viaje es el más regalable) ═══ */}
+      <section className="dir-papel dir-hoja dir-deckle relative">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
+          <div className="aparece flex flex-col gap-6 md:col-span-6">
+            <h2 className="dir-titular dir-t3 max-w-[16ch]">{v.regalo.titulo}</h2>
+            <p className="dir-parrafo max-w-[42ch]">{v.regalo.texto}</p>
+            {precio !== null ? (
+              <Link prefetch={false} href={comprar} className="dir-enlace-papel self-start">
+                {v.regalo.enlace} <span aria-hidden>→</span>
+              </Link>
+            ) : null}
+          </div>
+          <Foto src={FOTOS.regalo} alt={v.regalo.altFoto} forma="arco" sizes="(min-width: 768px) 30vw, 78vw" className="w-[78%] justify-self-center md:col-span-4 md:col-start-9 md:w-full" />
+        </div>
+      </section>
+
       {/* ═══ 5 · PREGUNTAS (la garantía de Viaje vive acá: D1) ═══ */}
-      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} papel duda={TEXTOS_PORTADA[idioma].faq.duda} />
+      {/* En tinta desde el 25/10: el regalo, justo antes, va en papel. */}
+      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} duda={TEXTOS_PORTADA[idioma].faq.duda} />
 
       {/* ═══ 6 · CIERRE ═══ */}
       <section data-cta-propio className="dir-tinta relative">
