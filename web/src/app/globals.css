@@ -1335,6 +1335,9 @@ body {
 .l3-pie-foto { font-style: italic; font-size: 2.8cqw; line-height: 1.45; text-align: center; color: #5e584d; }
 .l3-folio { align-self: center; font-size: 2.4cqw; color: #8a8375; }
 .l3-pagina--der img { filter: grayscale(1) sepia(0.25) contrast(1.05); }
+/* Viaje: fotolibro. Página blanca con margen y las fotos en grilla, en color. */
+.l3-album { background-color: #fbfaf7; padding: 7cqw 6cqw; }
+.l3-album img { filter: none; }
 
 /* El pliego plano, solo cuando el libro no gira. */
 .l3-plano {
