@@ -76,7 +76,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     etiqueta: "Vitácora Kids · Mi Primer Capítulo",
     // PARA NAZA (25/10): el inicio le habla a quien compra (el padre o la madre), no al chico.
-    titulo: ["¿Recuerdas cómo", "pensabas a los once?"],
+    titulo: ["¿Recuerdas cómo", "pensabas a los 11?"],
     bajada: "Imagina tener un libro de cómo era tu vida de niño. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
@@ -194,7 +194,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     etiqueta: "Vitácora Kids · El meu primer capítol",
     // PARA NAZA (25/10): traducció del nou inici.
-    titulo: ["Recordes com", "pensaves als onze anys?"],
+    titulo: ["Recordes com", "pensaves als 11 anys?"],
     bajada: "Imagina tenir un llibre de com era la teva vida de petit. Aquesta edat només es viu una vegada, és de les més importants i la que més de pressa s'oblida. Avui és un regal divertit i, quan siguin grans, entendran de debò el que val tenir la seva Vitácora Kids.",
     empezar: "Començar el seu llibre",
     desde: (p) => `Un sol pagament, ${p}`,
@@ -312,7 +312,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
     etiqueta: "Vitácora Kids · Mi Primer Capítulo",
     // PARA NAZA (25/10): el inicio le habla a quien compra (el padre o la madre), no al chico.
-    titulo: ["¿Te acordás de cómo", "pensabas a los once?"],
+    titulo: ["¿Te acordás cómo", "pensabas a los 11?"],
     bajada: "Imaginate tener un libro de cómo era tu vida de chico. Esa edad se vive una sola vez, es de las más importantes y la que más rápido se olvida. Hoy es un regalo divertido y, cuando crezcan, van a entender de verdad lo que vale tener su Vitácora Kids.",
     empezar: "Empezar su libro",
     desde: (p) => `Un solo pago, ${p}`,
