@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { Acordeon } from "../_ui/acordeon";
-import { ReproductorOnda } from "../_ui/reproductor-onda";
 import { Cabecera, IconoWhatsApp, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
 import { LinkRegalarLanding } from "../link-regalar";
@@ -16,7 +15,7 @@ import { LogoTrazo } from "../_direccion/logo-trazo";
 import { Coreografia } from "../_direccion/coreografia";
 import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D } from "../_direccion/libro-3d";
-import { Foto, ListaHilo, Palabras, conVar } from "../_direccion/piezas";
+import { Foto, ListaHilo, OndaQuieta, Palabras, conVar } from "../_direccion/piezas";
 import { DemoMarco } from "./demo-marco";
 // Una sola hoja de estilo para la portada: portada.css trae adentro
 // direccion.css y los tokens (cada archivo CSS aparte es un pedido más que
@@ -58,10 +57,6 @@ const FOTOS = {
   abuelo: "/rediseno/para-tu-abuelo.jpg",
 } as const;
 
-// El fragmento de «Escúchalo»: si NEXT_PUBLIC_URL_FRAGMENTO_AUDIO está
-// cargada manda esa; si no, la voz de Naza en el campo (30 s, con su permiso).
-const AUDIO_DE_EJEMPLO = "/rediseno/su-voz-campo.mp3";
-
 const DIBUJOS = [DibujoLibreta, DibujoAudio, DibujoLibro] as const;
 
 export function Portada({ idioma }: { idioma: IdiomaWeb }) {
@@ -78,7 +73,6 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const jsonLd = datosEstructurados(idioma, { libro: FOTOS.portada, marco: FOTOS.marco });
   const comprar = ruta(idioma, "/comprar");
   const whatsapp = urlWhatsAppDudas();
-  const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO || AUDIO_DE_EJEMPLO;
   // El teléfono: la página de su historia de verdad, con datos inventados.
   // El panel existe en es y ar; el catalán muestra la de España.
   const telefono = idioma === "ar" ? "/ar/telefono-historia" : "/telefono-historia";
@@ -325,12 +319,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               <span className="dir-micro text-[var(--dir-sobre-papel-suave)]">{t.escuchalo.etiqueta}</span>
               <blockquote className="dir-cita prt-cita">{t.escuchalo.cita}</blockquote>
               <div className="dir-sobre-papel-onda max-w-[560px]">
-                <ReproductorOnda
-                  src={fragmentoAudio}
-                  etiquetaReproducir={t.voz.escuchar}
-                  etiquetaPausar={t.voz.pausar}
-                  duracion={t.escuchalo.duracion}
-                />
+                {/* Quieta, sin reproducir (Naza, 25/10): alcanza con que se entienda que es la frase de alguien. */}
+                <OndaQuieta duracion={t.escuchalo.duracion} conPlay={false} />
               </div>
             </figure>
           </div>
