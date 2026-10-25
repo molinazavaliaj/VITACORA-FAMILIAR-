@@ -160,7 +160,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       bajada:
         "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
-      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas con su voz y guardadas para siempre"],
+      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas a su manera y guardadas para siempre"],
       propio: { pregunta: "¿Quieres contar tu propia vida?", enlace: "También puedes hacer tu libro." },
     },
     queEs: {
@@ -204,7 +204,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         },
         {
           titulo: "Cuando llega a casa",
-          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contraportada hay un código QR que abre sus historias contadas con su voz, guardadas para siempre.",
+          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contraportada hay un código QR que abre sus historias, contadas a su manera y guardadas para siempre.",
         },
       ],
     },
@@ -241,7 +241,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       // PARA NAZA (25/10): título y texto nuevos. Naza: el marco a 19 € todos, literal en España.
       titulo: "Una foto para sus fans.",
       texto: () =>
-        "En Vitácora creemos que la forma más bonita de celebrar este regalo es compartirlo con la familia. Por eso, estas Navidades, puedes sumar una foto enmarcada para regalar a cada hermano, hijo o nieto, a 19 € cada una. Lleva un chip por dentro: acercas el móvil y se abre su historia, con su voz.",
+        "En Vitácora creemos que la forma más bonita de celebrar este regalo es compartirlo con la familia. Por eso, estas Navidades, puedes sumar una foto enmarcada para regalar a cada hermano, hijo o nieto, a 19 € cada una. Lleva un chip por dentro: acercas el móvil y se abre su historia, contada a su manera.",
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -377,7 +377,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       bajada:
         "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
       comoFunciona: "Cómo funciona ↓",
-      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas con su voz y guardadas para siempre"],
+      ventajas: ["Responde con audios o escribiendo, como se sienta más cómodo", "Sin apps ni contraseñas", "Su libro impreso, en tapa dura", "Sus mejores historias, contadas a su manera y guardadas para siempre"],
       propio: { pregunta: "¿Querés contar tu propia vida?", enlace: "También podés hacer tu libro." },
     },
     queEs: {
@@ -421,7 +421,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         },
         {
           titulo: "Cuando llega a casa",
-          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contratapa hay un código QR que abre sus historias contadas con su voz, guardadas para siempre.",
+          texto: "Llega el día de tenerlo en casa, para siempre. Si otro familiar quiere su ejemplar, nos pide otra copia y se la mandamos. En la contratapa hay un código QR que abre sus historias, contadas a su manera y guardadas para siempre.",
         },
       ],
     },
@@ -459,7 +459,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       // PARA NAZA (25/10): título y texto nuevos. En pesos, de PRECIO_MARCO_ARS; sin esa variable, la frase va sin número.
       titulo: "Una foto para sus fanáticos.",
       texto: (p) =>
-        `En Vitácora creemos que la forma más linda de celebrar este regalo es compartirlo con la familia. Por eso, para estas fiestas, podés sumar una foto enmarcada para regalarle a cada hermano, hijo o nieto${p ? `, a ${p} cada una` : ""}. Lleva un chip por dentro: acercás el celular y se abre su historia, con su voz.`,
+        `En Vitácora creemos que la forma más linda de celebrar este regalo es compartirlo con la familia. Por eso, para estas fiestas, podés sumar una foto enmarcada para regalarle a cada hermano, hijo o nieto${p ? `, a ${p} cada una` : ""}. Lleva un chip por dentro: acercás el celular y se abre su historia, contada a su manera.`,
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
@@ -601,7 +601,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         "Respon amb àudios o escrivint, com se senti més còmode",
         "Sense aplicacions ni contrasenyes",
         "El seu llibre imprès, en tapa dura",
-        "Les seves millors històries, explicades amb la seva veu i guardades per sempre",
+        "Les seves millors històries, explicades a la seva manera i guardades per sempre",
       ],
       propio: { pregunta: "Vols explicar la teva pròpia vida?", enlace: "També pots fer el teu llibre." },
     },
@@ -646,7 +646,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         },
         {
           titulo: "Quan arriba a casa",
-          texto: "Arriba el dia de tenir-lo a casa, per sempre. Si un altre familiar en vol un exemplar, ens demana una altra còpia i l'hi enviem. A la contraportada hi ha un codi QR que obre les seves històries explicades amb la seva veu, guardades per sempre.",
+          texto: "Arriba el dia de tenir-lo a casa, per sempre. Si un altre familiar en vol un exemplar, ens demana una altra còpia i l'hi enviem. A la contraportada hi ha un codi QR que obre les seves històries, explicades a la seva manera i guardades per sempre.",
         },
       ],
     },
@@ -684,7 +684,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       // PARA NAZA (25/10): traducción del texto nuevo.
       titulo: "Una foto per als seus fans.",
       texto: () =>
-        "A Vitácora creiem que la manera més bonica de celebrar aquest regal és compartir-lo amb la família. Per això, aquest Nadal, pots afegir una foto emmarcada per regalar a cada germà, fill o net, a 19 € cadascuna. Porta un xip a dins: hi apropes el mòbil i s'obre la seva història, amb la seva veu.",
+        "A Vitácora creiem que la manera més bonica de celebrar aquest regal és compartir-lo amb la família. Per això, aquest Nadal, pots afegir una foto emmarcada per regalar a cada germà, fill o net, a 19 € cadascuna. Porta un xip a dins: hi apropes el mòbil i s'obre la seva història, explicada a la seva manera.",
     },
     regalo: {
       titulo: "No li regalis la mateixa camisa de cada any.",
