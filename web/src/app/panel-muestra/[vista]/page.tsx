@@ -132,7 +132,7 @@ export default async function MuestraPanel({ params, searchParams }: PageProps<"
     { id: "f3", epigrafe: null, src: viaje ? "/checkout/marco-viaje.jpg" : "/rediseno/para-tu-abuelo.jpg" },
   ];
   const tapaFoto = momento === "antes" ? null : viaje ? "/rediseno/viaje-mirador-lisboa.jpg" : "/rediseno/libro-tapa-foto.jpg";
-  const contacto = { whatsapp: null, correo: "hola@vitacorafamiliar.com" };
+  const contacto = { whatsapp: null, correo: "soporte@vitacorafamiliar.com" };
   const T = PANEL[idioma];
 
   let cuerpo: ReactNode;

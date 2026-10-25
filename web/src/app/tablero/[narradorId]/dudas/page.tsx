@@ -175,8 +175,8 @@ function AvisoDelPlazo({
     return (
       <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
         El libro ya está escrito, así que esto queda como estaba. Si algo salió mal, {tu ? "escríbenos" : "escribinos"} a{" "}
-        <a href="mailto:hola@vitacorafamiliar.com" className="underline">
-          hola@vitacorafamiliar.com
+        <a href="mailto:soporte@vitacorafamiliar.com" className="underline">
+          soporte@vitacorafamiliar.com
         </a>{" "}
         y lo corregimos a mano.
       </p>

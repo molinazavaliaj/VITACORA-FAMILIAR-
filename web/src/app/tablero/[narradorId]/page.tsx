@@ -250,7 +250,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   const contexto = (n.contexto ?? {}) as Record<string, unknown>;
   const quien: Quien = { como: n.como_le_dicen, propia, ella: esElla(contexto), viaje: contexto.modo === "viaje" && Boolean(contexto.viaje) };
-  const contacto = { whatsapp: urlWhatsAppDudas(), correo: CONTACTO.hola };
+  const contacto = { whatsapp: urlWhatsAppDudas(), correo: CONTACTO.soporte };
 
   return (
     <MarcoHistoria

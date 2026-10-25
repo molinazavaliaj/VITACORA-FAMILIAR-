@@ -45,7 +45,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
-            <a href={`mailto:${CONTACTO.hola}`} className={`${enlace} break-all normal-case tracking-normal text-[13px] sm:break-normal`}>{CONTACTO.hola}</a>
+            <a href={`mailto:${CONTACTO.soporte}`} className={`${enlace} break-all normal-case tracking-normal text-[13px] sm:break-normal`}>{CONTACTO.soporte}</a>
             {whatsapp ? (
               <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={`${enlace} normal-case tracking-normal text-[13px]`}>
                 {t.escribirWhatsApp}
