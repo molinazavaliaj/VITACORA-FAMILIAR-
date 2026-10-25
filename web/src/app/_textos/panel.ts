@@ -31,6 +31,8 @@ type TextosPanel = {
   titular: (t: Titular, q: Quien) => string;
   respuestas: (n: number) => string;
   minutosDeVoz: (q: Quien) => string;
+  /** Debajo del porcentaje (Naza, 25/10): «del libro». */
+  delLibro: string;
   pasos: (q: Quien) => Record<ClavePaso, string>;
   comoVa: string;
   hecho: string;
@@ -122,6 +124,7 @@ const ES: TextosPanel = {
   },
   respuestas: (n) => (n === 1 ? "respuesta" : "respuestas"),
   minutosDeVoz: (q) => `min de ${q.viaje ? "tu" : tuOSu(q)} voz`,
+  delLibro: "del libro",
   pasos: (q) => ({ pagado: "Pagado", primer: "Primer mensaje", contando: q.viaje ? "De viaje" : "Contándolo", listo: "Libro listo", impreso: "Impreso en casa" }),
   comoVa: "Cómo va",
   hecho: "hecho",
