@@ -46,7 +46,9 @@ type Libro = TextosPortada["direccion"]["libro"];
 type Capitulo = TextosEjemplo["libro"];
 
 /** Las fotos y la variante del libro. Sin nada, el de Osvaldo; `viaje` es el libro de viaje del inicio de /viaje (19/10): tapa con banda de tinta, lomo azul noche. */
-export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje" };
+export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje"; album?: AlbumViaje };
+/** Las fotos del álbum de viaje: cuatro a la izquierda (la alta primero) y dos a la derecha (la grande primero). */
+export type AlbumViaje = { izq: [string, string, string, string]; der: [string, string] };
 const OSVALDO: DisenoLibro = { tapa: "/rediseno/libro-tapa-foto.jpg", interior: "/rediseno/osvaldo-guitarra.jpg" };
 
 function Tapa({ b, sizes, foto }: { b: Libro; sizes: string; foto: string }) {
@@ -146,41 +148,30 @@ export function PaginaFoto({ c, sizes, foto = OSVALDO.interior }: { c: Capitulo;
 
 /** Viaje (25/10, Naza): un fotolibro, no un libro de texto. Páginas blancas
  *  con varias fotos en grilla y sin letras, como los álbumes de fotos: a la
- *  izquierda una alta y tres apiladas; a la derecha una grande y una apaisada.
- *  Mientras no haya más fotos del viaje de Sara y Dani, son recortes de las dos
- *  que hay (cada una con su encuadre). */
-type Recorte = { foto: string; pos: string; zoom?: number };
-
-function FotoRecorte({ r, className, sizes }: { r: Recorte; className: string; sizes: string }) {
+ *  izquierda una alta y tres apiladas; a la derecha una grande y una apaisada. */
+function FotoAlbum({ foto, className, sizes }: { foto: string; className: string; sizes: string }) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <Image
-        src={r.foto}
-        alt=""
-        fill
-        sizes={sizes}
-        className="object-cover"
-        style={{ objectPosition: r.pos, transform: r.zoom ? `scale(${r.zoom})` : undefined, transformOrigin: r.pos }}
-      />
+      <Image src={foto} alt="" fill sizes={sizes} className="object-cover" />
     </div>
   );
 }
 
-function PaginaAlbum({ lado, fotos }: { lado: "izq" | "der"; fotos: Recorte[] }) {
+function PaginaAlbum({ lado, fotos }: { lado: "izq" | "der"; fotos: string[] }) {
   const s = "(min-width: 768px) 240px, 40vw";
   return (
     <div className={`l3-pagina l3-pagina--${lado} l3-album h-full`}>
       {lado === "izq" ? (
         <div className="grid h-full grid-cols-[1.15fr_1fr] grid-rows-3 gap-[2.5cqw]">
-          <FotoRecorte r={fotos[0]} sizes={s} className="row-span-3" />
-          <FotoRecorte r={fotos[1]} sizes={s} className="" />
-          <FotoRecorte r={fotos[2]} sizes={s} className="" />
-          <FotoRecorte r={fotos[3]} sizes={s} className="" />
+          <FotoAlbum foto={fotos[0]} sizes={s} className="row-span-3" />
+          <FotoAlbum foto={fotos[1]} sizes={s} className="" />
+          <FotoAlbum foto={fotos[2]} sizes={s} className="" />
+          <FotoAlbum foto={fotos[3]} sizes={s} className="" />
         </div>
       ) : (
         <div className="grid h-full grid-rows-[1.35fr_1fr] gap-[2.5cqw]">
-          <FotoRecorte r={fotos[0]} sizes={s} className="" />
-          <FotoRecorte r={fotos[1]} sizes={s} className="" />
+          <FotoAlbum foto={fotos[0]} sizes={s} className="" />
+          <FotoAlbum foto={fotos[1]} sizes={s} className="" />
         </div>
       )}
     </div>
@@ -202,6 +193,7 @@ export function Libro3D({
   // El libro se arma 1,5 veces más grande (ver globals.css): la tapa mide ~570 px.
   const sizes = "(min-width: 768px) 570px, 93vw";
   const viaje = diseno.variante === "viaje";
+  const album = diseno.album;
   return (
     <div className={`l3-escena ${viaje ? "l3--viaje" : ""}`} aria-hidden>
       <div className="l3-sombra" />
@@ -224,15 +216,10 @@ export function Libro3D({
             <Portadilla b={b} />
           </div>
           <div className="l3-cara l3-hoja-dorso">
-            {viaje ? (
+            {album ? (
               <PaginaAlbum
                 lado="izq"
-                fotos={[
-                  { foto: diseno.tapa, pos: "70% 50%" },
-                  { foto: diseno.tapa, pos: "20% 75%", zoom: 1.8 },
-                  { foto: diseno.interior, pos: "30% 85%", zoom: 2.2 },
-                  { foto: diseno.tapa, pos: "25% 20%", zoom: 1.6 },
-                ]}
+                fotos={album.izq}
               />
             ) : (
               <PaginaCapitulo c={c} />
@@ -240,13 +227,10 @@ export function Libro3D({
           </div>
         </div>
         <div className="l3-cara l3-hoja-derecha">
-          {viaje ? (
+          {album ? (
             <PaginaAlbum
               lado="der"
-              fotos={[
-                { foto: diseno.interior, pos: "45% 55%" },
-                { foto: diseno.tapa, pos: "15% 30%", zoom: 1.3 },
-              ]}
+              fotos={album.der}
             />
           ) : (
             <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" foto={diseno.interior} />

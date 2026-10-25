@@ -6,7 +6,7 @@ import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { CAPITULO_VIAJE_EJEMPLO, LIBRO_VIAJE_EJEMPLO, TEXTOS_VIAJE } from "../_textos/viaje";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import { TEXTOS_PORTADA } from "../_textos/portada";
-import { Libro3D } from "../_direccion/libro-3d";
+import { Libro3D, type AlbumViaje } from "../_direccion/libro-3d";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
@@ -34,6 +34,18 @@ const FOTOS = {
   tapa: "/rediseno/viaje-mirador-lisboa.jpg",
   libro: "/rediseno/viaje-libro-mesa.jpg",
 } as const;
+
+// El álbum que se ve al abrir el libro (Naza, 25/10: un fotolibro, muchas fotos
+// y pocas letras). Fotos hechas con Higgsfield a partir de las de Sara y Dani.
+const ALBUM: AlbumViaje = {
+  izq: [
+    "/rediseno/viaje-alfama-tranvia.jpg",
+    "/rediseno/viaje-pasteis-cafe.jpg",
+    "/rediseno/viaje-oporto-puente.jpg",
+    "/rediseno/viaje-azulejos.jpg",
+  ],
+  der: [FOTOS.hotel, "/rediseno/viaje-ribeira-atardecer.jpg"],
+};
 
 export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
   const v = TEXTOS_VIAJE[idioma];
@@ -79,7 +91,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
               idioma={idioma}
               b={LIBRO_VIAJE_EJEMPLO}
               c={{ ...TEXTOS_EJEMPLO.es.libro, ...CAPITULO_VIAJE_EJEMPLO }}
-              diseno={{ tapa: FOTOS.tapa, interior: FOTOS.hotel, variante: "viaje" }}
+              diseno={{ tapa: FOTOS.tapa, interior: FOTOS.hotel, variante: "viaje", album: ALBUM }}
             />
           </div>
           <div className="dir-entra mt-10 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
