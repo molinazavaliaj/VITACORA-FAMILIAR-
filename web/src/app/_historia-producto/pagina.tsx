@@ -66,7 +66,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
       <section className="dir-tinta relative">
         <div className="relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/historia" producto="historia" sobreHero />
+            <Cabecera idioma={idioma} camino="/historia" producto="historia" sobreHero textoComprar={t.empezar} />
           </div>
           <LogoTrazo id="trazo-historia" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
           <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[16ch] sm:mt-9 sm:max-w-[22ch]">

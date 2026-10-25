@@ -29,9 +29,11 @@ export type PropsCabecera = {
   sobreHero?: boolean;
   /** El checkout no repite «Comprar el libro» ni las solapas: ya está comprando. */
   compacta?: boolean;
+  /** El texto del botón de comprar de esa página («Empezar su libro»…), para que la cabecera diga lo mismo que los botones grandes (revisión del 25/10). Sin él, «Iniciar Vitácora». */
+  textoComprar?: string;
 };
 
-export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = false, compacta = false }: PropsCabecera) {
+export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = false, compacta = false, textoComprar }: PropsCabecera) {
   const t = TEXTOS_PUBLICO[idioma];
   const comprar = ruta(idioma, producto === "viaje" ? "/comprar/viaje" : producto === "kids" ? "/comprar/kids" : producto === "historia" ? "/comprar/historia" : "/comprar");
   // En Kids y en Historia, «Comprar» solo si se vende (KIDS_VENTA, HISTORIA_VENTA): si no, no hay botón.
@@ -70,7 +72,7 @@ export function Cabecera({ idioma, camino, producto = "familiar", sobreHero = fa
                 producto === "viaje" ? "bg-[var(--viaje-boton)] text-[var(--viaje-sobre-boton)]" : "bg-white text-[#14140f]"
               }`}
             >
-              {t.comprar}
+              {textoComprar ?? t.comprar}
             </Link>
           )}
         </div>

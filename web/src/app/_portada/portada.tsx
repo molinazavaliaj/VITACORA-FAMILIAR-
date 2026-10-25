@@ -166,7 +166,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             <p className="dir-parrafo max-w-[44ch]">{t.queEs.bajada}</p>
           </div>
 
-          <div className="mt-20 grid grid-cols-1 items-center gap-16 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-28 md:grid-cols-12 md:gap-8 md:pt-24">
+          {/* Menos aire arriba en la compu: entre el título y el teléfono quedaba media hoja vacía (revisión del 25/10, A10). */}
+          <div className="mt-20 grid grid-cols-1 items-center gap-16 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-14 md:grid-cols-12 md:gap-8 md:pt-12">
             <div className="aparece flex flex-col gap-8 md:col-span-6">
               <h3 className="dir-titular dir-t4">{t.siguiendo.titulo}</h3>
               <ol className="prt-pasos">

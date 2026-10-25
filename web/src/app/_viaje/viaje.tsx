@@ -76,7 +76,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
       <section className="dir-tinta relative">
         <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
+            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero textoComprar={precio !== null ? v.comprar : undefined} />
           </div>
           <LogoTrazo id="trazo-viaje" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
           <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-none">
@@ -126,7 +126,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
       <section className="dir-tinta dir-hoja relative">
         <div
           data-revela
-          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-28 pt-20 sm:px-8 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
+          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-20 pt-20 sm:px-8 sm:pb-28 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
           style={conVar({ "--paso": "0.17s" })}
         >
           <h2 className="dir-titular dir-txl viaje-frase lg:col-span-7">

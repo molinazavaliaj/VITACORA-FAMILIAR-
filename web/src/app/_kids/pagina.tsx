@@ -92,7 +92,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
       <section className="relative">
         <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero />
+            <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero textoComprar={t.empezar} />
           </div>
           <LogoTrazo id="trazo-kids" halo="var(--kids-fondo)" className="w-[124px] text-[var(--kids-texto)] sm:w-[180px]" />
           <h1 className="kids-titular dir-t1 kids-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-[16ch]">
@@ -131,7 +131,8 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
         <div className="mx-auto flex max-w-[1100px] flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
           <h2 className="kids-titular kids-t2 kids-aparece">
             <span className="block">{t.dibujos.frase[0]}</span>
-            <em className="block">{t.dibujos.frase[1]}</em>
+            {/* Las tres primeras palabras juntas: en el teléfono quedaba «Lo que» solo arriba (revisión del 25/10, A13). */}
+            <em className="block">{t.dibujos.frase[1].replace(/^(\S+) (\S+) (\S+)/, "$1\u00a0$2\u00a0$3")}</em>
           </h2>
           <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
           <FotoKids
