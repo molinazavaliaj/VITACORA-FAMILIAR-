@@ -191,7 +191,8 @@ describe("/kids por idioma", () => {
   });
 
   it("nada que Kids no define, ni afecto del bot al chico, en ningún idioma", () => {
-    const PROHIBIDO = ["9 días", "semanas", "setmanes", "RESEÑA", "Lo que dicen los padres", "Su voz", "marco", "13 × 18", "VITACORA10", "anticipo", "te devolvemos", "me gusta", "Me encanta", "me alegra", "con cariño", "tu hijo"];
+    // «te devolvemos» salió de la lista el 25/10: Kids tiene garantía (Naza), la misma que Familiar.
+    const PROHIBIDO = ["9 días", "semanas", "setmanes", "RESEÑA", "Lo que dicen los padres", "Su voz", "marco", "13 × 18", "VITACORA10", "anticipo", "me gusta", "Me encanta", "me alegra", "con cariño", "tu hijo"];
     for (const p of [KidsEs, KidsCa, KidsAr]) {
       // El texto visible (las clases kids-marco no cuentan).
       const visible = pagina(p).replace(/<[^>]+>/g, " ");

@@ -32,11 +32,14 @@ export function opcionesDeLibro(cat: Pick<Catalogo, "impreso" | "marco">): Opcio
   return cat.marco ? ["marco", "impreso", "digital"] : ["impreso", "digital"];
 }
 
-/** Con qué arranca el paso 1: la primera opción que exista (el libro completo, si no el impreso, si no el digital). */
+/**
+ * Con qué arranca el paso 1: el libro impreso con el PDF, el mismo precio que
+ * anuncia la portada (Naza 25/10: un solo precio ancla en toda la web; antes,
+ * desde el 14/10, arrancaba con el libro completo con marco). Sin impreso en la
+ * región, en digital. El orden en que se muestran no cambia.
+ */
 export function eleccionInicial(cat: Pick<Catalogo, "impreso" | "marco">): Required<ConLibro> {
-  const primera = opcionesDeLibro(cat)[0];
-  if (primera === "marco") return { formato: "impreso", marcos: 1, opcion: "marco" };
-  if (primera === "impreso") return { formato: "impreso", marcos: 0, opcion: "impreso" };
+  if (cat.impreso) return { formato: "impreso", marcos: 0, opcion: "impreso" };
   return { formato: "digital", marcos: 0, opcion: "digital" };
 }
 

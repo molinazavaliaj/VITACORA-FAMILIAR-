@@ -168,6 +168,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Tú, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     cierre: { titulo: ["Lo que hoy le importa,", "guardado para cuando crezca."], familiar: "¿Buscas el libro de una vida? Vitácora Familiar" },
@@ -282,6 +284,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "Qui escolta els seus àudios?",
           respuesta: "Tu, des de la pàgina de la seva història, i l'equip que escriu el seu llibre. Ningú més.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "I si no ho vol fer?", respuesta: "Et retornem tot el que vas pagar. Si comença i contesta menys de deu preguntes, també t'ho retornem tot." },
       ],
     },
     cierre: { titulo: ["El que avui li importa,", "guardat per a quan creixi."], familiar: "Busques el llibre d'una vida? Vitácora Familiar" },
@@ -394,6 +398,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Vos, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     cierre: { titulo: ["Lo que hoy le importa,", "guardado para cuando crezca."], familiar: "¿Buscás el libro de una vida? Vitácora Familiar" },

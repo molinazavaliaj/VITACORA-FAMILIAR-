@@ -32,8 +32,9 @@ export function Ejemplo({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_EJEMPLO[idioma];
   const libro = TEXTOS_PORTADA[idioma].direccion.libro;
   const cat = catalogo(regionDeIdioma(idioma));
+  // El mismo precio que la portada: el libro impreso con el PDF (Naza 25/10). Sin impreso, el PDF.
   const precio = new Intl.NumberFormat(localeDeIdioma(idioma), { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(
-    cat.base.precio,
+    cat.base.precio + (cat.impreso?.precio ?? 0),
   );
   return (
     <div lang={langDeIdioma(idioma)} className="dir-pagina ejm flex flex-1 flex-col">

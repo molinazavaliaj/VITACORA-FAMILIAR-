@@ -88,6 +88,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "¿Puedo agregar preguntas mías?", r: "Sí. Si es un regalo, al comprar podés dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para vos, se pueden sumar más hasta la última pregunta." },
         { p: "¿Se puede corregir algo antes de que se escriba el libro?", r: "Sí. Cuando termina la entrevista, antes de escribir el libro, quien la contó repasa lo que dijo y puede cambiar o agregar lo que quiera." },
         { p: "¿Hace falta mandar fotos?", r: "No, el libro sale igual. A mitad de la entrevista pedimos entre tres y diez fotos de esa época, y si aparecen más tarde se pueden mandar después." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "¿Y si no quiere hacerlo?", r: "Si es un regalo y no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo. Si la historia es la tuya, te devolvemos todo hasta que mandes tu primera respuesta." },
       ],
     },
     cierre: { linea1: "Una historia que ya pasó,", linea2: "guardada para siempre." },
@@ -166,6 +168,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "¿Puedo añadir preguntas mías?", r: "Sí. Si es un regalo, al comprar puedes dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para ti, se pueden añadir más hasta la última pregunta." },
         { p: "¿Se puede corregir algo antes de que se escriba el libro?", r: "Sí. Cuando termina la entrevista, antes de escribir el libro, quien la contó repasa lo que dijo y puede cambiar o añadir lo que quiera." },
         { p: "¿Hace falta mandar fotos?", r: "No, el libro sale igual. A mitad de la entrevista pedimos entre tres y diez fotos de esa época, y si aparecen más tarde se pueden mandar después." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "¿Y si no quiere hacerlo?", r: "Si es un regalo y no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo. Si la historia es la tuya, te devolvemos todo hasta que mandes tu primera respuesta." },
       ],
     },
     cierre: { linea1: "Una historia que ya pasó,", linea2: "guardada para siempre." },
@@ -244,6 +248,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "Puc afegir-hi preguntes meves?", r: "Sí. Si és un regal, en comprar en pots deixar fins a tres, que li arriben de part teva. I des de la pàgina de la història, també si és per a tu, se n'hi poden afegir més fins a l'última pregunta." },
         { p: "Es pot corregir alguna cosa abans que s'escrigui el llibre?", r: "Sí. Quan acaba l'entrevista, abans d'escriure el llibre, qui l'ha explicat repassa el que ha dit i pot canviar o afegir el que vulgui." },
         { p: "Cal enviar fotos?", r: "No, el llibre surt igual. A mitja entrevista demanem entre tres i deu fotos d'aquella època, i si apareixen més tard es poden enviar després." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "I si no ho vol fer?", r: "Si és un regal i no accepta l'entrevista, et retornem tot el que vas pagar. Si accepta i respon menys de deu preguntes, també t'ho retornem tot. Si la història és la teva, t'ho retornem tot fins que enviïs la primera resposta." },
       ],
     },
     cierre: { linea1: "Una història que ja ha passat,", linea2: "guardada per sempre." },
