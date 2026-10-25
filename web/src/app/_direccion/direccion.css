@@ -170,6 +170,12 @@
 .dir-boton--tinta { background: var(--dir-sobre-papel); color: var(--dir-papel); }
 .dir-boton--tinta:hover { background: #000; }
 .dir-boton--tinta:focus-visible { outline-color: var(--dir-sobre-papel); }
+/* El botón lleno sobre papel se vuelve de tinta: color papel sobre papel no se
+   veía (/historia, «Un solo pago», revisión del 25/10). Viaje y Kids pintan el
+   suyo con su color y ganan por especificidad. */
+.dir-papel .dir-boton--lleno { background: var(--dir-sobre-papel); color: var(--dir-papel); }
+.dir-papel .dir-boton--lleno:hover { background: #000; }
+.dir-papel .dir-boton--lleno:focus-visible { outline-color: var(--dir-sobre-papel); }
 
 /* ── Capas de las secciones nuevas ─────────────────────────────────────────
    Las mismas reglas que las del prototipo (globals.css): cada hoja que sube

@@ -9,6 +9,10 @@ import type { TemaHistoria } from "@/lib/historia";
 
 export type TextosHistoria = {
   meta: { titulo: string; descripcion: string };
+  /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
+  ventajas: [string, string, string, string];
+  /** El texto alternativo de la foto de «Para quién» (revisión del 25/10; persona generada). */
+  altAudio: string;
   /** H13: dos líneas; la segunda va en cursiva. */
   hero: { linea1: string; linea2: string; bajada: string };
   /** H15. */
@@ -58,6 +62,9 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un libro sobre un solo capítulo de la vida, contado al máximo detalle. Irse a vivir lejos, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de a una, se contestan en audio, y con eso se escribe el libro.",
     },
     empezar: "Empezar el libro",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
+    altAudio: "Una mujer mayor graba un audio en la cocina, con fotos viejas de su panadería sobre la mesa",
     como: {
       titulo: "Una historia, una pregunta por vez, un libro.",
       pasos: [
@@ -88,6 +95,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "¿Puedo agregar preguntas mías?", r: "Sí. Si es un regalo, al comprar podés dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para vos, se pueden sumar más hasta la última pregunta." },
         { p: "¿Se puede corregir algo antes de que se escriba el libro?", r: "Sí. Cuando termina la entrevista, antes de escribir el libro, quien la contó repasa lo que dijo y puede cambiar o agregar lo que quiera." },
         { p: "¿Hace falta mandar fotos?", r: "No, el libro sale igual. A mitad de la entrevista pedimos entre tres y diez fotos de esa época, y si aparecen más tarde se pueden mandar después." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "¿Y si no quiere hacerlo?", r: "Si es un regalo y no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo. Si la historia es la tuya, te devolvemos todo hasta que mandes tu primera respuesta." },
       ],
     },
     cierre: { linea1: "Una historia que ya pasó,", linea2: "guardada para siempre." },
@@ -136,6 +145,9 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un libro sobre un solo capítulo de la vida, contado con todo detalle. Irse a vivir fuera, el negocio propio, la enfermedad que quedó atrás. Las preguntas llegan por WhatsApp, de una en una, se contestan en audio, y con eso se escribe el libro.",
     },
     empezar: "Empezar el libro",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Se cuenta con audios, sin escribir nada", "Sin apps ni contraseñas", "Una sola historia, contada a fondo", "Con sus fotos y su voz en un QR"],
+    altAudio: "Una mujer mayor graba un audio en la cocina, con fotos antiguas de su panadería sobre la mesa",
     como: {
       titulo: "Una historia, una pregunta cada vez, un libro.",
       pasos: [
@@ -166,6 +178,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "¿Puedo añadir preguntas mías?", r: "Sí. Si es un regalo, al comprar puedes dejar hasta tres, que le llegan de tu parte. Y desde la página de la historia, también si es para ti, se pueden añadir más hasta la última pregunta." },
         { p: "¿Se puede corregir algo antes de que se escriba el libro?", r: "Sí. Cuando termina la entrevista, antes de escribir el libro, quien la contó repasa lo que dijo y puede cambiar o añadir lo que quiera." },
         { p: "¿Hace falta mandar fotos?", r: "No, el libro sale igual. A mitad de la entrevista pedimos entre tres y diez fotos de esa época, y si aparecen más tarde se pueden mandar después." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "¿Y si no quiere hacerlo?", r: "Si es un regalo y no acepta la entrevista, te devolvemos todo lo que pagaste. Si acepta y contesta menos de diez preguntas, también te devolvemos todo. Si la historia es la tuya, te devolvemos todo hasta que mandes tu primera respuesta." },
       ],
     },
     cierre: { linea1: "Una historia que ya pasó,", linea2: "guardada para siempre." },
@@ -214,6 +228,9 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       bajada: "Un llibre sobre un sol capítol de la vida, explicat amb tot detall. Anar a viure lluny, el negoci propi, la malaltia que va quedar enrere. Les preguntes arriben per WhatsApp, d'una en una, es contesten amb àudios, i amb això s'escriu el llibre.",
     },
     empezar: "Començar el llibre",
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["S'explica amb àudios, sense escriure res", "Sense aplicacions ni contrasenyes", "Una sola història, explicada a fons", "Amb les seves fotos i la seva veu en un QR"],
+    altAudio: "Una dona gran grava un àudio a la cuina, amb fotos antigues de la seva fleca sobre la taula",
     como: {
       titulo: "Una història, una pregunta cada vegada, un llibre.",
       pasos: [
@@ -244,6 +261,8 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
         { p: "Puc afegir-hi preguntes meves?", r: "Sí. Si és un regal, en comprar en pots deixar fins a tres, que li arriben de part teva. I des de la pàgina de la història, també si és per a tu, se n'hi poden afegir més fins a l'última pregunta." },
         { p: "Es pot corregir alguna cosa abans que s'escrigui el llibre?", r: "Sí. Quan acaba l'entrevista, abans d'escriure el llibre, qui l'ha explicat repassa el que ha dit i pot canviar o afegir el que vulgui." },
         { p: "Cal enviar fotos?", r: "No, el llibre surt igual. A mitja entrevista demanem entre tres i deu fotos d'aquella època, i si apareixen més tard es poden enviar després." },
+        // La garantía (Naza, 25/10), con lo mismo que dice la de términos §7 (GARANTIA.nuestra.historia).
+        { p: "I si no ho vol fer?", r: "Si és un regal i no accepta l'entrevista, et retornem tot el que vas pagar. Si accepta i respon menys de deu preguntes, també t'ho retornem tot. Si la història és la teva, t'ho retornem tot fins que enviïs la primera resposta." },
       ],
     },
     cierre: { linea1: "Una història que ja ha passat,", linea2: "guardada per sempre." },
@@ -281,4 +300,33 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
       otra: { nombre: "Una altra història", ayuda: "Un viatge, el poble, una amistat de tota la vida" },
     },
   },
+};
+
+/**
+ * El libro de ejemplo del inicio de /historia, en 3D (revisión del 25/10: la
+ * página no tenía ni una foto). La historia es inventada y las fotos son
+ * personas generadas. PARA NAZA: borrador. Va igual en los tres idiomas, como
+ * el de Viaje (LIBRO_VIAJE_EJEMPLO): es lo impreso en un libro en castellano.
+ */
+export const LIBRO_HISTORIA_EJEMPLO = {
+  etiqueta: "El libro de una historia",
+  nombre: ["La panadería", "de Carmen"] as [string, string],
+  paraSiempre: "Carmen Ruiz",
+  iniciales: "C · R",
+  lomo: "La panadería de Carmen · El libro de una historia",
+  contra: "Estas páginas guardan cómo Carmen abrió su panadería en 1984, contado con sus propias palabras y las fotos de esa época. En este QR, su voz.",
+  escucha: "Escucha su voz",
+  web: "vitacorafamiliar.com",
+};
+
+export const CAPITULO_HISTORIA_EJEMPLO = {
+  capitulo: "Capítulo 1",
+  tituloCapitulo: "El primer horno",
+  citaCapitulo: "«El primer día vendimos once barras. Las conté dos veces.»",
+  parrafos: [
+    "Alquilamos el local con lo que mi madre había ahorrado para la boda de mi hermana. Ella nunca me lo reclamó.",
+    "El horno llegó de un pueblo de Teruel con la puerta rota. La primera semana horneamos con la puerta atada con alambre.",
+  ] as [string, string],
+  altFoto: "Carmen joven detrás del mostrador de su panadería",
+  pieFoto: "Carmen en el mostrador, el año que abrió.",
 };

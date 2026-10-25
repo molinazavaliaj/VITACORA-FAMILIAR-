@@ -25,6 +25,8 @@ export type DudaKids = { pregunta: string; respuesta: string };
 
 export type TextosKids = {
   meta: { titulo: string; descripcion: string };
+  /** Las cuatro ventajas con tilde del inicio, como las de Familiar (revisión del 25/10). */
+  ventajas: [string, string, string, string];
   etiqueta: string;
   /** El titular en dos líneas; la segunda va en la itálica terracota. */
   titulo: [string, string];
@@ -87,6 +89,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       texto: "Guardamos sus fotos y sus notas del cole, pero no cómo pensaba a esa edad. Ni siquiera lo va a recordar.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Tú lo ves todo", "Un sobre cerrado para cuando crezca"],
     como: {
       titulo: "Si sabe mandar un audio, ya puede contar su libro.",
       paso: (n) => `Paso ${n}`,
@@ -168,6 +172,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Tú, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     cierre: { titulo: ["Lo que hoy le importa,", "guardado para cuando crezca."], familiar: "¿Buscas el libro de una vida? Vitácora Familiar" },
@@ -201,6 +207,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       // ca: revisado con el corrector de Softcatalà (19/10)
       altVideo: "El llibre del Nico sobre un cobrellit de colors, entre els seus dibuixos",
     },
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Respon amb àudios, sense escriure", "Sense aplicacions noves", "Tu ho veus tot", "Un sobre tancat per quan sigui gran"],
     como: {
       titulo: "Si sap enviar un àudio, ja pot explicar el seu llibre.",
       paso: (n) => `Pas ${n}`,
@@ -282,6 +290,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "Qui escolta els seus àudios?",
           respuesta: "Tu, des de la pàgina de la seva història, i l'equip que escriu el seu llibre. Ningú més.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "I si no ho vol fer?", respuesta: "Et retornem tot el que vas pagar. Si comença i contesta menys de deu preguntes, també t'ho retornem tot." },
       ],
     },
     cierre: { titulo: ["El que avui li importa,", "guardat per a quan creixi."], familiar: "Busques el llibre d'una vida? Vitácora Familiar" },
@@ -313,6 +323,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
       texto: "Guardamos sus fotos y sus boletines, pero no cómo pensaba a esa edad. Ni siquiera se va a acordar.",
       altVideo: "El libro de Nico sobre una colcha de colores, entre sus dibujos",
     },
+    // PARA NAZA (25/10): las ventajas del inicio, borrador.
+    ventajas: ["Contesta con audios, sin escribir", "Sin aplicaciones nuevas", "Vos ves todo", "Un sobre cerrado para cuando sea grande"],
     como: {
       titulo: "Si sabe mandar un audio, ya puede contar su libro.",
       paso: (n) => `Paso ${n}`,
@@ -394,6 +406,8 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Vos, desde la página de su historia, y el equipo que escribe su libro. Nadie más.",
         },
+        // La garantía de Familiar (Naza, 25/10: la misma en Kids e Historia).
+        { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
       ],
     },
     cierre: { titulo: ["Lo que hoy le importa,", "guardado para cuando crezca."], familiar: "¿Buscás el libro de una vida? Vitácora Familiar" },

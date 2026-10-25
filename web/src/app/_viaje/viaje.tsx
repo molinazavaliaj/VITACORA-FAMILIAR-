@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Cabecera, Pie } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
+import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
-import { Foto, Palabras, conVar } from "../_direccion/piezas";
+import { Foto, Palabras, Ventajas, conVar } from "../_direccion/piezas";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { CAPITULO_VIAJE_EJEMPLO, LIBRO_VIAJE_EJEMPLO, TEXTOS_VIAJE } from "../_textos/viaje";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
@@ -33,6 +34,7 @@ const FOTOS = {
   hotel: "/rediseno/viaje-audio-hotel.jpg",
   tapa: "/rediseno/viaje-mirador-lisboa.jpg",
   libro: "/rediseno/viaje-libro-mesa.jpg",
+  regalo: "/rediseno/viaje-regalo-aeropuerto.jpg",
 } as const;
 
 // El álbum que se ve al abrir el libro (Naza, 25/10: un fotolibro, muchas fotos
@@ -74,7 +76,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
       <section className="dir-tinta relative">
         <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero />
+            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero textoComprar={precio !== null ? v.comprar : undefined} />
           </div>
           <LogoTrazo id="trazo-viaje" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
           <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-none">
@@ -114,14 +116,17 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
               v.proximamente
             )}
           </p>
+          <Ventajas items={v.ventajas} className="dir-entra mt-10 text-[var(--dir-sobre-tinta)]" style={conVar({ "--e": "1.15s" })} />
         </div>
       </section>
+      {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
+      <div id="hero" aria-hidden className="relative h-px" />
 
       {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola y la foto del hotel en arco ═══ */}
       <section className="dir-tinta dir-hoja relative">
         <div
           data-revela
-          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-28 pt-20 sm:px-8 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
+          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-20 pt-20 sm:px-8 sm:pb-28 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
           style={conVar({ "--paso": "0.17s" })}
         >
           <h2 className="dir-titular dir-txl viaje-frase lg:col-span-7">
@@ -186,8 +191,25 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
+      {/* ═══ 4b · REGALO, en papel, con la pareja del aeropuerto (revisión del 25/10: Viaje es el más regalable) ═══ */}
+      <section className="dir-papel dir-hoja dir-deckle relative">
+        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
+          <div className="aparece flex flex-col gap-6 md:col-span-6">
+            <h2 className="dir-titular dir-t3 max-w-[16ch]">{v.regalo.titulo}</h2>
+            <p className="dir-parrafo max-w-[42ch]">{v.regalo.texto}</p>
+            {precio !== null ? (
+              <Link prefetch={false} href={comprar} className="dir-enlace-papel self-start">
+                {v.regalo.enlace} <span aria-hidden>→</span>
+              </Link>
+            ) : null}
+          </div>
+          <Foto src={FOTOS.regalo} alt={v.regalo.altFoto} forma="arco" sizes="(min-width: 768px) 30vw, 78vw" className="w-[78%] justify-self-center md:col-span-4 md:col-start-9 md:w-full" />
+        </div>
+      </section>
+
       {/* ═══ 5 · PREGUNTAS (la garantía de Viaje vive acá: D1) ═══ */}
-      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} papel />
+      {/* En tinta desde el 25/10: el regalo, justo antes, va en papel. */}
+      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} duda={TEXTOS_PORTADA[idioma].faq.duda} />
 
       {/* ═══ 6 · CIERRE ═══ */}
       <section data-cta-propio className="dir-tinta relative">
@@ -208,6 +230,16 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         </div>
         <Pie idioma={idioma} camino="/viaje" />
       </section>
+
+      {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono. */}
+      <WhatsAppFlotante idioma={idioma} />
+      {precio !== null ? (
+        <CtaSticky
+          precio={formatear(precio)}
+          href={comprar}
+          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: v.comprar }}
+        />
+      ) : null}
     </Pagina>
   );
 }

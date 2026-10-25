@@ -1,16 +1,20 @@
 import Link from "next/link";
-import { Cabecera, Pie } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
+import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
-import { conVar } from "../_direccion/piezas";
+import { Foto, Ventajas, conVar } from "../_direccion/piezas";
+import { Libro3D } from "../_direccion/libro-3d";
 import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
 import { enlaceEscribir } from "../_kids/piezas";
-import { TEXTOS_HISTORIA } from "../_textos/historia";
+import { CAPITULO_HISTORIA_EJEMPLO, LIBRO_HISTORIA_EJEMPLO, TEXTOS_HISTORIA } from "../_textos/historia";
+import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { HISTORIA_TEMAS, historiaVendeEn } from "@/lib/historia";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import "../_direccion/direccion.css";
+import "../_portada/portada.css";
 
 // /historia, /ca/historia y /ar/historia: «Vitácora de una historia» (plan 2026-10-21, Task 4.4). Los textos son
 // los aprobados por Naza el 23/10 (_textos/historia.ts), en el lenguaje de la dirección nueva, como /viaje.
@@ -18,8 +22,16 @@ import "../_direccion/direccion.css";
 // ESTÁTICA: no lee headers ni cookies. Con HISTORIA_VENTA="1" los botones llevan a /comprar/historia de su idioma
 // y se ve el precio, que es el de Familiar (el libro base, catalogo().base); si no, «Próximamente» y «Escribinos».
 //
-// Lo que NO dice, a propósito: cuántas preguntas son (Naza, 23/10), páginas, plazos, reseñas ni el marco. No hay
-// fotos ni video de este producto: los bloques son de texto.
+// Lo que NO dice, a propósito: cuántas preguntas son (Naza, 23/10), páginas, plazos, reseñas ni el marco.
+//
+// Revisión del 25/10: el libro de Carmen en 3D en el inicio (una historia inventada, «La panadería de Carmen») y
+// la foto de Carmen hoy, grabando, en «Para quién». Las fotos son personas generadas (Higgsfield).
+
+const FOTOS = {
+  tapa: "/rediseno/historia-carmen-tapa.jpg",
+  mostrador: "/rediseno/historia-carmen-mostrador.jpg",
+  audio: "/rediseno/historia-carmen-audio.jpg",
+} as const;
 //
 // Orden: 1 inicio (logo, lema, bajada, botones), 2 para quién y las historias, 3 cómo funciona, 4 qué recibe y
 // el precio, 5 preguntas frecuentes, 6 cierre con el enlace a Familiar y el pie.
@@ -54,7 +66,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
       <section className="dir-tinta relative">
         <div className="relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/historia" producto="historia" sobreHero />
+            <Cabecera idioma={idioma} camino="/historia" producto="historia" sobreHero textoComprar={t.empezar} />
           </div>
           <LogoTrazo id="trazo-historia" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
           <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[16ch] sm:mt-9 sm:max-w-[22ch]">
@@ -63,6 +75,15 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
           <p className="dir-entra dir-bajada-hero mt-6 sm:mt-8" style={conVar({ "--e": "0.7s" })}>
             {t.hero.bajada}
           </p>
+          {/* El libro de Carmen: gira y se abre cuando está entero en el medio de la pantalla (Coreografia). */}
+          <div data-libro-3d className="l3-seccion prt-libro dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.8s" })}>
+            <Libro3D
+              idioma={idioma}
+              b={LIBRO_HISTORIA_EJEMPLO}
+              c={{ ...TEXTOS_EJEMPLO.es.libro, ...CAPITULO_HISTORIA_EJEMPLO }}
+              diseno={{ tapa: FOTOS.tapa, interior: FOTOS.mostrador }}
+            />
+          </div>
           <div className="dir-entra mt-10 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.85s" })}>
             <Accion />
             <a href="#como-funciona" className="dir-boton dir-boton--hilo">
@@ -74,8 +95,11 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
               {t.proximamente.titulo}
             </p>
           )}
+          <Ventajas items={t.ventajas} className="dir-entra mt-10 text-[var(--dir-sobre-tinta)]" style={conVar({ "--e": "1.05s" })} />
         </div>
       </section>
+      {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
+      <div id="hero" aria-hidden className="relative h-px" />
 
       {/* ═══ 2 · PARA QUIÉN, con las historias de la lista (las etiquetas de temas.md) ═══ */}
       <section className="dir-papel dir-hoja dir-deckle relative">
@@ -83,6 +107,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
           <div className="aparece flex flex-col gap-6 md:col-span-5">
             <h2 className="dir-titular dir-t2">{t.paraQuien.titulo}</h2>
             <p className="dir-parrafo max-w-[44ch]">{t.paraQuien.texto}</p>
+            <Foto src={FOTOS.audio} alt={t.altAudio} forma="arco" sizes="(min-width: 768px) 30vw, 78vw" className="mt-6 w-[78%] max-w-[380px]" />
           </div>
           <div className="aparece md:col-span-6 md:col-start-7">
             <p className="dir-dato text-[var(--dir-sobre-papel-suave)]">{t.paraQuien.entrada}</p>
@@ -143,7 +168,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 5 · PREGUNTAS FRECUENTES ═══ */}
-      <MiniFaq titulo={t.faq.titulo} dudas={t.faq.preguntas.map((d) => ({ pregunta: d.p, respuesta: d.r }))} />
+      <MiniFaq titulo={t.faq.titulo} dudas={t.faq.preguntas.map((d) => ({ pregunta: d.p, respuesta: d.r }))} duda={TEXTOS_PORTADA[idioma].faq.duda} />
 
       {/* ═══ 6 · CIERRE ═══ */}
       <section data-cta-propio className="dir-tinta relative">
@@ -162,6 +187,16 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
         </div>
         <Pie idioma={idioma} camino="/historia" />
       </section>
+
+      {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono, si se vende. */}
+      <WhatsAppFlotante idioma={idioma} />
+      {precio !== null ? (
+        <CtaSticky
+          precio={formatear(precio)}
+          href={comprar}
+          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: t.empezar }}
+        />
+      ) : null}
     </Pagina>
   );
 }

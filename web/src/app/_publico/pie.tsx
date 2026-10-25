@@ -32,11 +32,12 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
     <footer className="border-t border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)] text-[var(--texto-oscuro-menor)]">
       <div className="mx-auto flex w-full max-w-[1104px] flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between">
         <p className="max-w-xs text-[15px] italic text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-cuerpo)]">{t.lema}</p>
-        <div className="flex flex-col gap-6 text-[12px] uppercase tracking-[0.18em] [font-family:var(--fuente-micro)] sm:flex-row sm:gap-12">
+        {/* En el teléfono, dos columnas (legales | contacto, y abajo lo demás): en una sola eran casi dos pantallas (revisión del 25/10, A11). */}
+        <div className="grid grid-cols-2 gap-x-5 gap-y-6 text-[12px] uppercase tracking-[0.18em] [font-family:var(--fuente-micro)] sm:flex sm:flex-row sm:gap-12">
           <nav aria-label={t.legales} className="flex flex-col">
             <Link prefetch={false} href={ruta(idioma, "/legal/terminos")} className={enlace}>{t.terminos}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className={enlace}>{t.privacidad}</Link>
-            <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} whitespace-nowrap`}>{t.arrepentimiento}</Link>
+            <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} sm:whitespace-nowrap`}>{t.arrepentimiento}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/reclamaciones")} className={enlace}>{t.reclamaciones}</Link>
             {cupon ? (
               <Link prefetch={false} href={ruta(idioma, "/legal/cupon")} className={enlace}>{TEXTOS_CUPON[idioma].popup.bases}</Link>
@@ -44,7 +45,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
           </nav>
           <div className="flex flex-col">
             <span className="flex min-h-11 items-center text-[var(--texto-oscuro-suave)]">{t.contacto}</span>
-            <a href={`mailto:${CONTACTO.hola}`} className={`${enlace} normal-case tracking-normal text-[13px]`}>{CONTACTO.hola}</a>
+            <a href={`mailto:${CONTACTO.hola}`} className={`${enlace} break-all normal-case tracking-normal text-[13px] sm:break-normal`}>{CONTACTO.hola}</a>
             {whatsapp ? (
               <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={`${enlace} normal-case tracking-normal text-[13px]`}>
                 {t.escribirWhatsApp}

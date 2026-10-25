@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Acordeon } from "../_ui/acordeon";
-import { Pie } from "../_publico";
+import { IconoWhatsApp, Pie } from "../_publico";
 import { Toroide } from "../marca";
 import { CtaSticky } from "../cta-sticky";
 import { LogoTrazo } from "../_direccion/logo-trazo";
@@ -21,6 +21,7 @@ import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { textosAbuelo, type IdiomaRegalo } from "@/lib/regalo-textos";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 // Una sola hoja de estilo, la de la portada (trae los tokens adentro).
 import "../_direccion/direccion.css";
 
@@ -507,20 +508,49 @@ function SeccionLibro({ idioma, titulo }: { idioma: IdiomaWeb; titulo: string })
 }
 
 /** Tres o cuatro preguntas en acordeón. La garantía vive acá y solo acá (D1). */
-export function MiniFaq({ titulo, dudas, papel = false }: { titulo: string; dudas: Duda[]; papel?: boolean }) {
+export function MiniFaq({
+  titulo,
+  dudas,
+  papel = false,
+  duda,
+}: {
+  titulo: string;
+  dudas: Duda[];
+  papel?: boolean;
+  /** «¿Te queda alguna duda?» con el botón de WhatsApp, como en la portada (Viaje e Historia, 25/10). */
+  duda?: { titulo: string; texto: string; boton: string };
+}) {
+  const whatsapp = duda ? urlWhatsAppDudas() : null;
   return (
     <section className={`${papel ? "dir-papel dir-deckle" : "dir-tinta"} dir-hoja relative`}>
       <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-10 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
         <h2 className="dir-titular dir-t3 aparece md:col-span-4">{titulo}</h2>
-        <div className={`aparece border-t md:col-span-7 md:col-start-6 ${papel ? "border-[var(--dir-hilo-papel)]" : "border-[var(--dir-hilo-tinta)]"}`}>
-          {dudas.map((d, i) => (
-            <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas">
-              {d.respuesta}
-            </Acordeon>
-          ))}
+        <div className="aparece flex flex-col gap-14 md:col-span-7 md:col-start-6">
+          <div className={`border-t ${papel ? "border-[var(--dir-hilo-papel)]" : "border-[var(--dir-hilo-tinta)]"}`}>
+            {dudas.map((d, i) => (
+              <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas">
+                {d.respuesta}
+              </Acordeon>
+            ))}
+          </div>
+          {duda && whatsapp ? <DudaWhatsApp duda={duda} href={whatsapp} papel={papel} /> : null}
         </div>
       </div>
     </section>
+  );
+}
+
+/** «¿Te queda alguna duda?»: el bloque de la portada, con el botón oscuro sobre papel o el claro sobre tinta. */
+export function DudaWhatsApp({ duda, href, papel }: { duda: { titulo: string; texto: string; boton: string }; href: string; papel: boolean }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="dir-pie">{duda.titulo}</span>
+      <p className={`text-[16px] font-light leading-[1.55] ${papel ? "text-[var(--dir-sobre-papel-suave)]" : "text-[var(--dir-sobre-tinta-suave)]"}`}>{duda.texto}</p>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={`dir-boton self-start ${papel ? "dir-boton--tinta" : "dir-boton--hilo"}`}>
+        <IconoWhatsApp className="mr-2 h-4 w-4" />
+        {duda.boton}
+      </a>
+    </div>
   );
 }
 

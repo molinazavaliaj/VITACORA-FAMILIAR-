@@ -96,7 +96,10 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* ═══ 1 · INICIO, sobre tinta. Capa: queda fija detrás cuando termina. ═══ */}
       <section data-capa className="dir-tinta relative z-[1]">
-        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
+        {/* El aire de abajo (40svh) es para que las ventajas y el enlace al ejemplo
+            lleguen al medio de la pantalla antes de que suba «Qué es»: el papel
+            tapa primero ese vacío (revisión del 25/10, A5). */}
+        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center px-4 pb-[40svh] pt-32 text-center sm:px-8 sm:pt-36">
           <div className="absolute inset-x-0 top-0">
             <Cabecera idioma={idioma} camino="/" sobreHero />
           </div>
@@ -128,6 +131,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             </a>
           </div>
 
+          {/* El camino a /ejemplo, que la portada no tenía (revisión del 25/10). */}
+          <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className="dir-enlace dir-entra mt-7 text-[15px]" style={conVar({ "--e": "1s" })}>
+            {t.verEjemplo} <span aria-hidden>→</span>
+          </Link>
+
           <ul className="prt-ventajas dir-entra mt-10" style={conVar({ "--e": "1.05s" })}>
             {t.inicio.ventajas.map((v) => (
               <li key={v}>
@@ -158,7 +166,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             <p className="dir-parrafo max-w-[44ch]">{t.queEs.bajada}</p>
           </div>
 
-          <div className="mt-20 grid grid-cols-1 items-center gap-16 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-28 md:grid-cols-12 md:gap-8 md:pt-24">
+          {/* Menos aire arriba en la compu: entre el título y el teléfono quedaba media hoja vacía (revisión del 25/10, A10). */}
+          <div className="mt-20 grid grid-cols-1 items-center gap-16 border-t border-[var(--dir-hilo-papel)] pt-16 md:mt-14 md:grid-cols-12 md:gap-8 md:pt-12">
             <div className="aparece flex flex-col gap-8 md:col-span-6">
               <h3 className="dir-titular dir-t4">{t.siguiendo.titulo}</h3>
               <ol className="prt-pasos">
@@ -361,6 +370,9 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               ) : null}
               <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno w-full max-w-[358px] sm:w-auto sm:self-start">
                 {t.iniciar}
+              </Link>
+              <Link prefetch={false} href={ruta(idioma, "/ejemplo")} className="dir-enlace self-start text-[15px]">
+                {t.verEjemplo} <span aria-hidden>→</span>
               </Link>
             </div>
           </div>
