@@ -144,6 +144,17 @@ export function PaginaFoto({ c, sizes, foto = OSVALDO.interior }: { c: Capitulo;
   );
 }
 
+/** Viaje (25/10, Naza): un fotolibro, no un libro de texto. La izquierda es una
+ *  foto a sangre con una sola frase; la derecha, otra foto grande y su pie. */
+function PaginaFotoViaje({ foto, frase, alt, lado, sizes }: { foto: string; frase: string; alt: string; lado: "izq" | "der"; sizes: string }) {
+  return (
+    <div className={`l3-pagina l3-pagina--${lado} l3-foto-viaje relative h-full overflow-hidden`}>
+      <Image src={foto} alt={alt} fill sizes={sizes} className="object-cover" />
+      <span className="l3-foto-viaje-frase">{frase}</span>
+    </div>
+  );
+}
+
 export function Libro3D({
   idioma,
   b,
@@ -158,8 +169,9 @@ export function Libro3D({
   const lema = TEXTOS_PUBLICO[idioma].lema;
   // El libro se arma 1,5 veces más grande (ver globals.css): la tapa mide ~570 px.
   const sizes = "(min-width: 768px) 570px, 93vw";
+  const viaje = diseno.variante === "viaje";
   return (
-    <div className={`l3-escena ${diseno.variante === "viaje" ? "l3--viaje" : ""}`} aria-hidden>
+    <div className={`l3-escena ${viaje ? "l3--viaje" : ""}`} aria-hidden>
       <div className="l3-sombra" />
       <div className="l3-libro">
         <div className="l3-tapa">
@@ -180,11 +192,19 @@ export function Libro3D({
             <Portadilla b={b} />
           </div>
           <div className="l3-cara l3-hoja-dorso">
-            <PaginaCapitulo c={c} />
+            {viaje ? (
+              <PaginaFotoViaje foto={diseno.tapa} frase={c.citaCapitulo} alt="" lado="izq" sizes="(min-width: 768px) 470px, 75vw" />
+            ) : (
+              <PaginaCapitulo c={c} />
+            )}
           </div>
         </div>
         <div className="l3-cara l3-hoja-derecha">
-          <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" foto={diseno.interior} />
+          {viaje ? (
+            <PaginaFotoViaje foto={diseno.interior} frase={c.pieFoto} alt={c.altFoto} lado="der" sizes="(min-width: 768px) 470px, 75vw" />
+          ) : (
+            <PaginaFoto c={c} sizes="(min-width: 768px) 470px, 75vw" foto={diseno.interior} />
+          )}
         </div>
         <div className="l3-cara l3-contra">
           <Contratapa b={b} lema={lema} />
