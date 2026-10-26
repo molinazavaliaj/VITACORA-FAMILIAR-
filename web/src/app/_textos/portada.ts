@@ -236,7 +236,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
-      texto: "Regálale algo que va a quedar para toda la vida. Eliges el día en que empieza y te damos una tarjeta para entregárselo.",
+      // APROBADO por Naza el 26/10 · jurado de compradores, texto 7 (antes «el día en que empieza»: no empieza sola)
+      texto: "Regálale algo que va a quedar para toda la vida. Eliges el día en que le llega y te damos una tarjeta para entregárselo.",
     },
     preguntas: {
       usarlo: "¿Va a saber usarlo?",
@@ -309,7 +310,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       altMarco: "Un marco negro pequeño con una foto, sobre un aparador junto a un libro y una lámpara encendida",
     },
     diciembre: {
-      regalo: { texto: "Eliges el día en que empieza y te damos una tarjeta para entregárselo." },
+      regalo: { texto: "Eliges el día en que le llega y te damos una tarjeta para entregárselo." },
       altFoto: "Un abuelo abre una tarjeta de regalo junto al árbol de Navidad",
     },
     faq: {
@@ -324,15 +325,44 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "¿Y si no quiere, o le da vergüenza?",
           respuesta: "Le pedimos permiso antes de empezar la entrevista. Puede parar cuando quiera y retomar cuando quiera.",
         },
+        // APROBADOS por Naza el 26/10 · jurado de compradores, textos 4 y 5
+        {
+          pregunta: "¿Y si hay cosas de las que no quiere hablar?",
+          respuesta: "Puede decir «paso» y vamos a la siguiente pregunta. Si cuenta algo y después prefiere que no salga en el libro, lo dice y no sale.",
+        },
+        {
+          pregunta: "¿Y si no se maneja bien con el móvil?",
+          respuesta: "Puedes sentarte con él y ayudarle a grabar los audios desde su propio WhatsApp. Lo demás lo hacemos nosotros.",
+        },
         // APROBADO por Naza el 19/10 · tanda 6, texto 8
         { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
         },
+        // APROBADO por Naza el 26/10 · jurado de compradores, texto 3
+        {
+          pregunta: "¿Quién le hace las preguntas y quién escribe el libro?",
+          respuesta:
+            "Nuestro biógrafo, un programa de inteligencia artificial pensado para escuchar a personas mayores. Le pregunta por su vida, escucha sus audios y con lo que cuenta escribe el libro. Antes de imprimir lo lees tú y corriges lo que haga falta.",
+        },
         {
           pregunta: "¿Y si empieza y no termina?",
           respuesta: "No hay calendario ni apuro. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
+        },
+        // APROBADOS por Naza el 26/10 · jurado de compradores, textos 1, 2 y 6 (imprenta: 5 días hábiles + 48 h de envío)
+        {
+          pregunta: "¿Cuánto tarda?",
+          respuesta:
+            "Depende de su ritmo. Son unas cien preguntas, y si contesta unas cuantas cada día, en tres o cuatro semanas termina. Después escribimos su libro en un par de días. Tú lo revisas, eliges la tapa y, desde que lo mandamos a imprimir, el libro llega a casa en unos diez días.",
+        },
+        {
+          pregunta: "¿Llega para Navidad?",
+          respuesta: "La tarjeta, sí. Se la das el 24 y su entrevista empieza cuando él quiera. El libro llega después, cuando termine de contar su vida.",
+        },
+        {
+          pregunta: "¿Puede ser una sorpresa?",
+          respuesta: "Sí. Le regalas una tarjeta, impresa o por WhatsApp, y no le llega nada nuestro hasta que la abre. La entrevista empieza cuando él dice que sí.",
         },
         {
           pregunta: "¿Cuánto sale y cuándo se paga?",
@@ -447,7 +477,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     },
     regalo: {
       titulo: "No le regales la misma camisa de todos los años.",
-      texto: "Regalale algo que va a quedar para toda la vida. Elegís el día en que empieza y te damos una tarjeta para entregárselo.",
+      // es APROBADO por Naza el 26/10 (texto 7); de vos
+      texto: "Regalale algo que va a quedar para toda la vida. Elegís el día en que le llega y te damos una tarjeta para entregárselo.",
     },
     preguntas: {
       usarlo: "¿Va a saber usarlo?",
@@ -520,7 +551,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       altMarco: "Un marco negro chico con una foto, sobre un aparador junto a un libro y una lámpara prendida",
     },
     diciembre: {
-      regalo: { texto: "Elegís el día en que empieza y te damos una tarjeta para dárselo." },
+      regalo: { texto: "Elegís el día en que le llega y te damos una tarjeta para dárselo." },
       altFoto: "Un abuelo abre una tarjeta de regalo junto al arbolito de Navidad",
     },
     faq: {
@@ -535,15 +566,45 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "¿Y si no quiere, o le da vergüenza?",
           respuesta: "Le pedimos permiso antes de empezar la entrevista. Puede parar cuando quiera y retomar cuando quiera.",
         },
+        // es APROBADOS por Naza el 26/10 (textos 4 y 5); de vos
+        {
+          pregunta: "¿Y si hay cosas de las que no quiere hablar?",
+          respuesta: "Puede decir «paso» y vamos a la siguiente pregunta. Si cuenta algo y después prefiere que no salga en el libro, lo dice y no sale.",
+        },
+        {
+          pregunta: "¿Y si no se maneja bien con el celular?",
+          respuesta: "Podés sentarte con él y ayudarlo a grabar los audios desde su propio WhatsApp. Lo demás lo hacemos nosotros.",
+        },
         // APROBADO por Naza el 19/10 · tanda 6, texto 8
         { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
           respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
         },
+        // es APROBADO por Naza el 26/10 (texto 3); de vos
+        {
+          pregunta: "¿Quién le hace las preguntas y quién escribe el libro?",
+          respuesta:
+            "Nuestro biógrafo, un programa de inteligencia artificial pensado para escuchar a personas mayores. Le pregunta por su vida, escucha sus audios y con lo que cuenta escribe el libro. Antes de imprimir lo leés vos y corregís lo que haga falta.",
+        },
         {
           pregunta: "¿Y si empieza y no termina?",
           respuesta: "No hay calendario ni apuro. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
+        },
+        // es APROBADOS por Naza el 26/10 (textos 1, 2 y 6); de vos. El 1 sin el plazo
+        // de imprenta: los diez días son de Bookmundo a España, en Argentina no hay dato.
+        {
+          pregunta: "¿Cuánto tarda?",
+          respuesta:
+            "Depende de su ritmo. Son unas cien preguntas, y si contesta unas cuantas cada día, en tres o cuatro semanas termina. Después escribimos su libro en un par de días, lo revisás y queda listo para leer y escuchar.",
+        },
+        {
+          pregunta: "¿Llega para Navidad?",
+          respuesta: "La tarjeta, sí. Se la das el 24 y su entrevista empieza cuando él quiera. El libro llega después, cuando termine de contar su vida.",
+        },
+        {
+          pregunta: "¿Puede ser una sorpresa?",
+          respuesta: "Sí. Le regalás una tarjeta, impresa o por WhatsApp, y no le llega nada nuestro hasta que la abre. La entrevista empieza cuando él dice que sí.",
         },
         {
           pregunta: "¿Cuánto sale y cuándo se paga?",
@@ -664,7 +725,8 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     },
     regalo: {
       titulo: "No li regalis la mateixa camisa de cada any.",
-      texto: "Regala-li una cosa que quedarà per a tota la vida. Tries el dia que comença i et donem una targeta per donar-li.",
+      // PENDIENTE REVISIÓN NATIVA (Imma) · traducción del texto 7 aprobado el 26/10
+      texto: "Regala-li una cosa que quedarà per a tota la vida. Tries el dia que li arriba i et donem una targeta per donar-li.",
     },
     preguntas: {
       usarlo: "Sabrà fer-lo servir?",
@@ -737,7 +799,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       altMarco: "Un marc negre petit amb una foto, sobre un aparador al costat d'un llibre i un llum encès",
     },
     diciembre: {
-      regalo: { texto: "Tries el dia que comença i et donem una targeta per donar-l'hi." },
+      regalo: { texto: "Tries el dia que li arriba i et donem una targeta per donar-l'hi." },
       altFoto: "Un avi obre una targeta de regal al costat de l'arbre de Nadal",
     },
     faq: {
@@ -752,15 +814,44 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
           pregunta: "I si no vol, o li fa vergonya?",
           respuesta: "Li demanem permís abans de començar l'entrevista. Pot parar quan vulgui i reprendre-ho quan vulgui.",
         },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de los textos 4 y 5 aprobados el 26/10
+        {
+          pregunta: "I si hi ha coses de les quals no vol parlar?",
+          respuesta: "Pot dir «passo» i anem a la pregunta següent. Si explica alguna cosa i després prefereix que no surti al llibre, ho diu i no surt.",
+        },
+        {
+          pregunta: "I si no es mou bé amb el mòbil?",
+          respuesta: "Pots seure amb ell i ajudar-lo a gravar els àudios des del seu propi WhatsApp. La resta la fem nosaltres.",
+        },
         // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de la tanda 6, texto 8
         { pregunta: "I si no ho vol fer?", respuesta: "Et retornem tot el que vas pagar. Si comença i contesta menys de deu preguntes, també t'ho retornem tot." },
         {
           pregunta: "Qui escolta els seus àudios?",
           respuesta: "Només la seva família. Els àudios són privats, s'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
         },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción del texto 3 aprobado el 26/10
+        {
+          pregunta: "Qui li fa les preguntes i qui escriu el llibre?",
+          respuesta:
+            "El nostre biògraf, un programa d'intel·ligència artificial pensat per escoltar persones grans. Li pregunta per la seva vida, escolta els seus àudios i amb el que explica escriu el llibre. Abans d'imprimir-lo el llegeixes tu i corregeixes el que calgui.",
+        },
         {
           pregunta: "I si comença i no acaba?",
           respuesta: "No hi ha calendari ni pressa. Si un dia no contesta, la pregunta l'espera, i quan ho reprèn, l'entrevista continua on s'havia quedat.",
+        },
+        // PENDIENTE REVISIÓN NATIVA (Imma) · traducción de los textos 1, 2 y 6 aprobados el 26/10
+        {
+          pregunta: "Quant triga?",
+          respuesta:
+            "Depèn del seu ritme. Són unes cent preguntes, i si en contesta unes quantes cada dia, en tres o quatre setmanes acaba. Després escrivim el seu llibre en un parell de dies. Tu el revises, tries la tapa i, des que l'enviem a imprimir, el llibre arriba a casa en uns deu dies.",
+        },
+        {
+          pregunta: "Arriba per Nadal?",
+          respuesta: "La targeta, sí. Li dones el 24 i la seva entrevista comença quan ell vulgui. El llibre arriba després, quan acabi d'explicar la seva vida.",
+        },
+        {
+          pregunta: "Pot ser una sorpresa?",
+          respuesta: "Sí. Li regales una targeta, impresa o per WhatsApp, i no li arriba res nostre fins que l'obre. L'entrevista comença quan ell diu que sí.",
         },
         {
           pregunta: "Quant costa i quan es paga?",
