@@ -13,6 +13,8 @@
 //   de la pasarela): entonces la compra se vuelve a crear con los datos nuevos,
 //   para no cobrar ni mandar el acceso con los viejos.
 
+import { medirInicioDePago } from "@/lib/medicion-cliente";
+
 export type RespuestaCompra = { urlPago: string; narradorId: string; tokenFotos: string };
 
 export type Subible = { clave: string; nombre: string; subida: boolean };
@@ -83,6 +85,8 @@ export function crearPagador(deps: DependenciasPago, T: TextosPago) {
         return { error: datos.error ?? T.errorPago, ...(typeof datos.motivoCupon === "string" ? { motivoCupon: datos.motivoCupon } : {}) };
       }
       iniciada = { urlPago: datos.urlPago, narradorId: datos.narradorId, tokenFotos: datos.tokenFotos };
+      // Medición de anuncios: no hace nada si no aceptó las cookies (lib/medicion-cliente.ts).
+      medirInicioDePago(null, null);
       cuerpoIniciado = cuerpoJson;
     }
     const compra = iniciada;

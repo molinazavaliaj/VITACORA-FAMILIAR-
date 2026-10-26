@@ -8,6 +8,8 @@ import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { OPINIONES, hayOpiniones, type Opinion } from "@/lib/opiniones";
 import { EnlaceIdioma } from "./idioma-cliente";
+import { BotonCookies } from "../medicion";
+import { TEXTOS_MEDICION } from "../_textos/medicion";
 
 // El pie público del rediseño 2026-10: el lema de siempre, los legales que
 // existen hoy (con Reclamaciones, 19/10) y el contacto con su horario. «Botón de arrepentimiento» en Argentina es
@@ -39,6 +41,7 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
             <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className={enlace}>{t.privacidad}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/arrepentimiento")} className={`${enlace} sm:whitespace-nowrap`}>{t.arrepentimiento}</Link>
             <Link prefetch={false} href={ruta(idioma, "/legal/reclamaciones")} className={enlace}>{t.reclamaciones}</Link>
+            <BotonCookies texto={TEXTOS_MEDICION[idioma].cookies} className={`${enlace} text-left uppercase tracking-[0.18em]`} />
             {cupon ? (
               <Link prefetch={false} href={ruta(idioma, "/legal/cupon")} className={enlace}>{TEXTOS_CUPON[idioma].popup.bases}</Link>
             ) : null}

@@ -11,6 +11,7 @@ import { CONFIRMADO, momentosKids, type CanalConfirmadoKids, type Momento } from
 import { CascaronCheckout } from "../../_checkout/cascaron";
 import { clasesBoton } from "../../_ui";
 import { AlConfirmar } from "./al-confirmar";
+import { MedirCompra } from "./medir-compra";
 
 // «Pedido confirmado» (rediseño 2026-10, paso 4 de la maqueta Checkout).
 // Adonde vuelve la pasarela: /api/pago/vuelta confirma el pago, abre la sesión
@@ -41,6 +42,8 @@ type Confirmado = {
   kids: CanalConfirmadoKids | null;
   /** Su castellano (kids_v2.idioma): vos en Argentina, tú en España. */
   idiomaKids: IdiomaKids;
+  /** El último pago de este narrador, para la medición de anuncios (MedirCompra). */
+  compra: { pedidoId: string; monto: number; moneda: string } | null;
 };
 
 /** Lo que se muestra de la compra, si la sesión es de la dueña de ese narrador; si no, null. */
@@ -54,11 +57,14 @@ async function leerConfirmado(narradorId: string): Promise<Confirmado | null> {
     const n = historia.narrador;
     // Las tres consultas no dependen una de la otra. kids_v2 puede no existir
     // todavía (migración sin aplicar): entonces no es de Kids.
-    const [{ data: regalo }, { data: entrega }, { data: kids }] = await Promise.all([
+    const [{ data: regalo }, { data: entrega }, { data: kids }, { data: pago }] = await Promise.all([
       admin.from("regalos").select("codigo").eq("narrador_id", n.id).maybeSingle(),
       admin.from("entregas").select("id, estado").eq("narrador_id", n.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       admin.from("kids_v2").select("canal, idioma").eq("narrador_id", n.id).maybeSingle(),
+      admin.from("pedidos").select("id, monto, moneda").eq("narrador_id", n.id).eq("estado", "pagado").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
+    const p = pago as { id?: unknown; monto?: unknown; moneda?: unknown } | null;
+    const monto = Number(p?.monto);
     const canal = (kids as { canal?: unknown } | null)?.canal;
     const idiomaKids = idiomaKidsDe((kids as { idioma?: unknown } | null)?.idioma);
     const e = entrega as { id: string; estado: string } | null;
@@ -71,6 +77,7 @@ async function leerConfirmado(narradorId: string): Promise<Confirmado | null> {
       entregaSinDireccion: e && e.estado === "sin_direccion" ? e.id : null,
       kids: canal === "A" || canal === "B" ? canal : null,
       idiomaKids,
+      compra: typeof p?.id === "string" && Number.isFinite(monto) && typeof p?.moneda === "string" ? { pedidoId: p.id, monto, moneda: p.moneda } : null,
     };
   } catch (err) {
     console.error("gracias: no pude leer la compra confirmada", err);
@@ -127,6 +134,8 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
             ))}
           </ol>
         ) : null}
+
+        {confirmado?.compra ? <MedirCompra {...confirmado.compra} /> : null}
 
         <AlConfirmar
           narradorId={confirmado?.narradorId ?? null}

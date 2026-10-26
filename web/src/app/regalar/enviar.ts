@@ -1,3 +1,4 @@
+import { medirInicioDePago } from "@/lib/medicion-cliente";
 import type { Region } from "@/lib/precios";
 import type { Genero } from "@/lib/regalo-reglas";
 import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
@@ -124,6 +125,8 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
     const crudo = (await r.json()) as Respuesta;
     if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? errorPago };
     datos = { ...crudo, urlPago: crudo.urlPago };
+    // Medición de anuncios: no hace nada si no aceptó las cookies (lib/medicion-cliente.ts).
+    medirInicioDePago(null, null);
   } catch {
     return { error: errorPago };
   }
