@@ -15,7 +15,7 @@ import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
 import { COMPRADOR_WEB } from "../_textos/regalar";
 import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
-import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../_checkout/memoria";
+import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, vieneParaRegalar } from "../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
@@ -177,7 +177,11 @@ export function Checkout({
   // Vuelta de un pago que no se cobró (Casos 2): lo elegido aparece de nuevo,
   // en el paso del pago, y el parámetro se saca de la barra.
   useEffect(() => {
-    if (!vieneDePagoFallido(window.location.search)) return;
+    if (!vieneDePagoFallido(window.location.search)) {
+      // Desde «Regálalo con una tarjeta»: el regalo ya viene elegido (26/10).
+      if (vieneParaRegalar(window.location.search)) cambiar({ regalo: true });
+      return;
+    }
     const guardado = leer<EstadoCompra>(sesion, CLAVE_COMPRA, claveDeCompra(idioma));
     // Lo dice la URL de vuelta: en una página estática solo se puede leer acá, ya en el navegador.
     setFallo(guardado ? "guardado" : "solo");
