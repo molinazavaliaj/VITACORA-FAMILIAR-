@@ -6,8 +6,9 @@ import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 // la landing y de /comprar. El violeta queda para «Comprar el libro»: estos van
 // sin color de botón.
 
-// Con idioma (rediseño 2026-10), el link va a /regalar en ese idioma y el
-// texto sale de acá; sin idioma, como siempre, por trato.
+// Con idioma (rediseño 2026-10), el link va a /comprar en ese idioma con el
+// regalo ya elegido (26/10: /regalar solo vendía el PDF y confundía con el
+// «Para regalar» de 109 €) y el texto sale de acá; sin idioma, por trato.
 // ca: revisado con el corrector de Softcatalà (18/10)
 const REGALAR_POR_IDIOMA: Record<IdiomaWeb, string> = {
   es: "Regálalo con una tarjeta →",
@@ -20,7 +21,7 @@ export function LinkRegalarLanding({ trato = "vos", idioma, className }: { trato
   const texto = idioma ? REGALAR_POR_IDIOMA[idioma] : trato === "tu" ? REGALAR_POR_IDIOMA.es : REGALAR_POR_IDIOMA.ar;
   return (
     <Link prefetch={false}
-      href={idioma ? ruta(idioma, "/regalar") : "/regalar"}
+      href={`${idioma ? ruta(idioma, "/comprar") : "/comprar"}?regalo=1`}
       className={
         className ??
         "self-start text-[15px] text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white [font-family:var(--fuente-micro)]"
@@ -37,7 +38,7 @@ export function SugerenciaRegalo({ trato = "vos" }: { trato?: TratoComprador }) 
   return (
     <p className="mt-4 text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
       {tu ? "¿Quieres que sea una sorpresa?" : "¿Querés que sea una sorpresa?"}{" "}
-      <Link prefetch={false} href="/regalar" className="text-[#14140F] underline underline-offset-4">{tu ? "Regálalo con una tarjeta" : "Regalalo con una tarjeta"}</Link>
+      <Link prefetch={false} href="/comprar?regalo=1"className="text-[#14140F] underline underline-offset-4">{tu ? "Regálalo con una tarjeta" : "Regalalo con una tarjeta"}</Link>
       . No hace falta su WhatsApp.
     </p>
   );
