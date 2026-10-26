@@ -117,7 +117,7 @@ export type TextosLegal = {
 // La medición de anuncios (lib/medicion.ts, 26/10): con un id de Meta o Google
 // en Vercel cambian tres textos de privacidad (dos de «En corto» y el final de
 // «12. Cookies»). Sin id, exactamente lo de antes. Los textos nuevos están
-// PENDIENTES DE APROBAR POR NAZA (tanda «medición») Y DEL ABOGADO.
+// APROBADOS por Naza (26/10, tal como están) y PENDIENTES DE REVISIÓN DEL ABOGADO.
 const MIDE = medicionConfigurada();
 
 const p = (texto: string): Bloque => ({ tipo: "parrafo", texto });

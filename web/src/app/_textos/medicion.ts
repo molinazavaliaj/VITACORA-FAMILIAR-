@@ -3,7 +3,7 @@ import type { Textos } from "@/lib/idioma-web";
 // El aviso de cookies y el enlace «Cookies» del pie (medición de anuncios, 26/10).
 // Solo se ven con un id de Meta o Google en Vercel (lib/medicion.ts).
 //
-// PENDIENTE DE APROBAR POR NAZA (tanda «medición», 26/10) Y DEL ABOGADO.
+// APROBADO por Naza (26/10, tal como están). PENDIENTE DE REVISIÓN DEL ABOGADO.
 // Rechazar tiene que ser igual de fácil que aceptar (guía de cookies de la
 // AEPD): los dos botones, del mismo tamaño, en la primera capa.
 
