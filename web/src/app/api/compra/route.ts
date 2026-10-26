@@ -9,6 +9,7 @@ import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } fr
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { intenta } from "@/lib/trato";
 import { limpiarOrigen } from "@/lib/origen";
+import { medicionDelRequest, type MedicionPedido } from "@/lib/meta-conversiones";
 import { KIDS_TODAVIA_NO, catalogoKids, compraKids, idiomaKidsDeRegion, kidsVendeEn } from "@/lib/kids";
 import { conLinkPanel, leerCompraKids, type CuerpoKids } from "@/lib/kids-compra";
 import { obtenerPrecioKids } from "@/lib/precios";
@@ -140,7 +141,7 @@ function esDeKids(fila: unknown): boolean {
  * `pedidos.extras`: los productos, `regalo: true` si es un regalo y `origen`
  * (F4-5) solo si vino uno válido. Sin origen, exactamente lo de antes.
  */
-function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown) {
+function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown, medicion?: MedicionPedido) {
   let origen: ReturnType<typeof limpiarOrigen> = null;
   try {
     origen = limpiarOrigen(origenCrudo, new Date());
@@ -151,6 +152,8 @@ function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown) 
     ...productosParaPedido(compra),
     ...(regalo ? { regalo: true } : {}),
     ...(origen ? { origen } : {}),
+    // Solo si aceptó las cookies (lib/meta-conversiones.ts): lo que Meta necesita al entrar el pago.
+    ...(medicion ? { medicion } : {}),
     ...(compra.creador
       ? {
           // El código de un creador (CONTRATO «Programa de creadores»): NUNCA como
@@ -179,7 +182,9 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
   }
-  if (body.producto === "kids") return comprarKids(body);
+  // Lo de la medición de anuncios, solo si aceptó las cookies (lib/meta-conversiones.ts).
+  const medicion = medicionDelRequest(request.headers, request.cookies);
+  if (body.producto === "kids") return comprarKids(body, medicion);
   // Vos o tú: el de la región que eligió en el formulario.
   const trato: TratoComprador = body.region === "ES" ? "tu" : "vos";
 
@@ -369,7 +374,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen),
+      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen, medicion),
     })
     .select("id")
     .single();
@@ -489,7 +494,7 @@ async function deshacer(admin: SupabaseClient, creado: { familiaId?: string; nar
   }
 }
 
-async function comprarKids(body: CompraBody): Promise<NextResponse> {
+async function comprarKids(body: CompraBody, medicion?: MedicionPedido): Promise<NextResponse> {
   if (body.region !== "ES" && body.region !== "AR") {
     return NextResponse.json({ error: "La región debe ser España o Argentina." }, { status: 400 });
   }
@@ -635,7 +640,7 @@ async function comprarKids(body: CompraBody): Promise<NextResponse> {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: { ...extrasDelPedido(compra, false, body.origen), tipo: "kids" },
+      extras: { ...extrasDelPedido(compra, false, body.origen, medicion), tipo: "kids" },
     })
     .select("id")
     .single();

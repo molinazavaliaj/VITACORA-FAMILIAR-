@@ -22,6 +22,7 @@ import { tratoDeRegion, type TratoComprador } from "./regalo-textos";
 import { marcarCuponUsado } from "./cupon-base";
 import { registrarComision } from "./creadores-base";
 import { enviarMailSocios } from "./mail";
+import { avisarCompraAMeta, type CompraParaMeta, type ResultadoAvisoMeta } from "./meta-conversiones";
 
 export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
@@ -32,7 +33,14 @@ type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: 
 
 export async function confirmarPago(
   admin: SupabaseClient,
-  opciones: { pedidoId: string; referenciaExterna: string; enviarMailAcceso: EnviarMailAcceso; enviarMailRegalo?: EnviarMailRegalo },
+  opciones: {
+    pedidoId: string;
+    referenciaExterna: string;
+    enviarMailAcceso: EnviarMailAcceso;
+    enviarMailRegalo?: EnviarMailRegalo;
+    /** Solo en los tests; en producción, lib/meta-conversiones. */
+    avisarCompra?: (compra: CompraParaMeta) => Promise<ResultadoAvisoMeta>;
+  },
 ): Promise<ResultadoConfirmacion> {
   const { pedidoId, referenciaExterna, enviarMailAcceso } = opciones;
 
@@ -178,6 +186,15 @@ export async function confirmarPago(
     } catch (err) {
       console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el ${esRegalo ? "mail del regalo" : "mail de acceso"} a ${email} falló:`, err);
     }
+  }
+
+  // 5. La compra, a Meta (medición de anuncios, 26/10): solo la primera vez y
+  //    solo si quien compró aceptó las cookies (lib/meta-conversiones.ts).
+  //    Nunca tira ni cambia el resultado del pago.
+  try {
+    await (opciones.avisarCompra ?? avisarCompraAMeta)({ pedidoId: pedido.id, monto, moneda, email, region, extras, ahora: new Date() });
+  } catch (err) {
+    console.error(`confirmarPago: no pude avisarle a Meta la compra ${pedidoId}:`, err);
   }
 
   return { ok: true, yaEstaba: false, email, codigoRegalo };

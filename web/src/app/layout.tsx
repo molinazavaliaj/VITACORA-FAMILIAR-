@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { OrigenVisita } from "./origen-visita";
+import { Medicion } from "./medicion";
 import { origenPublico } from "@/lib/seo";
 
 // Las tipografías de marca (Playfair Display, Archivo, Source Serif 4, las mismas
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {children}
         <OrigenVisita />
+        <Medicion />
       </body>
     </html>
   );

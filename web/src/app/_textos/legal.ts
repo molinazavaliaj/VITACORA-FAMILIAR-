@@ -1,4 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
+import { medicionConfigurada } from "@/lib/medicion";
 
 // Los textos legales de la web (rediseño 2026-10, fase 5): términos,
 // privacidad y desistimiento / botón de arrepentimiento, en los tres idiomas.
@@ -112,6 +113,12 @@ export type TextosLegal = {
   /** Reclamaciones y atención (tanda 5, textos 32–38): una sola sección, sin título ni índice. */
   reclamaciones: TextoDocumento;
 };
+
+// La medición de anuncios (lib/medicion.ts, 26/10): con un id de Meta o Google
+// en Vercel cambian tres textos de privacidad (dos de «En corto» y el final de
+// «12. Cookies»). Sin id, exactamente lo de antes. Los textos nuevos están
+// APROBADOS por Naza (26/10, tal como están) y PENDIENTES DE REVISIÓN DEL ABOGADO.
+const MIDE = medicionConfigurada();
 
 const p = (texto: string): Bloque => ({ tipo: "parrafo", texto });
 const lista = (...items: string[]): Bloque => ({ tipo: "lista", items });
@@ -430,10 +437,10 @@ const ES: TextosLegal = {
     descripcion: "Qué guardamos de tu familia, quién lo procesa, por cuánto tiempo y cómo borrarlo.",
     enCorto: [
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
-      "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
+      MIDE ? "No los vendemos y no entrenamos ningún modelo de inteligencia artificial con ellos. Lo que cuenta tu familia nunca se usa para publicidad." : "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
       // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
       "Los audios originales se borran 3 meses después de producir el libro, o antes si lo pide el narrador o lo pides tú. Quedan solo los recortes de «Su voz».",
-      "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
+      MIDE ? "Las cookies de Meta y de Google solo se activan si las aceptas. Sin eso, solo usamos cookies técnicas." : "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, basta un correo a {hola}.",
     ],
     secciones: [
@@ -487,7 +494,7 @@ const ES: TextosLegal = {
             "**Para facturar y cumplir la ley**: guardar los datos de la compra el tiempo que exige la normativa fiscal.",
             "**Para que la web funcione y sea segura**: registros técnicos y cookies de sesión, por interés legítimo en que nadie entre a una cuenta ajena.",
           ),
-          p("Nada más. No usamos tus datos ni los de tu familia para publicidad, no los vendemos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos."),
+          p(MIDE ? "Nada más. No usamos lo que cuenta tu familia para publicidad, no vendemos tus datos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos. La única excepción es la de la sección 12. Si aceptas las cookies de medición, con tu consentimiento le avisamos a Meta y a Google cuando compras, para saber qué anuncios funcionan." : "Nada más. No usamos tus datos ni los de tu familia para publicidad, no los vendemos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos."),
         ],
       },
       {
@@ -509,6 +516,7 @@ const ES: TextosLegal = {
               ["Imprenta y mensajería", "Solo si compras el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "Bookmundo, en Países Bajos (Unión Europea), para los libros de España. En Argentina te decimos cuál antes de mandar a imprimir"],
               ["Sentry", "Avisa de los errores técnicos de la web y del entrevistador. No recibe nombres, mensajes ni audios.", "Unión Europea (Alemania)"],
               ["Cloudflare", "Guarda una copia de seguridad de los audios, las fotos y los libros, por si se pierden. Lo que borramos se borra también de la copia a los 30 días.", "Unión Europea"],
+              ...(MIDE ? [["Meta (anuncios) y Google Ads", "Solo si aceptas las cookies de medición: saben de qué anuncio llegaste y si compraste (sección 12).", "Estados Unidos"]] : []),
             ],
           ),
         ],
@@ -546,7 +554,7 @@ const ES: TextosLegal = {
         id: "con-quien",
         titulo: "8. Con quién compartimos",
         bloques: [
-          p("Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contraportada (y uno al lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro. Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal."),
+          p("Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contraportada (y uno al lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro." + (MIDE ? " Nunca vendemos datos y nunca los entregamos a terceros salvo obligación legal. Lo único que va a publicidad es el aviso de compra de la sección 12, y solo si aceptas las cookies." : " Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal.")),
         ],
       },
       {
@@ -575,7 +583,7 @@ const ES: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. Si llegas a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si compras en esa misma visita, lo apuntamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día añadimos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entras a tu cuenta, la que recuerda si prefieres la página de la historia en claro o en oscuro y la que recuerda el idioma que eliges en la web. Mientras compras, el navegador guarda en esa pestaña lo que vas rellenando, para no perderlo si vuelves atrás; se borra al cerrarla. Si llegas a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si compras en esa misma visita, lo apuntamos con tu pedido para saber qué anuncios funcionan." + (MIDE ? " Si aceptas en el aviso de cookies, activamos además el píxel de Meta (Facebook e Instagram) y la etiqueta de Google Ads. Dejan cookies como _fbp, _fbc y _gcl_au, y nos sirven para saber qué anuncios traen compras y para que Meta y Google muestren nuestros anuncios a gente parecida. Si compras habiendo aceptado, nuestro servidor también le avisa a Meta que hubo una compra, con el importe, el país, tu navegador, tu dirección IP y tu correo convertido en un código que Meta usa para reconocer si tienes cuenta con ellos. Si rechazas, no se activa nada de esto. Puedes cambiar de idea cuando quieras desde «Cookies», al pie de la página. Tu elección se guarda un año en una cookie técnica." : " No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día añadimos una herramienta de medición, te pediremos consentimiento antes de activarla y esta sección cambiará.")),
         ],
       },
       {
@@ -895,10 +903,10 @@ const AR: TextosLegal = {
     descripcion: "Qué guardamos de tu familia, quién lo procesa, por cuánto tiempo y cómo borrarlo.",
     enCorto: [
       "Usamos tus datos y los de tu familia solo para hacer el libro.",
-      "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
+      MIDE ? "No los vendemos y no entrenamos ningún modelo de inteligencia artificial con ellos. Lo que cuenta tu familia nunca se usa para publicidad." : "No los vendemos, no los usamos para publicidad y no entrenamos ningún modelo de inteligencia artificial con ellos.",
       // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
       "Los audios originales se borran 3 meses después de producir el libro, o antes si lo pide el narrador o lo pedís vos. Quedan solo los recortes de «Su voz».",
-      "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
+      MIDE ? "Las cookies de Meta y de Google solo se activan si las aceptás. Sin eso, solo usamos cookies técnicas." : "Solo usamos cookies técnicas, ni de publicidad ni de analítica.",
       "Para cualquier cosa sobre tus datos, alcanza un correo a {hola}.",
     ],
     secciones: [
@@ -952,7 +960,7 @@ const AR: TextosLegal = {
             "**Para facturar y cumplir la ley**: guardar los datos de la compra el tiempo que exige la normativa fiscal.",
             "**Para que la web funcione y sea segura**: registros técnicos y cookies de sesión, por interés legítimo en que nadie entre a una cuenta ajena.",
           ),
-          p("Nada más. No usamos tus datos ni los de tu familia para publicidad, no los vendemos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos."),
+          p(MIDE ? "Nada más. No usamos lo que cuenta tu familia para publicidad, no vendemos tus datos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos. La única excepción es la de la sección 12. Si aceptás las cookies de medición, con tu consentimiento le avisamos a Meta y a Google cuando comprás, para saber qué anuncios funcionan." : "Nada más. No usamos tus datos ni los de tu familia para publicidad, no los vendemos, no los cedemos a nadie que no necesite tocarlos para hacer tu libro, y no entrenamos ningún modelo de inteligencia artificial con ellos."),
         ],
       },
       {
@@ -974,6 +982,7 @@ const AR: TextosLegal = {
               ["Imprenta y mensajería", "Solo si comprás el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "Bookmundo, en Países Bajos (Unión Europea), para los libros de España. En Argentina te decimos cuál antes de mandar a imprimir"],
               ["Sentry", "Avisa de los errores técnicos de la web y del entrevistador. No recibe nombres, mensajes ni audios.", "Unión Europea (Alemania)"],
               ["Cloudflare", "Guarda una copia de seguridad de los audios, las fotos y los libros, por si se pierden. Lo que borramos se borra también de la copia a los 30 días.", "Unión Europea"],
+              ...(MIDE ? [["Meta (anuncios) y Google Ads", "Solo si aceptás las cookies de medición: saben de qué anuncio llegaste y si compraste (sección 12).", "Estados Unidos"]] : []),
             ],
           ),
         ],
@@ -1011,7 +1020,7 @@ const AR: TextosLegal = {
         id: "con-quien",
         titulo: "8. Con quién compartimos",
         bloques: [
-          p("Con nadie, salvo los proveedores de la sección 5 y la familia que vos elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que vos compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al lado de cada frase de «Su voz») que abre en el celular el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro. Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal."),
+          p("Con nadie, salvo los proveedores de la sección 5 y la familia que vos elijas: los invitados ven el libro y las fotos, y quien abra un enlace de muestra que vos compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al lado de cada frase de «Su voz») que abre en el celular el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro." + (MIDE ? " Nunca vendemos datos y nunca los entregamos a terceros salvo obligación legal. Lo único que va a publicidad es el aviso de compra de la sección 12, y solo si aceptás las cookies." : " Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal.")),
         ],
       },
       {
@@ -1040,7 +1049,7 @@ const AR: TextosLegal = {
         id: "cookies",
         titulo: "12. Cookies",
         bloques: [
-          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. Si llegás a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si comprás en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan. No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar."),
+          p("Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que mantiene tu sesión abierta cuando entrás a tu cuenta, la que recuerda si preferís la página de la historia en claro o en oscuro y la que recuerda el idioma que elegís en la web. Mientras comprás, el navegador guarda en esa pestaña lo que vas completando, para no perderlo si volvés atrás; se borra al cerrarla. Si llegás a la web desde un anuncio, recordamos de cuál solo mientras dura esa visita, sin guardar nada en tu navegador. Si comprás en esa misma visita, lo anotamos con tu pedido para saber qué anuncios funcionan." + (MIDE ? " Si aceptás en el aviso de cookies, activamos además el píxel de Meta (Facebook e Instagram) y la etiqueta de Google Ads. Dejan cookies como _fbp, _fbc y _gcl_au, y nos sirven para saber qué anuncios traen compras y para que Meta y Google muestren nuestros anuncios a gente parecida. Si comprás habiendo aceptado, nuestro servidor también le avisa a Meta que hubo una compra, con el importe, el país, tu navegador, tu dirección IP y tu correo convertido en un código que Meta usa para reconocer si tenés cuenta con ellos. Si rechazás, no se activa nada de esto. Podés cambiar de idea cuando quieras desde «Cookies», al pie de la página. Tu elección se guarda un año en una cookie técnica." : " No usamos cookies de publicidad ni de analítica, y por eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición, te vamos a pedir consentimiento antes de activarla y esta sección va a cambiar.")),
         ],
       },
       {
@@ -1358,10 +1367,10 @@ const CA: TextosLegal = {
     descripcion: "Què guardem de la teva família, qui ho tracta, quant de temps i com esborrar-ho.",
     enCorto: [
       "Fem servir les teves dades i les de la teva família només per fer el llibre.",
-      "No les venem, no les fem servir per a publicitat i no entrenem cap model d'intel·ligència artificial amb elles.",
+      MIDE ? "No les venem i no entrenem cap model d'intel·ligència artificial amb elles. El que explica la teva família no es fa servir mai per a publicitat." : "No les venem, no les fem servir per a publicitat i no entrenem cap model d'intel·ligència artificial amb elles.",
       // APROBADO por Naza · L3-01 (18/10, con sus correcciones)
       "Els àudios originals s'esborren 3 mesos després de produir el llibre, o abans si ho demana el narrador o ho demanes tu. Només en queden els retalls de «La seva veu».",
-      "Només fem servir galetes tècniques, ni de publicitat ni d'analítica.",
+      MIDE ? "Les galetes de Meta i de Google només s'activen si les acceptes. Sense això, només fem servir galetes tècniques." : "Només fem servir galetes tècniques, ni de publicitat ni d'analítica.",
       "Per a qualsevol cosa sobre les teves dades, n'hi ha prou amb un correu a {hola}.",
     ],
     secciones: [
@@ -1415,7 +1424,7 @@ const CA: TextosLegal = {
             "**Per facturar i complir la llei**: guardar les dades de la compra el temps que exigeix la normativa fiscal.",
             "**Perquè la web funcioni i sigui segura**: registres tècnics i galetes de sessió, per interès legítim que ningú no entri en un compte aliè.",
           ),
-          p("Res més. No fem servir les teves dades ni les de la teva família per a publicitat, no les venem, no les cedim a ningú que no les necessiti tocar per fer el teu llibre, i no entrenem cap model d'intel·ligència artificial amb elles."),
+          p(MIDE ? "Res més. No fem servir el que explica la teva família per a publicitat, no venem les teves dades, no les cedim a ningú que no les necessiti tocar per fer el teu llibre, i no entrenem cap model d'intel·ligència artificial amb elles. L'única excepció és la de la secció 12. Si acceptes les galetes de mesura, amb el teu consentiment avisem Meta i Google quan compres, per saber quins anuncis funcionen." : "Res més. No fem servir les teves dades ni les de la teva família per a publicitat, no les venem, no les cedim a ningú que no les necessiti tocar per fer el teu llibre, i no entrenem cap model d'intel·ligència artificial amb elles."),
         ],
       },
       {
@@ -1437,6 +1446,7 @@ const CA: TextosLegal = {
               ["Impremta i missatgeria", "Només si compres el llibre imprès o els marcs: reben l'arxiu, el teu nom i l'adreça d'enviament.", "Bookmundo, als Països Baixos (Unió Europea), per als llibres d'Espanya. A l'Argentina et diem quina abans d'enviar a imprimir"],
               ["Sentry", "Avisa dels errors tècnics del web i de l'entrevistador. No rep noms, missatges ni àudios.", "Unió Europea (Alemanya)"],
               ["Cloudflare", "Guarda una còpia de seguretat dels àudios, les fotos i els llibres, per si es perden. El que esborrem s'esborra també de la còpia al cap de 30 dies.", "Unió Europea"],
+              ...(MIDE ? [["Meta (anuncis) i Google Ads", "Només si acceptes les galetes de mesura: saben de quin anunci has arribat i si has comprat (secció 12).", "Estats Units"]] : []),
             ],
           ),
         ],
@@ -1474,7 +1484,7 @@ const CA: TextosLegal = {
         id: "con-quien",
         titulo: "8. Amb qui compartim",
         bloques: [
-          p("Amb ningú, tret dels proveïdors de la secció 5 i la família que tu triïs: els convidats veuen el llibre i les fotos, i qui obri un enllaç de mostra que tu has compartit veu la portada, els títols dels capítols, el primer paràgraf i un minut d'àudio. El llibre imprès porta a més un codi a la contracoberta (i un al costat de cada frase de «La seva veu») que obre al mòbil el llibre sencer i les seves frases, sense compte: qui tingui el llibre a la mà el pot obrir i reenviar aquest enllaç, igual que podria deixar el llibre. Mai no venem dades, mai no les fem servir per a publicitat i mai no les lliurem a tercers tret d'obligació legal."),
+          p("Amb ningú, tret dels proveïdors de la secció 5 i la família que tu triïs: els convidats veuen el llibre i les fotos, i qui obri un enllaç de mostra que tu has compartit veu la portada, els títols dels capítols, el primer paràgraf i un minut d'àudio. El llibre imprès porta a més un codi a la contracoberta (i un al costat de cada frase de «La seva veu») que obre al mòbil el llibre sencer i les seves frases, sense compte: qui tingui el llibre a la mà el pot obrir i reenviar aquest enllaç, igual que podria deixar el llibre." + (MIDE ? " Mai no venem dades i mai no les lliurem a tercers tret d'obligació legal. L'únic que va a publicitat és l'avís de compra de la secció 12, i només si acceptes les galetes." : " Mai no venem dades, mai no les fem servir per a publicitat i mai no les lliurem a tercers tret d'obligació legal.")),
         ],
       },
       {
@@ -1503,7 +1513,7 @@ const CA: TextosLegal = {
         id: "cookies",
         titulo: "12. Galetes",
         bloques: [
-          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. Si arribes a la web des d'un anunci, recordem de quin només mentre dura aquella visita, sense guardar res al teu navegador. Si compres en aquella mateixa visita, ho anotem amb la teva compra per saber quins anuncis funcionen. No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà."),
+          p("Només fem servir galetes tècniques, les imprescindibles perquè la web funcioni: la que manté la teva sessió oberta quan entres al teu compte, la que recorda si prefereixes la pàgina de la història clara o fosca i la que recorda l'idioma que tries a la web. Mentre compres, el navegador guarda en aquella pestanya el que vas omplint, per no perdre-ho si tornes enrere; s'esborra en tancar-la. Si arribes a la web des d'un anunci, recordem de quin només mentre dura aquella visita, sense guardar res al teu navegador. Si compres en aquella mateixa visita, ho anotem amb la teva compra per saber quins anuncis funcionen." + (MIDE ? " Si acceptes a l'avís de galetes, activem a més el píxel de Meta (Facebook i Instagram) i l'etiqueta de Google Ads. Deixen galetes com _fbp, _fbc i _gcl_au, i ens serveixen per saber quins anuncis porten compres i perquè Meta i Google mostrin els nostres anuncis a gent semblant. Si compres havent acceptat, el nostre servidor també avisa Meta que hi ha hagut una compra, amb l'import, el país, el teu navegador, la teva adreça IP i el teu correu convertit en un codi que Meta fa servir per reconèixer si tens compte amb ells. Si rebutges, no s'activa res de tot això. Pots canviar d'opinió quan vulguis des de «Galetes», al peu de la pàgina. La teva elecció es guarda un any en una galeta tècnica." : " No fem servir galetes de publicitat ni d'analítica, i per això no et mostrem cap avís. Si algun dia afegim una eina de mesura, et demanarem el consentiment abans d'activar-la i aquesta secció canviarà.")),
         ],
       },
       {
