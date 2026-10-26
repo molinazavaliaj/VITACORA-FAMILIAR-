@@ -88,15 +88,17 @@ export function LandingFamiliar({ idioma, landing }: { idioma: IdiomaWeb; landin
   );
 
   // Las preguntas frecuentes de cada una, tomadas de la portada (aprobadas).
-  // Índices de t.faq.preguntas: 0 sabrá usarlo, 1 vergüenza, 2 la garantía,
-  // 3 quién escucha, 4 si no termina, 5 cuánto, 6 el impreso.
+  // Índices de t.faq.preguntas: 0 sabrá usarlo, 1 vergüenza, 2 lo que no quiere
+  // contar, 3 el móvil, 4 la garantía, 5 quién escucha, 6 quién escribe, 7 si no
+  // termina, 8 cuánto tarda, 9 Navidad, 10 sorpresa, 11 cuánto, 12 el impreso
+  // (del 2, 3, 6, 8, 9 y 10, nuevas del jurado de compradores, 26/10).
   const faq = t.faq.preguntas;
   const dudas: Duda[] =
     landing === "regalo"
-      ? [faq[0], faq[1], faq[2], ...(cat.impreso ? [faq[6]] : [])]
+      ? [faq[0], faq[1], faq[4], ...(cat.impreso ? [faq[12]] : [])]
       : landing === "preguntas"
-        ? [{ pregunta: t.dudas.hablar.pregunta, respuesta: t.dudas.hablar.texto }, faq[4], faq[2]]
-        : [faq[3], faq[0], faq[2]];
+        ? [{ pregunta: t.dudas.hablar.pregunta, respuesta: t.dudas.hablar.texto }, faq[7], faq[4]]
+        : [faq[5], faq[0], faq[4]];
 
   return (
     <Pagina idioma={idioma}>
