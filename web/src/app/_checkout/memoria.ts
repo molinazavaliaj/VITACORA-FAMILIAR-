@@ -21,6 +21,15 @@ export function vieneDePagoFallido(busqueda: string): boolean {
   return new URLSearchParams(busqueda).get(PARAMETRO_FALLO) === VALOR_FALLO;
 }
 
+/**
+ * ¿Se llegó desde «Regálalo con una tarjeta»? (26/10) El regalo es uno solo,
+ * en /comprar: /regalar redirige acá con ?regalo=1 y la pregunta del regalo
+ * llega contestada que sí, con todos los formatos a la vista.
+ */
+export function vieneParaRegalar(busqueda: string): boolean {
+  return new URLSearchParams(busqueda).get("regalo") === "1";
+}
+
 /** Lo guardado deja de valer a las dos horas: después ya no es «lo que elegiste hace un momento». */
 const VIGENCIA_MS = 2 * 60 * 60 * 1000;
 

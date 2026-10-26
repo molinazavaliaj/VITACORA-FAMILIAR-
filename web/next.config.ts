@@ -13,7 +13,15 @@ import { PAISES_EUROPA } from "./src/lib/region";
 // Vercel con la cabecera del país, sin arrancar ninguna función. Si la persona
 // eligió idioma a mano (cookie `idioma`, lib/idioma-web.ts), no se la mueve.
 const EUROPA = `^(${PAISES_EUROPA.join("|")})$`;
-const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/comprar/kids", "/comprar/historia", "/ejemplo", "/regalar", "/viaje", "/kids", "/historia"];
+const PUBLICAS_POR_PAIS = ["/", "/comprar", "/comprar/viaje", "/comprar/kids", "/comprar/historia", "/ejemplo", "/viaje", "/kids", "/historia"];
+// El regalo es uno solo, en /comprar (26/10): /regalar vendía solo el PDF de
+// 49 € y el comprador no entendía cuál era el regalo. Los enlaces viejos (y
+// los mails ya mandados) llegan a /comprar con el regalo elegido.
+export const REGALAR_A_COMPRAR: ReadonlyArray<readonly [string, string]> = [
+  ["/regalar", "/comprar?regalo=1"],
+  ["/ca/regalar", "/ca/comprar?regalo=1"],
+  ["/ar/regalar", "/ar/comprar?regalo=1"],
+];
 // Las landings de anuncio (fase 4) también, con su ruta de Argentina (la de
 // regalo dice «papá»). El anuncio ya apunta a la de su país; esto es por si
 // alguien comparte el enlace de España con alguien de afuera.
@@ -52,7 +60,8 @@ const nextConfig: NextConfig = {
       ...PUBLICAS_POR_PAIS.map((camino) => [camino, camino === "/" ? "/ar" : `/ar${camino}`] as const),
       ...LANDINGS_POR_PAIS,
     ];
-    return pares.map(([source, destination]) => ({
+    const regalar = REGALAR_A_COMPRAR.map(([source, destination]) => ({ source, destination, permanent: false }));
+    return [...regalar, ...pares.map(([source, destination]) => ({
       source,
       destination,
       permanent: false,
@@ -60,7 +69,7 @@ const nextConfig: NextConfig = {
         { type: "header" as const, key: "x-vercel-ip-country", value: EUROPA },
         { type: "cookie" as const, key: "idioma" },
       ],
-    }));
+    }))];
   },
 };
 
