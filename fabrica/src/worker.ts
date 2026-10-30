@@ -22,7 +22,7 @@ import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { narradoresConKids } from './kids/candado.js';
 import { idiomasHistoria, narradoresConHistoria } from './historia/candado.js';
-import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
+import { alertarLibrosDemorados, dudasParaLaFamilia, esLibroPropio, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { historiaTrabaja, revisarLibrosHistoria } from './escritor-historia/produccion/libro-historia.js';
@@ -375,6 +375,53 @@ async function avisarDelAnticipo(narrador: {
 }
 
 /**
+ * Los dos mails de las dudas del escritor a la familia (Naza, 30/10). Cuando la Etapa A deja dudas, el link para
+ * contestarlas (antes solo les llegaba a los socios, que tenían que pasarlo a mano). Cuando ya están todas
+ * contestadas, que falta encargar el libro: antes nadie lo decía y parecía que el libro ya se estaba escribiendo.
+ * Solo con el libro sin encargar: encargado, el primero mentiría («contestalas antes de encargarlo») y el segundo
+ * sobra. «Para mí» tampoco: los dos le hablan de lo que contó otro. Tira si Storage no responde.
+ */
+type NarradorConDudas = NarradorConFamilia & Pick<Narrador, 'libro_aprobado_at'> & { contexto?: unknown };
+
+/** Mientras las dudas siguen sin contestar no hace falta mirar cada minuto: cada 10 basta (Storage, Disk IO). */
+const ESPERA_REVISAR_DUDAS_MS = 10 * 60 * 1000;
+const dudasRevisadas = new WeakMap<Db, Map<string, number>>();
+
+async function avisarDudasALaFamilia(
+  db: Db,
+  narrador: NarradorConDudas,
+  idioma: () => Promise<string | undefined>,
+  ahora: number = Date.now()
+): Promise<void> {
+  if (narrador.libro_aprobado_at != null || esLibroPropio(narrador.contexto)) return;
+  const clave = `dudas-familia:${narrador.id}`;
+  if (yaHecho(db, clave)) return;
+  const revisadas = dudasRevisadas.get(db) ?? new Map<string, number>();
+  dudasRevisadas.set(db, revisadas);
+  if (ahora - (revisadas.get(narrador.id) ?? -Infinity) < ESPERA_REVISAR_DUDAS_MS) return;
+  revisadas.set(narrador.id, ahora);
+  const archivos = await listarPaquete(db, narrador.id);
+  if (archivos.has(CANDADO_POR_HITO.dudas_listas)) {
+    anotarHecho(db, clave);
+    return;
+  }
+  const estado = await dudasParaLaFamilia(db, narrador.id);
+  if (!estado) return; // la Etapa A todavía no terminó
+  if (estado.cantidad === 0) {
+    anotarHecho(db, clave);
+    return;
+  }
+  const { urlBase } = cargarConfig();
+  const i = await idioma();
+  const variante: VarianteV3 | undefined = i === undefined ? undefined : i === 'es-AR' ? 'vos' : 'tu';
+  if (estado.contestadas) {
+    await mandarHito(db, narrador, 'dudas_listas', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
+  } else {
+    await mandarHito(db, narrador, 'dudas', `${urlBase}/tablero/${narrador.id}/dudas`, archivos, variante, estado.cantidad);
+  }
+}
+
+/**
  * Branch (a): narradores completado/cerrado_anticipado sin
  * {narrador_id}/paquete/estructura.json en Storage → generarEstructura.
  */
@@ -383,7 +430,7 @@ async function generarEstructurasFaltantes(): Promise<void> {
 
   const { data: narradores, error } = await db
     .from('narradores')
-    .select('id')
+    .select('id, como_le_dicen, familia_id, libro_aprobado_at, contexto')
     .in('estado', ['completado', 'cerrado_anticipado']);
 
   if (error) {
@@ -395,8 +442,10 @@ async function generarEstructurasFaltantes(): Promise<void> {
   if (!v3) return;
   const aparte = await conAparteOFrenar(db, 'estructura');
   if (!aparte) return;
+  // El idioma de cada entrevista V3 (vos o tú en los mails de las dudas): se lee una vez por vuelta, si hace falta.
+  let idiomas: Map<string, string> | undefined;
 
-  for (const narrador of (narradores ?? []) as { id: string }[]) {
+  for (const narrador of (narradores ?? []) as NarradorConDudas[]) {
     try {
       // Un chico de Kids: ni la estructura vieja ni el escritor V3 (su libro se diseña aparte).
       if (aparte.has(narrador.id)) continue;
@@ -404,7 +453,10 @@ async function generarEstructurasFaltantes(): Promise<void> {
       if (v3.has(narrador.id)) {
         // Con el libro ya entregado no queda nada de la Etapa A que hacer (ni lanzarla ni avisar sus dudas):
         // antes se listaba su carpeta del escritor en cada vuelta, para siempre.
-        if (!(await conLibroEntregado(db))?.has(narrador.id)) await revisarEtapaAV3(db, narrador.id);
+        if (!(await conLibroEntregado(db))?.has(narrador.id)) {
+          await revisarEtapaAV3(db, narrador.id);
+          await avisarDudasALaFamilia(db, narrador, async () => (idiomas ??= await idiomasV3(db)).get(narrador.id));
+        }
         continue;
       }
       if (yaHecho(db, `estructura:${narrador.id}`)) continue;
@@ -610,7 +662,9 @@ async function mandarHito(
   hito: Hito,
   enlace: string,
   archivos: Set<string>,
-  variante?: VarianteV3
+  variante?: VarianteV3,
+  /** Solo el de las dudas: cuántas son. */
+  cantidad?: number
 ): Promise<boolean> {
   // El candado manda: si ya está, ese mail ya salió (o alguien lo sembró a
   // mano para que no salga, como los 7 de Osvaldo al preparar el redeploy).
@@ -639,6 +693,7 @@ async function mandarHito(
     comoLeDicen: narrador.como_le_dicen,
     enlace,
     ...(trato ? { variante: trato } : {}),
+    ...(cantidad !== undefined ? { cantidad } : {}),
   });
 
   if (enviado) {

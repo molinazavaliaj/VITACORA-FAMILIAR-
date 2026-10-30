@@ -1,13 +1,15 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
-import { textosPantallaDudas, type TextosPantallaDudas } from "@/lib/dudas-textos";
+import { textosPantallaDudas, textoTodasContestadas, type TextosPantallaDudas } from "@/lib/dudas-textos";
 import {
   correccionesPorDuda,
   estadoDelPlazo,
   fechaDelPlazo,
   fechaDeRespuesta,
+  hayDudasSinContestar,
   leerCorreccionesGuardadas,
   leerDudas,
   zonaParaFechas,
@@ -91,11 +93,13 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     return <EstadoError trato={trato} />;
   }
 
-  const [archivoCorrecciones, archivoAvisadas, escritor, zona] = await Promise.all([
+  const [archivoCorrecciones, archivoAvisadas, escritor, zona, cierre] = await Promise.all([
     leerDelEscritor(admin, narrador.id, "correcciones.json"),
     leerDelEscritor(admin, narrador.id, "dudas-avisadas.txt"),
     archivosDelEscritor(admin, narrador.id),
     zonaDeLaHistoria(admin, narrador),
+    // ¿Ya lo encargaron? Para el cartel de cuando están todas contestadas.
+    admin.from("narradores").select("libro_aprobado_at").eq("id", narrador.id).maybeSingle(),
   ]);
   if (archivoCorrecciones.error || archivoAvisadas.error || escritor.error) {
     console.error(
@@ -116,6 +120,14 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
 
   // El plazo corre desde el mail a los socios; el libro escrito lo cierra.
   const plazo = estadoDelPlazo(archivoAvisadas.texto, escritor.nombres.has("libro.md"));
+
+  // Naza, 30/10: con todas contestadas parecía que el libro ya se escribía solo. El cartel dice que falta
+  // encargarlo; a un invitado (no puede encargar) solo si ya está encargado. Sin poder leer el cierre, nada.
+  const encargado = cierre.error ? null : Boolean((cierre.data as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at);
+  const todasContestadas =
+    plazo.estado !== "libro_escrito" && dudas.length > 0 && !hayDudasSinContestar(dudas, guardadas) && encargado !== null;
+  const cartel =
+    todasContestadas && (encargado || historia.rol === "duena") ? textoTodasContestadas(Boolean(encargado), trato === "tu") : null;
 
   // A los otros familiares se les muestra el nombre (si la base lo tenía) y la
   // fecha ya armada en la zona de la historia. El mail no sale del servidor.
@@ -154,6 +166,20 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
             textos={textos}
           />
         </div>
+
+        {cartel ? (
+          <div className="mt-8 flex flex-col gap-3 rounded-md border border-[var(--linea-fuerte)] px-4 py-4">
+            <p className="text-sm leading-relaxed text-[var(--texto)]">{cartel.texto}</p>
+            {cartel.boton ? (
+              <Link
+                href={`/tablero/${narrador.id}/libro`}
+                className="self-start rounded-md bg-[var(--texto)] px-4 py-2 text-sm text-[var(--fondo)]"
+              >
+                {cartel.boton}
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );

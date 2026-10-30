@@ -43,3 +43,20 @@ export function textosPantallaDudas(paraMi: boolean, comoLeDicen: string): Texto
     ningunaDuda: "No quedó ninguna duda. El biógrafo entendió todo lo que contó.",
   };
 }
+
+/**
+ * El cartel de cuando ya están todas contestadas (aprobado por Naza el 30/10):
+ * el libro no empieza solo, hay que encargarlo. Con el libro ya encargado, que
+ * está en camino (sin botón).
+ */
+export function textoTodasContestadas(encargado: boolean, tu: boolean): { texto: string; boton: string | null } {
+  if (encargado) {
+    return { texto: "Ya están todas. El libro ya está en camino, te avisamos cuando esté.", boton: null };
+  }
+  return {
+    texto: tu
+      ? "Ya están todas. El libro todavía no empezó. Para que empiece, elige la tapa, suma las fotos que falten y toca Encargar."
+      : "Ya están todas. El libro todavía no empezó. Para que empiece, elegí la tapa, sumá las fotos que falten y tocá Encargar.",
+    boton: "Ir a encargar el libro",
+  };
+}
