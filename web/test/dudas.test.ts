@@ -268,7 +268,21 @@ describe("horasPlazoDudas", () => {
 // «Para mí» (15/10): si la dueña compró el libro para sí, la pantalla le habla
 // de lo que contó ella, como el resto del panel. Los textos de primera persona
 // esperan el OK de Naza (docs/pendiente-aprobar-2026-10-15.md).
-import { textosPantallaDudas } from "../src/lib/dudas-textos";
+import { textosPantallaDudas, textoTodasContestadas } from "../src/lib/dudas-textos";
+
+describe("el cartel de todas contestadas (Naza, 30/10)", () => {
+  it("sin encargar: falta Encargar, con botón; con vos o tú", () => {
+    expect(textoTodasContestadas(false, false)).toEqual({
+      texto: "Ya están todas. El libro todavía no empezó. Para que empiece, elegí la tapa, sumá las fotos que falten y tocá Encargar.",
+      boton: "Ir a encargar el libro",
+    });
+    expect(textoTodasContestadas(false, true).texto).toContain("elige la tapa, suma las fotos que falten y toca Encargar.");
+  });
+
+  it("ya encargado: en camino, sin botón", () => {
+    expect(textoTodasContestadas(true, false)).toEqual({ texto: "Ya están todas. El libro ya está en camino, te avisamos cuando esté.", boton: null });
+  });
+});
 
 describe("textosPantallaDudas", () => {
   it("de otra persona: los textos aprobados el 12/10, con su nombre", () => {

@@ -324,3 +324,13 @@ Lo manda la fábrica cuando termina la Etapa A; solo lo leen los socios. Aprobad
 | Dónde | Texto |
 |---|---|
 | fabrica/src/escritor/produccion/libro-v3.ts, avisarDudas | La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: {link a /tablero/{id}/dudas}. Lo que contesten ahí entra al libro. (Reemplaza «La familia no las ve (la pantalla no existe todavía).») |
+
+## Dudas: mails a la familia y cartel (aprobados por Naza el 30/10)
+
+El aviso interno a los socios de arriba (avisarDudas) se reemplaza por uno corto: cuántas dudas hay y el link. Desde el 30/10 a la familia le llega su propio mail, salvo «Para mí» o un libro ya encargado.
+
+| Dónde | Texto (vos; tú igual conjugado) |
+|---|---|
+| fabrica/src/mail/hitos.ts, `dudas` | Asunto: Unas preguntas sobre lo que contó tu {quien}. Al leer lo que contó tu {quien} nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar. / Son {n} preguntas cortas. Las podés contestar vos o cualquiera de la familia que invitaste. / Lo que nos digas entra al libro. Contestalas antes de encargarlo. Botón: Contestar las preguntas |
+| fabrica/src/mail/hitos.ts, `dudas_listas` | Asunto: Falta un paso para el libro de tu {quien}. Ya tenemos todas las respuestas. Gracias. / Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro. / Recién ahí empezamos a escribirlo. Te avisamos cuando esté. Botón: Encargar el libro |
+| web/src/lib/dudas-textos.ts, `textoTodasContestadas` | Ya están todas. El libro todavía no empezó. Para que empiece, elegí la tapa, sumá las fotos que falten y tocá Encargar. Botón: Ir a encargar el libro. Ya encargado: Ya están todas. El libro ya está en camino, te avisamos cuando esté. |

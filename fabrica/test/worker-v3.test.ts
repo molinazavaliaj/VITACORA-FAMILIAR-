@@ -12,10 +12,11 @@ const m = vi.hoisted(() => ({
   obtenerClienteDb: vi.fn(),
   idiomasV3: vi.fn(async () => new Map<string, string>()),
   enviarMailHito: vi.fn(async () => false),
+  dudasParaLaFamilia: vi.fn(async (): Promise<{ cantidad: number; contestadas: boolean } | null> => null),
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
-vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ trabajaOtraCopia: vi.fn(async () => false), alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ trabajaOtraCopia: vi.fn(async () => false), alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3, dudasParaLaFamilia: m.dudasParaLaFamilia, esLibroPropio: (c: unknown) => (c as { vinculoComprador?: unknown } | null)?.vinculoComprador === 'yo mismo' }));
 vi.mock('../src/libro/generar-paquete.js', () => ({ generarPaquete: m.generarPaquete }));
 vi.mock('../src/libro/estructura.js', () => ({ generarEstructura: m.generarEstructura }));
 vi.mock('../src/libro/previsualizar.js', () => ({ generarPrevisualizacion: vi.fn() }));
@@ -185,6 +186,58 @@ describe('worker: el mail "terminó de contar" de un narrador V3', () => {
     await tick();
     expect(m.enviarMailHito).not.toHaveBeenCalled();
     m.idiomasV3.mockResolvedValue(new Map());
+  });
+});
+
+describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
+  const conDudas = (narrador: Fila = {}) => ({
+    narradores: [{ id: 'v3', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null, ...narrador }],
+    pedidos: [],
+    familias: [{ id: 'f', email: 'familia@ejemplo.com' }],
+  });
+  const dudasMandadas = () =>
+    m.enviarMailHito.mock.calls
+      .map((c) => (c as unknown as [{ hito: string; enlace: string; variante?: string; cantidad?: number }])[0])
+      .filter((o) => o.hito.startsWith('dudas'));
+
+  beforeEach(() => {
+    m.narradoresConV3.mockResolvedValue(new Set(['v3']));
+    m.idiomasV3.mockResolvedValue(new Map([['v3', 'es-AR']]));
+  });
+  afterEach(() => {
+    m.dudasParaLaFamilia.mockResolvedValue(null);
+  });
+
+  it('con dudas sin contestar, el link para contestarlas, con cuántas son y con vos para Argentina', async () => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false });
+    const { db } = base(conDudas() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', variante: 'vos', cantidad: 25 })]);
+  });
+
+  it('con todas contestadas y el libro sin encargar, que falta encargarlo (link a Encargar)', async () => {
+    m.idiomasV3.mockResolvedValue(new Map([['v3', 'es-ES']]));
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: true });
+    const { db } = base(conDudas() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro', variante: 'tu' })]);
+  });
+
+  it('sin mail si el libro ya está encargado, si es «Para mí», si la Etapa A no terminó o si no dejó dudas', async () => {
+    for (const [narrador, estado] of [
+      [{ libro_aprobado_at: '2026-10-30' }, { cantidad: 3, contestadas: false }],
+      [{ contexto: { vinculoComprador: 'yo mismo' } }, { cantidad: 3, contestadas: true }],
+      [{}, null],
+      [{}, { cantidad: 0, contestadas: false }],
+    ] as const) {
+      m.dudasParaLaFamilia.mockResolvedValue(estado);
+      const { db } = base(conDudas(narrador) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+    }
+    expect(dudasMandadas()).toEqual([]);
   });
 });
 

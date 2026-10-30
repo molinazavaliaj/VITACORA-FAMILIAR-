@@ -12,6 +12,9 @@ const HITOS: Hito[] = [
   'falta_direccion',
   'enviado',
   'entregado',
+  // Las dudas del escritor (30/10).
+  'dudas',
+  'dudas_listas',
 ];
 
 describe('asuntoHito / cuerpoHito', () => {
@@ -128,6 +131,43 @@ describe('"terminó de contar" de un narrador V3 (Naza, 08/10)', () => {
     expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'vos' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }).replace('Entra cuando', 'Entrá cuando'));
     expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'tu' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }));
   });
+});
+
+describe('los mails de las dudas a la familia (Naza, 30/10)', () => {
+  const o = { comoLeDicen: 'papá', enlace: 'https://x/tablero/n1/dudas' };
+
+  it('las dudas: asunto, cuántas son y el trato de cada país', () => {
+    expect(asuntoHito('dudas', 'papá', 'vos')).toBe('Unas preguntas sobre lo que contó tu papá');
+    const vos = cuerpoHito('dudas', { ...o, variante: 'vos', cantidad: 25 });
+    expect(vos).toContain('Al leer lo que contó tu papá nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar.');
+    expect(vos).toContain('Son 25 preguntas cortas. Las podés contestar vos o cualquiera de la familia que invitaste.');
+    expect(vos).toContain('Lo que nos digas entra al libro. Contestalas antes de encargarlo.');
+    expect(vos).toContain('Contestar las preguntas');
+    expect(vos).toContain('https://x/tablero/n1/dudas');
+    const tu = cuerpoHito('dudas', { ...o, variante: 'tu', cantidad: 25 });
+    expect(tu).toContain('Las puedes contestar tú');
+    expect(tu).toContain('Contéstalas antes de encargarlo.');
+    // Argentina del flujo viejo cae en los de vos; sin variante, los de tú.
+    expect(cuerpoHito('dudas', { ...o, variante: 'vos_viejo', cantidad: 25 })).toBe(vos);
+    expect(cuerpoHito('dudas', { ...o, cantidad: 25 })).toBe(tu);
+  });
+
+  it('una sola duda va en singular', () => {
+    const una = cuerpoHito('dudas', { ...o, variante: 'vos', cantidad: 1 });
+    expect(una).toContain('Es una pregunta corta. La podés contestar vos');
+    expect(una).toContain('Contestala antes de encargarlo.');
+  });
+
+  it('todas contestadas: falta encargar', () => {
+    expect(asuntoHito('dudas_listas', 'papá', 'vos')).toBe('Falta un paso para el libro de tu papá');
+    const vos = cuerpoHito('dudas_listas', { ...o, variante: 'vos' });
+    expect(vos).toContain('Ya tenemos todas las respuestas. Gracias.');
+    expect(vos).toContain('Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.');
+    expect(vos).toContain('Recién ahí empezamos a escribirlo. Te avisamos cuando esté.');
+    expect(vos).toContain('Encargar el libro');
+    expect(cuerpoHito('dudas_listas', { ...o, variante: 'tu' })).toContain('Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.');
+  });
+
 });
 
 describe('mails de la entrega con vos para Argentina (Naza, 09/10)', () => {

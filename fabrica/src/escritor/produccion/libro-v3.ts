@@ -295,22 +295,30 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
 
 type DudaGuardada = { id: string; pregunta: string; opciones: string[]; que: string; citas: { id: string; texto: string }[] };
 
+/**
+ * Para los mails de las dudas a la familia (Naza, 30/10): cuántas dejó la Etapa A y si ya tienen todas respuesta.
+ * Sin la Etapa A terminada, null (todavía no se sabe). Tira si Storage no responde.
+ */
+export async function dudasParaLaFamilia(db: Db, narradorId: string): Promise<{ cantidad: number; contestadas: boolean } | null> {
+  const archivos = await listarEscritor(db, narradorId);
+  if (!archivos.has(CARPETA_A)) return null;
+  const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
+  const t = archivos.has(DUDAS) ? await almacen.leer(DUDAS) : null;
+  const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
+  return { cantidad: dudas.length, contestadas: dudas.length > 0 && (await todasContestadas(dudas, almacen)) };
+}
+
 async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): Promise<boolean> {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   const t = archivos.has(DUDAS) ? await almacen.leer(DUDAS) : null;
   const dudas = (t ? (JSON.parse(t) as { dudas?: DudaGuardada[] }).dudas : []) ?? [];
   if (dudas.length) {
-    const lineas = dudas.map((d) => [
-      `${d.id}. ${d.pregunta}${d.opciones.length ? ` (opciones: ${d.opciones.join(' / ')})` : ''}`,
-      `   Qué vio el lector: ${d.que}`,
-      ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
-    ].join('\n'));
-    // La pantalla de dudas existe desde el 12/10 (web/src/app/tablero/[narradorId]/dudas): los socios le
-    // pasan el link a la familia; no hay mail automático a la familia (decisión del 12/10).
+    // Corto (Naza, 30/10): las dudas se leen en la pantalla, no en el mail. Desde el 30/10 a la familia le llega
+    // su propio mail con el link (worker.ts, avisarDudasALaFamilia), salvo «Para mí» o un libro ya encargado.
     const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${narradorId}/dudas`;
     const salio = await avisarSocios(
       `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: ${link}. Lo que contesten ahí entra al libro.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      `Hay ${dudas.length} dudas de datos. A la familia le llega un mail para contestarlas. Para verlas: ${link}\n\nSi el libro ya está encargado, espera ${Math.round(esperaPorDudasMs() / 3_600_000)} horas desde este mail (o hasta que estén todas contestadas). Corrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`,
     );
     if (!salio) return false;
   }

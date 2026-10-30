@@ -34,7 +34,10 @@ export type Hito =
   | 'recordatorio_3'
   | 'recordatorio_7'
   | 'recordatorio_14'
-  | 'cierre_automatico';
+  | 'cierre_automatico'
+  // Las dudas del escritor V3 (Naza, 30/10): cuando aparecen, y cuando ya están todas contestadas y falta encargar.
+  | 'dudas'
+  | 'dudas_listas';
 
 /** Nombre del archivo candado en `{narrador_id}/paquete/` para cada hito. */
 export const CANDADO_POR_HITO: Record<Hito, string> = {
@@ -46,6 +49,8 @@ export const CANDADO_POR_HITO: Record<Hito, string> = {
   recordatorio_7: 'recordatorio_cierre_7.txt',
   recordatorio_14: 'recordatorio_cierre_14.txt',
   cierre_automatico: 'cierre_automatico_enviado.txt',
+  dudas: 'dudas_enviado.txt',
+  dudas_listas: 'dudas_listas_enviado.txt',
   // Los de la entrega llevan además el id de la entrega en la ruta (`entregas.ts`):
   // una familia puede tener dos pedidos con impreso —el suyo y el de un primo— y
   // cada uno viaja por su cuenta.
@@ -57,9 +62,30 @@ export const CANDADO_POR_HITO: Record<Hito, string> = {
 /**
  * Los textos, uno por hito. `quien` ya llega escapado para el cuerpo (es
  * `como_le_dicen`: "papá", "la abuela", "Roberto"); en el asunto va crudo
- * porque el asunto no es HTML.
+ * porque el asunto no es HTML. `cantidad` solo la usa el de las dudas.
  */
-const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien: string) => string[]; boton: string }> = {
+const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien: string, cantidad?: number) => string[]; boton: string }> = {
+  // Los dos de las dudas, aprobados por Naza el 30/10 (con vos; estos son los de tú).
+  dudas: {
+    asunto: (quien) => `Unas preguntas sobre lo que contó tu ${quien}`,
+    parrafos: (quien, cantidad) => [
+      `Al leer lo que contó tu ${quien} nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar.`,
+      cantidad === 1
+        ? 'Es una pregunta corta. La puedes contestar tú o cualquiera de la familia que invitaste.'
+        : `Son ${cantidad ?? 'unas'} preguntas cortas. Las puedes contestar tú o cualquiera de la familia que invitaste.`,
+      `Lo que nos digas entra al libro. ${cantidad === 1 ? 'Contéstala' : 'Contéstalas'} antes de encargarlo.`,
+    ],
+    boton: 'Contestar las preguntas',
+  },
+  dudas_listas: {
+    asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
+    parrafos: () => [
+      'Ya tenemos todas las respuestas. Gracias.',
+      'Falta un solo paso. Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.',
+      'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
+    ],
+    boton: 'Encargar el libro',
+  },
   terminado: {
     asunto: (quien) => `Tu ${quien} terminó de contar`,
     parrafos: (quien) => [
@@ -239,6 +265,27 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
       ],
       boton: 'Cerrar el libro',
     },
+    // Aprobados por Naza el 30/10.
+    dudas: {
+      asunto: (quien) => `Unas preguntas sobre lo que contó tu ${quien}`,
+      parrafos: (quien, cantidad) => [
+        `Al leer lo que contó tu ${quien} nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar.`,
+        cantidad === 1
+          ? 'Es una pregunta corta. La podés contestar vos o cualquiera de la familia que invitaste.'
+          : `Son ${cantidad ?? 'unas'} preguntas cortas. Las podés contestar vos o cualquiera de la familia que invitaste.`,
+        `Lo que nos digas entra al libro. ${cantidad === 1 ? 'Contestala' : 'Contestalas'} antes de encargarlo.`,
+      ],
+      boton: 'Contestar las preguntas',
+    },
+    dudas_listas: {
+      asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
+      parrafos: () => [
+        'Ya tenemos todas las respuestas. Gracias.',
+        'Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.',
+        'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
+      ],
+      boton: 'Encargar el libro',
+    },
     // Estos tres no son solo V3: van con vos a toda familia de Argentina (familias.region = 'AR'). Textos con
     // vos aprobados por Naza el 06/10 (rama web-textos-v3); por país, el 09/10.
     falta_direccion: {
@@ -348,7 +395,7 @@ export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteM
  */
 export function cuerpoHito(
   hito: Hito,
-  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteMail }
+  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteMail; cantidad?: number }
 ): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
@@ -366,7 +413,7 @@ export function cuerpoHito(
       : parrafo;
 
   const parrafos = texto
-    .parrafos(quien)
+    .parrafos(quien, opciones.cantidad)
     .map(conSeguimiento)
     .filter((parrafo) => parrafo.trim() !== '')
     .map(
@@ -418,6 +465,8 @@ export async function enviarMailHito(opciones: {
   seguimiento?: string | null;
   /** El trato: el de un narrador V3 o `vos_viejo` (ver `VarianteMail`). */
   variante?: VarianteMail;
+  /** Solo el de las dudas: cuántas son. */
+  cantidad?: number;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -441,6 +490,7 @@ export async function enviarMailHito(opciones: {
         enlace: opciones.enlace,
         seguimiento: opciones.seguimiento,
         variante: opciones.variante,
+        cantidad: opciones.cantidad,
       }),
     }),
   });

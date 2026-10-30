@@ -201,10 +201,10 @@ describe('Etapa A al terminar la entrevista (revisarEtapaAV3)', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     const cuerpo = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
     expect(cuerpo.subject).toContain('Dudas de datos');
-    expect(cuerpo.text).toContain('¿Cómo se llamaba la Negra');
     expect(cuerpo.text).toContain('n1/escritor/correcciones.json');
-    // La pantalla existe (12/10): el mail trae el link para pasarle a la familia, no «la pantalla no existe».
-    expect(cuerpo.text).toContain('La familia las contesta en este link (la dueña y sus invitados). Pásenselo: https://www.vitacorafamiliar.com/tablero/n1/dudas. Lo que contesten ahí entra al libro.');
+    // Corto (Naza, 30/10): el link y cuántas son; las dudas se leen en la pantalla, no en el mail.
+    expect(cuerpo.text).toContain('A la familia le llega un mail para contestarlas. Para verlas: https://www.vitacorafamiliar.com/tablero/n1/dudas');
+    expect(cuerpo.text).not.toContain('¿Cómo se llamaba la Negra');
     expect(cuerpo.text).not.toContain('no existe');
     expect(archivos.has('n1/escritor/dudas-avisadas.txt')).toBe(true);
     expect(modelo.llamadas).toHaveLength(3); // ya hecha: no se repite
