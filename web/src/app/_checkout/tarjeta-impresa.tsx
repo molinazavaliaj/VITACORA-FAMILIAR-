@@ -1,18 +1,20 @@
 "use client";
 
-import { armarCompra, type Catalogo, type Compra } from "@/lib/productos";
+import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
 import { puedeTarjetaImpresa } from "@/lib/regalo-reglas";
 import type { TextosTarjetaImpresa } from "@/lib/regalo-textos";
 import { A_NOMBRE_DE_MAXIMO, type TarjetaImpresa } from "@/lib/tarjeta-impresa";
 import { DIRECCION_CAMPOS_ES } from "@/lib/entregas";
 import { formatearPrecio } from "../comprar/productos-ui";
-import { CAMPO } from "../_checkout/piezas";
+import { CAMPO } from "./piezas";
 
 // La tarjeta impresa en un sobre por correo (30/10): la casilla y la dirección
-// del paso 3 de /regalar, y la cuenta del ticket. Aparte del formulario para
-// probarlo sin navegador. La regla fuerte la tiene el servidor (/api/compra):
-// acá se avisa antes de seguir.
+// en el paso del pago de /comprar cuando es un regalo (desde el 26/10 /regalar
+// lleva a /comprar?regalo=1). Aparte del formulario para probarlo sin
+// navegador. La regla fuerte la tiene el servidor (/api/compra): acá se avisa
+// antes de seguir. Si la compra lleva el libro impreso, el sobre va a la misma
+// dirección del libro y solo se pide a nombre de quién va.
 
 /** Lo que va cargando quien compra. El país no se carga: va fijo, España. */
 export type EleccionTarjeta = {
@@ -33,11 +35,6 @@ const CAMPOS = DIRECCION_CAMPOS_ES.filter((c) => c.id !== "pais") as readonly { 
 /** ¿Se ofrece la tarjeta? Si la región la vende y la fecha deja tiempo. */
 export function ofreceTarjeta(cat: Catalogo, fecha: string, ahora: Date): boolean {
   return cat.tarjeta !== null && puedeTarjetaImpresa(fecha, ahora);
-}
-
-/** El ticket del regalo: la base y, si la pidió, la tarjeta. La misma cuenta que el servidor. */
-export function compraDelRegalo(cat: Catalogo, region: Region, conTarjeta: boolean): Compra {
-  return armarCompra(cat, region, { base: "pdf", impresos: 0, marcos: 0, tarjeta: conTarjeta });
 }
 
 /** El problema de lo cargado, con el campo a marcar; null si está bien o si no la quiere. */
@@ -71,7 +68,7 @@ const etiqueta = "block text-[13.5px] font-medium text-[var(--texto-oscuro-suave
 const pista = "mt-2 text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]";
 
 export function CamposTarjeta({
-  catalogo, region, fecha, ahora, eleccion, onCambio, textos: T, marca,
+  catalogo, region, fecha, ahora, eleccion, onCambio, textos: T, marca, conDireccionDelLibro = false, nombreSugerido = "",
 }: {
   catalogo: Catalogo;
   region: Region;
@@ -81,6 +78,10 @@ export function CamposTarjeta({
   onCambio: (e: EleccionTarjeta) => void;
   textos: TextosTarjetaImpresa;
   marca: (campo: string) => Record<string, unknown>;
+  /** La compra ya pide la dirección del libro impreso: el sobre va ahí y no se pide de nuevo. */
+  conDireccionDelLibro?: boolean;
+  /** Con qué nombre arranca «a nombre de quién» al marcarla (quien recibe el libro). */
+  nombreSugerido?: string;
 }) {
   // Sin PRECIO_TARJETA_* no existe: ni la casilla ni el aviso.
   if (!catalogo.tarjeta) return null;
@@ -92,7 +93,7 @@ export function CamposTarjeta({
     <div className="mt-8">
       <div className="chk-extra" data-marcado={marcado || undefined}>
         <label className="chk-extra-marca">
-          <input type="checkbox" className="sr-only" name="tarjeta" checked={marcado} onChange={(ev) => onCambio({ ...eleccion, quiere: ev.target.checked })} />
+          <input type="checkbox" className="sr-only" name="tarjeta" checked={marcado} onChange={(ev) => onCambio({ ...eleccion, quiere: ev.target.checked, aNombreDe: eleccion.aNombreDe || nombreSugerido.trim() })} />
           <span aria-hidden className="chk-extra-caja">
             {marcado ? (
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,9 +116,9 @@ export function CamposTarjeta({
               id="tarjeta-aNombreDe" {...marca("tarjeta-aNombreDe")} className={`${CAMPO} mt-2`} value={eleccion.aNombreDe}
               maxLength={A_NOMBRE_DE_MAXIMO} onChange={(ev) => cambiar("aNombreDe", ev.target.value)} autoComplete="name"
             />
-            <p className={pista}>{T.aNombreDePista}</p>
+            <p className={pista}>{conDireccionDelLibro ? T.mismaDireccion : T.aNombreDePista}</p>
           </div>
-          {CAMPOS.map((c) => (
+          {conDireccionDelLibro ? null : CAMPOS.map((c) => (
             <div key={c.id}>
               <label className={etiqueta} htmlFor={`tarjeta-${c.id}`}>{T.campos[c.id]}</label>
               <input
@@ -127,10 +128,12 @@ export function CamposTarjeta({
               />
             </div>
           ))}
-          <div>
-            <p className={etiqueta}>{T.campos.pais}</p>
-            <p className="mt-2 flex h-[52px] items-center text-[16px] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.pais}</p>
-          </div>
+          {conDireccionDelLibro ? null : (
+            <div>
+              <p className={etiqueta}>{T.campos.pais}</p>
+              <p className="mt-2 flex h-[52px] items-center text-[16px] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.pais}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

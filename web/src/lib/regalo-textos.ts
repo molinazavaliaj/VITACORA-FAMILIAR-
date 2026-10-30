@@ -90,6 +90,8 @@ export type TextosTarjetaImpresa = {
   campos: { linea1: string; linea2: string; ciudad: string; provincia: string; cp: string; pais: string };
   /** El país fijo, como texto. */
   pais: string;
+  /** Con el libro impreso: el sobre va a la misma dirección (se dice debajo de «a nombre de quién»). */
+  mismaDireccion: string;
   /** Falta un campo obligatorio de la dirección (con su etiqueta). */
   faltaCampo: (campo: string) => string;
 };
@@ -280,6 +282,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       fechaCerca: "Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.",
       campos: CAMPOS_DIRECCION,
       pais: "España",
+      mismaDireccion: "Va a la misma dirección del libro.",
       faltaCampo: FALTA_CAMPO,
     },
   },
@@ -362,6 +365,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       fechaCerca: "Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.",
       campos: CAMPOS_DIRECCION,
       pais: "España",
+      mismaDireccion: "Va a la misma dirección del libro.",
       faltaCampo: FALTA_CAMPO,
     },
   },

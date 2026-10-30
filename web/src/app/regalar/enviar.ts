@@ -4,7 +4,6 @@ import type { Genero } from "@/lib/regalo-reglas";
 import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
 import type { EleccionEntrega } from "./entrega";
 import type { IdiomaWeb } from "@/lib/idioma-web";
-import type { TarjetaImpresa } from "@/lib/tarjeta-impresa";
 
 // El pago del regalo, separado del formulario para probarlo sin navegador:
 // un POST a /api/compra con `regalo`; si salió bien y hay audio, se sube con
@@ -28,8 +27,6 @@ export type PedidoRegalo = {
   entrega: EleccionEntrega | null;
   /** La versión de la web (rediseño 2026-10): la pasarela vuelve a /regalar de ese idioma. */
   idiomaWeb?: IdiomaWeb;
-  /** La tarjeta impresa en un sobre por correo (30/10), si la pidió. */
-  tarjeta?: TarjetaImpresa | null;
 };
 
 export type Dependencias = {
@@ -78,7 +75,6 @@ export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null, or
         ? { entrega: { canal: p.entrega.canal, contacto: p.entrega.contacto.trim(), hora: p.entrega.hora } }
         : {}),
       ...(retomar ? { retomar } : {}),
-      ...(p.tarjeta ? { tarjeta: p.tarjeta } : {}),
     },
     productos: { impresos: 0, marcos: 0 },
     ...(origen ? { origen } : {}),

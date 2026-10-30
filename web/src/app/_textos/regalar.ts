@@ -82,6 +82,7 @@ const CA: TextosComprador = {
     fechaCerca: "Per rebre-la impresa, la data ha de ser d'aquí a 7 dies o més.",
     campos: { linea1: "Carrer i número", linea2: "Pis i porta", ciudad: "Ciutat", provincia: "Província o comunitat", cp: "Codi postal", pais: "País" },
     pais: "Espanya",
+    mismaDireccion: "Va a la mateixa adreça del llibre.",
     faltaCampo: (campo) => `Falta ${campo.toLowerCase()}.`,
   },
 };

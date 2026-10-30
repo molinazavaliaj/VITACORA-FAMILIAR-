@@ -11,6 +11,8 @@ import { crearCheckout } from "@/lib/pagos";
 import { POST } from "../src/app/api/compra/route";
 import { textosComprador } from "../src/lib/regalo-textos";
 import { COMPRADOR_WEB } from "../src/app/_textos/regalar";
+import { cuerpoDeLaCompra, estadoInicial } from "../src/app/comprar/compra";
+import { catalogo } from "../src/lib/productos";
 
 // El mismo doble que compra.test.ts (una cola de resultados por tabla, y se
 // guarda qué se insertó), más el registro de los eq() por tabla para asegurar
@@ -742,6 +744,22 @@ describe("POST /api/compra con la tarjeta impresa", () => {
     const { r, json } = await comprar({ ...CUERPO_ES, regalo: { ...CUERPO_ES.regalo, tarjeta: { direccion: DIRECCION } } });
     expect(r.status).toBe(400);
     expect(json.error).toBe(TU.faltaANombreDe);
+  });
+
+  it("el cuerpo que arma /comprar para un regalo con tarjeta se cobra y la guarda en extras.tarjeta", async () => {
+    const e = {
+      ...estadoInicial("es", catalogo("ES")),
+      formato: "digital" as const, marcos: 0, opcion: undefined,
+      para: "abuelo" as const, nombre: "Héctor García", comoLeDicen: "Héctor", regalo: true,
+      mensaje: "Para que nos cuentes", email: "lucia@ejemplo.com", nombreComprador: "Lucía", vinculo: "nieta",
+      tarjeta: { quiere: true, aNombreDe: "Lucía", linea1: "Calle Mayor 12", linea2: "", ciudad: "Valladolid", provincia: "", cp: "47001" },
+    };
+    const { r, admin } = await comprar(cuerpoDeLaCompra(e, "es"));
+
+    expect(r.status).toBe(200);
+    const pedido = admin.inserts.pedidos[0] as { monto: number; extras: Record<string, unknown> };
+    expect(pedido.monto).toBe(63);
+    expect(pedido.extras.tarjeta).toEqual({ aNombreDe: "Lucía", direccion: DIRECCION });
   });
 
   it("sin tarjeta, los extras de siempre y el precio de siempre", async () => {

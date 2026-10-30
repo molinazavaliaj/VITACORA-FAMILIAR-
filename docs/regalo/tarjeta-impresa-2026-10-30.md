@@ -4,10 +4,14 @@ Rama `tarjeta-impresa` (worktree `VITACORA FAMILIAR-tarjeta-impresa`). Sin push 
 
 ## Qué hace
 
-En `/regalar`, paso 3 («Tus datos»), debajo del correo aparece una casilla nueva: «Quiero también la
-tarjeta impresa, en un sobre, por correo», con su precio. Si la marca, pide a nombre de quién va el
-sobre y la dirección. El país va fijo: España. En el paso 4, en la ficha de la derecha y en la barra
-del teléfono se ve la línea de la tarjeta y el total real (la misma cuenta que el servidor).
+Desde el 26/10 el regalo se compra en `/comprar?regalo=1` (`/regalar` redirige ahí). Cuando la compra
+es un regalo, en el último paso («Tus datos y el pago»), debajo de la dirección del libro (si la hay)
+aparece una casilla nueva: «Quiero también la tarjeta impresa, en un sobre, por correo», con su
+precio. Si la marca y la compra es solo digital, pide a nombre de quién va el sobre y la dirección,
+con el país fijo en España. Si la compra lleva el libro impreso, el sobre va a la misma dirección del
+libro y solo pide a nombre de quién va (arranca con quien recibe el libro). El resumen de la derecha,
+la barra del teléfono y el botón de pagar muestran la línea de la tarjeta y el total real. Si el pago
+falla y vuelve, la casilla y lo cargado vuelven con el resto de lo elegido.
 
 Reglas:
 
@@ -15,7 +19,8 @@ Reglas:
 - Solo dentro de España. Una dirección de otro país da error.
 - Hace falta tiempo para el correo. Si el regalo tiene fecha, tiene que ser dentro de 7 días o más
   (`DIAS_TARJETA_IMPRESA`). Si la fecha está más cerca, en vez de la casilla sale una línea que lo
-  explica. Sin fecha, se puede. Si vuelve atrás y cambia la fecha, la casilla se desmarca sola.
+  explica. Sin fecha, se puede. Si vuelve atrás y cambia la fecha o dice que no es regalo, la casilla
+  se desmarca sola.
 - La dirección va a `pedidos.extras.tarjeta` (sin migración). No es de la fábrica: no crea fila en
   `entregas` ni cambia lo que la fábrica lee.
 - El cupón y el código de creador siguen descontando solo del libro, no de la tarjeta.
@@ -54,12 +59,13 @@ Todos marcados con `// TEXTO PARA NAZA`. Los de tú y de vos son iguales salvo l
 6. Error: «Por ahora la tarjeta impresa solo se manda dentro de España.»
 7. Aviso de fecha cerca: «Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.»
 8. Error de un campo de la dirección: «Falta calle y número.», «Falta ciudad.», «Falta código postal.»
+8b. Con el libro impreso, debajo de «a nombre de quién»: «Va a la misma dirección del libro.»
 9. Nombre de la línea en el ticket y en la pasarela: «Tarjeta impresa en sobre»
 10. Si se pide y no se vende (no debería verse): «La tarjeta impresa todavía no está disponible.»
 
 En catalán (`web/src/app/_textos/regalar.ts`, sin pasar por Softcatalà todavía): «Vull també la
 targeta impresa, en un sobre, per correu», «Te l'enviem en un sobre negre, a punt per regalar. Arriba
 entre 3 i 5 dies.», «A nom de qui va el sobre», «Tu o qui la rep», «Falta a nom de qui va el sobre.»,
-«De moment la targeta impresa només s'envia dins d'Espanya.», «Per rebre-la impresa, la data ha de ser
+«De moment la targeta impresa només s'envia dins d'Espanya.», «Va a la mateixa adreça del llibre.», «Per rebre-la impresa, la data ha de ser
 d'aquí a 7 dies o més.», las etiquetas de la dirección, el país «Espanya» y la línea «Targeta impresa
 en sobre».

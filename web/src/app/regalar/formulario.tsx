@@ -5,13 +5,12 @@ import { origenDelNavegador } from "@/lib/origen";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
-import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, puedeTarjetaImpresa, type Genero } from "@/lib/regalo-reglas";
+import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
 import { idiomaPorDefecto, textosComprador, tratoDeRegion, type IdiomaRegalo, type TextosComprador, type TratoComprador } from "@/lib/regalo-textos";
 import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
 import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
-import { CamposTarjeta, compraDelRegalo, errorDeTarjeta, ofreceTarjeta, SIN_TARJETA, tarjetaParaEnviar, type EleccionTarjeta } from "./tarjeta-impresa";
 import { AREA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO } from "../_checkout/piezas";
 import { vieneDePagoFallido } from "../_checkout/memoria";
 import { PasosLibro } from "../_checkout/pasos-libro";
@@ -73,18 +72,11 @@ export function FormularioRegalo({
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculoComprador, setVinculoComprador] = useState("");
   const [email, setEmail] = useState("");
-  // La tarjeta impresa en un sobre (30/10): solo si se vende y la fecha deja tiempo.
-  const [tarjeta, setTarjeta] = useState<EleccionTarjeta>(SIN_TARJETA);
-  const conTarjeta = tarjeta.quiere && ofreceTarjeta(catalogo, fechaEntrega, new Date());
   // El error del paso y, si es de un campo, cuál (para marcarlo a los lectores de pantalla).
   const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const error = falla?.texto ?? null;
   const [enviando, setEnviando] = useState(false);
   const precio = formatearPrecio(catalogo.base.precio, catalogo.moneda, region);
-  // El ticket con la misma cuenta que el servidor (calcularCompra): la base y, si va, la tarjeta.
-  const compra = compraDelRegalo(catalogo, region, conTarjeta);
-  const total = formatearPrecio(compra.total, catalogo.moneda, region, true);
-  const lineaTarjeta = compra.lineas.find((l) => l.id === "tarjeta");
   const encabezado = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
   // Dos clics en el mismo instante llegan antes de que React pinte el disabled.
@@ -148,8 +140,6 @@ export function FormularioRegalo({
       if (!nombreComprador.trim()) return fallar(T.faltaTuNombre, "comprador");
       if (!vinculoComprador.trim()) return fallar(T.faltaQueEsTuyo, "vinculo");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return fallar(T.correoMal, "email");
-      const problemaTarjeta = conTarjeta ? errorDeTarjeta(tarjeta, T.tarjeta) : null;
-      if (problemaTarjeta) return fallar(problemaTarjeta.texto, problemaTarjeta.campo);
       avanzar(4);
     },
   };
@@ -161,7 +151,7 @@ export function FormularioRegalo({
     setEnviando(true);
     setFalla(null);
     const r = await enviarRegalo(
-      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega, idiomaWeb, tarjeta: conTarjeta ? tarjetaParaEnviar(tarjeta) : null },
+      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega, idiomaWeb },
       { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage, origen: origenDelNavegador },
     );
     if ("error" in r) {
@@ -244,8 +234,6 @@ export function FormularioRegalo({
                 setFechaEntrega(e.target.value);
                 // Sin fecha no hay día en que mandarlo: vuelve a «se la doy yo».
                 if (!e.target.value) setEntrega(SIN_ENTREGA);
-                // Si la fecha nueva no deja tiempo para el correo, la tarjeta impresa se desmarca.
-                if (!puedeTarjetaImpresa(e.target.value, new Date())) setTarjeta((t) => ({ ...t, quiere: false }));
               }} />
             </div>
             <CamposEntrega fecha={fechaEntrega} idioma={idioma} eleccion={entrega} onCambio={setEntrega} whatsapp={entregaWhatsApp} textos={T} marca={marca} />
@@ -276,7 +264,6 @@ export function FormularioRegalo({
                 <input id="email" type="email" {...marca("email")} className={`${campo} mt-2`} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />
               </div>
             </div>
-            <CamposTarjeta catalogo={catalogo} region={region} fecha={fechaEntrega} ahora={new Date()} eleccion={tarjeta} onCambio={setTarjeta} textos={T.tarjeta} marca={marca} />
             <Botones
               textos={T}
               atras={() => avanzar(2)}
@@ -296,27 +283,10 @@ export function FormularioRegalo({
             {lineaLeLlega(entrega, fechaEntrega, T.entrega) && (
               <p className="mt-6 text-center text-[15px] text-[var(--texto-oscuro-suave)]">{lineaLeLlega(entrega, fechaEntrega, T.entrega)}</p>
             )}
-            {lineaTarjeta ? (
-              <div className="mt-10 border-t border-[var(--texto-oscuro-fuerte)] pt-4">
-                <div className="flex items-baseline justify-between gap-4 text-[15px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">
-                  <p>{catalogo.base.nombre}</p>
-                  <p className="tabular-nums">{precio}</p>
-                </div>
-                <div className="mt-2 flex items-baseline justify-between gap-4 text-[15px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">
-                  <p>{RESUMEN[idiomaDeLaWeb].lineas.tarjeta}</p>
-                  <p className="tabular-nums">{formatearPrecio(lineaTarjeta.precioUnitario, catalogo.moneda, region, true)}</p>
-                </div>
-                <div className="mt-4 flex items-baseline justify-between gap-4">
-                  <p className="text-[19px] italic text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{RESUMEN[idiomaDeLaWeb].total}</p>
-                  <p key={total} className="m-price chk-total-cifra">{total}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-10 flex items-baseline justify-between gap-4 border-t border-[var(--texto-oscuro-fuerte)] pt-4">
-                <p className="text-[19px] italic text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
-                <p key={precio} className="m-price chk-total-cifra">{precio}</p>
-              </div>
-            )}
+            <div className="mt-10 flex items-baseline justify-between gap-4 border-t border-[var(--texto-oscuro-fuerte)] pt-4">
+              <p className="text-[19px] italic text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
+              <p key={precio} className="m-price chk-total-cifra">{precio}</p>
+            </div>
             {error && <p id={ID_ERROR} className="mt-6 text-[14px] text-[var(--error,#f0a37a)] [font-family:var(--fuente-micro)]" role="alert">{error}</p>}
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => avanzar(3)} className="m-ghost inline-flex min-h-14 items-center justify-center rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro)] [font-family:var(--fuente-micro)]">← {T.atras}</button>
@@ -340,14 +310,8 @@ export function FormularioRegalo({
           </div>
           <div className="chk-ficha-cuerpo">
             <p className="text-[15px] leading-[1.6] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-cuerpo)]">{catalogo.base.detalle}</p>
-            {lineaTarjeta ? (
-              <p className="mt-4 flex items-baseline justify-between gap-4 text-[14px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">
-                <span>{RESUMEN[idiomaDeLaWeb].lineas.tarjeta}</span>
-                <span className="tabular-nums">+ {formatearPrecio(lineaTarjeta.precioUnitario, catalogo.moneda, region, true)}</span>
-              </p>
-            ) : null}
             <p className="chk-total mt-5">
-              <span className="chk-total-cifra">{total}</span>
+              <span className="chk-total-cifra">{precio}</span>
             </p>
           </div>
         </div>
@@ -355,7 +319,7 @@ export function FormularioRegalo({
     </div>
 
     {/* En el teléfono: el precio y el botón del paso, abajo y después del resumen. */}
-    <BarraPaso etiqueta={RESUMEN[idiomaDeLaWeb].total} total={total}>
+    <BarraPaso etiqueta={RESUMEN[idiomaDeLaWeb].total} total={precio}>
       {paso === 4 ? (
         <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.botonPagar} procesando={T.unMomento} className="min-h-12 shrink-0 px-5 text-[15px]" />
       ) : (
