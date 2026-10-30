@@ -28,9 +28,10 @@ import { CampoCupon, type CuponAplicado } from "../_checkout/cupon";
 import { TEXTOS_CUPON } from "../_textos/cupon";
 import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
+import { CamposTarjeta, SIN_TARJETA, ofreceTarjeta } from "../_checkout/tarjeta-impresa";
 import { formatearPrecio, listaDe } from "./productos-ui";
 import {
-  carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, historiaInicial, idiomaInicial, llevaDireccion, pasoDelPago, proximaNavidad,
+  carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, historiaInicial, idiomaInicial, llevaDireccion, pasoDelPago, proximaNavidad, quiereTarjeta,
   type EstadoCompra, type EstadoHistoriaCompra, type Falla, type Paso,
 } from "./compra";
 
@@ -129,7 +130,13 @@ export function Checkout({
   const audioRef = useRef<Blob | null>(null);
   const antesDeIr = useRef<(c: RespuestaCompra) => void>(() => {});
 
-  const cambiar = (cambios: Partial<EstadoCompra>) => setE((x) => ({ ...x, ...cambios }));
+  // Si deja de ser regalo o la fecha ya no deja tiempo para el correo, la tarjeta impresa se desmarca sola.
+  const cambiar = (cambios: Partial<EstadoCompra>) =>
+    setE((x) => {
+      const y = { ...x, ...cambios };
+      const sigue = esRegalo(y) && ofreceTarjeta(cat, y.fechaEntrega, new Date());
+      return y.tarjeta?.quiere && !sigue ? { ...y, tarjeta: { ...y.tarjeta, quiere: false } } : y;
+    });
 
   const yo = esPropia(e);
   const regalo = esRegalo(e);
@@ -138,7 +145,8 @@ export function Checkout({
   // acá solo se resta para mostrar el total. Lo que se cobra lo recalcula /api/compra.
   const [cupon, setCupon] = useState<CuponAplicado | null>(null);
   const [cuponInicial, setCuponInicial] = useState<string | null>(null);
-  const lista = useMemo(() => armarCompra(cat, region, carritoDe(e)), [cat, region, e]);
+  // La tarjeta impresa (30/10) entra al ticket solo si de verdad va: la misma cuenta que /api/compra.
+  const lista = useMemo(() => armarCompra(cat, region, { ...carritoDe(e), tarjeta: quiereTarjeta(e, new Date(), cat) }), [cat, region, e]);
   const compra = useMemo(
     () => (cupon ? { ...lista, total: Math.round((lista.total - cupon.importe) * 100) / 100 } : lista),
     [lista, cupon],
@@ -268,7 +276,7 @@ export function Checkout({
   }
 
   function seguir(desde: Paso) {
-    const problema = fallaDelPaso(desde, e, T, TR.entrega, new Date(), TH.paso);
+    const problema = fallaDelPaso(desde, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     irA((desde + 1) as Paso);
   }
@@ -318,7 +326,7 @@ export function Checkout({
   async function pagar(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     if (pagador.ocupado) return;
-    const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso);
+    const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     setFalla(null);
     setEnviando(true);
@@ -631,6 +639,13 @@ export function Checkout({
 
                 {llevaDireccion(e) ? (
                   <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} />
+                ) : null}
+
+                {/* La tarjeta del regalo impresa, en un sobre por correo (30/10). Con el libro impreso, a la misma dirección. */}
+                {regalo ? (
+                  <CamposTarjeta catalogo={cat} region={region} fecha={e.fechaEntrega} ahora={new Date()} eleccion={e.tarjeta ?? SIN_TARJETA}
+                    onCambio={(tarjeta) => cambiar({ tarjeta })} textos={TR.tarjeta} marca={marca}
+                    conDireccionDelLibro={llevaDireccion(e)} nombreSugerido={e.recibe} />
                 ) : null}
 
                 {conCupon ? (

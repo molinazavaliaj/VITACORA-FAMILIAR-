@@ -71,6 +71,20 @@ const CA: TextosComprador = {
     horaPasada: "Aquesta hora ja ha passat. Tria'n una altra.",
     leLlega: (contacto, fecha, hora) => `Li arriba a ${contacto} el ${fecha} a les ${hora}.`,
   },
+  // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre per correu. Sin pasar por Softcatalà todavía.
+  tarjeta: {
+    casilla: "Vull també la targeta impresa, en un sobre, per correu",
+    detalle: "Te l'enviem en un sobre negre, a punt per regalar. Arriba entre 3 i 5 dies.",
+    aNombreDe: "A nom de qui va el sobre",
+    aNombreDePista: "Tu o qui la rep",
+    faltaANombreDe: "Falta a nom de qui va el sobre.",
+    soloEspana: "De moment la targeta impresa només s'envia dins d'Espanya.",
+    fechaCerca: "Per rebre-la impresa, la data ha de ser d'aquí a 7 dies o més.",
+    campos: { linea1: "Carrer i número", linea2: "Pis i porta", ciudad: "Ciutat", provincia: "Província o comunitat", cp: "Codi postal", pais: "País" },
+    pais: "Espanya",
+    mismaDireccion: "Va a la mateixa adreça del llibre.",
+    faltaCampo: (campo) => `Falta ${campo.toLowerCase()}.`,
+  },
 };
 
 export const COMPRADOR_WEB: Textos<TextosComprador> = {
