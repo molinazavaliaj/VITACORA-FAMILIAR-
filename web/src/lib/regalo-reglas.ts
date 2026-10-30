@@ -34,6 +34,26 @@ export function errorDeFechaEntrega(texto: string, hoy: Date): string | null {
   return null;
 }
 
+// ── La tarjeta impresa, en un sobre por correo (30/10) ──
+
+/**
+ * Cuántos días antes de la fecha de entrega tiene que comprarse la tarjeta
+ * impresa: Naza la imprime y la manda por Correos, que tarda de 3 a 5 días.
+ */
+export const DIAS_TARJETA_IMPRESA = 7;
+
+/**
+ * ¿Llega la tarjeta impresa? Sin fecha, sí (llega cuando llega). Con fecha,
+ * tiene que ser real y estar al menos a 7 días de hoy (en UTC, como
+ * `errorDeFechaEntrega`).
+ */
+export function puedeTarjetaImpresa(fechaEntrega: string, hoy: Date): boolean {
+  if (!fechaEntrega) return true;
+  if (!esFechaReal(fechaEntrega)) return false;
+  const minima = new Date(hoy.getTime() + DIAS_TARJETA_IMPRESA * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return fechaEntrega >= minima;
+}
+
 // Los idiomas en que el biógrafo le puede hablar a quien recibe el regalo
 // (plan 2026-10-09-regalo-idiomas). Iguales a entrevistador/src/v3/nucleo/entrevista/idioma.ts.
 export const IDIOMAS_REGALO = ["es-AR", "es-ES", "ca"] as const satisfies readonly IdiomaRegalo[];

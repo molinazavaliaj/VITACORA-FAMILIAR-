@@ -146,8 +146,9 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
     expect(aplanar(textosAbuelo("es-AR"))).toEqual(ABUELO_AR);
   });
 
+  // La tarjeta impresa (30/10) todavía espera el OK de Naza: tiene su propio test (regalar-tarjeta-impresa).
   it("textosComprador('vos') es lo aprobado, más la pregunta del idioma", () => {
-    const { idioma, idiomas, entrega: _entrega, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
+    const { idioma, idiomas, entrega: _entrega, tarjeta: _tarjeta, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
     expect(resto).toEqual(COMPRADOR_VOS);
     expect(idioma).toBe("¿En qué idioma le hablamos?");
     expect(idiomas).toEqual({

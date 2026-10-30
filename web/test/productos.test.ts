@@ -7,7 +7,9 @@ import {
   validarCarrito,
   ahorroDelPack,
   CARRITO_VACIO,
+  NOMBRE_TARJETA,
 } from "../src/lib/productos";
+import { necesitaEntrega } from "../src/lib/entregas";
 
 // El catálogo base + upsells (spec 2026-09-22-catalogo-base-y-upsells-design):
 // la base (PDF + Su voz) siempre va; el impreso se suma (+49 el primero, +40
@@ -216,5 +218,42 @@ describe("pack el regalo completo", () => {
     expect(catalogo("AR").pack).toEqual({ precio: 190750 });
     delete process.env.PRECIO_PACK_ARS;
     expect(calcularCompra("AR", { base: "pdf", impresos: 1, marcos: 1 }).total).toBe(85750 + 90000 + 35000);
+  });
+});
+
+describe("la tarjeta impresa del regalo (30/10)", () => {
+  it("sin PRECIO_TARJETA_* no existe: catálogo null y no se cobra aunque se pida", () => {
+    expect(catalogo("ES").tarjeta).toBeNull();
+    const c = calcularCompra("ES", { ...CARRITO_VACIO, tarjeta: true });
+    expect(lineas(c)).toEqual([["pdf", 1, 49]]);
+    expect(c.total).toBe(49);
+  });
+  it("con PRECIO_TARJETA_EUR se suma una línea y el total", () => {
+    process.env.PRECIO_TARJETA_EUR = "4";
+    expect(catalogo("ES").tarjeta).toEqual({ precio: 4 });
+    const c = calcularCompra("ES", { ...CARRITO_VACIO, tarjeta: true });
+    expect(lineas(c)).toEqual([["pdf", 1, 49], ["tarjeta", 1, 4]]);
+    expect(c.lineas[1].nombre).toBe(NOMBRE_TARJETA);
+    expect(c.total).toBe(53);
+    // Sin pedirla, nada cambia.
+    expect(calcularCompra("ES", CARRITO_VACIO).total).toBe(49);
+  });
+  it("con el pack también va la línea de la tarjeta", () => {
+    process.env.PRECIO_TARJETA_EUR = "4";
+    process.env.PRECIO_PACK_EUR = "109";
+    const c = calcularCompra("ES", { ...CARRITO_VACIO, impresos: 1, marcos: 1, tarjeta: true });
+    expect(lineas(c)).toEqual([["pack", 1, 109], ["tarjeta", 1, 4]]);
+    expect(c.total).toBe(113);
+  });
+  it("no es de la fábrica: no cambia lo que va a extras ni pide entrega", () => {
+    process.env.PRECIO_TARJETA_EUR = "4";
+    const p = productosParaPedido(calcularCompra("ES", { ...CARRITO_VACIO, tarjeta: true }));
+    expect(p).toEqual(productosParaPedido(calcularCompra("ES", CARRITO_VACIO)));
+    expect(necesitaEntrega(p)).toBe(false);
+  });
+  it("validarCarrito avisa si se pide y no se vende", () => {
+    expect(validarCarrito("ES", { ...CARRITO_VACIO, tarjeta: true })).toEqual({ ok: false, mensaje: "La tarjeta impresa todavía no está disponible." });
+    process.env.PRECIO_TARJETA_EUR = "4";
+    expect(validarCarrito("ES", { ...CARRITO_VACIO, tarjeta: true })).toEqual({ ok: true });
   });
 });

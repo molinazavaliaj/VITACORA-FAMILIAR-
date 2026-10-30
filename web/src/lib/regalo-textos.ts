@@ -72,7 +72,38 @@ export type TextosComprador = {
   idioma: string;
   idiomas: Record<IdiomaRegalo, string>;
   entrega: TextosEntrega;
+  tarjeta: TextosTarjetaImpresa;
 };
+
+/** La tarjeta impresa en un sobre por correo (30/10), en el paso 3 de /regalar. */
+export type TextosTarjetaImpresa = {
+  /** La casilla; al lado va el precio («+ 4 €»). */
+  casilla: string;
+  detalle: string;
+  aNombreDe: string;
+  aNombreDePista: string;
+  faltaANombreDe: string;
+  soloEspana: string;
+  /** Si la fecha de entrega está a menos de 7 días: en vez de la casilla, esta línea. */
+  fechaCerca: string;
+  /** Las etiquetas de la dirección (las de DIRECCION_CAMPOS_ES) y el país, que va fijo. */
+  campos: { linea1: string; linea2: string; ciudad: string; provincia: string; cp: string; pais: string };
+  /** El país fijo, como texto. */
+  pais: string;
+  /** Falta un campo obligatorio de la dirección (con su etiqueta). */
+  faltaCampo: (campo: string) => string;
+};
+
+/** Las etiquetas de la dirección en castellano, las mismas que DIRECCION_CAMPOS_ES (lib/entregas.ts). */
+const CAMPOS_DIRECCION = {
+  linea1: "Calle y número",
+  linea2: "Piso y puerta",
+  ciudad: "Ciudad",
+  provincia: "Provincia o comunidad",
+  cp: "Código postal",
+  pais: "País",
+};
+const FALTA_CAMPO = (campo: string) => `Falta ${campo.toLowerCase()}.`;
 
 /** Mandárselo solo el día elegido (spec 2026-10-10-regalo-dia-de-entrega), en el paso 2 y el 4. */
 export type TextosEntrega = {
@@ -237,6 +268,20 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       horaPasada: "Esa hora ya pasó. Elegí otra.",
       leLlega: LE_LLEGA,
     },
+
+    // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre por correo.
+    tarjeta: {
+      casilla: "Quiero también la tarjeta impresa, en un sobre, por correo",
+      detalle: "Te la mandamos en un sobre negro, lista para regalar. Llega en 3 a 5 días.",
+      aNombreDe: "A nombre de quién va el sobre",
+      aNombreDePista: "Vos o quien la recibe",
+      faltaANombreDe: "Falta a nombre de quién va el sobre.",
+      soloEspana: "Por ahora la tarjeta impresa solo se manda dentro de España.",
+      fechaCerca: "Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.",
+      campos: CAMPOS_DIRECCION,
+      pais: "España",
+      faltaCampo: FALTA_CAMPO,
+    },
   },
 
   // Aprobados por Naza el 09/10 (regalo-idiomas): cada texto de vos pasado a tú de España, con el mismo sentido.
@@ -304,6 +349,20 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       correoMal: "Ese correo parece mal escrito. Revísalo.",
       horaPasada: "Esa hora ya ha pasado. Elige otra.",
       leLlega: LE_LLEGA,
+    },
+
+    // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre por correo.
+    tarjeta: {
+      casilla: "Quiero también la tarjeta impresa, en un sobre, por correo",
+      detalle: "Te la mandamos en un sobre negro, lista para regalar. Llega en 3 a 5 días.",
+      aNombreDe: "A nombre de quién va el sobre",
+      aNombreDePista: "Tú o quien la recibe",
+      faltaANombreDe: "Falta a nombre de quién va el sobre.",
+      soloEspana: "Por ahora la tarjeta impresa solo se manda dentro de España.",
+      fechaCerca: "Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.",
+      campos: CAMPOS_DIRECCION,
+      pais: "España",
+      faltaCampo: FALTA_CAMPO,
     },
   },
 };
