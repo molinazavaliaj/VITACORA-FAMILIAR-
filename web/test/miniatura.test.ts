@@ -8,7 +8,8 @@ import { armarPaginas, paginar, type LibroDatos } from "../src/app/tablero/[narr
 const datos: LibroDatos = {
   titulo: "Roberto — La historia de una vida",
   portadaFotoId: null,
-  contratapaFotoId: null,
+  nombre: "Roberto Fernández",
+  idioma: "es",
   capitulos: [
     { nombre: "La infancia", fotos: [{ id: "f1", epigrafe: null, principal: true }, { id: "f2", epigrafe: "el patio", principal: false }], textos: [{ pregunta: "¿La casa?", texto: "La casa tenía un patio. ".repeat(80) }] },
     { nombre: "Las raíces", fotos: [], textos: [] },

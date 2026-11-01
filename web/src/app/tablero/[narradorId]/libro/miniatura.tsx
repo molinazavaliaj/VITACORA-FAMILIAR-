@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { TapaLibro } from "../../../tapa-libro";
+import { Toroide } from "../../../marca";
+import { TEXTOS_CONTRATAPA, inicialesContratapa, type IdiomaLibro } from "@/lib/tapa";
 
 // El libro en miniatura (docs/panel-usuario.md §15.4): se hojea página por
 // página y muestra cómo va a quedar — la tapa elegida, dónde caen las fotos,
@@ -19,8 +21,10 @@ export type CapituloLibro = { nombre: string; fotos: FotoLibro[]; textos: { preg
 export type LibroDatos = {
   titulo: string;
   portadaFotoId: string | null;
-  contratapaFotoId: string | null;
-  /** Encuadre de la tapa y la contratapa (las fotos del álbum también tienen foco). */
+  /** Para la contratapa, que no lleva foto (01/11): el texto con su nombre, el QR de su voz y el lema, como se imprime. */
+  nombre: string;
+  idioma: IdiomaLibro;
+  /** Encuadre de la tapa (las fotos del álbum también tienen foco). */
   focos?: Record<string, Foco>;
   capitulos: CapituloLibro[];
   /** Solo si compró el impreso en blanco y negro: la miniatura se ve en gris, como se imprime (18/09). El PDF y el lector siempre a color. */
@@ -88,16 +92,23 @@ function PaginaVista({ p, d, numero, trato = "vos" }: { p: Pagina; d: LibroDatos
     case "tapa":
       // La misma tapa que sale impresa (13/10). El gris del impreso en blanco y negro lo pone el contenedor.
       return <TapaLibro titulo={d.titulo} fotoSrc={d.portadaFotoId ? `/api/fotos/${d.portadaFotoId}` : null} foco={d.portadaFotoId ? d.focos?.[d.portadaFotoId] : undefined} llenar />;
-    case "contratapa":
+    case "contratapa": {
+      // La contratapa impresa (fabrica/src/libro/bookmundo/cubierta.ts), sin foto. Medidas en cqw, como allá.
+      const t = TEXTOS_CONTRATAPA[d.idioma];
       return (
-        <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
-          {d.contratapaFotoId ? <Foto id={d.contratapaFotoId} foco={d.focos?.[d.contratapaFotoId]} className="aspect-[4/5] w-full rounded-sm" /> : <span />}
-          <div className="flex items-end justify-between gap-3">
-            <p className="text-[8px] leading-relaxed text-[#AEAEA6] [font-family:var(--fuente-micro)]">{trato === "tu" ? "Acerca el teléfono al código y escucha su voz." : "Acercá el teléfono al código y escuchá su voz."}</p>
-            <span aria-hidden className="h-9 w-9 shrink-0 rounded-sm border border-[#83837A] bg-[repeating-linear-gradient(0deg,#83837A_0_2px,transparent_2px_4px)]" />
+        // El contenedor afuera: el padding en cqw tiene que medirse contra el ancho de la página, no contra la pantalla.
+        <div className="h-full bg-[#faf7f1] [container-type:inline-size]">
+          <div className="flex h-full flex-col items-center text-center text-[#1b1a17]" style={{ padding: "10cqw 11cqw 6cqw" }}>
+            <Toroide className="h-auto [width:30cqw]" />
+            <span className="[font-family:var(--fuente-titulo)]" style={{ marginTop: "4cqw", fontSize: "7cqw", letterSpacing: "0.08em" }}>{inicialesContratapa(d.nombre)}</span>
+            <p className="text-[#26231e] [font-family:var(--fuente-titulo)]" style={{ marginTop: "12cqw", fontSize: "4.4cqw", lineHeight: 1.45 }}>{t.contra(d.nombre)}</p>
+            <span aria-hidden className="block aspect-square bg-white bg-[repeating-linear-gradient(0deg,#161513_0_2px,transparent_2px_4px)]" style={{ marginTop: "8cqw", width: "18cqw", border: "0.45cqw solid #161513" }} />
+            <span className="font-semibold uppercase text-[#8a7246] [font-family:var(--fuente-micro)]" style={{ marginTop: "3cqw", fontSize: "3cqw", letterSpacing: "0.26em" }}>{t.escucha(trato === "tu")}</span>
+            <span className="mt-auto italic [font-family:var(--fuente-titulo)]" style={{ fontSize: "4cqw" }}>{t.lema}</span>
           </div>
         </div>
       );
+    }
     case "indice":
       return (
         <div className="flex h-full flex-col p-5">

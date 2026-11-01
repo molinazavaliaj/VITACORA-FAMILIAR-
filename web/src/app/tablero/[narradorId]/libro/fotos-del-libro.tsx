@@ -11,13 +11,14 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Las fotos del libro (docs/panel-usuario.md §15.2): arriba el ÁLBUM — las
 // que se subieron sin decidir todavía dónde van — y abajo los lugares donde
-// pueden ir: la portada de cada capítulo, la tapa, la contratapa y un marco
-// por cada primo. Se arrastra una foto del álbum (o de cualquier lugar) al
-// lugar, o se toca el lugar y se elige de la lista. Todo se puede cambiar
-// hasta que se encarga el libro.
+// pueden ir: la portada de cada capítulo, la tapa y un marco por cada primo.
+// Se arrastra una foto del álbum (o de cualquier lugar) al lugar, o se toca
+// el lugar y se elige de la lista. Todo se puede cambiar hasta que se encarga
+// el libro. La contratapa no lleva foto (01/11, Naza): sale impresa con su
+// texto y el QR de su voz.
 //
 // Dos escrituras distintas: mover una foto a un capítulo cambia la fila de
-// la foto (PATCH /api/fotos/[id]); elegirla para tapa, contratapa o marco
+// la foto (PATCH /api/fotos/[id]); elegirla para tapa o marco
 // cambia narradores.edicion (PATCH /api/edicion).
 
 export type FotoElegible = { id: string; epigrafe: string | null; capitulo: string | null; principal: boolean; ancho_px: number | null; alto_px: number | null; foco?: Foco; posicion?: Posicion };
@@ -138,8 +139,8 @@ export function FotosDelLibro({
   }
 
   // Sin arrastrar y soltar (Joaquín, 18/09): era lento y poco fluido. Cada lugar
-  // se toca y abre el selector con todas las fotos, igual para capítulos, tapa,
-  // contratapa y marcos.
+  // se toca y abre el selector con todas las fotos, igual para capítulos, tapa
+  // y marcos.
   const clave = (d: Destino) => (d.tipo === "capitulo" ? `cap:${d.capitulo}` : d.tipo === "ranura" ? d.ranura : `marco:${d.indice}`);
 
   const lugar = (activo: boolean) =>
@@ -200,8 +201,8 @@ export function FotosDelLibro({
         <p className="mt-2 text-[14px] leading-relaxed text-[var(--texto-suave)]">
           Las que subiste sin decidir dónde van. {editable
             ? tu
-              ? "Toca un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elígela de la lista."
-              : "Tocá un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elegila de la lista."
+              ? "Toca un lugar de abajo — la portada de un capítulo, la tapa o un marco — y elígela de la lista."
+              : "Tocá un lugar de abajo — la portada de un capítulo, la tapa o un marco — y elegila de la lista."
             : "Se decidió al encargar el libro."}
         </p>
         {album.length > 0 ? (
@@ -243,10 +244,9 @@ export function FotosDelLibro({
 
       {/* ── Tapa · Contratapa · Marcos ──────────────────────────────── */}
       <div>
-        <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Tapa · contratapa · {marcos === 1 ? "marco" : `${marcos} marcos`}</p>
+        <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Tapa · {marcos === 1 ? "marco" : `${marcos} marcos`}</p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Lugar destino={{ tipo: "ranura", ranura: "portadaFotoId" }} nombre="Tapa" detalle="La foto que abre el libro." foto={elegidas.portadaFotoId ? porId.get(elegidas.portadaFotoId) ?? null : null} exige="libro" />
-          <Lugar destino={{ tipo: "ranura", ranura: "contratapaFotoId" }} nombre="Contratapa" detalle="La de atrás, con el código de su voz." foto={elegidas.contratapaFotoId ? porId.get(elegidas.contratapaFotoId) ?? null : null} exige="libro" />
           {listaMarcos.map((id, i) => (
             <Lugar
               key={i}

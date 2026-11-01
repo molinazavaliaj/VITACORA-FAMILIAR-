@@ -629,7 +629,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde {elegidas.length > 1 ? "van" : "va"}</span>
           <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
           {capitulo === SIN_CAPITULO ? (
-            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? (tu ? "las pones" : "las ponés") : tu ? "la pones" : "la ponés"} donde quieras, en la portada de un capítulo, la tapa, la contratapa o un marco.</span>
+            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? (tu ? "las pones" : "las ponés") : tu ? "la pones" : "la ponés"} donde quieras, en la portada de un capítulo, la tapa o un marco.</span>
           ) : null}
         </label>
         {unaSola ? (

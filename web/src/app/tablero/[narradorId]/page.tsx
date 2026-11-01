@@ -1034,7 +1034,7 @@ function HistoriaClasica({
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
               Las fotos que todavía no tienen lugar. En{" "}
               <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>{" "}
-              {tratoPanel === "tu" ? "las arrastras" : "las arrastrás"} a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
+              {tratoPanel === "tu" ? "las arrastras" : "las arrastrás"} a la portada de un capítulo, a la tapa o a un marco, y ves cómo queda en la previsualización.
             </p>
             <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={usuarioId} esDuena={rol === "duena"} />
             {puedeAgregar ? (
