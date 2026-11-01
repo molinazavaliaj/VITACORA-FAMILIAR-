@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, chicaParaTapa, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
+import { aJpgSiEsHeic, esHeic } from "@/lib/foto-heic";
 import { HORAS_FAMILIAR, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -114,20 +115,33 @@ function VistaPreviaFoto({ archivo, calidad, trato = "vos" }: { archivo: File | 
   );
 }
 
-/** Un campo de foto que mide la imagen apenas se elige. Con `multiple`, avisa por cada una. */
+/** Un campo de foto que mide la imagen apenas se elige (las HEIC del iPhone, antes, pasan a JPG). Con `multiple`, avisa por cada una. */
 function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archivo: File, medida: { ancho: number; alto: number } | null) => void; multiple?: boolean; etiqueta?: string }) {
+  const [preparando, setPreparando] = useState<string | null>(null); // «Preparando las fotos (3 de 20)…» mientras las HEIC pasan a JPG
   return (
-    <label className={`${botonSecundario} cursor-pointer`}>
-      {etiqueta ?? (multiple ? "Elegir fotos" : "Elegir una foto")}
+    <label className={`${botonSecundario} cursor-pointer ${preparando !== null ? "pointer-events-none opacity-50" : ""}`}>
+      {preparando ?? etiqueta ?? (multiple ? "Elegir fotos" : "Elegir una foto")}
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
         multiple={multiple}
+        disabled={preparando !== null}
         className="sr-only"
         onChange={async (e) => {
           const archivos = Array.from(e.target.files ?? []);
           e.target.value = ""; // para poder volver a elegir la misma
-          for (const archivo of multiple ? archivos : archivos.slice(0, 1)) onElegir(archivo, await medirImagen(archivo));
+          const elegidos = multiple ? archivos : archivos.slice(0, 1);
+          const heic = elegidos.filter(esHeic).length;
+          let listas = 0;
+          try {
+            for (const original of elegidos) {
+              if (esHeic(original)) setPreparando(heic > 1 ? `Preparando las fotos (${++listas} de ${heic})…` : "Preparando la foto…");
+              const archivo = await aJpgSiEsHeic(original);
+              onElegir(archivo, await medirImagen(archivo));
+            }
+          } finally {
+            setPreparando(null);
+          }
         }}
       />
     </label>
@@ -516,7 +530,6 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false, trato
 // ── subir una foto suelta a un capítulo ────────────────────────────────
 
 type FotoElegida = { clave: string; archivo: File; medida: { ancho: number; alto: number } | null };
-const FOTOS_POR_VEZ = 20;
 
 // `paraTapa` (arreglos chicos, maqueta Panel): todavía no hay foto de tapa y
 // lo que se sube puede terminar ahí. Si alguna elegida no alcanza para la tapa
@@ -544,7 +557,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
   function agregar(archivo: File, medida: { ancho: number; alto: number } | null) {
     const clave = `${archivo.name}-${archivo.size}-${archivo.lastModified}`;
     setAvisoChica(false);
-    setElegidas((x) => (x.some((f) => f.clave === clave) || x.length >= FOTOS_POR_VEZ ? x : [...x, { clave, archivo, medida }]));
+    setElegidas((x) => (x.some((f) => f.clave === clave) ? x : [...x, { clave, archivo, medida }]));
   }
 
   async function guardar(usarIgual = false) {
@@ -555,8 +568,10 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
     const pendientes = [...elegidas];
     let subidas = 0;
     let ultimoAviso: string | null = null;
-    for (const foto of pendientes) {
-      setOcupado(pendientes.length > 1 ? `Subiendo ${subidas + 1} de ${pendientes.length}…` : "Subiendo…");
+    // Si una falla se sigue con las demás: las que fallaron quedan en la lista para reintentar.
+    const fallidas: { nombre: string; mensaje: string }[] = [];
+    for (const [i, foto] of pendientes.entries()) {
+      setOcupado(pendientes.length > 1 ? `Subiendo ${i + 1} de ${pendientes.length}…` : "Subiendo…");
       try {
         const r = await subirFoto(narradorId, {
           archivo: foto.archivo, capitulo, medida: foto.medida,
@@ -564,15 +579,20 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
         }, trato);
         subidas++;
         ultimoAviso = r.aviso;
-        setElegidas((x) => x.filter((f) => f.clave !== foto.clave)); // las que ya entraron no se repiten si falla otra
+        setElegidas((x) => x.filter((f) => f.clave !== foto.clave)); // las que ya entraron no se repiten al reintentar
       } catch (e) {
-        setOcupado(null);
-        setError(`${e instanceof Error ? e.message : "No pudimos subir la foto."} (${foto.archivo.name}). Las ${subidas} anteriores ya quedaron.`);
-        router.refresh();
-        return;
+        fallidas.push({ nombre: foto.archivo.name, mensaje: e instanceof Error ? e.message : "No pudimos subir la foto." });
       }
     }
     setOcupado(null);
+    if (fallidas.length > 0) {
+      const cuales = fallidas.length === 1
+        ? `${fallidas[0].mensaje} (${fallidas[0].nombre}).`
+        : `No pudimos subir ${fallidas.length} fotos (${fallidas.map((f) => f.nombre).join(", ")}). ${fallidas[0].mensaje}`;
+      setError(subidas > 0 ? `${cuales} Las otras ${subidas} ya quedaron.` : cuales);
+      router.refresh();
+      return;
+    }
     setAviso(subidas === 1 ? (ultimoAviso ? `Foto guardada. ${ultimoAviso}` : "Foto guardada.") : `${subidas} fotos guardadas.`);
     setEpigrafe(""); setPrincipal(false);
     setAbierto(false);

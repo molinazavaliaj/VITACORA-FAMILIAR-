@@ -258,6 +258,8 @@ export type TextosCheckout = {
   album: string;
   albumDetalle: string;
   agregarFotos: string;
+  /** Mientras las HEIC del iPhone pasan a JPG en el navegador. */
+  preparandoFotos: (va: number, de: number) => string;
   agregarMas: (n: number, maximo: number) => string;
   fotoSubida: string;
   sacarFoto: (nombre: string) => string;
@@ -428,6 +430,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     album: "El álbum del libro",
     albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde la página de su historia, eliges cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
     agregarFotos: "+ Añadir fotos",
+    preparandoFotos: (va, de) => (de > 1 ? `Preparando las fotos (${va} de ${de})…` : "Preparando la foto…"),
     agregarMas: (n, m) => `+ Añadir más (${n} de ${m})`,
     fotoSubida: "Subida",
     sacarFoto: (n) => `Quitar ${n}`,
@@ -599,6 +602,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     album: "El álbum del libro",
     albumDetalle: "Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde la página de su historia, elegís cuál va en la tapa y cuáles en los marcos. Cuantos más píxeles, mejor se imprimen.",
     agregarFotos: "+ Agregar fotos",
+    preparandoFotos: (va, de) => (de > 1 ? `Preparando las fotos (${va} de ${de})…` : "Preparando la foto…"),
     agregarMas: (n, m) => `+ Agregar más (${n} de ${m})`,
     fotoSubida: "Subida",
     sacarFoto: (n) => `Sacar ${n}`,
@@ -769,6 +773,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     album: "L'àlbum del llibre",
     albumDetalle: "Les fotos que vulguis que surtin al seu llibre, de qualsevol moment de la seva vida. Després, des de la pàgina de la seva història, tries quina va a la tapa i quines als marcs. Com més píxels, millor s'imprimeixen.",
     agregarFotos: "+ Afegir fotos",
+    preparandoFotos: (va, de) => (de > 1 ? `Preparant les fotos (${va} de ${de})…` : "Preparant la foto…"),
     agregarMas: (n, m) => `+ Afegir-ne més (${n} de ${m})`,
     fotoSubida: "Pujada",
     sacarFoto: (n) => `Treure ${n}`,
