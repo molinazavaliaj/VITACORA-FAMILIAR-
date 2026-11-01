@@ -6,6 +6,7 @@ import { validarFoco, validarPosicion, type Foco, type Posicion } from "@/lib/en
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion } from "@/lib/regalo-textos";
 import { regionDelRequest } from "@/lib/region";
+import type { Edicion } from "@/lib/edicion";
 
 // Ver una foto: URL firmada, solo para quien puede ver esa historia.
 // Mismo criterio que /api/audio/[respuestaId].
@@ -64,12 +65,33 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     return NextResponse.json({ error: tu ? "Solo puedes borrar las fotos que subiste tú." : "Solo podés borrar las fotos que subiste vos." }, { status: 403 });
   }
 
+  // Con el libro encargado la fábrica ya cuenta con sus fotos (mismo freno que moverlas).
+  const { data: fila } = await admin.from("narradores").select("libro_aprobado_at, edicion").eq("id", f.narrador_id).maybeSingle();
+  const narrador = fila as { libro_aprobado_at?: string | null; edicion?: Edicion | null } | null;
+  if (narrador?.libro_aprobado_at) {
+    return NextResponse.json({ error: "El libro ya está encargado: las fotos no se sacan más." }, { status: 400 });
+  }
+
   // Si una pregunta la usaba, esa pregunta se queda sin foto pero sigue existiendo.
   await admin.from("preguntas").update({ foto_id: null }).eq("foto_id", f.id);
   const { error } = await admin.from("fotos").delete().eq("id", f.id);
   if (error) {
     console.error("fotos: fallo al borrar", error);
     return NextResponse.json({ error: "No pudimos borrar la foto." }, { status: 500 });
+  }
+  // Si era la tapa, la contratapa o un marco, ese lugar queda sin foto (no apuntando a una que ya no está).
+  const edicion = narrador?.edicion;
+  const sinElla = (id: string | null | undefined) => (id === f.id ? null : id);
+  if (edicion && [edicion.portadaFotoId, edicion.contratapaFotoId, edicion.marcoFotoId, ...(edicion.marcosFotoIds ?? [])].includes(f.id)) {
+    const limpia: Edicion = {
+      ...edicion,
+      ...("portadaFotoId" in edicion ? { portadaFotoId: sinElla(edicion.portadaFotoId) } : {}),
+      ...("contratapaFotoId" in edicion ? { contratapaFotoId: sinElla(edicion.contratapaFotoId) } : {}),
+      ...("marcoFotoId" in edicion ? { marcoFotoId: sinElla(edicion.marcoFotoId) } : {}),
+      ...(edicion.marcosFotoIds ? { marcosFotoIds: edicion.marcosFotoIds.map((id) => sinElla(id) ?? null) } : {}),
+    };
+    const { error: errorEdicion } = await admin.from("narradores").update({ edicion: limpia }).eq("id", f.narrador_id);
+    if (errorEdicion) console.error("fotos: fallo sacar la foto borrada de la edición", errorEdicion);
   }
   await admin.storage.from("audios").remove([f.storage_path]);
   return NextResponse.json({ ok: true });
