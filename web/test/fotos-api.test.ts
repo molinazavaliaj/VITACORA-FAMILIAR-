@@ -48,13 +48,21 @@ function crearAdmin(tablas: Record<string, Fila[]>) {
     b.single = marcarSingle; b.maybeSingle = marcarSingle;
     return b;
   }
+  // `enStorage`: lo que el navegador ya subió directo (nombre dentro de <narrador>/fotos → bytes).
+  const enStorage = new Map<string, number>();
+  const borradas: string[] = [];
   const storage = {
     from: () => ({
       upload: vi.fn(async (path: string) => { subidas.push(path); return { error: null }; }),
-      remove: vi.fn(async () => ({ error: null })),
+      remove: vi.fn(async (paths: string[]) => { borradas.push(...paths); return { error: null }; }),
+      createSignedUploadUrl: vi.fn(async (path: string) => ({ data: { signedUrl: `https://s/${path}`, token: "tok", path }, error: null })),
+      list: vi.fn(async (_carpeta: string, o: { search: string }) => ({
+        data: [...enStorage].filter(([nombre]) => nombre.startsWith(o.search)).map(([name, size]) => ({ name, metadata: { size } })),
+        error: null,
+      })),
     }),
   };
-  return { admin: { from: vi.fn(builder), storage }, escrituras, subidas };
+  return { admin: { from: vi.fn(builder), storage }, escrituras, subidas, enStorage, borradas };
 }
 
 const martina = { id: "u-martina", email: "martina@mail.com" };
@@ -170,5 +178,84 @@ describe("POST /api/fotos — tipo de archivo", () => {
     expect(subidas).toHaveLength(1);
     expect(subidas[0]).toMatch(/^n1\/fotos\/[0-9a-f-]+\.jpg$/);
     expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "fotos", op: "insert" }));
+  });
+});
+
+describe("POST /api/fotos — subida directa a Storage (fotos de más de 4,5 MB)", () => {
+  const json = (cuerpo: Record<string, unknown>) => ({
+    nextUrl: new URL("http://localhost/api/fotos?narrador=n1"),
+    headers: new Headers({ "content-type": "application/json" }),
+    json: async () => cuerpo,
+  }) as never;
+
+  it("pedir: devuelve una URL firmada dentro de la carpeta del narrador, sin crear fila", async () => {
+    sesion(martina);
+    const { escrituras } = armar();
+    const r = await POST(json({ paso: "pedir", tipo: "image/jpeg", tamano: 9_000_000 }));
+    expect(r.status).toBe(200);
+    const d = await r.json();
+    expect(d.path).toMatch(/^n1\/fotos\/[0-9a-f-]+\.jpg$/);
+    expect(d.token).toBe("tok");
+    expect(escrituras.filter((e) => e.tabla === "fotos")).toEqual([]);
+  });
+
+  it("pedir: HEIC y más de 25 MB no reciben permiso", async () => {
+    sesion(martina);
+    armar();
+    expect((await POST(json({ paso: "pedir", tipo: "image/heic", tamano: 1 }))).status).toBe(400);
+    expect((await POST(json({ paso: "pedir", tipo: "image/jpeg", tamano: 26 * 1024 * 1024 }))).status).toBe(400);
+  });
+
+  it("confirmar: si el archivo llegó a Storage, queda la fila con su medida", async () => {
+    sesion(martina);
+    const { escrituras, enStorage } = armar();
+    const { id } = await (await POST(json({ paso: "pedir", tipo: "image/jpeg", tamano: 9_000_000 }))).json();
+    enStorage.set(`${id}.jpg`, 9_000_000);
+    const r = await POST(json({ paso: "confirmar", id, tipo: "image/jpeg", capitulo: "La infancia", ancho: 4284, alto: 5712 }));
+    expect(r.status).toBe(200);
+    expect(escrituras.find((e) => e.tabla === "fotos" && e.op === "insert")?.valores).toMatchObject({
+      id, narrador_id: "n1", capitulo: "La infancia", storage_path: `n1/fotos/${id}.jpg`, ancho_px: 4284, alto_px: 5712, subida_por: "u-martina",
+    });
+  });
+
+  it("confirmar sin archivo en Storage no crea fila", async () => {
+    sesion(martina);
+    const { escrituras } = armar();
+    const r = await POST(json({ paso: "confirmar", id: "5f0c6a1e-1111-4222-8333-944455556666", tipo: "image/jpeg" }));
+    expect(r.status).toBe(400);
+    expect(escrituras.filter((e) => e.tabla === "fotos")).toEqual([]);
+  });
+
+  it("confirmar algo de más de 25 MB lo borra de Storage", async () => {
+    sesion(martina);
+    const { escrituras, enStorage, borradas } = armar();
+    const id = "5f0c6a1e-1111-4222-8333-944455556666";
+    enStorage.set(`${id}.jpg`, 30 * 1024 * 1024);
+    const r = await POST(json({ paso: "confirmar", id, tipo: "image/jpeg" }));
+    expect(r.status).toBe(400);
+    expect(borradas).toEqual([`n1/fotos/${id}.jpg`]);
+    expect(escrituras.filter((e) => e.tabla === "fotos")).toEqual([]);
+  });
+
+  it("confirmar una que ya tiene fila no crea otra ni borra el archivo", async () => {
+    sesion(martina);
+    const id = "5f0c6a1e-1111-4222-8333-944455556666";
+    const armado = crearAdmin({
+      familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
+      narradores: [{ id: "n1", estado: "activo", familia_id: "fam-martina", contexto: {}, libro_aprobado_at: null }],
+      fotos: [{ id, narrador_id: "n1" }], preguntas: [], invitados: [],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(armado.admin);
+    armado.enStorage.set(`${id}.jpg`, 1000);
+    const r = await POST(json({ paso: "confirmar", id, tipo: "image/jpeg" }));
+    expect(r.status).toBe(400);
+    expect(armado.borradas).toEqual([]);
+    expect(armado.escrituras.filter((e) => e.tabla === "fotos")).toEqual([]);
+  });
+
+  it("un id que no es uuid no se confirma (no se puede apuntar a otro archivo)", async () => {
+    sesion(martina);
+    armar();
+    expect((await POST(json({ paso: "confirmar", id: "../n2/fotos/x", tipo: "image/jpeg" }))).status).toBe(400);
   });
 });
