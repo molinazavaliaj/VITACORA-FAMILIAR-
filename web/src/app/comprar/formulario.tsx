@@ -10,6 +10,7 @@ import { nombreDePila } from "@/lib/como-le-dicen";
 import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
 import { idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { medirImagen } from "@/lib/medir-imagen";
+import { aJpgSiEsHeic, esHeic } from "@/lib/foto-heic";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
@@ -120,6 +121,7 @@ export function Checkout({
   const [progreso, setProgreso] = useState<string | null>(null);
   const [fallo, setFallo] = useState<null | "guardado" | "solo">(null);
   const [fotos, setFotos] = useState<FotoElegida[]>([]);
+  const [preparandoFotos, setPreparandoFotos] = useState<{ va: number; de: number } | null>(null);
   const [audio, setAudio] = useState<Blob | null>(null);
   const entradaFotos = useRef<HTMLInputElement>(null);
   const titulo = useRef<HTMLHeadingElement>(null);
@@ -276,6 +278,7 @@ export function Checkout({
   }
 
   function seguir(desde: Paso) {
+    if (preparandoFotos) return; // las fotos se agregan al terminar de prepararse: sin esperar, quedarían afuera
     const problema = fallaDelPaso(desde, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     irA((desde + 1) as Paso);
@@ -298,11 +301,18 @@ export function Checkout({
     setE((x) => ({ ...x, telefono, idioma: x.idiomaAMano ? x.idioma : idiomaTrasElNumero(idiomaInicial(idioma), telefono) }));
   }
 
-  function elegirFotos(lista: FileList | null) {
+  async function elegirFotos(lista: FileList | null) {
     if (!lista) return;
+    const elegidos = Array.from(lista);
+    if (entradaFotos.current) entradaFotos.current.value = "";
     setFalla(null);
+    // Las HEIC del iPhone pasan a JPG acá (lib/foto-heic): así se ven, se miden y el servidor las acepta.
+    const heic = elegidos.filter(esHeic).length;
+    let listas = 0;
     const nuevas: FotoElegida[] = [];
-    for (const archivo of Array.from(lista)) {
+    for (const original of elegidos) {
+      if (esHeic(original)) setPreparandoFotos({ va: ++listas, de: heic });
+      const archivo = await aJpgSiEsHeic(original);
       const errorDeTipo = errorDeTipoDeFoto(archivo.type, trato);
       if (errorDeTipo) {
         setFalla({ texto: errorDeTipo });
@@ -320,12 +330,12 @@ export function Checkout({
       const claves = new Set(x.map((y) => y.clave));
       return [...x, ...nuevas.filter((y) => !claves.has(y.clave))].slice(0, FOTOS_MAXIMO);
     });
-    if (entradaFotos.current) entradaFotos.current.value = "";
+    setPreparandoFotos(null);
   }
 
   async function pagar(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
-    if (pagador.ocupado) return;
+    if (pagador.ocupado || preparandoFotos) return;
     const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     setFalla(null);
@@ -579,9 +589,9 @@ export function Checkout({
                         ))}
                       </ul>
                     ) : null}
-                    <button type="button" disabled={enviando || fotos.length >= FOTOS_MAXIMO} onClick={() => entradaFotos.current?.click()}
+                    <button type="button" disabled={enviando || preparandoFotos !== null || fotos.length >= FOTOS_MAXIMO} onClick={() => entradaFotos.current?.click()}
                       className="m-ghost mt-1 inline-flex min-h-12 items-center self-start rounded-full border border-[var(--borde-oscuro-fuerte)] px-6 text-[15px] text-[var(--texto-oscuro-fuerte)] disabled:opacity-60 [font-family:var(--fuente-micro)]">
-                      {fotos.length === 0 ? T.agregarFotos : T.agregarMas(fotos.length, FOTOS_MAXIMO)}
+                      {preparandoFotos ? T.preparandoFotos(preparandoFotos.va, preparandoFotos.de) : fotos.length === 0 ? T.agregarFotos : T.agregarMas(fotos.length, FOTOS_MAXIMO)}
                     </button>
                   </section>
                 </>
