@@ -14,6 +14,8 @@ export const FUENTES_IMPRENTA: [string, 'normal' | 'italic', number, string][] =
   ['Playfair Display', 'italic', 400, 'PlayfairDisplay-italic-400.ttf'],
   ['Playfair Display', 'italic', 500, 'PlayfairDisplay-italic-500.ttf'],
   ['Playfair Display', 'italic', 900, 'PlayfairDisplay-italic-900.ttf'],
+  // 300: el nombre de la tapa, «el trazo no tan gordo» (Naza, 01/11). Instanciada de la variable de la web (latín 1).
+  ['Source Serif 4', 'normal', 300, 'SourceSerif4-normal-300.ttf'],
   ['Source Serif 4', 'normal', 400, 'SourceSerif4-normal-400.ttf'],
   ['Source Serif 4', 'normal', 600, 'SourceSerif4-normal-600.ttf'],
   ['Source Serif 4', 'italic', 400, 'SourceSerif4-italic-400.ttf'],

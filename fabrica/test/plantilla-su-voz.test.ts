@@ -202,7 +202,7 @@ describe('la sección impresa de Su voz', () => {
       expect(html).not.toContain('class="su-voz-frase"');
       expect(qrDelHtml(html)).toHaveLength(0);
       // El libro se imprime igual: sigue estando todo lo de siempre.
-      expect(html).toContain('<div class="portada-nombre-narrador">ROBERTO</div>');
+      expect(html).toContain('<div class="portada-nombre-narrador" style="font-size: 11.4cqw">ROBERTO</div>');
       expect(html).toContain('Este libro fue contado por');
       expect(html).toContain('class="fuente-texto antes"');
     }

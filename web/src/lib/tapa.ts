@@ -73,15 +73,15 @@ export function renglonesNombreTapa(nombre: string): string[] {
 }
 
 /**
- * El tamaño del nombre en la tapa, en cqw (13/10): la misma cuenta que
- * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que el renglón más largo
- * no entre en 465px). Una palabra nunca se corta.
+ * El tamaño del nombre en la tapa, en cqw: la misma cuenta que `cuerpoNombreTapa` de la fábrica, que usan
+ * la tapa impresa y el libro online (01/11: la vista previa copia la impresa). 11,4 % del ancho, salvo que el
+ * renglón más largo no entre en el 84 %: ahí se achica. Una palabra nunca se corta. Ancho aproximado de la
+ * Source Serif: 0,72 em una mayúscula, 0,5 em el resto.
  */
 export function tamanoNombreTapa(texto: string): number {
-  const ancho = (renglon: string) => [...renglon].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
+  const ancho = (renglon: string) => [...renglon].reduce((a, c) => a + (c !== c.toLowerCase() ? 0.72 : 0.5), 0);
   const mayor = Math.max(0, ...renglonesNombreTapa(texto).map(ancho));
-  const px = mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
-  return Math.round((px / 559) * 1000) / 10;
+  return mayor > 0 ? Math.min(11.4, Math.floor(((84 * 0.95) / mayor) * 10) / 10) : 11.4;
 }
 
 /** Como `idiomaDelLibro` de la fábrica: entrevista en catalán → libro en catalán; si no, castellano. */
