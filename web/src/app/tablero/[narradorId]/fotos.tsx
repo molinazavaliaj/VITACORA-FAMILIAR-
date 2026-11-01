@@ -48,7 +48,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
           <img src={`/api/fotos/${principal.id}`} alt={principal.epigrafe ?? ""} className="max-h-96 w-full rounded-lg border border-[var(--linea)] object-cover" />
           {principal.epigrafe ? <figcaption className="mt-2 text-sm italic text-[var(--texto-menor)]">{principal.epigrafe}</figcaption> : null}
           {puedeBorrar(principal) ? (
-            <BotonSacar f={principal} borrando={borrando} onSacar={borrar} />
+            <BotonSacar ocupado={borrando === principal.id} onSacar={() => borrar(principal)} />
           ) : null}
         </figure>
       ) : null}
@@ -59,7 +59,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/fotos/${f.id}`} alt={f.epigrafe ?? ""} title={f.epigrafe ?? undefined} className="h-24 w-24 rounded-lg border border-[var(--linea)] object-cover" />
               {puedeBorrar(f) ? (
-                <BotonSacar f={f} borrando={borrando} onSacar={borrar} />
+                <BotonSacar ocupado={borrando === f.id} onSacar={() => borrar(f)} />
               ) : null}
             </li>
           ))}
@@ -71,18 +71,18 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
 }
 
 // Naza (01/11) no encontraba cómo borrar una foto repetida: era una ✕ gris de
-// 10 px. Ahora es un botón redondo de 32 px, siempre a la vista.
-function BotonSacar({ f, borrando, onSacar }: { f: FotoVista; borrando: string | null; onSacar: (f: FotoVista) => void }) {
+// 10 px. Ahora es un botón redondo de 32 px, siempre a la vista. También en Encargar libro.
+export function BotonSacar({ ocupado, onSacar }: { ocupado: boolean; onSacar: () => void }) {
   return (
     <button
       type="button"
       aria-label="Sacar esta foto del libro"
       title="Sacar esta foto del libro"
-      disabled={borrando === f.id}
-      onClick={() => onSacar(f)}
+      disabled={ocupado}
+      onClick={onSacar}
       className="absolute top-1.5 right-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--linea-fuerte)] bg-[var(--fondo)] text-[var(--texto)] shadow-sm transition-colors hover:border-[var(--alerta)] hover:text-[var(--alerta)] disabled:opacity-50 [touch-action:manipulation]"
     >
-      {borrando === f.id ? (
+      {ocupado ? (
         "…"
       ) : (
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>

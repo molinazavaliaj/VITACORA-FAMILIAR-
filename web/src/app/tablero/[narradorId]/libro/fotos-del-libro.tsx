@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { calidadDeFoto, type CalidadFoto } from "@/lib/guion";
 import { SubirFoto } from "../preguntas/acciones";
+import { BotonSacar } from "../fotos";
 import { Encuadrar } from "./encuadrar";
 import { objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -115,6 +116,23 @@ export function FotosDelLibro({
     return llamar(edicionUrl, { marcosFotoIds: lista });
   }
 
+  // Sacar una foto del todo (una repetida, por ejemplo: Naza, 01/11). Si era la tapa o un marco, el servidor deja ese lugar vacío.
+  const [sacando, setSacando] = useState<string | null>(null);
+  async function sacar(fotoId: string) {
+    if (!confirm("¿Sacar esta foto del libro?")) return;
+    setSacando(fotoId);
+    setError(null);
+    const r = await fetch(`/api/fotos/${fotoId}`, { method: "DELETE" });
+    if (!r.ok) {
+      const j = (await r.json().catch(() => ({}))) as { error?: string };
+      setError(j.error ?? "No pudimos borrar la foto.");
+      setSacando(null);
+      return;
+    }
+    setSacando(null);
+    router.refresh();
+  }
+
   function alAlbum(fotoId: string) {
     return llamar(`/api/fotos/${fotoId}`, { capitulo: null });
   }
@@ -195,6 +213,7 @@ export function FotosDelLibro({
                 className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-[var(--linea)]"
               >
                 <Miniatura f={f} className="h-full w-full" />
+                {editable ? <BotonSacar ocupado={sacando === f.id} onSacar={() => sacar(f.id)} /> : null}
               </div>
             ))}
           </div>
