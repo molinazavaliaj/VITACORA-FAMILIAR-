@@ -283,6 +283,14 @@ El diferencial se mantiene en todos los escalones: nadie da la voz real en caste
 - Meta/WhatsApp: por conversación (~USD 1-2 por narrador por los 30 días).
 - Cuando haya ventas reales: Vercel Pro (USD 20/mes, lo piden sus términos comerciales)
   y Supabase Pro (USD 25/mes cuando el storage supere 1 GB ≈ 15 narradores).
+- **Medido el 05/10 en Storage:** un libro con el producto actual («Su voz», sin audiolibro) ocupa **~30 MB**:
+  audios originales de WhatsApp ~12 MB, PDF ~12 MB, frases de «Su voz» ~3 MB, fotos ~1,5 MB. Los 100 GB del Pro
+  alcanzan para ~3.000 libros. El libro de Joaquín ocupa 254 MB porque todavía guarda el **audiolibro del piloto
+  (18-20/09, descartado el 20/09)** dos veces (`voz/cap_NN.mp3` y `paquete/audiolibro_cap_NN.mp3`, ~220 MB): son
+  restos, no el producto.
+- **Suscripciones confirmadas por Joaquín (05/10):** Vercel 20, Railway 20, Supabase 35 (dos proyectos Pro),
+  Resend 20, Claude Max USD 100 × 2 socios. **Todas pagan 14 % de impuestos de tarjeta** → infraestructura
+  USD 114/mes y Claude USD 228/mes.
 
 ## El panel de la empresa — lo que hay que cargar (21/09)
 
