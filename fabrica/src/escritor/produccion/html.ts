@@ -13,7 +13,7 @@ import type { FrasesJson } from '../../libro/frases.js';
 import { libroParaPlantilla } from '../salida/plantilla.js';
 import type { IdiomaLibro } from '../tipos.js';
 
-export type NarradorParaLibro = { id: string; nombre: string; contexto: unknown; foto_url: string | null; edicion: unknown };
+export type NarradorParaLibro = { id: string; nombre: string; contexto: unknown; foto_url: string | null; edicion: unknown; libro_aprobado_at?: string | null };
 
 /** El idioma del libro sale del de la entrevista: catalán → 'ca'; castellano (de acá o de España) → 'es'. */
 export const idiomaDelLibro = (idiomaEntrevista: string | null | undefined): IdiomaLibro => (idiomaEntrevista === 'ca' ? 'ca' : 'es');
@@ -35,6 +35,7 @@ export async function htmlLibroV3(
     nombreNarrador: a.narrador.nombre,
     tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
     anioNacimiento: anio,
+    ...(a.narrador.libro_aprobado_at ? { anioColofon: new Date(a.narrador.libro_aprobado_at).getUTCFullYear() } : {}),
     fotoUrl: fotoTapa?.dataUri ?? a.narrador.foto_url,
     fotoFoco: fotoTapa?.foco,
     indice: p.indice,

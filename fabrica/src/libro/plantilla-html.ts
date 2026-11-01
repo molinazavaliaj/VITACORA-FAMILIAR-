@@ -869,10 +869,10 @@ export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: 
 </section>`;
 }
 
-function construirColofon(opts: { nombreNarrador: string; mono: string; lengua: LenguaLibro }): string {
+function construirColofon(opts: { nombreNarrador: string; mono: string; lengua: LenguaLibro; anio?: number }): string {
   const { nombreNarrador, mono } = opts;
   const t = TEXTOS_LIBRO[opts.lengua];
-  const anio = new Date().getFullYear();
+  const anio = opts.anio ?? new Date().getFullYear();
   return `<div class="lienzo colofon quiebre antes">
     ${svgGrano(11)}
     ${svgCruz(46, 32)}
@@ -1339,6 +1339,9 @@ export async function construirHtmlLibro(datos: {
    *  El subtítulo ya no sale en la tapa (Naza, 13/10). */
   tapa?: { titulo: string | null; subtitulo: string | null };
   anioNacimiento?: number | null;
+  /** El año del colofón: el del cierre del libro. Sin él, el de hoy. Si el libro se vuelve a armar otro año
+   *  (libro-online.ts, al cambiar el diseño), el colofón sigue diciendo el año en que se hizo. */
+  anioColofon?: number;
   fotoUrl?: string | null;
   /** Foco de la foto de tapa (fotos.foco de la elegida en el wizard). Sin él, el centro. */
   fotoFoco?: Foco;
@@ -1406,7 +1409,7 @@ export async function construirHtmlLibro(datos: {
     datos.frases && datos.urlCliente
       ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente, lengua })
       : '';
-  const colofonHtml = construirColofon({ nombreNarrador, mono, lengua });
+  const colofonHtml = construirColofon({ nombreNarrador, mono, lengua, ...(datos.anioColofon ? { anio: datos.anioColofon } : {}) });
   // En imprenta la contratapa es la de la cubierta (bookmundo/cubierta.ts), no una página del libro.
   const contratapaHtml = imprenta ? '' : construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
   const fuentesHtml = imprenta
