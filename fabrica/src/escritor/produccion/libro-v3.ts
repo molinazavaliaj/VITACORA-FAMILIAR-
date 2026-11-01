@@ -482,7 +482,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);
 
     // La plantilla y el PDF (el lector online carga libro.html; la familia descarga libro.pdf).
-    const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion').eq('id', narradorId).maybeSingle();
+    const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion, libro_aprobado_at').eq('id', narradorId).maybeSingle();
     if (error || !n) throw new Error(`No se pudo leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
     const html = await htmlLibroV3(db, { narrador: n as NarradorParaLibro, libroMd: x.c.leer('libro.md'), idioma: paraPlantilla(x.c).idioma, trato: trato(x.c) });
     await subir(db, RUTA_LIBRO_HTML(narradorId), html, 'text/html; charset=utf-8');

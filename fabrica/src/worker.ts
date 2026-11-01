@@ -22,6 +22,7 @@ import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { narradoresConKids } from './kids/candado.js';
 import { idiomasHistoria, narradoresConHistoria } from './historia/candado.js';
+import { ponerAlDiaLibrosOnline } from './escritor/produccion/libro-online.js';
 import { alertarLibrosDemorados, dudasParaLaFamilia, esLibroPropio, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
@@ -1162,6 +1163,11 @@ export function iniciarWorker(): void {
     if (vueltaColgada()) return;
     void anotarLatido('fabrica');
   }, LATIDO_MS);
+  // El libro online de cada libro cerrado, con el diseño de hoy (libro-online.ts). Una vez por arranque, porque el
+  // diseño solo cambia cuando se publica la fábrica; a los 10 minutos, para no pisar la primera vuelta.
+  setTimeout(() => {
+    void ponerAlDiaLibrosOnline(obtenerClienteDb());
+  }, 10 * LATIDO_MS);
   // La primera vuelta al minuto de arrancar (como antes); después, cada VUELTA_MS.
   setTimeout(() => {
     void tick();
