@@ -606,7 +606,7 @@ describe('generarPaquete', () => {
     await generarPaquete({ id: 'p1', narrador_id: 'n1' });
 
     const html = setContentMock.mock.calls[0][0] as string;
-    expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
+    expect(html).toContain('<div class="portada-nombre-narrador">MI ABUELA<br>ROSA</div>');
     expect(html).toContain(`data:image/jpeg;base64,${Buffer.from('TAPA').toString('base64')}`);
   });
 

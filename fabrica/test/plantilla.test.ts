@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { construirHtmlLibro, tamanoNombreTapa } from '../src/libro/plantilla-html.js';
+import { construirHtmlLibro, renglonesNombreTapa, tamanoNombreTapa } from '../src/libro/plantilla-html.js';
 
 const LIBRO_MARKDOWN = `# A mis lectores
 
@@ -74,7 +74,7 @@ describe('construirHtmlLibro', () => {
   it('la tapa: «EL LIBRO DE SU VIDA», el nombre, «para siempre» y la marca', async () => {
     const html = await construir();
     expect(html).toContain('<div class="tapa-eyebrow">EL LIBRO DE SU VIDA</div>');
-    expect(html).toContain('<div class="portada-nombre-narrador">Roberto</div>');
+    expect(html).toContain('<div class="portada-nombre-narrador">ROBERTO</div>');
     expect(html).toContain('<span class="tapa-siempre">para siempre</span>');
     expect(html).toContain('V·F</span>');
   });
@@ -84,7 +84,7 @@ describe('construirHtmlLibro', () => {
     expect(tamanoNombreTapa('IMMACULADA COLELL')).toBe(48);
     expect(tamanoNombreTapa('MAXIMILIANO BARTOLOMEOVSKIENKO')).toBeLessThan(48);
     const html = await construir({ tapa: { titulo: 'MAXIMILIANO BARTOLOMEOVSKIENKO', subtitulo: null } });
-    expect(html).toMatch(/<div class="portada-nombre-narrador" style="font-size: \d+px">MAXIMILIANO BARTOLOMEOVSKIENKO<\/div>/);
+    expect(html).toMatch(/<div class="portada-nombre-narrador" style="font-size: \d+px">MAXIMILIANO<br>BARTOLOMEOVSKIENKO<\/div>/);
     expect(html).not.toContain('overflow-wrap: break-word; text-wrap: balance; max-width: 66%');
   });
 
@@ -179,7 +179,7 @@ const LIBRO = '# A mis lectores\n\nHola.\n\n# La infancia\n\nNací en 1940.\n\n#
 describe('construirHtmlLibro — tapa de la edición', () => {
   it('sin tapa: la portada lleva el nombre del narrador', async () => {
     const html = await construirHtmlLibro({ titulo: 'Rosa Pérez — La historia de una vida', indice: ['La infancia'], libroMarkdown: LIBRO });
-    expect(html).toContain('<div class="portada-nombre-narrador">Rosa Pérez</div>');
+    expect(html).toContain('<div class="portada-nombre-narrador">ROSA<br>PÉREZ</div>');
   });
 
   it('con tapa: el título elegido va grande y el subtítulo ya no sale (Naza, 13/10)', async () => {
@@ -190,7 +190,7 @@ describe('construirHtmlLibro — tapa de la edición', () => {
       indice: ['La infancia'],
       libroMarkdown: LIBRO,
     });
-    expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
+    expect(html).toContain('<div class="portada-nombre-narrador">MI ABUELA<br>ROSA</div>');
     expect(html).not.toContain('Rosa Pérez de Gómez');
     // el nombre del narrador sigue mandando en cabeceras y aperturas
     expect(html).toContain('<div class="marca-narrador">Rosa Pérez</div>');
@@ -333,5 +333,20 @@ describe('construirHtmlLibro — sin saludos', () => {
   it('no acepta ni emite la sección de saludos', async () => {
     const html = await construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO });
     expect(html).not.toContain('saludos');
+  });
+});
+
+describe('renglonesNombreTapa (Naza, 01/11)', () => {
+  it('siempre en mayúsculas y en dos renglones parejos, sin cortar palabras', () => {
+    expect(renglonesNombreTapa('juan domingo mateos')).toEqual(['JUAN DOMINGO', 'MATEOS']);
+    expect(renglonesNombreTapa('María José García López')).toEqual(['MARÍA JOSÉ', 'GARCÍA LÓPEZ']);
+    expect(renglonesNombreTapa('IMMA COLELL')).toEqual(['IMMA', 'COLELL']);
+    expect(renglonesNombreTapa('  Osvaldo  ')).toEqual(['OSVALDO']);
+    expect(renglonesNombreTapa('')).toEqual([]);
+  });
+
+  it('la tapa del libro lleva los dos renglones', async () => {
+    const html = await construirHtmlLibro({ titulo: 'La vida de Juan', nombreNarrador: 'juan domingo mateos', indice: ['I · Uno'], libroMarkdown: ['# I · Uno', '', 'Texto.'].join('\n') });
+    expect(html).toContain('JUAN DOMINGO<br>MATEOS');
   });
 });
