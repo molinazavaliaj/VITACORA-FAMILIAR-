@@ -33,9 +33,10 @@ export function TapaLibro({
 }) {
   const textos = producto === "historia" ? { ...TEXTOS_TAPA[idioma], eyebrow: EYEBROW_HISTORIA[idioma] } : TEXTOS_TAPA[idioma];
   return (
-    <div className={`relative ${llenar ? "h-full" : "aspect-[148/210]"} w-full overflow-hidden bg-[#faf7f1] text-[#1c1917] [container-type:inline-size] ${className}`}>
+    <div className={`relative ${llenar ? "h-full" : "aspect-[148/210]"} w-full overflow-hidden bg-[#f3f2ee] text-[#1b1a17] [container-type:inline-size] ${className}`}>
       <div className="absolute inset-y-0 left-0 bg-[#1c1917]" style={{ width: "2.5cqw" }} />
-      <div className="absolute right-0 top-0 h-[63%] overflow-hidden bg-[#1c1917]" style={{ left: "2.5cqw" }}>
+      {/* Copia la tapa impresa (fabrica/src/libro/bookmundo/cubierta.ts; Naza, 01/11): su blanco, la foto hasta el 65 %, la Source Serif fina y las mismas medidas en cqw. */}
+      <div className="absolute right-0 top-0 h-[65%] overflow-hidden bg-[#1c1917]" style={{ left: "2.5cqw" }}>
         {fotoSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={fotoSrc} alt="" className={`h-full w-full object-cover ${gris ? "grayscale" : ""}`} style={{ objectPosition: objectPosition(foco) }} />
@@ -43,24 +44,24 @@ export function TapaLibro({
           <Toroide className="absolute left-1/2 top-1/2 h-auto -translate-x-1/2 -translate-y-1/2 text-[#faf7f1] opacity-55 [width:30cqw]" />
         )}
       </div>
-      <div className="absolute bottom-0 right-0 top-[63%] flex flex-col" style={{ left: "2.5cqw", padding: "5.4cqw 7.2cqw" }}>
-        <p className="uppercase text-[#57534e] [font-family:var(--fuente-micro)]" style={{ fontSize: "1.7cqw", letterSpacing: "0.3em" }}>
+      <div className="absolute bottom-0 right-0 top-[65%] flex flex-col" style={{ left: "2.5cqw", padding: "6cqw 7cqw 6cqw 6.5cqw" }}>
+        <p className="font-medium uppercase text-[#77736a] [font-family:var(--fuente-micro)]" style={{ fontSize: "2.5cqw", letterSpacing: "0.32em" }}>
           {textos.eyebrow}
         </p>
         {/* En mayúsculas y en dos renglones parejos (renglonesNombreTapa). Una palabra nunca se corta: si no entra, la letra se achica (como en la fábrica). */}
-        <p className="my-auto whitespace-nowrap [font-family:var(--fuente-titulo)]" style={{ fontSize: `${tamanoNombreTapa(titulo)}cqw`, lineHeight: 1.06 }}>
+        <p className="my-auto whitespace-nowrap font-light [font-family:var(--fuente-cuerpo)]" style={{ fontSize: `${tamanoNombreTapa(titulo)}cqw`, lineHeight: 1.02, letterSpacing: "-0.01em" }}>
           {renglonesNombreTapa(titulo).map((renglon) => (
             <span key={renglon} className="block">{renglon}</span>
           ))}
         </p>
         {/* El nombre va centrado entre el rótulo y esto (Naza, 01/11), como en la tapa impresa. */}
-        <div className="flex items-center justify-between">
-          <span className="italic [font-family:var(--fuente-titulo)]" style={{ fontSize: "2.7cqw", fontWeight: 500 }}>
+        <div className="flex items-end justify-between">
+          <span className="italic [font-family:var(--fuente-cuerpo)]" style={{ fontSize: "4.3cqw", fontWeight: 400 }}>
             {textos.siempre}
           </span>
-          <span className="flex items-center text-[#57534e] [font-family:var(--fuente-micro)]" style={{ gap: "1.4cqw", fontSize: "1.6cqw", letterSpacing: "0.22em" }}>
-            <Toroide className="h-auto [width:5.7cqw]" />
-            V·F
+          <span className="flex items-center text-[#77736a] [font-family:var(--fuente-micro)]" style={{ gap: "1.8cqw", fontSize: "2.6cqw", letterSpacing: "0.2em" }}>
+            <Toroide className="h-auto text-[#5a5750] [width:8cqw]" />
+            V · F
           </span>
         </div>
       </div>

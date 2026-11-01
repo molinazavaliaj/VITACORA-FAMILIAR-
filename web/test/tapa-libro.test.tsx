@@ -14,7 +14,7 @@ describe("TapaLibro", () => {
     expect(html).toContain("EL LIBRO DE SU VIDA");
     expect(html).toContain(">OSVALDO</span><span class=\"block\">TOROIDE</span>"); // en mayúsculas y en dos renglones (01/11)
     expect(html).toContain("para siempre");
-    expect(html).toContain("V·F");
+    expect(html).toContain("V · F");
   });
 
   it("sin foto, el toroide en lugar de la foto", () => {
@@ -47,9 +47,9 @@ describe("TapaLibro", () => {
 describe("tamanoNombreTapa", () => {
   it("una palabra nunca se corta: el nombre largo achica la letra, igual que en la fábrica", async () => {
     const { tamanoNombreTapa } = await import("../src/lib/tapa");
-    expect(tamanoNombreTapa("Osvaldo Toroide")).toBe(11.1); // 62 de 559 (01/11)
-    expect(tamanoNombreTapa("IMMACULADA COLELL")).toBe(10.7);
-    expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(10.7);
+    expect(tamanoNombreTapa("Osvaldo Toroide")).toBe(11.4); // como la tapa impresa (01/11)
+    expect(tamanoNombreTapa("IMMACULADA COLELL")).toBe(11);
+    expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(11);
     const html = renderToStaticMarkup(<TapaLibro titulo="IMMACULADA COLELL" fotoSrc={null} />);
     expect(html).not.toContain("break-words");
   });

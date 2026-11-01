@@ -353,20 +353,23 @@ function construirEstilos(acento: string): string {
      «EL LIBRO DE SU VIDA», el nombre grande y al pie «para siempre» y la marca.
      Un lomo de tinta a la izquierda. Sin subtítulo ni frase. */
   .tapa-lomo { position: absolute; top: 0; bottom: 0; left: 0; width: 14px; background: var(--tinta); }
-  .tapa-foto { position: absolute; top: 0; left: 14px; right: 0; height: 63%; overflow: hidden; background: var(--tinta); }
+  /* La tapa copia la impresa (bookmundo/cubierta.ts; Naza, 01/11): su blanco, la foto hasta el 65 %, la Source Serif
+     fina en el nombre y las medidas en cqw (% del ancho de la tapa), así se ve igual a cualquier tamaño. */
+  .tapa-lienzo { container-type: size; background: #f3f2ee; }
+  .tapa-foto { position: absolute; top: 0; left: 14px; right: 0; height: 65%; overflow: hidden; background: var(--tinta); }
   .tapa-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tapa-foto .tapa-toroide { position: absolute; left: 50%; top: 50%; width: 170px; transform: translate(-50%, -50%); color: var(--papel); opacity: 0.55; }
-  .tapa-pie { position: absolute; left: 14px; right: 0; bottom: 0; top: 63%; padding: 30px 40px 30px 40px; display: flex; flex-direction: column; }
-  .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
+  .tapa-pie { position: absolute; left: 14px; right: 0; bottom: 0; top: 65%; padding: 6cqw 7cqw 6cqw calc(9cqw - 14px); display: flex; flex-direction: column; }
+  .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 2.5cqw; font-weight: 500; letter-spacing: 0.32em; color: #77736a; }
   .portada-nombre-narrador {
     /* centrado entre «el libro de su vida» y «para siempre» (Naza, 01/11) */
-    margin: auto 0; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 62px;
-    line-height: 1.08; letter-spacing: -0.005em; white-space: nowrap; /* los renglones los pone renglonesNombreTapa */
+    margin: auto 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 300; font-size: 11.4cqw;
+    line-height: 1.02; letter-spacing: -0.01em; white-space: nowrap; /* los renglones los pone renglonesNombreTapa */
   }
-  .tapa-base { display: flex; align-items: center; justify-content: space-between; }
-  .tapa-siempre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 15px; }
-  .tapa-marca { display: flex; align-items: center; gap: 8px; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.22em; color: var(--gris3); }
-  .tapa-marca svg { width: 32px; height: auto; color: var(--gris3); }
+  .tapa-base { display: flex; align-items: flex-end; justify-content: space-between; }
+  .tapa-siempre { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-weight: 400; font-size: 4.3cqw; }
+  .tapa-marca { display: flex; align-items: center; gap: 1.8cqw; font-family: Archivo, Arial, sans-serif; font-size: 2.6cqw; letter-spacing: 0.2em; color: #77736a; }
+  .tapa-marca svg { width: 8cqw; height: auto; color: #5a5750; }
 
   /* Páginas de foto (apertura y cierre de capítulo). Sin filtro de grises:
      existe la edición a color. */
@@ -561,7 +564,19 @@ export function renglonesNombreTapa(nombre: string): string[] {
  * en mayúsculas («IMMACULADA») salía partido. Ancho aproximado de la Playfair:
  * 0,74em una mayúscula, 0,52em el resto. Misma cuenta en web/src/lib/tapa.ts.
  */
-/** El cuerpo del nombre en la tapa (Naza, 01/11: «la C», como en la tapa impresa, donde ocupa el 11 % del ancho). Antes, 48. */
+/**
+ * El cuerpo del nombre en la tapa, en % del ancho de la tapa (cqw): 11,4, salvo que su renglón más largo no
+ * entre en el ancho útil (84 %). Una palabra nunca se corta. Ancho aproximado de la Source Serif: 0,72 em una
+ * mayúscula, 0,5 em el resto. Lo usan la tapa del libro online y la impresa (bookmundo/cubierta.ts), que desde
+ * el 01/11 son la misma (Naza: «que el online copie la impresa»); misma cuenta en web/src/lib/tapa.ts.
+ */
+export function cuerpoNombreTapa(nombre: string): number {
+  const ancho = (renglon: string) => [...renglon].reduce((a, c) => a + (c !== c.toLowerCase() ? 0.72 : 0.5), 0);
+  const mayor = Math.max(0, ...renglonesNombreTapa(nombre).map(ancho));
+  return mayor > 0 ? Math.min(11.4, Math.floor(((84 * 0.95) / mayor) * 10) / 10) : 11.4;
+}
+
+/** El cuerpo del nombre en px de la tapa vieja (Playfair, 559 px de ancho). Ya no lo usa la tapa: queda por compatibilidad. */
 export const NOMBRE_TAPA_PX = 62;
 
 export function tamanoNombreTapa(texto: string): number {
@@ -598,15 +613,15 @@ function construirPortada(opts: {
   const foto = fotoUrl
     ? `<img src="${escaparHtml(fotoUrl)}"${atributoFoco(fotoFoco)} alt="" />`
     : svgToroide('tapa-toroide');
-  return `<div class="lienzo quiebre">
+  return `<div class="lienzo quiebre tapa-lienzo">
     <div class="tapa-lomo"></div>
     <div class="tapa-foto">${foto}</div>
     <div class="tapa-pie">
       <div class="tapa-eyebrow">${textos.eyebrow}</div>
-      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < NOMBRE_TAPA_PX ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${renglonesNombreTapa(nombre).map(escaparHtml).join('<br>')}</div>
+      <div class="portada-nombre-narrador" style="font-size: ${cuerpoNombreTapa(nombre)}cqw">${renglonesNombreTapa(nombre).map(escaparHtml).join('<br>')}</div>
       <div class="tapa-base">
         <span class="tapa-siempre">${textos.siempre}</span>
-        <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V·F</span>
+        <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V · F</span>
       </div>
     </div>
   </div>`;
@@ -1440,7 +1455,7 @@ export async function construirHtmlLibro(datos: {
   const contratapaHtml = imprenta ? '' : construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
   const fuentesHtml = imprenta
     ? `<style>${imprenta.fuentesCss}</style>`
-    : '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">';
+    : '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">';
   const atributosImprenta = imprenta
     ? ` data-imprenta="1" data-paginas-min="${imprenta.paginasMinimas}" data-renglones="${renglonesNotas(imprenta)}" data-notas="${escaparHtml(TEXTOS_LIBRO[lengua].notas)}"${imprenta.sinNotas ? ' data-sin-notas="1"' : ''}`
     : '';

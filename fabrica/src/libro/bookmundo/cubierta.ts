@@ -13,7 +13,7 @@ import QRCode from 'qrcode';
 import jsQRModulo from 'jsqr';
 import { PNG } from 'pngjs';
 import { escaparHtml } from '../comun.js';
-import { renglonesNombreTapa, type LenguaLibro } from '../plantilla-html.js';
+import { cuerpoNombreTapa, renglonesNombreTapa, type LenguaLibro } from '../plantilla-html.js';
 import { fuentesImprentaCss } from './fuentes.js';
 import { formatoDe, LOMO_MINIMO_TEXTO_MM, PPP_CUBIERTA, medidasCubierta, type Encuadernacion, type MedidasCubierta } from './formato.js';
 
@@ -65,11 +65,7 @@ function iniciales(nombre: string): string {
  * larga no entre en el ancho útil (84 %). Una palabra nunca se corta. Ancho aproximado de la Source Serif:
  * 0,72 em una mayúscula, 0,5 em el resto.
  */
-export function cuerpoNombreCubierta(nombre: string): number {
-  const ancho = (renglon: string) => [...renglon].reduce((a, c) => a + (c !== c.toLowerCase() ? 0.72 : 0.5), 0);
-  const mayor = Math.max(0, ...renglonesNombreTapa(nombre).map(ancho));
-  return mayor > 0 ? Math.min(11.4, Math.floor(((84 * 0.95) / mayor) * 10) / 10) : 11.4;
-}
+export const cuerpoNombreCubierta = (nombre: string): number => cuerpoNombreTapa(nombre); // la misma cuenta que la tapa del libro online
 
 /** En mayúsculas y en dos renglones parejos, como en el libro y la web (renglonesNombreTapa): «JUAN DOMINGO<br>MATEOS». */
 export function nombreEnRenglones(nombre: string): string {
@@ -143,7 +139,7 @@ export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)
   .foto-toroide { width: 34%; opacity: 0.55; }
   .pie { position: absolute; left: 0; right: 0; top: 65%; bottom: 0; display: flex; flex-direction: column; padding: 6cqw 7cqw 6cqw 9cqw; }
   .etiqueta { font-family: Archivo, sans-serif; font-size: 2.5cqw; font-weight: 500; letter-spacing: 0.32em; text-transform: uppercase; color: #77736a; }
-  .nombre { margin: auto 0; font-family: 'Source Serif 4', Georgia, serif; font-size: ${cuerpoNombreCubierta(d.nombreTapa)}cqw; line-height: 1.02; letter-spacing: -0.01em; white-space: nowrap; }
+  .nombre { margin: auto 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 300; font-size: ${cuerpoNombreCubierta(d.nombreTapa)}cqw; line-height: 1.02; letter-spacing: -0.01em; white-space: nowrap; }
   .base { display: flex; align-items: flex-end; justify-content: space-between; }
   .siempre { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 4.3cqw; }
   .marca { display: flex; align-items: center; gap: 1.8cqw; font-family: Archivo, sans-serif; font-size: 2.6cqw; letter-spacing: 0.2em; color: #77736a; }
