@@ -47,7 +47,7 @@ hasta cuándo mandarla (4 días antes de la fecha, o «apenas puedas» si no hay
 Si el mail no llegó (falla de Resend o `MAIL_SOCIOS` vacía), el log de Vercel dice «lleva la tarjeta
 impresa y no pude avisarles a los socios». Los datos están en `pedidos.extras.tarjeta` de ese pedido.
 
-## Textos para aprobar
+## Textos (aprobados por Naza el 01/11; el catalán sin pasar por Softcatalà)
 
 Todos marcados con `// TEXTO PARA NAZA`. Los de tú y de vos son iguales salvo la pista.
 

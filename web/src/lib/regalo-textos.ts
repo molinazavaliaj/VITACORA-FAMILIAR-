@@ -271,7 +271,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       leLlega: LE_LLEGA,
     },
 
-    // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre por correo.
+    // Aprobado por Naza (01/11): la tarjeta impresa, en un sobre por correo.
     tarjeta: {
       casilla: "Quiero también la tarjeta impresa, en un sobre, por correo",
       detalle: "Te la mandamos en un sobre negro, lista para regalar. Llega en 3 a 5 días.",
@@ -354,7 +354,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
       leLlega: LE_LLEGA,
     },
 
-    // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre por correo.
+    // Aprobado por Naza (01/11): la tarjeta impresa, en un sobre por correo.
     tarjeta: {
       casilla: "Quiero también la tarjeta impresa, en un sobre, por correo",
       detalle: "Te la mandamos en un sobre negro, lista para regalar. Llega en 3 a 5 días.",

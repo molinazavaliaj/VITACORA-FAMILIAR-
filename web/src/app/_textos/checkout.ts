@@ -86,7 +86,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
       pack: "Pack el regalo completo", // APROBADO por Naza el 14/10
-      tarjeta: "Tarjeta impresa en sobre", // TEXTO PARA NAZA (30/10)
+      tarjeta: "Tarjeta impresa en sobre", // Aprobado por Naza (01/11)
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
@@ -111,7 +111,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       marco: "Su foto enmarcada",
       marco_adicional: "Marco adicional",
       pack: "Pack el regalo completo", // APROBADO por Naza el 14/10
-      tarjeta: "Tarjeta impresa en sobre", // TEXTO PARA NAZA (30/10)
+      tarjeta: "Tarjeta impresa en sobre", // Aprobado por Naza (01/11)
     },
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
@@ -137,7 +137,7 @@ export const RESUMEN: Textos<TextosResumen> = {
       marco: "La seva foto emmarcada",
       marco_adicional: "Marc addicional",
       pack: "Paquet el regal complet", // ca: revisado con el corrector de Softcatalà; «paquet» en vez de «pack» (Naza 18/10)
-      tarjeta: "Targeta impresa en sobre", // TEXTO PARA NAZA (30/10)
+      tarjeta: "Targeta impresa en sobre", // Aprobado por Naza (01/11)
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",

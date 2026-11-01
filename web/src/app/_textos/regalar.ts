@@ -71,7 +71,7 @@ const CA: TextosComprador = {
     horaPasada: "Aquesta hora ja ha passat. Tria'n una altra.",
     leLlega: (contacto, fecha, hora) => `Li arriba a ${contacto} el ${fecha} a les ${hora}.`,
   },
-  // TEXTO PARA NAZA (30/10): la tarjeta impresa, en un sobre per correu. Sin pasar por Softcatalà todavía.
+  // Aprobado por Naza (01/11): la tarjeta impresa, en un sobre per correu. Sin pasar por Softcatalà todavía.
   tarjeta: {
     casilla: "Vull també la targeta impresa, en un sobre, per correu",
     detalle: "Te l'enviem en un sobre negre, a punt per regalar. Arriba entre 3 i 5 dies.",
