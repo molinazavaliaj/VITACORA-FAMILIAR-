@@ -48,9 +48,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
           <img src={`/api/fotos/${principal.id}`} alt={principal.epigrafe ?? ""} className="max-h-96 w-full rounded-lg border border-[var(--linea)] object-cover" />
           {principal.epigrafe ? <figcaption className="mt-2 text-sm italic text-[var(--texto-menor)]">{principal.epigrafe}</figcaption> : null}
           {puedeBorrar(principal) ? (
-            <button type="button" disabled={borrando === principal.id} onClick={() => borrar(principal)} className="absolute top-2 right-2 rounded-full bg-[var(--fondo)]/90 px-3 py-1 text-xs text-[var(--texto-menor)] hover:text-[var(--alerta)] [font-family:var(--fuente-micro)]">
-              {borrando === principal.id ? "…" : "Sacar"}
-            </button>
+            <BotonSacar f={principal} borrando={borrando} onSacar={borrar} />
           ) : null}
         </figure>
       ) : null}
@@ -61,9 +59,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/fotos/${f.id}`} alt={f.epigrafe ?? ""} title={f.epigrafe ?? undefined} className="h-24 w-24 rounded-lg border border-[var(--linea)] object-cover" />
               {puedeBorrar(f) ? (
-                <button type="button" disabled={borrando === f.id} onClick={() => borrar(f)} className="absolute top-1 right-1 rounded-full bg-[var(--fondo)]/90 px-2 py-0.5 text-[10px] text-[var(--texto-menor)] hover:text-[var(--alerta)] [font-family:var(--fuente-micro)]">
-                  {borrando === f.id ? "…" : "✕"}
-                </button>
+                <BotonSacar f={f} borrando={borrando} onSacar={borrar} />
               ) : null}
             </li>
           ))}
@@ -71,5 +67,28 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
       ) : null}
       {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
     </div>
+  );
+}
+
+// Naza (01/11) no encontraba cómo borrar una foto repetida: era una ✕ gris de
+// 10 px. Ahora es un botón redondo de 32 px, siempre a la vista.
+function BotonSacar({ f, borrando, onSacar }: { f: FotoVista; borrando: string | null; onSacar: (f: FotoVista) => void }) {
+  return (
+    <button
+      type="button"
+      aria-label="Sacar esta foto del libro"
+      title="Sacar esta foto del libro"
+      disabled={borrando === f.id}
+      onClick={() => onSacar(f)}
+      className="absolute top-1.5 right-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--linea-fuerte)] bg-[var(--fondo)] text-[var(--texto)] shadow-sm transition-colors hover:border-[var(--alerta)] hover:text-[var(--alerta)] disabled:opacity-50 [touch-action:manipulation]"
+    >
+      {borrando === f.id ? (
+        "…"
+      ) : (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      )}
+    </button>
   );
 }

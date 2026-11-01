@@ -113,7 +113,7 @@ function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archiv
       {preparando ?? etiqueta ?? (multiple ? "Elegir fotos" : "Elegir una foto")}
       <input
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,.heic,.heif" // las HEIC entran por extensión: Windows las mostraba ocultas; el iPhone, sin el tipo, las sigue pasando a JPG solo
         multiple={multiple}
         disabled={preparando !== null}
         className="sr-only"

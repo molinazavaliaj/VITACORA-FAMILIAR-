@@ -74,7 +74,7 @@ export function HojaFotos({
   const T = PANEL[idioma];
   const muestra = fotos.slice(0, 4);
   return (
-    <HojaLateral id="sus-fotos" titulo={T.fotos(quien)} extra={fotos.length > 0 ? <span className="pnl-dato shrink-0">{T.cuantasFotos(fotos.length)}</span> : null}>
+    <HojaLateral id="sus-fotos" titulo={T.fotos(quien)} extra={fotos.length > 0 ? <a href="#fotos-del-libro" className="pnl-dato shrink-0 underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)]">{T.cuantasFotos(fotos.length)}</a> : null}>
       <p className="text-[17px] leading-snug [font-family:var(--fuente-titulo)]">{hayPortada ? T.hayPortada(quien) : T.faltaPortada(quien)}</p>
       {!hayPortada ? <p className="pnl-parrafo mt-2 text-[15px]">{T.fotosTexto(quien)}</p> : null}
       {muestra.length > 0 ? (
