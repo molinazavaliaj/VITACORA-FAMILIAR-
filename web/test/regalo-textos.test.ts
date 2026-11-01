@@ -147,7 +147,18 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
   });
 
   it("textosComprador('vos') es lo aprobado, más la pregunta del idioma", () => {
-    const { idioma, idiomas, entrega: _entrega, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
+    const { idioma, idiomas, entrega: _entrega, tarjeta, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
+    // La tarjeta impresa, aprobada por Naza el 01/11.
+    expect(tarjeta).toMatchObject({
+      casilla: "Quiero también la tarjeta impresa, en un sobre, por correo",
+      detalle: "Te la mandamos en un sobre negro, lista para regalar. Llega en 3 a 5 días.",
+      aNombreDe: "A nombre de quién va el sobre",
+      aNombreDePista: "Vos o quien la recibe",
+      faltaANombreDe: "Falta a nombre de quién va el sobre.",
+      soloEspana: "Por ahora la tarjeta impresa solo se manda dentro de España.",
+      fechaCerca: "Para recibirla impresa, la fecha tiene que ser dentro de 7 días o más.",
+      mismaDireccion: "Va a la misma dirección del libro.",
+    });
     expect(resto).toEqual(COMPRADOR_VOS);
     expect(idioma).toBe("¿En qué idioma le hablamos?");
     expect(idiomas).toEqual({

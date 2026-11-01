@@ -21,7 +21,8 @@ import { productosDelPedido } from "./productos";
 import { tratoDeRegion, type TratoComprador } from "./regalo-textos";
 import { marcarCuponUsado } from "./cupon-base";
 import { registrarComision } from "./creadores-base";
-import { enviarMailSocios } from "./mail";
+import { enviarMailSocios, urlBaseMail } from "./mail";
+import { mailTarjetaImpresa, type TarjetaImpresa } from "./tarjeta-impresa";
 import { avisarCompraAMeta, type CompraParaMeta, type ResultadoAvisoMeta } from "./meta-conversiones";
 
 export type ResultadoConfirmacion =
@@ -164,9 +165,12 @@ export async function confirmarPago(
 
   const email = (familia as { email?: string } | null)?.email ?? null;
   let codigoRegalo: string | null = null;
+  type FilaRegalo = { codigo?: string; quien_regala?: string | null; fecha_entrega?: string | null };
+  let filaRegalo: FilaRegalo | null = null;
   if (esRegalo) {
-    const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
-    codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
+    const { data: regalo } = await admin.from("regalos").select("codigo, quien_regala, fecha_entrega").eq("narrador_id", pedido.narrador_id).maybeSingle();
+    filaRegalo = regalo as FilaRegalo | null;
+    codigoRegalo = filaRegalo?.codigo ?? null;
   }
   if (email && arranco) {
     try {
@@ -185,6 +189,27 @@ export async function confirmarPago(
       }
     } catch (err) {
       console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el ${esRegalo ? "mail del regalo" : "mail de acceso"} a ${email} falló:`, err);
+    }
+  }
+
+  // 4b. La tarjeta impresa (30/10): los socios la imprimen y la mandan por
+  //     Correos. Solo la primera vez (un reintento entra por yaEstaba). Nunca
+  //     tira ni cambia el resultado del pago: si no sale, queda en el log.
+  const tarjeta = extras?.tarjeta as TarjetaImpresa | undefined;
+  if (esRegalo && tarjeta?.direccion) {
+    try {
+      if (!codigoRegalo) throw new Error("sin código en regalos");
+      const { asunto, texto } = mailTarjetaImpresa({
+        codigo: codigoRegalo,
+        quienRegala: filaRegalo?.quien_regala ?? null,
+        email,
+        tarjeta,
+        fechaEntrega: filaRegalo?.fecha_entrega ?? null,
+        urlBase: urlBaseMail(),
+      });
+      if (!(await enviarMailSocios(asunto, texto))) throw new Error("el mail a los socios no salió (¿MAIL_SOCIOS?)");
+    } catch (err) {
+      console.error(`confirmarPago: el pedido ${pedidoId} lleva la tarjeta impresa y no pude avisarles a los socios. Hay que mandarla a mano (pedidos.extras.tarjeta):`, err);
     }
   }
 

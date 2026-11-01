@@ -1,8 +1,10 @@
 import type { Carrito, Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
 import type { IdiomaWeb } from "@/lib/idioma-web";
-import type { IdiomaRegalo, TextosEntrega } from "@/lib/regalo-textos";
-import { errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
+import { textosComprador, type IdiomaRegalo, type TextosEntrega, type TextosTarjetaImpresa } from "@/lib/regalo-textos";
+import { errorDeFechaEntrega, puedeTarjetaImpresa, type Genero } from "@/lib/regalo-reglas";
+import { esEspana, type TarjetaImpresa } from "@/lib/tarjeta-impresa";
+import { SIN_TARJETA, errorDeTarjeta, ofreceTarjeta, tarjetaParaEnviar, type EleccionTarjeta } from "../_checkout/tarjeta-impresa";
 import { esPalabraDeFamilia } from "@/lib/como-le-dicen";
 import { validarDireccion, type Direccion } from "@/lib/entregas";
 import type { Para, TextosCheckout } from "../_textos/checkout";
@@ -66,6 +68,12 @@ export type EstadoCompra = {
   telefonoRecibe: string;
   direccion: Partial<Direccion>;
   retomar: Retomar | null;
+  /**
+   * La tarjeta del regalo impresa, en un sobre por correo (30/10). Solo cuenta
+   * si es regalo, se vende y la fecha deja tiempo (`quiereTarjeta`). Con el
+   * libro impreso, el sobre va a la misma dirección y solo se usa `aNombreDe`.
+   */
+  tarjeta?: EleccionTarjeta;
   /** Solo en «Vitácora de una historia» (/comprar/historia): el paso «La historia». */
   historia?: EstadoHistoriaCompra;
 };
@@ -116,6 +124,7 @@ export function estadoInicial(idioma: IdiomaWeb, cat: Catalogo): EstadoCompra {
     telefonoRecibe: "",
     direccion: { pais: region === "AR" ? "Argentina" : "España" },
     retomar: null,
+    tarjeta: SIN_TARJETA,
   };
 }
 
@@ -135,6 +144,30 @@ export function carritoDe(e: Pick<EstadoCompra, "formato" | "copias" | "marcos">
   return { base: "pdf", impresos: impreso ? 1 + Math.max(0, e.copias) : 0, marcos: impreso ? Math.max(0, e.marcos) : 0 };
 }
 
+/**
+ * ¿Va la tarjeta impresa? La marcó, es regalo y la fecha deja tiempo. Sin
+ * catálogo no se sabe si se vende: eso lo decide el formulario (que la
+ * desmarca si no se vende) y, al final, el servidor.
+ */
+export function quiereTarjeta(e: Pick<EstadoCompra, "para" | "regalo" | "fechaEntrega" | "tarjeta">, ahora: Date, cat?: Catalogo): boolean {
+  if (!esRegalo(e) || !e.tarjeta?.quiere) return false;
+  return cat ? ofreceTarjeta(cat, e.fechaEntrega, ahora) : puedeTarjetaImpresa(e.fechaEntrega, ahora);
+}
+
+/**
+ * Lo que va en `regalo.tarjeta`. Con el libro impreso el sobre va a la misma
+ * dirección del libro (no se pide dos veces) y, si no escribió a nombre de
+ * quién, a nombre de quien recibe el libro.
+ */
+export function tarjetaDeLaCompra(e: EstadoCompra): TarjetaImpresa | null {
+  const t = e.tarjeta ?? SIN_TARJETA;
+  if (!t.quiere) return null;
+  if (!llevaDireccion(e)) return tarjetaParaEnviar(t);
+  const d = validarDireccion(e.direccion);
+  if (!d.ok) return null;
+  return { aNombreDe: t.aNombreDe.trim() || e.recibe.trim(), direccion: d.direccion };
+}
+
 /** Hay algo que viaja: entonces el paso 3 pide la dirección. */
 export const llevaDireccion = (e: Pick<EstadoCompra, "formato">) => e.formato === "impreso";
 
@@ -143,7 +176,11 @@ const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export type Falla = { texto: string; campo?: string };
 
 /** Lo que falta en un paso, con el campo a marcar; null si se puede seguir. */
-export function fallaDelPaso(paso: Paso, e: EstadoCompra, T: TextosCheckout, entrega: TextosEntrega, ahora: Date, TH?: TextosHistoria["paso"]): Falla | null {
+export function fallaDelPaso(
+  paso: Paso, e: EstadoCompra, T: TextosCheckout, entrega: TextosEntrega, ahora: Date, TH?: TextosHistoria["paso"],
+  /** Los de la tarjeta impresa en el idioma de la web; sin ellos, los de tú. */
+  TT: TextosTarjetaImpresa = textosComprador("tu").tarjeta,
+): Falla | null {
   if (paso === 1) return null;
   if (paso === 3 && e.historia) return fallaDeLaHistoria(e, e.historia, TH);
   if (paso === 2) {
@@ -178,6 +215,17 @@ export function fallaDelPaso(paso: Paso, e: EstadoCompra, T: TextosCheckout, ent
     const d = validarDireccion(e.direccion);
     if (!d.ok) return { texto: d.mensaje, campo: "direccion" };
   }
+  if (quiereTarjeta(e, ahora)) {
+    const t = e.tarjeta ?? SIN_TARJETA;
+    if (llevaDireccion(e)) {
+      // El sobre va a la dirección del libro: tiene que ser de España.
+      if (!esEspana(e.direccion.pais ?? "")) return { texto: TT.soloEspana, campo: "direccion" };
+      if (!t.aNombreDe.trim() && !e.recibe.trim()) return { texto: TT.faltaANombreDe, campo: "tarjeta-aNombreDe" };
+    } else {
+      const problema = errorDeTarjeta(t, TT);
+      if (problema) return problema;
+    }
+  }
   return null;
 }
 
@@ -207,6 +255,7 @@ export function cuerpoDeLaCompra(e: EstadoCompra, idiomaWeb: IdiomaWeb) {
   const genero = generoDe(e);
   const region: Region = idiomaWeb === "ar" ? "AR" : "ES";
   const carrito = carritoDe(e);
+  const tarjeta = quiereTarjeta(e, new Date()) ? tarjetaDeLaCompra(e) : null;
   return {
     nombreComprador: yo ? e.nombre.trim() : e.nombreComprador.trim(),
     vinculoComprador: yo ? "yo mismo" : e.vinculo.trim(),
@@ -241,6 +290,7 @@ export function cuerpoDeLaCompra(e: EstadoCompra, idiomaWeb: IdiomaWeb) {
               ? { entrega: { canal: e.entrega.canal, contacto: e.entrega.contacto.trim(), hora: e.entrega.hora } }
               : {}),
             ...(e.retomar ? { retomar: e.retomar } : {}),
+            ...(tarjeta ? { tarjeta } : {}),
           },
         }
       : {}),

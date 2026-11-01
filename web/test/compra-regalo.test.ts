@@ -9,6 +9,10 @@ vi.mock("@/lib/pagos", () => ({ crearCheckout: vi.fn() }));
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearCheckout } from "@/lib/pagos";
 import { POST } from "../src/app/api/compra/route";
+import { textosComprador } from "../src/lib/regalo-textos";
+import { COMPRADOR_WEB } from "../src/app/_textos/regalar";
+import { cuerpoDeLaCompra, estadoInicial } from "../src/app/comprar/compra";
+import { catalogo } from "../src/lib/productos";
 
 // El mismo doble que compra.test.ts (una cola de resultados por tabla, y se
 // guarda qué se insertó), más el registro de los eq() por tabla para asegurar
@@ -669,5 +673,100 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
 
     expect(json).not.toHaveProperty("codigo");
     expect(JSON.stringify(json)).not.toContain("VF-ABCDEF");
+  });
+});
+
+// La tarjeta impresa en un sobre por correo (30/10): un extra pago del regalo,
+// solo en España, con tiempo para que llegue y con PRECIO_TARJETA_EUR cargado.
+describe("POST /api/compra con la tarjeta impresa", () => {
+  const DIRECCION = { linea1: "Calle Mayor 12", ciudad: "Valladolid", cp: "47001", pais: "España" };
+  const TARJETA = { aNombreDe: " Lucía ", direccion: DIRECCION };
+  const CUERPO_ES = { ...CUERPO_REGALO, region: "ES", regalo: { ...CUERPO_REGALO.regalo, tarjeta: TARJETA } };
+  const TU = textosComprador("tu").tarjeta;
+
+  beforeEach(() => {
+    process.env.PRECIO_EUR = "59";
+    process.env.PRECIO_TARJETA_EUR = "4";
+  });
+  afterEach(() => {
+    delete process.env.PRECIO_TARJETA_EUR;
+  });
+
+  async function comprar(cuerpo: unknown) {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+    const r = await POST(peticion(cuerpo));
+    return { r, admin, json: (await r.json()) as { error?: string } };
+  }
+
+  it("con dirección de España se cobra la línea y se guarda en extras.tarjeta", async () => {
+    const { r, admin } = await comprar(CUERPO_ES);
+
+    expect(r.status).toBe(200);
+    const pedido = admin.inserts.pedidos[0] as { monto: number; extras: Record<string, unknown> };
+    expect(pedido.monto).toBe(63);
+    expect(pedido.extras).toEqual({ pdf: true, audiolibro: null, impreso: null, copias: 0, marcos: 0, regalo: true, tarjeta: { aNombreDe: "Lucía", direccion: DIRECCION } });
+    const compra = (crearCheckout as unknown as ReturnType<typeof vi.fn>).mock.calls[0][1] as { lineas: { id: string; precioUnitario: number }[]; total: number };
+    expect(compra.lineas.map((l) => [l.id, l.precioUnitario])).toEqual([["pdf", 59], ["tarjeta", 4]]);
+    expect(compra.total).toBe(63);
+  });
+
+  it("sin PRECIO_TARJETA_EUR no se vende: 400 y no toca la base", async () => {
+    delete process.env.PRECIO_TARJETA_EUR;
+    const { r, admin, json } = await comprar(CUERPO_ES);
+    expect(r.status).toBe(400);
+    expect(json.error).toBe("La tarjeta impresa todavía no está disponible.");
+    expect(admin.inserts.pedidos).toBeUndefined();
+  });
+
+  it("con la fecha a menos de 7 días: 400", async () => {
+    const pronto = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const { r, json } = await comprar({ ...CUERPO_ES, regalo: { ...CUERPO_ES.regalo, fechaEntrega: pronto } });
+    expect(r.status).toBe(400);
+    expect(json.error).toBe(TU.fechaCerca);
+  });
+
+  it("sin fecha se puede", async () => {
+    const { r } = await comprar({ ...CUERPO_ES, regalo: { ...CUERPO_ES.regalo, fechaEntrega: undefined } });
+    expect(r.status).toBe(200);
+  });
+
+  it("fuera de España: 400, y en catalán desde /ca", async () => {
+    const fuera = { ...CUERPO_ES, regalo: { ...CUERPO_ES.regalo, tarjeta: { ...TARJETA, direccion: { ...DIRECCION, pais: "Francia" } } } };
+    const { r, json } = await comprar(fuera);
+    expect(r.status).toBe(400);
+    expect(json.error).toBe(TU.soloEspana);
+    const ca = await comprar({ ...fuera, idiomaWeb: "ca" });
+    expect(ca.json.error).toBe(COMPRADOR_WEB.ca.tarjeta.soloEspana);
+  });
+
+  it("sin a nombre de quién va el sobre: 400", async () => {
+    const { r, json } = await comprar({ ...CUERPO_ES, regalo: { ...CUERPO_ES.regalo, tarjeta: { direccion: DIRECCION } } });
+    expect(r.status).toBe(400);
+    expect(json.error).toBe(TU.faltaANombreDe);
+  });
+
+  it("el cuerpo que arma /comprar para un regalo con tarjeta se cobra y la guarda en extras.tarjeta", async () => {
+    const e = {
+      ...estadoInicial("es", catalogo("ES")),
+      formato: "digital" as const, marcos: 0, opcion: undefined,
+      para: "abuelo" as const, nombre: "Héctor García", comoLeDicen: "Héctor", regalo: true,
+      mensaje: "Para que nos cuentes", email: "lucia@ejemplo.com", nombreComprador: "Lucía", vinculo: "nieta",
+      tarjeta: { quiere: true, aNombreDe: "Lucía", linea1: "Calle Mayor 12", linea2: "", ciudad: "Valladolid", provincia: "", cp: "47001" },
+    };
+    const { r, admin } = await comprar(cuerpoDeLaCompra(e, "es"));
+
+    expect(r.status).toBe(200);
+    const pedido = admin.inserts.pedidos[0] as { monto: number; extras: Record<string, unknown> };
+    expect(pedido.monto).toBe(63);
+    expect(pedido.extras.tarjeta).toEqual({ aNombreDe: "Lucía", direccion: DIRECCION });
+  });
+
+  it("sin tarjeta, los extras de siempre y el precio de siempre", async () => {
+    const { r, admin } = await comprar({ ...CUERPO_ES, regalo: { ...CUERPO_REGALO.regalo } });
+    expect(r.status).toBe(200);
+    const pedido = admin.inserts.pedidos[0] as { monto: number; extras: Record<string, unknown> };
+    expect(pedido.monto).toBe(59);
+    expect(pedido.extras).not.toHaveProperty("tarjeta");
   });
 });

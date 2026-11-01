@@ -21,7 +21,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { carritoDeViaje } from "@/lib/viaje";
 import { cuponParaLaCompra } from "@/lib/cupon-base";
 import { TEXTOS_CUPON } from "@/app/_textos/cupon";
-import type { TratoComprador } from "@/lib/regalo-textos";
+import { textosComprador, type TratoComprador } from "@/lib/regalo-textos";
+import { puedeTarjetaImpresa } from "@/lib/regalo-reglas";
+import { validarTarjetaImpresa, type TarjetaImpresa } from "@/lib/tarjeta-impresa";
+import { COMPRADOR_WEB } from "@/app/_textos/regalar";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -61,6 +64,11 @@ export type CompraBody = RegistroBody & {
     /** Mandárselo solo el día elegido (10/10). La zona no viene: sale del idioma. */
     entrega?: { canal?: unknown; contacto?: unknown; hora?: unknown };
     retomar?: { narradorId?: unknown; token?: unknown };
+    /**
+     * La tarjeta impresa en un sobre por correo (30/10): a nombre de quién va
+     * y la dirección (solo España). Se cobra aparte y va a `extras.tarjeta`.
+     */
+    tarjeta?: { aNombreDe?: unknown; direccion?: unknown };
   };
   /**
    * De qué anuncio vino (F4-5): primer y último toque guardados en el
@@ -141,7 +149,7 @@ function esDeKids(fila: unknown): boolean {
  * `pedidos.extras`: los productos, `regalo: true` si es un regalo y `origen`
  * (F4-5) solo si vino uno válido. Sin origen, exactamente lo de antes.
  */
-function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown, medicion?: MedicionPedido) {
+function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown, medicion?: MedicionPedido, tarjeta?: TarjetaImpresa | null) {
   let origen: ReturnType<typeof limpiarOrigen> = null;
   try {
     origen = limpiarOrigen(origenCrudo, new Date());
@@ -151,6 +159,9 @@ function extrasDelPedido(compra: Compra, regalo: boolean, origenCrudo: unknown, 
   return {
     ...productosParaPedido(compra),
     ...(regalo ? { regalo: true } : {}),
+    // La tarjeta impresa (30/10): a quién y adónde mandarla. Cuando entra el
+    // pago, confirmarPago se lo avisa a los socios para que la manden.
+    ...(regalo && tarjeta ? { tarjeta } : {}),
     ...(origen ? { origen } : {}),
     // Solo si aceptó las cookies (lib/meta-conversiones.ts): lo que Meta necesita al entrar el pago.
     ...(medicion ? { medicion } : {}),
@@ -227,9 +238,20 @@ export async function POST(request: NextRequest) {
   if ((carritoCrudo.base === "viaje") !== (carritoViaje !== null) || (carritoViaje && esRegalo)) {
     return NextResponse.json({ error: "Faltan los datos del viaje." }, { status: 400 });
   }
-  const carrito = carritoViaje ?? carritoCrudo;
+  // La tarjeta impresa (30/10): solo en un regalo. Primero que se venda en la
+  // región (validarCarrito), después que llegue a tiempo y que vaya a España.
+  const pideTarjeta = datosRegalo !== null && body.regalo?.tarjeta !== undefined && body.regalo.tarjeta !== null;
+  const carrito: Carrito = { ...(carritoViaje ?? carritoCrudo), ...(pideTarjeta ? { tarjeta: true } : {}) };
   const carritoOk = validarCarrito(familiaAInsertar.region, carrito);
   if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
+  let tarjeta: TarjetaImpresa | null = null;
+  if (pideTarjeta && datosRegalo) {
+    const TT = (body.idiomaWeb === "ca" ? COMPRADOR_WEB.ca : textosComprador(trato)).tarjeta;
+    if (!puedeTarjetaImpresa(datosRegalo.fechaEntrega ?? "", new Date())) return NextResponse.json({ error: TT.fechaCerca }, { status: 400 });
+    const v = validarTarjetaImpresa(body.regalo?.tarjeta, TT);
+    if (!v.ok) return NextResponse.json({ error: v.mensaje }, { status: 400 });
+    tarjeta = v.tarjeta;
+  }
   let compra = calcularCompra(familiaAInsertar.region, carrito);
 
   const admin = crearClienteServidor();
@@ -374,7 +396,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen, medicion),
+      extras: extrasDelPedido(compra, datosRegalo !== null, body.origen, medicion, tarjeta),
     })
     .select("id")
     .single();

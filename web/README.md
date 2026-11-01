@@ -21,3 +21,15 @@ nombres, previsualización y compra del libro/audiolibro, y la descarga final.
 - Desde el 21/09 (2.12) la home y los checkouts se renderizan **por request** (leen el país del
   visitante), así que los precios ya no quedan horneados en el HTML: con el re-run alcanza, no hace
   falta forzar nada.
+
+## Precios (variables en Vercel)
+
+Una línea sin precio no existe para el cliente: no se muestra ni se cobra (`src/lib/productos.ts`).
+Cada una va en euros (`_EUR`, España) y en pesos (`_ARS`, Argentina). Después de cargarla, re-correr el deploy.
+
+- `PRECIO_EUR` / `PRECIO_ARS`: la base (el libro en PDF + Su voz).
+- `PRECIO_IMPRESO_*`, `PRECIO_COPIA_*`, `PRECIO_MARCO_*`, `PRECIO_MARCO_ADICIONAL_*`, `PRECIO_PACK_*`: los extras del libro.
+- `PRECIO_TARJETA_EUR` (30/10): la tarjeta del regalo impresa, en un sobre por correo (en `/regalar`).
+  Sin la variable, la casilla no aparece. Solo se manda dentro de España, así que `PRECIO_TARJETA_ARS`
+  no se carga. Para prenderla: `PRECIO_TARJETA_EUR=4` y re-correr el deploy
+  (`docs/regalo/tarjeta-impresa-2026-10-30.md`).

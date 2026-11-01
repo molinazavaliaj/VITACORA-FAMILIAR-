@@ -65,6 +65,12 @@ existen con impreso. Un pedido posterior desde el panel (más copias, marcos) ll
 `regalo: true` (08/10, propuesta): el pedido es una gift card (ver "Gift card"); sin la clave no lo es.
 **Actualizado 15/10:** ya no es propuesta: la gift card está en main (PR #2, 09/10) y su migración se aplicó el 09/10.
 
+`tarjeta` (30/10, rama `tarjeta-impresa`): solo en un regalo que pidió la tarjeta impresa en un sobre por
+correo (`PRECIO_TARJETA_EUR`). Forma: `{ aNombreDe: string, direccion: { linea1, linea2?, ciudad, provincia?, cp,
+pais: "España" } }` (la misma `Direccion` de `entregas`). Lo escribe la web en `/api/compra`; al entrar el pago,
+`confirmarPago` les manda un mail a los socios (`MAIL_SOCIOS`) para imprimirla y mandarla a mano. **No** es de
+la fábrica: no cambia `pdf`/`impreso`/`copias`/`marcos` y no crea fila en `entregas`. Sin migración (clave del jsonb).
+
 `origen` (**entra con el rediseño de la web, rama `rediseno-web`; al 15/10 todavía NO está en main**, texto
 de `docs/rediseno-2026-10/PENDIENTES.md`, F4-5, en esa rama): `pedidos.extras.origen` (opcional; lo escribe
 la web en `/api/compra`, en la rama desde el 14/10): de qué anuncio vino la compra. Forma: `{ primero: Toque, ultimo?:

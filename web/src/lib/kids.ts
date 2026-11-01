@@ -190,9 +190,9 @@ export function estadoKidsInicial(cat?: Pick<Catalogo, "impreso">, region: Regio
 /** El nombre de la línea de Kids en la pasarela (Stripe / Mercado Pago). */
 export const NOMBRE_LINEA_KIDS = "Vitácora Kids";
 
-/** El catálogo de Kids: su precio de base y el impreso de la casa; sin viaje, marco ni pack. */
+/** El catálogo de Kids: su precio de base y el impreso de la casa; sin viaje, marco, pack ni tarjeta impresa. */
 export function catalogoKids(casa: Catalogo, precio: number): Catalogo {
-  return { ...casa, base: { nombre: NOMBRE_LINEA_KIDS, detalle: "", precio }, viaje: null, marco: null, pack: null };
+  return { ...casa, base: { nombre: NOMBRE_LINEA_KIDS, detalle: "", precio }, viaje: null, marco: null, pack: null, tarjeta: null };
 }
 
 /** Cuántos impresos lleva lo elegido: el primero y sus copias, o ninguno. */

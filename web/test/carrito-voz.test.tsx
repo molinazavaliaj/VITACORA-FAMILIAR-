@@ -14,6 +14,7 @@ const cat: Catalogo = {
   moneda: "EUR",
   base: { nombre: "El libro en PDF + Su voz", detalle: "…", precio: 49 },
   viaje: null,
+  tarjeta: null,
   viajeAlbum40: null,
   impreso: { precio: 49, precioCopia: 40 },
   marco: { precio: 20, precioAdicional: 15 },

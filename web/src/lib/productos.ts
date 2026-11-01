@@ -21,7 +21,7 @@ import { obtenerPrecio, obtenerPrecioViaje, obtenerPrecioViajeAlbum40, precioVal
 export type Moneda = "EUR" | "ARS";
 
 /** Las líneas que pueden aparecer en un ticket. */
-export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional" | "pack";
+export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional" | "pack" | "tarjeta";
 
 /**
  * Con qué voz se narraba el audiolibro, en los pedidos que lo compraron antes
@@ -38,7 +38,7 @@ export const NOMBRE_PDF = "El libro en PDF + Su voz";
 export const DETALLE_PDF = "Se lee en la web, capítulo por capítulo, con sus fotos. Incluye «Su voz», sus mejores frases en su voz real, para escuchar. Siempre disponible.";
 
 /** ⚠️ Textos a revisar por Naza (21/09). */
-export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
+export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje" | "tarjeta">, string> = {
   impreso: "El libro impreso",
   copia: "Copia extra del libro impreso",
   marco: "Marco con su voz",
@@ -46,6 +46,9 @@ export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
   // El pack (Naza 14/10): el PDF, el primer impreso y el primer marco, a un solo precio.
   pack: "Pack el regalo completo",
 };
+// TEXTO PARA NAZA: la tarjeta impresa del regalo (30/10), en un sobre por correo.
+export const NOMBRE_TARJETA = "Tarjeta impresa en sobre";
+
 export const DETALLE_IMPRESO = "Tapa dura, en color, con un código que hace sonar su voz. Envío incluido.";
 export const DETALLE_MARCO = "Un marco con su foto y un chip. Se acerca el teléfono y suena su voz. Viaja con el libro.";
 
@@ -78,6 +81,12 @@ export type Catalogo = {
    * variable, mal escrita, o sin impreso o marco para armarlo).
    */
   pack: { precio: number } | null;
+  /**
+   * La tarjeta del regalo impresa, en un sobre por correo (30/10). Naza la
+   * imprime y la manda; solo dentro de España. null = no se vende (sin
+   * PRECIO_TARJETA_*): apagada por defecto.
+   */
+  tarjeta: { precio: number } | null;
 };
 
 /** Todo lo que se puede comprar en una región, con precio. Baja al cliente ya resuelto. */
@@ -85,6 +94,7 @@ export function catalogo(region: Region): Catalogo {
   const { monto, moneda } = obtenerPrecio(region);
   const impreso = precioDeEntorno("PRECIO_IMPRESO", region);
   const marco = precioDeEntorno("PRECIO_MARCO", region);
+  const tarjeta = precioDeEntorno("PRECIO_TARJETA", region);
   return {
     moneda,
     base: { nombre: NOMBRE_PDF, detalle: DETALLE_PDF, precio: monto },
@@ -93,6 +103,7 @@ export function catalogo(region: Region): Catalogo {
     impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
     marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
     pack: impreso === null || marco === null ? null : precioDePack(precioDeEntorno("PRECIO_PACK", region), monto + impreso),
+    tarjeta: tarjeta === null ? null : { precio: tarjeta },
   };
 }
 
@@ -131,6 +142,8 @@ export type Carrito = {
   marcos: number;
   impresosPrevios?: number;
   marcosPrevios?: number;
+  /** La tarjeta del regalo impresa, en un sobre (30/10). Solo la pide /regalar. */
+  tarjeta?: boolean;
 };
 
 export const CARRITO_VACIO: Carrito = { base: "pdf", impresos: 0, marcos: 0 };
@@ -198,6 +211,7 @@ export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Co
     if (marcos > 0 && cat.marco?.precioAdicional != null) {
       lineas.push({ id: "marco_adicional", nombre: NOMBRES.marco_adicional, cantidad: marcos, precioUnitario: cat.marco.precioAdicional });
     }
+    sumarTarjeta(lineas, cat, carrito);
     const totalPack = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
     return { region, moneda: cat.moneda, lineas, total: totalPack };
   }
@@ -230,9 +244,17 @@ export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Co
     }
   }
 
+  sumarTarjeta(lineas, cat, carrito);
+
   // Redondeo a centavos: precios con decimales dan flotantes sucios.
   const total = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
   return { region, moneda: cat.moneda, lineas, total };
+}
+
+// La tarjeta impresa no viaja con el libro ni es de la fábrica: una línea más
+// del ticket, en las dos ramas (con pack y sin pack).
+function sumarTarjeta(lineas: LineaDeCompra[], cat: Catalogo, carrito: Carrito) {
+  if (carrito.tarjeta && cat.tarjeta) lineas.push({ id: "tarjeta", nombre: NOMBRE_TARJETA, cantidad: 1, precioUnitario: cat.tarjeta.precio });
 }
 
 /** Lo que el cliente pidió tiene que poder cobrarse tal cual; si no, se le dice por qué. */
@@ -249,6 +271,8 @@ export function validarCarrito(region: Region, carrito: Carrito): { ok: true } |
   if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };
   if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso. Primero hay que agregar el libro impreso." };
   if (marcos > 0 && !cat.marco) return { ok: false, mensaje: "Los marcos todavía no están disponibles en tu región." };
+  // TEXTO PARA NAZA
+  if (carrito.tarjeta && !cat.tarjeta) return { ok: false, mensaje: "La tarjeta impresa todavía no está disponible." };
   if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Falta elegir al menos una cosa." };
   return { ok: true };
 }

@@ -250,6 +250,7 @@ describe("/comprar/kids con el libro impreso", () => {
     moneda: "ARS",
     base: { nombre: "El libro en PDF + Su voz", detalle: "", precio: 85750 },
     viaje: null,
+    tarjeta: null,
     viajeAlbum40: null,
     impreso: { precio: 85750, precioCopia: 40000 },
     marco: { precio: 30000, precioAdicional: 20000 },
