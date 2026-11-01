@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AVISO_CALIDAD, AVISO_CALIDAD_TU, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, NOMBRE_RITMO_TU, RITMOS, calidadDeFoto, chicaParaTapa, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 import { aJpgSiEsHeic, esHeic } from "@/lib/foto-heic";
+import { subirFotoDirecta } from "@/lib/subir-foto";
 import { HORAS_FAMILIAR, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -28,19 +29,8 @@ async function subirFoto(
   datos: { archivo: File; capitulo: string; epigrafe?: string; principal?: boolean; medida: { ancho: number; alto: number } | null },
   trato: TratoComprador = "vos",
 ) {
-  const form = new FormData();
-  form.set("archivo", datos.archivo);
-  form.set("capitulo", datos.capitulo);
-  if (datos.epigrafe) form.set("epigrafe", datos.epigrafe);
-  if (datos.principal) form.set("principal", "1");
-  if (datos.medida) {
-    form.set("ancho", String(datos.medida.ancho));
-    form.set("alto", String(datos.medida.alto));
-  }
-  const r = await fetch(`/api/fotos?narrador=${encodeURIComponent(narradorId)}`, { method: "POST", body: form });
-  const json = (await r.json().catch(() => ({}))) as { error?: string; id?: string; calidad?: CalidadFoto | null; aviso?: string | null };
-  if (!r.ok || !json.id) throw new Error(json.error ?? (trato === "tu" ? "No pudimos subir la foto. Intenta de nuevo." : "No pudimos subir la foto. Intentá de nuevo."));
-  return json as { id: string; calidad: CalidadFoto | null; aviso: string | null };
+  const { archivo, ...resto } = datos;
+  return subirFotoDirecta(`/api/fotos?narrador=${encodeURIComponent(narradorId)}`, archivo, resto, trato === "tu" ? "No pudimos subir la foto. Intenta de nuevo." : "No pudimos subir la foto. Intentá de nuevo.");
 }
 
 // ── piezas chicas ──────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
 import { idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { medirImagen } from "@/lib/medir-imagen";
 import { aJpgSiEsHeic, esHeic } from "@/lib/foto-heic";
+import { subirFotoDirecta } from "@/lib/subir-foto";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { ContenidoPaso, Etiqueta, Opcion, Pastilla } from "../_ui";
 import { CHECKOUT, FALLO, RESUMEN, type Para } from "../_textos/checkout";
@@ -185,16 +186,8 @@ export function Checkout({
           subirFoto: async (narradorId, token, clave) => {
             const archivo = archivos.current.get(clave);
             if (!archivo) return;
-            const form = new FormData();
-            form.set("archivo", archivo);
-            const medida = await medirImagen(archivo);
-            if (medida) {
-              form.set("ancho", String(medida.ancho));
-              form.set("alto", String(medida.alto));
-            }
-            const r = await fetch(`/api/fotos?narrador=${encodeURIComponent(narradorId)}&token=${encodeURIComponent(token)}`, { method: "POST", body: form });
-            const json = (await r.json().catch(() => ({}))) as { error?: string; id?: string };
-            if (!r.ok || !json.id) throw new Error(json.error ?? T.noSubio(archivo.name));
+            const url = `/api/fotos?narrador=${encodeURIComponent(narradorId)}&token=${encodeURIComponent(token)}`;
+            await subirFotoDirecta(url, archivo, { medida: await medirImagen(archivo) }, T.noSubio(archivo.name));
           },
           subirAudio: async (narradorId, token) => {
             const a = audioRef.current;

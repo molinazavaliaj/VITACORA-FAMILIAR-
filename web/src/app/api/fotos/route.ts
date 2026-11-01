@@ -14,6 +14,13 @@ import { verificarTokenFotos } from "@/lib/token-fotos";
 // recomprimir: la resolución es lo que decide si se puede imprimir. El
 // navegador mide ancho/alto antes de subir y los manda; acá se guardan y se
 // le devuelve a la familia qué alcanza a imprimir con eso.
+//
+// Vercel corta todo pedido de más de 4,5 MB, y una foto de celular pasa eso
+// fácil (01/11: las HEIC del padre de Naza, ya en JPG). Por eso la foto no
+// pasa por acá: con JSON, el navegador pide permiso (`paso: "pedir"`, vuelve
+// una URL firmada de Storage), la sube directo a Supabase y después confirma
+// (`paso: "confirmar"`): recién ahí se mira lo que llegó y se crea la fila.
+// El multipart de siempre queda para las pestañas abiertas con la versión vieja.
 
 const GENERICO = (t: TratoComprador = "vos") => `No pudimos subir la foto. ${intenta(t)} de nuevo.`;
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
@@ -58,6 +65,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El libro ya está cerrado: no se agregan más fotos." }, { status: 400 });
   }
 
+  if (request.headers?.get("content-type")?.includes("application/json")) {
+    const cuerpo = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+    if (cuerpo?.paso === "pedir") return pedirSubida(admin, narrador.id, cuerpo, trato);
+    if (cuerpo?.paso === "confirmar") return confirmarSubida(admin, narrador.id, cuerpo, subidaPor, trato);
+    return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -92,13 +106,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
 
+  return registrar(admin, { id, narradorId: narrador.id, path, capitulo, epigrafe, principal, ancho, alto, subidaPor }, trato);
+}
+
+type Admin = ReturnType<typeof crearClienteServidor>;
+
+async function registrar(
+  admin: Admin,
+  { id, narradorId, path, capitulo, epigrafe, principal, ancho, alto, subidaPor }: { id: string; narradorId: string; path: string; capitulo: string | null; epigrafe: string | null; principal: boolean; ancho: number | null; alto: number | null; subidaPor: string | null },
+  trato: TratoComprador,
+) {
   // Si esta es la principal del capítulo, la anterior deja de serlo.
   if (principal) {
-    await admin.from("fotos").update({ principal: false }).eq("narrador_id", narrador.id).eq("capitulo", capitulo).eq("principal", true);
+    await admin.from("fotos").update({ principal: false }).eq("narrador_id", narradorId).eq("capitulo", capitulo).eq("principal", true);
   }
 
   const { error: errorFila } = await admin.from("fotos").insert({
-    id, narrador_id: narrador.id, capitulo, storage_path: path, epigrafe, principal,
+    id, narrador_id: narradorId, capitulo, storage_path: path, epigrafe, principal,
     ancho_px: ancho, alto_px: alto, subida_por: subidaPor,
   });
   if (errorFila) {
@@ -109,4 +133,59 @@ export async function POST(request: NextRequest) {
 
   const calidad = ancho && alto ? calidadDeFoto(ancho, alto) : null;
   return NextResponse.json({ ok: true, id, calidad, aviso: calidad ? (trato === "tu" ? AVISO_CALIDAD_TU : AVISO_CALIDAD)[calidad] : null }, { status: 200 });
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const rutaDeLaFoto = (narradorId: string, id: string, tipo: string) => `${narradorId}/fotos/${id}.${EXTENSION[tipo] ?? "jpg"}`;
+
+async function pedirSubida(admin: Admin, narradorId: string, cuerpo: Record<string, unknown>, trato: TratoComprador) {
+  const tipo = String(cuerpo.tipo ?? "");
+  const tamano = Number(cuerpo.tamano ?? 0);
+  const errorDeTipo = errorDeTipoDeFoto(tipo, trato);
+  if (errorDeTipo) return NextResponse.json({ error: errorDeTipo }, { status: 400 });
+  if (tamano > TAMANO_MAXIMO_BYTES) return NextResponse.json({ error: "La foto pesa más de 25 MB." }, { status: 400 });
+
+  const id = randomUUID();
+  const path = rutaDeLaFoto(narradorId, id, tipo);
+  const { data, error } = await admin.storage.from("audios").createSignedUploadUrl(path);
+  if (error || !data) {
+    console.error("fotos: fallo pedir la URL de subida", error);
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
+  }
+  return NextResponse.json({ id, path, token: data.token }, { status: 200 });
+}
+
+async function confirmarSubida(admin: Admin, narradorId: string, cuerpo: Record<string, unknown>, subidaPor: string | null, trato: TratoComprador) {
+  const id = String(cuerpo.id ?? "");
+  const tipo = String(cuerpo.tipo ?? "");
+  if (!UUID.test(id) || errorDeTipoDeFoto(tipo, trato)) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
+  const path = rutaDeLaFoto(narradorId, id, tipo);
+
+  // Lo que manda es lo que quedó en Storage, no lo que dice el navegador.
+  const { data: lista, error } = await admin.storage.from("audios").list(`${narradorId}/fotos`, { search: id, limit: 1 });
+  if (error) {
+    console.error("fotos: fallo mirar la subida directa", error);
+    return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
+  }
+  const objeto = (lista ?? []).find((o) => `${narradorId}/fotos/${o.name}` === path);
+  if (!objeto) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
+  const tamano = Number((objeto.metadata as { size?: number } | null)?.size ?? 0);
+  if (tamano > TAMANO_MAXIMO_BYTES) {
+    await admin.storage.from("audios").remove([path]);
+    return NextResponse.json({ error: "La foto pesa más de 25 MB." }, { status: 400 });
+  }
+
+  // Confirmar dos veces la misma no crea otra fila (ni borra el archivo de la primera al chocar el id).
+  const { data: yaEsta } = await admin.from("fotos").select("id").eq("id", id).maybeSingle();
+  if (yaEsta) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
+
+  const capitulo = String(cuerpo.capitulo ?? "").trim() || null;
+  return registrar(admin, {
+    id, narradorId, path, capitulo,
+    epigrafe: String(cuerpo.epigrafe ?? "").trim().slice(0, 300) || null,
+    principal: capitulo !== null && cuerpo.principal === true,
+    ancho: Number(cuerpo.ancho ?? 0) || null,
+    alto: Number(cuerpo.alto ?? 0) || null,
+    subidaPor,
+  }, trato);
 }
