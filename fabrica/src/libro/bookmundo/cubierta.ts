@@ -143,8 +143,8 @@ export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)
   .foto-toroide { width: 34%; opacity: 0.55; }
   .pie { position: absolute; left: 0; right: 0; top: 65%; bottom: 0; display: flex; flex-direction: column; padding: 6cqw 7cqw 6cqw 9cqw; }
   .etiqueta { font-family: Archivo, sans-serif; font-size: 2.5cqw; font-weight: 500; letter-spacing: 0.32em; text-transform: uppercase; color: #77736a; }
-  .nombre { margin-top: 3.5cqw; font-family: 'Source Serif 4', Georgia, serif; font-size: ${cuerpoNombreCubierta(d.nombreTapa)}cqw; line-height: 1.02; letter-spacing: -0.01em; white-space: nowrap; }
-  .base { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; }
+  .nombre { margin: auto 0; font-family: 'Source Serif 4', Georgia, serif; font-size: ${cuerpoNombreCubierta(d.nombreTapa)}cqw; line-height: 1.02; letter-spacing: -0.01em; white-space: nowrap; }
+  .base { display: flex; align-items: flex-end; justify-content: space-between; }
   .siempre { font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 4.3cqw; }
   .marca { display: flex; align-items: center; gap: 1.8cqw; font-family: Archivo, sans-serif; font-size: 2.6cqw; letter-spacing: 0.2em; color: #77736a; }
   .marca-toroide { width: 8cqw; height: auto; color: #5a5750; }

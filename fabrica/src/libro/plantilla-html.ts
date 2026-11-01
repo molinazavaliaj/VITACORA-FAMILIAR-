@@ -359,10 +359,11 @@ function construirEstilos(acento: string): string {
   .tapa-pie { position: absolute; left: 14px; right: 0; bottom: 0; top: 63%; padding: 30px 40px 30px 40px; display: flex; flex-direction: column; }
   .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
   .portada-nombre-narrador {
-    margin-top: 14px; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 48px;
+    /* centrado entre «el libro de su vida» y «para siempre» (Naza, 01/11) */
+    margin: auto 0; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 62px;
     line-height: 1.08; letter-spacing: -0.005em; white-space: nowrap; /* los renglones los pone renglonesNombreTapa */
   }
-  .tapa-base { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .tapa-base { display: flex; align-items: center; justify-content: space-between; }
   .tapa-siempre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 15px; }
   .tapa-marca { display: flex; align-items: center; gap: 8px; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.22em; color: var(--gris3); }
   .tapa-marca svg { width: 32px; height: auto; color: var(--gris3); }
@@ -555,15 +556,18 @@ export function renglonesNombreTapa(nombre: string): string[] {
 }
 
 /**
- * El tamaño del nombre en la tapa (13/10): 48px, salvo que su renglón más largo no
+ * El tamaño del nombre en la tapa (13/10): NOMBRE_TAPA_PX, salvo que su renglón más largo no
  * entre en el ancho del bloque (465px). Una palabra nunca se corta: el nombre
  * en mayúsculas («IMMACULADA») salía partido. Ancho aproximado de la Playfair:
  * 0,74em una mayúscula, 0,52em el resto. Misma cuenta en web/src/lib/tapa.ts.
  */
+/** El cuerpo del nombre en la tapa (Naza, 01/11: «la C», como en la tapa impresa, donde ocupa el 11 % del ancho). Antes, 48. */
+export const NOMBRE_TAPA_PX = 62;
+
 export function tamanoNombreTapa(texto: string): number {
   const ancho = (renglon: string) => [...renglon].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
   const mayor = Math.max(0, ...renglonesNombreTapa(texto).map(ancho));
-  return mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
+  return mayor > 0 ? Math.min(NOMBRE_TAPA_PX, Math.floor((465 * 0.97) / mayor)) : NOMBRE_TAPA_PX;
 }
 
 /** Los anillos del toroide (marca/toroide-negro.svg, como web/src/app/marca.tsx). */
@@ -599,7 +603,7 @@ function construirPortada(opts: {
     <div class="tapa-foto">${foto}</div>
     <div class="tapa-pie">
       <div class="tapa-eyebrow">${textos.eyebrow}</div>
-      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < 48 ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${renglonesNombreTapa(nombre).map(escaparHtml).join('<br>')}</div>
+      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < NOMBRE_TAPA_PX ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${renglonesNombreTapa(nombre).map(escaparHtml).join('<br>')}</div>
       <div class="tapa-base">
         <span class="tapa-siempre">${textos.siempre}</span>
         <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V·F</span>

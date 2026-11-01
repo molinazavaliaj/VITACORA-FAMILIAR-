@@ -74,13 +74,13 @@ export function renglonesNombreTapa(nombre: string): string[] {
 
 /**
  * El tamaño del nombre en la tapa, en cqw (13/10): la misma cuenta que
- * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que el renglón más largo
+ * `tamanoNombreTapa` de la fábrica (62px de 559, salvo que el renglón más largo
  * no entre en 465px). Una palabra nunca se corta.
  */
 export function tamanoNombreTapa(texto: string): number {
   const ancho = (renglon: string) => [...renglon].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
   const mayor = Math.max(0, ...renglonesNombreTapa(texto).map(ancho));
-  const px = mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
+  const px = mayor > 0 ? Math.min(62, Math.floor((465 * 0.97) / mayor)) : 62; // 62 como NOMBRE_TAPA_PX de la fábrica (01/11; antes 48)
   return Math.round((px / 559) * 1000) / 10;
 }
 

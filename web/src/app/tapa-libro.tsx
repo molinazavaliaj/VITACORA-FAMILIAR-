@@ -48,12 +48,13 @@ export function TapaLibro({
           {textos.eyebrow}
         </p>
         {/* En mayúsculas y en dos renglones parejos (renglonesNombreTapa). Una palabra nunca se corta: si no entra, la letra se achica (como en la fábrica). */}
-        <p className="whitespace-nowrap [font-family:var(--fuente-titulo)]" style={{ marginTop: "2.5cqw", fontSize: `${tamanoNombreTapa(titulo)}cqw`, lineHeight: 1.06 }}>
+        <p className="my-auto whitespace-nowrap [font-family:var(--fuente-titulo)]" style={{ fontSize: `${tamanoNombreTapa(titulo)}cqw`, lineHeight: 1.06 }}>
           {renglonesNombreTapa(titulo).map((renglon) => (
             <span key={renglon} className="block">{renglon}</span>
           ))}
         </p>
-        <div className="mt-auto flex items-center justify-between">
+        {/* El nombre va centrado entre el rótulo y esto (Naza, 01/11), como en la tapa impresa. */}
+        <div className="flex items-center justify-between">
           <span className="italic [font-family:var(--fuente-titulo)]" style={{ fontSize: "2.7cqw", fontWeight: 500 }}>
             {textos.siempre}
           </span>

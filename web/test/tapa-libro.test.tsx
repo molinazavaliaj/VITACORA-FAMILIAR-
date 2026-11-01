@@ -47,9 +47,9 @@ describe("TapaLibro", () => {
 describe("tamanoNombreTapa", () => {
   it("una palabra nunca se corta: el nombre largo achica la letra, igual que en la fábrica", async () => {
     const { tamanoNombreTapa } = await import("../src/lib/tapa");
-    expect(tamanoNombreTapa("Osvaldo Toroide")).toBe(8.6);
-    expect(tamanoNombreTapa("IMMACULADA COLELL")).toBe(8.6);
-    expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(8.6);
+    expect(tamanoNombreTapa("Osvaldo Toroide")).toBe(11.1); // 62 de 559 (01/11)
+    expect(tamanoNombreTapa("IMMACULADA COLELL")).toBe(10.7);
+    expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(10.7);
     const html = renderToStaticMarkup(<TapaLibro titulo="IMMACULADA COLELL" fotoSrc={null} />);
     expect(html).not.toContain("break-words");
   });

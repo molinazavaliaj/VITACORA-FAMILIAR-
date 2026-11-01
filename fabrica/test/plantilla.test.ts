@@ -80,9 +80,9 @@ describe('construirHtmlLibro', () => {
   });
 
   it('el nombre nunca se corta a mitad de palabra: si no entra, se achica (13/10)', async () => {
-    expect(tamanoNombreTapa('Osvaldo Toroide')).toBe(48);
-    expect(tamanoNombreTapa('IMMACULADA COLELL')).toBe(48);
-    expect(tamanoNombreTapa('MAXIMILIANO BARTOLOMEOVSKIENKO')).toBeLessThan(48);
+    expect(tamanoNombreTapa('Osvaldo Toroide')).toBe(62);
+    expect(tamanoNombreTapa('IMMACULADA COLELL')).toBe(60); // «IMMACULADA» no entra a 62: baja un poco
+    expect(tamanoNombreTapa('MAXIMILIANO BARTOLOMEOVSKIENKO')).toBeLessThan(60);
     const html = await construir({ tapa: { titulo: 'MAXIMILIANO BARTOLOMEOVSKIENKO', subtitulo: null } });
     expect(html).toMatch(/<div class="portada-nombre-narrador" style="font-size: \d+px">MAXIMILIANO<br>BARTOLOMEOVSKIENKO<\/div>/);
     expect(html).not.toContain('overflow-wrap: break-word; text-wrap: balance; max-width: 66%');
