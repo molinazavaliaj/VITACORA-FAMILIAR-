@@ -10,6 +10,36 @@ export const TEXTOS_TAPA: Record<IdiomaLibro, { eyebrow: string; siempre: string
 };
 
 /**
+ * La contratapa impresa (sin foto: texto, QR de su voz y lema). Copia de TEXTOS_CUBIERTA de
+ * fabrica/src/libro/bookmundo/cubierta.ts, para que la vista previa del panel muestre lo que se imprime.
+ */
+export const TEXTOS_CONTRATAPA: Record<IdiomaLibro, { contra: (nombre: string) => string; escucha: (tu: boolean) => string; lema: string }> = {
+  es: {
+    contra: (n) => `Estas páginas guardan la vida de ${n}, contada con sus propias palabras: sus mejores historias, tal como las vivió. En este QR, sus mejores frases.`,
+    escucha: (tu) => (tu ? "Escucha su voz" : "Escuchá su voz"),
+    lema: "Para las vidas que merecen su propio libro",
+  },
+  ca: {
+    contra: (n) => `Aquestes pàgines guarden la vida ${deCatalan(n)}, explicada amb les seves pròpies paraules: les seves millors històries, tal com les va viure. En aquest QR, les seves millors frases.`,
+    escucha: () => "Escolta la seva veu",
+    lema: "Per a les vides que mereixen el seu propi llibre",
+  },
+};
+
+/** «de» en catalán se apostrofa ante vocal o hache: «d’Imma», «de Joan». */
+export function deCatalan(nombre: string): string {
+  return /^[aeiouàáèéíïòóúüh]/i.test(nombre.trim()) ? `d’${nombre}` : `de ${nombre}`;
+}
+
+/** «Imma Colell» → «I · C», el monograma de la contratapa. */
+export function inicialesContratapa(nombre: string): string {
+  const p = nombre.trim().split(/\s+/).filter(Boolean);
+  if (p.length === 0) return "";
+  if (p.length === 1) return p[0].charAt(0).toUpperCase();
+  return `${p[0].charAt(0).toUpperCase()} · ${p[p.length - 1].charAt(0).toUpperCase()}`;
+}
+
+/**
  * La línea de arriba del nombre en la tapa de un libro de «Vitácora de una historia» (aprobada por Naza el 24/10).
  * Copia de TEXTOS_TAPA_HISTORIA de fabrica/src/escritor-historia/produccion/textos-tapa.ts (el eyebrow).
  */

@@ -209,7 +209,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const datosLibro: LibroDatos = {
     titulo: edicion.titulo,
     portadaFotoId: edicion.portadaFotoId,
-    contratapaFotoId: edicion.contratapaFotoId,
+    nombre: n.nombre,
+    idioma: idiomaDelLibro(v3?.idioma),
     // Gris solo si lo único impreso que compró es en blanco y negro (si hay uno a color, se ve a color).
     blancoYNegro: productosPagados.some((p) => p.impreso === "bn") && !productosPagados.some((p) => p.impreso === "color"),
     focos: Object.fromEntries(fotos.map((f) => [f.id, f.foco])),
