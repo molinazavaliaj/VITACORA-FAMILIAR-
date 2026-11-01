@@ -131,7 +131,9 @@ export function HistoriaViaje({
             Lo contado
           </h2>
         </div>
-        <GaleriaCapitulo fotos={fotos} usuarioId={usuarioId} esDuena={duena} />
+        <div id="fotos-del-libro">{/* el «N fotos en el álbum» de la columna lleva acá */}
+          <GaleriaCapitulo fotos={fotos} usuarioId={usuarioId} esDuena={duena} />
+        </div>
         {contado.length > 0 ? (
           <div className="mt-6 flex flex-col gap-4">
             {contado.map((r) => (

@@ -563,7 +563,7 @@ export function Checkout({
                     <p className="text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">{T.fotosBajada}</p>
                     <p className={`${ETIQUETA} mt-2`}>{T.album}</p>
                     <p className="text-[15px] leading-relaxed text-[var(--texto-oscuro-menor)]">{T.albumDetalle}</p>
-                    <input ref={entradaFotos} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(ev) => elegirFotos(ev.target.files)} />
+                    <input ref={entradaFotos} type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple hidden onChange={(ev) => elegirFotos(ev.target.files)} />
                     {fotos.length > 0 ? (
                       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
                         {fotos.map((x) => (
