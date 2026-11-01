@@ -12,7 +12,7 @@ describe("TapaLibro", () => {
     expect(html).toContain('src="/api/fotos/f1"');
     expect(html).toContain("object-position:30% 20%");
     expect(html).toContain("EL LIBRO DE SU VIDA");
-    expect(html).toContain("Osvaldo Toroide");
+    expect(html).toContain(">OSVALDO</span><span class=\"block\">TOROIDE</span>"); // en mayúsculas y en dos renglones (01/11)
     expect(html).toContain("para siempre");
     expect(html).toContain("V·F");
   });
@@ -27,7 +27,7 @@ describe("TapaLibro", () => {
     const html = renderToStaticMarkup(<TapaLibro titulo="La valija verde" fotoSrc={null} producto="historia" />);
     expect(html).toContain("UNA HISTORIA DE SU VIDA");
     expect(html).not.toContain("EL LIBRO DE SU VIDA");
-    expect(html).toContain("La valija verde");
+    expect(html).toContain(">LA VALIJA</span><span class=\"block\">VERDE</span>");
     expect(renderToStaticMarkup(<TapaLibro titulo="Imma" fotoSrc={null} idioma="ca" producto="historia" />)).toContain("UNA HISTÒRIA DE LA SEVA VIDA");
   });
 
@@ -52,5 +52,16 @@ describe("tamanoNombreTapa", () => {
     expect(tamanoNombreTapa("MAXIMILIANO BARTOLOMEOVSKIENKO")).toBeLessThan(8.6);
     const html = renderToStaticMarkup(<TapaLibro titulo="IMMACULADA COLELL" fotoSrc={null} />);
     expect(html).not.toContain("break-words");
+  });
+});
+
+describe("renglonesNombreTapa (Naza, 01/11)", () => {
+  it("siempre en mayúsculas, en dos renglones parejos, y un renglón nunca termina en «de», «del»…", async () => {
+    const { renglonesNombreTapa } = await import("../src/lib/tapa");
+    expect(renglonesNombreTapa("juan domingo mateos")).toEqual(["JUAN DOMINGO", "MATEOS"]);
+    expect(renglonesNombreTapa("María del Carmen")).toEqual(["MARÍA", "DEL CARMEN"]);
+    expect(renglonesNombreTapa("María de los Ángeles Fernández")).toEqual(["MARÍA DE LOS ÁNGELES", "FERNÁNDEZ"]);
+    expect(renglonesNombreTapa("IMMA COLELL")).toEqual(["IMMA", "COLELL"]);
+    expect(renglonesNombreTapa("Ana")).toEqual(["ANA"]);
   });
 });

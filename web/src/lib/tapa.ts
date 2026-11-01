@@ -51,14 +51,35 @@ export const EYEBROW_HISTORIA: Record<IdiomaLibro, string> = {
 /** El producto del libro, para la tapa: Familiar (lo de siempre) o una historia. */
 export type ProductoTapa = "familiar" | "historia";
 
+/** Las palabras que van con lo que sigue: un renglón nunca termina en ellas. */
+const PARTICULAS = new Set(["DE", "DEL", "LA", "LAS", "LOS", "Y", "I", "E", "DA", "DAS", "DO", "DOS", "VAN", "VON", "D'", "D’"]);
+
+/**
+ * El nombre de la tapa en sus renglones (Naza, 01/11): siempre en mayúsculas y en dos renglones lo más
+ * parejos posible, sin cortar una palabra («JUAN DOMINGO / MATEOS»). Copia de `renglonesNombreTapa` de
+ * fabrica/src/libro/plantilla-html.ts: la vista previa, el libro online y la tapa impresa lo cortan igual.
+ */
+export function renglonesNombreTapa(nombre: string): string[] {
+  const palabras = nombre.trim().toLocaleUpperCase("es").split(/\s+/).filter(Boolean);
+  if (palabras.length <= 1) return palabras;
+  let corte = 1;
+  let masLargo = Infinity;
+  for (let i = 1; i < palabras.length; i++) {
+    if (PARTICULAS.has(palabras[i - 1])) continue; // «MARÍA / DEL CARMEN», nunca «MARÍA DEL / CARMEN»
+    const largo = Math.max(palabras.slice(0, i).join(" ").length, palabras.slice(i).join(" ").length);
+    if (largo < masLargo) [corte, masLargo] = [i, largo];
+  }
+  return [palabras.slice(0, corte).join(" "), palabras.slice(corte).join(" ")];
+}
+
 /**
  * El tamaño del nombre en la tapa, en cqw (13/10): la misma cuenta que
- * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que la palabra más larga
+ * `tamanoNombreTapa` de la fábrica (48px de 559, salvo que el renglón más largo
  * no entre en 465px). Una palabra nunca se corta.
  */
 export function tamanoNombreTapa(texto: string): number {
-  const ancho = (palabra: string) => [...palabra].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
-  const mayor = Math.max(0, ...texto.split(/\s+/).map(ancho));
+  const ancho = (renglon: string) => [...renglon].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
+  const mayor = Math.max(0, ...renglonesNombreTapa(texto).map(ancho));
   const px = mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
   return Math.round((px / 559) * 1000) / 10;
 }

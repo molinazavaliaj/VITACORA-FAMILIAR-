@@ -360,7 +360,7 @@ function construirEstilos(acento: string): string {
   .tapa-eyebrow { font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
   .portada-nombre-narrador {
     margin-top: 14px; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 48px;
-    line-height: 1.08; letter-spacing: -0.005em; overflow-wrap: normal; text-wrap: balance; max-width: 66%;
+    line-height: 1.08; letter-spacing: -0.005em; white-space: nowrap; /* los renglones los pone renglonesNombreTapa */
   }
   .tapa-base { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
   .tapa-siempre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 15px; }
@@ -532,15 +532,37 @@ const TEXTOS_TAPA: Record<'es' | 'ca', { eyebrow: string; siempre: string }> = {
   ca: { eyebrow: 'EL LLIBRE DE LA SEVA VIDA', siempre: 'per sempre' },
 };
 
+/** Las palabras que van con lo que sigue: un renglón nunca termina en ellas. */
+const PARTICULAS = new Set(['DE', 'DEL', 'LA', 'LAS', 'LOS', 'Y', 'I', 'E', 'DA', 'DAS', 'DO', 'DOS', 'VAN', 'VON', "D'", 'D’']);
+
 /**
- * El tamaño del nombre en la tapa (13/10): 48px, salvo que su palabra más larga no
+ * El nombre de la tapa en sus renglones (Naza, 01/11): siempre en mayúsculas y en dos renglones lo más
+ * parejos posible, sin cortar nunca una palabra: «JUAN DOMINGO / MATEOS», «MARÍA JOSÉ / GARCÍA LÓPEZ»,
+ * «IMMA / COLELL». Antes se repartía solo y en mayúsculas quedaba una palabra por renglón. La misma regla
+ * en la tapa impresa (bookmundo/cubierta.ts) y en la vista previa del panel (web/src/lib/tapa.ts).
+ */
+export function renglonesNombreTapa(nombre: string): string[] {
+  const palabras = nombre.trim().toLocaleUpperCase('es').split(/\s+/).filter(Boolean);
+  if (palabras.length <= 1) return palabras;
+  let corte = 1;
+  let masLargo = Infinity;
+  for (let i = 1; i < palabras.length; i++) {
+    if (PARTICULAS.has(palabras[i - 1])) continue; // «MARÍA / DEL CARMEN», nunca «MARÍA DEL / CARMEN»
+    const largo = Math.max(palabras.slice(0, i).join(' ').length, palabras.slice(i).join(' ').length);
+    if (largo < masLargo) [corte, masLargo] = [i, largo];
+  }
+  return [palabras.slice(0, corte).join(' '), palabras.slice(corte).join(' ')];
+}
+
+/**
+ * El tamaño del nombre en la tapa (13/10): 48px, salvo que su renglón más largo no
  * entre en el ancho del bloque (465px). Una palabra nunca se corta: el nombre
  * en mayúsculas («IMMACULADA») salía partido. Ancho aproximado de la Playfair:
  * 0,74em una mayúscula, 0,52em el resto. Misma cuenta en web/src/lib/tapa.ts.
  */
 export function tamanoNombreTapa(texto: string): number {
-  const ancho = (palabra: string) => [...palabra].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
-  const mayor = Math.max(0, ...texto.split(/\s+/).map(ancho));
+  const ancho = (renglon: string) => [...renglon].reduce((acc, c) => acc + (c !== c.toLowerCase() ? 0.74 : 0.52), 0);
+  const mayor = Math.max(0, ...renglonesNombreTapa(texto).map(ancho));
   return mayor > 0 ? Math.min(48, Math.floor((465 * 0.97) / mayor)) : 48;
 }
 
@@ -577,7 +599,7 @@ function construirPortada(opts: {
     <div class="tapa-foto">${foto}</div>
     <div class="tapa-pie">
       <div class="tapa-eyebrow">${textos.eyebrow}</div>
-      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < 48 ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${escaparHtml(nombre)}</div>
+      <div class="portada-nombre-narrador"${tamanoNombreTapa(nombre) < 48 ? ` style="font-size: ${tamanoNombreTapa(nombre)}px"` : ''}>${renglonesNombreTapa(nombre).map(escaparHtml).join('<br>')}</div>
       <div class="tapa-base">
         <span class="tapa-siempre">${textos.siempre}</span>
         <span class="tapa-marca">${svgToroide('tapa-marca-toroide')}V·F</span>

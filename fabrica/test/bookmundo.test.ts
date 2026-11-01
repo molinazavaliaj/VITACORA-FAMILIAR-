@@ -114,9 +114,10 @@ describe('cubierta: piezas', () => {
 
   it('el nombre va en dos renglones, como la tapa de Imma, y escapado', () => {
     expect(nombreEnRenglones('IMMA COLELL')).toBe('IMMA<br>COLELL');
-    expect(nombreEnRenglones('María del Carmen')).toBe('María<br>del Carmen');
-    expect(nombreEnRenglones('Ana')).toBe('Ana');
-    expect(nombreEnRenglones('<b>x</b> y')).toBe('&lt;b&gt;x&lt;/b&gt;<br>y');
+    expect(nombreEnRenglones('juan domingo mateos')).toBe('JUAN DOMINGO<br>MATEOS');
+    expect(nombreEnRenglones('María del Carmen')).toBe('MARÍA<br>DEL CARMEN');
+    expect(nombreEnRenglones('Ana')).toBe('ANA');
+    expect(nombreEnRenglones('<b>x</b> y')).toBe('&lt;B&gt;X&lt;/B&gt;<br>Y');
   });
 
   it('un nombre muy largo achica la letra para no cortar la palabra', () => {
