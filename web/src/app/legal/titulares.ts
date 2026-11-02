@@ -8,7 +8,16 @@
 // el checkout (la misma que decide moneda y pasarela). Desde el 17/10 (decisión
 // de Joaquín, docs/ROADMAP.md bloque 8) es la misma persona en los dos países,
 // Joaquín: en Argentina con su CUIT de monotributo, en España con su NIF de
-// autónomo (alta en trámite; hasta entonces España no vende).
+// autónomo.
+//
+// 02/11: el NIE de España ya está cargado (dígito de control validado). El alta
+// de autónomo sale el 03 o el 04/11, y hasta que salga no se puede dar de alta
+// Stripe — así que España sigue sin vender, pero ya no por falta de este dato.
+// Desde el 02/11 los dos países salen juntos (antes Argentina iba primero).
+//
+// ⚠️ Faltan los DOS domicilios. Son obligatorios por LSSI-CE art. 10 y por la
+// Res. 424/2020, así que las páginas legales siguen pintando el hueco en
+// amarillo hasta que se carguen.
 
 import type { Region } from "@/lib/precios";
 
@@ -31,7 +40,7 @@ export const TITULARES: Record<Region, Titular> = {
     region: "ES",
     nombre: "Joaquín Molina",
     pais: "España",
-    documento: { etiqueta: "NIF", valor: "" },
+    documento: { etiqueta: "NIF", valor: "Z5764343L" },
     domicilio: "",
     ley: "la ley española y la normativa de la Unión Europea (RGPD, LOPDGDD, LSSI-CE y el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, RDL 1/2007)",
     autoridad: { nombre: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es" },
