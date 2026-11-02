@@ -1379,7 +1379,7 @@ export async function construirHtmlLibro(datos: {
   const contenidoHtml = secciones
     .map((seccion, i) => {
       // El texto que abre el libro llega sin título (va antes del primer capítulo): lleva uno fijo,
-      // como «Antes de cerrar» al final (Naza, 02/11: sin título parecía un error).
+      // como «Antes de cerrar» al final (Naza, 02/11: sin título parecía un error; título aprobado el mismo día).
       if (i === 0 && seccion.titulo === null && seccion.html.trim()) {
         return construirPaginaSimple({ ...seccion, titulo: TEXTOS_LIBRO[lengua].antesDeEmpezar });
       }
