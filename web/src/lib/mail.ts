@@ -17,6 +17,7 @@ import type { TratoComprador } from "./regalo-textos";
 import { langDeIdioma, type IdiomaWeb } from "./idioma-web";
 import { TEXTOS_MAIL_KIDS_IDIOMA, textosMail, type CanalMailKids } from "./mail-textos";
 import { idiomaWebDeKids, type IdiomaKids } from "./kids";
+import { anotarAviso } from "./avisos";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -69,7 +70,11 @@ export async function enviar(opciones: { para: string; asunto: string; html: str
  */
 export async function enviarMailSocios(asunto: string, texto: string): Promise<boolean> {
   const socios = (process.env.MAIL_SOCIOS ?? "").split(",").map((m) => m.trim()).filter(Boolean);
-  if (socios.length === 0) return false;
+  // También queda en /admin/notificaciones (lib/avisos.ts), salga o no el mail.
+  if (socios.length === 0) {
+    await anotarAviso(asunto, texto, null);
+    return false;
+  }
   const html = `<pre style="font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:pre-wrap;">${escapar(texto)}</pre>`;
   let alguno = false;
   for (const para of socios) {
@@ -79,6 +84,7 @@ export async function enviarMailSocios(asunto: string, texto: string): Promise<b
       console.error(`mail: no salió el aviso a los socios (${para}):`, err instanceof Error ? err.message : err);
     }
   }
+  await anotarAviso(asunto, texto, alguno);
   return alguno;
 }
 

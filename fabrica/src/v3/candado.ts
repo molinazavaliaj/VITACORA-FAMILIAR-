@@ -9,6 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../config.js';
 import { TIMEOUT_RESEND_MS } from '../mail/resend.js';
 import { descargarTextoOpcional, subirTexto } from '../libro/comun.js';
+import { anotarAvisoEnPanel } from '../escritor/produccion/avisos.js';
 
 export const CANDADO_AVISO_V3 = 'v3_candado_avisado.txt';
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
@@ -66,18 +67,22 @@ export async function avisarCandadoV3(db: SupabaseClient, narradorId: string, do
     console.warn(`candado V3: ${detalle}`);
     const { resendApiKey } = cargarConfig();
     const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
-    if (resendApiKey && para.length > 0) {
+    const asunto = `La fábrica no arma el libro viejo de ${narradorId}`;
+    const hayAQuien = Boolean(resendApiKey) && para.length > 0;
+    if (hayAQuien) {
       const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
         method: 'POST',
         signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
         headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora V3] La fábrica no arma el libro viejo de ${narradorId}`, text: detalle }),
+        body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora V3] ${asunto}`, text: detalle }),
       });
       if (!r.ok) {
         console.error(`candado V3: Resend rechazó el aviso de ${narradorId} (${r.status}); se reintenta el próximo tick.`);
         return;
       }
     }
+    // Al panel, una vez (como el candado): si Resend falló, se reintenta el próximo tick y recién ahí se anota.
+    await anotarAvisoEnPanel({ asunto, detalle, salio_mail: hayAQuien ? true : null });
     await subirTexto(db, ruta, new Date().toISOString(), 'text/plain');
   } catch (err) {
     console.error(`candado V3: no pude avisar por ${narradorId}:`, err instanceof Error ? err.message : err);

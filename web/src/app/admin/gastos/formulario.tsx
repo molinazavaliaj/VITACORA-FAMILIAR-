@@ -68,7 +68,7 @@ export function FormularioGasto() {
           {pendiente ? "guardando…" : "cargar el gasto"}
         </button>
         <span className="text-xs text-[var(--texto-menor)]">
-          La fecha de hoy se pone sola. Es lo único que se puede escribir en todo el panel.
+          La fecha de hoy se pone sola.
         </span>
       </div>
     </form>

@@ -4,6 +4,8 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { mailsDeAdmin, esAdmin, sinPermiso } from "@/lib/admin/acceso";
 import { rutaDeEntrada } from "@/lib/destino";
 import { NavegacionAdmin } from "./nav";
+import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { contarSinVer } from "@/lib/admin/notificaciones";
 import { BotonTema, COOKIE_TEMA, type Tema } from "@/app/tablero/tema";
 
 // El panel de la empresa (docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md).
@@ -34,6 +36,14 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
     );
   }
 
+  // El número de la pestaña Notificaciones. Si no se puede saber (la tabla sin migrar), sin número.
+  let sinVer: number | null = null;
+  try {
+    sinVer = await contarSinVer(crearClienteServidor());
+  } catch {
+    // sin número: el panel se ve igual
+  }
+
   const tema: Tema = (await cookies()).get(COOKIE_TEMA)?.value === "oscuro" ? "oscuro" : "claro";
 
   return (
@@ -52,7 +62,7 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
           <BotonTema inicial={tema} />
         </p>
       </header>
-      <NavegacionAdmin />
+      <NavegacionAdmin sinVer={sinVer} />
       <main className="flex-1 px-5 py-6">{children}</main>
     </div>
   );

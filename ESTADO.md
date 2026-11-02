@@ -888,3 +888,23 @@ Web 751 OK (más la falla vieja de `admin-pantallas`), entrevistador 783 de 783.
 Aparte, PR #3: la bienvenida `BIEN` sin dos puntos en los tres idiomas. Pase: sección «España y
 catalán (09/10)» de `docs/regalo/handoff-2026-10-08.md`.
 
+
+## Panel de la empresa — Notificaciones y Contenido (branch `panel-notificaciones-y-contenido`, 02/11)
+
+Dos pestañas nuevas en `/admin`:
+
+- **08 · Notificaciones**: los mismos avisos que llegan por mail a `MAIL_SOCIOS`, juntos en el panel.
+  La web, el entrevistador y la fábrica anotan cada aviso en la tabla nueva `avisos` en el mismo momento
+  en que mandan el mail, y también los que **no** salieron (en rojo). Filtros por servicio y «sólo sin
+  ver», marcar visto (uno o todos) y el número de sin ver en la pestaña. Los mails siguen igual.
+- **09 · Contenido**: una carpeta para subir fotos, videos, audios o PDF (bucket privado `contenido`,
+  subida directa a Storage, hasta 500 MB) y un calendario mensual para acomodarlos arrastrando. Cada pieza
+  tiene título, texto, red, hora y estado (borrador · listo · publicado). Sólo planifica: no publica.
+
+**Falta para que ande en producción:** aplicar `supabase/migrations/20261102000000_avisos_y_contenido.sql`
+(tablas `avisos` y `contenido`, y el bucket `contenido`) y desplegar web, entrevistador y fábrica. Sin la
+migración nadie se cae: las pantallas dicen que falta y los servicios siguen mandando el mail.
+
+**Verificado:** web 1952 tests + typecheck + build (las dos rutas compiladas); entrevistador 1343 + typecheck;
+fábrica 3042 + typecheck (fallan 5 que necesitan Chromium instalado, ajenos a esto). **No se miró en el
+navegador**: falta la pasada de ojo con la migración aplicada.
