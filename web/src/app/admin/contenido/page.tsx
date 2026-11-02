@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { claveDeMes, leerContenido, mesDe, mesVecino } from "@/lib/admin/contenido";
-import { Nota, Titulo } from "../ui";
+import { Cifra, Nota, Titulo } from "../ui";
 import { Calendario } from "./calendario";
 
 // 09 · Contenido — «qué publicamos y cuándo». La carpeta con lo que se fue subiendo y el
@@ -19,18 +19,36 @@ export default async function PantallaContenido({ searchParams }: PageProps<"/ad
   const anterior = claveDeMes(mesVecino(mes, -1));
   const siguiente = claveDeMes(mesVecino(mes, 1));
   const programadas = piezas.filter((p) => p.fecha !== null && p.fecha.startsWith(claveDeMes(mes)));
-  const boton = "rounded border border-[var(--linea-fuerte)] px-2 py-0.5 text-sm text-[var(--texto-suave)] hover:bg-[var(--hueco)]";
+  const boton = "adm-boton adm-boton--hilo adm-boton--chico";
 
   return (
-    <div>
-      <Titulo numero="09" nombre="Contenido" aclara="qué publicamos y cuándo" />
+    <div className="adm-entra">
+      <Titulo ruta="/admin/contenido">
+        A la izquierda, la carpeta con todo lo que se fue subiendo. A la derecha, el mes: arrastren cada pieza al día
+        en que sale y tóquenla para escribirle el texto, la red y la hora.
+      </Titulo>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Cifra etiqueta="En la carpeta" valor={piezas.filter((p) => p.fecha === null).length} detalle="subidas, sin día todavía" />
+        <Cifra
+          etiqueta="Programadas este mes"
+          valor={programadas.length}
+          detalle={`${programadas.filter((p) => p.estado === "listo").length} listas para salir`}
+        />
+        <Cifra
+          etiqueta="Publicadas"
+          valor={programadas.filter((p) => p.estado === "publicado").length}
+          color="verde"
+          detalle="las que ya salieron este mes"
+        />
+      </div>
+
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Link href={`/admin/contenido?mes=${anterior}`} className={boton} aria-label="mes anterior">
             ←
           </Link>
-          <h2 className="min-w-[10ch] text-center text-lg first-letter:uppercase [font-family:var(--fuente-titulo)]">
+          <h2 className="min-w-[11ch] text-center text-2xl first-letter:uppercase [font-family:var(--fuente-titulo)]">
             {NOMBRE_MES.format(new Date(Date.UTC(mes.anio, mes.mes - 1, 1)))}
           </h2>
           <Link href={`/admin/contenido?mes=${siguiente}`} className={boton} aria-label="mes siguiente">
@@ -40,14 +58,10 @@ export default async function PantallaContenido({ searchParams }: PageProps<"/ad
             hoy
           </Link>
         </div>
-        <p className="text-sm text-[var(--texto-menor)]">
-          {programadas.length} {programadas.length === 1 ? "publicación" : "publicaciones"} este mes ·{" "}
-          {programadas.filter((p) => p.estado === "publicado").length} publicadas
-        </p>
       </div>
 
       {error ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">{error}</p>
+        <p className="adm-alerta mt-4">{error}</p>
       ) : (
         <Calendario inicial={piezas} mes={mes} hoy={hoy} />
       )}

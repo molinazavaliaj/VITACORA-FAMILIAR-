@@ -9,7 +9,7 @@ import { cargarGastoManual, type ResultadoGasto } from "./acciones";
 
 const INICIAL: ResultadoGasto = { error: null };
 
-const campo = "rounded border border-[var(--linea)] bg-[var(--fondo)] px-2 py-1 text-sm";
+const campo = "adm-campo";
 
 export function FormularioGasto() {
   // `useActionState` le pasa el estado anterior como primer argumento; el action del
@@ -20,7 +20,7 @@ export function FormularioGasto() {
   );
 
   return (
-    <form action={accion} className="mt-3 flex flex-col gap-3">
+    <form action={accion} className="flex flex-col gap-4">
       <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
         <label className="flex flex-col gap-1 text-xs text-[var(--texto-menor)]">
           Qué se pagó
@@ -63,7 +63,7 @@ export function FormularioGasto() {
         <button
           type="submit"
           disabled={pendiente}
-          className="rounded bg-[var(--acento)] px-3 py-1.5 text-sm text-[var(--sobre-acento)] disabled:opacity-60"
+          className="adm-boton"
         >
           {pendiente ? "guardando…" : "cargar el gasto"}
         </button>

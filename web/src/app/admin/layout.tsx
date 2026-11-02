@@ -7,6 +7,8 @@ import { NavegacionAdmin } from "./nav";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { contarSinVer } from "@/lib/admin/notificaciones";
 import { BotonTema, COOKIE_TEMA, type Tema } from "@/app/tablero/tema";
+import "../_direccion/tokens.css";
+import "./panel.css";
 
 // El panel de la empresa (docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md).
 // Es de Naza y Joaquín, no del cliente: el del cliente es /tablero. Este layout hace
@@ -16,6 +18,9 @@ import { BotonTema, COOKIE_TEMA, type Tema } from "@/app/tablero/tema";
 // El permiso se chequea ACÁ, en el servidor, con el mail del usuario logueado: no
 // hay nada de esto en el navegador ni en el HTML, y tampoco hay un solo link a
 // /admin en el resto del sitio (se entra escribiendo la dirección).
+//
+// El cascarón (rediseño 02/11) es el del libro: el lomo de tinta a la izquierda con
+// las pantallas, y la hoja de papel a la derecha. Los colores, en ./panel.css (.adm).
 
 export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
   const supabase = await crearClienteSesion();
@@ -30,8 +35,8 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
   const permitidos = mailsDeAdmin(process.env.ADMIN_EMAILS);
   if (!esAdmin(user.email, permitidos)) {
     return (
-      <div className="flex min-h-full flex-1 items-start justify-center bg-[var(--fondo)] p-10 text-[var(--texto)]">
-        <p className="max-w-[560px] leading-relaxed">{sinPermiso(permitidos)}</p>
+      <div className="adm flex min-h-full flex-1 items-start justify-center p-10 text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
+        <p className="adm-hoja max-w-[560px] px-6 py-5 leading-relaxed">{sinPermiso(permitidos)}</p>
       </div>
     );
   }
@@ -49,21 +54,27 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
   return (
     <div
       id="panel"
-      className={`${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]`}
+      className={`adm ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col text-[var(--texto)] lg:flex-row [font-family:var(--fuente-cuerpo)]`}
     >
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--linea)] px-5 py-3">
-        <p className="[font-family:var(--fuente-titulo)] text-lg">Vitácora Familiar</p>
-        <p className="flex items-center gap-3 text-sm text-[var(--texto-menor)]">
-          Panel de la empresa
-          {/* La promesa de la casa: de acá no se toca nada. */}
-          <span className="rounded-full border border-[var(--linea-fuerte)] px-2 py-0.5 text-xs">
-            sólo lectura
-          </span>
-          <BotonTema inicial={tema} />
-        </p>
-      </header>
-      <NavegacionAdmin sinVer={sinVer} />
-      <main className="flex-1 px-5 py-6">{children}</main>
+      <aside className="adm-lomo">
+        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4 lg:block lg:px-6 lg:pb-4 lg:pt-7">
+          <div>
+            <p className="adm-marca">VITÁCORA</p>
+            <p className="mt-1 text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-titulo)] italic">
+              Panel de la empresa
+            </p>
+          </div>
+          {/* El chip «sólo lectura» se fue: desde Gastos, Creadores y Contenido ya
+              se cargan cosas, y cada una de esas pantallas lo dice donde pasa. */}
+          <div className="lg:mt-5">
+            <BotonTema inicial={tema} />
+          </div>
+        </div>
+        <NavegacionAdmin sinVer={sinVer} />
+      </aside>
+      <main className="min-w-0 flex-1 px-4 pb-16 pt-8 sm:px-8 lg:px-12 lg:pt-12">
+        <div className="mx-auto w-full max-w-[1200px]">{children}</div>
+      </main>
     </div>
   );
 }

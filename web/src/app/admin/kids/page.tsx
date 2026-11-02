@@ -1,9 +1,9 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { chicosKids, gravedad, marcasOrdenadas, type ChicoKids } from "@/lib/admin/kids";
 import { tituloCapitulo } from "@/lib/kids-panel";
-import { Barra, Chip, Nota, SinDatos, Titulo, cuando, fechaCorta, type Color } from "../ui";
+import { Barra, Chip, Cifra, Nota, SinDatos, Titulo, cuando, fechaCorta, tono, type Color } from "../ui";
 
-// 06 · Kids — «cómo va cada chico y qué marcó el motor». Lo preocupante
+// 04 · Kids — «cómo va cada chico y qué marcó el motor». Lo preocupante
 // primero. Las marcas (CONTRATO, `kids_v2.marcas`) las agrega el entrevistador
 // y también le llegan por mail a los socios; los padres no las ven.
 
@@ -32,40 +32,57 @@ export default async function PantallaKids() {
   const { chicos, tabla, error } = await chicosKids(crearClienteServidor());
 
   return (
-    <div>
-      <Titulo numero="06" nombre="Kids" aclara="cómo va cada chico y qué marcó el motor" />
-      <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-[var(--texto-suave)]">
+    <div className="adm-entra">
+      <Titulo ruta="/admin/kids">
         Primero lo preocupante, después los silencios. Las marcas también llegan por mail a los socios; los padres no
         las ven.
-      </p>
+      </Titulo>
+
+      {tabla && !error && chicos.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Cifra etiqueta="Chicos" valor={chicos.length} detalle={`${chicos.filter((c) => c.terminoAt || c.avance.terminado).length} ya terminaron de contar`} />
+          <Cifra
+            etiqueta="Algo preocupante"
+            valor={chicos.filter((c) => colorDe(c) === "rojo").length}
+            color={chicos.some((c) => colorDe(c) === "rojo") ? "rojo" : "verde"}
+            detalle="lo que marcó el motor: hay que leerlo hoy"
+          />
+          <Cifra
+            etiqueta="Con silencios"
+            valor={chicos.filter((c) => colorDe(c) === "ambar").length}
+            color={chicos.some((c) => colorDe(c) === "ambar") ? "ambar" : "verde"}
+            detalle="días sin contestar o cerró sin respuesta"
+          />
+        </div>
+      ) : null}
 
       {!tabla ? (
-        <div className="mt-4">
+        <div>
           <SinDatos que="La tabla kids_v2 todavía no existe (migración 20261016000000 sin aplicar)." />
         </div>
       ) : error ? (
-        <div className="mt-4">
+        <div>
           <SinDatos que={`No se pudo leer kids_v2: ${error}`} />
         </div>
       ) : chicos.length === 0 ? (
-        <div className="mt-4">
+        <div>
           <SinDatos que="Todavía no hay ningún chico de Kids." />
         </div>
       ) : (
-        <div className="mt-5 flex flex-col gap-3">
+        <div className="mt-10 flex flex-col gap-2">
           {chicos.map((c) => {
             const cap = c.avance.capitulo ?? 0;
             return (
-              <div key={c.narradorId} className="grid gap-3 rounded border border-[var(--linea)] px-4 py-3 lg:grid-cols-[1fr_1.2fr_1.6fr] lg:items-start">
+              <div key={c.narradorId} className={`adm-hoja adm-hoja--viva adm-filo ${tono(colorDe(c))} grid gap-4 px-5 py-4 lg:grid-cols-[1fr_1.2fr_1.6fr] lg:items-start`}>
                 <div>
-                  <b className="block">{c.nombre ?? "Sin nombre"}</b>
+                  <b className="block text-lg font-medium leading-tight [font-family:var(--fuente-titulo)]">{c.nombre ?? "Sin nombre"}</b>
                   <span className="text-xs text-[var(--texto-menor)]">
                     {c.comoLeDicen ? `le dicen ${c.comoLeDicen} · ` : ""}canal {c.canal === "A" ? "A (su WhatsApp)" : "B (lo hace el padre)"}
                   </span>
                 </div>
                 <div>
                   <Barra proporcion={c.terminoAt || c.avance.terminado ? 1 : cap / 5} />
-                  <span className="mt-1 block text-xs text-[var(--texto-menor)]">
+                  <span className="mt-1.5 block text-xs text-[var(--texto-menor)]">
                     {comoVa(c)} · {c.ultimaRespuestaAt ? `contestó ${cuando(c.ultimaRespuestaAt, ahora)}` : "todavía no contestó"}
                   </span>
                 </div>

@@ -2,9 +2,9 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { EN_CURSO } from "@/lib/admin/en-curso";
 import { frenosDe, horasEntre, UMBRALES } from "@/lib/admin/frenos";
-import { Barra, Chip, Nota, SinDatos, Tarjeta, Titulo, cuando, fechaCorta, horasEnPalabras } from "../ui";
+import { Barra, Chip, Cifra, Nota, SinDatos, Tarjeta, Titulo, fechaCorta, horasEnPalabras, tono } from "../ui";
 
-// 02 · Familias — «la relación con el biógrafo, historia por historia».
+// 03 · Familias — «la relación con el biógrafo, historia por historia».
 // Primero las que piden algo; adentro de una, la charla real: lo que el biógrafo preguntó
 // de verdad (reescrito con lo que el narrador ya contó) y lo que el narrador contestó.
 // Esta es la trastienda: nada de esto lo ve el cliente.
@@ -59,6 +59,8 @@ export default async function PantallaFamilias() {
   const repreguntas = (n: (typeof historias)[number]) =>
     (contexto(n).repreguntasEnviadas ?? {}) as Record<string, string>;
 
+  const piden = historias.filter((n) => frenosDeNarrador(n.nombre).length > 0);
+
   const elegida = historias.find((n) => frenosDeNarrador(n.nombre).length > 0) ?? historias[0] ?? null;
   const respuestasDeElegida = elegida
     ? datos.respuestas.filter((r) => r.narrador_id === elegida.id).sort((a, b) => b.pregunta_orden - a.pregunta_orden)
@@ -66,13 +68,24 @@ export default async function PantallaFamilias() {
   const ultimaRespuesta = respuestasDeElegida[0] ?? null;
 
   return (
-    <div>
-      <Titulo numero="02" nombre="Familias" aclara="la relación con el biógrafo, historia por historia" />
-
-      <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-[var(--texto-suave)]">
+    <div className="adm-entra">
+      <Titulo ruta="/admin/familias">
         La entrevista son treinta días, una pregunta por día; la barra muestra cuánto falta. Primero las que piden
         algo.
-      </p>
+      </Titulo>
+
+      {historias.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Cifra etiqueta="En curso" valor={enCurso.length} detalle="historias con la entrevista abierta" />
+          <Cifra
+            etiqueta="Piden algo"
+            valor={piden.length}
+            color={piden.some((n) => frenosDeNarrador(n.nombre).some((f) => f.gravedad === "rojo")) ? "rojo" : piden.length > 0 ? "ambar" : "verde"}
+            detalle="trabadas o para llamar: van primero en la lista"
+          />
+          <Cifra etiqueta="Terminadas" valor={terminadas.length} detalle="entrevista cerrada o libro aprobado" />
+        </div>
+      ) : null}
 
       {historias.length === 0 ? (
         <div className="mt-4">
@@ -80,7 +93,8 @@ export default async function PantallaFamilias() {
         </div>
       ) : null}
 
-      <div className="mt-5 flex flex-col gap-3">
+      <h2 className="adm-micro mb-3 mt-10">Historia por historia</h2>
+      <div className="flex flex-col gap-2">
         {historias.map((n) => {
           const estado = estadoDe(n);
           const f = n.familia_id ? familiaDe.get(n.familia_id) : undefined;
@@ -90,19 +104,26 @@ export default async function PantallaFamilias() {
           return (
             <div
               key={n.id}
-              className="grid gap-3 rounded border border-[var(--linea)] px-4 py-3 lg:grid-cols-[1fr_1.2fr_1.4fr_auto] lg:items-center"
+              className={`adm-hoja adm-hoja--viva adm-filo ${tono(estado.color)} grid gap-4 px-5 py-4 lg:grid-cols-[minmax(160px,1fr)_220px_minmax(0,1.6fr)_180px] lg:items-center lg:gap-6`}
             >
               <div>
-                <b className="block">{n.nombre ?? "Sin nombre"}</b>
+                <b className="block text-lg font-medium leading-tight [font-family:var(--fuente-titulo)]">{n.nombre ?? "Sin nombre"}</b>
                 <span className="text-xs text-[var(--texto-menor)]">
                   {f ? `Familia ${f.nombre ?? f.email ?? "—"}` : "sin familia"}
                   {f?.region ? ` · ${f.region === "AR" ? "Argentina" : "España"}` : ""}
                 </span>
               </div>
               <div>
-                <Barra proporcion={dias / 30} />
-                <span className="mt-1 block text-xs text-[var(--texto-menor)]">
-                  {orden} de 30 días · {" "}
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="adm-dato text-sm">
+                    día <b className="font-semibold">{orden}</b> de 30
+                  </span>
+                  <span className="adm-dato text-xs text-[var(--texto-menor)]">{Math.round((dias / 30) * 100)} %</span>
+                </div>
+                <div className="mt-1.5">
+                  <Barra proporcion={dias / 30} />
+                </div>
+                <span className="mt-1.5 block text-xs text-[var(--texto-menor)]">
                   {n.ultima_respuesta_at ? `contestó por última vez el ${fechaCorta(n.ultima_respuesta_at)}` : "todavía no contestó"}
                 </span>
               </div>
@@ -118,9 +139,9 @@ export default async function PantallaFamilias() {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 lg:justify-end">
+              <div className="flex flex-col items-start gap-1 lg:items-end lg:text-right">
                 <Chip color={estado.color}>{estado.texto}</Chip>
-                <span className="text-xs text-[var(--texto-menor)]">{estado.detalle}</span>
+                <span className="max-w-[26ch] text-xs text-[var(--texto-menor)]">{estado.detalle}</span>
               </div>
             </div>
           );
@@ -128,13 +149,16 @@ export default async function PantallaFamilias() {
       </div>
 
       {elegida ? (
-        <div className="mt-8">
-          <h2 className="mb-3 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            Adentro de una historia · {elegida.nombre ?? "sin nombre"}
-          </h2>
+        <div className="mt-12">
+          <h2 className="adm-micro mb-1">Adentro de una historia</h2>
+          <p className="mb-4 text-2xl [font-family:var(--fuente-titulo)]">
+            {elegida.nombre ?? "sin nombre"}
+            <span className="ml-3 text-base italic text-[var(--texto-menor)]">la que más pide atención</span>
+          </p>
           <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
             <Tarjeta>
-              <div className="flex flex-col gap-2 text-sm">
+              <p className="adm-micro">La ficha</p>
+              <div className="mt-3 flex flex-col gap-3 text-sm">
                 <div className="flex items-baseline gap-2">
                   <Chip color="neutro">compró</Chip>
                   <span className="text-[var(--texto-menor)]">
@@ -168,24 +192,24 @@ export default async function PantallaFamilias() {
             </Tarjeta>
 
             <Tarjeta>
-              <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+              <p className="adm-micro">
                 La charla
               </p>
-              <div className="mt-3 flex flex-col gap-3 text-sm">
-                <div>
+              <div className="mt-3 flex flex-col gap-4 text-sm">
+                <div className="border-l-2 border-[var(--linea-fuerte)] pl-4">
                   <span className="block text-xs text-[var(--texto-menor)]">lo que le preguntó el biógrafo de verdad</span>
-                  <b>{enviadas(elegida)[String(elegida.dia_actual ?? 0)] ?? "todavía no salió la pregunta de hoy"}</b>
+                  <b className="mt-0.5 block text-base font-medium italic [font-family:var(--fuente-titulo)]">{enviadas(elegida)[String(elegida.dia_actual ?? 0)] ?? "todavía no salió la pregunta de hoy"}</b>
                   <p className="text-xs text-[var(--texto-menor)]">
                     No es el texto del guion: el biógrafo lo reescribe con lo que {elegida.nombre ?? "el narrador"} ya contó.
                   </p>
                 </div>
                 {repreguntas(elegida)[String(elegida.dia_actual ?? 0)] ? (
-                  <div>
+                  <div className="border-l-2 border-[var(--linea-fuerte)] pl-4">
                     <span className="block text-xs text-[var(--texto-menor)]">y la repregunta del mismo día</span>
-                    <b>{repreguntas(elegida)[String(elegida.dia_actual ?? 0)]}</b>
+                    <b className="mt-0.5 block text-base font-medium italic [font-family:var(--fuente-titulo)]">{repreguntas(elegida)[String(elegida.dia_actual ?? 0)]}</b>
                   </div>
                 ) : null}
-                <div>
+                <div className="ml-6 rounded-lg bg-[var(--hueco)] px-4 py-3">
                   <span className="block text-xs text-[var(--texto-menor)]">lo que contestó</span>
                   {ultimaRespuesta ? (
                     <>

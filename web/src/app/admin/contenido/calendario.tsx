@@ -25,16 +25,18 @@ import { borrarContenido, confirmarSubida, editarContenido, guardarOrden, pedirS
 
 const DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
 
+// El estado de la pieza es el filo de su tarjeta (panel.css): gris, ámbar o verde.
 const COLOR_ESTADO: Record<EstadoContenido, string> = {
-  borrador: "border-[var(--linea-fuerte)]",
-  listo: "border-[#B07A18]",
-  publicado: "border-[var(--acento)]",
+  borrador: "adm-tono-neutro",
+  listo: "adm-tono-ambar",
+  publicado: "adm-tono-verde",
 };
 
-const campo = "rounded border border-[var(--linea)] bg-[var(--fondo)] px-2 py-1 text-sm";
+const campo = "adm-campo";
 
-function Vista({ pieza, chica = false }: { pieza: PiezaContenido; chica?: boolean }) {
-  const caja = chica ? "h-10 w-10" : "h-full w-full";
+function Vista({ pieza, chica = false, mini = false }: { pieza: PiezaContenido; chica?: boolean; mini?: boolean }) {
+  // mini: en la celda de un día, donde el texto necesita el lugar.
+  const caja = mini ? "h-7 w-7" : chica ? "h-10 w-10" : "h-full w-full";
   if (pieza.url && pieza.tipo.startsWith("image/")) {
     // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage: no pasa por next/image
     return <img src={pieza.url} alt="" className={`${caja} rounded object-cover`} draggable={false} />;
@@ -44,7 +46,7 @@ function Vista({ pieza, chica = false }: { pieza: PiezaContenido; chica?: boolea
   }
   const marca = pieza.tipo.startsWith("audio/") ? "audio" : pieza.tipo === "application/pdf" ? "pdf" : "archivo";
   return (
-    <span className={`${caja} flex items-center justify-center rounded bg-[var(--hueco)] text-xs text-[var(--texto-menor)]`}>
+    <span className={`${caja} flex shrink-0 items-center justify-center rounded bg-[var(--hueco)] ${mini ? "text-[8px]" : "text-xs"} text-[var(--texto-menor)]`}>
       {marca}
     </span>
   );
@@ -136,11 +138,11 @@ export function Calendario({ inicial, mes, hoy }: { inicial: PiezaContenido[]; m
       onDrop={soltarEn(p.fecha, p.id)}
       onClick={() => setAbierta(p.id)}
       title={p.titulo ?? p.nombre}
-      className={`flex cursor-grab items-center gap-2 rounded border-l-4 bg-[var(--relieve)] p-1 text-left text-xs active:cursor-grabbing ${
+      className={`adm-hoja adm-hoja--viva adm-filo flex cursor-grab items-center gap-1.5 p-1 text-left text-xs active:cursor-grabbing ${
         COLOR_ESTADO[p.estado] ?? COLOR_ESTADO.borrador
       } ${encima === `pieza-${p.id}` ? "ring-2 ring-[var(--acento)]" : ""} ${enDia ? "" : "w-full"}`}
     >
-      <Vista pieza={p} chica />
+      <Vista pieza={p} chica mini={enDia} />
       <span className="min-w-0 flex-1">
         <span className="block truncate">{p.titulo || p.nombre}</span>
         <span className="block truncate text-[var(--texto-menor)]">
@@ -154,22 +156,24 @@ export function Calendario({ inicial, mes, hoy }: { inicial: PiezaContenido[]; m
   const pieza = piezas.find((p) => p.id === abierta) ?? null;
 
   return (
-    <div className="mt-5 grid gap-5 lg:grid-cols-[280px_1fr]">
+    // La carpeta va arriba hasta que hay lugar para tenerla al costado sin apretar los días
+    // (con el lomo abierto, recién en pantallas muy anchas).
+    <div className="mt-5 grid gap-5 2xl:grid-cols-[260px_1fr]">
       <aside
         onDragOver={sobre("carpeta")}
         onDragLeave={() => setEncima(null)}
         onDrop={soltarEn(null, null)}
-        className={`rounded-lg border border-dashed p-3 ${encima === "carpeta" ? "border-[var(--acento)] bg-[var(--hueco)]" : "border-[var(--linea-fuerte)]"}`}
+        className={`self-start rounded-lg border border-dashed p-4 transition-colors 2xl:sticky 2xl:top-6 ${encima === "carpeta" ? "border-[var(--acento)] bg-[var(--hueco)]" : "border-[var(--linea-fuerte)] bg-[color-mix(in_srgb,var(--adm-hoja)_55%,transparent)]"}`}
       >
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <h2 className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            Carpeta <span className="text-[var(--texto)]">{carpeta.length}</span>
-          </h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="adm-micro flex items-center gap-2">
+            Carpeta <span className="adm-chip adm-tono-neutro">{carpeta.length}</span>
+          </p>
           <button
             type="button"
             onClick={() => entrada.current?.click()}
             disabled={subiendo !== null}
-            className="rounded bg-[var(--acento)] px-2 py-1 text-xs text-[var(--sobre-acento)] disabled:opacity-60"
+            className="adm-boton adm-boton--chico"
           >
             subir archivos
           </button>
@@ -192,20 +196,22 @@ export function Calendario({ inicial, mes, hoy }: { inicial: PiezaContenido[]; m
             Soltá acá fotos, videos o audios (o tocá «subir archivos»). Después arrastralos a un día del calendario.
           </p>
         ) : (
-          <div className="flex max-h-[70vh] flex-col gap-1.5 overflow-y-auto">{carpeta.map((p) => tarjeta(p, false))}</div>
+          <div className="grid max-h-[70vh] grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-1.5 overflow-y-auto 2xl:flex 2xl:flex-col">
+            {carpeta.map((p) => tarjeta(p, false))}
+          </div>
         )}
       </aside>
 
       <div className="min-w-0">
         {error ? (
-          <p className="mb-3 rounded border border-[var(--alerta)] px-3 py-2 text-sm text-[var(--alerta)]" role="alert">
+          <p className="mb-3 adm-alerta" role="alert">
             {error}
           </p>
         ) : null}
-        <div className="overflow-x-auto">
-          <div className="grid min-w-[720px] grid-cols-7 gap-px rounded-lg border border-[var(--linea)] bg-[var(--linea)]">
+        <div className="adm-hoja overflow-x-auto">
+          <div className="grid min-w-[720px] grid-cols-7 gap-px bg-[var(--linea)]">
             {DIAS_SEMANA.map((d) => (
-              <div key={d} className="bg-[var(--fondo)] px-2 py-1 text-xs uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+              <div key={d} className="adm-micro bg-[var(--adm-hoja)] px-2.5 py-2">
                 {d}
               </div>
             ))}
@@ -216,12 +222,12 @@ export function Calendario({ inicial, mes, hoy }: { inicial: PiezaContenido[]; m
                 onDragLeave={() => setEncima(null)}
                 onDrop={soltarEn(dia, null)}
                 className={`flex min-h-[110px] flex-col gap-1 p-1.5 ${
-                  encima === dia ? "bg-[var(--hueco)]" : "bg-[var(--fondo)]"
+                  encima === dia ? "bg-[var(--hueco)]" : "bg-[var(--adm-hoja)]"
                 } ${delMes ? "" : "opacity-50"}`}
               >
                 <span
-                  className={`self-end text-xs ${
-                    dia === hoy ? "rounded-full bg-[var(--acento)] px-1.5 text-[var(--sobre-acento)]" : "text-[var(--texto-menor)]"
+                  className={`adm-dato flex h-6 min-w-6 items-center justify-center self-end text-xs ${
+                    dia === hoy ? "rounded-full bg-[var(--acento)] px-1.5 font-semibold text-[var(--sobre-acento)]" : "text-[var(--texto-menor)]"
                   }`}
                 >
                   {Number(dia.slice(8))}
@@ -231,10 +237,10 @@ export function Calendario({ inicial, mes, hoy }: { inicial: PiezaContenido[]; m
             ))}
           </div>
         </div>
-        <p className="mt-2 flex flex-wrap gap-4 text-xs text-[var(--texto-menor)]">
-          <span className="border-l-4 border-[var(--linea-fuerte)] pl-2">borrador</span>
-          <span className="border-l-4 border-[#B07A18] pl-2">listo para publicar</span>
-          <span className="border-l-4 border-[var(--acento)] pl-2">publicado</span>
+        <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-[var(--texto-menor)]">
+          <span className="flex items-center gap-2"><i className="adm-punto adm-tono-neutro" />borrador</span>
+          <span className="flex items-center gap-2"><i className="adm-punto adm-tono-ambar" />listo para publicar</span>
+          <span className="flex items-center gap-2"><i className="adm-punto adm-tono-verde" />publicado</span>
         </p>
       </div>
 
@@ -258,16 +264,16 @@ function Ficha({ pieza, cerrar, alGuardar }: { pieza: PiezaContenido; cerrar: ()
   const [pendiente, empezar] = useTransition();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={cerrar}>
+    <div className="m-overlay fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" onClick={cerrar}>
       <div
         role="dialog"
         aria-label={pieza.titulo || pieza.nombre}
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-[640px] overflow-y-auto rounded-lg bg-[var(--fondo)] p-5 text-[var(--texto)] shadow-xl"
+        className="adm-ficha adm-hoja max-h-[90vh] w-full max-w-[640px] overflow-y-auto p-6 text-[var(--texto)] shadow-2xl"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <p className="min-w-0 truncate text-sm text-[var(--texto-menor)]">{pieza.nombre}</p>
-          <button type="button" onClick={cerrar} className="text-sm text-[var(--texto-suave)]">
+          <button type="button" onClick={cerrar} className="adm-boton adm-boton--hilo adm-boton--chico">
             cerrar
           </button>
         </div>
@@ -358,14 +364,14 @@ function Ficha({ pieza, cerrar, alGuardar }: { pieza: PiezaContenido; cerrar: ()
                   else alGuardar();
                 });
               }}
-              className="text-sm text-[var(--alerta)] disabled:opacity-60"
+              className="adm-boton adm-boton--peligro"
             >
               sacar
             </button>
             <button
               type="submit"
               disabled={pendiente}
-              className="rounded bg-[var(--acento)] px-3 py-1.5 text-sm text-[var(--sobre-acento)] disabled:opacity-60"
+              className="adm-boton"
             >
               {pendiente ? "guardando…" : "guardar"}
             </button>
