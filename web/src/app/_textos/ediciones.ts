@@ -2,7 +2,7 @@ import type { Textos } from "@/lib/idioma-web";
 
 // «Nuestras ediciones» en la portada (maqueta aprobada por Naza el 02/11):
 // cuatro fichas iguales, como una tienda, con el libro cerrado en el mismo
-// fondo de estudio y, al pasar el mouse, la escena. TEXTOS PARA NAZA (02/11):
+// fondo de estudio y, al pasar el mouse, la escena. Los textos están
 // aprobados por Naza el 02/11 (Historia, «la historia de una empresa»).
 //
 // Las tapas son las de la web: la de Osvaldo (TEXTOS_PORTADA.direccion.libro),
