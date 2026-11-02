@@ -6,8 +6,9 @@ import type { Textos } from "@/lib/idioma-web";
 // aprobados por Naza el 02/11.
 //
 // Las tapas son las de la web: la de Osvaldo (TEXTOS_PORTADA.direccion.libro),
-// la de Viaje (LIBRO_VIAJE_EJEMPLO) y la de Historia (LIBRO_HISTORIA_EJEMPLO).
-// La de Kids no existía y va acá. Reglas de la portada: sin dos puntos, sin
+// la de Viaje (LIBRO_VIAJE_EJEMPLO).
+// La de Kids no existía y va acá; la de Historia, en la portada, es la de una
+// empresa (Naza, 02/11). Reglas de la portada: sin dos puntos, sin
 // «padre», ninguna oración empieza con «Y».
 //
 // es = España, de tú · ar = Argentina, de vos · ca = catalán, de tú.
@@ -26,6 +27,8 @@ export type TextosEdiciones = {
   historia: Edicion;
   /** La tapa de Kids (inventada, como las otras). */
   tapaKids: { etiqueta: string; nombre: [string, string]; edad: string };
+  /** La tapa de Historia en la portada: la de una empresa (Naza, 02/11), no la panadería de /historia. */
+  tapaHistoria: { etiqueta: string; nombre: [string, string]; firma: string };
   /** Lo que tienen las cuatro, abajo. */
   pie: [string, string, string];
 };
@@ -41,6 +44,7 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     kids: { nombre: "Mi Primer Capítulo", para: "Su primer libro, a los 11 años" },
     historia: { nombre: "Vitácora de una historia", para: "Un capítulo de su vida, a fondo" },
     tapaKids: { etiqueta: "Mi primer capítulo", nombre: ["Nico", "Rivas"], edad: "11 años" },
+    tapaHistoria: { etiqueta: "El libro de una historia", nombre: ["Ruiz & Hijos", "fundada en 1984"], firma: "Carmen Ruiz" },
     pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar los audios", "Envío incluido"],
   },
   ar: {
@@ -53,6 +57,7 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     kids: { nombre: "Mi Primer Capítulo", para: "Su primer libro, a los 11 años" },
     historia: { nombre: "Vitácora de una historia", para: "Un capítulo de su vida, a fondo" },
     tapaKids: { etiqueta: "Mi primer capítulo", nombre: ["Nico", "Rivas"], edad: "11 años" },
+    tapaHistoria: { etiqueta: "El libro de una historia", nombre: ["Ruiz & Hijos", "fundada en 1984"], firma: "Carmen Ruiz" },
     pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar los audios", "Envío incluido"],
   },
   ca: {
@@ -65,6 +70,7 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     kids: { nombre: "El meu primer capítol", para: "El seu primer llibre, als 11 anys" },
     historia: { nombre: "Vitácora d'una història", para: "Un capítol de la seva vida, a fons" },
     tapaKids: { etiqueta: "El meu primer capítol", nombre: ["Nico", "Rivas"], edad: "11 anys" },
+    tapaHistoria: { etiqueta: "El llibre d'una història", nombre: ["Ruiz & Fills", "fundada el 1984"], firma: "Carmen Ruiz" },
     pie: ["S'explica per WhatsApp, amb àudios", "Amb un QR per escoltar els àudios", "Enviament inclòs"],
   },
 };

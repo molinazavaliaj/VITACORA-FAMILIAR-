@@ -3,7 +3,6 @@ import Link from "next/link";
 import { TEXTOS_EDICIONES } from "../_textos/ediciones";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { LIBRO_VIAJE_EJEMPLO } from "../_textos/viaje";
-import { LIBRO_HISTORIA_EJEMPLO } from "../_textos/historia";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
 
 // «Nuestras ediciones» (maqueta aprobada por Naza el 02/11): como una tienda,
@@ -71,14 +70,8 @@ export function Ediciones({ idioma, precioFamiliar, precioViaje }: { idioma: Idi
       id: "historia",
       href: ruta(idioma, "/historia"),
       ...t.historia,
-      tapa: {
-        etiqueta: LIBRO_HISTORIA_EJEMPLO.etiqueta,
-        nombre: LIBRO_HISTORIA_EJEMPLO.nombre,
-        firma: LIBRO_HISTORIA_EJEMPLO.paraSiempre,
-        foto: "/rediseno/historia-carmen-tapa.jpg",
-        encuadre: "50% 35%",
-      },
-      escena: "/rediseno/historia-carmen-audio.jpg",
+      tapa: { ...t.tapaHistoria, foto: "/rediseno/historia-empresa-tapa.jpg" },
+      escena: "/rediseno/historia-empresa-libro.jpg",
       precio: null,
       proximamente: true,
     },
