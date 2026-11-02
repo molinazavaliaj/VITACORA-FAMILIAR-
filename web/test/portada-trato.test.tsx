@@ -262,12 +262,13 @@ describe("la portada según el idioma", () => {
     expect(html).not.toContain(".mp4");
   });
 
-  it("el libro de ejemplo en 3D en el inicio: QR real y el libro de Osvaldo", () => {
+  it("el libro en 3D en el inicio: el de Juan Domingo, con el QR de su libro real", () => {
     const es = portada("es");
     const inicio = es.slice(0, es.indexOf('id="hero"'));
     expect(inicio).toContain("data-libro-3d");
     expect(es).toMatch(/<path d="M\d+ \d+h1v1h-1z/);
-    expect(es).toContain(escapar("Osvaldo Toroide · El libro de su vida"));
+    expect(es).toContain(escapar("Juan Domingo Mateos · El libro de su vida"));
+    expect(es).not.toContain("Osvaldo Toroide");
   });
 
   it("una sola capa (el inicio): ninguna hoja tapa texto a medio leer", () => {

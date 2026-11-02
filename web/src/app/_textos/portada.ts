@@ -107,8 +107,8 @@ export type TextosPortada = {
   sticky: { desde: string; conImpreso: string; sinImpreso: string };
   /**
    * - como.bajada: APROBADA por Naza (3.ª vuelta), la usan las landings.
-   * - libro: lo que va impreso en el libro de ejemplo de Osvaldo (tapa, lomo
-   *   y contratapa), copiado del diseño real (vf_book_atlas). El libro de
+   * - libro: lo que va impreso en el libro de Juan Domingo (tapa, lomo y
+   *   contratapa), copiado del libro real. El libro de
    *   ejemplo está en castellano en los tres idiomas, como el de /ejemplo.
    */
   direccion: {
@@ -136,14 +136,18 @@ const CITA_CAMPO =
 const CARTA_ES =
   "Hicimos Vitácora porque no todas las familias tienen la suerte de que los abuelos sigan ahí cuando los nietos crecen. Muchos niños van a conocer a sus abuelos solo por fotos, sin saber cómo hablaban, qué vivieron ni qué aprendieron. Queremos que eso no se pierda. Que cada nieto, cuando sea mayor, pueda abrir un libro y leer quién fue su abuelo, con sus propias palabras.";
 
-const LIBRO_OSVALDO: TextosPortada["direccion"]["libro"] = {
+// El libro de Juan Domingo Mateos, el papá de Naza: un libro real, con su
+// permiso (Naza, 02/11). Tapa, lomo y contratapa copiados del libro impreso
+// (en vos, como se imprimió); en la contratapa va «Vitácora Familiar» donde
+// antes iban las iniciales (PR #193).
+const LIBRO_JUAN_DOMINGO: TextosPortada["direccion"]["libro"] = {
   etiqueta: "El libro de su vida",
-  nombre: ["Osvaldo", "Toroide"],
+  nombre: ["JUAN DOMINGO", "MATEOS"],
   paraSiempre: "para siempre",
-  iniciales: "O · T",
-  lomo: "Osvaldo Toroide · El libro de su vida",
-  contra: "Estas páginas guardan la vida de Osvaldo Toroide, contada con sus propias palabras. Sus mejores historias, tal como él las vivió. En este QR, sus mejores frases.",
-  escucha: "Escucha su voz",
+  iniciales: "VITÁCORA FAMILIAR",
+  lomo: "Juan Domingo Mateos · El libro de su vida",
+  contra: "Estas páginas guardan la vida de Juan Domingo Mateos, contada con sus propias palabras: sus mejores historias, tal como las vivió. En este QR, sus mejores frases.",
+  escucha: "Escuchá su voz",
   web: "vitacorafamiliar.com",
 };
 
@@ -293,7 +297,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       },
     },
     libro: {
-      altPortada: "Portada del libro de ejemplo: El libro de su vida, Osvaldo Toroide",
+      altPortada: "Portada de un libro de verdad: El libro de su vida, Juan Domingo Mateos",
       mas: (p) => `+ ${p}`,
     },
     voz: {
@@ -315,7 +319,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       nota: "Lo añades al comprar o después, desde la página de su historia. Va con el libro impreso.",
       pasos: ["Acercas el móvil al marco", "Se abre su libro", "Escuchas su voz"],
       telefonoQuieto: "Acerca el móvil",
-      telefonoLibro: "El libro de Osvaldo",
+      telefonoLibro: "El libro de Juan Domingo",
       altMarco: "Un marco negro pequeño con una foto, sobre un aparador junto a un libro y una lámpara encendida",
     },
     diciembre: {
@@ -391,7 +395,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
       },
       libroOtraVez: "Ver otra vez",
-      libro: LIBRO_OSVALDO,
+      libro: LIBRO_JUAN_DOMINGO,
     },
   },
 
@@ -541,7 +545,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       },
     },
     libro: {
-      altPortada: "Tapa del libro de ejemplo: El libro de su vida, Osvaldo Toroide",
+      altPortada: "Tapa de un libro de verdad: El libro de su vida, Juan Domingo Mateos",
       mas: (p) => `+ ${p}`,
     },
     voz: {
@@ -563,7 +567,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       nota: "Lo sumás al comprar o después, desde la página de su historia. Va con el libro impreso.",
       pasos: ["Acercás el celular al marco", "Se abre su libro", "Escuchás su voz"],
       telefonoQuieto: "Acercá el celular",
-      telefonoLibro: "El libro de Osvaldo",
+      telefonoLibro: "El libro de Juan Domingo",
       altMarco: "Un marco negro chico con una foto, sobre un aparador junto a un libro y una lámpara prendida",
     },
     diciembre: {
@@ -640,7 +644,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         bajada: "Lo entrevistamos por WhatsApp, a su ritmo, y con lo que cuenta escribimos su libro. Si sabe mandar un audio, ya sabe hacerlo.",
       },
       libroOtraVez: "Ver otra vez",
-      libro: LIBRO_OSVALDO,
+      libro: LIBRO_JUAN_DOMINGO,
     },
   },
 
@@ -797,7 +801,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       },
     },
     libro: {
-      altPortada: "Portada del llibre d'exemple: El llibre de la seva vida, Osvaldo Toroide",
+      altPortada: "Portada d'un llibre de veritat: El llibre de la seva vida, Juan Domingo Mateos",
       mas: (p) => `+ ${p}`,
     },
     voz: {
@@ -819,7 +823,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       nota: "L'afegeixes en comprar o després, des de la pàgina de la seva història. Va amb el llibre imprès.",
       pasos: ["Apropes el mòbil al marc", "S'obre el seu llibre", "Escoltes la seva veu"],
       telefonoQuieto: "Apropa el mòbil",
-      telefonoLibro: "El llibre d'Osvaldo",
+      telefonoLibro: "El llibre de Juan Domingo",
       altMarco: "Un marc negre petit amb una foto, sobre un aparador al costat d'un llibre i un llum encès",
     },
     diciembre: {
@@ -899,7 +903,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         bajada: "L'entrevistem per WhatsApp, al seu ritme, i amb el que explica escrivim el seu llibre. Si sap enviar un àudio, ja sap fer-ho.",
       },
       libroOtraVez: "Tornar-ho a veure",
-      libro: LIBRO_OSVALDO,
+      libro: LIBRO_JUAN_DOMINGO,
     },
   },
 };

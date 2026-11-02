@@ -26,7 +26,7 @@ import "./portada.css";
 // La portada (/, /ar, /ca): la maqueta que aprobó Naza el 15/10, con las
 // correcciones de su amigo y el brief de Remento. La estética es la de «la web
 // es un libro» (tinta y papel que se alternan, letra enorme, el logo que se
-// dibuja a lápiz, el libro de Osvaldo en 3D, la carta sobre la vidriera).
+// dibuja a lápiz, el libro de Juan Domingo en 3D, la carta sobre la vidriera).
 //
 // Orden: 1 inicio (con el libro 3D) → 2 qué es (con el teléfono y la página
 // de su historia) → 3 cómo funciona (4 pasos) → 4 la carta → 5 escúchalo → 6
@@ -53,8 +53,9 @@ import "./portada.css";
 const FOTOS = {
   vidriera: "/rediseno/vidriera-vitacora.jpg",
   guitarra: "/rediseno/osvaldo-guitarra.jpg",
-  portada: "/rediseno/libro-osvaldo-portada.jpg",
-  contraportada: "/rediseno/libro-osvaldo-contraportada.jpg",
+  // La tapa y la contratapa del libro de Juan Domingo, un libro real (02/11).
+  portada: "/rediseno/juan-domingo-portada.jpg",
+  contraportada: "/rediseno/juan-domingo-contraportada.jpg",
   marco: "/rediseno/marco-en-casa.jpg",
   abuelo: "/rediseno/para-tu-abuelo.jpg",
 } as const;
@@ -110,7 +111,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             {t.inicio.bajada}
           </p>
 
-          {/* El libro de Osvaldo: gira y se abre cuando está entero en el medio
+          {/* El libro de Juan Domingo: gira y se abre cuando está entero en el medio
               de la pantalla (Coreografia, data-libro-3d); tocarlo lo repite. */}
           <div data-libro-3d className="l3-seccion prt-libro dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
             <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
@@ -248,8 +249,8 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <div className="mx-auto max-w-[1360px] px-4 pb-24 sm:px-8 md:pb-36 lg:px-12">
           <div className="prt-paso-final grid grid-cols-1 items-center gap-12 pt-14 md:grid-cols-12 md:gap-8 md:pt-24">
             <div className="aparece flex justify-center md:col-span-5">
-              <div className="prt-tapa">
-                <Image src={FOTOS.portada} alt={t.libro.altPortada} width={376} height={520} sizes="(min-width: 768px) 300px, 62vw" />
+              <div className="prt-tapa prt-fisico">
+                <Image src={FOTOS.portada} alt={t.libro.altPortada} width={760} height={981} sizes="(min-width: 768px) 300px, 62vw" />
               </div>
             </div>
             <div data-revela className="flex flex-col gap-6 md:col-span-6 md:col-start-7">
@@ -328,26 +329,26 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             </figure>
           </div>
           <div className="aparece flex justify-center md:col-span-4 md:col-start-9">
-            <div className="prt-contra">
-              <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={378} height={520} sizes="(min-width: 768px) 320px, 66vw" />
+            <div className="prt-contra prt-fisico prt-fisico--espalda">
+              <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={760} height={981} sizes="(min-width: 768px) 320px, 66vw" />
             </div>
           </div>
         </div>
       </section>
 
       {/* ═══ 6 · EL LIBRO, sobre tinta: los tres beneficios, qué incluye y el
-          único precio, con la tapa y la contratapa de Osvaldo. Tiene su propio
+          único precio, con la tapa y la contratapa de Juan Domingo. Tiene su propio
           botón (data-cta-propio): la barra del teléfono se esconde acá. ═══ */}
       <section data-cta-propio className="dir-tinta dir-hoja dir-diferido relative z-[6]">
         <div className="mx-auto max-w-[1360px] px-4 py-28 sm:px-8 md:py-40 lg:px-12">
           <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-12 md:gap-8">
             <h2 className="dir-titular dir-t2 aparece max-w-[14ch] md:col-span-6">{t.elLibro.titulo}</h2>
             <div className="aparece prt-par flex justify-center md:col-span-5 md:col-start-8">
-              <div className="prt-par-tapa">
-                <Image src={FOTOS.portada} alt={t.libro.altPortada} width={376} height={520} sizes="(min-width: 768px) 220px, 44vw" />
+              <div className="prt-par-tapa prt-fisico">
+                <Image src={FOTOS.portada} alt={t.libro.altPortada} width={760} height={981} sizes="(min-width: 768px) 220px, 44vw" />
               </div>
-              <div className="prt-par-contra">
-                <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={378} height={520} sizes="(min-width: 768px) 220px, 44vw" />
+              <div className="prt-par-contra prt-fisico prt-fisico--espalda">
+                <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={760} height={981} sizes="(min-width: 768px) 220px, 44vw" />
               </div>
             </div>
           </div>
