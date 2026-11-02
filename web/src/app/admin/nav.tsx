@@ -18,9 +18,12 @@ const SECCIONES = [
   { href: "/admin/cerebros", numero: "05", nombre: "Cerebros" },
   { href: "/admin/kids", numero: "06", nombre: "Kids" },
   { href: "/admin/creadores", numero: "07", nombre: "Creadores" },
+  { href: "/admin/notificaciones", numero: "08", nombre: "Notificaciones" },
+  { href: "/admin/contenido", numero: "09", nombre: "Contenido" },
 ];
 
-export function NavegacionAdmin() {
+/** `sinVer`: los avisos que nadie marcó como vistos (lo cuenta el layout); null si no se pudo saber. */
+export function NavegacionAdmin({ sinVer = null }: { sinVer?: number | null } = {}) {
   const ruta = usePathname();
 
   return (
@@ -41,6 +44,14 @@ export function NavegacionAdmin() {
           >
             <span className="mr-2 text-xs opacity-70 [font-family:var(--fuente-micro)]">{seccion.numero}</span>
             {seccion.nombre}
+            {seccion.href === "/admin/notificaciones" && sinVer ? (
+              <span
+                aria-label={`${sinVer} sin ver`}
+                className="ml-2 rounded-full bg-[var(--alerta)] px-1.5 py-px text-xs text-white [font-family:var(--fuente-micro)]"
+              >
+                {sinVer > 99 ? "99+" : sinVer}
+              </span>
+            ) : null}
           </Link>
         );
       })}

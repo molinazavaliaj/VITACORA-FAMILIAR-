@@ -28,6 +28,7 @@ import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { historiaTrabaja, revisarLibrosHistoria } from './escritor-historia/produccion/libro-historia.js';
 import { avisarVariablesAlArrancar } from './variables.js';
+import { registroEnTabla, usarRegistroDeAvisos } from './escritor/produccion/avisos.js';
 import { iniciarSentry } from './sentry.js';
 import { revisarAudiosOriginales } from './audios-originales.js';
 
@@ -1151,6 +1152,13 @@ async function entregarConLosMismosArchivos(
 
 export function iniciarWorker(): void {
   iniciarSentry(); // los errores a Sentry (sentry.ts); sin SENTRY_DSN no hace nada
+  // Cada aviso a los socios queda también en `avisos`, para verlo en /admin/notificaciones (02/11).
+  // Si falta la config de Supabase no se frena el arranque: el aviso de variables tiene que poder salir igual.
+  try {
+    usarRegistroDeAvisos(registroEnTabla(obtenerClienteDb()));
+  } catch (err) {
+    console.warn(`avisos: no quedan en el panel (${err instanceof Error ? err.message : String(err)}).`);
+  }
   // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
   // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
   void chequearClaveAlArrancar();

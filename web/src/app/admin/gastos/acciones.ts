@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esAdminQuienLlama } from "@/lib/admin/quien-llama";
 
-// La ÚNICA escritura del panel de la empresa (spec §2): cargar a mano un gasto que no pasa
+// La escritura de Gastos (spec §2; desde el 02/11 también escriben Notificaciones y Contenido): cargar a mano un gasto que no pasa
 // por ninguna API —Railway, el dominio, los mails, la imprenta—. Todo lo demás es mirar.
 //
 // La validación es del lado del servidor y es toda la defensa que hace falta: si algo no

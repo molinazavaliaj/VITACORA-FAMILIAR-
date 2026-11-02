@@ -5,7 +5,7 @@ import { procesarEntrante } from './flujo/procesar.js';
 import { iniciarScheduler } from './flujo/scheduler.js';
 import { chequearClaveAlArrancar } from './ia/alarma.js';
 import { db } from './db/cliente.js';
-import { marcaEnStorage, usarMarcaPersistente } from './v3/avisos.js';
+import { marcaEnStorage, registroEnTabla, usarMarcaPersistente, usarRegistroDeAvisos } from './v3/avisos.js';
 import { avisarVariablesAlArrancar } from './variables.js';
 import { iniciarSentry, aSentryDesdeElLog } from './sentry.js';
 
@@ -47,6 +47,8 @@ registrarWebhook(app, procesarEntrante);
 if (process.env.NODE_ENV !== 'test') {
   // Los avisos a los socios, una vez por día aunque Railway se reinicie (11/10).
   usarMarcaPersistente(marcaEnStorage(db));
+  // Y cada aviso queda también en `avisos`, para verlo en /admin/notificaciones (02/11).
+  usarRegistroDeAvisos(registroEnTabla(db));
   // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
   // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
   void chequearClaveAlArrancar();

@@ -1055,7 +1055,9 @@ Regenerar después de cada migración.
 |---|---|---|---|
 | `consumo_ia` | entrevistador (14 pasos) y fábrica (5 pasos) — insert | `/admin` | Una fila por llamada al modelo. **El worker de voz no escribe acá**: su trabajo es GPU propia (USD 0) y sólo deja su latido. Nadie hace update ni delete. |
 | `latidos` | los tres workers (upsert por `servicio`) | `/admin` | Si un servicio deja de latir, `/admin` lo muestra en rojo. |
-| `gastos_manuales` | `/admin` (es la ÚNICA escritura del panel) | `/admin` | Lo que no pasa por una API: suscripciones, recargas, imprenta. |
+| `gastos_manuales` | `/admin` | `/admin` | Lo que no pasa por una API: suscripciones, recargas, imprenta. |
+| `avisos` | web (`enviarMailSocios`), entrevistador (`avisarSocios`, `v3/avisos.ts`) y fábrica (`avisarSocios`, `escritor/produccion/avisos.ts`, y el candado V3) — insert / `/admin` (sólo `visto_at`) | `/admin/notificaciones` | Nueva 02/11 (migración `20261102000000`, **sin aplicar, la aplica Naza**). Una fila por cada aviso a MAIL_SOCIOS, en el mismo momento en que sale el mail (o no sale: `salio_mail` false = falló, null = no había a quién). El entrevistador anota sólo los que pasan su deduplicación del día. Si la tabla no está, nadie se cae: se avisa por consola y sigue. |
+| `contenido` | `/admin/contenido` (insert, update, delete) | `/admin/contenido` | Nueva 02/11 (misma migración). El calendario de contenido: cada archivo subido al bucket privado `contenido` (`carpeta/<id>.<ext>`), con `fecha` null = en la carpeta y con fecha = ese día del calendario; `orden` dentro del día. Sólo planifica: no publica en ninguna red. Ningún servicio la lee. |
 
 Las tres tienen RLS prendido y **sin políticas**: sólo la service role las toca (el navegador nunca). Si la
 migración no está aplicada, el producto sigue andando: los servicios avisan por consola y no anotan nada.

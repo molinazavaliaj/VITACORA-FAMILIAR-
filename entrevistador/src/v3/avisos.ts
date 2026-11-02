@@ -69,6 +69,27 @@ export function olvidarAvisos(): void {
   YA_AVISADO.clear();
 }
 
+/** Lo que queda en `avisos` para verlo en /admin/notificaciones (02/11). */
+export type FilaAviso = { clave: string; asunto: string; detalle: string; salio_mail: boolean | null };
+let registro: ((fila: FilaAviso) => Promise<void>) | null = null;
+
+/** Lo configura el servidor al arrancar. Sin él (tests, scripts), el aviso no queda en la tabla. */
+export function usarRegistroDeAvisos(r: ((fila: FilaAviso) => Promise<void>) | null): void {
+  registro = r;
+}
+
+/** Una fila en `avisos` por cada aviso que de verdad sale (después de la deduplicación). Nunca tira. */
+export function registroEnTabla(db: Pick<SupabaseClient, 'from'>): (fila: FilaAviso) => Promise<void> {
+  return async (fila) => {
+    try {
+      const { error } = await db.from('avisos').insert({ servicio: 'entrevistador', ...fila });
+      if (error) console.warn(`avisos: no quedó en el panel «${fila.asunto}» (${error.message}).`);
+    } catch (err) {
+      console.warn(`avisos: no quedó en el panel «${fila.asunto}».`, err instanceof Error ? err.message : err);
+    }
+  };
+}
+
 export async function avisarSocios(
   clave: string, asunto: string, detalle: string,
   o: { ahora?: Date; fetch?: typeof fetch; unaVez?: boolean } = {},
@@ -91,11 +112,15 @@ export async function avisarSocios(
     if (tambienMemoria) YA_AVISADO.delete(llave);
     await marcaPersistente?.quitar?.(dia, clave);
   };
+  // El panel lo ve aunque el mail no salga: justamente ahí es cuando más hace falta.
+  const anotar = async (salio_mail: boolean | null) => { await registro?.({ clave, asunto, detalle, salio_mail }); };
   if (!claveResend || para.length === 0) {
     console.warn('avisos: falta RESEND_API_KEY o MAIL_SOCIOS; el aviso quedó solo en la consola.');
     await deshacer(false);
+    await anotar(null);
     return true;
   }
+  let salio = false;
   try {
     const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
       method: 'POST',
@@ -106,10 +131,13 @@ export async function avisarSocios(
     if (!r.ok) {
       console.error(`avisos: Resend rechazó el aviso «${asunto}» (${r.status}).`);
       await deshacer(true);
+    } else {
+      salio = true;
     }
   } catch (err) {
     console.error(`avisos: no pude mandar el aviso «${asunto}» por mail:`, err instanceof Error ? err.message : err);
     await deshacer(true);
   }
+  await anotar(salio);
   return true;
 }
