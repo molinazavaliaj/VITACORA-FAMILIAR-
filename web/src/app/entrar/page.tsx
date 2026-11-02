@@ -10,7 +10,7 @@ import { Toroide } from "../marca";
 import "./entrar.css";
 
 // /entrar (rediseño 2026-10, arreglos chicos; maquetas `Entrar` y
-// `EntrarMovil`). En escritorio, a la izquierda la foto de Osvaldo con la
+// `EntrarMovil`). En escritorio, a la izquierda la foto de Juan Domingo de joven con la
 // guitarra, como una foto de papel apoyada sobre la tinta; a la derecha el
 // formulario. En el celular, solo el formulario (la maqueta no lleva foto).
 // La entrada no cambia: código de 6 números al correo (formulario.tsx).
@@ -24,7 +24,7 @@ export default async function Entrar() {
       <figure className="ent-foto">
         <div className="ent-foto-papel">
           <div className="ent-foto-imagen">
-            <Image src="/rediseno/osvaldo-guitarra.jpg" alt={t.altFoto} fill sizes="(min-width: 1024px) 45vw, 1px" className="object-cover" />
+            <Image src="/rediseno/juan-domingo-joven.jpg" alt={t.altFoto} fill sizes="(min-width: 1024px) 45vw, 1px" className="object-cover" />
           </div>
           <figcaption className="ent-foto-pie">
             <span className="ent-foto-cita">{t.citaFoto}</span>

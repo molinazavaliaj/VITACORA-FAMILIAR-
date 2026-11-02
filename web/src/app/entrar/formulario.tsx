@@ -92,7 +92,7 @@ export default function FormularioEntrar({ trato = "vos" }: { trato?: TratoCompr
   }
 
   // Rediseño 2026-10 (maquetas `Entrar` y `EntrarMovil`): la columna de la
-  // derecha, en tinta y papel. La foto de Osvaldo la pone la página (page.tsx).
+  // derecha, en tinta y papel. La foto de Juan Domingo la pone la página (page.tsx).
   return (
     <div className="ent-form">
       <p className="ent-etiqueta">{t.etiqueta}</p>
