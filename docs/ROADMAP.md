@@ -1,4 +1,4 @@
-# ROADMAP — Lanzamiento 15 de octubre de 2026
+# ROADMAP — Vitácora, camino al lanzamiento
 
 > **Documento vivo.** Es la fuente de verdad de QUÉ sigue y QUIÉN lo hace.
 > Acordado por los dos socios el 2026-09-04. Al completar una tarea, marcala acá.
@@ -18,7 +18,212 @@
 
 ---
 
-## 📍 Lo que sigue vivo al 17/10
+## 📍 Lo que sigue vivo al 02/11
+
+> **Empezá por acá.** Este índice manda; todo lo de más abajo es historial (se deja sin borrar).
+> Sale de la revisión del 02/11 (Joaquín) cruzada con los **118 PR mergeados desde el 17/10**,
+> el estado real de Railway y **el recorrido del pedido contado paso por paso por Joaquín**.
+> Reemplaza al índice del 17/10, que quedó quince días y 118 PR atrás.
+
+**El hito cambió de forma otra vez.** Ya no es «que `main` vuelva a ser la verdad» —eso se
+cerró: los 8 PR y los 200 commits del rediseño entraron y la web nueva está en producción desde
+el 19/10—. Ahora es **un pedido real recorriendo la cadena entera, de la compra a la caja
+despachada**.
+
+**Decisión del 02/11: los dos países salen juntos.** Cambia la decisión del 04/09 y la del
+17/10, que ponían a Argentina primero para no quedar colgada del trámite español. Argentina ya
+está seteada (CUIT cargado, oficina con gente); España espera el alta. Salen juntos igual.
+
+**No hay fecha, y se sabe qué la pone:** el **contenido** y el **alta de autónomo**. El alta sale
+el 03 o el 04/11 (Joaquín viajó a España a resolverlo). El NIE ya está confirmado y validado.
+Todo lo demás se puede adelantar sin esperar nada.
+
+**La regla vieja sigue valiendo.** Cuatro veces en una semana el código estaba bien y lo apagaba
+la configuración, sin avisar. Desde el 12/10 el entrevistador revisa sus variables al arrancar y
+manda un mail si falta alguna. **Antes de dar algo por roto, mirar si está prendido.**
+
+**La regla nueva (02/11): lo que falta casi no es código.** De los bloques de abajo, uno solo se
+resuelve programando. El resto son trámites, proveedores, compras y trabajo de manos. Ningún
+merge los destraba, y por eso el roadmap se quedó quieto quince días mientras se mergeaban 118 PR.
+
+### El recorrido del pedido, como es de verdad (contado por Joaquín, 02/11)
+
+> Esto es el mapa contra el que hay que leer todos los bloques. Los pasos 1 a 6 ya están
+> programados y andando. **Del 7 al 12 es trabajo humano, y el 12 todavía no existe.**
+
+| # | Paso | Quién |
+|---|---|---|
+| 1 | Entra la compra en la web | el sistema |
+| 2 | En el panel aparecen la familia y el libro nuevo | el sistema |
+| 3 | Sale el primer mensaje y se mira que la persona diga que sí | se mira |
+| 4 | Confirmado el sí, sale la primera pregunta y siguen saliendo las demás | el sistema |
+| 5 | Cuando termina de contestar, el libro pasa a armarse | el sistema |
+| 6 | La clienta entra a cargar y corregir sus datos | la clienta |
+| 7 | **Se abre el PDF y se revisa** antes que nadie | 🖐 nosotros |
+| 8 | Si está bien, se manda a imprimir al proveedor | 🖐 nosotros |
+| 9 | **El libro impreso llega a la oficina**, no al cliente | 🖐 el proveedor |
+| 10 | Se marca como recibido | 🖐 la oficina |
+| 11 | **Se arma el pedido a mano**: caja, stickers, papeles | 🖐 la oficina |
+| 12 | **Se imprime la etiqueta del correo, se sella y se despacha** | 🖐 la oficina |
+
+**Dos controles humanos que no se saltean:** el PDF antes de imprimir (paso 7) y la caja antes de
+despachar (paso 11). **Y una escala:** el libro pasa por nuestras manos en vez de ir derecho del
+proveedor al cliente. Cada venta son varias horas de trabajo físico, y eso tiene que estar
+montado **antes** del día 1.
+
+### Bloque 0 · El rodaje de Imma — el ensayo general
+
+> **El libro de Imma es la primera corrida real de la cadena completa.** No es una prueba de
+> software: es el libro terminado de una narradora de verdad recorriendo los 12 pasos, con caja,
+> stickers y etiqueta. Lo que se rompa acá se rompe antes de que haya un cliente mirando.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| El libro de Imma terminado y con el PDF revisado (paso 7) | **J** | 🔄 en preparación |
+| Mandarlo a imprimir al proveedor y recibirlo en Berga (pasos 8-9) | **J** | ☐ |
+| Armar la caja con los insumos de prueba (paso 11) | **J**, oficina Berga | 🔄 insumos de prueba listos |
+| **Despacharlo de verdad** (paso 12) — hoy no se puede: falta el alta de envíos | **J** | ☐ **bloqueado por el bloque 1** |
+| Anotar cada cosa que falle o incomode, paso por paso | **J** | ☐ |
+
+### Bloque 1 · El último eslabón: el envío (lo único que está en cero)
+
+> **Es el final del proceso y es lo más atrasado.** No se dio de alta el negocio para poder
+> enviar, ni en España ni en Argentina. Son **tres cosas distintas** que conviene no mezclar: un
+> trámite, una compra y un trabajo de código que nadie escribió.
+>
+> ⚠️ **Esto bloquea el rodaje de Imma.** Sin alta no hay etiqueta, y sin etiqueta el libro no sale.
+
+| Qué | Tipo | Dueño | Estado |
+|---|---|---|---|
+| **Dar de alta la cuenta de envíos en España (Correos)** — es trámite, tarda días | trámite | **J** | ☐ **primero esto** |
+| **Dar de alta la cuenta en Argentina.** Operador **a definir: Correo Argentino o Mercado Envíos**, los dos abiertos (02/11 — pisa la decisión del 17/10, que había cerrado Correo Argentino Paquetería e-commerce) | decisión + trámite | **J** | ☐ decisión |
+| **Impresora de tickets en cada oficina** (Berga y Haedo), para identificar y despachar cada pedido | compra | **J** | ☐ |
+| **Que el sistema emita la etiqueta en el formato que acepta cada operador** — Correos en España, el que se elija en Argentina. **Nadie escribió esto todavía** | código | **N**, Claude | ☐ **nuevo** |
+| Al arrancar, las etiquetas se sacan **a mano** del portal de cada transportista (fase 1 de la spec del 21/09); la API del agregador se integra cuando el volumen la justifique | decidido | Ambos | ✅ 17/10 |
+| **Verificar si la migración de `entregas` está aplicada**: `select to_regclass('public.entregas');`. Si no está, la web no muestra la sección Envío **y no avisa** | verificación | **N** | ☐ **sigue sin verificar desde el 17/10** |
+| El envío va **gratis** y es argumento de venta: tiene que decirlo la landing y el checkout | textos | **J**, con **N** | ☐ |
+| Sumar la **dirección de envío** a la privacidad (para qué se usa, cuánto se guarda) | legal | Claude, con **N** | ☐ |
+
+### Bloque 2 · Las dos oficinas
+
+> **Berga (España) y Haedo (Argentina).** En cada una hay una persona que hace el armado: recibe
+> el libro impreso, lo marca como recibido, arma la caja y despacha. Los insumos **no están en
+> cero**: hay cajas, stickers y papeles de prueba, preparándose para el rodaje de Imma.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Insumos de prueba (caja, stickers, papeles) | **J** | 🔄 prototipos listos |
+| **Validarlos con el rodaje de Imma** y recién ahí mandar a producir la tirada | **J** | ☐ |
+| Que el packaging definitivo esté **producido y en mano para el día 1**, cuando ya entran pedidos | **J** | ☐ |
+| **Packaging de la gift card** (hoy solo existe la tarjeta digital, el mail y la impresa en sobre del PR #180) | **J** | ☐ |
+| Dejar escrito el paso a paso del armado, para que lo haga quien esté en la oficina sin preguntar | **J** | ☐ **nuevo** |
+| Que el panel diga **a qué oficina va cada pedido** y la persona vea solo los suyos | **N**, Claude | ☐ **nuevo** |
+
+### Bloque 3 · Imprenta
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| Proveedor de libros impresos en **Argentina** | **J** | ☐ |
+| Proveedor de libros impresos en **España** (Bookmundo tapa dura ya sale solo de la fábrica, PR #59) | **N** | 🔄 |
+| **Un libro de muestra impreso con el proveedor definitivo, en cada país** | Ambos | ☐ |
+| La imprenta tiene que pegar el sobre (`sobre-imprenta.pdf`) a la contratapa | **N** | ☐ |
+| **Avisar si un libro queda por debajo de 45 páginas**: el proveedor no lo imprime y hoy nada lo controla | Claude | ☐ |
+| Definir la estética del libro y **cómo van las imágenes adentro** | **J**, con **N** | ☐ |
+| Proveedor de los marcos con NFC (hay uno de prueba armado) | **J** | ☐ |
+
+### Bloque 4 · Los relojes que no manejamos
+
+> El alta de autónomo es el único que mueve la fecha. Los demás se pueden empujar hoy.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **Alta de autónomo en España** | **J** | 🔄 **sale el 03 o el 04/11** |
+| **NIE confirmado y validado** (dígito de control correcto) | **J** | ✅ 02/11 |
+| Cargar el **titular de España** en `titulares.ts` y sacar a Immaculada Collel | Claude | ☐ **se puede hoy** |
+| Titular de **Argentina** (CUIT y domicilio) | Claude | ✅ 18/10 (PR #76) |
+| **Dar de alta Stripe con el NIF** — es lo último antes de salir a mercado | **J** | ☐ **espera el alta** |
+| **INPI** — Argentina es first-to-file y el contenido ya es público | **J** | ☐ **urgente, 16 días parado** |
+| Que el abogado cierre la revisión del PDF del 17/10 | **J** | 🔄 |
+| Abogado para Kids (aviso de «algo preocupante» y permiso del adulto). **Bloquea vender Kids** | **N** | ☐ |
+
+### Bloque 5 · Contenido (la otra mitad de la fecha)
+
+> Junto con el alta, es lo que define cuándo se abre. Se puede hacer **todo** hoy.
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| **Editar el crudo de Dora** y dejarlo listo para subir | **J** | 🔄 grabado, sin editar |
+| Grabar el contenido en **catalán con Imma** | **J**, Imma | ☐ sin grabar |
+| **Lentes POV** — grabar con cámara en primera persona | **J** | ☐ **nuevo** |
+| **Stand en la Rambla entrevistando** — salir a la calle a grabar entrevistas | **J** | ☐ **nuevo** |
+| **Contenido de prueba en Instagram** — publicar para medir antes de poner plata | **J** | ☐ **nuevo** |
+| **Calendario de posteo**: qué sale cada día | **J** | ☐ |
+| Decidir: orgánico ~10 días y después ads, o ads desde ya (la cuenta sigue sin movimiento) | **J** | ☐ **decisión, 16 días parada** |
+| Definir la **estructura de campaña** (objetivos, públicos, presupuesto, creatividades) | **J** | ☐ |
+
+### Bloque 6 · Lo legal que quedó abierto
+
+| Qué | Dueño | Estado |
+|---|---|---|
+| ⚠️ **Reglamento Europeo de IA, art. 50.1 — en vigor desde el 2/8/2026.** Obliga a que la persona sepa que habla con un sistema automático; la bienvenida dice «yo soy quien te va a entrevistar». Obliga a rehacer textos. **Está escrito en el PR #66 y lleva 16 días sin mergear** | **J**, con **N** | ☐ **lo más urgente de acá** |
+| Revisar que los legales cubran **los productos nuevos** (Eventos, Historia, Cuaderno, Creadores): los términos solo definen PDF, impreso y marcos | **J**, con **N** | ☐ |
+| Revisar que los textos de venta no prometan nada que los legales no respalden | **J** | ☐ |
+
+### Bloque 7 · Escrito y sin mergear (deuda de 15 días)
+
+> **El roadmap no se quedó viejo por falta de trabajo: se escribió y nadie lo mergeó.**
+
+| PR | Qué trae | Abierto desde | Estado |
+|---|---|---|---|
+| **#66** | La revisión legal del 17/10 + el art. 50.1 del Reglamento de IA | 17/10 | sin conflictos |
+| **#71** | Los dos productos nuevos en el roster y el estado al 18/10 | 18/10 | sin conflictos |
+| **#160** | La revisión legal en `.md`, PDF y Word (estaba solo en la PC de Naza) | 24/10 | sin conflictos |
+| 7 PR de Dependabot | Saltos mayores: TypeScript 7, Stripe 23, SDK de Anthropic 1.1, Vitest 5, pdfjs 6, pngjs 7 | 19–26/10 | sin revisar |
+
+### Bloque 8 · La prueba de punta a punta en la web
+
+> Los pasos 1 a 6 del recorrido. Una compra de verdad, con plata de verdad, mirando las dos cosas
+> que avisan: **el panel** y **el mail a los socios**.
+
+| Paso | Dueño | Estado |
+|---|---|---|
+| Comprar en la web y encargar el biógrafo para un familiar | **J** | ☐ |
+| Que llegue la bienvenida y el bot siga solo con la entrevista | **J** | ☐ |
+| Cargar fotos desde el panel (y que avise si falla la subida) | **J** | ☐ |
+| Editar nombres propios y que el escritor los respete | **J** | ☐ |
+| Contestar las dudas del escritor dentro de las 24 h | **J** | ☐ |
+| El pase al escritor con toda la info, y el libro del otro lado | **J**, **N** | ☐ |
+| En cada paso: ¿apareció en `/admin`? ¿llegó el mail? | **J** | ☐ |
+
+### Lo que se cerró entre el 17/10 y el 02/11 (118 PR)
+
+> Se anota para que no se vuelva a perder de vista lo hecho.
+
+- **`main` es la verdad otra vez.** Los 8 PR y los 200 commits del rediseño entraron; **la web
+  nueva está en producción desde el 19/10** (#104). Kids, Viaje y Voz mergeados. El CI corre los
+  tests de los cuatro servicios en cada PR (#54).
+- **Un producto entero nuevo: Vitácora de una historia.** Del núcleo al libro impreso, 17 PR,
+  **en producción desde el 25/10** (#151 a #167).
+- **Infraestructura que no estaba en ningún roadmap:** copias diarias a Cloudflare R2 (#73, #78),
+  borrado de audios a los 3 meses con descarga previa (#81), prueba mensual de que la copia sirve
+  (#82), Sentry (#77), Dependabot (#84), plan de rollback (#87), firma del webhook de Meta (#72),
+  avisos de gasto raro de IA (#74), links firmados con clave propia (#158).
+- **Más roster:** Eventos (#67-69), Creadores con comisión (#140-142), el Cuaderno para Amazon KDP
+  (#149-150), rasca y gana (#127-129), medición de anuncios con consentimiento (#169).
+- **Legales:** CUIT del titular de Argentina (#76) y las tres tandas de textos aprobadas (#83).
+- **Catalán y castellano** revisados enteros con corrector (#95, #106, #135, #153).
+- **Las fotos, el 01/11:** HEIC del iPhone a JPG en el navegador (#181), subida directa a Storage
+  sin pasar por Vercel (#182), sacar fotos desde el panel y desde Encargar libro (#183, #184).
+- **La tarjeta impresa en sobre por correo** como extra pago (#180).
+
+---
+
+## 🗄 Historial — lo que seguía vivo al 17/10
+
+> **Esto ya no manda: manda el índice del 02/11, más arriba.** Se deja sin borrar para ver de
+> dónde venimos. La fecha de lanzamiento que encabezaba este documento era el 15/10 y quedó atrás;
+> desde el 02/11 la ponen el contenido y el alta de autónomo.
+
 
 > **Empezá por acá.** Este índice manda; todo lo de más abajo es historial (se deja sin borrar).
 > Sale de la revisión del 17/10 (Joaquín) cruzada con los 8 PR abiertos, el estado real de Meta
