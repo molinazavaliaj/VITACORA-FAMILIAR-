@@ -308,8 +308,9 @@ Colofón, «Sus frases» y «Su voz» del PDF (fabrica/src/libro/plantilla-html.
 
 | | Argentina | España | Catalán |
 |---|---|---|---|
-| Sus frases, arriba | TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN | igual | TAL COM LES DIU · PERQUÈ NO ES PERDIN |
-| Bajo la frase destacada | Si se lleva una sola de todo el libro, es esta | igual | Si només se n’endú una de tot el llibre, és aquesta |
+| ~~Sus frases, arriba~~ (sacado 02/11: la página de arte de Sus frases ya no existe) | ~~TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN~~ | — | ~~TAL COM LES DIU · PERQUÈ NO ES PERDIN~~ |
+| ~~Bajo la frase destacada~~ (sacado 02/11, mismo motivo) | ~~Si se lleva una sola de todo el libro, es esta~~ | — | ~~Si només se n’endú una de tot el llibre, és aquesta~~ |
+| Título del texto que abre el libro (aprobado 02/11) | Antes de empezar | igual | Abans de començar |
 | Su voz, título | Su voz | igual | La seva veu |
 | Su voz, bajada | Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás. | Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas. | Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs. |
 | Debajo de cada código | Escuchala | Escúchala | Escolta-la |
