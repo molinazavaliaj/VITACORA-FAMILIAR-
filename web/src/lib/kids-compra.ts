@@ -14,6 +14,7 @@
 
 import { normalizarTelefono, type Region } from "./registro";
 import { edadValida, esIdiomaKids, idiomaKidsDeRegion, zonaKids, type IdiomaKids } from "./kids";
+import { apodoPropio, nombrePropio } from "./nombre-propio";
 
 /** Así lo guarda `kids_v2.idioma` sin región: el de siempre, rioplatense. */
 export const IDIOMA_KIDS: IdiomaKids = "es-AR";
@@ -91,8 +92,9 @@ export function validarFichaKids(f: FichaKids): FichaKids {
   if (preguntasPadre.length > MAX_PREGUNTAS_PADRE) throw new Error(`Ficha: hasta ${MAX_PREGUNTAS_PADRE} preguntas del padre`);
   return {
     ...f,
-    nombre: f.nombre.trim(),
-    apodo: f.apodo.trim(),
+    // Con mayúscula si lo escribieron todo en minúscula (Naza, 02/11).
+    nombre: nombrePropio(f.nombre),
+    apodo: apodoPropio(f.apodo),
     nombrePadre: f.nombrePadre.trim(),
     quienRegala: normalizarQuienRegala(f.quienRegala),
     temasSacados: [...new Set(f.temasSacados)],

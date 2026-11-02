@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { esKids, fichaVigente, idiomaDeFila } from "./kids-panel";
 import type { IdiomaKids } from "./kids";
 import { leerFilaKids, leerListo } from "./kids-panel-base";
-import { nombrePropio } from "./nombre-propio";
+import { apodoPropio, nombrePropio } from "./nombre-propio";
 import type { Edicion } from "./edicion";
 import type { ProductoTapa } from "./tapa";
 
@@ -41,7 +41,7 @@ export async function accesoVoz(admin: SupabaseClient, narradorId: string): Prom
     if (errorKids) return { abre: false };
     if (fila) {
       if (!n.libro_aprobado_at && !(await leerListo(admin, narradorId))) return { abre: false };
-      return { abre: true, producto: "kids", nombre: nombrePropio(n.nombre), apodo: nombrePropio(n.como_le_dicen?.trim() || fichaVigente(fila).apodo), idioma: idiomaDeFila(fila) };
+      return { abre: true, producto: "kids", nombre: nombrePropio(n.nombre), apodo: apodoPropio(n.como_le_dicen?.trim() || fichaVigente(fila).apodo), idioma: idiomaDeFila(fila) };
     }
   }
 
@@ -53,5 +53,5 @@ export async function accesoVoz(admin: SupabaseClient, narradorId: string): Prom
     catalan: n.contexto?.idioma === "ca",
     producto: n.contexto?.modo === "historia" ? "historia" : "familiar",
   };
-  return { abre: true, producto: "casa", nombre, comoLeDicen: n.como_le_dicen?.trim() ? nombrePropio(n.como_le_dicen) : nombre, tapa };
+  return { abre: true, producto: "casa", nombre, comoLeDicen: n.como_le_dicen?.trim() ? apodoPropio(n.como_le_dicen) : nombre, tapa };
 }

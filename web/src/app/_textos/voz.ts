@@ -112,9 +112,9 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
     hechoCon: "Hecho por Vitácora",
     // Aprobados (página vieja)
-    // PENDIENTE de Naza (02/11) · antes «Sus mejores frases, en su voz, se están preparando. Vuelve en un rato.»
+    // APROBADO por Naza 02/11 · antes «Sus mejores frases, en su voz, se están preparando. Vuelve en un rato.»
     sinFrases: "Pronto podrás escuchar aquí sus mejores frases.",
-    // PENDIENTE de Naza (02/11)
+    // APROBADO por Naza 02/11, y los dos botones
     conFrases: "Aquí viven sus mejores frases, para siempre.",
     abrirLibro: "Abrir el libro",
     descargarPdf: "Descargar el PDF",
@@ -155,9 +155,9 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     cierreBoton: "Empezar el libro de mi familia",
     // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
     hechoCon: "Hecho por Vitácora",
-    // PENDIENTE de Naza (02/11) · antes «Sus mejores frases, en su voz, se están preparando. Volvé en un rato.»
+    // APROBADO por Naza 02/11 · antes «Sus mejores frases, en su voz, se están preparando. Volvé en un rato.»
     sinFrases: "Pronto vas a poder escuchar acá sus mejores frases.",
-    // PENDIENTE de Naza (02/11) · la que propuso él
+    // APROBADO por Naza 02/11 · la que propuso él, y los dos botones
     conFrases: "Acá viven sus mejores frases, para siempre.",
     abrirLibro: "Abrir el libro",
     descargarPdf: "Descargar el PDF",
@@ -194,7 +194,7 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     cierre: "A cada família hi ha un llibre per escriure.",
     cierreBoton: "Començar el llibre de la meva família",
     hechoCon: "Fet per Vitácora",
-    // PENDIENTE de Naza (02/11), pasar por Softcatalà
+    // APROBADO por Naza 02/11 (falta pasarlo por Softcatalà)
     sinFrases: "Aviat podràs escoltar aquí les seves millors frases.",
     conFrases: "Aquí viuen les seves millors frases, per sempre.",
     abrirLibro: "Obrir el llibre",

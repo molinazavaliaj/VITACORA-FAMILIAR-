@@ -8,6 +8,7 @@ import { historiaVende, validarHistoria } from './historia';
 import { validarImprescindible, validarTemas } from './temas';
 import { esIdiomaRegalo, GENEROS, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
 import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, MENSAJE_PALABRA_DE_FAMILIA_TU } from './como-le-dicen';
+import { apodoPropio, nombrePropio } from './nombre-propio';
 
 export type Region = 'ES' | 'AR';
 
@@ -356,8 +357,9 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
       region,
     },
     narrador: {
-      nombre: narrador.nombre.trim(),
-      como_le_dicen: narrador.comoLeDicen.trim(),
+      // Con mayúscula si lo escribieron todo en minúscula: así sale en el libro, el bot y los mails (Naza, 02/11).
+      nombre: nombrePropio(narrador.nombre),
+      como_le_dicen: apodoPropio(narrador.comoLeDicen),
       telefono_whatsapp: telefono,
       hora_preferida: viajeFinal ? viajeFinal.horaNoche ?? '21:30' : horaPreferida,
       zona_horaria: viajeFinal?.zonaCasa ?? zonaHoraria,

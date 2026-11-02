@@ -5,6 +5,8 @@
 // Solo se toca lo que está ENTERO en minúscula: si la familia ya puso alguna
 // mayúscula («el Negro», «McDonald», «JD»), es a propósito y queda como lo escribió.
 
+import { esPalabraDeFamilia } from "./como-le-dicen";
+
 /** Las que van en minúscula dentro de un nombre («Juan de la Cruz»), salvo al principio. */
 const PARTICULAS = new Set(["de", "del", "la", "las", "los", "y", "i", "e", "da", "das", "do", "dos", "di", "van", "von"]);
 
@@ -18,4 +20,12 @@ export function nombrePropio(nombre: string | null | undefined): string {
     .split(" ")
     .map((palabra, i) => (i > 0 && PARTICULAS.has(palabra) ? palabra : palabra.split("-").map(mayusculaInicial).join("-")))
     .join(" ");
+}
+
+/**
+ * Lo mismo para «cómo le dicen», salvo que sea una palabra de la familia («abuelo», «la nona»): esa va en
+ * medio de una frase («le escribimos a abuelo») y queda como la escribieron.
+ */
+export function apodoPropio(apodo: string | null | undefined): string {
+  return esPalabraDeFamilia(apodo ?? "") ? (apodo ?? "").trim().replace(/\s+/g, " ") : nombrePropio(apodo);
 }
