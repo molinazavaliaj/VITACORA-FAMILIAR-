@@ -714,6 +714,7 @@ export type LenguaLibro = 'es-AR' | 'es-ES' | 'ca';
 
 /** Los textos fijos del cuerpo del libro (Su voz, colofón), por lengua. Aprobados por Naza el 13/10. */
 const TEXTOS_LIBRO: Record<LenguaLibro, {
+  antesDeEmpezar: string;
   suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
   libroEntero: string; libroEnteroBajada: string;
   colofon1: string; colofon2: string; cierre: string;
@@ -721,6 +722,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   notas: string;
 }> = {
   'es-AR': {
+    antesDeEmpezar: 'Antes de empezar',
     suVoz: 'Su voz',
     suVozBajada: 'Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.',
     escuchala: 'Escuchala',
@@ -734,6 +736,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     notas: 'Notas',
   },
   'es-ES': {
+    antesDeEmpezar: 'Antes de empezar',
     suVoz: 'Su voz',
     suVozBajada: 'Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas.',
     escuchala: 'Escúchala',
@@ -747,6 +750,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     notas: 'Notas',
   },
   ca: {
+    antesDeEmpezar: 'Abans de començar',
     suVoz: 'La seva veu',
     suVozBajada: 'Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs.',
     escuchala: 'Escolta-la',
@@ -1373,7 +1377,12 @@ export async function construirHtmlLibro(datos: {
   let numeroCapitulo = 0;
 
   const contenidoHtml = secciones
-    .map((seccion) => {
+    .map((seccion, i) => {
+      // El texto que abre el libro llega sin título (va antes del primer capítulo): lleva uno fijo,
+      // como «Antes de cerrar» al final (Naza, 02/11: sin título parecía un error).
+      if (i === 0 && seccion.titulo === null && seccion.html.trim()) {
+        return construirPaginaSimple({ ...seccion, titulo: TEXTOS_LIBRO[lengua].antesDeEmpezar });
+      }
       const tituloTrim = (seccion.titulo ?? '').trim();
       if (esSusFrases(tituloTrim)) {
         return construirSusFrases(seccion);
