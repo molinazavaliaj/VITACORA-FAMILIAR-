@@ -168,6 +168,16 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     const conCodigo = m.tipo === 'texto' && !!m.texto && /VF/i.test(m.texto) && extraerCodigo(m.texto) !== null;
     if (conCodigo || (await codigoPorEntrega(db, m.telefono)) !== null) {
       const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
+      // No se pudo (el regalo sin pagar, o el número tomado por una compra abierta): no hay texto aprobado para
+      // contestarle, así que se avisa a los socios para que lo resuelva una persona.
+      if (canje === 'no_listo') {
+        await avisarSocios(
+          `regalo-no-listo:${narrador.id}`,
+          'Un regalo no se pudo canjear',
+          `El teléfono ${m.telefono} (narrador ${narrador.id}, '${narrador.estado}') quiso canjear un regalo y no se pudo: `
+            + 'el regalo no está pagado o el número tiene otra compra sin terminar. El bot no le contestó: hay que resolverlo a mano.',
+        );
+      }
       if (canje !== 'sin_codigo') return;
     }
   }

@@ -304,6 +304,13 @@ describe('procesarEntrante', () => {
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as any);
     expect(mocks.canjearRegalo).toHaveBeenCalledTimes(1);
   });
+  it('un teléfono en completado cuyo regalo no se puede canjear: aviso a los socios', async () => {
+    mocks.estado.narrador = narradorEn('completado');
+    mocks.canjearRegalo.mockResolvedValueOnce('no_listo');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+    expect(mocks.avisarSocios.mock.calls[0][2]).toContain(TEL);
+  });
   it('un teléfono en completado que escribe «buenas» (seis letras, sin VF): no se intenta canjear', async () => {
     mocks.estado.narrador = narradorEn('completado');
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'BUENAS', waMessageId: 'w' });
