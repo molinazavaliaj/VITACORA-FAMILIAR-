@@ -6,12 +6,12 @@ import "./marco-dibujado.css";
 // foto de una foto de un cuadro y no se entendía). Como el libro: nítido a
 // cualquier tamaño, todo medido en el ancho del marco (cqw). Moldura negra
 // fina de madera con algo de canto y sombra, paspartú crema y adentro la foto
-// de Osvaldo de la tapa, recortada al retrato y en sepia suave. Abajo, en el
+// de Juan Domingo de la tapa, recortada al retrato y en sepia suave. Abajo, en el
 // paspartú, el toroide chiquito grabado: el chip que no se ve. Solo dibujo
 // (aria-hidden): quien lo usa pone el texto. Componente de servidor, sin JS;
 // sirve para el checkout y para la portada. Estilos en ./marco-dibujado.css.
 
-const FOTO = "/rediseno/libro-tapa-foto.jpg";
+const FOTO = "/rediseno/juan-domingo-tapa-foto.jpg";
 
 export function MarcoDibujado({
   ancho,

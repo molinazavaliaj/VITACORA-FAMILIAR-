@@ -44,9 +44,9 @@
 /* Recortada al retrato: la cara y el pecho, en sepia suave. */
 .mdb-img {
   object-fit: cover;
-  object-position: 51% 30%;
+  object-position: 46% 24%;
   transform: scale(1.45);
-  transform-origin: 51% 34%;
+  transform-origin: 46% 28%;
   filter: grayscale(0.3) sepia(0.35) saturate(0.85) contrast(1.02);
 }
 /* El chip, grabado chiquito en el paspartú. */

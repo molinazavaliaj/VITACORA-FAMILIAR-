@@ -53,10 +53,11 @@ const ES: TextosEntrar = {
   notaTitulo: "¿Te han regalado el libro y eres quien lo cuenta?",
   // Aprobado por Naza el 18/10 (textos.md, tanda 1): la de la maqueta llevaba dos puntos.
   notaTexto: "No necesitas entrar aquí. Todo lo haces desde WhatsApp, y ahí te llega el enlace para escuchar tu libro.",
-  citaFoto: "«Tocaba fatal, pero tocaba fuerte.»",
-  pieFoto: "Osvaldo, en su libro",
-  // Aprobado por Naza el 18/10 (textos.md, tanda 1): el texto alternativo de la foto.
-  altFoto: "Osvaldo de joven, sentado en un muro de piedra, toca la guitarra en una calle de su pueblo",
+  // Juan Domingo, el papá de Naza (02/11): su foto de joven del álbum y una de
+  // sus frases, literal, de «Sus frases» de su libro.
+  citaFoto: "«En ningún momento me sentí chiquito, soy un tipo muy positivo.»",
+  pieFoto: "Juan Domingo, en su libro",
+  altFoto: "Juan Domingo de joven, de saco y corbata, en una foto vieja",
 };
 
 const AR: TextosEntrar = {
@@ -69,7 +70,6 @@ const AR: TextosEntrar = {
   // Aprobado por Naza el 18/10 (textos.md, tanda 1): la nota de la maqueta, de vos.
   notaTitulo: "¿Te regalaron el libro y sos quien lo cuenta?",
   notaTexto: "No necesitás entrar acá. Todo lo hacés desde WhatsApp, y ahí te llega el enlace para escuchar tu libro.",
-  altFoto: "Osvaldo de joven, sentado en un muro de piedra, toca la guitarra en una calle de su pueblo",
 };
 
 export const textosEntrar = (trato: TratoComprador): TextosEntrar => (trato === "tu" ? ES : AR);
