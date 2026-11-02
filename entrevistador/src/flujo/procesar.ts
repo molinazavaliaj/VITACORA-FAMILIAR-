@@ -26,7 +26,8 @@ import { asegurarAltaViajeV2, esModoViaje } from '../viaje-v2/alta.js';
 import { esChicoKids } from '../kids-v2/filas.js';
 import { esModoHistoria } from '../historia/alta.js';
 import type { NarradorHistoria } from '../historia/tipos.js';
-import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
+import { canjearRegalo, codigoPorEntrega, mandarBienvenidaDeRegalo } from './regalo.js';
+import { elegirNarrador, ESTADOS_TERMINADOS } from './elegir-narrador.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { avisarSocios } from '../v3/avisos.js';
@@ -35,8 +36,10 @@ const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no s
 
 async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   // Con y sin el 9 de celular argentino: Meta y la web no siempre coinciden.
-  const { data } = await db.from('narradores').select('*').in('telefono_whatsapp', variantesDeTelefono(telefono)).limit(1).maybeSingle();
-  return (data as Narrador | null) ?? null;
+  // Un mismo número puede tener varios narradores (02/11): uno por producto, y solo uno sin terminar.
+  const { data, error } = await db.from('narradores').select('*').in('telefono_whatsapp', variantesDeTelefono(telefono));
+  if (error) throw error;
+  return elegirNarrador((data as Narrador[] | null) ?? []);
 }
 
 /** ¿Es el padre de un chico de Kids de canal A? Si lo es, el bot de Kids ya se ocupó. Imports dinámicos, como el resto de Kids. */
@@ -158,11 +161,31 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     return;
   }
 
-  // Gift card: un teléfono que ya conocemos (libro terminado, cerrado o sin
-  // pagar) manda un código. Hoy no puede canjear: dos libros para una persona
-  // es el plan que sigue. No hay texto aprobado para contestarle, así que no
-  // se le escribe nada; se avisa a los socios para que lo resuelva una persona.
-  if (['pendiente_pago', 'completado', 'cerrado_anticipado'].includes(narrador.estado) && m.tipo === 'texto' && m.texto) {
+  // Gift card con un libro terminado (02/11): el número ya puede tener otro narrador, así que el regalo se canjea como
+  // el de un número nuevo. Con el código escrito (con su VF: un «buenas» no es un código) o con el regalo que se le
+  // mandó a este número el día elegido. Si no hay regalo, sigue como siempre.
+  if ((ESTADOS_TERMINADOS as readonly string[]).includes(narrador.estado)) {
+    const conCodigo = m.tipo === 'texto' && !!m.texto && /VF/i.test(m.texto) && extraerCodigo(m.texto) !== null;
+    if (conCodigo || (await codigoPorEntrega(db, m.telefono)) !== null) {
+      const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
+      // No se pudo (el regalo sin pagar, o el número tomado por una compra abierta): no hay texto aprobado para
+      // contestarle, así que se avisa a los socios para que lo resuelva una persona.
+      if (canje === 'no_listo') {
+        await avisarSocios(
+          `regalo-no-listo:${narrador.id}`,
+          'Un regalo no se pudo canjear',
+          `El teléfono ${m.telefono} (narrador ${narrador.id}, '${narrador.estado}') quiso canjear un regalo y no se pudo: `
+            + 'el regalo no está pagado o el número tiene otra compra sin terminar. El bot no le contestó: hay que resolverlo a mano.',
+        );
+      }
+      if (canje !== 'sin_codigo') return;
+    }
+  }
+
+  // Gift card: un teléfono con una compra sin pagar manda un código. No se puede canjear mientras esa compra siga
+  // abierta (el número queda tomado). No hay texto aprobado para contestarle, así que no se le escribe nada; se
+  // avisa a los socios para que lo resuelva una persona.
+  if (narrador.estado === 'pendiente_pago' && m.tipo === 'texto' && m.texto) {
     const codigo = extraerCodigo(m.texto);
     if (codigo) {
       console.warn(`regalo: ${m.telefono} (narrador ${narrador.id}, '${narrador.estado}') mandó el código ${codigo}; no se canjea, aviso a los socios`);

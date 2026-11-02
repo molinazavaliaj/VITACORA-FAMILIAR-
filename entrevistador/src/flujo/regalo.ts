@@ -73,7 +73,7 @@ const esDeEsteTelefono = (usadoPor: string | null | undefined, telefono: string)
  * 2026-10-10): quien contesta la plantilla no necesita escribir el código.
  * Solo si salió y Meta no avisó que falló. Sin la migración, null.
  */
-async function codigoPorEntrega(db: DepsRegalo['db'], telefono: string): Promise<string | null> {
+export async function codigoPorEntrega(db: DepsRegalo['db'], telefono: string): Promise<string | null> {
   const { data, error } = await db.from('regalos')
     .select('codigo')
     .eq('entrega_canal', 'whatsapp').in('entrega_contacto', variantesDeTelefono(telefono))

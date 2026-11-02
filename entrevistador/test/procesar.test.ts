@@ -26,12 +26,13 @@ const mocks = vi.hoisted(() => ({
   pedirObjeto: vi.fn(),
   pedidoAbierto: vi.fn(),
   canjearRegalo: vi.fn(),
+  codigoPorEntrega: vi.fn(),
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
   procesarEntranteV3: vi.fn(),
   procesarEntranteKids: vi.fn(),
   atenderPadreKids: vi.fn(),
-  estado: { filaKids: null as any, errorKids: null as any, errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
+  estado: { filaKids: null as any, errorKids: null as any, errorV3: null as any, filaV3: null as any, narrador: null as any, narradores: null as any[] | null, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -46,6 +47,10 @@ vi.mock('../src/db/cliente.js', () => {
       return { data: error ? null : mocks.estado.filaV3, error };
     }
     if (tabla === 'kids_v2') return { data: mocks.estado.errorKids ? null : mocks.estado.filaKids, error: mocks.estado.errorKids };
+    // buscarNarrador (02/11): todos los narradores del número; si el test no arma la lista, el narrador de siempre.
+    if (tabla === 'narradores' && filtros.__porTelefono) {
+      return { data: mocks.estado.narradores ?? (mocks.estado.narrador ? [mocks.estado.narrador] : []), error: null };
+    }
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -60,7 +65,7 @@ vi.mock('../src/db/cliente.js', () => {
     const cadena = () => b;
     b.select = cadena; b.or = cadena; b.is = cadena; b.order = cadena; b.limit = cadena; b.gte = cadena;
     b.eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
-    b.in = (col: string, vals: any[]) => { b._filtros[col] = vals[0]; return b; }; // buscarNarrador: la primera variante es el número tal cual
+    b.in = (col: string, vals: any[]) => { b._filtros[col] = vals[0]; if (col === 'telefono_whatsapp') b._filtros.__porTelefono = true; return b; }; // buscarNarrador: la primera variante es el número tal cual
     b.insert = (p: any) => { b._op = 'insert'; mocks.estado.capturas.push({ op: 'insert', tabla, p }); return b; };
     b.update = (p: any) => { b._op = 'update'; mocks.estado.capturas.push({ op: 'update', tabla, p }); return b; };
     b.single = () => Promise.resolve(resolver(tabla, b._op, b._filtros));
@@ -124,7 +129,7 @@ vi.mock('../src/historia/deps-reales.js', () => ({ depsHistoriaReales: () => ({ 
 vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
 vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
 // Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
-vi.mock('../src/flujo/regalo.js', () => ({ canjearRegalo: mocks.canjearRegalo, mandarBienvenidaDeRegalo: mocks.mandarBienvenidaDeRegalo }));
+vi.mock('../src/flujo/regalo.js', () => ({ canjearRegalo: mocks.canjearRegalo, codigoPorEntrega: mocks.codigoPorEntrega, mandarBienvenidaDeRegalo: mocks.mandarBienvenidaDeRegalo }));
 vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 // La V3 entera se prueba en test/v3; acá solo que procesar la llama.
 vi.mock('../src/v3/entrante.js', () => ({ procesarEntranteV3: mocks.procesarEntranteV3 }));
@@ -149,6 +154,9 @@ const insert = (tabla: string) => mocks.estado.capturas.find((c) => c.op === 'in
 
 beforeEach(() => {
   mocks.estado.narrador = null;
+  mocks.estado.narradores = null;
+  mocks.codigoPorEntrega.mockReset();
+  mocks.codigoPorEntrega.mockResolvedValue(null);
   mocks.estado.filaV3 = null;
   mocks.estado.errorV3 = null;
   mocks.estado.filaKids = null;
@@ -257,31 +265,69 @@ describe('procesarEntrante', () => {
       warn.mockRestore();
     }
   });
-  // Un teléfono que el bot ya conoce (un libro terminado, uno sin pagar) manda
-  // un código: hoy no puede canjear (dos libros para una persona es el plan que
-  // sigue). No se le escribe nada (no hay texto aprobado): se avisa a los socios.
-  for (const estado of ['pendiente_pago', 'completado', 'cerrado_anticipado']) {
-    it(`un teléfono conocido en '${estado}' que manda un código: aviso a los socios, nada al narrador`, async () => {
+  // Un teléfono con una compra sin pagar manda un código: no se puede canjear mientras esa compra siga abierta (el
+  // número queda tomado). No se le escribe nada (no hay texto aprobado): se avisa a los socios.
+  it(`un teléfono conocido en 'pendiente_pago' que manda un código: aviso a los socios, nada al narrador`, async () => {
+    mocks.estado.narrador = narradorEn('pendiente_pago');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Me regalaron esto: VF-7K3M2Q', waMessageId: 'w' });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('VF-7K3M2Q'));
+    } finally {
+      warn.mockRestore();
+    }
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+    const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0];
+    expect(clave).toContain('n1');
+    expect(clave).toContain('VF-7K3M2Q');
+    expect(asunto).toMatch(/regalo/i);
+    expect(detalle).toContain(TEL);
+    expect(detalle).toContain('n1');
+    expect(detalle).toContain('VF-7K3M2Q');
+  });
+  // Un libro terminado deja el número libre (02/11): el regalo se canjea como el de un número nuevo.
+  for (const estado of ['completado', 'cerrado_anticipado']) {
+    it(`un teléfono en '${estado}' que manda un código: se canjea, sin aviso a los socios`, async () => {
       mocks.estado.narrador = narradorEn(estado);
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      try {
-        await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Me regalaron esto: VF-7K3M2Q', waMessageId: 'w' });
-        expect(warn).toHaveBeenCalledWith(expect.stringContaining('VF-7K3M2Q'));
-      } finally {
-        warn.mockRestore();
-      }
-      expect(mocks.canjearRegalo).not.toHaveBeenCalled();
-      expect(mocks.enviarTexto).not.toHaveBeenCalled();
-      expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
-      const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0];
-      expect(clave).toContain('n1');
-      expect(clave).toContain('VF-7K3M2Q');
-      expect(asunto).toMatch(/regalo/i);
-      expect(detalle).toContain(TEL);
-      expect(detalle).toContain('n1');
-      expect(detalle).toContain('VF-7K3M2Q');
+      mocks.canjearRegalo.mockResolvedValueOnce('canjeado');
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Me regalaron esto: VF-7K3M2Q', waMessageId: 'w' });
+      expect(mocks.canjearRegalo).toHaveBeenCalledWith(expect.anything(), { telefono: TEL, texto: 'Me regalaron esto: VF-7K3M2Q' });
+      expect(mocks.avisarSocios).not.toHaveBeenCalled();
     });
   }
+  it('un teléfono en completado al que se le mandó un regalo el día elegido: contesta con un audio y se canjea', async () => {
+    mocks.estado.narrador = narradorEn('completado');
+    mocks.codigoPorEntrega.mockResolvedValueOnce('VF-7K3M2Q');
+    mocks.canjearRegalo.mockResolvedValueOnce('canjeado');
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as any);
+    expect(mocks.canjearRegalo).toHaveBeenCalledTimes(1);
+  });
+  it('un teléfono en completado cuyo regalo no se puede canjear: aviso a los socios', async () => {
+    mocks.estado.narrador = narradorEn('completado');
+    mocks.canjearRegalo.mockResolvedValueOnce('no_listo');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+    expect(mocks.avisarSocios.mock.calls[0][2]).toContain(TEL);
+  });
+  it('un teléfono en completado que escribe «buenas» (seis letras, sin VF): no se intenta canjear', async () => {
+    mocks.estado.narrador = narradorEn('completado');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'BUENAS', waMessageId: 'w' });
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+  // Varios narradores con el mismo número (02/11): el mensaje va al que está en curso, no al terminado.
+  it('un número con un Familiar terminado y una Historia invitada: el mensaje va a la Historia', async () => {
+    mocks.estado.narradores = [
+      { ...narradorEn('completado'), id: 'viejo', created_at: '2026-09-14T00:00:00Z' },
+      { ...narradorEn('invitado', 0, { modo: 'historia' }), id: 'nuevo', created_at: '2026-11-02T00:00:00Z' },
+    ];
+    mocks.asegurarAltaHistoria.mockResolvedValue('creada');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    expect(mocks.procesarEntranteHistoria).toHaveBeenCalledTimes(1);
+    expect(mocks.procesarEntranteHistoria.mock.calls[0][1].id).toBe('nuevo');
+  });
   it('un teléfono conocido en completado que escribe sin código: no se avisa', async () => {
     mocks.estado.narrador = narradorEn('completado');
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
