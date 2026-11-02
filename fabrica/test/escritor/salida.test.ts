@@ -28,7 +28,7 @@ describe('libro.md → plantilla de producción', () => {
     expect(p).toMatchObject({ nombreNarrador: 'Nélida', idioma: 'es' });
     const html = await construirHtmlLibro({ titulo: p.titulo, nombreNarrador: p.nombreNarrador, indice: p.indice, libroMarkdown: p.libroMarkdown, idioma: p.idioma });
     expect(html).toContain('<html lang="es">');
-    expect(html).toContain('<div class="sus-frases-titulo">Sus frases</div>');
+    expect(html).toContain('<h1 class="titulo-simple">Sus frases</h1>');
     expect(html).toContain('El bastidor en la falda');
   });
 
@@ -38,15 +38,17 @@ describe('libro.md → plantilla de producción', () => {
     const html = await construirHtmlLibro({ titulo: p.titulo, nombreNarrador: p.nombreNarrador, indice: p.indice, libroMarkdown: p.libroMarkdown, idioma: p.idioma });
     expect(html).toContain('<html lang="es">');
     expect(html).not.toContain('lang="ca"');
-    expect(html).toContain('<div class="sus-frases-titulo">Sus frases</div>');
+    expect(html).toContain('<h1 class="titulo-simple">Sus frases</h1>');
   });
 
   it('en catalán: lang="ca" y «Les seves frases» es la página de frases', async () => {
     const p = paraPlantilla(conLibro('Idioma del libro: catalán'));
     const html = await construirHtmlLibro({ titulo: p.titulo, nombreNarrador: p.nombreNarrador, indice: p.indice, libroMarkdown: p.libroMarkdown, idioma: p.idioma });
     expect(html).toContain('<html lang="ca">');
-    expect(html).toContain('<div class="sus-frases-titulo">Les seves frases</div>');
-    expect(html).toContain('<div class="sus-frases-hero">«Me gusta el mate amargo, bien caliente»</div>');
+    expect(html).toContain('<h1 class="titulo-simple">Les seves frases</h1>');
+    // La primera frase va en la lista con las demás, no en una página aparte gigante (Naza, 02/11).
+    expect(html).toContain('<blockquote>Me gusta el mate amargo, bien caliente</blockquote>');
+    expect(html).not.toContain('sus-frases-hero');
   });
 });
 
