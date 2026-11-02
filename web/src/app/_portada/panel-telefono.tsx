@@ -14,12 +14,15 @@ import "../tablero/panel.css";
 // Lo que se ve adentro del teléfono de la portada (/telefono-historia): la parte de
 // arriba de la página de su historia, con las MISMAS piezas del panel
 // (cabecera de tinta, tapa, «Hola, Laura.», cifras, línea de tiempo y «Lo
-// último que contó») y los datos inventados de la muestra (Antonio, contado a
+// último que contó») con los datos de la muestra (contado a
 // medias; panel-muestra/datos.ts). Va en un iframe de 390 px achicado: así
 // las piezas se pintan con los cortes del teléfono aunque la portada se mire
 // en una pantalla grande. Todo quieto (inert): es una ilustración.
 
-const QUIEN: Quien = { como: "Antonio", propia: false, ella: false, viaje: false };
+// Juan Domingo, el papá de Naza (su libro es el de la portada, 02/11): su
+// nombre, su tapa y «Hola, Naza.»; las preguntas, los minutos y el avance
+// siguen siendo los de la muestra.
+const QUIEN: Quien = { como: "Juan Domingo", propia: false, ella: false, viaje: false };
 const ESTADO = "activo";
 
 export function PanelEnTelefono({ idioma }: { idioma: IdiomaPanel }) {
@@ -28,10 +31,10 @@ export function PanelEnTelefono({ idioma }: { idioma: IdiomaPanel }) {
   return (
     <div inert id="panel" className="pnl flex min-h-dvh flex-1 flex-col overflow-hidden text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
       <Navegacion
-        historias={[{ id: "muestra-v3", nombre: "Antonio García", comoLeDicen: "Antonio", rol: "duena", estadoCorto: "respondiendo" }]}
+        historias={[{ id: "muestra-v3", nombre: "Juan Domingo", comoLeDicen: "Juan Domingo", rol: "duena", estadoCorto: "respondiendo" }]}
         tema={<BotonTema inicial="claro" />}
-        correo="laura@ejemplo.com"
-        inicial="L"
+        correo="naza@ejemplo.com"
+        inicial="N"
       />
       <main className="relative min-w-0 flex-1">
         <MarcoHistoria
@@ -39,10 +42,10 @@ export function PanelEnTelefono({ idioma }: { idioma: IdiomaPanel }) {
             <PortadaHistoria
               idioma={idioma}
               quien={QUIEN}
-              hola="Laura"
+              hola="Naza"
               titular={titularDe(ESTADO, false, false)}
               estado={estadoEnHumano(ESTADO, false, trato)}
-              tapa={{ titulo: "Antonio García", fotoSrc: "/rediseno/libro-tapa-foto.jpg", idioma: "es" }}
+              tapa={{ titulo: "Juan Domingo Mateos", fotoSrc: "/rediseno/juan-domingo-tapa-foto.jpg", idioma: "es" }}
               pasos={lineaDeTiempo({ estado: ESTADO, aprobado: false, libroEntregado: false, conImpreso: true, impresoEnCasa: false })}
               cifras={<CifrasHistoria idioma={idioma} quien={QUIEN} respuestas={voz.respuestas} segundos={voz.segundos} avance={47} />}
             />

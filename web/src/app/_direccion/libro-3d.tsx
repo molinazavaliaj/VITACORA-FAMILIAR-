@@ -61,7 +61,9 @@ const JUAN_DOMINGO: DisenoLibro = { tapa: "/rediseno/juan-domingo-tapa-foto.jpg"
 
 function Tapa({ b, sizes, foto }: { b: Libro; sizes: string; foto: string }) {
   return (
-    <div className="l3-papel-tapa flex h-full flex-col">
+    // text-left: el libro va dentro de bloques centrados (el inicio de la portada) y el
+    // nombre se centraba; en el impreso va a la izquierda (Naza, 02/11).
+    <div className="l3-papel-tapa flex h-full flex-col text-left">
       <div className="relative h-[65%] overflow-hidden">
         <Image src={foto} alt="" fill sizes={sizes} className="object-cover" />
       </div>
