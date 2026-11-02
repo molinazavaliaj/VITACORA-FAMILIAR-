@@ -1,13 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenVoz } from "@/lib/token-libro";
 import { frasesPublicables, leerFrases } from "@/lib/frases";
-import { hayLibroOnline } from "@/lib/libro-online";
+import { archivosDelLibro } from "@/lib/libro-online";
 import { accesoVoz } from "@/lib/voz-acceso";
 import { langDeIdioma, ruta } from "@/lib/idioma-web";
 import { Toroide } from "../../marca";
+import { TapaLibro } from "../../tapa-libro";
 import { conVar } from "../../_direccion/piezas";
 import { COOKIE_IDIOMA, idiomaDelVisitante } from "../../_publico/idioma-visitante";
 import { TEXTOS_VOZ } from "../../_textos/voz";
@@ -32,17 +34,21 @@ import "./voz.css";
 // En el lenguaje de la web («la web es un libro»): tinta con tela, la hoja de
 // papel crema para sus frases de siempre, Playfair. Sin violeta.
 
+// Fuera de los buscadores (además de robots.txt, que no impide indexar si alguien la enlaza).
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
   const { token } = await params;
   const datos = verificarTokenVoz(token);
   if (!datos) notFound();
 
   const admin = crearClienteServidor();
-  const [acceso, frases, libroListo] = await Promise.all([
+  const [acceso, frases, archivos] = await Promise.all([
     accesoVoz(admin, datos.narradorId),
     leerFrases(admin, datos.narradorId),
-    hayLibroOnline(admin, datos.narradorId),
+    archivosDelLibro(admin, datos.narradorId),
   ]);
+  const libroListo = archivos.html;
   // La casa: libro cerrado. Kids: desde listo.json, para que el padre la pruebe al revisar.
   if (!acceso.abre) notFound();
   if (acceso.producto === "kids") {
@@ -129,6 +135,7 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
             <h2 id="titulo-frases" className="dir-titular mb-6 mt-2 text-[clamp(1.8rem,1.4rem+1.6vw,2.6rem)] leading-[1.1] text-white">
               {T.capTitulo}
             </h2>
+            {capitulos.length > 0 ? <p className="dir-parrafo -mt-2 mb-6">{T.conFrases}</p> : null}
             {capitulos.length > 0 ? (
               <Capitulos capitulos={capitulos} nombre={corto} idioma={idioma} />
             ) : (
@@ -164,9 +171,28 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
               {T.libro}
             </h2>
             {libroListo ? (
-              <div className="mt-6 overflow-hidden rounded-[18px] border border-[var(--dir-hilo-tinta)]">
-                {/* El mismo libro.html de la fábrica que lee la familia, en un iframe sin permisos. */}
-                <iframe src={`/api/voz/${token}/libro`} title={`${T.libro} · ${nombre}`} sandbox="" className="h-[80vh] w-full bg-white" />
+              // La tapa entera, como sale impresa (la misma del panel), y dos botones (Naza, 02/11): antes
+              // era un iframe de 80vh donde había que scrollear adentro y se veía un pedazo de la tapa.
+              // El libro se abre a pantalla completa en la misma pestaña (vuelve con «atrás»).
+              <div className="mt-8 flex flex-col items-center gap-8 sm:flex-row sm:items-end sm:gap-10">
+                <a href={`/api/voz/${token}/libro`} aria-label={T.abrirLibro} className="block w-[min(68vw,280px)] shrink-0 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]">
+                  <TapaLibro
+                    titulo={acceso.tapa.titulo}
+                    fotoSrc={acceso.tapa.conPortada ? `/api/voz/${token}/portada` : null}
+                    idioma={acceso.tapa.catalan ? "ca" : "es"}
+                    producto={acceso.tapa.producto}
+                  />
+                </a>
+                <div className="flex w-full flex-col gap-3 sm:w-auto">
+                  <a href={`/api/voz/${token}/libro`} className="dir-boton dir-boton--lleno w-full sm:w-auto">
+                    {T.abrirLibro}
+                  </a>
+                  {archivos.pdf ? (
+                    <a href={`/api/voz/${token}/pdf`} className="dir-boton dir-boton--hilo w-full sm:w-auto">
+                      {T.descargarPdf}
+                    </a>
+                  ) : null}
+                </div>
               </div>
             ) : (
               <p className="dir-parrafo mt-4">{T.libroNoEsta}</p>

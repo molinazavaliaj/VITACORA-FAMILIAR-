@@ -2,6 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { esKids, fichaVigente, idiomaDeFila } from "./kids-panel";
 import type { IdiomaKids } from "./kids";
 import { leerFilaKids, leerListo } from "./kids-panel-base";
+import { apodoPropio, nombrePropio } from "./nombre-propio";
+import type { Edicion } from "./edicion";
+import type { ProductoTapa } from "./tapa";
 
 // Quién abre «Su voz» (`/voz/<token>`, su audio y su libro online). El token
 // firmado 'voz' ya se verificó antes de llamar acá: esto decide si el libro
@@ -15,16 +18,21 @@ import { leerFilaKids, leerListo } from "./kids-panel-base";
 //   tiene los códigos.
 //
 // Si algo de la base falla, no abre (nunca se muestra un audio por las dudas).
+// El nombre y el apodo salen con mayúscula aunque la familia los haya cargado en
+// minúscula (lib/nombre-propio, Naza 02/11).
 
 export type AccesoVoz =
   | { abre: false }
-  | { abre: true; producto: "casa"; nombre: string; comoLeDicen: string }
+  | { abre: true; producto: "casa"; nombre: string; comoLeDicen: string; tapa: TapaVoz }
   | { abre: true; producto: "kids"; nombre: string; apodo: string; idioma: IdiomaKids };
 
-type NarradorVoz = { nombre: string; como_le_dicen: string | null; libro_aprobado_at: string | null; contexto: Record<string, unknown> | null };
+/** Lo que hace falta para dibujar la tapa como en el panel (tapa-libro.tsx). */
+export type TapaVoz = { titulo: string; conPortada: boolean; catalan: boolean; producto: ProductoTapa };
+
+type NarradorVoz = { nombre: string; como_le_dicen: string | null; libro_aprobado_at: string | null; contexto: Record<string, unknown> | null; edicion?: Edicion | null };
 
 export async function accesoVoz(admin: SupabaseClient, narradorId: string): Promise<AccesoVoz> {
-  const { data, error } = await admin.from("narradores").select("nombre, como_le_dicen, libro_aprobado_at, contexto").eq("id", narradorId).maybeSingle();
+  const { data, error } = await admin.from("narradores").select("nombre, como_le_dicen, libro_aprobado_at, contexto, edicion").eq("id", narradorId).maybeSingle();
   if (error || !data) return { abre: false };
   const n = data as NarradorVoz;
 
@@ -33,10 +41,17 @@ export async function accesoVoz(admin: SupabaseClient, narradorId: string): Prom
     if (errorKids) return { abre: false };
     if (fila) {
       if (!n.libro_aprobado_at && !(await leerListo(admin, narradorId))) return { abre: false };
-      return { abre: true, producto: "kids", nombre: n.nombre, apodo: n.como_le_dicen?.trim() || fichaVigente(fila).apodo, idioma: idiomaDeFila(fila) };
+      return { abre: true, producto: "kids", nombre: nombrePropio(n.nombre), apodo: apodoPropio(n.como_le_dicen?.trim() || fichaVigente(fila).apodo), idioma: idiomaDeFila(fila) };
     }
   }
 
   if (!n.libro_aprobado_at) return { abre: false };
-  return { abre: true, producto: "casa", nombre: n.nombre, comoLeDicen: n.como_le_dicen ?? n.nombre };
+  const nombre = nombrePropio(n.nombre);
+  const tapa: TapaVoz = {
+    titulo: n.edicion?.titulo?.trim() || nombre,
+    conPortada: Boolean(n.edicion?.portadaFotoId),
+    catalan: n.contexto?.idioma === "ca",
+    producto: n.contexto?.modo === "historia" ? "historia" : "familiar",
+  };
+  return { abre: true, producto: "casa", nombre, comoLeDicen: n.como_le_dicen?.trim() ? apodoPropio(n.como_le_dicen) : nombre, tapa };
 }

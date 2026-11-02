@@ -16,6 +16,7 @@ import { escaparHtml } from '../comun.js';
 import { cuerpoNombreTapa, renglonesNombreTapa, type LenguaLibro } from '../plantilla-html.js';
 import { fuentesImprentaCss } from './fuentes.js';
 import { formatoDe, LOMO_MINIMO_TEXTO_MM, PPP_CUBIERTA, medidasCubierta, type Encuadernacion, type MedidasCubierta } from './formato.js';
+import { nombrePropio } from '../nombre-propio.js';
 
 /**
  * Los textos de la cubierta. Los de Imma (17/10) salieron de la web (portada.ts → direccion.libro y
@@ -104,6 +105,8 @@ function qrSvg(url: string): string {
 }
 
 export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)): string {
+  // Con mayúscula aunque la familia lo haya cargado en minúscula (nombre-propio.ts, Naza 02/11): «la vida de Juan Domingo Mateos».
+  d = { ...d, nombreTapa: nombrePropio(d.nombreTapa), nombreNarrador: nombrePropio(d.nombreNarrador) };
   const t: TextosCubierta = { ...TEXTOS_CUBIERTA[d.lengua], ...(d.textos ?? {}) };
   const s = m.solapaMm;
   const A = m.anchoTapaMm;

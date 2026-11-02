@@ -132,6 +132,19 @@ describe('cubierta: piezas', () => {
     expect(htmlCubierta({ ...base, paginas: 88 }, { ...medidasCubierta(88), lomoMm: 5 })).not.toContain('class="lomo-texto"');
   });
 
+  it('el nombre cargado en minúscula sale con mayúscula en la contratapa y el lomo (Naza, 02/11)', () => {
+    const html = htmlCubierta({ nombreTapa: 'juan domingo mateos', nombreNarrador: 'juan domingo mateos', lengua: 'es-AR', foto: null, urlQr: 'https://x', paginas: 88 });
+    expect(html).toContain('la vida de Juan Domingo Mateos');
+    expect(html).toContain('Juan Domingo Mateos · ');
+    expect(html).not.toContain('juan domingo');
+  });
+
+  it('el nombre cargado en minúscula sale con mayúscula dentro del libro (Naza, 02/11)', async () => {
+    const html = await construirHtmlLibro({ ...datosLibro, nombreNarrador: 'roberto pérez' });
+    expect(html).toContain('Roberto Pérez');
+    expect(html).not.toContain('roberto pérez');
+  });
+
   it('los textos de la cubierta no dan género por sentado', () => {
     const html = htmlCubierta({ nombreTapa: 'Ana', nombreNarrador: 'Ana', lengua: 'es-AR', foto: null, urlQr: 'https://x', paginas: 88 });
     expect(html).toContain('tal como las vivió');

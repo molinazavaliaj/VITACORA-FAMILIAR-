@@ -4,6 +4,7 @@ import { atributoFoco } from './fotos.js';
 import { FRASES_POR_CAPITULO, type FraseCandidata, type FrasesJson } from './frases.js';
 import { qrDataUri } from './qr.js';
 import { urlFraseDeVoz } from './token-voz.js';
+import { nombrePropio } from './nombre-propio.js';
 
 // ---------------------------------------------------------------------------
 // La identidad visual aprobada (docs/arte-libro/*.dc.html, 9 mockups A5 a
@@ -1367,7 +1368,8 @@ export async function construirHtmlLibro(datos: {
 }): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
-  const nombreNarrador = datos.nombreNarrador ?? extraerNombreNarrador(titulo);
+  // Con mayúscula aunque la familia lo haya cargado en minúscula (nombre-propio.ts, Naza 02/11).
+  const nombreNarrador = nombrePropio(datos.nombreNarrador ?? extraerNombreNarrador(titulo));
   const mono = iniciales(nombreNarrador);
   const lengua: LenguaLibro = datos.idioma === 'ca' ? 'ca' : datos.trato === 'tu' ? 'es-ES' : 'es-AR';
   const secciones = parsearSeccionesLibro(libroMarkdown);
@@ -1418,10 +1420,13 @@ export async function construirHtmlLibro(datos: {
     ? ` data-imprenta="1" data-paginas-min="${imprenta.paginasMinimas}" data-renglones="${renglonesNotas(imprenta)}" data-notas="${escaparHtml(TEXTOS_LIBRO[lengua].notas)}"${imprenta.sinNotas ? ' data-sin-notas="1"' : ''}`
     : '';
 
+  // viewport 600: las hojas miden 559 px (A5); en el teléfono el libro online se achica entero al ancho de la
+  // pantalla en vez de cortar la tapa (Naza, 02/11: «JUAN DOMIN»). La impresión y el iframe no lo leen.
   return `<!DOCTYPE html>
 <html lang="${datos.idioma ?? 'es'}">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=600" />
 <title>${escaparHtml(titulo)}</title>
 ${fuentesHtml}
 <style>${construirEstilos(acento)}${imprenta ? estilosImprenta(imprenta) : ''}</style>

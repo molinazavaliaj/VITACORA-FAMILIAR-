@@ -22,6 +22,7 @@ import { entrevistaHistoria } from "@/lib/historia-panel";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../../proximo-paso";
 import { tratoDeLaFamilia } from "@/lib/trato";
+import { nombrePropio } from "@/lib/nombre-propio";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
 // estado; el libro en miniatura para hojear cómo va quedando; Tapa ·
@@ -209,7 +210,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const datosLibro: LibroDatos = {
     titulo: edicion.titulo,
     portadaFotoId: edicion.portadaFotoId,
-    nombre: n.nombre,
+    nombre: nombrePropio(n.nombre), // la contratapa, como sale impresa (fabrica/src/libro/nombre-propio.ts)
     idioma: idiomaDelLibro(v3?.idioma),
     // Gris solo si lo único impreso que compró es en blanco y negro (si hay uno a color, se ve a color).
     blancoYNegro: productosPagados.some((p) => p.impreso === "bn") && !productosPagados.some((p) => p.impreso === "color"),
