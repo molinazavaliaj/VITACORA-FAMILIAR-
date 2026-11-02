@@ -135,14 +135,14 @@ function Toroide({ color, tamano, style }: { color: string; tamano: number; styl
 /** El libro de cada producto: la tapa (Familiar) o la foto del libro (Viaje, Kids). */
 async function Libro({ producto }: { producto: Producto }) {
   if (producto === "familiar" || producto === "historia") {
-    // La tapa del libro de ejemplo (376 × 520), apenas girada, con su sombra.
-    const src = await foto("libro-osvaldo-portada.jpg");
+    // La tapa del libro de Juan Domingo (760 × 981, un libro real), apenas girada, con su sombra.
+    const src = await foto("juan-domingo-portada.jpg");
     return (
       <div
         style={{
           display: "flex",
           width: 210,
-          height: 290,
+          height: 271,
           transform: "rotate(-3deg)",
           boxShadow: "0 30px 60px rgba(0,0,0,0.75), 0 6px 14px rgba(0,0,0,0.6)",
           borderRadius: 3,
@@ -150,7 +150,7 @@ async function Libro({ producto }: { producto: Producto }) {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} width={210} height={290} alt="" />
+        <img src={src} width={210} height={271} alt="" />
       </div>
     );
   }

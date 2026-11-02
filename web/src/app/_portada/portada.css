@@ -2,7 +2,7 @@
 
 /* Lo propio de la portada (15/10, la maqueta que aprobó Naza): el libro 3D
    chico dentro del inicio, las cuatro ventajas, los pasos de quien regala, el
-   teléfono con la página de su historia y las tapas de Osvaldo. Todo lo demás
+   teléfono con la página de su historia y las tapas de Juan Domingo. Todo lo demás
    (tinta, papel, deckle, letra, botones, capas) es de _direccion/direccion.css
    y globals.css. Prefijo prt- (portada). */
 
@@ -120,7 +120,7 @@
    Los dibujos a lápiz de la portada son tinta sobre papel; acá van claros. */
 .prt-como .dir-dibujo { color: var(--dir-sobre-tinta); }
 /* El paso 4, el que emociona: un hilo dorado arriba, su número en dorado y el
-   libro de verdad (la tapa de Osvaldo), apenas torcido, con sombra. */
+   libro de verdad (la tapa de Juan Domingo), apenas torcido, con sombra. */
 .prt-paso-final { border-top: 1px solid rgba(181, 154, 104, 0.55); }
 .prt-numero-dorado { color: #b59a68; }
 .prt-tapa {
@@ -140,7 +140,7 @@
   box-shadow: 0 40px 70px -30px rgba(52, 40, 24, 0.6), 0 12px 24px -16px rgba(0, 0, 0, 0.35);
 }
 
-/* ── Parte 3 · El libro: la tapa y la contratapa de Osvaldo, una montada
+/* ── Parte 3 · El libro: la tapa y la contratapa de Juan Domingo, una montada
    sobre la otra, torcidas a lados opuestos. Los titulares de los beneficios,
    en el dorado de la marca. */
 .prt-dorado { color: #b59a68; }

@@ -32,13 +32,13 @@ type Ficha = {
 
 export function Ediciones({ idioma, precioFamiliar, precioViaje }: { idioma: IdiomaWeb; precioFamiliar: string | null; precioViaje: string | null }) {
   const t = TEXTOS_EDICIONES[idioma];
-  const osvaldo = TEXTOS_PORTADA[idioma].direccion.libro;
+  const familiar = TEXTOS_PORTADA[idioma].direccion.libro;
   const fichas: Ficha[] = [
     {
       id: "familiar",
       href: ruta(idioma, "/ejemplo"),
       ...t.familiar,
-      tapa: { etiqueta: osvaldo.etiqueta, nombre: osvaldo.nombre, firma: osvaldo.paraSiempre, foto: "/rediseno/libro-tapa-foto.jpg" },
+      tapa: { etiqueta: familiar.etiqueta, nombre: familiar.nombre, firma: familiar.paraSiempre, foto: "/rediseno/juan-domingo-tapa-foto.jpg" },
       escena: "/rediseno/familia-con-el-libro.jpg",
       precio: precioFamiliar,
     },

@@ -54,10 +54,10 @@ describe("el libro de ejemplo", () => {
     const html = ejemplo("es");
     expect(html).toContain('aria-label="Página anterior"');
     expect(html).toContain('aria-label="Página siguiente"');
-    // La tapa es la del libro 3D: la foto del atlas, con el QR de la contratapa.
-    expect(html).toContain("libro-tapa-foto.jpg");
-    expect(html).toContain("Escucha su voz");
-    expect(html).toContain("Osvaldo Toroide · El libro de su vida");
+    // La tapa es la del libro 3D: la del libro real de Juan Domingo, con el QR de su contratapa.
+    expect(html).toContain("juan-domingo-tapa-foto.jpg");
+    expect(html).toContain("Escuchá su voz");
+    expect(html).toContain("Juan Domingo Mateos · El libro de su vida");
     expect(html).toContain(escapar("1 de 5 · Portada"));
   });
 });

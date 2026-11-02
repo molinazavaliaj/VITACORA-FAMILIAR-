@@ -5,7 +5,7 @@ import type { Textos } from "@/lib/idioma-web";
 // fondo de estudio y, al pasar el mouse, la escena. Los textos están
 // aprobados por Naza el 02/11.
 //
-// Las tapas son las de la web: la de Osvaldo (TEXTOS_PORTADA.direccion.libro),
+// Las tapas son las de la web: la de Juan Domingo (TEXTOS_PORTADA.direccion.libro),
 // la de Viaje (LIBRO_VIAJE_EJEMPLO).
 // La de Kids no existía y va acá; la de Historia, en la portada, es la de una
 // empresa (Naza, 02/11). Reglas de la portada: sin dos puntos, sin

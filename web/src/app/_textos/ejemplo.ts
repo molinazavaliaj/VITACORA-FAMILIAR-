@@ -77,8 +77,8 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     cta: (p) => `Empezar el libro de tu padre · ${p}`,
     nota: "Libro de ejemplo con una historia inventada. El de tu familia se escribe con sus palabras.",
     libro: {
-      altPortada: "Portada: El libro de su vida, Osvaldo Toroide",
-      altContraportada: "Contraportada del libro de Osvaldo",
+      altPortada: "Portada: El libro de su vida, Juan Domingo Mateos",
+      altContraportada: "Contraportada del libro de Juan Domingo",
       dedicatoria: ["Para mis nietos,", "que todavía no saben", "todo esto."],
       firma: "Osvaldo",
       indice: "Índice",
@@ -116,8 +116,8 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     cta: (p) => `Empezar el libro de tu papá · ${p}`,
     nota: "Libro de ejemplo con una historia inventada. El de tu familia se escribe con sus palabras.",
     libro: {
-      altPortada: "Tapa: El libro de su vida, Osvaldo Toroide",
-      altContraportada: "Contratapa del libro de Osvaldo",
+      altPortada: "Tapa: El libro de su vida, Juan Domingo Mateos",
+      altContraportada: "Contratapa del libro de Juan Domingo",
       dedicatoria: ["Para mis nietos,", "que todavía no saben", "todo esto."],
       firma: "Osvaldo",
       indice: "Índice",
@@ -157,8 +157,8 @@ export const TEXTOS_EJEMPLO: Textos<TextosEjemplo> = {
     cta: (p) => `Començar el llibre del teu pare · ${p}`,
     nota: "Llibre d'exemple amb una història inventada. El de la teva família s'escriu amb les seves paraules.",
     libro: {
-      altPortada: "Portada: El llibre de la seva vida, Osvaldo Toroide",
-      altContraportada: "Contraportada del llibre d'Osvaldo",
+      altPortada: "Portada: El llibre de la seva vida, Juan Domingo Mateos",
+      altContraportada: "Contraportada del llibre de Juan Domingo",
       dedicatoria: ["Per als meus nets,", "que encara no saben", "tot això."],
       firma: "Osvaldo",
       indice: "Índex",

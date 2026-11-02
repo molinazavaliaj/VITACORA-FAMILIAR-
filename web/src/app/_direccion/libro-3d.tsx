@@ -24,6 +24,14 @@ import type { IdiomaWeb } from "@/lib/idioma-web";
 
 const URL_QR = "https://www.vitacorafamiliar.com/ejemplo";
 
+/**
+ * El QR del libro de Juan Domingo: el mismo que lleva impreso su contratapa
+ * (la página de su voz y su libro, /voz/<token>). Libro real, con permiso de
+ * la familia (Naza, 02/11).
+ */
+const URL_QR_JUAN_DOMINGO =
+  "https://www.vitacorafamiliar.com/voz/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYXJyYWRvcklkIjoiN2RhYThhNTctNjA1OC00MmJhLWI2ODQtNDM3OTUxZTRlNmM4IiwidGlwbyI6InZveiJ9.Ssc5DoEGy5kFAIsPJRgxIX491yaqnaUnAbg30M7ZUaA";
+
 /** El QR como un solo path SVG, armado en el servidor (sin data URI ni JS). */
 function Qr({ url, className }: { url: string; className?: string }) {
   const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
@@ -45,11 +53,11 @@ function Qr({ url, className }: { url: string; className?: string }) {
 type Libro = TextosPortada["direccion"]["libro"];
 type Capitulo = TextosEjemplo["libro"];
 
-/** Las fotos y la variante del libro. Sin nada, el de Osvaldo; `viaje` es el libro de viaje del inicio de /viaje (19/10): tapa con banda de tinta, lomo azul noche. */
-export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje"; album?: AlbumViaje };
+/** Las fotos y la variante del libro. Sin nada, el de Juan Domingo (su tapa real; adentro, todavía el capítulo y la foto del ejemplo); `viaje` es el libro de viaje del inicio de /viaje (19/10): tapa con banda de tinta, lomo azul noche. */
+export type DisenoLibro = { tapa: string; interior: string; variante?: "viaje"; album?: AlbumViaje; /** Adónde lleva el QR de la contratapa; sin nada, a /ejemplo. */ qr?: string };
 /** Las fotos del álbum de viaje: cuatro a la izquierda (la alta primero) y dos a la derecha (la grande primero). */
 export type AlbumViaje = { izq: [string, string, string, string]; der: [string, string] };
-const OSVALDO: DisenoLibro = { tapa: "/rediseno/libro-tapa-foto.jpg", interior: "/rediseno/osvaldo-guitarra.jpg" };
+const JUAN_DOMINGO: DisenoLibro = { tapa: "/rediseno/juan-domingo-tapa-foto.jpg", interior: "/rediseno/osvaldo-guitarra.jpg", qr: URL_QR_JUAN_DOMINGO };
 
 function Tapa({ b, sizes, foto }: { b: Libro; sizes: string; foto: string }) {
   return (
@@ -76,14 +84,14 @@ function Tapa({ b, sizes, foto }: { b: Libro; sizes: string; foto: string }) {
   );
 }
 
-function Contratapa({ b, lema }: { b: Libro; lema: string }) {
+function Contratapa({ b, lema, qr }: { b: Libro; lema: string; qr: string }) {
   return (
     <div className="l3-papel-tapa flex h-full flex-col items-center px-[11%] pb-[6%] pt-[10%] text-center">
       <Toroide className="l3-contra-toroide" />
       <span className="l3-iniciales mt-[4%]">{b.iniciales}</span>
       <p className="l3-contra-texto mt-[15%]">{b.contra}</p>
       <span className="l3-qr mt-[9%]">
-        <Qr url={URL_QR} className="h-full w-full" />
+        <Qr url={qr} className="h-full w-full" />
       </span>
       <span className="l3-escucha mt-[3%]">{b.escucha}</span>
       <span className="mt-auto flex flex-col items-center gap-[0.4em]">
@@ -134,7 +142,7 @@ export function PaginaCapitulo({ c }: { c: Capitulo }) {
 }
 
 /** La página derecha: la foto de juventud con su pie. */
-export function PaginaFoto({ c, sizes, foto = OSVALDO.interior }: { c: Capitulo; sizes: string; foto?: string }) {
+export function PaginaFoto({ c, sizes, foto = JUAN_DOMINGO.interior }: { c: Capitulo; sizes: string; foto?: string }) {
   return (
     <div className="l3-pagina l3-pagina--der flex h-full flex-col items-center px-[11%] pb-[7%] pt-[16%]">
       <div className="relative aspect-[700/870] w-full overflow-hidden">
@@ -182,7 +190,7 @@ export function Libro3D({
   idioma,
   b,
   c,
-  diseno = OSVALDO,
+  diseno = JUAN_DOMINGO,
 }: {
   idioma: IdiomaWeb;
   b: Libro;
@@ -237,7 +245,7 @@ export function Libro3D({
           )}
         </div>
         <div className="l3-cara l3-contra">
-          <Contratapa b={b} lema={lema} />
+          <Contratapa b={b} lema={lema} qr={diseno.qr ?? URL_QR} />
         </div>
         <div className="l3-cara l3-lomo">
           <Lomo b={b} />
