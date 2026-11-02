@@ -273,7 +273,7 @@ describe('POST /api/webhooks/stripe', () => {
   it('evento checkout.session.completed válido marca el pedido pagado', async () => {
     const evento = {
       type: 'checkout.session.completed',
-      data: { object: { id: 'cs_test_1', metadata: { pedido_id: 'pedido-1' } } },
+      data: { object: { id: 'cs_test_1', payment_status: 'paid', metadata: { pedido_id: 'pedido-1' } } },
     };
     const mockConstructEvent = vi.fn().mockReturnValue(evento);
     (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
@@ -342,7 +342,7 @@ describe('POST /api/webhooks/stripe', () => {
   it('si falla la actualización del pedido en la base responde 500 (para que Stripe reintente)', async () => {
     const evento = {
       type: 'checkout.session.completed',
-      data: { object: { id: 'cs_test_2', metadata: { pedido_id: 'pedido-5' } } },
+      data: { object: { id: 'cs_test_2', payment_status: 'paid', metadata: { pedido_id: 'pedido-5' } } },
     };
     const mockConstructEvent = vi.fn().mockReturnValue(evento);
     (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
@@ -361,6 +361,65 @@ describe('POST /api/webhooks/stripe', () => {
     const respuesta = await POST_WEBHOOK_STRIPE(request);
 
     expect(respuesta.status).toBe(500);
+  });
+
+  // Pago diferido (SEPA, Multibanco): `completed` llega con la sesión `unpaid`
+  // y el cobro se resuelve después, con otro evento.
+  function requestStripe(evento: unknown) {
+    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { webhooks: { constructEvent: vi.fn().mockReturnValue(evento) } };
+    });
+    return {
+      text: async () => JSON.stringify(evento),
+      headers: { get: (k: string) => (k === 'stripe-signature' ? 'firma-valida' : null) },
+    } as never;
+  }
+
+  it('checkout.session.completed con el pago todavía unpaid responde 200 y no toca el pedido', async () => {
+    const admin = crearAdminFake({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await POST_WEBHOOK_STRIPE(requestStripe({
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_test_3', payment_status: 'unpaid', metadata: { pedido_id: 'pedido-6' } } },
+    }));
+
+    expect(respuesta.status).toBe(200);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it('checkout.session.async_payment_succeeded confirma el pedido', async () => {
+    const admin = crearAdminFake({
+      pedidos: [
+        { data: { extras: { pdf: true, impreso: null, copias: 0, marcos: 0 }, familia_id: 'familia-1' }, error: null },
+        { data: [{ id: 'pedido-6', narrador_id: 'narrador-6', familia_id: 'familia-1' }], error: null },
+      ],
+      narradores: [{ data: null, error: null }, { data: { como_le_dicen: 'mamá' }, error: null }],
+      familias: [{ data: { region: 'ES' }, error: null }, { data: { email: 'martina@test.com' }, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await POST_WEBHOOK_STRIPE(requestStripe({
+      type: 'checkout.session.async_payment_succeeded',
+      data: { object: { id: 'cs_test_3', payment_status: 'paid', metadata: { pedido_id: 'pedido-6' } } },
+    }));
+
+    expect(respuesta.status).toBe(200);
+    const llamadaUpdate = admin.llamadas.pedidos.find(([metodo]) => metodo === 'update');
+    expect(llamadaUpdate?.[1]).toMatchObject({ estado: 'pagado', referencia_externa: 'cs_test_3' });
+  });
+
+  it('checkout.session.async_payment_failed responde 200 y deja el pedido como estaba', async () => {
+    const admin = crearAdminFake({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await POST_WEBHOOK_STRIPE(requestStripe({
+      type: 'checkout.session.async_payment_failed',
+      data: { object: { id: 'cs_test_3', payment_status: 'unpaid', metadata: { pedido_id: 'pedido-6' } } },
+    }));
+
+    expect(respuesta.status).toBe(200);
+    expect(admin.from).not.toHaveBeenCalled();
   });
 });
 
