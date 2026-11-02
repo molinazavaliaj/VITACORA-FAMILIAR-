@@ -249,7 +249,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <div className="mx-auto max-w-[1360px] px-4 pb-24 sm:px-8 md:pb-36 lg:px-12">
           <div className="prt-paso-final grid grid-cols-1 items-center gap-12 pt-14 md:grid-cols-12 md:gap-8 md:pt-24">
             <div className="aparece flex justify-center md:col-span-5">
-              <div className="prt-tapa">
+              <div className="prt-tapa prt-fisico">
                 <Image src={FOTOS.portada} alt={t.libro.altPortada} width={760} height={981} sizes="(min-width: 768px) 300px, 62vw" />
               </div>
             </div>
@@ -329,7 +329,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             </figure>
           </div>
           <div className="aparece flex justify-center md:col-span-4 md:col-start-9">
-            <div className="prt-contra">
+            <div className="prt-contra prt-fisico prt-fisico--espalda">
               <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={760} height={981} sizes="(min-width: 768px) 320px, 66vw" />
             </div>
           </div>
@@ -344,10 +344,10 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-12 md:gap-8">
             <h2 className="dir-titular dir-t2 aparece max-w-[14ch] md:col-span-6">{t.elLibro.titulo}</h2>
             <div className="aparece prt-par flex justify-center md:col-span-5 md:col-start-8">
-              <div className="prt-par-tapa">
+              <div className="prt-par-tapa prt-fisico">
                 <Image src={FOTOS.portada} alt={t.libro.altPortada} width={760} height={981} sizes="(min-width: 768px) 220px, 44vw" />
               </div>
-              <div className="prt-par-contra">
+              <div className="prt-par-contra prt-fisico prt-fisico--espalda">
                 <Image src={FOTOS.contraportada} alt={t.voz.altContraportada} width={760} height={981} sizes="(min-width: 768px) 220px, 44vw" />
               </div>
             </div>
