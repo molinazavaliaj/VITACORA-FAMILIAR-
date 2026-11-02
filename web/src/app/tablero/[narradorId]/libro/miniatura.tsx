@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TapaLibro } from "../../../tapa-libro";
 import { Toroide } from "../../../marca";
-import { TEXTOS_CONTRATAPA, inicialesContratapa, type IdiomaLibro } from "@/lib/tapa";
+import { TEXTOS_CONTRATAPA, type IdiomaLibro } from "@/lib/tapa";
 
 // El libro en miniatura (docs/panel-usuario.md §15.4): se hojea página por
 // página y muestra cómo va a quedar — la tapa elegida, dónde caen las fotos,
@@ -100,7 +100,8 @@ function PaginaVista({ p, d, numero, trato = "vos" }: { p: Pagina; d: LibroDatos
         <div className="h-full bg-[#faf7f1] [container-type:inline-size]">
           <div className="flex h-full flex-col items-center text-center text-[#1b1a17]" style={{ padding: "10cqw 11cqw 6cqw" }}>
             <Toroide className="h-auto [width:30cqw]" />
-            <span className="[font-family:var(--fuente-titulo)]" style={{ marginTop: "4cqw", fontSize: "7cqw", letterSpacing: "0.08em" }}>{inicialesContratapa(d.nombre)}</span>
+            {/* La marca bajo el toroide, como en el logo (Naza, 02/11: antes, las iniciales). */}
+            <span className="[font-family:var(--fuente-titulo)]" style={{ marginTop: "4cqw", fontSize: "4.6cqw", letterSpacing: "0.08em" }}>VITÁCORA FAMILIAR</span>
             <p className="text-[#26231e] [font-family:var(--fuente-titulo)]" style={{ marginTop: "12cqw", fontSize: "4.4cqw", lineHeight: 1.45 }}>{t.contra(d.nombre)}</p>
             <span aria-hidden className="block aspect-square bg-white bg-[repeating-linear-gradient(0deg,#161513_0_2px,transparent_2px_4px)]" style={{ marginTop: "8cqw", width: "18cqw", border: "0.45cqw solid #161513" }} />
             <span className="font-semibold uppercase text-[#8a7246] [font-family:var(--fuente-micro)]" style={{ marginTop: "3cqw", fontSize: "3cqw", letterSpacing: "0.26em" }}>{t.escucha(trato === "tu")}</span>

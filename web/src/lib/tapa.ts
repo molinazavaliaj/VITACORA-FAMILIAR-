@@ -31,14 +31,6 @@ export function deCatalan(nombre: string): string {
   return /^[aeiouàáèéíïòóúüh]/i.test(nombre.trim()) ? `d’${nombre}` : `de ${nombre}`;
 }
 
-/** «Imma Colell» → «I · C», el monograma de la contratapa. */
-export function inicialesContratapa(nombre: string): string {
-  const p = nombre.trim().split(/\s+/).filter(Boolean);
-  if (p.length === 0) return "";
-  if (p.length === 1) return p[0].charAt(0).toUpperCase();
-  return `${p[0].charAt(0).toUpperCase()} · ${p[p.length - 1].charAt(0).toUpperCase()}`;
-}
-
 /**
  * La línea de arriba del nombre en la tapa de un libro de «Vitácora de una historia» (aprobada por Naza el 24/10).
  * Copia de TEXTOS_TAPA_HISTORIA de fabrica/src/escritor-historia/produccion/textos-tapa.ts (el eyebrow).

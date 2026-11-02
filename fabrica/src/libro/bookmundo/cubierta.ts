@@ -53,14 +53,6 @@ export function deCatalan(nombre: string): string {
   return /^[aeiouàáèéíïòóúüh]/i.test(nombre.trim()) ? `d’${nombre}` : `de ${nombre}`;
 }
 
-/** «Imma Colell» → «I · C» (como el monograma del libro, con aire). */
-function iniciales(nombre: string): string {
-  const p = nombre.trim().split(/\s+/).filter(Boolean);
-  if (p.length === 0) return '';
-  if (p.length === 1) return p[0].charAt(0).toUpperCase();
-  return `${p[0].charAt(0).toUpperCase()} · ${p[p.length - 1].charAt(0).toUpperCase()}`;
-}
-
 /**
  * El cuerpo del nombre en la tapa, en % del ancho de la tapa: 11,4 (el de Imma), salvo que su palabra más
  * larga no entre en el ancho útil (84 %). Una palabra nunca se corta. Ancho aproximado de la Source Serif:
@@ -76,7 +68,7 @@ export function nombreEnRenglones(nombre: string): string {
 export type DatosCubierta = {
   /** El nombre como va en la tapa (el título que eligió la dueña, o el nombre del narrador). */
   nombreTapa: string;
-  /** El nombre para el texto de la contratapa y las iniciales. */
+  /** El nombre para el texto de la contratapa. */
   nombreNarrador: string;
   lengua: LenguaLibro;
   /** La foto de tapa como data URI (la original de la familia), o null. */
@@ -149,7 +141,8 @@ export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)
   .marca-toroide { width: 8cqw; height: auto; color: #5a5750; }
   .contra { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10cqw 11cqw 6cqw; }
   .contra-toroide { width: 30cqw; height: auto; }
-  .iniciales { margin-top: 4cqw; font-family: 'Source Serif 4', Georgia, serif; font-size: 7cqw; letter-spacing: 0.08em; }
+  /* La marca bajo el toroide, como en el logo (Naza, 02/11: antes iban las iniciales, que no siempre coinciden). */
+  .marca-nombre { margin-top: 4cqw; font-family: 'Playfair Display', Georgia, serif; font-weight: 400; font-size: 4.6cqw; letter-spacing: 0.08em; }
   .contra-texto { margin-top: 15cqw; font-family: 'Source Serif 4', Georgia, serif; font-size: 3.4cqw; line-height: 1.45; color: #26231e; }
   .qr { display: block; margin-top: 9cqw; width: 18cqw; aspect-ratio: 1; border: 0.45cqw solid #161513; padding: 0.4cqw; background: #fff; }
   .escucha { margin-top: 3cqw; font-family: Archivo, sans-serif; font-size: 2.4cqw; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: #8a7246; }
@@ -165,7 +158,7 @@ export function htmlCubierta(d: DatosCubierta, m: MedidasCubierta = medidasDe(d)
   <div class="cara" style="left:${s}mm">
     <div class="contra">
       ${toroide('contra-toroide')}
-      <span class="iniciales">${escaparHtml(iniciales(d.nombreNarrador))}</span>
+      <span class="marca-nombre">VITÁCORA FAMILIAR</span>
       <p class="contra-texto">${escaparHtml(t.contra(d.nombreNarrador))}</p>
       <span class="qr">${qrSvg(d.urlQr)}</span>
       <span class="escucha">${t.escucha}</span>

@@ -22,6 +22,7 @@ export function depsKidsDePrueba(base: BaseFalsa, o: { ahora?: Date; fallarEnvio
   const enviados: EnviadoKids[] = [];
   const avisos: { clave: string; asunto: string; detalle: string }[] = [];
   let reloj = o.ahora ?? new Date('2026-11-02T15:00:00Z'); // lunes, 12:00 en Buenos Aires
+  base.ahora = () => reloj; // el now() de la base es el mismo reloj (con el de verdad, el test vencía el 02/11 15:00Z)
   let fallas = o.fallarEnvios ?? 0;
   let n = 0;
   const salir = (e: Omit<EnviadoKids, 'wamid'>): Promise<string> => {

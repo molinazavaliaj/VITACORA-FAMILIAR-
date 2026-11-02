@@ -21,7 +21,6 @@ describe('textos fijos del libro por lengua', () => {
     const html = await construir();
     expect(html).toContain('Este libro fue contado por');
     expect(html).toContain('«Acá adentro están todos vivos.»');
-    expect(html).toContain('TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN');
   });
 
   it('España: de tú', async () => {
@@ -38,7 +37,6 @@ describe('textos fijos del libro por lengua', () => {
     expect(html).toContain('Aquest llibre el va explicar');
     expect(html).toContain('amb la seva pròpia veu, i el va guardar per sempre');
     expect(html).toContain('«Aquí dins hi són tots vius.»');
-    expect(html).toContain('TAL COM LES DIU · PERQUÈ NO ES PERDIN');
     expect(html).not.toContain('Este libro fue contado por');
     const voz = await seccionFrasesHtml({ frases: FRASES, urlCliente: 'https://x/voz/t', lengua: 'ca' });
     expect(voz).toContain('data-etiqueta="La seva veu"');

@@ -460,19 +460,6 @@ function construirEstilos(acento: string): string {
   }
   .titulo-simple-regla { width: 44px; height: 1px; background: var(--acento); margin: 0 0 28px; }
 
-  /* Sus frases */
-  .sus-frases-titulo {
-    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-style: italic; font-size: 52px;
-    line-height: 1; text-transform: uppercase; letter-spacing: -0.01em;
-  }
-  .sus-frases-eyebrow {
-    position: absolute; top: 56px; right: 44px; writing-mode: vertical-rl;
-    font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--gris1);
-  }
-  .sus-frases-hero { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 40px; line-height: 1.2; margin: 0 0 12px; }
-  .sus-frases-hero-tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.2em; color: var(--acento); font-weight: 600; text-transform: uppercase; }
-  .sus-frases-narrador { position: absolute; left: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: var(--gris1); text-transform: uppercase; }
-
   /* Su voz: la sección impresa de las frases elegidas, con el QR de cada una
      (spec 2026-09-20). Mismos tokens que el resto de la identidad: la frase en
      Playfair itálica —como la cita de la contratapa—, los rótulos en Archivo
@@ -726,9 +713,9 @@ function construirPaginaSimple(seccion: SeccionLibro): string {
  */
 export type LenguaLibro = 'es-AR' | 'es-ES' | 'ca';
 
-/** Los textos fijos del cuerpo del libro (Sus frases, Su voz, colofón), por lengua. Aprobados por Naza el 13/10. */
+/** Los textos fijos del cuerpo del libro (Su voz, colofón), por lengua. Aprobados por Naza el 13/10. */
 const TEXTOS_LIBRO: Record<LenguaLibro, {
-  susFrasesEyebrow: string; susFrasesHero: string;
+  antesDeEmpezar: string;
   suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
   libroEntero: string; libroEnteroBajada: string;
   colofon1: string; colofon2: string; cierre: string;
@@ -736,8 +723,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   notas: string;
 }> = {
   'es-AR': {
-    susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
-    susFrasesHero: 'Si se lleva una sola de todo el libro, es esta',
+    antesDeEmpezar: 'Antes de empezar',
     suVoz: 'Su voz',
     suVozBajada: 'Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.',
     escuchala: 'Escuchala',
@@ -751,8 +737,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     notas: 'Notas',
   },
   'es-ES': {
-    susFrasesEyebrow: 'TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN',
-    susFrasesHero: 'Si se lleva una sola de todo el libro, es esta',
+    antesDeEmpezar: 'Antes de empezar',
     suVoz: 'Su voz',
     suVozBajada: 'Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas.',
     escuchala: 'Escúchala',
@@ -766,8 +751,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
     notas: 'Notas',
   },
   ca: {
-    susFrasesEyebrow: 'TAL COM LES DIU · PERQUÈ NO ES PERDIN',
-    susFrasesHero: 'Si només se n’endú una de tot el llibre, és aquesta',
+    antesDeEmpezar: 'Abans de començar',
     suVoz: 'La seva veu',
     suVozBajada: 'Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs.',
     escuchala: 'Escolta-la',
@@ -782,42 +766,13 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   },
 };
 
-function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: string; fraseHeroe: string | null; lengua: LenguaLibro }): string {
-  const { seccion, nombreNarrador, fraseHeroe } = opts;
-  const t = TEXTOS_LIBRO[opts.lengua];
-  // El resto de la sección, sin repetir la primera cita que ya se usó como
-  // héroe — solo cuando viene de un `<blockquote>` (match exacto y seguro).
-  // Cuando `fraseHeroe` sale del formato lista (fallback del primer `<li>`,
-  // recortado en la raya de atribución), NO se toca la lista: rehacer ese
-  // recorte acá para sacar el `<li>` completo arriesgaría romper el
-  // contrato "una lista de N ítems se renderiza como N <li>" — se prefiere
-  // una pequeña repetición visual (la frase aparece en el héroe Y en la
-  // lista) antes que tocar cuántos ítems tiene la lista.
-  const resto = fraseHeroe
-    ? seccion.html.replace(`<blockquote>${fraseHeroe}</blockquote>`, '')
-    : seccion.html;
-  const heroHtml = fraseHeroe
-    ? `<div class="sus-frases-hero">«${fraseHeroe}»</div>
-       <div class="sus-frases-hero-tag">${t.susFrasesHero}</div>`
-    : '';
-  const titulo = seccion.titulo ?? 'Sus frases';
-  // La página de arte lleva SOLO el título y la frase héroe (entra siempre);
-  // el listado completo fluye después por el paginador, para que ninguna
-  // frase se pierda por un overflow:hidden — antes se cortaban en silencio.
-  return `<div class="lienzo sus-frases-pagina quiebre">
-    ${svgCirculoCortado({ top: -30, left: 300, size: 240, color: '#f2eee5' })}
-    <div class="sus-frases-eyebrow">${t.susFrasesEyebrow}</div>
-    <div class="sf-titulo" style="position:absolute; top:48px; left:44px; right:100px;">
-      <div class="sus-frases-titulo">${escaparHtml(titulo)}</div>
-    </div>
-    <div class="sf-hero" style="position:absolute; top:230px; left:44px; right:44px;">
-      ${heroHtml}
-    </div>
-    <div class="sus-frases-narrador">${escaparHtml(nombreNarrador)}</div>
-  </div>
-  <section class="fuente-texto antes" data-etiqueta="${escaparHtml(titulo)}" data-rail="${escaparHtml(titulo)}">
-    ${resto}
-  </section>`;
+/**
+ * «Sus frases» se abre como «Antes de cerrar»: el título del mismo tamaño y todas las frases en la lista.
+ * Antes tenía una página de arte con el título y la primera frase gigantes; Naza (02/11) la vio fuera de
+ * tono con el resto del libro. La primera frase sigue yendo grande en la contratapa del libro de pantalla.
+ */
+function construirSusFrases(seccion: SeccionLibro): string {
+  return construirPaginaSimple({ ...seccion, titulo: seccion.titulo ?? 'Sus frases' });
 }
 
 // --- «Su voz»: la sección impresa (frase + QR) -------------------------------
@@ -1064,8 +1019,6 @@ function estilosImprenta(o: OpcionesImprenta): string {
   .lienzo.foto.impar .foto-cabecera, .lienzo.foto.impar .foto-marco, .lienzo.foto.impar .foto-epigrafe { left: ${L}px; }
   .lienzo.foto.par .foto-cabecera, .lienzo.foto.par .foto-marco, .lienzo.foto.par .foto-epigrafe { right: ${L}px; }
   /* Sus frases. */
-  .sus-frases-pagina.impar .sf-titulo, .sus-frases-pagina.impar .sf-hero, .sus-frases-pagina.impar .sus-frases-narrador { left: ${L}px !important; }
-  .sus-frases-pagina.par .sus-frases-eyebrow, .sus-frases-pagina.par .sf-hero { right: ${L}px !important; }
   /* Portadilla y notas. */
   .portadilla-imp .eyebrow { position: absolute; top: 74mm; left: 0; right: 0; text-align: center; font-family: Archivo, Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: var(--gris3); }
   .portadilla-imp .nombre { position: absolute; top: 84mm; left: ${L}px; right: ${L}px; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-size: 40px; line-height: 1.1; color: var(--tinta); text-wrap: balance; }
@@ -1426,10 +1379,15 @@ export async function construirHtmlLibro(datos: {
   let numeroCapitulo = 0;
 
   const contenidoHtml = secciones
-    .map((seccion) => {
+    .map((seccion, i) => {
+      // El texto que abre el libro llega sin título (va antes del primer capítulo): lleva uno fijo,
+      // como «Antes de cerrar» al final (Naza, 02/11: sin título parecía un error; título aprobado el mismo día).
+      if (i === 0 && seccion.titulo === null && seccion.html.trim()) {
+        return construirPaginaSimple({ ...seccion, titulo: TEXTOS_LIBRO[lengua].antesDeEmpezar });
+      }
       const tituloTrim = (seccion.titulo ?? '').trim();
       if (esSusFrases(tituloTrim)) {
-        return construirSusFrases({ seccion, nombreNarrador, fraseHeroe, lengua });
+        return construirSusFrases(seccion);
       }
       if (seccion.titulo !== null && indiceSet.has(seccion.titulo)) {
         numeroCapitulo += 1;
