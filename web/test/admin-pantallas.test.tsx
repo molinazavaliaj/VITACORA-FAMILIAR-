@@ -50,13 +50,15 @@ const { datosFalsos } = vi.hoisted(() => ({
       { servicio: "voz", ultimo_ping: "2026-09-20T20:00:00Z", detalle: null },
     ],
     gastos: [{ fecha: "2026-09-01", concepto: "Railway", monto: 5, moneda: "USD", categoria: "suscripcion", quien: "naza" }],
+    entrevistasV3: [],
+    conteo: [{ narrador_id: "n1", pregunta_orden: 17, es_repregunta: false, clave_v3: null }],
   },
 }));
 
 const { datosVacios } = vi.hoisted(() => ({
   datosVacios: {
     narradores: [], familias: [], pedidos: [], respuestas: [], envios: [],
-    narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [],
+    narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [], entrevistasV3: [], conteo: [],
   },
 }));
 

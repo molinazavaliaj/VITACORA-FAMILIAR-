@@ -7,7 +7,7 @@ const hace = (horas: number) => new Date(AHORA.getTime() - horas * 3600_000).toI
 
 const datos = (p: Partial<DatosDelPanel>): DatosDelPanel => ({
   narradores: [], familias: [], pedidos: [], respuestas: [], envios: [],
-  narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [], ...p,
+  narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [], entrevistasV3: [], conteo: [], ...p,
 });
 
 const narracion = (x: Partial<DatosDelPanel["narraciones"][number]> = {}): DatosDelPanel["narraciones"][number] =>

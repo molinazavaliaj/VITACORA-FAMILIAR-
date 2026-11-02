@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { EN_CURSO } from "./en-curso";
+import type { FilaConteo, FilaV3 } from "./avance";
 
 // Las consultas del panel de la empresa: todo lo que se lee de la base, en un solo lugar y
 // del lado del servidor (service role). Las páginas no consultan: piden datos ya armados.
@@ -105,6 +106,10 @@ export type DatosDelPanel = {
   consumo: ConsumoPanel[];
   latidos: LatidoPanel[];
   gastos: GastoPanel[];
+  /** Las entrevistas V3: el bloque por el que va cada una y si terminó (avance.ts). */
+  entrevistasV3: FilaV3[];
+  /** Todas las respuestas de los narradores en curso, solo para contarlas (sin texto). */
+  conteo: FilaConteo[];
 };
 
 /** Una consulta, con su red de seguridad: si falla, avisa y devuelve vacío.
@@ -124,6 +129,32 @@ async function leerLista<T>(
   }
 }
 
+/**
+ * Las respuestas para contar, de a páginas: Supabase corta cada consulta en 1000 filas (el
+ * «Max rows» de la API) por más `limit` que se le pida. Hasta 20 páginas; una que falla,
+ * falla todo (y `leerLista` lo deja vacío y avisa).
+ */
+async function todasLasPaginas(
+  admin: SupabaseClient,
+  narradores: string[],
+): Promise<{ data: FilaConteo[]; error: { message: string } | null }> {
+  const PAGINA = 1000;
+  const todas: FilaConteo[] = [];
+  for (let desde = 0; desde < PAGINA * 20; desde += PAGINA) {
+    const { data, error } = await admin
+      .from("respuestas")
+      .select("narrador_id, pregunta_orden, es_repregunta, clave_v3")
+      .in("narrador_id", narradores)
+      .order("id")
+      .range(desde, desde + PAGINA - 1);
+    if (error) return { data: [], error };
+    const filas = (data ?? []) as FilaConteo[];
+    todas.push(...filas);
+    if (filas.length < PAGINA) break;
+  }
+  return { data: todas, error: null };
+}
+
 export async function datosDelPanel(admin: SupabaseClient, ahora: Date): Promise<DatosDelPanel> {
   const corte = new Date(ahora.getTime() - CORTE_DIAS * 86_400_000).toISOString();
 
@@ -138,7 +169,7 @@ export async function datosDelPanel(admin: SupabaseClient, ahora: Date): Promise
   );
   const enCurso = narradores.filter((n) => EN_CURSO.includes(n.estado)).map((n) => n.id);
 
-  const [familias, pedidos, respuestas, envios, narraciones, fotos, consumo, latidos, gastos] =
+  const [familias, pedidos, respuestas, envios, narraciones, fotos, consumo, latidos, gastos, entrevistasV3, conteo] =
     await Promise.all([
       leerLista<FamiliaPanel>("las familias", () =>
         admin.from("familias").select("id, region, email, nombre"),
@@ -201,6 +232,15 @@ export async function datosDelPanel(admin: SupabaseClient, ahora: Date): Promise
           .gte("fecha", corte)
           .order("fecha", { ascending: false }),
       ),
+      // Del estado de la V3 solo dos campos: el resto (la charla, las respuestas con su texto) pesa mucho.
+      leerLista<FilaV3>("las entrevistas V3", () =>
+        admin.from("entrevistas_v3").select("narrador_id, bloque:estado->bloqueActual, terminada:estado->terminada"),
+      ),
+      // Las respuestas para contar, aparte de las de arriba: aquellas traen el texto y se cortan en 500,
+      // y con varias familias en curso la cuenta de cada una quedaba corta.
+      enCurso.length === 0
+        ? Promise.resolve<FilaConteo[]>([])
+        : leerLista<FilaConteo>("la cuenta de respuestas", () => todasLasPaginas(admin, enCurso)),
     ]);
 
   return {
@@ -214,5 +254,7 @@ export async function datosDelPanel(admin: SupabaseClient, ahora: Date): Promise
     consumo,
     latidos,
     gastos,
+    entrevistasV3,
+    conteo,
   };
 }

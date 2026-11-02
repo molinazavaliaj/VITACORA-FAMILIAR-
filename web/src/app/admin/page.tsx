@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { contarPorGravedad, frenosDe, horasEntre, UMBRALES, type Freno } from "@/lib/admin/frenos";
 import { contarSinVer } from "@/lib/admin/notificaciones";
+import { avanceDe, avanceEnPalabras } from "@/lib/admin/avance";
 import { Cifra, Grupo, Item, Leyenda, Proporcion, SinDatos, Titulo, cuando, horasEnPalabras, type Color } from "./ui";
 import { Icono, SECCIONES } from "./secciones";
 
@@ -19,6 +20,8 @@ function saludo(ahora: Date): string {
   const h = Number(HORA.format(ahora));
   return h < 13 ? "Buen día" : h < 20 ? "Buenas tardes" : "Buenas noches";
 }
+
+const primeraMayuscula = (t: string) => t.charAt(0).toLocaleUpperCase("es") + t.slice(1);
 
 /** El día en una frase: qué hacer primero. */
 function veredicto(rojo: number, ambar: number): { color: Color; frase: string; bajada: string } {
@@ -65,6 +68,7 @@ export default async function PantallaEstado() {
   });
   const terminados = datos.narradores.filter((n) => n.estado === "completado" || n.estado === "cerrado_anticipado");
   const vaSolo = alDia.length + terminados.length;
+  const v3De = new Map(datos.entrevistasV3.map((e) => [e.narrador_id, e]));
   const dia = veredicto(cuenta.rojo, cuenta.ambar);
 
   const linea = (f: Freno, i: number) => (
@@ -166,7 +170,7 @@ export default async function PantallaEstado() {
                   key={n.id}
                   color="verde"
                   titulo={`${n.nombre ?? "Sin nombre"}, al día.`}
-                  detalle={`Va por el día ${n.dia_actual ?? 0} de 30 y contestó ${cuando(n.ultima_respuesta_at, ahora)}.`}
+                  detalle={`${primeraMayuscula(avanceEnPalabras(avanceDe(n, v3De.get(n.id), datos.conteo)))} · contestó ${cuando(n.ultima_respuesta_at, ahora)}.`}
                   hace={cuando(n.ultima_respuesta_at, ahora)}
                 />
               ))}
