@@ -7,7 +7,7 @@ import { marcarTodosVistos, marcarVisto } from "./acciones";
 // La acción vuelve a pintar el panel (revalidatePath), así que acá sólo se muestra
 // el "marcando…" y el motivo si algo no salió.
 
-const boton = "rounded border border-[var(--linea-fuerte)] px-2 py-0.5 text-xs text-[var(--texto-suave)] hover:bg-[var(--hueco)] disabled:opacity-60";
+const boton = "adm-boton adm-boton--hilo adm-boton--chico";
 
 export function BotonVisto({ id }: { id: string }) {
   const [pendiente, empezar] = useTransition();
@@ -35,7 +35,7 @@ export function BotonTodosVistos({ cuantos }: { cuantos: number }) {
     <span className="flex items-center gap-2">
       <button
         type="button"
-        className="rounded bg-[var(--acento)] px-3 py-1.5 text-sm text-[var(--sobre-acento)] disabled:opacity-60"
+        className="adm-boton"
         disabled={pendiente}
         onClick={() => empezar(async () => setError((await marcarTodosVistos()).error))}
       >

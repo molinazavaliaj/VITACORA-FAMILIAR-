@@ -1,9 +1,9 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { cambioDeEntorno, cuentaDelPeriodo, ventaPorVenta } from "@/lib/admin/plata";
-import { euros, Nota, SinDatos, Tarjeta, Titulo, fechaCorta } from "../ui";
+import { Chip, euros, Nota, SinDatos, Tarjeta, Titulo, fechaCorta } from "../ui";
 
-// 03 · Plata — «septiembre, del 1 al 21».
+// 06 · Plata — «septiembre, del 1 al 21».
 // La cuenta está escrita como una cuenta para que se lea de un vistazo y no haya que
 // confiar en un número suelto: Entró − Se gastó = Ganancia limpia, con el cambio a la vista.
 
@@ -20,75 +20,89 @@ export default async function PantallaPlata() {
   const mes = ahora.toLocaleDateString("es-ES", { month: "long", timeZone: "UTC" });
 
   return (
-    <div>
-      <Titulo numero="03" nombre="Plata" aclara={`${mes}, del 1 al ${ahora.getUTCDate()}`} />
-
-      <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-[var(--texto-suave)]">
+    <div className="adm-entra">
+      <Titulo ruta="/admin/plata" aclara={`${mes}, del 1 al ${ahora.getUTCDate()}`}>
         Lo que se cobró menos lo que se gastó. La cuenta está escrita como una cuenta para que se lea de un vistazo
         y no haya que confiar en un número suelto.
-      </p>
+      </Titulo>
 
       {cuenta.sinConvertir ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">
+        <p className="adm-alerta mb-5">
           Hay plata que no se pudo convertir porque falta el tipo de cambio: esta cuenta está incompleta a propósito.
           Se carga en Vercel (CAMBIO_EUR_ARS y CAMBIO_USD_EUR) y no se inventa.
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch">
+      <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch">
         <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Entró</p>
-          <p className="mt-1 text-3xl [font-family:var(--fuente-titulo)]">{euros(cuenta.entro)}</p>
-          <ul className="mt-3 flex flex-col gap-1 text-sm text-[var(--texto-suave)]">
+          <p className="adm-micro">Entró</p>
+          <p className="adm-cifra mt-3">{euros(cuenta.entro)}</p>
+          <ul className="mt-5 flex flex-col gap-1.5 border-t border-[var(--linea)] pt-4 text-sm text-[var(--texto-suave)]">
             <li className="flex justify-between gap-4">
               <span>Vendido y cobrado en el mes</span>
-              <span>{euros(cuenta.entro)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.entro)}</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Sin cobrar todavía</span>
-              <span>{euros(cuenta.porCobrar)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.porCobrar)}</span>
             </li>
           </ul>
         </Tarjeta>
 
-        <div className="hidden items-center text-2xl text-[var(--texto-menor)] lg:flex">−</div>
+        <div aria-hidden className="flex items-center justify-center text-4xl italic text-[var(--texto-menor)] [font-family:var(--fuente-titulo)]">−</div>
 
         <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Se gastó</p>
-          <p className="mt-1 text-3xl [font-family:var(--fuente-titulo)]">{euros(cuenta.gastoIa + cuenta.comisiones + cuenta.fijos)}</p>
-          <ul className="mt-3 flex flex-col gap-1 text-sm text-[var(--texto-suave)]">
+          <p className="adm-micro">Se gastó</p>
+          <p className="adm-cifra mt-3">{euros(cuenta.gastoIa + cuenta.comisiones + cuenta.fijos)}</p>
+          <ul className="mt-5 flex flex-col gap-1.5 border-t border-[var(--linea)] pt-4 text-sm text-[var(--texto-suave)]">
             <li className="flex justify-between gap-4">
               <span>Inteligencia artificial de los libros</span>
-              <span>{euros(cuenta.gastoIa)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.gastoIa)}</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Comisiones de cobro</span>
-              <span>{euros(cuenta.comisiones)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.comisiones)}</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Railway, dominio y mails (cargado a mano)</span>
-              <span>{euros(cuenta.fijos)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.fijos)}</span>
             </li>
           </ul>
         </Tarjeta>
 
-        <div className="hidden items-center text-2xl text-[var(--texto-menor)] lg:flex">=</div>
+        <div aria-hidden className="flex items-center justify-center text-4xl italic text-[var(--texto-menor)] [font-family:var(--fuente-titulo)]">=</div>
 
-        <Tarjeta className="border-[var(--acento)]">
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Ganancia limpia</p>
-          <p className="mt-1 text-3xl text-[var(--acento)] [font-family:var(--fuente-titulo)]">{euros(cuenta.limpia)}</p>
-          <ul className="mt-3 flex flex-col gap-1 text-sm text-[var(--texto-suave)]">
+        <Tarjeta className="adm-hoja--tinta">
+          <p className="adm-micro">Ganancia limpia</p>
+          <p className="adm-cifra mt-3">{euros(cuenta.limpia)}</p>
+          <ul className="mt-5 flex flex-col gap-1.5 border-t border-[var(--linea)] pt-4 text-sm text-[var(--texto-suave)]">
             <li className="flex justify-between gap-4">
               <span>De cada 100 € que entran, quedan</span>
-              <span>{cuenta.porCada100 === null ? "—" : euros(cuenta.porCada100)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{cuenta.porCada100 === null ? "—" : euros(cuenta.porCada100)}</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Descontando los libros vendidos que faltan escribir</span>
-              <span>{euros(cuenta.limpiaDeVerdad)}</span>
+              <span className="adm-dato shrink-0 whitespace-nowrap">{euros(cuenta.limpiaDeVerdad)}</span>
             </li>
           </ul>
         </Tarjeta>
       </div>
+
+      {cuenta.entro > 0 ? (
+        <div className="adm-hoja mt-3 px-5 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+            <span className="adm-micro">De cada 100 € que entraron</span>
+            <span className="text-[var(--texto-menor)]">
+              se fueron <b className="text-[var(--texto)]">{euros(Math.min(100, ((cuenta.gastoIa + cuenta.comisiones + cuenta.fijos) / cuenta.entro) * 100))}</b>{" "}
+              · quedaron <b className="text-[var(--texto)]">{cuenta.porCada100 === null ? "—" : euros(cuenta.porCada100)}</b>
+            </span>
+          </div>
+          <div className="adm-barra adm-barra--gruesa mt-3" role="img" aria-label="lo que se gastó y lo que quedó de lo que entró">
+            <i className="adm-tono-ambar" style={{ width: `${Math.min(100, ((cuenta.gastoIa + cuenta.comisiones + cuenta.fijos) / cuenta.entro) * 100)}%` }} />
+            <i className="adm-tono-verde" style={{ width: `${Math.max(0, 100 - ((cuenta.gastoIa + cuenta.comisiones + cuenta.fijos) / cuenta.entro) * 100)}%` }} />
+          </div>
+        </div>
+      ) : null}
 
       <Nota>
         Las cifras están en euros, que es la moneda de la casa. Lo cobrado en Argentina y lo gastado en dólares
@@ -98,39 +112,41 @@ export default async function PantallaPlata() {
         con él.
       </Nota>
 
-      <h2 className="mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+      <h2 className="adm-micro mt-12">
         Libro vendido por libro vendido
       </h2>
       {delMes.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay ninguna venta anotada este mes." />
         </div>
       ) : (
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="adm-hoja mt-3 overflow-x-auto">
+          <table className="adm-tabla">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Familia</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">País</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Cobrado con</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Pagó</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Costó su IA</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Quedó</th>
-                <th className="border-b border-[var(--linea)] py-2">Estado</th>
+              <tr>
+                <th>Familia</th>
+                <th>País</th>
+                <th>Cobrado con</th>
+                <th>Pagó</th>
+                <th>Costó su IA</th>
+                <th>Quedó</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {delMes.map((v, i) => (
                 <tr key={`${v.familia}-${i}`}>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{v.familia}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{v.region === "AR" ? "Argentina" : v.region === "ES" ? "España" : v.region}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{v.pasarela === "mercadopago" ? "Mercado Pago" : "Stripe"}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">
+                  <td>{v.familia}</td>
+                  <td>{v.region === "AR" ? "Argentina" : v.region === "ES" ? "España" : v.region}</td>
+                  <td>{v.pasarela === "mercadopago" ? "Mercado Pago" : "Stripe"}</td>
+                  <td>
                     {v.moneda === "EUR" ? euros(v.pago) : `${v.pago} ${v.moneda}`}
                   </td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{v.costoIa === null ? "—" : euros(v.costoIa)}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{v.quedo === null ? "—" : euros(v.quedo)}</td>
-                  <td className="border-b border-[var(--linea)] py-2">{v.estado}</td>
+                  <td>{v.costoIa === null ? "—" : euros(v.costoIa)}</td>
+                  <td>{v.quedo === null ? "—" : euros(v.quedo)}</td>
+                  <td>
+                    <Chip color={v.estado === "pendiente" ? "ambar" : "verde"}>{v.estado.replace(/_/g, " ")}</Chip>
+                  </td>
                 </tr>
               ))}
             </tbody>

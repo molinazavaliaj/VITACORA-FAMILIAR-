@@ -1,10 +1,10 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { aEuros, cambioDeEntorno } from "@/lib/admin/plata";
-import { euros, fechaCorta, Nota, SinDatos, Tarjeta, Titulo } from "../ui";
+import { Cifra, euros, fechaCorta, Nota, SinDatos, Titulo } from "../ui";
 import { FormularioGasto } from "./formulario";
 
-// 04 · Gastos — «qué se gastó, día por día y paso por paso».
+// 07 · Gastos — «qué se gastó, día por día y paso por paso».
 // Dos cosas distintas en la misma pantalla: lo que se cobra solo (cada llamada al modelo,
 // anotada por los tres servicios) y lo que se carga a mano (Railway, el dominio, la imprenta).
 
@@ -34,70 +34,52 @@ export default async function PantallaGastos() {
   const sinConvertir = totalConsumo === null || datos.gastos.some((g) => aEuros(g.monto, g.moneda, cambio) === null);
 
   return (
-    <div>
-      <Titulo numero="04" nombre="Gastos" aclara="qué se gastó, día por día y paso por paso" />
-
-      <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-[var(--texto-suave)]">
+    <div className="adm-entra">
+      <Titulo ruta="/admin/gastos">
         Todo lo que gasta la estructura, sin las herramientas de trabajo de ustedes: acá está lo que se cobra solo
         (cada llamada al modelo) y lo que se carga a mano (Railway, el dominio, la imprenta).
-      </p>
+      </Titulo>
 
       {sinConvertir ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">
+        <p className="adm-alerta mb-5">
           Falta el tipo de cambio: los números en dólares se muestran crudos y no se suman a la cuenta en euros.
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            Inteligencia artificial del mes
-          </p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">
-            {totalConsumo === null ? `USD ${totalConsumoUsd.toFixed(2)}` : euros(totalConsumo)}
-          </p>
-          <span className="text-xs text-[var(--texto-menor)]">{datos.consumo.length} llamadas anotadas</span>
-        </Tarjeta>
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            Cargado a mano
-          </p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{euros(totalManual)}</p>
-          <span className="text-xs text-[var(--texto-menor)]">{datos.gastos.length} gastos fijos</span>
-        </Tarjeta>
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            De cada paso del trabajo
-          </p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{pasos.length}</p>
-          <span className="text-xs text-[var(--texto-menor)]">
-            {pasos.length > 0 ? `el más caro: ${pasos[0][0]}` : "todavía sin llamadas"}
-          </span>
-        </Tarjeta>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Cifra
+          etiqueta="Inteligencia artificial del mes"
+          valor={totalConsumo === null ? `USD ${totalConsumoUsd.toFixed(2)}` : euros(totalConsumo)}
+          detalle={`${datos.consumo.length} llamadas anotadas`}
+        />
+        <Cifra etiqueta="Cargado a mano" valor={euros(totalManual)} detalle={`${datos.gastos.length} gastos fijos`} />
+        <Cifra
+          etiqueta="De cada paso del trabajo"
+          valor={pasos.length}
+          detalle={pasos.length > 0 ? `el más caro: ${pasos[0][0].replace(/_/g, " ")}` : "todavía sin llamadas"}
+        />
       </div>
 
-      <h2 className="mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+      <h2 className="adm-micro mt-12">
         Día por día
       </h2>
       {dias.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay gasto de inteligencia artificial anotado: se anota solo con la primera llamada del mes." />
         </div>
       ) : (
-        <div className="mt-3 flex flex-col gap-1">
+        <div className="adm-hoja mt-4 flex flex-col gap-2 px-5 py-4">
           {dias.map(([dia, v]) => {
             const e = enEuros(v.usd);
-            const maximo = dias[0][1].usd || 1;
+            // El día más caro llena la barra: el resto se lee contra ese.
+            const maximo = Math.max(...dias.map(([, d]) => d.usd)) || 1;
             return (
-              <div key={dia} className="grid grid-cols-[90px_1fr_110px] items-center gap-3 text-sm">
-                <span className="text-[var(--texto-menor)]">{fechaCorta(dia)}</span>
-                <span className="h-2 rounded-full bg-[var(--hueco)]">
-                  <span
-                    className="block h-2 rounded-full bg-[var(--acento)]"
-                    style={{ width: `${Math.max(2, (v.usd / maximo) * 100)}%` }}
-                  />
+              <div key={dia} className="grid grid-cols-[52px_1fr_auto] items-center gap-4 text-sm sm:grid-cols-[64px_1fr_140px]">
+                <span className="adm-dato text-[var(--texto-menor)]">{fechaCorta(dia)}</span>
+                <span className="adm-barra">
+                  <i style={{ width: `${Math.max(2, (v.usd / maximo) * 100)}%` }} />
                 </span>
-                <span className="text-right">
+                <span className="adm-dato text-right">
                   {e === null ? `USD ${v.usd.toFixed(2)}` : euros(e)}
                   <span className="ml-2 text-xs text-[var(--texto-menor)]">{v.veces}×</span>
                 </span>
@@ -107,23 +89,23 @@ export default async function PantallaGastos() {
         </div>
       )}
 
-      <h2 className="mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+      <h2 className="adm-micro mt-12">
         Paso por paso
       </h2>
       {pasos.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay llamadas al modelo en el mes." />
         </div>
       ) : (
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="adm-hoja mt-3 overflow-x-auto">
+          <table className="adm-tabla">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Paso</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Quién lo hace</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Modelo</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Veces</th>
-                <th className="border-b border-[var(--linea)] py-2">Costó</th>
+              <tr>
+                <th>Paso</th>
+                <th>Quién lo hace</th>
+                <th>Modelo</th>
+                <th>Veces</th>
+                <th>Costó</th>
               </tr>
             </thead>
             <tbody>
@@ -131,11 +113,11 @@ export default async function PantallaGastos() {
                 const e = enEuros(v.usd);
                 return (
                   <tr key={paso}>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{paso.replace(/_/g, " ")}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{v.servicio}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{v.modelo}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{v.veces}</td>
-                    <td className="border-b border-[var(--linea)] py-2">{e === null ? `USD ${v.usd.toFixed(2)}` : euros(e)}</td>
+                    <td>{paso.replace(/_/g, " ")}</td>
+                    <td>{v.servicio}</td>
+                    <td>{v.modelo}</td>
+                    <td>{v.veces}</td>
+                    <td>{e === null ? `USD ${v.usd.toFixed(2)}` : euros(e)}</td>
                   </tr>
                 );
               })}
@@ -144,25 +126,27 @@ export default async function PantallaGastos() {
         </div>
       )}
 
-      <h2 className="mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+      <h2 className="adm-micro mt-12">
         Cargado a mano
       </h2>
-      <FormularioGasto />
+      <div className="adm-hoja mt-4 p-5">
+        <FormularioGasto />
+      </div>
       {datos.gastos.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay ningún gasto fijo cargado este mes (Railway, el dominio, los mails)." />
         </div>
       ) : (
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="adm-hoja mt-3 overflow-x-auto">
+          <table className="adm-tabla">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Fecha</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Qué</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Categoría</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">De quién</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Monto</th>
-                <th className="border-b border-[var(--linea)] py-2">En euros</th>
+              <tr>
+                <th>Fecha</th>
+                <th>Qué</th>
+                <th>Categoría</th>
+                <th>De quién</th>
+                <th>Monto</th>
+                <th>En euros</th>
               </tr>
             </thead>
             <tbody>
@@ -170,14 +154,14 @@ export default async function PantallaGastos() {
                 const e = aEuros(g.monto, g.moneda, cambio);
                 return (
                   <tr key={`${g.concepto}-${i}`}>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{fechaCorta(g.fecha)}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{g.concepto}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{g.categoria}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">{g.quien ?? "—"}</td>
-                    <td className="border-b border-[var(--linea)] py-2 pr-4">
+                    <td>{fechaCorta(g.fecha)}</td>
+                    <td>{g.concepto}</td>
+                    <td>{g.categoria}</td>
+                    <td>{g.quien ?? "—"}</td>
+                    <td>
                       {g.monto} {g.moneda}
                     </td>
-                    <td className="border-b border-[var(--linea)] py-2">{e === null ? "—" : euros(e)}</td>
+                    <td>{e === null ? "—" : euros(e)}</td>
                   </tr>
                 );
               })}

@@ -1,0 +1,558 @@
+/* ── El panel de la empresa en la dirección «la web es un libro» (02/11) ──────
+   Mismo patrón que el panel del cliente (tablero/panel.css): .adm les da a los
+   roles de color de siempre (--fondo, --texto, --linea, --acento…) valores de
+   papel y tinta, y las pantallas cambian de piel sin tocar su lógica.
+
+     claro  → papel crema con fibra; las cajas son hojas un poco más claras
+     oscuro → tinta con la trama de tela de encuadernar
+   La barra lateral es tinta en los dos temas: el lomo del libro.
+
+   A diferencia de la web, acá SÍ hay color, y uno solo por idea: el semáforo
+   (rojo frenado, ámbar atento, verde va solo). Apagado, para que se lea como
+   tinta de color sobre papel y no como un tablero de luces. Fuera del
+   semáforo, todo sigue en tinta.
+
+   Ojo: este archivo no va en una capa, así que le gana a las utilidades de
+   Tailwind. Todo va bajo .adm, y nada de margen: el margen lo pone cada
+   pantalla con sus utilidades. */
+
+.adm:not(.oscuro) {
+  --fondo: #f4f0e7;
+  --texto: #151412;
+  --texto-suave: #45413a;
+  --texto-menor: #625d54;            /* 5,6:1 sobre el papel */
+  --linea: rgba(21, 20, 18, 0.12);
+  --linea-fuerte: rgba(21, 20, 18, 0.3);
+  --acento: #151412;
+  --sobre-acento: #f4f0e7;
+  --relieve: #fbf9f4;
+  --hueco: rgba(21, 20, 18, 0.07);
+  --alerta: #8a2a1e;
+  --alerta-fondo: #f6e8e1;
+  --ceniza: rgba(21, 20, 18, 0.32);
+
+  --adm-hoja: #fbf9f4;
+  --adm-sombra: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(52, 40, 24, 0.06), 0 16px 34px -26px rgba(52, 40, 24, 0.5);
+  --adm-sombra-alta: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 4px rgba(52, 40, 24, 0.08), 0 24px 44px -26px rgba(52, 40, 24, 0.6);
+
+  --adm-rojo: #a3321f;
+  --adm-rojo-fondo: #f5e1d9;
+  --adm-ambar: #8c5d0c;
+  --adm-ambar-fondo: #f3e7cc;
+  --adm-verde: #3d6a45;
+  --adm-verde-fondo: #e2eadb;
+  --adm-neutro: #625d54;
+  --adm-neutro-fondo: rgba(21, 20, 18, 0.06);
+
+  background-color: var(--fondo);
+  background-image: var(--dir-fibra);
+  background-size: var(--dir-fibra-tamano);
+  color-scheme: light;
+}
+
+.adm.oscuro {
+  --fondo: #0b0b0a;
+  --texto: #eeeae1;
+  --texto-suave: #cdc8bd;
+  --texto-menor: #a39f96;            /* 7,6:1 sobre la tinta */
+  --linea: rgba(238, 234, 225, 0.11);
+  --linea-fuerte: rgba(238, 234, 225, 0.28);
+  --acento: #eeeae1;
+  --sobre-acento: #0b0b0a;
+  --relieve: #141412;
+  --hueco: rgba(238, 234, 225, 0.08);
+  --alerta: #f2b8ae;
+  --alerta-fondo: #2a1512;
+  --ceniza: rgba(238, 234, 225, 0.3);
+
+  --adm-hoja: #141412;
+  --adm-sombra: 0 1px 0 rgba(238, 234, 225, 0.04) inset, 0 18px 36px -28px rgba(0, 0, 0, 0.9);
+  --adm-sombra-alta: 0 1px 0 rgba(238, 234, 225, 0.06) inset, 0 26px 48px -26px rgba(0, 0, 0, 1);
+
+  --adm-rojo: #f0a596;
+  --adm-rojo-fondo: rgba(240, 165, 150, 0.13);
+  --adm-ambar: #e2bd72;
+  --adm-ambar-fondo: rgba(226, 189, 114, 0.12);
+  --adm-verde: #9cc9a2;
+  --adm-verde-fondo: rgba(156, 201, 162, 0.12);
+  --adm-neutro: #a39f96;
+  --adm-neutro-fondo: rgba(238, 234, 225, 0.07);
+
+  background-color: var(--fondo);
+  background-image: var(--dir-tela);
+  color-scheme: dark;
+}
+
+.adm :focus-visible { outline: 2px solid var(--texto); outline-offset: 2px; }
+
+/* Los tonos del semáforo: una clase pone --tono y --tono-fondo, y la pieza
+   (punto, chip, hoja con filo, barra) pinta con ellos. */
+.adm-tono-rojo { --tono: var(--adm-rojo); --tono-fondo: var(--adm-rojo-fondo); }
+.adm-tono-ambar { --tono: var(--adm-ambar); --tono-fondo: var(--adm-ambar-fondo); }
+.adm-tono-verde { --tono: var(--adm-verde); --tono-fondo: var(--adm-verde-fondo); }
+.adm-tono-neutro { --tono: var(--adm-neutro); --tono-fondo: var(--adm-neutro-fondo); }
+
+/* ── El lomo: la barra lateral (en el teléfono, la franja de arriba) ── */
+.adm-lomo {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: var(--dir-tinta);
+  background-image: var(--dir-tela);
+  color: var(--dir-sobre-tinta);
+  color-scheme: dark;
+  --texto: #eeeae1;
+  --texto-suave: #cdc8bd;
+  --texto-menor: #a39f96;
+  --linea: rgba(238, 234, 225, 0.12);
+  --hueco: rgba(238, 234, 225, 0.08);
+  border-bottom: 1px solid rgba(238, 234, 225, 0.08);
+}
+.adm-lomo :focus-visible { outline-color: var(--dir-sobre-tinta); }
+.adm-marca {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+}
+
+.adm-nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 12px 12px;
+}
+.adm-nav::-webkit-scrollbar { display: none; }
+.adm-grupo { display: none; }
+.adm-enlace {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 0 14px;
+  white-space: nowrap;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--dir-sobre-tinta-suave);
+  transition:
+    color var(--d-rapido) var(--dir-curva),
+    background-color var(--d-rapido) var(--dir-curva);
+}
+.adm-enlace:hover { color: var(--dir-sobre-tinta); background: rgba(238, 234, 225, 0.07); }
+.adm-enlace[aria-current="page"] { color: var(--dir-sobre-papel); background: var(--dir-papel); }
+.adm-enlace-pista { display: none; }
+.adm-salir { margin-left: auto; }
+
+/* El número de avisos sin ver: el único rojo encendido del lomo. */
+.adm-insignia {
+  margin-left: auto;
+  min-width: 20px;
+  border-radius: 999px;
+  padding: 1px 6px;
+  text-align: center;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  color: #fff;
+  background: #b8442f;
+  box-shadow: 0 0 0 0 rgba(184, 68, 47, 0.6);
+  animation: adm-llamar 2.4s var(--dir-curva) infinite;
+}
+
+@media (min-width: 1024px) {
+  .adm-lomo {
+    height: 100vh;
+    width: 268px;
+    flex-shrink: 0;
+    border-bottom: 0;
+    border-right: 1px solid rgba(238, 234, 225, 0.08);
+    display: flex;
+    flex-direction: column;
+  }
+  .adm-nav {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    padding: 4px 12px 16px;
+  }
+  .adm-grupo {
+    display: block;
+    padding: 18px 12px 6px;
+    font-family: var(--fuente-micro), sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(238, 234, 225, 0.42);
+  }
+  .adm-enlace {
+    align-items: flex-start;
+    min-height: 0;
+    border-radius: 6px;
+    padding: 9px 12px;
+    white-space: normal;
+  }
+  .adm-enlace > svg { margin-top: 1px; }
+  .adm-enlace-pista {
+    display: block;
+    margin-top: 1px;
+    font-size: 12px;
+    color: rgba(238, 234, 225, 0.45);
+  }
+  .adm-enlace[aria-current="page"] .adm-enlace-pista { color: var(--dir-sobre-papel-suave); }
+  .adm-salir { margin-left: 0; margin-top: auto; }
+}
+
+/* ── Tipografía ── */
+.adm-micro {
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-menor);
+}
+/* Los subtítulos de sección: la etiqueta y un hilo que llega hasta el borde. */
+h2.adm-micro { display: flex; align-items: center; gap: 14px; }
+h2.adm-micro::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
+
+.adm-h1 {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.3rem, 1.6rem + 2.6vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.adm-pregunta {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 1rem + 0.45vw, 1.4rem);
+  line-height: 1.3;
+  color: var(--texto-suave);
+  text-wrap: balance;
+}
+.adm-bajada {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--texto-suave);
+}
+.adm-cifra {
+  font-family: var(--fuente-titulo), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 1.6rem + 1.3vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.adm-dato { font-family: var(--fuente-micro), sans-serif; font-variant-numeric: tabular-nums; }
+
+/* ── Hojas: las cajas del panel ── */
+.adm-hoja {
+  border: 1px solid var(--linea);
+  border-radius: 8px;
+  background: var(--adm-hoja);
+  box-shadow: var(--adm-sombra);
+}
+a.adm-hoja,
+.adm-hoja--viva {
+  transition:
+    transform var(--d-rapido) var(--dir-curva),
+    box-shadow var(--d-rapido) var(--dir-curva),
+    border-color var(--d-rapido) var(--dir-curva);
+}
+a.adm-hoja:hover,
+.adm-hoja--viva:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--adm-sombra-alta);
+  border-color: var(--linea-fuerte);
+}
+/* El filo de color a la izquierda: de un vistazo, de qué tono es la fila. */
+.adm .adm-filo,
+.adm .adm-filo:hover { border-left: 3px solid var(--tono, var(--linea-fuerte)); }
+
+/* La hoja invertida: el dato que tiene que gritar (la ganancia, el veredicto).
+   Tinta sobre el papel; papel sobre la tinta. */
+.adm-hoja--tinta {
+  border-color: transparent;
+  background-color: var(--dir-tinta);
+  background-image: var(--dir-tela);
+  color: var(--dir-sobre-tinta);
+  --texto: #eeeae1;
+  --texto-suave: #cdc8bd;
+  --texto-menor: #a39f96;
+  --linea: rgba(238, 234, 225, 0.14);
+  --hueco: rgba(238, 234, 225, 0.12);
+  --acento: #eeeae1;
+  --adm-rojo: #f0a596;
+  --adm-ambar: #e2bd72;
+  --adm-verde: #9cc9a2;
+}
+.adm.oscuro .adm-hoja--tinta {
+  background-color: var(--dir-papel);
+  background-image: var(--dir-fibra);
+  background-size: var(--dir-fibra-tamano);
+  color: var(--dir-sobre-papel);
+  --texto: #151412;
+  --texto-suave: #45413a;
+  --texto-menor: #625d54;
+  --linea: rgba(21, 20, 18, 0.14);
+  --hueco: rgba(21, 20, 18, 0.08);
+  --acento: #151412;
+  --adm-rojo: #a3321f;
+  --adm-ambar: #8c5d0c;
+  --adm-verde: #3d6a45;
+}
+
+/* ── Semáforo: punto y chip ── */
+.adm-punto {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tono);
+}
+/* Lo frenado late: es lo único del panel que se mueve solo. */
+.adm-punto.adm-tono-rojo::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tono);
+  animation: adm-pulso 1.9s var(--dir-curva) infinite;
+}
+.adm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  color: var(--tono);
+  background: var(--tono-fondo);
+}
+.adm-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── Barras: crecen al aparecer ── */
+.adm-barra {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--hueco);
+}
+.adm-barra > i {
+  display: block;
+  height: 100%;
+  background: var(--tono, var(--acento));
+  transform-origin: left center;
+  animation: adm-crecer 900ms var(--dir-curva) 120ms backwards;
+}
+.adm-barra > i + i { box-shadow: -1px 0 0 var(--adm-hoja); }
+.adm-barra--gruesa { height: 10px; }
+
+/* ── Avisos dentro de la pantalla ── */
+.adm-alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--alerta) 30%, transparent);
+  border-radius: 8px;
+  background: var(--alerta-fondo);
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--alerta);
+}
+.adm-alerta::before {
+  content: "!";
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--alerta);
+  color: var(--alerta-fondo);
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* La nota que explica cómo se lee la pantalla. */
+.adm-nota {
+  display: flex;
+  gap: 14px;
+  border-top: 1px solid var(--linea);
+  padding-top: 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--texto-menor);
+}
+.adm-nota > b {
+  flex-shrink: 0;
+  padding-top: 3px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+/* ── Botones, campos y pastillas ── */
+.adm-boton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--acento);
+  border-radius: 999px;
+  padding: 0 18px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--acento);
+  color: var(--sobre-acento);
+  transition:
+    transform var(--d-rapido) var(--dir-curva),
+    background-color var(--d-rapido) var(--dir-curva),
+    border-color var(--d-rapido) var(--dir-curva),
+    opacity var(--d-rapido);
+  touch-action: manipulation;
+}
+.adm-boton:hover { transform: translateY(-1px); }
+.adm-boton:active { transform: scale(0.98); }
+.adm-boton:disabled { opacity: 0.55; transform: none; cursor: progress; }
+.adm-boton--hilo { background: transparent; color: var(--texto); border-color: var(--linea-fuerte); }
+.adm-boton--hilo:hover { background: var(--hueco); border-color: var(--texto); }
+.adm-boton--chico { min-height: 30px; padding: 0 12px; font-size: 13px; }
+.adm-boton--peligro { background: transparent; border-color: transparent; color: var(--alerta); padding: 0 6px; }
+.adm-boton--peligro:hover { background: var(--alerta-fondo); }
+
+.adm-campo {
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 6px;
+  background: var(--adm-hoja);
+  padding: 7px 10px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 14px;
+  color: var(--texto);
+  transition: border-color var(--d-instante), box-shadow var(--d-instante);
+}
+.adm-campo:hover { border-color: var(--texto-menor); }
+.adm-campo:focus { outline: none; border-color: var(--texto); box-shadow: 0 0 0 3px var(--hueco); }
+
+.adm-pastilla {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 999px;
+  padding: 0 14px;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 13px;
+  color: var(--texto-suave);
+  transition: background-color var(--d-rapido), color var(--d-rapido), border-color var(--d-rapido);
+}
+.adm-pastilla:hover { background: var(--hueco); color: var(--texto); }
+.adm-pastilla[aria-current="true"] { border-color: var(--acento); background: var(--acento); color: var(--sobre-acento); }
+
+/* ── Tablas ── */
+.adm-tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.adm-tabla th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--linea-fuerte);
+  text-align: left;
+  white-space: nowrap;
+  font-family: var(--fuente-micro), sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--texto-menor);
+}
+.adm-tabla td { padding: 11px 16px; border-bottom: 1px solid var(--linea); vertical-align: middle; }
+.adm-tabla tbody tr:last-child td { border-bottom: 0; }
+.adm-tabla tbody tr { transition: background-color var(--d-instante); }
+.adm-tabla tbody tr:hover { background: var(--hueco); }
+
+/* ── Un aviso que se abre ── */
+.adm-desplegable > summary { list-style: none; }
+.adm-desplegable > summary::-webkit-details-marker { display: none; }
+.adm-desplegable .adm-flecha { transition: transform var(--d-base) var(--dir-curva-io); }
+.adm-desplegable[open] .adm-flecha { transform: rotate(90deg); }
+.adm-desplegable[open] > :not(summary) { animation: adm-subir var(--d-base) var(--dir-curva) backwards; }
+
+/* ── Movimiento ── */
+/* Cada pantalla entra por partes: lo de arriba primero, de a 60 ms.
+   «backwards» y no «both»: una animación de transform que queda puesta al
+   terminar convierte al bloque en el marco de lo fixed de adentro, y la ficha
+   de Contenido (un velo fixed) quedaba encerrada en el calendario. */
+.adm-entra > * { animation: adm-subir var(--d-lento) var(--dir-curva) backwards; }
+.adm-entra > :nth-child(2) { animation-delay: 60ms; }
+.adm-entra > :nth-child(3) { animation-delay: 120ms; }
+.adm-entra > :nth-child(4) { animation-delay: 180ms; }
+.adm-entra > :nth-child(5) { animation-delay: 240ms; }
+.adm-entra > :nth-child(6) { animation-delay: 300ms; }
+.adm-entra > :nth-child(n + 7) { animation-delay: 340ms; }
+
+/* La ficha de una pieza (Contenido): sube un poco y se asienta. El velo es .m-overlay. */
+.adm-ficha { animation: hojaInCentro var(--d-lento) var(--ease-out) both; }
+
+/* Mientras llega la pantalla: el esqueleto con un brillo que pasa. */
+.adm-esqueleto {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--hueco) 0%, color-mix(in srgb, var(--hueco) 35%, transparent) 50%, var(--hueco) 100%);
+  background-size: 200% 100%;
+  animation: adm-brillo 1.4s linear infinite;
+}
+
+@keyframes adm-subir {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes adm-crecer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes adm-pulso {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  80%, 100% { transform: scale(1.7); opacity: 0; }
+}
+@keyframes adm-llamar {
+  0% { box-shadow: 0 0 0 0 rgba(184, 68, 47, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(184, 68, 47, 0); }
+}
+@keyframes adm-brillo {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}

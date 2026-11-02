@@ -10,8 +10,8 @@ import type { ResultadoCreador } from "./acciones";
 const INICIAL: ResultadoCreador = { error: null };
 
 const BOTON = {
-  lleno: "rounded bg-[var(--acento)] px-3 py-1.5 text-sm text-[var(--sobre-acento)] disabled:opacity-60",
-  hilo: "rounded border border-[var(--linea-fuerte)] px-3 py-1.5 text-sm text-[var(--texto-suave)] disabled:opacity-60",
+  lleno: "adm-boton",
+  hilo: "adm-boton adm-boton--hilo",
 };
 
 export function FormAccion({

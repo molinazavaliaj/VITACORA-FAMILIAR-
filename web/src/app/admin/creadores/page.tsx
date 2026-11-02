@@ -2,11 +2,11 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { COMISION_SUGERIDA, DESCUENTO_SUGERIDO, DIAS_EN_ESPERA, creadoresPrendido, estadoDeComision, resumenDeComisiones, sugerirCodigo, type EstadoVisibleComision, type FilaComision, type FilaCreador, type PorMoneda } from "@/lib/creadores";
 import { datosCreadores } from "@/lib/creadores-base";
 import { urlCompartirCreador, urlPanelCreador } from "@/lib/mail-creadores";
-import { Chip, Nota, SinDatos, Tarjeta, Titulo, fechaCorta, type Color } from "../ui";
+import { Chip, Cifra, Nota, SinDatos, Tarjeta, Titulo, fechaCorta, type Color } from "../ui";
 import { FormAccion } from "./formulario";
 import { anular, aprobar, cambiar, marcarPagado, pausar, rechazar, reactivar } from "./acciones";
 
-// 07 · Creadores — «quién se anotó, quién vende y cuánto se les debe»
+// 05 · Creadores — «quién se anotó, quién vende y cuánto se les debe»
 // (programa de creadores, 21/10; spec 2026-10-21-programa-creadores-design.md §5).
 // Arriba los pendientes con el formulario de aprobar (código sugerido,
 // comisión y descuento editables); después los activos y pausados con sus
@@ -16,9 +16,9 @@ import { anular, aprobar, cambiar, marcarPagado, pausar, rechazar, reactivar } f
 
 export const dynamic = "force-dynamic";
 
-const CAMPO = "rounded border border-[var(--linea)] bg-[var(--fondo)] px-2 py-1 text-sm";
+const CAMPO = "adm-campo";
 const ETIQUETA = "flex flex-col gap-1 text-xs text-[var(--texto-menor)]";
-const H2 = "mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]";
+const H2 = "adm-micro mt-12";
 
 const ESTADO: Record<FilaCreador["estado"], { texto: string; color: Color }> = {
   pendiente: { texto: "pendiente", color: "ambar" },
@@ -45,17 +45,20 @@ export default async function PantallaCreadores() {
   const r = await datosCreadores(crearClienteServidor());
 
   return (
-    <div>
-      <Titulo numero="07" nombre="Creadores" aclara="quién se anotó, quién vende y cuánto se les debe" />
+    <div className="adm-entra">
+      <Titulo ruta="/admin/creadores">
+        Arriba los que se anotaron en /colabora y esperan respuesta; después los que ya tienen código, con lo que
+        vendieron y lo que se les debe. Desde acá se aprueba, se pausa y se marca lo pagado.
+      </Titulo>
 
       {!prendido ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">
+        <p className="adm-alerta mb-5">
           El programa está apagado: falta CREADORES=1 en Vercel. /colabora da 404, los códigos no valen y los botones no hacen nada.
         </p>
       ) : null}
 
       {!r.ok ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">
+        <p className="adm-alerta">
           {r.falla === "tabla_ausente"
             ? "Falta aplicar la migración 20261021000000_creadores.sql en Supabase."
             : "No pude leer los creadores. Probá de nuevo en un rato."}
@@ -84,33 +87,28 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
 
   return (
     <>
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Por aprobar</p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{pendientes.length}</p>
-          <span className="text-xs text-[var(--texto-menor)]">{conCodigo.length} con código</span>
-        </Tarjeta>
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Ventas con código</p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{total.ventas}</p>
-          <span className="text-xs text-[var(--texto-menor)]">sin contar las anuladas</span>
-        </Tarjeta>
-        <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Se les debe</p>
-          <p className="mt-1 text-2xl [font-family:var(--fuente-titulo)]">{plata(total.porCobrar)}</p>
-          <span className="text-xs text-[var(--texto-menor)]">
-            en espera: {plata(total.enEspera)} · pagado: {plata(total.pagado)}
-          </span>
-        </Tarjeta>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Cifra
+          etiqueta="Por aprobar"
+          valor={pendientes.length}
+          color={pendientes.length > 0 ? "ambar" : undefined}
+          detalle={`${conCodigo.length} con código`}
+        />
+        <Cifra etiqueta="Ventas con código" valor={total.ventas} detalle="sin contar las anuladas" />
+        <Cifra
+          etiqueta="Se les debe"
+          valor={plata(total.porCobrar)}
+          detalle={`en espera: ${plata(total.enEspera)} · pagado: ${plata(total.pagado)}`}
+        />
       </div>
 
       <h2 className={H2}>Pendientes de aprobar</h2>
       {pendientes.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Nadie esperando: las altas de /colabora aparecen acá." />
         </div>
       ) : (
-        <div className="mt-3 flex flex-col gap-3">
+        <div className="mt-4 flex flex-col gap-3">
           {pendientes.map((c) => (
             <Tarjeta key={c.id}>
               <Datos c={c} />
@@ -139,11 +137,11 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
 
       <h2 className={H2}>Con código</h2>
       {conCodigo.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay ningún creador aprobado." />
         </div>
       ) : (
-        <div className="mt-3 flex flex-col gap-3">
+        <div className="mt-4 flex flex-col gap-3">
           {conCodigo.map((c) => {
             const r = resumenDeComisiones(comisiones.filter((k) => k.creador_id === c.id));
             return (
@@ -200,22 +198,22 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
 
       <h2 className={H2}>Comisiones</h2>
       {comisiones.length === 0 ? (
-        <div className="mt-3">
+        <div className="mt-4">
           <SinDatos que="Todavía no hay ventas con código de creador." />
         </div>
       ) : (
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="adm-hoja mt-3 overflow-x-auto">
+          <table className="adm-tabla">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Fecha</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Creador</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Código</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Pagó el cliente</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">%</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Comisión</th>
-                <th className="border-b border-[var(--linea)] py-2 pr-4">Estado</th>
-                <th className="border-b border-[var(--linea)] py-2" />
+              <tr>
+                <th>Fecha</th>
+                <th>Creador</th>
+                <th>Código</th>
+                <th>Pagó el cliente</th>
+                <th>%</th>
+                <th>Comisión</th>
+                <th>Estado</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -223,19 +221,19 @@ function Contenido({ creadores, comisiones }: { creadores: FilaCreador[]; comisi
                 const estado = estadoDeComision(k);
                 return (
                 <tr key={k.id}>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{fechaCorta(k.created_at, true)}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{porId.get(k.creador_id)?.nombre ?? "—"}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{k.codigo}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{plata({ [k.moneda]: Number(k.total) })}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{k.porcentaje}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">{plata({ [k.moneda]: Number(k.importe) })}</td>
-                  <td className="border-b border-[var(--linea)] py-2 pr-4">
+                  <td>{fechaCorta(k.created_at, true)}</td>
+                  <td>{porId.get(k.creador_id)?.nombre ?? "—"}</td>
+                  <td>{k.codigo}</td>
+                  <td>{plata({ [k.moneda]: Number(k.total) })}</td>
+                  <td>{k.porcentaje}</td>
+                  <td>{plata({ [k.moneda]: Number(k.importe) })}</td>
+                  <td>
                     <Chip color={ESTADO_COMISION[estado].color}>
                       {ESTADO_COMISION[estado].texto}
                       {k.estado === "pagada" && k.pagada_at ? ` ${fechaCorta(k.pagada_at)}` : ""}
                     </Chip>
                   </td>
-                  <td className="border-b border-[var(--linea)] py-2">
+                  <td>
                     {k.estado !== "anulada" ? (
                       <FormAccion
                         accion={anular}
@@ -271,9 +269,9 @@ function Datos({ c }: { c: FilaCreador }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <b>{c.nombre}</b>
+        <b className="text-lg font-medium [font-family:var(--fuente-titulo)]">{c.nombre}</b>
         <Chip color={e.color}>{e.texto}</Chip>
-        {c.codigo ? <span className="[font-family:var(--fuente-micro)]">{c.codigo}</span> : null}
+        {c.codigo ? <span className="rounded border border-[var(--linea-fuerte)] px-2 py-0.5 text-sm tracking-wider [font-family:var(--fuente-micro)]">{c.codigo}</span> : null}
         {c.comision !== null ? (
           <span className="text-sm text-[var(--texto-menor)]">
             comisión {c.comision} % · descuento {c.descuento ?? 0} %

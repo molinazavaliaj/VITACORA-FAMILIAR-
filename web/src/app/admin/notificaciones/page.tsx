@@ -11,10 +11,10 @@ import {
   TOPE_AVISOS,
   type Filtro,
 } from "@/lib/admin/notificaciones";
-import { Chip, fechaCorta, Nota, Punto, SinDatos, Titulo } from "../ui";
+import { Chip, fechaCorta, Nota, Punto, SinDatos, Titulo, tono } from "../ui";
 import { BotonTodosVistos, BotonVisto } from "./botones";
 
-// 08 · Notificaciones — «qué nos avisaron los robots». Los mismos avisos que llegan por
+// 02 · Notificaciones — «qué nos avisaron los robots». Los mismos avisos que llegan por
 // mail a MAIL_SOCIOS (cada servicio los anota en `avisos` cuando los manda), para verlos
 // juntos acá, con los que no salieron por mail a la vista.
 
@@ -31,29 +31,28 @@ export default async function PantallaNotificaciones({ searchParams }: PageProps
   const { avisos, sinVer, error } = await leerAvisos(crearClienteServidor(), filtro);
   const dias = porDia(avisos);
 
-  const pastilla = (activa: boolean) =>
-    `rounded-full border px-3 py-0.5 text-xs ${
-      activa
-        ? "border-[var(--acento)] bg-[var(--acento)] text-[var(--sobre-acento)]"
-        : "border-[var(--linea-fuerte)] text-[var(--texto-suave)] hover:bg-[var(--hueco)]"
-    }`;
+  // La pastilla elegida se marca con aria-current (panel.css la pinta de tinta).
+  const elegida = (activa: boolean) => (activa ? ("true" as const) : undefined);
 
   return (
-    <div>
-      <Titulo numero="08" nombre="Notificaciones" aclara="qué nos avisaron los robots" />
+    <div className="adm-entra">
+      <Titulo ruta="/admin/notificaciones">
+        Los mismos mails que les mandan la web, el entrevistador y la fábrica, juntos y por día. Los que no llegaron a
+        salir por mail van marcados en rojo: esos sólo se ven acá.
+      </Titulo>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={filtroAUrl({ ...filtro, de: null })} className={pastilla(filtro.de === null)}>
+          <Link href={filtroAUrl({ ...filtro, de: null })} className="adm-pastilla" aria-current={elegida(filtro.de === null)}>
             todos
           </Link>
           {SERVICIOS.map((s) => (
-            <Link key={s} href={filtroAUrl({ ...filtro, de: s })} className={pastilla(filtro.de === s)}>
+            <Link key={s} href={filtroAUrl({ ...filtro, de: s })} className="adm-pastilla" aria-current={elegida(filtro.de === s)}>
               {NOMBRE_SERVICIO[s].toLowerCase()}
             </Link>
           ))}
-          <span className="mx-1 text-[var(--linea-fuerte)]">·</span>
-          <Link href={filtroAUrl({ ...filtro, soloSinVer: !filtro.soloSinVer })} className={pastilla(filtro.soloSinVer)}>
+          <span aria-hidden className="mx-1 h-5 w-px bg-[var(--linea-fuerte)]" />
+          <Link href={filtroAUrl({ ...filtro, soloSinVer: !filtro.soloSinVer })} className="adm-pastilla" aria-current={elegida(filtro.soloSinVer)}>
             sólo sin ver{sinVer > 0 ? ` (${sinVer})` : ""}
           </Link>
         </div>
@@ -61,10 +60,10 @@ export default async function PantallaNotificaciones({ searchParams }: PageProps
       </div>
 
       {error ? (
-        <p className="mt-4 rounded border border-[var(--alerta)] px-4 py-3 text-sm text-[var(--alerta)]">{error}</p>
+        <p className="adm-alerta mt-5">{error}</p>
       ) : null}
 
-      <div className="mt-5">
+      <div className="mt-8">
         {!error && dias.length === 0 ? (
           <SinDatos
             que={
@@ -76,9 +75,11 @@ export default async function PantallaNotificaciones({ searchParams }: PageProps
         ) : null}
 
         {dias.map(({ dia, avisos: delDia }) => (
-          <section key={dia} className="mb-6">
-            <h2 className="mb-2 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-              {fechaCorta(dia, true)} <span className="text-[var(--texto)]">{delDia.length}</span>
+          <section key={dia} className="mb-8">
+            <h2 className="adm-micro mb-3">
+              <span className="flex items-center gap-2.5">
+                {fechaCorta(dia, true)} <span className="adm-chip adm-tono-neutro">{delDia.length}</span>
+              </span>
             </h2>
             <div className="flex flex-col gap-2">
               {delDia.map((a) => {
@@ -87,20 +88,25 @@ export default async function PantallaNotificaciones({ searchParams }: PageProps
                 return (
                   <details
                     key={a.id}
-                    className={`rounded border border-[var(--linea)] px-4 py-3 ${visto ? "opacity-70" : ""}`}
+                    className={`adm-desplegable adm-hoja adm-hoja--viva px-5 py-4 ${
+                      visto ? "opacity-70" : `adm-filo ${tono(mail.color === "rojo" ? "rojo" : "ambar")}`
+                    }`}
                   >
-                    <summary className="flex cursor-pointer list-none flex-wrap items-start gap-3">
+                    <summary className="flex cursor-pointer flex-wrap items-start gap-3">
+                      <span aria-hidden className="adm-flecha pt-0.5 text-[var(--texto-menor)]">
+                        ›
+                      </span>
                       <span className="pt-1.5">
                         <Punto color={visto ? "neutro" : mail.color === "rojo" ? "rojo" : "ambar"} />
                       </span>
                       <span className="flex-1">
-                        <b className="block">{a.asunto}</b>
+                        <b className="block font-medium leading-snug">{a.asunto}</b>
                         <span className="text-sm text-[var(--texto-suave)]">{NOMBRE_SERVICIO[a.servicio] ?? a.servicio}</span>
                       </span>
                       <Chip color={mail.color}>{mail.texto}</Chip>
-                      <span className="whitespace-nowrap text-xs text-[var(--texto-menor)]">{horaDe(a.creado_at)}</span>
+                      <span className="adm-dato whitespace-nowrap pt-0.5 text-xs text-[var(--texto-menor)]">{horaDe(a.creado_at)}</span>
                     </summary>
-                    <div className="mt-3 border-t border-[var(--linea)] pt-3">
+                    <div className="mt-4 border-t border-[var(--linea)] pt-4">
                       {a.detalle ? (
                         <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-cuerpo)]">
                           {a.detalle}
