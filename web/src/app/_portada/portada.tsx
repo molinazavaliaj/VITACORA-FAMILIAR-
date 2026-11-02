@@ -17,6 +17,7 @@ import { DibujoAudio, DibujoLibreta, DibujoLibro } from "../_direccion/dibujos";
 import { Libro3D } from "../_direccion/libro-3d";
 import { Foto, ListaHilo, OndaQuieta, Palabras, conVar } from "../_direccion/piezas";
 import { DemoMarco } from "./demo-marco";
+import { Ediciones } from "./ediciones";
 // Una sola hoja de estilo para la portada: portada.css trae adentro
 // direccion.css y los tokens (cada archivo CSS aparte es un pedido más que
 // frena el primer pintado).
@@ -29,8 +30,8 @@ import "./portada.css";
 //
 // Orden: 1 inicio (con el libro 3D) → 2 qué es (con el teléfono y la página
 // de su historia) → 3 cómo funciona (4 pasos) → 4 la carta → 5 escúchalo → 6
-// el libro (el ÚNICO precio, el del impreso) → 7 marcos → 8 regalo → 9
-// preguntas y «¿Te queda alguna duda?» → 10 cierre y pie. Los textos, todos en
+// el libro (el ÚNICO precio, el del impreso) → 7 marcos → 8 regalo → 8b
+// nuestras ediciones → 9 preguntas y «¿Te queda alguna duda?» → 10 cierre y pie. Los textos, todos en
 // _textos/portada.ts (docs/rediseno-2026-10/amigo/textos.md); ninguno acá.
 //
 // Capas (regla de Naza, 15/10): una hoja solo tapa a la anterior cuando lo
@@ -38,7 +39,8 @@ import "./portada.css";
 // fija cuando su final llega al borde de abajo de la pantalla y ahí sube «Qué
 // es» y lo tapa. Las demás bajan con la página, cada una con su borde.
 //
-// El precio: UNO solo, el del libro impreso con el PDF (PRECIO_EUR/ARS +
+// El precio: UNO solo, el del libro impreso (las fichas de «Nuestras
+// ediciones» repiten ese mismo y el de Viaje, cada uno el de su página) con el PDF (PRECIO_EUR/ARS +
 // PRECIO_IMPRESO_EUR/ARS, leídos al construir). Sin impreso en la región no se
 // muestra ningún número (nunca «desde»), ni la barra fija del móvil.
 //
@@ -67,6 +69,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
     new Intl.NumberFormat(localeDeIdioma(idioma), { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(n);
   // El libro impreso con el PDF: la base más el primer impreso.
   const precioLibro = cat.impreso ? formatear(cat.base.precio + cat.impreso.precio) : null;
+  const precioViaje = cat.viaje === null ? null : formatear(cat.viaje);
   const precioMarco = cat.marco ? formatear(cat.marco.precio) : null;
   // Los datos estructurados (schema.org) de esta portada: la marca y los dos
   // productos con su precio, del mismo catálogo de arriba (lib/seo.ts).
@@ -419,9 +422,16 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
+      {/* ═══ 8b · NUESTRAS EDICIONES, en papel: las cuatro, como una tienda (02/11) ═══ */}
+      <section className="prt-ed-seccion dir-papel dir-hoja dir-deckle dir-diferido relative z-[9]">
+        <div className="px-4 py-24 sm:px-8 md:py-32 lg:px-12">
+          <Ediciones idioma={idioma} precioFamiliar={precioLibro} precioViaje={precioViaje} />
+        </div>
+      </section>
+
       {/* ═══ 9 · PREGUNTAS, en papel (la garantía vive acá y solo acá,
           DECISIONES D1); «¿Te queda alguna duda?» va DESPUÉS ═══ */}
-      <section id="preguntas" className="dir-papel dir-hoja dir-deckle dir-diferido relative z-[9] scroll-mt-6">
+      <section id="preguntas" className="dir-papel dir-hoja dir-deckle dir-diferido relative z-[10] scroll-mt-6">
         <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-12 px-4 pb-28 pt-28 sm:px-8 md:grid-cols-12 md:gap-8 md:pb-40 md:pt-40 lg:px-12">
           <div className="aparece md:col-span-4">
             <h2 className="dir-titular dir-t3">{t.faq.titulo}</h2>
@@ -464,7 +474,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* ═══ 10 · CIERRE: el lema grande y el botón; abajo, el pie ═══ */}
-      <section data-cta-propio className="dir-tinta dir-hoja dir-diferido relative z-[10]">
+      <section data-cta-propio className="dir-tinta dir-hoja dir-diferido relative z-[11]">
         <div className="flex flex-col items-center px-4 pb-28 pt-28 text-center sm:px-8 md:pb-40 md:pt-40">
           <LogoTrazo id="trazo-cierre" modo="scroll" halo="var(--dir-tinta)" className="w-[120px] sm:w-[150px]" />
           <h2 className="dir-titular dir-t2 aparece mt-14 max-w-[14ch]">{t.lema}</h2>

@@ -157,3 +157,127 @@
   box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(238, 234, 225, 0.06);
 }
 .prt-par img { display: block; width: 100%; height: auto; }
+
+/* ── Nuestras ediciones (maqueta aprobada por Naza el 02/11) ────────────────
+   Como una tienda: cuatro fichas iguales (2 × 2 en el teléfono). La foto es
+   siempre el mismo plano de estudio con el libro cerrado de frente; la tapa
+   copia la de Libro3D (foto 65 %, banda con etiqueta, nombre, firma y V · F),
+   con las letras en cqw para que crezcan con el libro. Al pasar el mouse, la
+   escena y «Ver la edición». */
+.prt-ed-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--dir-hilo-papel);
+  padding-bottom: 14px;
+}
+.prt-ed-cabeza h2 { font-size: clamp(26px, 4vw, 34px); line-height: 1.1; }
+.prt-ed-cabeza span, .prt-ed-pie { font-family: var(--fuente-micro), sans-serif; font-size: 13px; color: var(--dir-sobre-papel-suave); }
+
+.prt-ed-grilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 14px; }
+@media (min-width: 860px) { .prt-ed-grilla { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; } }
+
+.prt-ed-ficha { display: flex; min-width: 0; flex-direction: column; gap: 12px; color: inherit; }
+.prt-ed-ficha:focus-visible { outline: 2px solid #b59a68; outline-offset: 4px; }
+
+/* El plano de estudio: luz desde arriba y un piso apenas más oscuro. */
+.prt-ed-foto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 18%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(180deg, #e4ddd0 0 78%, #d9d1c2 78% 100%);
+}
+.prt-ed-escena { z-index: 2; object-fit: cover; opacity: 0; transition: opacity 0.45s ease; }
+.prt-ed-ficha:hover .prt-ed-escena, .prt-ed-ficha:focus-visible .prt-ed-escena { opacity: 1; }
+
+/* El libro: mismo ancho, mismo apoyo en el piso, misma sombra. */
+.prt-ed-libro {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  width: 58%;
+  aspect-ratio: 376 / 520;
+  transform: translateX(-50%);
+  container-type: inline-size;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 12px 16px 26px -10px rgba(40, 32, 20, 0.45), 2px 3px 6px rgba(40, 32, 20, 0.18);
+}
+.prt-ed-libro::before { /* el lomo, que se insinúa a la izquierda */
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 4%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0));
+}
+.prt-ed-libro::after { /* la sombra en el piso */
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -14%;
+  bottom: -7%;
+  z-index: -1;
+  height: 9%;
+  background: radial-gradient(closest-side, rgba(40, 32, 20, 0.28), rgba(40, 32, 20, 0));
+}
+
+.prt-ed-tapa {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  background: #f3f2ee linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.035));
+  color: #1b1a17;
+}
+.prt-ed-tapa-foto { position: relative; height: 65%; overflow: hidden; }
+.prt-ed-tapa-foto img { object-fit: cover; }
+.prt-ed-tapa-banda { display: flex; flex: 1; flex-direction: column; padding: 6% 6% 5.5%; }
+.prt-ed-et { font-family: var(--fuente-micro), sans-serif; font-size: 2.6cqw; font-weight: 500; letter-spacing: 0.3em; text-transform: uppercase; color: #77736a; }
+.prt-ed-nom { margin-top: 3.5%; font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 10.5cqw; line-height: 1.02; letter-spacing: -0.01em; }
+.prt-ed-abajo { display: flex; margin-top: auto; align-items: flex-end; justify-content: space-between; }
+.prt-ed-firma { font-family: var(--fuente-cuerpo), Georgia, serif; font-style: italic; font-size: 4.3cqw; }
+.prt-ed-vf { font-family: var(--fuente-micro), sans-serif; font-size: 2.6cqw; letter-spacing: 0.2em; color: #77736a; }
+
+/* El de Viaje es apaisado (como en las fotos del libro de viaje) y su banda
+   es de tinta, como en /viaje. */
+.prt-ed-libro--apaisado { width: 84%; aspect-ratio: 4 / 3; }
+.prt-ed-libro--apaisado .prt-ed-tapa-foto { height: 62%; }
+.prt-ed-libro--apaisado .prt-ed-tapa-banda { padding: 3.5% 5%; }
+.prt-ed-libro--apaisado .prt-ed-et, .prt-ed-libro--apaisado .prt-ed-vf { font-size: 1.9cqw; }
+.prt-ed-libro--apaisado .prt-ed-nom { margin-top: 1.5%; font-size: 7cqw; }
+.prt-ed-libro--apaisado .prt-ed-firma { font-size: 3cqw; }
+.prt-ed-tapa--viaje { background: #15171c linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); color: #f1efe9; }
+.prt-ed-tapa--viaje .prt-ed-et, .prt-ed-tapa--viaje .prt-ed-vf { color: #b9b6ae; }
+
+.prt-ed-marca, .prt-ed-mira { position: absolute; z-index: 3; background: #fbfaf6; font-family: var(--fuente-micro), sans-serif; color: var(--dir-sobre-papel); }
+.prt-ed-marca { top: 10px; left: 10px; padding: 4px 8px; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+.prt-ed-mira {
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.prt-ed-ficha:hover .prt-ed-mira, .prt-ed-ficha:focus-visible .prt-ed-mira { opacity: 1; transform: none; }
+@media (hover: none) { .prt-ed-mira { display: none; } }
+@media (prefers-reduced-motion: reduce) { .prt-ed-escena, .prt-ed-mira { transition: none; } }
+
+.prt-ed-nombre { font-family: var(--fuente-titulo), Georgia, serif; font-size: 18px; font-weight: 500; line-height: 1.2; }
+.prt-ed-para { font-family: var(--fuente-micro), sans-serif; font-size: 13px; line-height: 1.35; color: var(--dir-sobre-papel-suave); }
+.prt-ed-precio { margin-top: 4px; font-family: var(--fuente-micro), sans-serif; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.prt-ed-pie { display: flex; flex-wrap: wrap; gap: 8px 22px; border-top: 1px solid var(--dir-hilo-papel); padding-top: 14px; }
+.prt-ed-pie li { display: inline-flex; align-items: center; gap: 7px; }
+.prt-ed-pie svg { flex: none; width: 14px; height: 14px; color: #b59a68; }
+
+/* Las preguntas, también en papel, siguen a las ediciones sin la sombra de
+   hoja (papel sobre papel quedaba como una franja gris). */
+.prt-ed-seccion + section.dir-papel { box-shadow: none; }
