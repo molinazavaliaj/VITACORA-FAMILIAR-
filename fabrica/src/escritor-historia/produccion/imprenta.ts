@@ -11,7 +11,8 @@ import { avisarSocios } from '../../escritor/produccion/avisos.js';
 import { libroParaPlantilla } from '../../escritor/salida/plantilla.js';
 import { descargarTextoOpcional } from '../../libro/comun.js';
 import { leerEdicion } from '../../libro/edicion.js';
-import { cargarFotos } from '../../libro/fotos.js';
+import { cargarFotos, fotosDelAlbum } from '../../libro/fotos.js';
+import { procesarFotosConChromium } from '../../libro/preparar-fotos.js';
 import type { FrasesJson } from '../../libro/frases.js';
 import { leerFrases } from '../../libro/publicar-frases.js';
 import { urlVozDeNarrador } from '../../libro/token-voz.js';
@@ -45,14 +46,17 @@ export async function datosBookmundoHistoria(db: Db, id: string, o: { frases?: F
   const textos = textosTapaHistoria(lengua);
   if (!textos) throw new SinTextosTapaHistoria(lengua);
   const edicion = leerEdicion(narrador.edicion);
-  const fotoTapa = edicion.portadaFotoId ? (await cargarFotos(db, id)).porId.get(edicion.portadaFotoId) : undefined;
+  const fotos = await cargarFotos(db, id, { procesar: procesarFotosConChromium });
+  const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
+  // Las fotos de la familia que no van en la tapa, en el álbum del final (02/11).
+  const album = fotosDelAlbum(fotos, { tapaId: fotoTapa ? edicion.portadaFotoId : null });
   const p = libroParaPlantilla(md);
   const urlVoz = urlVozDeNarrador(id);
   return {
     nombre: narrador.como_le_dicen?.trim() || narrador.nombre,
     libro: {
       titulo: p.titulo, nombreNarrador: narrador.nombre, tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
-      anioNacimiento: null, indice: p.indice, libroMarkdown: p.libroMarkdown,
+      anioNacimiento: null, indice: p.indice, libroMarkdown: p.libroMarkdown, album,
       idioma: lengua === 'ca' ? 'ca' : 'es', trato: lengua === 'es-AR' ? 'vos' : 'tu', tapaEyebrow: textos.eyebrow,
       // «Su voz» impresa: las frases confirmadas, cada una con el código que la hace sonar.
       ...(o.frases ? { frases: o.frases, urlCliente: urlVoz } : {}),

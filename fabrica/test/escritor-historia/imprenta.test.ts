@@ -34,7 +34,7 @@ function base(idioma = 'es-AR') {
   };
   const db = {
     from: (tabla: string) => {
-      const q: any = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: filas[tabla]?.[0] ?? null, error: null }) };
+      const q: any = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: filas[tabla]?.[0] ?? null, error: null }), order: async () => ({ data: filas[tabla] ?? [], error: null }) };
       return q;
     },
     storage: {

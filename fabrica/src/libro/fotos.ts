@@ -16,8 +16,10 @@
 // no se entiende— no hay recorte ni cambio de lugar y el libro sale como antes
 // (ver `normalizarFoco`).
 
+import { createHash } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Foto } from '../db.js';
+import type { ProcesarFotos } from './preparar-fotos.js';
 
 /** El punto de la foto que tiene que quedar a la vista al recortarla al marco (0..1 por eje). */
 export type Foco = { x: number; y: number };
@@ -46,7 +48,37 @@ export type FotosCapitulo = { apertura: FotoLibro | null; posicionApertura?: Pos
 export type FotosDelLibro = {
   porCapitulo: Map<string, FotosCapitulo>;
   porId: Map<string, FotoLibro>;
+  /** Todas, en el orden en que las subió la familia (sin repetidas): de acá sale el álbum (`fotosDelAlbum`).
+   *  `ids`: la fila y las repetidas que se juntaron con ella (cualquiera puede ser la elegida para la tapa). */
+  enOrden: { ids: string[]; capitulo: string | null; foto: FotoLibro }[];
 };
+
+/**
+ * Las fotos que van al álbum del final del libro (Naza, 02/11: «no puede ser que quede el libro sin las fotos»).
+ * Todas las que subió la familia, en su orden, menos la de tapa (ya está en la tapa) y las que ya entraron en un
+ * capítulo. El libro V3 no pone fotos por capítulo (sus capítulos los arma el escritor): ahí van todas al álbum.
+ */
+export function fotosDelAlbum(fotos: FotosDelLibro, o: { tapaId?: string | null; capitulosConFotos?: Iterable<string> } = {}): FotoLibro[] {
+  const enCapitulo = new Set(o.capitulosConFotos ?? []);
+  return fotos.enOrden
+    .filter((f) => !(o.tapaId && f.ids.includes(o.tapaId)) && !(f.capitulo !== null && enCapitulo.has(f.capitulo)))
+    .map((f) => f.foto);
+}
+
+/** Diferencia media (0–255 por píxel) hasta la que dos firmas son la misma foto. Medido con las 43 de Juan Domingo
+ *  (02/11): la misma foto en otro tamaño da 0–7, dos tomas seguidas casi iguales 12, fotos distintas más de 30. */
+export const DIFERENCIA_MISMA_FOTO = 15;
+
+/** Una foto que la familia puso en un capítulo (el libro de antes de la V3); las del álbum llegan sin capítulo. */
+const enCapitulo = (f: Foto): boolean => Boolean(f.capitulo);
+
+/** Diferencia media entre dos firmas de preparar-fotos.ts (16×16 grises, dos hex por píxel). */
+export function diferenciaDeFirmas(a: string, b: string): number {
+  if (a.length !== b.length || !a.length) return Infinity;
+  let suma = 0;
+  for (let i = 0; i < a.length; i += 2) suma += Math.abs(parseInt(a.slice(i, i + 2), 16) - parseInt(b.slice(i, i + 2), 16));
+  return suma / (a.length / 2);
+}
 
 const MIME_POR_EXTENSION: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -121,15 +153,16 @@ async function bajarFoto(db: SupabaseClient, ruta: string): Promise<Buffer | nul
   }
 }
 
-function comoDataUri(ruta: string, bytes: Buffer): string {
-  return `data:${mimeDeRuta(ruta)};base64,${bytes.toString('base64')}`;
-}
-
 function enMb(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export async function cargarFotos(db: SupabaseClient, narradorId: string): Promise<FotosDelLibro> {
+/**
+ * `procesar` (opcional, `procesarFotosConChromium` de preparar-fotos.ts): achica las fotos pesadas y le saca a
+ * cada una una firma de cómo se ve, para reconocer la misma foto subida dos veces en distinto tamaño. Sin él, las
+ * fotos van tal cual y solo se sacan las repetidas byte por byte. La tapa no lo necesita (quiere la original).
+ */
+export async function cargarFotos(db: SupabaseClient, narradorId: string, o: { procesar?: ProcesarFotos } = {}): Promise<FotosDelLibro> {
   // `select('*')` y no la lista explícita de columnas: nombrar `posicion` y
   // `foco` haría que PostgREST rechace la consulta ENTERA mientras la migración
   // 20260918 no esté aplicada ("column fotos.posicion does not exist"), y sin
@@ -143,13 +176,14 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
     .order('orden', { ascending: true });
   if (error) throw new Error(`No se pudieron leer las fotos de ${narradorId}: ${error.message}`);
 
-  const porCapitulo = new Map<string, FotosCapitulo>();
-  const porId = new Map<string, FotoLibro>();
-
   // Se ordena acá por las dudas — no confiar en que la consulta ya vino
   // ordenada. Entre dos principales del mismo capítulo gana la de menor orden.
   const fotosOrdenadas = [...((data ?? []) as Foto[])].sort((a, b) => a.orden - b.orden);
-  let bytesEmbebidos = 0;
+
+  // 1. Bajarlas. La misma foto subida dos veces (mismos bytes) entra una sola vez.
+  type Bajada = { foto: Foto; bytes: Buffer; mime: string; pixeles: number; firma: string | null; repetidas: string[] };
+  const bajadas: Bajada[] = [];
+  const vistas = new Map<string, Bajada>();
   for (const foto of fotosOrdenadas) {
     if (EXTENSIONES_SIN_SOPORTE.has(extensionDeRuta(foto.storage_path))) {
       console.warn(`cargarFotos: ${foto.storage_path} es HEIC/HEIF y el navegador no lo decodifica; la foto se omite.`);
@@ -157,6 +191,46 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
     }
     const bytes = await bajarFoto(db, foto.storage_path);
     if (bytes === null) continue;
+    const hash = createHash('sha1').update(bytes).digest('hex');
+    const primera = vistas.get(hash);
+    // Una que la familia puso en un capítulo no se junta con otra: ese lugar lo eligió ella.
+    if (primera && !enCapitulo(foto) && !enCapitulo(primera.foto)) {
+      console.warn(`cargarFotos: ${foto.storage_path} es la misma foto que otra ya subida; va una sola vez.`);
+      primera.repetidas.push(foto.id);
+      continue;
+    }
+    const bajada: Bajada = { foto, bytes, mime: mimeDeRuta(foto.storage_path), pixeles: 0, firma: null, repetidas: [] };
+    if (!vistas.has(hash)) vistas.set(hash, bajada);
+    bajadas.push(bajada);
+  }
+
+  // 2. Achicar las pesadas y firmar cada una (si hay con qué). Una que no se puede procesar sigue como vino.
+  if (o.procesar && bajadas.length) {
+    const procesadas = await o.procesar(bajadas.map((b) => ({ bytes: b.bytes, mime: b.mime })));
+    procesadas.forEach((p, i) => {
+      if (!p) return;
+      Object.assign(bajadas[i], { bytes: p.bytes, mime: p.mime, pixeles: p.ancho * p.alto, firma: p.firma });
+    });
+  }
+
+  // 3. La misma foto en dos tamaños (la familia la subió chica y después grande): queda una, en el lugar de la
+  // primera y con los píxeles de la más grande.
+  const quedan: Bajada[] = [];
+  for (const b of bajadas) {
+    const igual = b.firma && !enCapitulo(b.foto)
+      ? quedan.find((q) => q.firma && !enCapitulo(q.foto) && diferenciaDeFirmas(q.firma, b.firma!) <= DIFERENCIA_MISMA_FOTO)
+      : undefined;
+    if (!igual) { quedan.push(b); continue; }
+    console.warn(`cargarFotos: ${b.foto.storage_path} es la misma foto que ${igual.foto.storage_path} en otro tamaño; va una sola vez.`);
+    igual.repetidas.push(b.foto.id, ...b.repetidas);
+    if (b.pixeles > igual.pixeles) Object.assign(igual, { bytes: b.bytes, mime: b.mime, pixeles: b.pixeles });
+  }
+
+  const porCapitulo = new Map<string, FotosCapitulo>();
+  const porId = new Map<string, FotoLibro>();
+  const enOrden: FotosDelLibro['enOrden'] = [];
+  let bytesEmbebidos = 0;
+  for (const { foto, bytes, mime, repetidas } of quedan) {
     if (bytes.length > LIMITE_BYTES_FOTO) {
       console.warn(`cargarFotos: ${foto.storage_path} pesa ${enMb(bytes.length)} (tope ${enMb(LIMITE_BYTES_FOTO)}); la foto se omite.`);
       continue;
@@ -170,11 +244,13 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
     }
     bytesEmbebidos += bytes.length;
     const fotoLibro: FotoLibro = {
-      dataUri: comoDataUri(foto.storage_path, bytes),
+      dataUri: `data:${mime};base64,${bytes.toString('base64')}`,
       epigrafe: foto.epigrafe?.trim() || null,
       foco: normalizarFoco(foto.foco),
     };
-    porId.set(foto.id, fotoLibro);
+    // Una repetida que se juntó con esta sigue encontrándose por su id (la tapa puede haber elegido esa).
+    for (const id of [foto.id, ...repetidas]) porId.set(id, fotoLibro);
+    enOrden.push({ ids: [foto.id, ...repetidas], capitulo: foto.capitulo, foto: fotoLibro });
 
     const capitulo = porCapitulo.get(foto.capitulo) ?? { apertura: null, cierre: [] };
     if (foto.principal && capitulo.apertura === null) {
@@ -187,5 +263,5 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
     porCapitulo.set(foto.capitulo, capitulo);
   }
 
-  return { porCapitulo, porId };
+  return { porCapitulo, porId, enOrden };
 }

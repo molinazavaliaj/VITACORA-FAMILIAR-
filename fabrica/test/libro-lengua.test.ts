@@ -62,3 +62,28 @@ describe('textos fijos del libro por lengua', () => {
     expect(trato(c)).toBe('vos');
   });
 });
+
+describe('el álbum de fotos del final (02/11)', () => {
+  const foto = (n: number) => ({ dataUri: `data:image/jpeg;base64,FOTO${n}`, epigrafe: n === 0 ? 'En el puerto' : null });
+
+  it('de a cuatro por página, con su título y el epígrafe, después del texto y antes del colofón', async () => {
+    const html = await construir({ album: Array.from({ length: 6 }, (_, i) => foto(i)) });
+    expect(html.match(/class="lienzo foto album quiebre"/g)).toHaveLength(2);
+    expect(html.match(/class="album-celda"/g)).toHaveLength(6);
+    expect(html).toContain('<span>Álbum de fotos</span>');
+    expect(html).toContain('<figcaption class="album-epigrafe">En el puerto</figcaption>');
+    expect(html.indexOf('FOTO5')).toBeGreaterThan(html.indexOf('La infancia'));
+    expect(html.indexOf('FOTO5')).toBeLessThan(html.indexOf('class="lienzo colofon'));
+  });
+
+  it('en catalán, «Àlbum de fotos»; con fotosPorPaginaAlbum, otra cantidad por página', async () => {
+    const html = await construir({ idioma: 'ca', album: Array.from({ length: 6 }, (_, i) => foto(i)), fotosPorPaginaAlbum: 6 });
+    expect(html).toContain('<span>Àlbum de fotos</span>');
+    expect(html.match(/class="lienzo foto album quiebre"/g)).toHaveLength(1);
+  });
+
+  it('sin fotos no hay álbum', async () => {
+    expect(await construir({ album: [] })).not.toContain('class="album-celda');
+    expect(await construir()).not.toContain('class="album-celda');
+  });
+});

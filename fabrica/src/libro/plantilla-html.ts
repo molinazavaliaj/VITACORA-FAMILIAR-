@@ -394,6 +394,12 @@ function construirEstilos(acento: string): string {
   /* El epígrafe va debajo de la foto dentro del mismo bloque: si ocupa dos o
      tres líneas, la foto se achica; nunca se pisan. */
   .apertura .apertura-foto-epigrafe { flex: none; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 12px; line-height: 1.4; color: var(--gris1); text-align: center; }
+  /* El álbum: el marco de la página de foto, con cada foto entera en su celda (posición fija, ver construirAlbum). */
+  .foto-marco.album-grilla { display: block; bottom: 60px; }
+  .album-celda { position: absolute; margin: 0; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+  .album-marco { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .album-marco img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .album-epigrafe { flex: none; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 11px; line-height: 1.35; color: var(--gris1); text-align: center; }
   .foto-epigrafe { position: absolute; left: 44px; right: 44px; bottom: 56px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 13px; line-height: 1.4; color: var(--gris1); text-align: center; }
 
   /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html, con un
@@ -635,6 +641,38 @@ function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; no
   </div>`;
 }
 
+/** Cuántas fotos entran en cada página del álbum (2 × 2). */
+export const FOTOS_POR_PAGINA_ALBUM = 4;
+
+/** El álbum del final (02/11): las fotos de la familia, de a cuatro por página, enteras y con su epígrafe. Una
+ *  página con una sola foto la muestra grande; con dos, una arriba de la otra. */
+function construirAlbum(opts: { fotos: FotoLibro[]; titulo: string; nombreNarrador: string; porPagina?: number }): string {
+  const { fotos, titulo, nombreNarrador, porPagina = FOTOS_POR_PAGINA_ALBUM } = opts;
+  const paginas: string[] = [];
+  for (let i = 0; i < fotos.length; i += porPagina) {
+    const grupo = fotos.slice(i, i + porPagina);
+    const columnas = grupo.length <= 2 ? 1 : 2;
+    const filas = Math.ceil(grupo.length / columnas);
+    // Cada foto en su marco con posición fija (no una grilla de CSS): al imprimir, Chromium partía la grilla entre
+    // páginas y la fila de abajo quedaba tapada por la página siguiente.
+    const celdas = grupo
+      .map((f, k) => {
+        const col = k % columnas, fila = Math.floor(k / columnas);
+        const lugar = `left: calc(${(col * 100) / columnas}% + ${col ? 8 : 0}px); top: calc(${(fila * 100) / filas}% + ${fila ? 8 : 0}px); ` +
+          `width: calc(${100 / columnas}% - ${columnas > 1 ? 8 : 0}px); height: calc(${100 / filas}% - ${filas > 1 ? 8 : 0}px)`;
+        return `<figure class="album-celda" style="${lugar}"><div class="album-marco"><img src="${escaparHtml(f.dataUri)}" alt="" /></div>${
+          f.epigrafe ? `<figcaption class="album-epigrafe">${escaparHtml(f.epigrafe)}</figcaption>` : ''
+        }</figure>`;
+      })
+      .join('');
+    paginas.push(`<div class="lienzo foto album quiebre">
+    <div class="foto-cabecera"><span>${escaparHtml(titulo)}</span><span>${escaparHtml(nombreNarrador)}</span></div>
+    <div class="foto-marco album-grilla">${celdas}</div>
+  </div>`);
+  }
+  return paginas.join('\n');
+}
+
 function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: string; nombreNarrador: string; mono: string; fotoAbajo?: FotoLibro }): string {
   const { numero, nombreCapitulo, nombreNarrador, mono, fotoAbajo } = opts;
   const numeroTexto = String(numero).padStart(2, '0');
@@ -715,6 +753,8 @@ export type LenguaLibro = 'es-AR' | 'es-ES' | 'ca';
 /** Los textos fijos del cuerpo del libro (Su voz, colofón), por lengua. Aprobados por Naza el 13/10. */
 const TEXTOS_LIBRO: Record<LenguaLibro, {
   antesDeEmpezar: string;
+  /** El encabezado de las páginas del álbum (02/11). */
+  album: string;
   suVoz: string; suVozBajada: string; escuchala: string; altFrase: string; altLibro: string;
   libroEntero: string; libroEnteroBajada: string;
   colofon1: string; colofon2: string; cierre: string;
@@ -723,6 +763,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
 }> = {
   'es-AR': {
     antesDeEmpezar: 'Antes de empezar',
+    album: 'Álbum de fotos',
     suVoz: 'Su voz',
     suVozBajada: 'Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.',
     escuchala: 'Escuchala',
@@ -737,6 +778,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   },
   'es-ES': {
     antesDeEmpezar: 'Antes de empezar',
+    album: 'Álbum de fotos',
     suVoz: 'Su voz',
     suVozBajada: 'Aquí están sus frases, tal como las dijo. Apunta el teléfono al código de una y la escuchas.',
     escuchala: 'Escúchala',
@@ -751,6 +793,7 @@ const TEXTOS_LIBRO: Record<LenguaLibro, {
   },
   ca: {
     antesDeEmpezar: 'Abans de començar',
+    album: 'Àlbum de fotos',
     suVoz: 'La seva veu',
     suVozBajada: 'Aquí hi ha les seves frases, tal com les va dir. Apunta el telèfon al codi d’una i l’escoltaràs.',
     escuchala: 'Escolta-la',
@@ -1345,6 +1388,11 @@ export async function construirHtmlLibro(datos: {
    *  capítulo tal cual aparece en `indice`. Sin esto, ningún capítulo lleva
    *  páginas de foto. */
   fotosPorCapitulo?: Map<string, FotosCapitulo>;
+  /** El álbum del final (`fotosDelAlbum` de fotos.ts): va después del texto y antes de «Su voz». Vacío o sin
+   *  esto, no hay álbum. */
+  album?: FotoLibro[];
+  /** Fotos por página del álbum. Sin esto, FOTOS_POR_PAGINA_ALBUM. */
+  fotosPorPaginaAlbum?: number;
   /** Color de acento de la colección (franja de lomo, cruces, cita, folio).
    *  Opcional — sin él, el vino de la identidad aprobada. */
   acento?: string;
@@ -1408,6 +1456,9 @@ export async function construirHtmlLibro(datos: {
     datos.frases && datos.urlCliente
       ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente, lengua })
       : '';
+  const albumHtml = datos.album?.length
+    ? construirAlbum({ fotos: datos.album, titulo: TEXTOS_LIBRO[lengua].album, nombreNarrador, ...(datos.fotosPorPaginaAlbum ? { porPagina: datos.fotosPorPaginaAlbum } : {}) })
+    : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono, lengua, ...(datos.anioColofon ? { anio: datos.anioColofon } : {}) });
   // En imprenta la contratapa es la de la cubierta (bookmundo/cubierta.ts), no una página del libro.
   const contratapaHtml = imprenta ? '' : construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono, idioma: datos.idioma ?? 'es' });
@@ -1429,6 +1480,7 @@ ${fuentesHtml}
 <body data-narrador="${escaparHtml(nombreNarrador)}"${atributosImprenta}>
 ${portadaHtml}
 ${contenidoHtml}
+${albumHtml}
 ${seccionVozHtml}
 ${colofonHtml}
 ${contratapaHtml}

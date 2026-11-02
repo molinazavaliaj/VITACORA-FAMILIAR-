@@ -1,14 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarFotos, mimeDeRuta, normalizarFoco, atributoFoco, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
+import { cargarFotos, mimeDeRuta, normalizarFoco, atributoFoco, LIMITE_BYTES_FOTO, fotosDelAlbum, diferenciaDeFirmas } from '../src/libro/fotos.js';
+import type { ProcesarFotos } from '../src/libro/preparar-fotos.js';
 
 // Nota: `Buffer.from(bytes).buffer.slice(0)` puede devolver el ArrayBuffer
 // del pool interno de Node (más grande que los bytes reales) para strings
 // cortos, no el recorte exacto. Se arma el Uint8Array primero y se toma SU
 // buffer para garantizar el largo exacto.
-// Un número en vez de string = archivo de ese tamaño en bytes (para probar las cotas).
+// Un número en vez de string = archivo de ese tamaño en bytes (para probar las cotas). Cada uno distinto: dos
+// archivos iguales son la misma foto y entran una sola vez.
+let semilla = 0;
 function blobFake(bytes: string | number) {
   return {
-    arrayBuffer: async () => (typeof bytes === 'number' ? new Uint8Array(bytes).buffer : new Uint8Array(Buffer.from(bytes)).buffer),
+    arrayBuffer: async () => {
+      if (typeof bytes !== 'number') return new Uint8Array(Buffer.from(bytes)).buffer;
+      const a = new Uint8Array(bytes);
+      a[0] = ++semilla % 256;
+      a[1] = Math.floor(semilla / 256) % 256;
+      return a.buffer;
+    },
   };
 }
 
@@ -325,5 +334,68 @@ describe('cargarFotos', () => {
   it('si la consulta a la tabla falla, tira (eso sí es un error del pedido)', async () => {
     const db = construirDb({ fotos: { data: null, error: { message: 'boom' } }, archivos: {} });
     await expect(cargarFotos(db as never, 'n1')).rejects.toThrow('boom');
+  });
+});
+
+describe('el álbum: repetidas y fotosDelAlbum (02/11)', () => {
+  const fila = (id: string, orden: number, capitulo: string | null = null) => ({
+    id, narrador_id: 'n1', capitulo, storage_path: `n1/fotos/${id}.jpg`, epigrafe: null, principal: false, orden,
+  });
+  // Firma de 16×16 grises: un tono parejo por foto alcanza para el test.
+  const firma = (tono: number) => tono.toString(16).padStart(2, '0').repeat(256);
+
+  it('la misma foto subida dos veces (mismos bytes) entra una vez; la otra fila se sigue encontrando por su id', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirDb({
+      fotos: { data: [fila('a', 0), fila('b', 1), fila('c', 2)], error: null },
+      archivos: { 'n1/fotos/a.jpg': 'uno', 'n1/fotos/b.jpg': 'dos', 'n1/fotos/c.jpg': 'uno' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    expect(fotos.enOrden.map((f) => f.ids)).toEqual([['a', 'c'], ['b']]);
+    expect(fotos.porId.get('c')).toBe(fotos.porId.get('a'));
+    warn.mockRestore();
+  });
+
+  it('la misma foto en dos tamaños (firma casi igual) queda una, en el lugar de la primera y con los píxeles de la grande', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirDb({
+      fotos: { data: [fila('chica', 0), fila('otra', 1), fila('grande', 2)], error: null },
+      archivos: { 'n1/fotos/chica.jpg': 'c', 'n1/fotos/otra.jpg': 'o', 'n1/fotos/grande.jpg': 'g' },
+    });
+    const procesar: ProcesarFotos = async (fs) => fs.map((f) => {
+      const t = f.bytes.toString();
+      return { bytes: Buffer.from(t.toUpperCase()), mime: 'image/jpeg', ancho: t === 'g' ? 3000 : 900, alto: 1200, firma: firma(t === 'o' ? 200 : t === 'c' ? 100 : 103) };
+    });
+    const fotos = await cargarFotos(db as never, 'n1', { procesar });
+    expect(fotos.enOrden.map((f) => f.ids)).toEqual([['chica', 'grande'], ['otra']]);
+    expect(fotos.enOrden[0].foto.dataUri).toBe(`data:image/jpeg;base64,${Buffer.from('G').toString('base64')}`);
+    warn.mockRestore();
+  });
+
+  it('una foto que la familia puso en un capítulo no se junta con otra igual', async () => {
+    const db = construirDb({
+      fotos: { data: [fila('a', 0, 'Infancia'), fila('b', 1)], error: null },
+      archivos: { 'n1/fotos/a.jpg': 'igual', 'n1/fotos/b.jpg': 'igual' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    expect(fotos.enOrden.map((f) => f.ids)).toEqual([['a'], ['b']]);
+  });
+
+  it('fotosDelAlbum: todas en su orden, menos la de tapa (también si se eligió la repetida) y las que ya van en un capítulo', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirDb({
+      fotos: { data: [fila('a', 0), fila('b', 1), fila('c', 2, 'Infancia'), fila('d', 3), fila('e', 4)], error: null },
+      archivos: { 'n1/fotos/a.jpg': '1', 'n1/fotos/b.jpg': '2', 'n1/fotos/c.jpg': '3', 'n1/fotos/d.jpg': '4', 'n1/fotos/e.jpg': '2' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    const album = fotosDelAlbum(fotos, { tapaId: 'e', capitulosConFotos: ['Infancia'] });
+    expect(album).toEqual([fotos.porId.get('a'), fotos.porId.get('d')]);
+    expect(fotosDelAlbum(fotos)).toHaveLength(4);
+    warn.mockRestore();
+  });
+
+  it('diferenciaDeFirmas: la media por píxel; firmas de otro largo no se comparan', () => {
+    expect(diferenciaDeFirmas(firma(10), firma(14))).toBe(4);
+    expect(diferenciaDeFirmas(firma(10), 'ab')).toBe(Infinity);
   });
 });

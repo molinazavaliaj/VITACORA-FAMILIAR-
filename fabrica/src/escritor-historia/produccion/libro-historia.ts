@@ -39,7 +39,8 @@ import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
 import { leerEdicion } from '../../libro/edicion.js';
-import { cargarFotos } from '../../libro/fotos.js';
+import { cargarFotos, fotosDelAlbum } from '../../libro/fotos.js';
+import { procesarFotosConChromium } from '../../libro/preparar-fotos.js';
 import { construirHtmlLibro } from '../../libro/plantilla-html.js';
 import { esTablaAusente } from '../../historia/candado.js';
 import { carpetaDeHistoria } from '../material/carpeta.js';
@@ -387,7 +388,10 @@ type NarradorParaLibro = { id: string; nombre: string; foto_url: string | null; 
 export async function htmlLibroHistoria(db: Db, a: { narrador: NarradorParaLibro; libroMd: string; idioma: 'es' | 'ca'; trato: 'vos' | 'tu'; textos: TextosTapaHistoria }): Promise<string> {
   const p = libroParaPlantilla(a.libroMd);
   const edicion = leerEdicion(a.narrador.edicion);
-  const fotoTapa = edicion.portadaFotoId ? (await cargarFotos(db, a.narrador.id)).porId.get(edicion.portadaFotoId) : undefined;
+  const fotos = await cargarFotos(db, a.narrador.id, { procesar: procesarFotosConChromium });
+  const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
+  // Las fotos de la familia que no van en la tapa, en el álbum del final (02/11).
+  const album = fotosDelAlbum(fotos, { tapaId: fotoTapa ? edicion.portadaFotoId : null });
   return construirHtmlLibro({
     titulo: p.titulo,
     nombreNarrador: a.narrador.nombre,
@@ -397,6 +401,7 @@ export async function htmlLibroHistoria(db: Db, a: { narrador: NarradorParaLibro
     fotoFoco: fotoTapa?.foco,
     indice: p.indice,
     libroMarkdown: p.libroMarkdown,
+    album,
     idioma: a.idioma,
     trato: a.trato,
     tapaEyebrow: a.textos.eyebrow,

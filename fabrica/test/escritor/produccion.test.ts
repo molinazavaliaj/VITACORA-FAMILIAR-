@@ -36,6 +36,7 @@ function baseFalsa(o: { tablas?: Record<string, Fila[]>; archivos?: Record<strin
       const q: any = {
         select: () => q,
         eq: (c: string, v: unknown) => { filtros.push((f) => f[c] === v); return q; },
+        order: () => q,
         in: (c: string, vs: unknown[]) => { filtros.push((f) => vs.includes(f[c])); return q; },
         insert: async (fila: Fila) => { (tablas[tabla] ??= []).push(fila); return { error: null }; },
         update: (c: Fila) => { cambios = c; return q; },
