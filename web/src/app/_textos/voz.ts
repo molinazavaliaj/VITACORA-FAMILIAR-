@@ -49,8 +49,13 @@ export type TextosVoz = {
   cierre: string;
   cierreBoton: string;
   hechoCon: string;
-  /** Los de siempre de la página vieja (aprobados en es y ar). */
+  /** Cuando todavía no hay frases con audio (portada y sección de frases). */
   sinFrases: string;
+  /** Debajo del titular de las frases, cuando ya están (la frase que propuso Naza el 02/11). */
+  conFrases: string;
+  /** Los botones de la tapa del libro (Naza, 02/11: la tapa entera en vez del iframe). */
+  abrirLibro: string;
+  descargarPdf: string;
   libro: string;
   libroNoEsta: string;
   /** Los botones de cada frase (aprobados en es y ar). */
@@ -107,7 +112,12 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
     hechoCon: "Hecho por Vitácora",
     // Aprobados (página vieja)
-    sinFrases: "Sus mejores frases, en su voz, se están preparando. Vuelve en un rato.",
+    // PENDIENTE de Naza (02/11) · antes «Sus mejores frases, en su voz, se están preparando. Vuelve en un rato.»
+    sinFrases: "Pronto podrás escuchar aquí sus mejores frases.",
+    // PENDIENTE de Naza (02/11)
+    conFrases: "Aquí viven sus mejores frases, para siempre.",
+    abrirLibro: "Abrir el libro",
+    descargarPdf: "Descargar el PDF",
     libro: "El libro",
     libroNoEsta: "El libro se está armando. Vuelve en un rato.",
     mandarWhatsapp: "Mandar por WhatsApp",
@@ -145,7 +155,12 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     cierreBoton: "Empezar el libro de mi familia",
     // APROBADO por Naza 18/10 (tanda 2, #17) · SV-13 la firma, «por» en vez del «con» de la maqueta
     hechoCon: "Hecho por Vitácora",
-    sinFrases: "Sus mejores frases, en su voz, se están preparando. Volvé en un rato.",
+    // PENDIENTE de Naza (02/11) · antes «Sus mejores frases, en su voz, se están preparando. Volvé en un rato.»
+    sinFrases: "Pronto vas a poder escuchar acá sus mejores frases.",
+    // PENDIENTE de Naza (02/11) · la que propuso él
+    conFrases: "Acá viven sus mejores frases, para siempre.",
+    abrirLibro: "Abrir el libro",
+    descargarPdf: "Descargar el PDF",
     libro: "El libro",
     libroNoEsta: "El libro se está armando. Volvé en un rato.",
     mandarWhatsapp: "Mandar por WhatsApp",
@@ -179,7 +194,11 @@ export const TEXTOS_VOZ: Textos<TextosVoz> = {
     cierre: "A cada família hi ha un llibre per escriure.",
     cierreBoton: "Començar el llibre de la meva família",
     hechoCon: "Fet per Vitácora",
-    sinFrases: "Les seves millors frases, amb la seva veu, s'estan preparant. Torna d'aquí a una estona.",
+    // PENDIENTE de Naza (02/11), pasar por Softcatalà
+    sinFrases: "Aviat podràs escoltar aquí les seves millors frases.",
+    conFrases: "Aquí viuen les seves millors frases, per sempre.",
+    abrirLibro: "Obrir el llibre",
+    descargarPdf: "Descarregar el PDF",
     libro: "El llibre",
     libroNoEsta: "El llibre s'està preparant. Torna d'aquí a una estona.",
     mandarWhatsapp: "Enviar per WhatsApp",
