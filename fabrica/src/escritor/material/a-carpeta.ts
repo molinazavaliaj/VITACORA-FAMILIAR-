@@ -2,8 +2,11 @@
 // Las respuestas "paso" no llegan al escritor (receta, paso 0); quedan en etiquetas.json.
 // Las correcciones de la familia se suman a confirmado.xml (van a todos los pasos dentro de
 // <confirmado_por_el_narrador>, que es lo que leen la receta y C14). Cada línea de la familia va en una sola
-// línea (C14 cuenta las líneas "- ") y sin < ni > (no puede cerrar la etiqueta).
-import type { Carpeta } from '../carpeta.js';
+// línea (C14 cuenta las líneas "- ") y sin < ni > (no puede cerrar la etiqueta). La respuesta a una duda va con su
+// pregunta: suelta, un «13» o un «OMAR» no dice de qué habla (libro de Juan Domingo, 01/11: el modelo barato dejó
+// afuera 11 de 25 respuestas, falló C14 y Opus rehízo registro y plan, USD 2,26 de más).
+import { parseJSONTolerante, type Carpeta } from '../carpeta.js';
+import { salida } from '../lectura.js';
 import { aMaterial, esc, etiquetas, respuestasXml, type EstadoEntrevista, type Fila } from './de-entrevista.js';
 import { fichaXml, type FichaParaXml } from './ficha-xml.js';
 
@@ -24,8 +27,26 @@ export function materialACarpeta(c: Carpeta, m: { estado: EstadoEntrevista & { f
 
 const ENCABEZADO_FAMILIA = '(Correcciones de la familia antes de escribir el libro. Mandan sobre las respuestas.)';
 
+/** Qué preguntaba cada duda, de la salida de la Etapa A. Sin el archivo o roto, ninguna: la respuesta va sola. */
+function preguntasDeLasDudas(c: Carpeta): Map<string, string> {
+  const archivo = salida('dudas-familia.json');
+  if (!c.existe(archivo)) return new Map();
+  try {
+    const dudas = (parseJSONTolerante(c.leer(archivo)) as { dudas?: { id?: unknown; pregunta?: unknown }[] }).dudas ?? [];
+    return new Map(dudas.flatMap((d) => (typeof d.id === 'string' && typeof d.pregunta === 'string' && d.pregunta.trim() ? [[d.id, lineaFamilia(d.pregunta)] as [string, string]] : [])));
+  } catch {
+    return new Map();
+  }
+}
+
 export function agregarConfirmados(c: Carpeta, correcciones: CorreccionFamilia[]): boolean {
-  const lineas = correcciones.map((x) => lineaFamilia(x.texto)).filter(Boolean).map((t) => `- ${t}`);
+  const preguntas = preguntasDeLasDudas(c);
+  const lineas = correcciones.flatMap((x) => {
+    const t = lineaFamilia(x.texto);
+    if (!t) return [];
+    const pregunta = x.dudaId ? preguntas.get(x.dudaId) : undefined;
+    return [pregunta ? `- Pregunta: ${pregunta} Respuesta: ${t}` : `- ${t}`];
+  });
   if (!lineas.length) return false;
   const bloque = `${ENCABEZADO_FAMILIA}\n${lineas.join('\n')}`;
   const antes = c.existe('entradas/confirmado.xml') ? c.leer('entradas/confirmado.xml').trim() : '';

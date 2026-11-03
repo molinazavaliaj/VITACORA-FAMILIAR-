@@ -361,6 +361,14 @@ describe('C14: fecha segura con números en catalán (13/10, Imma)', () => {
   it('cuenta «catorze o quinze anys» como número', () => {
     expect(fecha('Devien tenir catorze o quinze anys quan es van conèixer, i quan en van tenir divuit i vint es van casar.')).toEqual([]);
   });
+  it('cuenta «tercer año» y «quinto grado», con y sin tilde (01/11, Juan Domingo)', () => {
+    expect(fecha('Cuando terminé el tercer año dije que quería trabajar.')).toEqual([]);
+    expect(fecha('Pasé a otra escuela en quinto grado.')).toEqual([]);
+    expect(fecha('Quan vaig acabar el tercer curs.')).toEqual([]);
+  });
+  it('un ordinal suelto no es una fecha', () => {
+    expect(fecha('Primero fui al cuarto y después salí.')).toHaveLength(1);
+  });
   it('sin ningún número, sigue sin pasar (ni con «un», «set», «nou» o «deu»)', () => {
     expect(fecha('El Nadal passat vam anar a Londres amb els nens.')).toHaveLength(1);
     expect(fecha('Tenia set i em deu un got nou.')).toHaveLength(1);

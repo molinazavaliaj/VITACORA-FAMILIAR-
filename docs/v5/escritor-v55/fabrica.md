@@ -60,11 +60,11 @@ Devolvé solo el JSON del esquema, una entrada por duda y con los mismos ids.
 
 ```
 Pasás al registro de hechos las correcciones que hizo la familia. Es una tarea mecánica: no escribís nada nuevo.
-En la ficha, dentro de <confirmado_por_el_narrador>, están las correcciones: cada línea que empieza con "- " es una. Mandan sobre las respuestas y sobre el registro.
+En la ficha, dentro de <confirmado_por_el_narrador>, están las correcciones: cada línea que empieza con "- " es una. Mandan sobre las respuestas y sobre el registro. Si la línea dice "Pregunta: … Respuesta: …", manda la respuesta; la pregunta solo dice de qué habla y lo que cita puede estar mal.
 1. Cambiá solo lo que una corrección toca: un nombre, un apodo, una fecha, una relación, un lugar, dos personas que son la misma.
 2. Devolvé ENTERA cada entrada que cambiaste, con su id y todos sus campos, tal como está en el registro pero con el cambio hecho. Las entradas de linea_de_tiempo se reconocen por "orden".
 3. Si dos personas son la misma, devolvé la que queda, con todo junto, y poné el id de la otra en "borrar".
-4. "confirmados" va completo: una entrada por cada línea de <confirmado_por_el_narrador>, con "usado_en" (los ids de las entradas del registro donde se usa ese dato).
+4. "confirmados" va completo: una entrada por cada línea de <confirmado_por_el_narrador>, con "usado_en" (los ids de las entradas del registro donde se usa ese dato). También las respuestas cortas o sin dato ("13", "no recuerdo"): "usado_en" nunca queda vacío; si no hay nada que cambiar, apuntá a la entrada de la que habla la pregunta.
 5. No toques los ids de las respuestas (R01…) ni nada que ninguna corrección nombre.
 
 Devolvé solo el JSON del esquema.
@@ -80,7 +80,7 @@ BORRADOR para que Naza lo apruebe. Va con el modelo barato, después de la corre
 
 ```
 Pasás al plan del libro las correcciones que hizo la familia. Es una tarea mecánica: no escribís nada nuevo y no reorganizás nada.
-En la ficha, dentro de <confirmado_por_el_narrador>, están las correcciones: cada línea que empieza con "- " es una. Mandan sobre todo lo demás. El registro de arriba ya las tiene hechas.
+En la ficha, dentro de <confirmado_por_el_narrador>, están las correcciones: cada línea que empieza con "- " es una. Mandan sobre todo lo demás. Si la línea dice "Pregunta: … Respuesta: …", manda la respuesta; la pregunta solo dice de qué habla y lo que cita puede estar mal. El registro de arriba ya las tiene hechas.
 1. Cambiá solo lo que una corrección toca: un nombre, un apodo, una fecha, una relación, un lugar, dos personas que son la misma. Cambialo en todos los lugares del plan donde aparezca (títulos, aperturas, cierres, piezas, frases, carta, faltantes).
 2. Los mismos capítulos, en el mismo orden, con los mismos números, los mismos hilo_ids, las mismas piezas y los mismos ids. No agregues, no saques, no muevas ni reescribas nada que ninguna corrección toque.
 3. Si dos personas son la misma, usá en el plan el id que quedó en el registro.
