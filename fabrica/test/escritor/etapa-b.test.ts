@@ -45,7 +45,15 @@ describe('Etapa B', () => {
     expect(await almacen.leer('carpeta-B.json')).not.toBeNull();
   });
 
-  it('si lo del barato no pasa C14, Opus rehace el registro y el plan', async () => {
+  it('si lo del barato no pasa C14, reintenta una vez con el error y, si pasa, no llama a Opus', async () => {
+    const negra = { ...JSON.parse(salidasModeloNelida()['1-registro']).personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
+    const { x, modelo } = armar({ 'correccion-registro': JSON.stringify({ confirmados: [] }), 'correccion-registro#2': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }), 'correccion-plan': planConNegra() });
+    expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'barato' });
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-registro#2', 'claude-haiku-4-5'], ['B/correccion-plan', 'claude-haiku-4-5']]);
+    expect(modelo.llamadas[1].bloques.join(' ')).toContain('no pasó estos controles');
+  });
+
+  it('si lo del barato no pasa C14 ni al reintento, Opus rehace el registro y el plan', async () => {
     const reg = JSON.parse(salidasModeloNelida()['1-registro']);
     const { x, modelo } = armar({
       'correccion-registro': JSON.stringify({ confirmados: [] }),
@@ -53,8 +61,8 @@ describe('Etapa B', () => {
       '2-plan': salidasModeloNelida()['2-plan'],
     });
     expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
-    expect(modelo.llamadas[1].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-registro#2', 'claude-haiku-4-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
+    expect(modelo.llamadas[2].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
   });
 
   it('si algo se corta en medio (error de la API), lo pagado queda en costos.json', async () => {

@@ -1,7 +1,7 @@
 // fabrica/src/escritor/orquestador/etapa-b.ts
 // Etapa B (spec, decisión 4): las correcciones de la familia van a confirmado.xml (llegan a todos los
-// pasos) y al registro con el modelo barato (Haiku 4.5, modelo/configuracion.ts; tarea mecánica). C14 lo verifica; si falla, Opus rehace
-// registro y plan. Sin correcciones, no se llama a ningún modelo.
+// pasos) y al registro con el modelo barato (Haiku 4.5, modelo/configuracion.ts; tarea mecánica). C14 lo verifica; si falla, el barato
+// reintenta una vez con el error (centavos); si vuelve a fallar, Opus rehace registro y plan (dólares). Sin correcciones, no se llama a ningún modelo.
 //
 // La Etapa B arranca SIEMPRE de la carpeta que dejó la Etapa A (carpeta-A.json): agregarConfirmados no es
 // idempotente si las correcciones se pisan (una segunda vuelta con [A, B] sobre una carpeta que ya tiene [A]
@@ -22,6 +22,23 @@ export type ResultadoEtapaB = { ok: true; corregido: 'nada' | 'barato' | 'opus' 
 async function terminar(x: Contexto, r: ResultadoEtapaB): Promise<ResultadoEtapaB> {
   await guardarSnapshot(x, 'B');
   return r;
+}
+
+/** El barato pasa las correcciones al registro y C14 lo verifica. Cada intento parte del registro de la Etapa A. Si no pasa, el registro queda como estaba. */
+async function corregirRegistroBarato(x: Contexto): Promise<boolean> {
+  const archivo = salida('registro.json');
+  const original = x.c.leer(archivo);
+  let error: string | undefined;
+  for (let i = 0; i < 2; i++) {
+    const texto = await x.ej.uno({ clave: `B/correccion-registro${i ? '#2' : ''}`, llamada: llamadaCorreccion(x.c, { error }), json: true });
+    x.c.escribir(archivo, JSON.stringify(aplicarCorreccion(leerJSON(x.c, archivo), parseJSONTolerante(texto)), null, 1));
+    const r = controlar(x.c, 'registro');
+    x.log(`registro corregido (barato): ${r.resumen.split('\n')[0]}`);
+    if (r.codigo === 0) return true;
+    error = JSON.stringify(r.problemas);
+    x.c.escribir(archivo, original);
+  }
+  return false;
 }
 
 /** El barato pasa las correcciones al plan (entero, mismos capítulos) y los controles del plan lo verifican. */
@@ -58,11 +75,7 @@ async function etapaBSinCostos(x: Contexto, correcciones: CorreccionFamilia[]): 
   }
   if (!agregarConfirmados(x.c, correcciones) && !correcciones.some((k) => k.texto.trim())) return terminar(x, { ok: true, corregido: 'nada' });
   try {
-    const texto = await x.ej.uno({ clave: 'B/correccion-registro', llamada: llamadaCorreccion(x.c), json: true });
-    x.c.escribir(salida('registro.json'), JSON.stringify(aplicarCorreccion(leerJSON(x.c, salida('registro.json')), parseJSONTolerante(texto)), null, 1));
-    const r = controlar(x.c, 'registro');
-    x.log(`registro corregido (barato): ${r.resumen.split('\n')[0]}`);
-    if (r.codigo === 0) {
+    if (await corregirRegistroBarato(x)) {
       if (await corregirPlanBarato(x)) return terminar(x, { ok: true, corregido: 'barato' });
       // El plan lo rehace Opus (el registro corregido queda).
       x.c.borrar(salida('plan.json'));
