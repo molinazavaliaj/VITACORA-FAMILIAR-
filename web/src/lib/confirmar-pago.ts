@@ -23,6 +23,7 @@ import { marcarCuponUsado } from "./cupon-base";
 import { registrarComision } from "./creadores-base";
 import { enviarMailSocios, urlBaseMail } from "./mail";
 import { mailTarjetaImpresa, type TarjetaImpresa } from "./tarjeta-impresa";
+import { mailAvisoVenta } from "./aviso-venta";
 import { avisarCompraAMeta, type CompraParaMeta, type ResultadoAvisoMeta } from "./meta-conversiones";
 
 export type ResultadoConfirmacion =
@@ -160,7 +161,7 @@ export async function confirmarPago(
   // 4. El mail: de acceso, o (regalo) el de la tarjeta.
   const [{ data: familia }, { data: narrador }] = await Promise.all([
     admin.from("familias").select("email").eq("id", pedido.familia_id).maybeSingle(),
-    admin.from("narradores").select("como_le_dicen").eq("id", pedido.narrador_id).maybeSingle(),
+    admin.from("narradores").select("como_le_dicen, contexto").eq("id", pedido.narrador_id).maybeSingle(),
   ]);
 
   const email = (familia as { email?: string } | null)?.email ?? null;
@@ -211,6 +212,16 @@ export async function confirmarPago(
     } catch (err) {
       console.error(`confirmarPago: el pedido ${pedidoId} lleva la tarjeta impresa y no pude avisarles a los socios. Hay que mandarla a mano (pedidos.extras.tarjeta):`, err);
     }
+  }
+
+  // 4c. La venta, a los socios (Naza, 04/11): solo la primera vez (un reintento
+  //     entra por yaEstaba). Nunca tira ni cambia el resultado del pago.
+  try {
+    const modo = (narrador as { contexto?: { modo?: unknown } | null } | null)?.contexto?.modo;
+    const { asunto, texto } = mailAvisoVenta({ pedidoId: pedido.id, monto, moneda, email, extras, modo });
+    if (!(await enviarMailSocios(asunto, texto))) throw new Error("el mail a los socios no salió (¿MAIL_SOCIOS?)");
+  } catch (err) {
+    console.error(`confirmarPago: no salió el aviso de venta del pedido ${pedidoId}:`, err);
   }
 
   // 5. La compra, a Meta (medición de anuncios, 26/10): solo la primera vez y

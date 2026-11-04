@@ -266,7 +266,8 @@ describe("confirmarPago con el código de un creador", () => {
     expect(insert.valores).toMatchObject({ creador_id: "c1", pedido_id: "p1", codigo: "LUCIA", total: 77175, moneda: "ARS", porcentaje: 20, importe: 15435 });
     // Nunca toca la tabla del rasca: no hay «cupón usado dos veces».
     expect(admin.ops.some((o) => o.tabla === "cupones")).toBe(false);
-    expect(mails).toEqual([]);
+    // El único mail es el aviso de venta, el de cualquier compra (test/aviso-venta.test.ts).
+    expect(mails.map((m) => m.subject)).toEqual(["Nueva venta · Libro · $ 77.175"]);
   });
 
   it("en euros, a los céntimos", async () => {
@@ -287,7 +288,7 @@ describe("confirmarPago con el código de un creador", () => {
     const admin = baseDePago({ extras: EXTRAS, errorComision: { code: "23505", message: "duplicate key value violates unique constraint" } });
     const r = await confirmar(admin);
     expect(r).toMatchObject({ ok: true, yaEstaba: false });
-    expect(mails.some((m) => m.to.includes("socios@ejemplo.com"))).toBe(false);
+    expect(mails.some((m) => m.subject === "Comisión de creador sin anotar")).toBe(false);
   });
 
   it("si la base falla, el pago sigue confirmado y se avisa a los socios", async () => {

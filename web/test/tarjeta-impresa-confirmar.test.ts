@@ -39,6 +39,8 @@ const opciones = () => ({
   avisarCompra: vi.fn().mockResolvedValue({ ok: true }),
 });
 const socios = enviarMailSocios as unknown as ReturnType<typeof vi.fn>;
+// Cada venta manda además su aviso (test/aviso-venta.test.ts): acá cuenta el de la tarjeta.
+const mailsDeTarjeta = () => socios.mock.calls.filter((c) => String(c[0]).startsWith("Tarjeta impresa"));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -50,8 +52,8 @@ describe("confirmarPago con la tarjeta impresa", () => {
     const r = await confirmarPago(admin({ pedido: true, extras: { pdf: true, regalo: true, tarjeta: TARJETA } }), opciones());
 
     expect(r).toMatchObject({ ok: true, yaEstaba: false, codigoRegalo: "VF-ABC123" });
-    expect(socios).toHaveBeenCalledTimes(1);
-    const [asunto, texto] = socios.mock.calls[0] as [string, string];
+    expect(mailsDeTarjeta()).toHaveLength(1);
+    const [asunto, texto] = mailsDeTarjeta()[0] as [string, string];
     expect(asunto).toBe("Tarjeta impresa para mandar · VF-ABC123");
     expect(texto).toContain("Lucía Pérez");
     expect(texto).toContain("lucia@ejemplo.com");
@@ -67,9 +69,9 @@ describe("confirmarPago con la tarjeta impresa", () => {
     expect(socios).not.toHaveBeenCalled();
   });
 
-  it("sin tarjeta, no hay mail a los socios", async () => {
+  it("sin tarjeta, no hay mail de tarjeta a los socios", async () => {
     await confirmarPago(admin({ pedido: true, extras: { pdf: true, regalo: true } }), opciones());
-    expect(socios).not.toHaveBeenCalled();
+    expect(mailsDeTarjeta()).toHaveLength(0);
   });
 
   it("si el mail falla, el pago queda confirmado igual y se loguea para hacerlo a mano", async () => {
@@ -93,7 +95,7 @@ describe("confirmarPago con la tarjeta impresa", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const r = await confirmarPago(admin({ pedido: true, extras: { pdf: true, regalo: true, tarjeta: TARJETA }, regalo: null }), opciones());
     expect(r.ok).toBe(true);
-    expect(socios).not.toHaveBeenCalled();
+    expect(mailsDeTarjeta()).toHaveLength(0);
     expect(error.mock.calls.some((c) => String(c[0]).includes("tarjeta impresa"))).toBe(true);
     error.mockRestore();
   });
