@@ -483,7 +483,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             {t.iniciar}
           </Link>
         </div>
-        <Pie idioma={idioma} camino="/" rasca />
+        <Pie idioma={idioma} camino="/" rasca landings={["preguntas", "voz"]} />
       </section>
 
       <WhatsAppFlotante idioma={idioma} />

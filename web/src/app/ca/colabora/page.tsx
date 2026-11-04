@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: TEXTOS_COLABORA.ca.meta.titulo,
   description: TEXTOS_COLABORA.ca.meta.descripcion,
   alternates: alternativasColabora("ca"),
+  // Sin enlaces ni sitemap, como quiere Naza (21/10): que Google tampoco la muestre.
+  robots: { index: false, follow: false },
 };
 
 export default function PaginaColaboraCa() {

@@ -1,4 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
+import type { Landing } from "./landings";
 
 // Los textos de la cabecera y el pie públicos (rediseño 2026-10), los que
 // comparten la portada, /ejemplo y el checkout. Los nuevos están listados para
@@ -38,6 +39,8 @@ export type TextosPublico = {
   opiniones: string;
   /** El enlace del pie a /eventos (Vitácora Eventos, 17/10). */
   eventos: string;
+  /** Los enlaces del pie a las landings. */
+  landings: Record<Landing, string>;
 };
 
 export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
@@ -67,6 +70,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     escribirWhatsApp: "Escríbenos por WhatsApp",
     opiniones: "Opiniones",
     eventos: "Eventos",
+    landings: { regalo: "Un regalo para tu padre", preguntas: "Lo que nunca le preguntaste", voz: "Su voz, guardada", viaje: "El libro del viaje" },
   },
   ca: {
     inicio: "Vitácora, inici",
@@ -93,6 +97,7 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     escribirWhatsApp: "Escriu-nos per WhatsApp",
     opiniones: "Opinions",
     eventos: "Esdeveniments",
+    landings: { regalo: "Un regal per al teu pare", preguntas: "El que mai li has preguntat", voz: "La seva veu, guardada", viaje: "El llibre del viatge" },
   },
   ar: {
     inicio: "Vitácora, inicio",
@@ -119,5 +124,6 @@ export const TEXTOS_PUBLICO: Textos<TextosPublico> = {
     escribirWhatsApp: "Escribinos por WhatsApp",
     opiniones: "Opiniones",
     eventos: "Eventos",
+    landings: { regalo: "Un regalo para tu papá", preguntas: "Lo que nunca le preguntaste", voz: "Su voz, guardada", viaje: "El libro del viaje" },
   },
 };

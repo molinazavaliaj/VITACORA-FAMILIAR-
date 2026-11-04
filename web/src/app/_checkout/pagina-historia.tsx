@@ -5,6 +5,7 @@ import { rascaPrendido } from "@/lib/cupon";
 import { creadoresPrendido } from "@/lib/creadores";
 import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { historiaVendeEn } from "@/lib/historia";
+import { COMPRA_SIN_INDEXAR } from "@/lib/seo";
 import { alternativas, regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { TEXTOS_HISTORIA } from "../_textos/historia";
 import { enlaceEscribir } from "../_kids/piezas";
@@ -18,7 +19,7 @@ import { CascaronCheckout } from "./cascaron";
 
 export function metadataHistoria(idioma: IdiomaWeb): Metadata {
   const t = TEXTOS_HISTORIA[idioma].meta;
-  return { title: { absolute: t.titulo }, description: t.descripcion, alternates: alternativas(idioma, "/comprar/historia") };
+  return { title: { absolute: t.titulo }, description: t.descripcion, alternates: alternativas(idioma, "/comprar/historia"), robots: COMPRA_SIN_INDEXAR };
 }
 
 export function PaginaComprarHistoria({ idioma }: { idioma: IdiomaWeb }) {

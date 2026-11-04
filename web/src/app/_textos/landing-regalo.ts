@@ -21,8 +21,8 @@ export type TextosLandingRegalo = TextosLandingBase & {
 export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
   es: {
     meta: {
-      titulo: "Un regalo para tu padre · Vitácora Familiar",
-      descripcion: "Le preguntamos por su vida por WhatsApp, él contesta con audios y tú recibes el libro de su vida, con su voz dentro.",
+      titulo: "Regalo para tu padre, el libro de su vida · Vitácora Familiar",
+      descripcion: "Le preguntamos por su vida por WhatsApp, él contesta con audios y tú recibes su biografía en un libro, con su voz dentro.",
     },
     etiqueta: "Un regalo para tu padre",
     titulo: "El regalo que no va a acabar en un cajón.",
@@ -43,8 +43,8 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
   },
   ar: {
     meta: {
-      titulo: "Un regalo para tu papá · Vitácora Familiar",
-      descripcion: "Le preguntamos por su vida por WhatsApp, él contesta con audios y vos recibís el libro de su vida, con su voz adentro.",
+      titulo: "Regalo para tu papá, el libro de su vida · Vitácora Familiar",
+      descripcion: "Le preguntamos por su vida por WhatsApp, él contesta con audios y vos recibís su biografía en un libro, con su voz adentro.",
     },
     etiqueta: "Un regalo para tu papá",
     titulo: "El regalo que no va a terminar en un cajón.",
@@ -66,8 +66,8 @@ export const TEXTOS_LANDING_REGALO: Textos<TextosLandingRegalo> = {
   // ca: revisado con el corrector de Softcatalà (18/10)
   ca: {
     meta: {
-      titulo: "Un regal per al teu pare · Vitácora Familiar",
-      descripcion: "Li preguntem per la seva vida per WhatsApp, ell respon amb àudios i tu reps el llibre de la seva vida, amb la seva veu a dins.",
+      titulo: "Regal per al teu pare, el llibre de la seva vida · Vitácora Familiar",
+      descripcion: "Li preguntem per la seva vida per WhatsApp, ell respon amb àudios i tu reps la seva biografia en un llibre, amb la seva veu a dins.",
     },
     etiqueta: "Un regal per al teu pare",
     titulo: "El regal que no acabarà en un calaix.",

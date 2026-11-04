@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { catalogo } from "@/lib/productos";
 import { promoPorcentaje } from "@/lib/promo";
+import { COMPRA_SIN_INDEXAR } from "@/lib/seo";
 import { alternativas, regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { CHECKOUT_VIAJE } from "../_textos/checkout-viaje";
 import { CheckoutViaje } from "../comprar/viaje/formulario";
@@ -12,7 +13,7 @@ import { CascaronCheckout } from "./cascaron";
 
 export function metadataViaje(idioma: IdiomaWeb): Metadata {
   const V = CHECKOUT_VIAJE[idioma];
-  return { title: V.tituloPagina, description: V.descripcion, alternates: alternativas(idioma, "/comprar/viaje") };
+  return { title: V.tituloPagina, description: V.descripcion, alternates: alternativas(idioma, "/comprar/viaje"), robots: COMPRA_SIN_INDEXAR };
 }
 
 export function PaginaComprarViaje({ idioma }: { idioma: IdiomaWeb }) {
