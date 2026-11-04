@@ -19,11 +19,14 @@ const sesion = () => window.sessionStorage;
 export function AlConfirmar({
   narradorId,
   entregaId,
+  conservarDireccion = false,
   textos,
 }: {
   narradorId: string | null;
   /** La entrega sin dirección de este narrador, si hay algo que viaja. */
   entregaId: string | null;
+  /** Todavía no entró con su código: al volver de /entrar la dirección se guarda. */
+  conservarDireccion?: boolean;
   textos: { guardada: string; falta: string; poner: string };
 }) {
   const [estado, setEstado] = useState<"esperando" | "guardada" | "falta">("esperando");
@@ -34,7 +37,7 @@ export function AlConfirmar({
     if (!narradorId || !entregaId) {
       // Sin entrega que completar (o sin sesión): la dirección no tiene dónde
       // ir desde acá, así que no se deja guardada en el navegador.
-      olvidar(sesion, CLAVE_DIRECCION);
+      if (!conservarDireccion) olvidar(sesion, CLAVE_DIRECCION);
       return;
     }
     const guardada = leer<DireccionGuardada>(sesion, CLAVE_DIRECCION, narradorId);
@@ -59,7 +62,7 @@ export function AlConfirmar({
     return () => {
       vigente = false;
     };
-  }, [narradorId, entregaId]);
+  }, [narradorId, entregaId, conservarDireccion]);
 
   if (!narradorId || !entregaId || estado === "esperando") return null;
   if (estado === "guardada") {

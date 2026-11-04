@@ -74,6 +74,14 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   return null; // stickers, reacciones, documentos, ubicaciones: se ignoran
 }
 
+/**
+ * Sin WA_APP_SECRET el servidor no arranca (04/11): es mejor un deploy que falla a
+ * la vista que un bot prendido sin saber quién le escribe.
+ */
+export function exigirSecretoWebhook(env: Record<string, string | undefined> = process.env) {
+  if (!env.WA_APP_SECRET?.trim()) throw new Error('Falta la variable de entorno WA_APP_SECRET');
+}
+
 export function registrarWebhook(
   app: FastifyInstance,
   procesar: (m: MensajeEntrante) => Promise<void>,
@@ -82,9 +90,8 @@ export function registrarWebhook(
   const config = cargarConfig();
   const secreto = (o.secreto ?? '').trim();
   if (!secreto) {
-    // Sin WA_APP_SECRET el webhook anda como antes (sin mirar la firma) para no
-    // cortar las entrevistas mientras se carga en Railway. La alarma de variables avisa.
-    app.log.warn('webhook: falta WA_APP_SECRET, los mensajes entran SIN comprobar la firma de Meta');
+    // Sin secreto no hay forma de saber que lo manda Meta: no entra nada.
+    app.log.error('webhook: falta WA_APP_SECRET, se descartan todos los mensajes');
   }
 
   // El JSON se lee igual que antes, pero guardando los bytes crudos para la firma.
@@ -109,9 +116,9 @@ export function registrarWebhook(
 
   app.post('/webhook', async (req, reply) => {
     reply.send({ ok: true }); // 200 inmediato: Meta reintenta ante cualquier otra cosa
-    // La firma (18/10): con el secreto cargado, lo que no firmó Meta se tira sin
-    // leerlo. Igual se contesta 200: a quien prueba no le decimos si acertó.
-    if (secreto && !firmaValida(req.cuerpoCrudo ?? '', req.headers['x-hub-signature-256'], secreto)) {
+    // La firma (18/10): lo que no firmó Meta se tira sin leerlo. Igual se contesta
+    // 200: a quien prueba no le decimos si acertó.
+    if (!secreto || !firmaValida(req.cuerpoCrudo ?? '', req.headers['x-hub-signature-256'], secreto)) {
       app.log.warn({ ip: req.ip }, 'webhook: firma de Meta inválida o ausente, se descarta');
       return;
     }

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { createHmac } from 'node:crypto';
 import Fastify from 'fastify';
 import { firmaValida } from '../src/whatsapp/firma.js';
-import { registrarWebhook, type MensajeEntrante } from '../src/whatsapp/webhook.js';
+import { exigirSecretoWebhook, registrarWebhook, type MensajeEntrante } from '../src/whatsapp/webhook.js';
 
 // La firma de Meta (18/10): hasta hoy el webhook procesaba cualquier body y
 // cualquiera que supiera la URL podía hablar en nombre de un narrador.
@@ -75,10 +75,27 @@ describe('POST /webhook con WA_APP_SECRET', () => {
 });
 
 describe('POST /webhook sin WA_APP_SECRET', () => {
-  it('sigue entrando como antes, para no cortar las entrevistas hasta cargarlo', async () => {
+  it('no se procesa nada: sin secreto no hay forma de saber que lo manda Meta', async () => {
     const { app, procesar } = servidor(undefined);
-    await mandar(app);
-    expect(procesar).toHaveBeenCalledTimes(1);
+    const r = await mandar(app);
+    expect(r.statusCode).toBe(200);
+    expect(procesar).not.toHaveBeenCalled();
+  });
+
+  it('tampoco con una firma cualquiera', async () => {
+    const { app, procesar } = servidor('   ');
+    await mandar(app, { 'x-hub-signature-256': firmar(cuerpo, '') });
+    expect(procesar).not.toHaveBeenCalled();
+  });
+});
+
+describe('exigirSecretoWebhook (al arrancar el servidor)', () => {
+  it('sin la variable no arranca', () => {
+    expect(() => exigirSecretoWebhook({})).toThrow('WA_APP_SECRET');
+    expect(() => exigirSecretoWebhook({ WA_APP_SECRET: '  ' })).toThrow('WA_APP_SECRET');
+  });
+  it('con la variable sigue', () => {
+    expect(() => exigirSecretoWebhook({ WA_APP_SECRET: 'x' })).not.toThrow();
   });
 });
 
