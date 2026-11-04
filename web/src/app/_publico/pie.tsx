@@ -10,6 +10,7 @@ import { OPINIONES, hayOpiniones, type Opinion } from "@/lib/opiniones";
 import { EnlaceIdioma } from "./idioma-cliente";
 import { BotonCookies } from "../medicion";
 import { TEXTOS_MEDICION } from "../_textos/medicion";
+import { RUTAS_LANDING, type Landing } from "../_textos/landings";
 
 // El pie público del rediseño 2026-10: el lema de siempre, los legales que
 // existen hoy (con Reclamaciones, 19/10) y el contacto con su horario. «Botón de arrepentimiento» en Argentina es
@@ -18,14 +19,17 @@ import { TEXTOS_MEDICION } from "../_textos/medicion";
 // (/legal/…, /ca/legal/…, /ar/legal/…; fase 5). El enlace a «Opiniones» solo
 // aparece con al menos tres opiniones reales (lib/opiniones.ts); `opiniones`
 // se pasa solo en los tests. «Eventos» lleva a Vitácora Eventos (17/10), que
-// no tiene solapa arriba: no se compra, se consulta.
+// no tiene solapa arriba: no se compra, se consulta. Las landings (04/11) se
+// enlazan acá para que los buscadores las encuentren: sin enlaces, quedaban
+// huérfanas. Cada página pide las que le van con `landings`: la portada no
+// nombra al padre (dice «tu familiar») y Kids no tiene «Su voz».
 //
 // Rasca y gana (20/10): con RASCA_Y_GANA=1, el pie enlaza a las «Bases del
 // cupón» en toda la web (respuesta-19-10.md §1.6) y, en las páginas que lo
 // piden con `rasca` (las del libro de una vida: el cupón no vale para Viaje
 // ni Kids), monta el popup.
 
-export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { idioma: IdiomaWeb; camino: string; opiniones?: readonly Opinion[]; rasca?: boolean }) {
+export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false, landings = [] }: { idioma: IdiomaWeb; camino: string; opiniones?: readonly Opinion[]; rasca?: boolean; landings?: readonly Landing[] }) {
   const t = TEXTOS_PUBLICO[idioma];
   const cupon = rascaPrendido();
   const whatsapp = urlWhatsAppDudas();
@@ -66,6 +70,13 @@ export function Pie({ idioma, camino, opiniones = OPINIONES, rasca = false }: { 
               {t.cambiarPais}
             </EnlaceIdioma>
           </div>
+          {landings.length > 0 ? (
+            <nav aria-label="Vitácora" className="flex flex-col">
+              {landings.map((landing) => (
+                <Link key={landing} prefetch={false} href={ruta(idioma, RUTAS_LANDING[landing][idioma])} className={enlace}>{t.landings[landing]}</Link>
+              ))}
+            </nav>
+          ) : null}
         </div>
       </div>
       {cupon && rasca ? <RascaYGana idioma={idioma} /> : null}

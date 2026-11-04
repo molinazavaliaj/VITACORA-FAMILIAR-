@@ -37,6 +37,12 @@ export const RUTAS_PRIVADAS = [
   "/panel-muestra",
 ] as const;
 
+/**
+ * La compra de cada producto (/comprar/viaje, /comprar/kids, /comprar/historia) lleva el título y la descripción
+ * de su página y competiría con ella en Google. No se indexa, pero sus enlaces se siguen.
+ */
+export const COMPRA_SIN_INDEXAR = { index: false, follow: true } as const;
+
 /** ¿Es el sitio de verdad? Vercel dice "production", "preview" o "development"; local no dice nada. */
 export function esProduccion(entorno: string | undefined = process.env.VERCEL_ENV): boolean {
   return entorno === "production";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { catalogo } from "@/lib/productos";
 import { catalogoKids } from "@/lib/kids";
+import { COMPRA_SIN_INDEXAR } from "@/lib/seo";
 import { alternativas, regionDeIdioma, type IdiomaWeb } from "@/lib/idioma-web";
 import { CHECKOUT_KIDS } from "../_textos/checkout-kids";
 import { TEXTOS_KIDS } from "../_textos/kids";
@@ -17,7 +18,7 @@ import { CascaronCheckout } from "./cascaron";
 
 export function metadataKids(idioma: IdiomaWeb): Metadata {
   const K = CHECKOUT_KIDS[idioma];
-  return { title: K.tituloPagina, description: K.descripcion, alternates: alternativas(idioma, "/comprar/kids") };
+  return { title: K.tituloPagina, description: K.descripcion, alternates: alternativas(idioma, "/comprar/kids"), robots: COMPRA_SIN_INDEXAR };
 }
 
 export function PaginaComprarKids({ idioma }: { idioma: IdiomaWeb }) {

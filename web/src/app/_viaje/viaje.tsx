@@ -228,7 +228,7 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
             {v.familiar}
           </Link>
         </div>
-        <Pie idioma={idioma} camino="/viaje" />
+        <Pie idioma={idioma} camino="/viaje" landings={["viaje"]} />
       </section>
 
       {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono. */}
