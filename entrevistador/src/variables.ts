@@ -32,10 +32,10 @@ const vacia = (env: Env, nombre: string) => !(env[nombre] ?? '').trim();
 const prendido = (env: Env, nombre: string) => (env[nombre] ?? '').trim() === '1';
 const entradas = (env: Env, nombre: string) => (env[nombre] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
-/** Las que el código exige (config.ts): sin ellas el servidor no arranca. */
+/** Las que el código exige (config.ts y exigirSecretoWebhook): sin ellas el servidor no arranca. */
 const OBLIGATORIAS = [
   'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY',
-  'WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN',
+  'WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN', 'WA_APP_SECRET',
 ] as const;
 
 /** Las que no frenan el arranque pero, si faltan, apagan algo sin avisar. */
@@ -44,7 +44,6 @@ const NECESARIAS: ReadonlyArray<readonly [string, string]> = [
   ['MAIL_SOCIOS', 'Los avisos a los socios quedan solo en el log de Railway y nadie se entera.'],
   ['WA_PLANTILLAS_V3_LISTAS', 'Fuera de la ventana de 24 h no sale ninguna plantilla V3 salvo la pregunta en es-AR. Ni recordatorios, ni bienvenidas V3 y de regalo, ni preguntas en es-ES y ca, ni el regalo por WhatsApp el día elegido.'],
   ['WA_PLANTILLAS_VIAJE_V2_LISTAS', 'A los viajeros no les sale ninguna plantilla de la Viaje V2 fuera de la ventana de 24 h: ni la bienvenida (sale recién si escriben primero), ni los mensajes del día, que quedan en la cola.'],
-  ['WA_APP_SECRET', 'El webhook de WhatsApp acepta mensajes sin comprobar que los manda Meta. Cualquiera que sepa la dirección puede hacerse pasar por un narrador.'],
   ['WHATSAPP_NUMERO_PUBLICO', 'El mail del regalo del día elegido sale sin el código para escribirle al bot.'],
 ];
 

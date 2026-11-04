@@ -20,7 +20,9 @@ import { MedirCompra } from "./medir-compra";
 // dicen, si es un regalo, si es su propio libro, si algo viaja). Si la vuelta
 // no pudo abrir la sesión o confirmar (pago pendiente), se cae acá sin `n`: la
 // pantalla de respaldo de siempre, que no muestra nada de la base y manda a
-// entrar con el correo. El mail de acceso puede llegar unos segundos después:
+// entrar con el correo. Una cuenta que ya existía también cae acá, con `n` pero
+// sin sesión (la vuelta no le abre sesión a nadie): entra con el código y vuelve
+// a esta misma pantalla, que ya la reconoce y guarda la dirección del checkout. El mail de acceso puede llegar unos segundos después:
 // por eso no se promete «ya te llegó».
 //
 // Es dinámica a propósito (lee la sesión y la URL): no es una página de entrada.
@@ -91,7 +93,10 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
   // El idioma lo trae la vuelta del pago; sin él, el país de quien compró, como antes.
   const idioma: IdiomaWeb = esIdiomaWeb(crudo) ? crudo : regionDelRequest(await headers()) === "ES" ? "es" : "ar";
   const T = CONFIRMADO[idioma];
-  const confirmado = typeof n === "string" && UUID.test(n) ? await leerConfirmado(n) : null;
+  const narrador = typeof n === "string" && UUID.test(n) ? n : null;
+  const confirmado = narrador ? await leerConfirmado(narrador) : null;
+  const volver = new URLSearchParams({ ...(esViaje ? { viaje: "1" } : {}), ...(esIdiomaWeb(crudo) ? { idioma: crudo } : {}), ...(narrador ? { n: narrador } : {}) });
+  const entrar = narrador ? `/entrar?volver=${encodeURIComponent(`/comprar/gracias?${volver}`)}` : "/entrar";
   // El número del biógrafo, para que el viajero le escriba primero mientras no hay plantilla aprobada.
   const numero = process.env.NEXT_PUBLIC_WA_NUMERO ?? null;
 
@@ -140,6 +145,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
         <AlConfirmar
           narradorId={confirmado?.narradorId ?? null}
           entregaId={confirmado?.entregaSinDireccion ?? null}
+          conservarDireccion={Boolean(narrador) && !confirmado}
           textos={{ guardada: T.direccionGuardada, falta: T.faltaDireccion, poner: T.ponerDireccion(confirmado?.propia ?? false) }}
         />
 
@@ -155,7 +161,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
             </Link>
           ) : (
             <div className="flex flex-col gap-3">
-              <Link href="/entrar" className={clasesBoton("primario", "min-h-14 self-start px-8 text-[16px]")}>
+              <Link href={entrar} className={clasesBoton("primario", "min-h-14 self-start px-8 text-[16px]")}>
                 {T.entrarAlPanel(esViaje)}
               </Link>
               <p className="text-[13px] text-[var(--texto-oscuro-menor)] [font-family:var(--fuente-micro)]">{T.sinContrasenas}</p>

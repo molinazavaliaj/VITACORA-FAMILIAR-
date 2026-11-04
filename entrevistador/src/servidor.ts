@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import { cargarConfig } from './config.js';
-import { registrarWebhook } from './whatsapp/webhook.js';
+import { exigirSecretoWebhook, registrarWebhook } from './whatsapp/webhook.js';
 import { procesarEntrante } from './flujo/procesar.js';
 import { iniciarScheduler } from './flujo/scheduler.js';
 import { chequearClaveAlArrancar } from './ia/alarma.js';
@@ -45,6 +45,7 @@ app.post<{ Body: { narradorId?: string } }>('/sugeridas', async (req, reply) => 
 registrarWebhook(app, procesarEntrante);
 
 if (process.env.NODE_ENV !== 'test') {
+  exigirSecretoWebhook();
   // Los avisos a los socios, una vez por día aunque Railway se reinicie (11/10).
   usarMarcaPersistente(marcaEnStorage(db));
   // Y cada aviso queda también en `avisos`, para verlo en /admin/notificaciones (02/11).

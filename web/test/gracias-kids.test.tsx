@@ -43,6 +43,7 @@ vi.mock("@/lib/supabase/servidor", () => ({
 }));
 
 import Gracias from "../src/app/comprar/gracias/page";
+import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 
 const escapar = (s: string) => renderToStaticMarkup(<>{s}</>);
 const pagina = async () =>
@@ -96,5 +97,26 @@ describe("«Pedido confirmado» de Vitácora Kids", () => {
     expect(html).toContain(escapar(BIOGRAFIA_ANTES));
     expect(html).not.toContain(escapar(A));
     expect(html).not.toContain(escapar(B));
+  });
+});
+
+// Cuenta que ya existía (04/11): la vuelta del pago no le abre sesión. Sin sesión
+// no se muestra nada de ese narrador, y entrar la trae de vuelta a esta pantalla.
+describe("«Pedido confirmado» sin sesión", () => {
+  const conParametros = async (searchParams: Record<string, string>) =>
+    renderToStaticMarkup(
+      await (Gracias as unknown as (p: { searchParams: Promise<Record<string, string>> }) => Promise<ReactElement>)({ searchParams: Promise.resolve(searchParams) }),
+    );
+
+  it("con narrador: no lo nombra, y entrar vuelve acá con el idioma", async () => {
+    vi.mocked(usuarioDeLaSesion).mockResolvedValueOnce(null);
+    const html = await conParametros({ n: NARRADOR, idioma: "es" });
+    expect(html).not.toContain("Tomi");
+    expect(html).toContain(`href="/entrar?volver=${encodeURIComponent(`/comprar/gracias?idioma=es&n=${NARRADOR}`)}"`);
+  });
+
+  it("sin narrador: el entrar de siempre", async () => {
+    const html = await conParametros({});
+    expect(html).toContain('href="/entrar"');
   });
 });

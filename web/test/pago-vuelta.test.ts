@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 // nueva, rediseño 2026-10) o en el panel del libro (un pedido de extras). Si
 // algo falla, cae en /comprar/gracias sin narrador (la pantalla de respaldo).
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
-vi.mock("@/lib/supabase/sesion", () => ({ crearClienteSesion: vi.fn() }));
+vi.mock("@/lib/supabase/sesion", () => ({ crearClienteSesion: vi.fn(), usuarioDeLaSesion: vi.fn() }));
 vi.mock("@/lib/confirmar-pago", () => ({ confirmarPago: vi.fn() }));
 vi.mock("@/lib/mail", () => ({ enviarMailAcceso: vi.fn(), enviarMailRegalo: vi.fn() }));
 const mp = vi.hoisted(() => ({ get: vi.fn() }));
@@ -19,7 +19,7 @@ const stripeMock = vi.hoisted(() => ({ retrieve: vi.fn() }));
 vi.mock("stripe", () => ({ default: vi.fn(function () { return { checkout: { sessions: { retrieve: stripeMock.retrieve } } }; }) }));
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { crearClienteSesion, usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
 import { enviarMailRegalo } from "@/lib/mail";
 import { firmarToken } from "@/lib/token-firmado";
@@ -30,16 +30,22 @@ const auth = { createUser: vi.fn(), generateLink: vi.fn(), listUsers: vi.fn() };
 const verifyOtp = vi.fn();
 
 const tablasLeidas: string[] = [];
+// Lo que ya hay en la base para ese correo: decide si la vuelta puede abrir sesión sin código.
+let cuenta: { authUserId: string | null; otroPedido: boolean; otroNarrador: boolean; invitacion: boolean };
 function admin(pedido: Record<string, unknown> | null, codigoRegalo?: string) {
   return {
     from: (tabla: string) => {
       tablasLeidas.push(tabla);
       const b: Record<string, unknown> = {};
       const enc = () => b;
-      b.select = enc; b.eq = enc;
+      let otro = false;
+      b.select = enc; b.eq = enc; b.in = enc; b.ilike = enc; b.limit = enc;
+      b.neq = () => { otro = true; return b; };
       b.maybeSingle = async () => ({
-        data: tabla === "pedidos" ? pedido
-          : tabla === "familias" ? { email: "martina@test.com" }
+        data: tabla === "pedidos" ? (otro ? (cuenta.otroPedido ? { id: "p-viejo" } : null) : pedido)
+          : tabla === "familias" ? { email: "martina@test.com", auth_user_id: cuenta.authUserId }
+          : tabla === "narradores" ? (cuenta.otroNarrador ? { id: "n-viejo" } : null)
+          : tabla === "invitados" ? (cuenta.invitacion ? { id: "i1" } : null)
           : tabla === "regalos" && codigoRegalo ? { codigo: codigoRegalo }
           : null,
         error: null,
@@ -60,11 +66,12 @@ beforeAll(() => { process.env.SUPABASE_SERVICE_ROLE_KEY = "clave-de-prueba"; pro
 beforeEach(() => {
   vi.clearAllMocks();
   tablasLeidas.length = 0;
+  cuenta = { authUserId: null, otroPedido: false, otroNarrador: false, invitacion: false };
+  (usuarioDeLaSesion as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(null);
   (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1" }));
   (crearClienteSesion as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ auth: { verifyOtp } });
   (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: false, email: "martina@test.com", codigoRegalo: null });
   mp.get.mockResolvedValue({ id: 987, status: "approved", external_reference: PEDIDO });
-  auth.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
   auth.createUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
   auth.generateLink.mockResolvedValue({ data: { properties: { hashed_token: "hash-1" } }, error: null });
   verifyOtp.mockResolvedValue({ data: { session: { access_token: "x" } }, error: null });
@@ -103,11 +110,10 @@ describe("GET /api/pago/vuelta", () => {
     expect(destino(r)).toBe("/comprar/gracias");
   });
 
-  it("(e) el webhook ganó (yaEstaba): igual entra al panel; la cuenta existente no se vuelve a crear", async () => {
+  it("(e) el webhook ganó (yaEstaba) y la cuenta es nueva: igual entra al panel", async () => {
     (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null });
-    auth.listUsers.mockResolvedValue({ data: { users: [{ id: "u1", email: "martina@test.com" }] }, error: null });
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
-    expect(auth.createUser).not.toHaveBeenCalled();
+    expect(verifyOtp).toHaveBeenCalledTimes(1);
     expect(destino(r)).toBe("/tablero/n1");
   });
 
@@ -162,5 +168,69 @@ describe("GET /api/pago/vuelta", () => {
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
     expect(destino(r)).toBe("/tablero/n1");
     expect(tablasLeidas).not.toContain("regalos");
+  });
+
+  // La toma de cuenta (04/11): /api/compra no comprueba el correo, así que quien
+  // compra con el correo de otro volvía con la sesión de ese otro.
+  describe("pagar no abre la sesión de una cuenta que ya existe", () => {
+    const vuelta = () => GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987", idioma: "es" }));
+    const sinSesionAbierta = () => {
+      expect(auth.generateLink).not.toHaveBeenCalled();
+      expect(verifyOtp).not.toHaveBeenCalled();
+    };
+
+    it("la familia ya tiene cuenta: confirma el pago pero hay que entrar con el código", async () => {
+      cuenta.authUserId = "u-duena";
+      const r = await vuelta();
+      expect(confirmarPago).toHaveBeenCalledTimes(1);
+      sinSesionAbierta();
+      expect(auth.createUser).not.toHaveBeenCalled();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("la familia ya pagó otro pedido, aunque nunca haya entrado", async () => {
+      cuenta.otroPedido = true;
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(auth.createUser).not.toHaveBeenCalled();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("la familia ya tiene otra historia (los pilotos no tienen pedido)", async () => {
+      cuenta.otroNarrador = true;
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("ese correo tiene una invitación sin aceptar: entrar la vincularía a la historia de otra familia", async () => {
+      cuenta.invitacion = true;
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("el usuario ya existe en Auth aunque no tenga familia vinculada", async () => {
+      auth.createUser.mockResolvedValue({ data: { user: null }, error: { message: "A user with this email address has already been registered" } });
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("con la sesión de otro correo tampoco entra", async () => {
+      cuenta.authUserId = "u-duena";
+      (usuarioDeLaSesion as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "u-otro", email: "atacante@test.com" });
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(destino(r)).toBe("/comprar/gracias?idioma=es&n=n1");
+    });
+
+    it("la dueña que ya tiene la sesión abierta sigue de largo, sin magic link", async () => {
+      cuenta.authUserId = "u-duena";
+      (usuarioDeLaSesion as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "u-duena", email: "Martina@Test.com" });
+      const r = await vuelta();
+      sinSesionAbierta();
+      expect(destino(r)).toBe("/tablero/n1");
+    });
   });
 });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
+import { crearClienteSesion, usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
 import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
 import { verificarToken } from "@/lib/token-firmado";
@@ -16,9 +16,12 @@ import { esIdiomaWeb } from "@/lib/idioma-web";
 //      idempotente: si el webhook llegó antes, `yaEstaba` y seguimos. Si el
 //      webhook falla (21/09: dos pagos reales quedaron pendientes), acá se
 //      confirma igual.
-//   3. La sesión de la compradora se abre sin mail ni código: un magic link
-//      generado en el servidor y verificado acá mismo (el token no sale del
-//      servidor). Con eso, una compra nueva cae en «Pedido confirmado»
+//   3. La sesión de la compradora se abre sin mail ni código SOLO si la cuenta
+//      nace con esta compra: un magic link generado en el servidor y verificado
+//      acá mismo (el token no sale del servidor). /api/compra no comprueba el
+//      correo, así que pagar no prueba que sea de quien paga: si ese correo ya
+//      tiene algo (correoConAlgoAdentro), hay que entrar con el código que le
+//      llega a su dueña (toma de cuenta, 04/11). Con eso, una compra nueva cae en «Pedido confirmado»
 //      (/comprar/gracias con el narrador, rediseño 2026-10: de ahí «Ir a mi
 //      panel» y, si es un regalo, «Descargar la tarjeta»); un pedido de extras
 //      desde el panel vuelve a /tablero/<narrador>.
@@ -27,6 +30,23 @@ import { esIdiomaWeb } from "@/lib/idioma-web";
 // pantalla de siempre — nunca un error crudo a quien acaba de pagar.
 
 export const dynamic = "force-dynamic";
+
+type Admin = ReturnType<typeof crearClienteServidor>;
+
+/**
+ * ¿Hay algo a nombre de este correo además de la compra que está volviendo? Otro
+ * pedido pagado, otra historia (los pilotos no tienen pedido) o una invitación
+ * sin aceptar, que se vincula sola con solo entrar (lib/panel.ts). Si la consulta
+ * falla, cuenta como que sí: lo peor es que tenga que entrar con el código.
+ */
+async function correoConAlgoAdentro(admin: Admin, email: string, pedido: { id: string; familia_id: string; narrador_id: string }) {
+  const consultas = await Promise.all([
+    admin.from("pedidos").select("id").eq("familia_id", pedido.familia_id).in("estado", ["pagado", "generando", "esperando_voz", "entregado"]).neq("id", pedido.id).limit(1).maybeSingle(),
+    admin.from("narradores").select("id").eq("familia_id", pedido.familia_id).neq("id", pedido.narrador_id).limit(1).maybeSingle(),
+    admin.from("invitados").select("id").ilike("email", email).limit(1).maybeSingle(),
+  ]);
+  return consultas.some(({ data, error }) => error || data);
+}
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
@@ -79,26 +99,36 @@ export async function GET(request: NextRequest) {
     return gracias;
   }
 
-  // 3. Abrir la sesión de la compradora y llevarla a su libro.
+  // 3. Abrir la sesión de la compradora y llevarla a su libro. A la cuenta que ya
+  // existe se entra con el código: «Pedido confirmado» sin sesión no muestra nada
+  // de la base y lleva a entrar, y de ahí vuelve a esta misma pantalla.
+  const aEntrar = NextResponse.redirect(`${urlBase}/comprar/gracias${consulta({ n: pedido.narrador_id })}`);
   try {
-    const { data: familia } = await admin.from("familias").select("email").eq("id", pedido.familia_id).maybeSingle();
-    const email = (familia as { email?: string } | null)?.email?.trim().toLowerCase();
+    const { data: familia } = await admin.from("familias").select("email, auth_user_id").eq("id", pedido.familia_id).maybeSingle();
+    const f = familia as { email?: string; auth_user_id?: string | null } | null;
+    const email = f?.email?.trim().toLowerCase();
     if (!email) return gracias;
 
-    // La cuenta nace con el primer login; si todavía no existe, se crea acá.
-    const { data: lista } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const existe = (lista?.users ?? []).some((u) => u.email?.toLowerCase() === email);
-    if (!existe) {
-      const { error } = await admin.auth.admin.createUser({ email, email_confirm: true });
-      if (error && !/already|exists|registered/i.test(error.message)) throw error;
-    }
-    const { data: link, error: errorLink } = await admin.auth.admin.generateLink({ type: "magiclink", email });
-    const tokenHash = link?.properties?.hashed_token;
-    if (errorLink || !tokenHash) throw errorLink ?? new Error("sin hashed_token");
+    // Quien ya está adentro con este mismo correo no necesita nada más.
+    const usuario = await usuarioDeLaSesion();
+    if (usuario?.email?.trim().toLowerCase() !== email) {
+      if (f?.auth_user_id || (await correoConAlgoAdentro(admin, email, pedido))) return aEntrar;
 
-    const sesion = await crearClienteSesion();
-    const { data, error } = await sesion.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
-    if (error || !data?.session) throw error ?? new Error("sin sesión");
+      // La cuenta nace con esta compra. Si Auth ya la tiene (entró antes, o es de
+      // otro lado), no es nueva: createUser es quien lo sabe con certeza.
+      const { error: errorUsuario } = await admin.auth.admin.createUser({ email, email_confirm: true });
+      if (errorUsuario) {
+        if (/already|exists|registered/i.test(errorUsuario.message)) return aEntrar;
+        throw errorUsuario;
+      }
+      const { data: link, error: errorLink } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+      const tokenHash = link?.properties?.hashed_token;
+      if (errorLink || !tokenHash) throw errorLink ?? new Error("sin hashed_token");
+
+      const sesion = await crearClienteSesion();
+      const { data, error } = await sesion.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
+      if (error || !data?.session) throw error ?? new Error("sin sesión");
+    }
   } catch (err) {
     console.error(`pago/vuelta: el pedido ${pedido.id} quedó confirmado pero no pude abrir la sesión:`, err);
     return gracias;
