@@ -11,14 +11,6 @@ import { carpetaNelida, salidasModeloNelida } from './ayuda.js';
 const CORRECCION = { texto: 'La Negra se llamaba Ofelia Sánchez.', dudaId: 'D01' };
 const CONFIRMADO = { texto: 'La Negra se llamaba Ofelia Sánchez.', usado_en: ['P04'] };
 
-/** El plan de Nélida con el nombre corregido en la etapa del primer capítulo. */
-function planConNegra(roto = false): string {
-  const plan = JSON.parse(salidasModeloNelida()['2-plan']);
-  plan.capitulos[0].etapa = `${plan.capitulos[0].etapa} (con Ofelia Sánchez)`;
-  if (roto) [plan.capitulos[0].piezas[0], plan.capitulos[1].piezas[0]] = [plan.capitulos[1].piezas[0], plan.capitulos[0].piezas[0]];
-  return JSON.stringify(plan);
-}
-
 function armar(salidas: Record<string, string>) {
   const modelo = new ModeloFalso(salidas);
   const almacen = new AlmacenMemoria();
@@ -33,67 +25,42 @@ describe('Etapa B', () => {
     expect(modelo.llamadas).toHaveLength(0);
   });
 
-  it('con correcciones: el modelo barato las pasa al registro, C14 controla y el plan sigue', async () => {
+  const registroCorregido = (): string => {
     const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
-    const { x, modelo, almacen } = armar({ 'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }), 'correccion-plan': planConNegra() });
-    expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'barato' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo, p.pensamiento])).toEqual([['B/correccion-registro', 'claude-haiku-4-5', 8000], ['B/correccion-plan', 'claude-haiku-4-5', 8000]]);
-    expect(x.c.leer('salidas/plan.json')).toContain('Ofelia Sánchez');
+    reg.personas[3] = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
+    return JSON.stringify({ ...reg, confirmados: [CONFIRMADO] });
+  };
+
+  it('con correcciones: Opus rehace registro y plan, con lo confirmado a la vista, y no se llama a Haiku', async () => {
+    const { x, modelo, almacen } = armar({ '1-registro': registroCorregido(), '2-plan': salidasModeloNelida()['2-plan'] });
+    expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
+    expect(modelo.llamadas[0].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
     expect(leerJSON(x.c, 'salidas/registro.json').personas[3].nombre).toBe('Ofelia Sánchez');
     expect(x.c.leer('entradas/confirmado.xml')).toContain('- La Negra se llamaba Ofelia Sánchez.');
     expect(await almacen.leer('carpeta-B.json')).not.toBeNull();
   });
 
-  it('si lo del barato no pasa C14, reintenta una vez con el error y, si pasa, no llama a Opus', async () => {
-    const negra = { ...JSON.parse(salidasModeloNelida()['1-registro']).personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
-    const { x, modelo } = armar({ 'correccion-registro': JSON.stringify({ confirmados: [] }), 'correccion-registro#2': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }), 'correccion-plan': planConNegra() });
-    expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'barato' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-registro#2', 'claude-haiku-4-5'], ['B/correccion-plan', 'claude-haiku-4-5']]);
-    expect(modelo.llamadas[1].bloques.join(' ')).toContain('no pasó estos controles');
-  });
-
-  it('si lo del barato no pasa C14 ni al reintento, Opus rehace el registro y el plan', async () => {
-    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    const { x, modelo } = armar({
-      'correccion-registro': JSON.stringify({ confirmados: [] }),
-      '1-registro': JSON.stringify({ ...reg, confirmados: [CONFIRMADO] }),
-      '2-plan': salidasModeloNelida()['2-plan'],
-    });
+  it('si el registro de Opus deja afuera una respuesta, C14 lo frena y reintenta con Opus', async () => {
+    const { x, modelo } = armar({ '1-registro': salidasModeloNelida()['1-registro'], '1-registro#2': registroCorregido(), '2-plan': salidasModeloNelida()['2-plan'] });
     expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-registro#2', 'claude-haiku-4-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
-    expect(modelo.llamadas[2].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['B/1-registro', 'B/1-registro#2', 'B/2-plan']);
   });
 
   it('si algo se corta en medio (error de la API), lo pagado queda en costos.json', async () => {
-    const { x, almacen } = armar({ 'correccion-registro': JSON.stringify({ confirmados: [] }) });
+    const { x, almacen } = armar({ '1-registro': registroCorregido() });
     await expect(etapaB(x, [CORRECCION])).rejects.toThrow();
     expect(JSON.parse((await almacen.leer('costos.json')) as string).filas.length).toBeGreaterThanOrEqual(1);
     expect(await almacen.leer('carpeta-B.json')).toBeNull();
   });
 
-  it('si el plan corregido por el barato no sirve, Opus rehace solo el plan con clave B/', async () => {
-    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
-    const { x, modelo } = armar({
-      'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }),
-      'correccion-plan': planConNegra(true),
-      '2-plan': salidasModeloNelida()['2-plan'],
-    });
-    expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-plan', 'claude-haiku-4-5'], ['B/2-plan', 'claude-opus-5-5']]);
-    expect(leerJSON(x.c, 'salidas/registro.json').personas[3].nombre).toBe('Ofelia Sánchez');
-  });
-
-  it('retomo: las dos llamadas baratas salen de la memoria', async () => {
-    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
-    const salidas = { 'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }), 'correccion-plan': planConNegra() };
+  it('retomo: las llamadas ya pagadas salen de la memoria', async () => {
+    const salidas = { '1-registro': registroCorregido(), '2-plan': salidasModeloNelida()['2-plan'] };
     const a = armar(salidas);
     await etapaB(a.x, [CORRECCION]);
     const modelo2 = new ModeloFalso(salidas);
     const x2: Contexto = { c: carpetaNelida(), ej: new Ejecutor({ modelo: modelo2, almacen: a.almacen }), almacen: a.almacen, log: () => {}, usarLote: false };
-    expect(await etapaB(x2, [CORRECCION])).toEqual({ ok: true, corregido: 'barato' });
+    expect(await etapaB(x2, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
     expect(modelo2.llamadas).toHaveLength(0);
   });
 });
@@ -102,8 +69,7 @@ describe('Etapa B arranca de la carpeta de la Etapa A (revisión final, punto 10
   const OTRA = { texto: 'Raúl era de Rosario.', dudaId: 'D02' };
   const salidasDos = () => {
     const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
-    return { 'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO, { texto: 'Raúl era de Rosario.', usado_en: ['P01'] }] }), 'correccion-plan': planConNegra() };
+    return { '1-registro': JSON.stringify({ ...reg, confirmados: [CONFIRMADO, { texto: 'Raúl era de Rosario.', usado_en: ['P01'] }] }), '2-plan': salidasModeloNelida()['2-plan'] };
   };
 
   it('dos corridas desde el snapshot A dan el mismo confirmado.xml (aunque las correcciones se pisen)', async () => {

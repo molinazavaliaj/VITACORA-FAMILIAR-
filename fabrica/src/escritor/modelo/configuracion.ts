@@ -32,7 +32,7 @@ const ESTILO_ROL: Rol = { modelo: HAIKU, maxTokens: 64000, pensamiento: 3000 };
 
 const MAXIMO = /^(3b-capitulo-|3a-primera)/;
 const HECHOS = /^4-hechos(-repaso)?$/;
-const MECANICO = /^(3r-resumen-|3t-titulo-|3e-sus-frases|7-estilo-|correccion-registro|correccion-plan|dudas$)/;
+const MECANICO = /^(3r-resumen-|3t-titulo-|3e-sus-frases|7-estilo-|dudas$)/;
 
 const CAPITULO = /^3b-capitulo-/;
 

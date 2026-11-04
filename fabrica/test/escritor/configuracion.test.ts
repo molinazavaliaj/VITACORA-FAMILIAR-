@@ -22,7 +22,7 @@ describe('rolDe: modelo y pensamiento por llamada', () => {
   it('lo mecánico va con Haiku 4.5: sin niveles de esfuerzo (no los acepta), con un presupuesto chico de pensamiento', () => {
     expect(rolDe('7-estilo-cap_1')).toEqual({ modelo: HAIKU, maxTokens: 64000, pensamiento: 3000 });
     expect(rolDe('7-estilo-carta-2')).toEqual({ modelo: HAIKU, maxTokens: 64000, pensamiento: 3000 });
-    for (const n of ['3r-resumen-cap_1', '3r-resumen-primera_pagina', '3t-titulo-04', '3e-sus-frases', 'correccion-registro', 'correccion-plan', 'dudas']) {
+    for (const n of ['3r-resumen-cap_1', '3r-resumen-primera_pagina', '3t-titulo-04', '3e-sus-frases', 'dudas']) {
       const r = rolDe(n);
       expect(r).toEqual({ modelo: HAIKU, maxTokens: 64000, pensamiento: 8000 });
       expect(r.esfuerzo).toBeUndefined();

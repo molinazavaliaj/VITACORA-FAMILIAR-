@@ -5,7 +5,7 @@
 //
 // A · Leer todo (registro, C14) y Plan (C12, C13, C19, C20, C33), con hasta 2 reintentos cada uno, y las dudas de
 //     datos para la familia (los prompts de fabrica.md de Familiar, tal cual).
-// B · Las correcciones de la familia: al registro y al plan con el barato; si no pasan, Opus los rehace.
+// B · Las correcciones de la familia: Opus rehace registro y plan con ellas.
 // C · Por capítulo, en orden: Armador, Capítulo (C30, una reescritura si deja afuera más de un tercio) y su ficha.
 //     Después la carta a quien era (si hay), Sus frases, los controles, Hechos y Veedor, una ronda de arreglos con
 //     su repaso, el corrector en dos pasadas, los títulos y el libro con su informe.
@@ -16,12 +16,11 @@ import { aplicar, armar, juntar } from '../escritor/controles/arreglos.js';
 import { estado, type Disputa } from '../escritor/controles/estado.js';
 import { aplicarEstiloPieza } from '../escritor/controles/estilo.js';
 import { informe } from '../escritor/controles/informe.js';
-import { aplicarCorreccion, validarPlanCorregido } from '../escritor/correccion.js';
 import { dudasDelRegistro, validarDudas, type DudaParaLaFamilia } from '../escritor/dudas.js';
 import { ErrorJSON, TopeDeGasto, type Encargo } from '../escritor/ejecutor.js';
 import { respuestas, salida } from '../escritor/lectura.js';
 import type { Llamada } from '../escritor/llamadas/armar.js';
-import { llamadaCorreccion, llamadaCorreccionPlan, llamadaDisputa, llamadaDudas } from '../escritor/llamadas/fabrica.js';
+import { llamadaDisputa, llamadaDudas } from '../escritor/llamadas/fabrica.js';
 import { agregarConfirmados, type CorreccionFamilia } from '../escritor/material/a-carpeta.js';
 import { cargarSnapshot, guardarSnapshot, type Contexto } from '../escritor/orquestador/contexto.js';
 import { archivoDe } from '../escritor/texto.js';
@@ -107,7 +106,7 @@ export async function etapaAHistoria(x: ContextoHistoria): Promise<ResultadoAHis
 
 // ---------- B ----------
 
-export type ResultadoBHistoria = { ok: true; corregido: 'nada' | 'barato' | 'opus' } | { ok: false; motivo: string };
+export type ResultadoBHistoria = { ok: true; corregido: 'nada' | 'opus' } | { ok: false; motivo: string };
 
 /** Como la Etapa B de Familiar: arranca siempre de la carpeta de la A (agregarConfirmados no es idempotente). */
 export async function etapaBHistoria(x: ContextoHistoria, correcciones: CorreccionFamilia[]): Promise<ResultadoBHistoria> {
@@ -119,30 +118,6 @@ export async function etapaBHistoria(x: ContextoHistoria, correcciones: Correcci
       for (const [ruta, texto] of Object.entries(a.aObjeto())) x.c.escribir(ruta, texto);
     }
     if (!agregarConfirmados(x.c, correcciones) && !correcciones.some((k) => k.texto.trim())) return terminar({ ok: true, corregido: 'nada' });
-    try {
-      const texto = await x.ej.uno({ clave: 'B/correccion-registro', llamada: llamadaCorreccion(x.c), json: true });
-      x.c.escribir(salida('registro.json'), JSON.stringify(aplicarCorreccion(leerJSON(x.c, salida('registro.json')), parseJSONTolerante(texto)), null, 1));
-      const r = controlarHistoria(x.c, 'registro');
-      x.log(`registro corregido (barato): ${r.resumen.split('\n')[0]}`);
-      if (r.codigo === 0) {
-        try {
-          const tp = await x.ej.uno({ clave: 'B/correccion-plan', llamada: llamadaCorreccionPlan(x.c), json: true });
-          x.c.escribir(salida('plan.json'), JSON.stringify(validarPlanCorregido(leerJSON(x.c, salida('plan.json')), parseJSONTolerante(tp)), null, 1));
-          const rp = controlarHistoria(x.c, 'plan');
-          x.log(`plan corregido (barato): ${rp.resumen.split('\n')[0]}`);
-          if (rp.codigo === 0) return terminar({ ok: true, corregido: 'barato' });
-        } catch (err) {
-          if (err instanceof TopeDeGasto) throw err;
-          x.log(`la corrección barata del plan no sirvió (${(err as Error).message}); rehace Opus`);
-        }
-        x.c.borrar(salida('plan.json'));
-        if (await conReintentosHistoria(x, 'plan', 'B/')) return terminar({ ok: true, corregido: 'opus' });
-        return terminar({ ok: false, motivo: 'el plan no pasa sus controles con el registro corregido después de 2 reintentos' });
-      }
-    } catch (err) {
-      if (err instanceof TopeDeGasto) throw err;
-      x.log(`la corrección barata no sirvió (${(err as Error).message}); rehace Opus`);
-    }
     x.c.borrar(salida('registro.json'));
     x.c.borrar(salida('plan.json'));
     if (!(await conReintentosHistoria(x, 'registro', 'B/'))) return terminar({ ok: false, motivo: 'el registro no pasa C14 después de 2 reintentos (Etapa B)' });

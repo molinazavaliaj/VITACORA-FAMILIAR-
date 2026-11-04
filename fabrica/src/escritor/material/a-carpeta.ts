@@ -3,8 +3,7 @@
 // Las correcciones de la familia se suman a confirmado.xml (van a todos los pasos dentro de
 // <confirmado_por_el_narrador>, que es lo que leen la receta y C14). Cada línea de la familia va en una sola
 // línea (C14 cuenta las líneas "- ") y sin < ni > (no puede cerrar la etiqueta). La respuesta a una duda va con su
-// pregunta: suelta, un «13» o un «OMAR» no dice de qué habla (libro de Juan Domingo, 01/11: el modelo barato dejó
-// afuera 11 de 25 respuestas, falló C14 y Opus rehízo registro y plan, USD 2,26 de más).
+// pregunta: suelta, un «13» o un «OMAR» no dice de qué habla (libro de Juan Domingo, 01/11).
 import { parseJSONTolerante, type Carpeta } from '../carpeta.js';
 import { salida } from '../lectura.js';
 import { aMaterial, esc, etiquetas, respuestasXml, type EstadoEntrevista, type Fila } from './de-entrevista.js';
