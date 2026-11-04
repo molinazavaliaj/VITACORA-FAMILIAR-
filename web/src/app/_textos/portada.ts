@@ -171,7 +171,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Qué es Vitácora",
       titulo: "Un regalo para quien cuenta y otro para toda la familia.",
       bajada:
-        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
+        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos su biografía, un libro de memorias con la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
     },
     siguiendo: {
       titulo: "Tú lo vas siguiendo de cerca.",
@@ -418,7 +418,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Qué es Vitácora",
       titulo: "Un regalo para quien cuenta y otro para toda la familia.",
       bajada:
-        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
+        "Entrevistamos a tu familiar por WhatsApp. Le hacemos preguntas sobre su vida, desde su infancia hasta hoy. Al terminar la entrevista escribimos su biografía, un libro de memorias con la historia de su vida. Vitácora es un regalo emotivo, un libro que va a pasar de generación en generación.",
     },
     siguiendo: {
       titulo: "Vos lo vas siguiendo de cerca.",
@@ -674,7 +674,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       etiqueta: "Què és Vitácora",
       titulo: "Un regal per a qui explica i un altre per a tota la família.",
       bajada:
-        "Entrevistem el teu familiar per WhatsApp. Li fem preguntes sobre la seva vida, des de la infància fins avui. En acabar l'entrevista escrivim la història de la seva vida. Vitácora és un regal emotiu, un llibre que passarà de generació en generació.",
+        "Entrevistem el teu familiar per WhatsApp. Li fem preguntes sobre la seva vida, des de la infància fins avui. En acabar l'entrevista escrivim la seva biografia, un llibre de memòries amb la història de la seva vida. Vitácora és un regal emotiu, un llibre que passarà de generació en generació.",
     },
     siguiendo: {
       titulo: "Tu ho vas seguint de prop.",
