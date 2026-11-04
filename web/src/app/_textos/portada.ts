@@ -157,7 +157,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros escribimos su biografía, un libro de memorias que queda en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
@@ -404,7 +404,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada familia hay un libro sin escribir",
       descripcion:
-        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros nos encargamos de escribir su libro y que quede en tu familia para siempre.",
+        "Tu familiar nos cuenta su vida con audios de WhatsApp. Nosotros escribimos su biografía, un libro de memorias que queda en tu familia para siempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
@@ -655,7 +655,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     meta: {
       titulo: "Vitácora Familiar — En cada família hi ha un llibre per escriure",
       descripcion:
-        "El teu familiar ens explica la seva vida amb àudios de WhatsApp. Nosaltres ens encarreguem d'escriure el seu llibre i que quedi a la teva família per sempre.",
+        "El teu familiar ens explica la seva vida amb àudios de WhatsApp. Nosaltres escrivim la seva biografia, un llibre de memòries que queda a la teva família per sempre.",
     },
     iniciar: "Iniciar Vitácora",
     inicio: {
