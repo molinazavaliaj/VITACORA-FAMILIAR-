@@ -163,33 +163,30 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         </ol>
       </section>
 
-      {/* 5 · Se lee y se escucha: quieta, sin reproducir (Naza, 25/10). La miniatura
-          es la tapa real que anuncia el JSON-LD: la foto de la ficha tiene que estar en la página. */}
+      {/* 5 · Se lee y se escucha: quieta, sin reproducir (Naza, 25/10). La tapa
+          es la que anuncia el JSON-LD: la foto de la ficha tiene que estar en la página. */}
       <section className="acu-iman acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
         <div className="mx-auto grid max-w-[1040px] grid-cols-1 items-center gap-10 md:grid-cols-2">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
-            <Image src={FOTOS.familia} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
-            <div className="absolute bottom-3 right-3 flex w-[58%] items-end gap-[6%]">
-              <div className="prt-fisico w-[47%]">
-                <Image
-                  src={FOTOS.portada}
-                  alt={t.libro.altPortada}
-                  width={760}
-                  height={981}
-                  sizes="(min-width: 768px) 140px, 28vw"
-                  className="h-auto w-full shadow-lg"
-                />
-              </div>
-              <div className="prt-fisico prt-fisico--espalda w-[47%]">
-                <Image
-                  src={CONTRAPORTADA}
-                  alt={t.voz.altContraportada}
-                  width={760}
-                  height={981}
-                  sizes="(min-width: 768px) 140px, 28vw"
-                  className="h-auto w-full shadow-lg"
-                />
-              </div>
+          <div className="acu-voz-libros">
+            <div className="prt-fisico">
+              <Image
+                src={FOTOS.portada}
+                alt={t.libro.altPortada}
+                width={760}
+                height={981}
+                sizes="(min-width: 768px) 220px, 38vw"
+                className="h-auto w-full"
+              />
+            </div>
+            <div className="prt-fisico prt-fisico--espalda">
+              <Image
+                src={CONTRAPORTADA}
+                alt={t.voz.altContraportada}
+                width={760}
+                height={981}
+                sizes="(min-width: 768px) 220px, 38vw"
+                className="h-auto w-full"
+              />
             </div>
           </div>
           <div className="flex flex-col gap-4">

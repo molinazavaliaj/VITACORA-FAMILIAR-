@@ -214,6 +214,11 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 /* OndaQuieta pinta con las variables de la tinta: sobre la hoja clara, en bordó. */
 .acu-onda { --dir-sobre-tinta: var(--acu-bordo); --dir-sobre-tinta-suave: var(--acu-suave); }
 
+/* «Se lee y también se escucha»: tapa y contratapa paradas en el mismo estante de la tienda. */
+.acu-voz-libros { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 8%; padding: 32px 7% 11px; border-radius: 14px 14px 0 0; background: #f8eeea radial-gradient(70% 90% at 15% 15%, rgba(201, 108, 120, 0.26), transparent 72%), radial-gradient(60% 90% at 90% 20%, rgba(128, 197, 186, 0.36), transparent 72%); }
+.acu-voz-libros .prt-fisico { z-index: 1; width: 42%; box-shadow: 10px 12px 22px -12px rgba(50, 25, 20, 0.5); }
+.acu-voz-libros::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 11px; background: linear-gradient(180deg, #fffaf2, #e8dccb); box-shadow: 0 7px 9px -5px rgba(70, 40, 30, 0.35); }
+
 /* Los pasos */
 .acu-pasos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 14px; max-width: 1360px; margin: 32px auto 0; text-align: left; }
 @media (min-width: 900px) { .acu-pasos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; } }
