@@ -4,7 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable, type NarradorPanel, type Rol } from "@/lib/panel";
+import { esPropia, historiaAccesible, historiasDelUsuario, loContadoEsPrivado, PUEDE, tratoEditable, type NarradorPanel, type Rol } from "@/lib/panel";
+import { hayLibroListo } from "@/lib/libro-listo";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../proximo-paso";
@@ -16,10 +17,11 @@ import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { HistoriaViaje } from "./viaje";
 import { HistoriaV3 } from "./v3";
+import { HistoriaPrivada, type SumarClasico } from "./privada";
 import { PanelKids } from "./kids";
 import { esKids } from "@/lib/kids-panel";
 import { leerPanelKids } from "@/lib/kids-panel-base";
-import { avanceV3, entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3 } from "@/lib/v3";
+import { avanceV3, claveMadre, entrevistaV3, historiaV3, llegoAlFinalV3, preguntasDeLaFamiliaV3, respuestasFuera, type FilaHistoriaV3, type FilaPreguntaFamiliaV3, type PreguntaFamiliaV3 } from "@/lib/v3";
 import { puedeVolverAPreguntar } from "@/lib/fuera-del-libro";
 import { viajeDelContexto } from "@/lib/viaje";
 import { entrevistaHistoria, historiaDeHistoria, llegoAlFinalHistoria, preguntasDelPanelHistoria } from "@/lib/historia-panel";
@@ -233,9 +235,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         )
       : Promise.resolve(null);
   // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
+  const privado = loContadoEsPrivado(n);
   const pFotos: Promise<FotoVista[]> = Promise.resolve(
     admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
-  ).then((r) => (r.data as FotoVista[] | null) ?? [], () => []);
+  ).then((r) => {
+    const fotos = (r.data as FotoVista[] | null) ?? [];
+    // Si lo contado es privado, una foto que mandó el narrador va sin el epígrafe: es lo que escribió (Naza, 05/11).
+    return privado ? fotos.map((f) => (f.subida_por ? f : { ...f, epigrafe: null })) : fotos;
+  }, () => []);
   const pInvitados: Promise<(InvitadoVista & { rol?: string })[]> =
     rol === "duena"
       ? Promise.resolve(admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")).then(
@@ -245,8 +252,9 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
       : Promise.resolve([]);
   // Terminó de contar y el escritor dejó dudas sin contestar (13/10). Solo depende del rol y del estado.
   const pDudas: Promise<boolean> =
-    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? hayDudasPendientes(admin, n.id).catch(() => false) : Promise.resolve(false);
-  const pLectura = leerHistoria({ admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato });
+    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? hayDudasPendientes(admin, n).catch(() => false) : Promise.resolve(false);
+  const parametros = { admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato };
+  const pLectura = privado ? leerHistoriaPrivada(parametros) : leerHistoria(parametros);
 
   const contexto = (n.contexto ?? {}) as Record<string, unknown>;
   const quien: Quien = { como: n.como_le_dicen, propia, ella: esElla(contexto), viaje: contexto.modo === "viaje" && Boolean(contexto.viaje) };
@@ -438,6 +446,133 @@ async function leerHistoria({
     console.error("historia: fallo la carga", e);
     return { cuerpo: <EstadoError trato={await pTrato.catch(() => "vos" as const)} />, ...sinNada };
   }
+}
+
+/** Lo mismo que leerHistoria, sin pedirle a la base nada de lo contado. Nunca rechaza. */
+async function leerHistoriaPrivada(p: Parameters<typeof leerHistoria>[0]): Promise<Lectura> {
+  try {
+    return await armarLecturaPrivada(p);
+  } catch (e) {
+    console.error("historia: fallo la carga de la vista privada", e);
+    return { cuerpo: <EstadoError trato={await p.pTrato.catch(() => "vos" as const)} />, voz: null, subirFoto: null, familia: null, cierre: null };
+  }
+}
+
+/** Cuánto lleva una historia, de 0 a 100: por preguntas (son diez y la última es HC10). */
+const PREGUNTAS_HISTORIA = 10;
+
+async function armarLecturaPrivada({
+  admin, user, n, rol, pFila, pFotos, pInvitados, pDudas, pTrato,
+}: Parameters<typeof leerHistoria>[0]): Promise<Lectura> {
+  const esHistoria = (n.contexto as { modo?: unknown } | null | undefined)?.modo === "historia";
+  const [{ data: propias, error: e1 }, { data: filas, error: e2 }, fotos, invitados, fila, trato, dudasPendientes, entrevista, libroListo] = await Promise.all([
+    admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").eq("narrador_id", n.id),
+    // Solo para contar: ni el texto, ni el audio, ni la duración.
+    admin.from("respuestas").select(esHistoria ? "clave_v3:clave_historia, pregunta_orden, es_repregunta" : "clave_v3, pregunta_orden, es_repregunta").eq("narrador_id", n.id),
+    pFotos,
+    pInvitados,
+    pFila,
+    pTrato,
+    pDudas,
+    esHistoria ? entrevistaHistoria(admin, n.id) : entrevistaV3(admin, n.id),
+    hayLibroListo(admin, n.id),
+  ]);
+  if (e1 || e2) throw new Error(`no pude leer la historia: ${(e1 ?? e2)?.message}`);
+
+  const aprobado = Boolean(fila.libro_aprobado_at);
+  const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
+  const cerrado = ESTADOS_CERRADOS.includes(n.estado);
+  const contexto = fila.contexto ?? {};
+  const horario = fila.hora_preferida && fila.zona_horaria ? { hora: fila.hora_preferida.slice(0, 5), zona: fila.zona_horaria } : undefined;
+  const ritmo: Ritmo = validarRitmo(contexto.ritmo) ? contexto.ritmo : contexto.modoRapido === true ? "seguido" : "diario";
+  const lista = (filas as unknown as { clave_v3: string | null; pregunta_orden: number; es_repregunta: boolean }[] | null) ?? [];
+  const filasFamilia = ((propias as FilaPreguntaFamiliaV3[] | null) ?? []).filter((p) => p.tipo === "familia");
+  const conClave = lista.map((r) => r.clave_v3).filter((k): k is string => Boolean(k) && k !== "∅");
+  const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
+  const quien: Quien = { como: n.como_le_dicen, propia: false, ella: esElla(contexto), viaje: false };
+
+  // Guion clásico: los capítulos, para sumar preguntas y fotos. Sin los textos de lo que ya se le mandó.
+  let clasico: SumarClasico | undefined;
+  let respuestas: number;
+  let avance: number | null;
+  let alFinal = false;
+  let preguntasFamilia: PreguntaFamiliaV3[];
+  if (entrevista) {
+    respuestas = new Set(conClave.map(claveMadre)).size;
+    if (esHistoria) {
+      const estado = (entrevista as Awaited<ReturnType<typeof entrevistaHistoria>>)?.estado;
+      alFinal = llegoAlFinalHistoria(estado);
+      preguntasFamilia = preguntasDelPanelHistoria(estado, filasFamilia);
+      avance = estado?.terminada ? 100 : Math.min(95, Math.round((respuestas / PREGUNTAS_HISTORIA) * 100));
+    } else {
+      const estado = (entrevista as Awaited<ReturnType<typeof entrevistaV3>>)?.estado;
+      alFinal = llegoAlFinalV3(estado);
+      preguntasFamilia = preguntasDeLaFamiliaV3(estado, filasFamilia);
+      avance = avanceV3(estado);
+    }
+  } else {
+    const { data: globales, error: e3 } = await admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").is("narrador_id", null);
+    if (e3) throw new Error(`no pude leer el guion: ${e3.message}`);
+    const guion = armarGuion(globales as Pregunta[] | null, propias as Pregunta[] | null);
+    respuestas = new Set(lista.filter((r) => !r.es_repregunta).map((r) => r.pregunta_orden)).size;
+    avance = guion.length ? Math.min(100, Math.round((respuestas / guion.length) * 100)) : null;
+    preguntasFamilia = esHistoria ? preguntasDelPanelHistoria(undefined, filasFamilia) : [];
+    if (!esHistoria) {
+      clasico = {
+        capitulos: [...new Set(guion.map((p) => p.capitulo))],
+        lugarLibre: lugarLibre(guion),
+        ajustes: {
+          evitar: typeof contexto.evitar === "string" ? contexto.evitar : "",
+          pedirFotos: contexto.sinFotos !== true,
+          objetos: objetosDelGuion(globales as Pregunta[] | null, propias as Pregunta[] | null).map((o) => ({ orden: o.orden, capitulo: o.capitulo, texto: o.texto })),
+          trato: { valor: (contexto.trato === "usted" || contexto.trato === "vos" ? contexto.trato : null) as "usted" | "vos" | null, editable: tratoEditable(n) },
+        },
+      };
+    }
+  }
+
+  // El link público del libro, recién con el libro listo. Invitar, como siempre.
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const linkPublico = rol === "duena" && libroListo ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
+  const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
+  const deshabilitarCompartir = historiaCerrada && !aprobado && !dudasAbiertas;
+  const familia = PUEDE.invitar(rol) ? (
+    <span className={deshabilitarCompartir ? "pointer-events-none opacity-50" : ""} aria-disabled={deshabilitarCompartir ? true : undefined}>
+      <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados.filter((i) => i.rol !== "visitante")} trato={trato} privado />
+    </span>
+  ) : null;
+
+  return {
+    cuerpo: (
+      <HistoriaPrivada
+        n={n}
+        rol={rol}
+        quien={quien}
+        preguntasFamilia={preguntasFamilia}
+        fotos={fotos}
+        usuarioId={user.id}
+        aprobado={aprobado}
+        historiaCerrada={historiaCerrada}
+        libroListo={libroListo}
+        dudasPendientes={dudasPendientes}
+        alFinal={alFinal}
+        ritmo={ritmo}
+        horario={horario}
+        trato={trato}
+        historia={esHistoria}
+        clasico={clasico}
+      />
+    ),
+    voz: { respuestas, segundos: 0, ultimas: [], avance },
+    subirFoto: puedeAgregarFotos ? (
+      <SubirFoto narradorId={n.id} capitulos={clasico?.capitulos ?? []} variante="barra" trato={trato} paraTapa={rol === "duena" && !fila.edicion?.portadaFotoId}>
+        <IconoBarra nombre="foto" />
+        Agregar fotos
+      </SubirFoto>
+    ) : null,
+    familia,
+    cierre: rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && respuestas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO ? <CierreAnticipado narradorId={n.id} trato={trato} /> : null,
+  };
 }
 
 async function armarLectura({

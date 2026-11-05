@@ -1,0 +1,339 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
+vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn() }));
+vi.mock("next/headers", () => ({ cookies: vi.fn() }));
+vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true) }));
+
+import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { createServerClient } from "@supabase/ssr";
+import { enviarMailSocios } from "@/lib/mail";
+import { NextRequest } from "next/server";
+import { loContadoEsPrivado, PUEDE } from "@/lib/panel";
+import { GET as audio } from "../src/app/api/audio/[respuestaId]/route";
+import { POST as fuera } from "../src/app/api/fuera-del-libro/route";
+import { POST as sugeridas } from "../src/app/api/sugeridas/route";
+import { GET as estructura } from "../src/app/api/estructura/route";
+import { GET as previewPdf } from "../src/app/api/preview-pdf/route";
+import { GET as previewAudio } from "../src/app/api/preview-audio/route";
+import { POST as nombres } from "../src/app/api/nombres/route";
+import { PATCH as edicion } from "../src/app/api/edicion/route";
+import { GET as frasesGet, POST as frasesPost } from "../src/app/api/frases/route";
+import { GET as fraseAudio } from "../src/app/api/frases/audio/[fraseId]/route";
+import { GET as anticipoAudio } from "../src/app/api/anticipo/[token]/audio/route";
+import { armarMuestra, primerParrafoDelLibro } from "@/lib/muestra";
+
+// Privacidad del panel (Naza y Joaquín, 05/11). Lo que importa es el rechazo en el servidor, no los botones: quien
+// regala y sus invitados no reciben audios ni transcripciones; el narrador que compró para sí, sí. Viaje y Kids igual.
+
+type Fila = Record<string, unknown>;
+
+function crearAdmin(tablas: Record<string, Fila[]>, archivos: Record<string, string> = {}) {
+  const subidas: { ruta: string; contenido: string }[] = [];
+  const consultas: { tabla: string; columnas: string }[] = [];
+  function builder(tabla: string) {
+    const filtros: ((f: Fila) => boolean)[] = [];
+    const b: Record<string, unknown> = {};
+    b.select = (columnas = "*") => { consultas.push({ tabla, columnas }); return b; };
+    b.order = () => b;
+    b.limit = () => b;
+    b.eq = (c: string, v: unknown) => { filtros.push((f) => f[c] === v); return b; };
+    b.is = (c: string, v: unknown) => { filtros.push((f) => (f[c] ?? null) === v); return b; };
+    b.in = (c: string, v: unknown[]) => { filtros.push((f) => v.includes(f[c])); return b; };
+    b.ilike = (c: string, v: string) => { filtros.push((f) => String(f[c] ?? "").toLowerCase() === v.toLowerCase()); return b; };
+    b.update = () => b;
+    let single = false;
+    b.maybeSingle = () => { single = true; return b; };
+    b.single = b.maybeSingle;
+    b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => {
+      const filas = (tablas[tabla] ?? []).filter((f) => filtros.every((ok) => ok(f)));
+      return Promise.resolve({ data: single ? filas[0] ?? null : filas, error: null }).then(res, rej);
+    };
+    return b;
+  }
+  const storage = {
+    from: () => ({
+      download: vi.fn(async (ruta: string) => (ruta in archivos ? { data: { text: async () => archivos[ruta] }, error: null } : { data: null, error: { message: "Object not found", statusCode: "404" } })),
+      list: vi.fn(async (carpeta: string) => ({ data: Object.keys(archivos).filter((r) => r.startsWith(`${carpeta}/`)).map((r) => ({ name: r.slice(carpeta.length + 1) })), error: null })),
+      upload: vi.fn(async (ruta: string, contenido: string) => { subidas.push({ ruta, contenido }); archivos[ruta] = contenido; return { error: null }; }),
+      createSignedUrl: vi.fn(async (ruta: string) => ({ data: { signedUrl: `https://firmada/${ruta}` }, error: null })),
+    }),
+  };
+  return { admin: { from: vi.fn(builder), storage }, subidas, consultas };
+}
+
+const compradora = { id: "u-compradora", email: "compradora@mail.com" };
+const invitado = { id: "u-invitado", email: "invitado@mail.com" };
+
+function sesion(u: { id: string; email: string }) {
+  (createServerClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ auth: { getUser: vi.fn().mockResolvedValue({ data: { user: u }, error: null }) } });
+}
+
+function base(contexto: Record<string, unknown>, extra: { pedido?: string; libro_aprobado_at?: string | null } = {}) {
+  return {
+    familias: [{ id: "f1", auth_user_id: compradora.id, email: compradora.email, nombre: "Laura", region: "AR" }],
+    narradores: [{ id: "n1", nombre: "Marta", como_le_dicen: "Marta", familia_id: "f1", estado: "activo", dia_actual: 1, alerta_silencio: false, created_at: "2026-10-01", contexto, libro_aprobado_at: extra.libro_aprobado_at ?? null, edicion: {} }],
+    respuestas: [{ id: "r1", narrador_id: "n1", audio_path: "n1/r1.ogg", transcripcion: "Lo que contó" }],
+    invitados: [{ id: "i1", narrador_id: "n1", auth_user_id: invitado.id, email: invitado.email, rol: "invitado" }],
+    pedidos: extra.pedido ? [{ id: "p1", narrador_id: "n1", familia_id: "f1", estado: extra.pedido, created_at: "2026-10-01" }] : [],
+    entregas: [] as Fila[],
+    preguntas: [] as Fila[],
+    entrevistas_v3: [{ narrador_id: "n1", estado: {} }],
+  };
+}
+
+const REGALO = { vinculoComprador: "hija" };
+const PROPIA = { vinculoComprador: "yo mismo" };
+
+function preparar(tablas: Record<string, Fila[]>, archivos: Record<string, string> = {}) {
+  const r = crearAdmin(tablas, archivos);
+  (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(r.admin);
+  return r;
+}
+const pedir = (ruta: string, cuerpo?: unknown, metodo = cuerpo === undefined ? "GET" : "POST") =>
+  new NextRequest(`https://x.test${ruta}`, { method: metodo, ...(cuerpo === undefined ? {} : { body: JSON.stringify(cuerpo), headers: { "Content-Type": "application/json" } }) });
+const pedirAudio = () => audio(pedir("/api/audio/r1"), { params: Promise.resolve({ respuestaId: "r1" }) });
+
+beforeEach(() => { vi.clearAllMocks(); sesion(compradora); });
+
+describe("la regla", () => {
+  it("regalo y sin vínculo: privado. Para mí, viaje y kids: no", () => {
+    expect(loContadoEsPrivado({ contexto: REGALO })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: { modo: "historia", vinculoComprador: "hijo" } })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: null })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: {} })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: PROPIA })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: { modo: "historia", ...PROPIA } })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: { modo: "viaje", vinculoComprador: "le regala el viaje" } })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: { modo: "kids", vinculoComprador: "padre" } })).toBe(false);
+  });
+
+  it("verLoContado: el invitado de una historia propia sigue viendo; el del regalo no; el visitante nunca", () => {
+    expect(PUEDE.verLoContado("duena", { contexto: REGALO })).toBe(false);
+    expect(PUEDE.verLoContado("invitado", { contexto: REGALO })).toBe(false);
+    expect(PUEDE.verLoContado("duena", { contexto: PROPIA })).toBe(true);
+    expect(PUEDE.verLoContado("invitado", { contexto: PROPIA })).toBe(true);
+    expect(PUEDE.verLoContado("visitante", { contexto: PROPIA })).toBe(false);
+  });
+});
+
+describe("los audios completos", () => {
+  it("quien regala recibe 403, también con el libro listo", async () => {
+    preparar(base(REGALO));
+    expect((await pedirAudio()).status).toBe(403);
+    preparar(base(REGALO, { pedido: "entregado" }));
+    expect((await pedirAudio()).status).toBe(403);
+  });
+
+  it("un invitado de la familia recibe 403", async () => {
+    sesion(invitado);
+    preparar(base(REGALO));
+    expect((await pedirAudio()).status).toBe(403);
+  });
+
+  it("el narrador que compró para sí escucha", async () => {
+    preparar(base(PROPIA));
+    const r = await pedirAudio();
+    expect(r.status).toBe(302);
+    expect(r.headers.get("location")).toContain("n1/r1.ogg");
+  });
+
+  it("viaje y kids quedan como estaban", async () => {
+    preparar(base({ modo: "viaje", vinculoComprador: "le regala el viaje" }));
+    expect((await pedirAudio()).status).toBe(302);
+    preparar(base({ modo: "kids", vinculoComprador: "padre" }));
+    expect((await pedirAudio()).status).toBe(302);
+  });
+});
+
+describe("lo que sale de lo contado", () => {
+  const q = "?narrador=n1";
+  it("sacar del libro: quien regala 403, el dueño de su propia historia pasa", async () => {
+    preparar(base(REGALO));
+    expect((await fuera(pedir(`/api/fuera-del-libro${q}`, { accion: "sacar", respuestaId: "r1" }))).status).toBe(403);
+    preparar(base(PROPIA));
+    expect((await fuera(pedir(`/api/fuera-del-libro${q}`, { accion: "sacar", respuestaId: "r1" }))).status).not.toBe(403);
+  });
+
+  it("sugerencias, estructura y nombres: 403 si es privado", async () => {
+    preparar(base(REGALO));
+    expect((await sugeridas(pedir(`/api/sugeridas${q}`, {}))).status).toBe(403);
+    expect((await estructura(pedir(`/api/estructura${q}`))).status).toBe(403);
+    expect((await nombres(pedir(`/api/nombres${q}`, { correcciones: [] }))).status).toBe(403);
+  });
+
+  it("previsualización: 403 mientras cuenta, con el libro listo sí", async () => {
+    preparar(base(REGALO, { pedido: "pagado" }), { "n1/paquete/preview.pdf": "x", "n1/paquete/muestra_audiolibro.mp3": "x" });
+    expect((await previewPdf(pedir(`/api/preview-pdf${q}`))).status).toBe(403);
+    expect((await previewAudio(pedir(`/api/preview-audio${q}`))).status).toBe(403);
+    preparar(base(REGALO, { pedido: "entregado" }), { "n1/paquete/preview.pdf": "x", "n1/paquete/muestra_audiolibro.mp3": "x" });
+    expect((await previewPdf(pedir(`/api/preview-pdf${q}`))).status).toBe(302);
+    expect((await previewAudio(pedir(`/api/preview-audio${q}`))).status).toBe(302);
+  });
+
+  it("qué dejar afuera: quien regala no puede excluir respuestas", async () => {
+    const t = base(REGALO);
+    t.narradores[0].estado = "completado";
+    preparar(t);
+    expect((await edicion(pedir(`/api/edicion${q}`, { excluidas: ["r1"] }, "PATCH"))).status).toBe(403);
+  });
+
+  it("un link viejo del anticipo deja de abrir si es privado", async () => {
+    process.env.FIRMA_TOKENS = "secreto";
+    const { firmarTokenLibro } = await import("@/lib/token-libro");
+    const { createHmac } = await import("node:crypto");
+    const enc = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+    const pay = Buffer.from(JSON.stringify({ narradorId: "n1", tipo: "anticipo" })).toString("base64url");
+    const token = `${enc}.${pay}.${createHmac("sha256", "secreto").update(`${enc}.${pay}`).digest("base64url")}`;
+    expect(firmarTokenLibro).toBeTypeOf("function");
+    preparar(base(REGALO));
+    expect((await anticipoAudio(new Request("https://x.test"), { params: Promise.resolve({ token }) })).status).toBe(404);
+    preparar(base(PROPIA));
+    expect((await anticipoAudio(new Request("https://x.test"), { params: Promise.resolve({ token }) })).status).not.toBe(404);
+  });
+});
+
+describe("la muestra pública", () => {
+  const conLibro = { "n1/escritor/libro.md": "# Capítulo 1\n\nEste es el primer párrafo del libro escrito, con unas cuantas palabras.\n\nOtro." };
+  it("privada: nada hasta el libro listo, y nunca la transcripción", async () => {
+    preparar(base(REGALO, { pedido: "generando", libro_aprobado_at: "2026-11-01" }), conLibro);
+    const { admin } = crearAdmin(base(REGALO, { pedido: "generando", libro_aprobado_at: "2026-11-01" }), conLibro);
+    expect(await armarMuestra(admin as never, "n1")).toBeNull();
+    const listo = crearAdmin(base(REGALO, { pedido: "entregado", libro_aprobado_at: "2026-11-01" }), conLibro);
+    const m = await armarMuestra(listo.admin as never, "n1");
+    expect(m?.primerParrafo).toBe("Este es el primer párrafo del libro escrito, con unas cuantas palabras.");
+    expect(JSON.stringify(m)).not.toContain("Lo que contó");
+    expect(listo.consultas.filter((c) => c.tabla === "respuestas").every((c) => !c.columnas.includes("transcripcion"))).toBe(true);
+  });
+
+  it("primerParrafoDelLibro salta títulos y párrafos cortos", () => {
+    expect(primerParrafoDelLibro("# T\n\n---\n\nCorto.\n\nUn párrafo de verdad, con bastantes palabras para contar.")).toBe("Un párrafo de verdad, con bastantes palabras para contar.");
+    expect(primerParrafoDelLibro(null)).toBeNull();
+  });
+});
+
+describe("las dudas del escritor", () => {
+  const q = "?narrador=n1";
+  const dudas = JSON.stringify({ dudas: [
+    { id: "D1", pregunta: "¿Cómo se escribe su apellido?", que: "Se oye de dos formas", citas: [{ id: "R1", texto: "lo que contó en secreto" }], opciones: ["Pérez", "Peres"] },
+    { id: "D2", pregunta: "¿Quién era la mujer con la que se fue en 1962?", que: "x", citas: [{ id: "R2", texto: "otra cita" }] },
+  ] });
+  const destino = JSON.stringify({ dudas: [
+    { id: "D1", pregunta: "¿Cómo se escribe su apellido?", destino: "familia" },
+    { id: "D2", pregunta: "¿Quién era la mujer con la que se fue en 1962?", destino: "narrador" },
+  ] });
+
+  it("quien regala ve solo las que no revelan nada, sin citas", async () => {
+    const { dudasParaQuienRegala, leerDudas } = await import("@/lib/dudas");
+    const v = dudasParaQuienRegala(leerDudas(dudas)!, destino);
+    expect(v).toEqual([{ id: "D1", pregunta: "¿Cómo se escribe su apellido?", opciones: ["Pérez", "Peres"] }]);
+  });
+
+  it("sin clasificar, roto, o con el texto cambiado: ninguna", async () => {
+    const { dudasParaQuienRegala, leerDudas } = await import("@/lib/dudas");
+    const l = leerDudas(dudas)!;
+    expect(dudasParaQuienRegala(l, null)).toEqual([]);
+    expect(dudasParaQuienRegala(l, "{roto")).toEqual([]);
+    expect(dudasParaQuienRegala(l, JSON.stringify({ dudas: [{ id: "D1", pregunta: "otra", destino: "familia" }] }))).toEqual([]);
+  });
+
+  it("las ocultas no cuentan como pendientes", async () => {
+    const { hayDudasPendientes } = await import("@/lib/dudas-archivos");
+    const narrador = { id: "n1", contexto: REGALO };
+    const correccion = JSON.stringify({ correcciones: [{ dudaId: "D1", texto: "Pérez" }] });
+    const conVisible = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino });
+    expect(await hayDudasPendientes(conVisible.admin as never, narrador)).toBe(true);
+    // Contestó la visible: la oculta no deja nada pendiente.
+    const contestada = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino, "n1/escritor/correcciones.json": correccion });
+    expect(await hayDudasPendientes(contestada.admin as never, narrador)).toBe(false);
+    // Sin clasificar no hay nada a la vista: tampoco hay aviso.
+    const sinClasificar = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas });
+    expect(await hayDudasPendientes(sinClasificar.admin as never, narrador)).toBe(false);
+    // Para mí, como siempre.
+    expect(await hayDudasPendientes(sinClasificar.admin as never, { id: "n1", contexto: PROPIA })).toBe(true);
+  });
+
+  it("no se puede contestar una duda oculta", async () => {
+    const { POST } = await import("../src/app/api/dudas/route");
+    const t = base(REGALO);
+    t.narradores[0].estado = "completado";
+    preparar(t, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino });
+    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D2", texto: "Ofelia" }] }))).status).toBe(400);
+    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
+  });
+});
+
+describe("las frases", () => {
+  const frase = (id: string, elegida: boolean, estado = "cortada") => ({ id, texto: `Frase ${id}`, origen: "cita", grupo: null, respuesta_id: "r1", pregunta_orden: 3, por_que: "porque sí", elegida, elegida_por: "modelo", estado, audio_path: `n1/voz/${id}.mp3`, segundos: 5, inicio: 0, fin: 5 });
+  const archivo = (o: { confirmado_at?: string | null; pendiente?: boolean } = {}) => JSON.stringify({ version: 1, narrador_id: "n1", pedido_id: "p1", confirmado_at: o.confirmado_at ?? null, capitulos: [{ numero: 1, capitulo: "Uno", candidatas: [frase("a", true, o.pendiente ? "pendiente" : "cortada"), frase("b", false)] }] });
+  const RUTA = "n1/paquete/frases.json";
+  const FRENO = "n1/paquete/frenar_imprenta.json";
+  const q = "?narrador=n1";
+
+  it("GET: privado solo con el libro listo, solo las elegidas, sin de dónde salieron", async () => {
+    preparar(base(REGALO, { pedido: "pagado" }), { [RUTA]: archivo() });
+    expect((await frasesGet(pedir(`/api/frases${q}`))).status).toBe(404);
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
+    const j = await (await frasesGet(pedir(`/api/frases${q}`))).json();
+    expect(j.capitulos[0].candidatas.map((f: { id: string }) => f.id)).toEqual(["a"]);
+    expect(j.capitulos[0].candidatas[0]).toMatchObject({ respuesta_id: null, por_que: "", pregunta_orden: 0 });
+  });
+
+  it("GET propia: todas, como siempre", async () => {
+    preparar(base(PROPIA), { [RUTA]: archivo() });
+    const j = await (await frasesGet(pedir(`/api/frases${q}`))).json();
+    expect(j.capitulos[0].candidatas.map((f: { id: string }) => f.id)).toEqual(["a", "b"]);
+  });
+
+  it("audio: una candidata no elegida da 404 a quien regala", async () => {
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
+    expect((await fraseAudio(pedir(`/api/frases/audio/b${q}`), { params: Promise.resolve({ fraseId: "b" }) })).status).toBe(404);
+    expect((await fraseAudio(pedir(`/api/frases/audio/a${q}`), { params: Promise.resolve({ fraseId: "a" }) })).status).toBe(302);
+  });
+
+  it("quien regala no cambia la selección, y el invitado tampoco confirma", async () => {
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { seleccion: [{ numero: 1, elegidas: ["b"] }], confirmar: true }))).status).toBe(403);
+    sesion(invitado);
+    expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(403);
+  });
+
+  it("confirmar: con el libro listo deja la selección del biógrafo y anota la fecha", async () => {
+    const { subidas } = preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(200);
+    const guardado = JSON.parse(subidas.find((s) => s.ruta === RUTA)!.contenido);
+    expect(guardado.confirmado_at).toBeTruthy();
+    expect(guardado.capitulos[0].candidatas.filter((f: { elegida: boolean }) => f.elegida).map((f: { id: string }) => f.id)).toEqual(["a"]);
+  });
+
+  it("no se confirma antes del libro listo, ni con audios por recortar, ni con la imprenta frenada", async () => {
+    preparar(base(REGALO, { pedido: "generando" }), { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(409);
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo({ pendiente: true }) });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(409);
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo(), [FRENO]: "{}" });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(409);
+  });
+
+  it("«Hay un error, avisanos» frena la imprenta y avisa a los socios", async () => {
+    const { subidas } = preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { error: "Mi tía se llama Ofelia, no Ofelio" }))).status).toBe(200);
+    expect(subidas.find((s) => s.ruta === FRENO)?.contenido).toContain("Ofelia");
+    expect(enviarMailSocios).toHaveBeenCalledOnce();
+    expect(vi.mocked(enviarMailSocios).mock.calls[0][1]).toContain("Ofelia");
+  });
+
+  it("con el libro ya en imprenta no promete frenarlo", async () => {
+    const t = base(REGALO, { pedido: "entregado" });
+    t.entregas = [{ narrador_id: "n1", estado: "en_produccion" }];
+    const { subidas } = preparar(t, { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { error: "Un nombre mal escrito" }))).status).toBe(409);
+    expect(subidas).toEqual([]);
+    expect(enviarMailSocios).not.toHaveBeenCalled();
+  });
+
+  it("el dueño de su propia historia cambia y confirma como siempre", async () => {
+    preparar(base(PROPIA), { [RUTA]: archivo() });
+    expect((await frasesPost(pedir(`/api/frases${q}`, { seleccion: [{ numero: 1, elegidas: ["b"] }], confirmar: true }))).status).toBe(200);
+  });
+});

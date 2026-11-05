@@ -130,7 +130,7 @@ describe('GET /api/audio/[respuestaId]', () => {
         respuestas: [
           { data: { id: 'resp-1', audio_path: 'narrador-1/dia_01.ogg', narrador_id: 'narrador-1' }, error: null },
         ],
-        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1', contexto: { vinculoComprador: 'yo mismo' } }, error: null }],
       },
       { borradoEl: '2027-01-12T09:30:00.000Z' },
     );
@@ -155,7 +155,7 @@ describe('GET /api/audio/[respuestaId]', () => {
             error: null,
           },
         ],
-        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1', contexto: { vinculoComprador: 'yo mismo' } }, error: null }],
       },
       { signedUrl: { data: { signedUrl: 'https://signed.example/audio.ogg' }, error: null } },
     );

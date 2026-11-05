@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { loContadoEsPrivado, narradorDeLaSesion } from "@/lib/panel";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -20,6 +20,8 @@ async function obtenerNarradorDeLaSesion(params: URLSearchParams): Promise<
   });
   if (!acceso.ok) return { ok: false, status: acceso.status, error: acceso.error };
   const narrador = acceso.narrador;
+  // Hasta la lista de nombres cuenta cosas: si es privado, quien regala no la ve ni la corrige (Naza, 05/11).
+  if (loContadoEsPrivado(narrador)) return { ok: false, status: 403, error: "No autorizado." };
 
   return { ok: true, narrador, admin };
 }

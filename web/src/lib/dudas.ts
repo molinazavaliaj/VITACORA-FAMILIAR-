@@ -25,6 +25,27 @@ export type DudaFamilia = {
   opciones?: string[];
 };
 
+/** A quién se le pregunta cada duda: `dudas-destino.json`, que deja la fábrica al clasificarlas (CONTRATO). */
+export const ARCHIVO_DESTINO_DUDAS = "dudas-destino.json";
+
+/**
+ * Las dudas que puede ver quien regala (Naza, 05/11): solo las que la fábrica clasificó como `familia` con ese mismo
+ * texto, sin citas ni lo que quedó sin resolver. Lo demás va al narrador. Sin clasificación válida, ninguna: ante la
+ * duda, se muestra menos. Lo que no se devuelve acá no cuenta como pendiente en ningún lado.
+ */
+export function dudasParaQuienRegala(dudas: DudaFamilia[], destinoJson: string | null): DudaFamilia[] {
+  const permitidas = new Map<string, string>();
+  try {
+    const j = JSON.parse(destinoJson ?? "null") as { dudas?: { id?: unknown; pregunta?: unknown; destino?: unknown }[] } | null;
+    for (const d of Array.isArray(j?.dudas) ? j.dudas : []) {
+      if (typeof d?.id === "string" && typeof d.pregunta === "string" && d.destino === "familia") permitidas.set(d.id, d.pregunta);
+    }
+  } catch {
+    return [];
+  }
+  return dudas.filter((d) => permitidas.get(d.id) === d.pregunta).map((d) => ({ id: d.id, pregunta: d.pregunta, ...(d.opciones ? { opciones: d.opciones } : {}) }));
+}
+
 /**
  * Una respuesta de la familia, como queda en `correcciones.json`. La fábrica lee
  * solo `dudaId` y `texto`; el resto es nuestro. `quien` es el nombre de la

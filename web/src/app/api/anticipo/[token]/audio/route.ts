@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenAnticipo } from "@/lib/token-anticipo";
+import { loContadoEsPrivado } from "@/lib/panel";
 
 // El minuto de su voz, servido por token y SIN sesión: es la pieza que
 // convence, y pedirle un código de 6 dígitos antes de dejarla escuchar sería
@@ -21,6 +22,12 @@ export async function GET(
   }
 
   const admin = crearClienteServidor();
+
+  // Los links ya enviados no vencen: si lo contado es privado, dejan de abrir (Naza y Joaquín, 05/11).
+  const { data: fila } = await admin.from("narradores").select("contexto").eq("id", datosToken.narradorId).maybeSingle();
+  if (!fila || loContadoEsPrivado(fila as { contexto?: Record<string, unknown> | null })) {
+    return NextResponse.json({ error: "Enlace no válido." }, { status: 404 });
+  }
 
   const { data: firmado, error } = await admin.storage
     .from("audios")

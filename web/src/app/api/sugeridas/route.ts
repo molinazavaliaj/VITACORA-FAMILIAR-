@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
+import { loContadoEsPrivado, narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -23,6 +23,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!PUEDE.agregarPreguntasYFotos(acceso.rol as Rol)) {
     return NextResponse.json({ error: "Solo la familia puede pedir sugerencias." }, { status: 403 });
   }
+
+  // Las sugerencias salen de leer toda la historia: si es privada, contarían lo que dijo.
+  if (loContadoEsPrivado(acceso.narrador)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
 
   const base = process.env.ENTREVISTADOR_URL?.replace(/\/$/, "");
   const clave = process.env.SUGERIDAS_CLAVE;

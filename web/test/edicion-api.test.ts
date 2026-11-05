@@ -58,7 +58,7 @@ const martina = { id: "u-martina", email: "martina@mail.com" };
 function armar(narrador: Fila) {
   const { admin, updates } = crearAdmin({
     familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
-    narradores: [{ id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", alerta_silencio: false, familia_id: "fam-martina", created_at: "x", dia_actual: 30, edicion: {}, libro_aprobado_at: null, estado: "completado", ...narrador }],
+    narradores: [{ id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Alfredo", como_le_dicen: "Abuelo", alerta_silencio: false, familia_id: "fam-martina", created_at: "x", dia_actual: 30, edicion: {}, libro_aprobado_at: null, estado: "completado", ...narrador }],
     // Como en producción: las base son globales (narrador_id null) y el narrador solo tiene las adaptativas.
     preguntas: [{ narrador_id: null, orden: 19, capitulo: "Los hijos" }, { narrador_id: "n1", orden: 27, capitulo: "La infancia" }, { narrador_id: "n1", orden: 28, capitulo: "El amor" }],
     respuestas: [{ narrador_id: "n1", id: "r1" }, { narrador_id: "n1", id: "r2" }],

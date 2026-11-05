@@ -4,6 +4,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { intenta } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { rutaCandado } from "@/lib/audio-borrado";
+import { loContadoEsPrivado } from "@/lib/panel";
 
 const MENSAJE_ERROR_GENERICO = (t: TratoComprador = "vos") => `No pudimos generar el audio. ${intenta(t)} de nuevo.`;
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
@@ -83,7 +84,7 @@ export async function GET(
 
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
-    .select("id, familia_id")
+    .select("id, familia_id, contexto")
     .eq("id", datosRespuesta.narrador_id)
     .maybeSingle();
 
@@ -92,10 +93,15 @@ export async function GET(
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
-  const datosNarrador = narrador as { id: string; familia_id: string } | null;
+  const datosNarrador = narrador as { id: string; familia_id: string; contexto?: Record<string, unknown> | null } | null;
 
   if (!datosNarrador || datosNarrador.familia_id !== (familia as { id: string }).id) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+  }
+
+  // El libro es para otra persona: quien regala nunca escucha los audios completos (Naza y Joaquín, 05/11).
+  if (loContadoEsPrivado(datosNarrador)) {
+    return NextResponse.json({ error: "Lo que cuenta es privado." }, { status: 403 });
   }
 
   if (!datosRespuesta.audio_path) {

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
   // Terminó de contar: se invita solo para contestar las dudas que quedan.
   const paraDudas = ESTADOS_CERRADOS.includes(n?.estado ?? narrador.estado);
-  if (paraDudas && !(await hayDudasPendientes(admin, narrador.id))) {
+  if (paraDudas && !(await hayDudasPendientes(admin, narrador))) {
     return NextResponse.json({ error: "Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link." }, { status: 400 });
   }
 

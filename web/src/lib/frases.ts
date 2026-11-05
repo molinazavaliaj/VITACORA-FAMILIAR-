@@ -97,6 +97,27 @@ export function frasesPublicables(frases: FrasesJson): { capitulo: CapituloConFr
     .filter((x) => x.frases.length > 0);
 }
 
+/** Lo que ve quien regala (Naza, 05/11): solo las elegidas, sin de dónde salieron ni por qué. */
+export function frasesElegidasParaVer(frases: FrasesJson): FrasesJson {
+  return {
+    ...frases,
+    capitulos: frases.capitulos
+      .map((c) => ({ ...c, candidatas: elegidasDe(c).map((f) => ({ ...f, por_que: "", respuesta_id: null, pregunta_orden: 0 })) }))
+      .filter((c) => c.candidatas.length > 0),
+  };
+}
+
+/**
+ * «Hay un error, avisanos» (Naza, 05/11): mientras este archivo exista, el libro no va a imprenta (la fábrica lo mira
+ * en el portón). Lo crea la web y lo borran los socios a mano al corregir. CONTRATO, «Lo contado es privado».
+ */
+export const RUTA_FRENO_IMPRENTA = (narradorId: string) => `${narradorId}/paquete/frenar_imprenta.json`;
+
+export async function imprentaFrenada(admin: SupabaseClient, narradorId: string): Promise<boolean> {
+  const { data } = await admin.storage.from("audios").list(`${narradorId}/paquete`, { search: "frenar_imprenta" });
+  return (data ?? []).some((a) => a.name === "frenar_imprenta.json");
+}
+
 /** Cuántas quedan por cortar / cortadas / fallidas, para decir "se está preparando" con números. */
 export function resumenDeCorte(frases: FrasesJson): { total: number; cortadas: number; pendientes: number; fallidas: number; elegidas: number } {
   const todas = frases.capitulos.flatMap((c) => c.candidatas);

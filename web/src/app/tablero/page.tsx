@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiasDelUsuario, type Historia } from "@/lib/panel";
+import { historiasDelUsuario, type Historia, loContadoEsPrivado } from "@/lib/panel";
 import { viajeDe, type Resumen } from "./proximo-paso";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
@@ -41,7 +41,7 @@ async function resumirHistoria(
     admin.from("preguntas").select("orden").is("narrador_id", null),
     admin.storage.from("audios").list(`${narradorId}/paquete`),
     // Dudas del escritor sin contestar (lib/dudas-archivos.ts).
-    hayDudasPendientes(admin, narradorId),
+    hayDudasPendientes(admin, h.narrador),
     // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
     // No depende de nada de arriba: va en la misma ronda (RENDIMIENTO.md §3.4).
     viaje ? false : entrevistaV3(admin, narradorId).then((e) => e !== null, () => false),
@@ -65,12 +65,13 @@ async function resumirHistoria(
         (globales as { orden: number }[] | null) ?? [],
         TOTAL_PREGUNTAS_BASE,
       );
-  const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
+  const privado = loContadoEsPrivado(h.narrador);
+  const tieneAnticipo = !privado && (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
   const f = (fila as { libro_aprobado_at?: string | null; edicion?: { portadaFotoId?: string | null; titulo?: string } | null } | null) ?? {};
   return {
     respondidas: ordenes.size,
     total,
-    segundos,
+    segundos: privado ? 0 : segundos,
     tieneAnticipo,
     v3,
     dudasPendientes,

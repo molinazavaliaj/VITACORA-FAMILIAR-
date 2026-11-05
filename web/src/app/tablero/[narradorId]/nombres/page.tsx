@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { historiaAccesible, PUEDE, loContadoEsPrivado } from "@/lib/panel";
 import { FormularioNombres } from "./acciones";
 import { citasDeNombre, type RespuestaConTexto } from "@/lib/citas";
 import { PasosDelLibro, VolverAlTablero } from "../../pasos";
@@ -54,6 +54,8 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
     notFound();
   }
   const narrador = historia.narrador;
+  // Hasta la lista de nombres cuenta cosas (Naza, 05/11).
+  if (loContadoEsPrivado(narrador)) redirect(`/tablero/${narrador.id}/libro`);
   // Vos o tú: el de la familia dueña de la historia.
   const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
 

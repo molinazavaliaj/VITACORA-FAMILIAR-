@@ -1,4 +1,4 @@
-import { esPropia, type Historia } from "@/lib/panel";
+import { esPropia, loContadoEsPrivado, type Historia } from "@/lib/panel";
 import { textosComprador, tratoDeRegion, type RegionComprador } from "@/lib/regalo-textos";
 import { viajeDelContexto, type CompraViaje } from "@/lib/viaje";
 
@@ -38,6 +38,7 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
   const esDuena = h.rol === "duena";
   const propia = esPropia(h.narrador);
   const tu = tratoDeRegion(region) === "tu";
+  const privado = loContadoEsPrivado(h.narrador);
   switch (h.narrador.estado) {
     case "completado":
     case "cerrado_anticipado":
@@ -54,11 +55,14 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
         ? { href: `/tablero/${id}/libro`, texto: tu
           ? (propia ? "Ya terminaste de contar — dale los últimos retoques y encarga tu libro" : "Ya terminó de contar — dale los últimos retoques y encarga su libro")
           : (propia ? "Ya terminaste de contar — dale los últimos retoques y encargá tu libro" : "Ya terminó de contar — dale los últimos retoques y encargá su libro") }
-        : { href: `/tablero/${id}`, texto: tu ? "Ya terminó de contar — lee su historia" : "Ya terminó de contar — leé su historia" };
+        : { href: `/tablero/${id}`, texto: privado
+          ? `Ya terminó de contar. Cuando el libro esté listo, se abre ${tu ? "aquí" : "acá"}`
+          : tu ? "Ya terminó de contar — lee su historia" : "Ya terminó de contar — leé su historia" };
     case "pausado":
       return { href: `/tablero/${id}`, texto: propia ? `Pediste una pausa — ${tu ? "retoma" : "retomá"} cuando quieras` : `Pidió una pausa — ${tu ? "mira" : "mirá"} qué pasó` };
     case "activo":
       if (!r.v3 && r.tieneAnticipo && r.respondidas < 6) return { href: `/tablero/${id}`, texto: tu ? "Ya puedes leer el capítulo 1" : "Ya podés leer el capítulo 1" };
+      if (r.respondidas > 0 && privado) return { href: `/tablero/${id}`, texto: tu ? "Mira cuánto lleva contado" : "Mirá cuánto lleva contado" };
       if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: `${tu ? "Escucha" : "Escuchá"} lo último que ${propia ? "contaste" : "contó"}` };
       return null;
     case "acepto":

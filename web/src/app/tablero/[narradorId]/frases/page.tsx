@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
-import { leerFrases, resumenDeCorte } from "@/lib/frases";
+import { esPropia, historiaAccesible, loContadoEsPrivado, PUEDE } from "@/lib/panel";
+import { frasesElegidasParaVer, imprentaFrenada, leerFrases, resumenDeCorte } from "@/lib/frases";
+import { hayLibroListo } from "@/lib/libro-listo";
+import { FrasesElegidas } from "./elegidas";
 import { firmarTokenVoz } from "@/lib/token-libro";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
 import { ConRiel } from "../../riel";
@@ -34,11 +36,15 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
   const propia = esPropia(n);
   const puedeEditar = PUEDE.cerrarLibro(historia.rol);
 
-  const [frases, { data: cierre }, trato] = await Promise.all([
+  const privado = loContadoEsPrivado(n);
+  const [leidas, { data: cierre }, trato, listo] = await Promise.all([
     leerFrases(admin, n.id),
     admin.from("narradores").select("libro_aprobado_at").eq("id", n.id).maybeSingle(),
     tratoDeLaFamilia(admin, n.familia_id),
+    privado ? hayLibroListo(admin, n.id) : Promise.resolve(true),
   ]);
+  // Si lo contado es privado: las frases elegidas, y solo con el libro listo (Naza, 05/11).
+  const frases = leidas && listo ? (privado ? frasesElegidasParaVer(leidas) : leidas) : null;
   const tu = trato === "tu";
   const libroCerrado = Boolean((cierre as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at);
 
@@ -72,6 +78,28 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
   const cortando = resumen.pendientes > 0;
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = puedeEditar ? `${urlBase}/voz/${firmarTokenVoz(n.id)}` : null;
+
+  if (privado) {
+    return (
+      <ConRiel admin={admin} user={user} actual={n.id} sufijo="/frases">
+        {cortando ? <meta httpEquiv="refresh" content="120" /> : null}
+        {cabecera}
+        <div className="mt-8">
+          <FrasesElegidas
+            narradorId={n.id}
+            nombre={n.como_le_dicen}
+            capitulos={frases.capitulos}
+            confirmadoAt={frases.confirmado_at}
+            frenada={await imprentaFrenada(admin, n.id)}
+            cortando={cortando}
+            puedeConfirmar={puedeEditar}
+            linkPublico={linkPublico}
+            trato={trato}
+          />
+        </div>
+      </ConRiel>
+    );
+  }
 
   return (
     <ConRiel admin={admin} user={user} actual={n.id} sufijo="/frases">

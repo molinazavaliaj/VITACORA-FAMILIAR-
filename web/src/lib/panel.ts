@@ -40,6 +40,20 @@ export function esPropia(narrador: { contexto?: Record<string, unknown> | null }
   return (narrador.contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === "yo mismo";
 }
 
+/**
+ * Privacidad del panel (Naza y Joaquín, 05/11; CONTRATO, «Lo contado es privado»). En Familiar y en una historia, cuando
+ * el libro es para otra persona, lo que cuenta el narrador queda privado: quien regala y sus invitados ven el avance,
+ * suman preguntas y fotos y eligen la tapa. Con el libro listo ven el libro y las frases elegidas, nunca los audios
+ * completos ni las transcripciones. Viaje y Kids siguen como estaban, y «para mí» no cambia.
+ *
+ * Sin el vínculo cargado cuenta como regalo: ante la duda, se muestra menos.
+ */
+export function loContadoEsPrivado(narrador: { contexto?: Record<string, unknown> | null }): boolean {
+  const modo = (narrador.contexto as { modo?: unknown } | null | undefined)?.modo;
+  if (modo === "viaje" || modo === "kids") return false;
+  return !esPropia(narrador);
+}
+
 type Usuario = { id: string; email?: string | null };
 
 /**
@@ -231,6 +245,10 @@ export const PUEDE = {
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
   comprarCopia: (_rol: Rol) => true,
+  /** Respuestas, audios y transcripciones. Ver loContadoEsPrivado. */
+  verLoContado: (rol: Rol, narrador: { contexto?: Record<string, unknown> | null }) => rol !== "visitante" && !loContadoEsPrivado(narrador),
+  /** «Que esto no vaya al libro» desde el panel: la dueña, salvo que el libro sea para otra persona (ahí, solo el narrador). */
+  sacarDelLibro: (rol: Rol, narrador: { contexto?: Record<string, unknown> | null }) => rol === "duena" && !loContadoEsPrivado(narrador),
 } as const;
 
 // ── Para las rutas de API ─────────────────────────────────────────────

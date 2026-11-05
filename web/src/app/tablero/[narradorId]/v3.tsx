@@ -265,7 +265,7 @@ export function HistoriaV3({
 }
 
 /** Las preguntas que sumó la familia, con sus palabras, y si ya se le hicieron (Naza, 20/10). */
-function PreguntasDeLaFamilia({
+export function PreguntasDeLaFamilia({
   preguntas, propia, trato, historia = false, children,
 }: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; historia?: boolean; children?: ReactNode }) {
   const T = textosPreguntasFamilia(idiomaPreguntasFamilia(trato));

@@ -11,7 +11,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "@/lib/dudas";
-import { archivosDelEscritor, carpetaDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
+import { archivosDelEscritor, carpetaDelEscritor, leerDelEscritor, dudasQueVe } from "@/lib/dudas-archivos";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { regionDelRequest } from "@/lib/region";
@@ -75,11 +75,13 @@ export async function POST(request: NextRequest) {
   if (archivoDudas.texto === null) {
     return NextResponse.json({ error: "Esta historia no tiene dudas para contestar." }, { status: 404 });
   }
-  const dudas = leerDudas(archivoDudas.texto);
-  if (!dudas) {
+  const leidas = leerDudas(archivoDudas.texto);
+  if (!leidas) {
     console.error("dudas POST: dudas-familia.json invalido");
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
+  // Una duda oculta se rechaza igual que una inventada (Naza, 05/11).
+  const dudas = await dudasQueVe(admin, historia.narrador, leidas);
 
   const resultado = validarCorreccionesFamilia(body.correcciones, dudas);
   if (!resultado.ok) {

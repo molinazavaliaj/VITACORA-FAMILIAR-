@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
+import { puedeVerLoArmado } from "@/lib/libro-listo";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -16,6 +17,8 @@ export async function GET(request: NextRequest) {
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const narrador = acceso.narrador;
+  // Sale de lo que contó: si es privado, solo con el libro listo.
+  if (!(await puedeVerLoArmado(admin, narrador))) return NextResponse.json({ error: "Todavía no está listo." }, { status: 403 });
 
   const { data: archivos, error: errorArchivos } = await admin.storage
     .from("audios")

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas } from "./dudas";
+import { ARCHIVO_DESTINO_DUDAS, dudasParaQuienRegala, hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas, type DudaFamilia } from "./dudas";
+import { loContadoEsPrivado } from "./panel";
 
 // Los archivos del escritor en Storage (`{narrador}/escritor/...`, o `escritor-historia/` en una historia), para la
 // pantalla de dudas, su API y el aviso del Inicio. Lo escriben la fábrica, los
@@ -71,6 +72,13 @@ export async function archivosDelEscritor(
   return { nombres: new Set((data ?? []).map((a) => a.name)), error: null };
 }
 
+/** Las dudas tal como las puede ver esta historia: todas o, si lo contado es privado, las que no revelan nada. */
+export async function dudasQueVe(admin: SupabaseClient, narrador: { id: string; contexto?: Record<string, unknown> | null }, dudas: DudaFamilia[]): Promise<DudaFamilia[]> {
+  if (!loContadoEsPrivado(narrador)) return dudas;
+  const destino = await leerDelEscritor(admin, narrador.id, ARCHIVO_DESTINO_DUDAS);
+  return dudasParaQuienRegala(dudas, destino.texto);
+}
+
 /**
  * ¿Quedan dudas del escritor por contestar? Hay dudas, el libro todavía no se
  * escribió y alguna sigue sin respuesta (no alcanza con que alguien haya
@@ -81,15 +89,17 @@ export async function archivosDelEscritor(
  * true (mejor de más que perder el plazo). Lo usan el aviso del Inicio y el
  * botón Compartir (invitar a quien sabe las respuestas, 13/10).
  */
-export async function hayDudasPendientes(admin: SupabaseClient, narradorId: string): Promise<boolean> {
+export async function hayDudasPendientes(admin: SupabaseClient, narrador: { id: string; contexto?: Record<string, unknown> | null }): Promise<boolean> {
+  const narradorId = narrador.id;
   const { nombres, error } = await archivosDelEscritor(admin, narradorId);
   if (error || !nombres.has("dudas-familia.json") || nombres.has("libro.md")) return false;
   const [archivoDudas, archivoCorrecciones] = await Promise.all([
     leerDelEscritor(admin, narradorId, "dudas-familia.json"),
     leerDelEscritor(admin, narradorId, "correcciones.json"),
   ]);
-  const dudas = archivoDudas.texto !== null ? leerDudas(archivoDudas.texto) : null;
-  if (!dudas) return false;
+  const todas = archivoDudas.texto !== null ? leerDudas(archivoDudas.texto) : null;
+  if (!todas) return false;
+  const dudas = await dudasQueVe(admin, narrador, todas);
   const correcciones = archivoCorrecciones.texto !== null ? leerCorreccionesGuardadas(archivoCorrecciones.texto) ?? [] : [];
   return hayDudasSinContestar(dudas, correcciones);
 }

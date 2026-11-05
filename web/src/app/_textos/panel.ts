@@ -27,6 +27,12 @@ export type Quien = {
 };
 
 type TextosPanel = {
+  /** La historia de otra persona (Naza, 05/11): lo que cuenta queda privado hasta que el libro esté listo. */
+  privadaTexto: (q: Quien, invitado: boolean) => string;
+  privadaEscribiendo: string;
+  privadaLeer: string;
+  privadaFrases: string;
+  privadaEncargar: string;
   hola: (nombre: string) => string;
   titular: (t: Titular, q: Quien) => string;
   respuestas: (n: number) => string;
@@ -189,6 +195,15 @@ const ES: TextosPanel = {
   elegirTapa: "Elegir la foto de la tapa",
   cuantasFotos: (n) => (n === 1 ? "1 foto en el álbum" : `${n} fotos en el álbum`),
 
+  privadaTexto: (_q, invitado) =>
+    invitado
+      ? "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, y puedes añadir preguntas y fotos."
+      : "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, puedes añadir preguntas y fotos, y eliges la tapa.",
+  privadaEscribiendo: "Estamos escribiendo el libro. Te avisamos por mail cuando esté listo.",
+  privadaLeer: "Leer su libro",
+  privadaFrases: "Escuchar sus mejores frases",
+  privadaEncargar: "Elige la tapa y encarga su libro",
+
   ultimo: (q) => (q.propia ? "Lo último que contaste" : "Lo último que contó"),
   verTodo: "Ver todo",
   escuchar: "Escuchar",
@@ -207,6 +222,11 @@ const ES: TextosPanel = {
 
 const AR: TextosPanel = {
   ...ES,
+  privadaTexto: (_q, invitado) =>
+    invitado
+      ? "Lo que cuenta queda privado hasta que el libro esté listo. Acá ves cuánto lleva contado, y podés sumar preguntas y fotos."
+      : "Lo que cuenta queda privado hasta que el libro esté listo. Acá ves cuánto lleva contado, podés sumar preguntas y fotos, y elegís la tapa.",
+  privadaEncargar: "Elegí la tapa y encargá su libro",
   pausarTexto: (q) =>
     `La pausa la hace una persona del equipo. Escribinos y frenamos las preguntas y los recordatorios. Lo que ya ${q.propia ? "contaste" : "contó"} queda guardado.`,
   cancelarTexto: "Escribinos y lo vemos con vos. Te contesta una persona.",

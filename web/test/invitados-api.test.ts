@@ -67,7 +67,7 @@ function sesion(usuario: { id: string; email: string } | null) {
 const request = (cuerpo: unknown) => ({ nextUrl: new URL("http://localhost/api/invitados?narrador=n1"), json: async () => cuerpo }) as never;
 const martina = { id: "u-martina", email: "martina@mail.com" };
 const primo = { id: "u-primo", email: "primo@mail.com" };
-const alfredo = { id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x", libro_aprobado_at: null };
+const alfredo = { id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x", libro_aprobado_at: null };
 
 function armar(invitados: Fila[] = [], narrador: Fila = alfredo, escritor: Record<string, string> = {}) {
   const { admin, inserts } = crearAdmin({

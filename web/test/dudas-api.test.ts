@@ -84,7 +84,7 @@ function armar(archivos: Record<string, string>, fallas: Record<string, unknown>
       familias: [{ id: "fam-laura", region: "AR", auth_user_id: "u-laura", nombre: "Laura", email: "laura@mail.com" }],
       narradores: [{
         id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "completado", dia_actual: 30,
-        alerta_silencio: false, familia_id: "fam-laura", created_at: "2026-09-10", contexto: {},
+        alerta_silencio: false, familia_id: "fam-laura", created_at: "2026-09-10", contexto: { vinculoComprador: "yo mismo" },
       }],
       invitados: [{ id: "i1", narrador_id: "n1", email: "tio.pedro@mail.com", auth_user_id: "u-tio", rol: "invitado" }],
     },

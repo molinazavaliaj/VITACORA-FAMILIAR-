@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
-import { leerFrases, tieneAudio } from "@/lib/frases";
+import { loContadoEsPrivado, narradorDeLaSesion, PUEDE } from "@/lib/panel";
+import { elegidasDe, leerFrases, tieneAudio } from "@/lib/frases";
+import { hayLibroListo } from "@/lib/libro-listo";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -20,8 +21,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   if (!PUEDE.verHistoriaCompleta(acceso.rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
 
+  // Si lo contado es privado: solo las elegidas y con el libro listo (Naza, 05/11).
+  const privado = loContadoEsPrivado(acceso.narrador);
+  if (privado && !(await hayLibroListo(admin, acceso.narrador.id))) return NextResponse.json({ error: "Esa frase todavía no tiene audio." }, { status: 404 });
   const frases = await leerFrases(admin, acceso.narrador.id);
-  const frase = frases?.capitulos.flatMap((c) => c.candidatas).find((f) => f.id === fraseId);
+  const frase = frases?.capitulos.flatMap((c) => (privado ? elegidasDe(c) : c.candidatas)).find((f) => f.id === fraseId);
   if (!frase || !tieneAudio(frase)) return NextResponse.json({ error: "Esa frase todavía no tiene audio." }, { status: 404 });
 
   const { data: firmado, error } = await admin.storage.from("audios").createSignedUrl(frase.audio_path!, DURACION_URL_FIRMADA_SEGUNDOS);

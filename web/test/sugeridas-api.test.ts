@@ -45,7 +45,7 @@ function sesion(usuario: { id: string; email: string } | null) {
 const request = () => ({ nextUrl: new URL("http://localhost/api/sugeridas?narrador=n1"), json: async () => ({}) }) as never;
 const martina = { id: "u-martina", email: "martina@mail.com" };
 const vecino = { id: "u-vecino", email: "vecino@mail.com" };
-const alfredo = { id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x" };
+const alfredo = { id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x" };
 
 function armar(invitados: Fila[] = []) {
   (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(crearAdmin({

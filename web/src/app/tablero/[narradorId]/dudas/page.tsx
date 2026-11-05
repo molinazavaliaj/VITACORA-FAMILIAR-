@@ -14,7 +14,7 @@ import {
   leerDudas,
   zonaParaFechas,
 } from "@/lib/dudas";
-import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
+import { archivosDelEscritor, leerDelEscritor, dudasQueVe } from "@/lib/dudas-archivos";
 import type { Region } from "@/lib/registro";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -87,11 +87,13 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
   }
 
   // Roto incluye un `dudas` que no es lista: la pantalla no se cae, dice que no pudo.
-  const dudas = leerDudas(archivoDudas.texto);
-  if (!dudas) {
+  const leidas = leerDudas(archivoDudas.texto);
+  if (!leidas) {
     console.error("tablero/dudas: dudas-familia.json invalido");
     return <EstadoError trato={trato} />;
   }
+  // Si lo contado es privado: sin citas, y solo las que no revelan nada (las otras van al narrador).
+  const dudas = await dudasQueVe(admin, narrador, leidas);
 
   const [archivoCorrecciones, archivoAvisadas, escritor, zona, cierre] = await Promise.all([
     leerDelEscritor(admin, narrador.id, "correcciones.json"),

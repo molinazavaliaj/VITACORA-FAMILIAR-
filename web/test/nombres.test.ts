@@ -141,7 +141,7 @@ describe('GET /api/estructura', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { download: () => Promise.resolve({ data: null, error: { message: 'not found' } }) },
     );
@@ -161,7 +161,7 @@ describe('GET /api/estructura', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { download: (ruta) => {
         expect(ruta).toBe('narrador-1/paquete/estructura.json');
@@ -192,7 +192,7 @@ describe('GET /api/nombres', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { download: () => Promise.resolve({ data: null, error: { message: 'not found' } }) },
     );
@@ -211,7 +211,7 @@ describe('GET /api/nombres', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { download: () => Promise.resolve({ data: blobFake(JSON.stringify(nombres)), error: null }) },
     );
@@ -249,7 +249,7 @@ describe('POST /api/nombres', () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = crearAdminFake({
       familias: [{ data: { id: 'familia-1' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -263,7 +263,7 @@ describe('POST /api/nombres', () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = crearAdminFake({
       familias: [{ data: { id: 'familia-1' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -280,7 +280,7 @@ describe('POST /api/nombres', () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = crearAdminFake({
       familias: [{ data: { id: 'familia-1' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -298,7 +298,7 @@ describe('POST /api/nombres', () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = crearAdminFake({
       familias: [{ data: { id: 'familia-1' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -320,7 +320,7 @@ describe('POST /api/nombres', () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = crearAdminFake({
       familias: [{ data: { id: 'familia-1' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
