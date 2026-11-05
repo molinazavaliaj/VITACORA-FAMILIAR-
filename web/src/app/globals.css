@@ -1448,3 +1448,15 @@ body {
 }
 .l3-seccion[data-libro="abierto"] .l3-brillo { transform: translateX(30%); }
 .l3-seccion[data-libro="abierto"] .l3-sombra { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
+
+/* La portada (data-libro-cierra): después de abrirse espera un momento, se
+   vuelve a cerrar y queda la tapa. Es el mismo camino, al revés. */
+@keyframes l3-cerrar {
+  from { transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(0deg); }
+  to { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg); }
+}
+.l3-seccion[data-libro="cierra"] { --l3-espera: 2.2s; --l3-cierre: 1.4s; }
+.l3-seccion[data-libro="cierra"] .l3-libro { animation: l3-cerrar var(--l3-cierre) var(--ease-io) var(--l3-espera) both; }
+.l3-seccion[data-libro="cierra"] .l3-tapa { animation: l3-abrir var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
+.l3-seccion[data-libro="cierra"] .l3-hoja { animation: l3-pasar var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
+.l3-seccion[data-libro="cierra"] .l3-sombra { animation: l3-piso var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
