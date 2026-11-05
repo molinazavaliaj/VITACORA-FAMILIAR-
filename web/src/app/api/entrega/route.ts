@@ -38,8 +38,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "No llegó nada para guardar." }, { status: 400 });
   }
 
-  const { data: fila } = await admin.from("entregas").select("id, familia_id, estado").eq("id", entregaId).maybeSingle();
-  const entrega = fila as { id: string; familia_id: string; estado: EstadoEntrega } | null;
+  const { data: fila } = await admin.from("entregas").select("id, familia_id, estado, produccion_at, impreso_at, enviado_at").eq("id", entregaId).maybeSingle();
+  const entrega = fila as { id: string; familia_id: string; estado: EstadoEntrega; produccion_at?: string | null; impreso_at?: string | null; enviado_at?: string | null } | null;
   if (!entrega) return NextResponse.json({ error: "Esa entrega no existe." }, { status: 404 });
 
   // La entrega es de la familia que compró ese pedido.
@@ -68,18 +68,26 @@ export async function PATCH(request: NextRequest) {
   const d = validarDireccion(body.direccion);
   if (!d.ok) return NextResponse.json({ error: d.mensaje }, { status: 400 });
 
+  // Un paquete que ya pasó por imprenta y tuvo un problema no vuelve a `lista`: el portón de la
+  // fábrica lo imprimiría otra vez. La dirección se guarda y sigue con problema hasta que los
+  // socios lo resuelvan desde /admin/pedidos. Antes de imprenta, corregirla sí lo resuelve.
+  const yaSeImprimio = Boolean(entrega.produccion_at || entrega.impreso_at || entrega.enviado_at);
+  const estadoNuevo = entrega.estado === "con_problema" && yaSeImprimio ? "con_problema" : "lista";
+
   const { error } = await admin.from("entregas").update({
     destinatario_nombre: nombre,
     destinatario_telefono: telefono,
     destinatario_email: user.email ?? null,
     direccion: d.direccion,
     nota: typeof body.nota === "string" ? body.nota.trim().slice(0, 200) || null : null,
-    estado: "lista",
+    estado: estadoNuevo,
+    // Resuelto el problema, su texto no le queda a la vista a la familia.
+    ...(estadoNuevo === "lista" ? { problema: null } : {}),
     direccion_at: new Date().toISOString(),
   }).eq("id", entrega.id);
   if (error) {
     console.error("entrega: fallo guardar la dirección", error);
     return NextResponse.json({ error: GENERICO(trato) }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, estado: "lista" });
+  return NextResponse.json({ ok: true, estado: estadoNuevo });
 }

@@ -62,6 +62,21 @@ describe("PATCH /api/entrega", () => {
     expect(escrituras).toEqual([]);
   });
 
+  it("un problema antes de imprenta: corregir la dirección lo resuelve y borra el texto", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: "ent-1", familia_id: "fam-1", estado: "con_problema", produccion_at: null, impreso_at: null, enviado_at: null }));
+    const r = await PATCH(peticion({ destinatarioNombre: "Martina", destinatarioTelefono: "11 5555 1234", direccion: DIRECCION }));
+    expect(r.status).toBe(200);
+    expect(escrituras[0].valores).toMatchObject({ estado: "lista", problema: null });
+  });
+
+  it.each(["produccion_at", "impreso_at", "enviado_at"])("con %s puesto, corregir la dirección no lo manda a imprimir de nuevo", async (fecha) => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: "ent-1", familia_id: "fam-1", estado: "con_problema", [fecha]: "2026-11-01T00:00:00Z" }));
+    const r = await PATCH(peticion({ destinatarioNombre: "Martina", destinatarioTelefono: "11 5555 1234", direccion: DIRECCION }));
+    expect(r.status).toBe(200);
+    expect(escrituras[0].valores).toMatchObject({ estado: "con_problema", direccion: DIRECCION });
+    expect(escrituras[0].valores).not.toHaveProperty("problema");
+  });
+
   it("ya en producción: no se cambia más", async () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: "ent-1", familia_id: "fam-1", estado: "en_produccion" }));
     const r = await PATCH(peticion({ destinatarioNombre: "Martina", destinatarioTelefono: "11 5555 1234", direccion: DIRECCION }));

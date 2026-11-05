@@ -1062,6 +1062,21 @@ Regenerar después de cada migración.
 Las tres tienen RLS prendido y **sin políticas**: sólo la service role las toca (el navegador nunca). Si la
 migración no está aplicada, el producto sigue andando: los servicios avisan por consola y no anotan nada.
 
+## Número de pedido (migración 20261105000000 — **sin aplicar, la aplica Naza**)
+
+`pedidos.numero` (int, único, null hasta que se cobra): el número corto de cada compra, el que se dicta y va en
+la etiqueta como referencia. Se muestra como `VF-1001` (el `VF-` lo pone quien lo muestra; en la base va `1001`). No
+confundir con `entregas.seguimiento`, que lo da el correo.
+
+| Escribe | Lee | Nota |
+|---|---|---|
+| **trigger** `pedidos_poner_numero` de la base, al insertar o cambiar `estado` | `/admin/pedidos`, fábrica (`referencia` del envío) | Nadie lo escribe a mano ni desde el código. Sale de la secuencia `pedidos_numero_seq`, que arranca en 1001. |
+
+Lo reciben los estados cobrados: `pagado`, `generando`, `esperando_voz`, `entregado`. `pendiente` no consume número.
+`fallido` tampoco lo da por sí solo: es un libro cobrado que falló al escribirse, que ya recibió su número al pasar por
+`pagado`. Una vez puesto no cambia. La migración rellena por fecha los cobrados que ya existían, y de los `fallido` viejos
+solo los que tienen `referencia_externa` (sin ella no hay prueba de cobro: el panel los muestra como no completados). Sin la migración aplicada `/admin/pedidos` lo avisa y el resto del producto sigue igual.
+
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
 > **Actualizado 15/10:** el código está en main (`entregas-fase-1`, merge del 27/09).
@@ -1078,11 +1093,11 @@ adentro no se duplica**: se lee de `pedidos.extras` (copias, acabado, marcos).
 | fila nueva (`estado = 'sin_direccion'`, `pedido_id`, `narrador_id`, `familia_id`, `origen`) | **web**, al confirmar el pago (webhook o `/api/pago/vuelta`) | fábrica, `/admin` | `origen` = la región del comprador (`AR`/`ES`): el centro que despacha. |
 | `destinatario_*`, `direccion`, `nota`, `direccion_at` → `estado = 'lista'` | **web** (`PATCH /api/entrega`, solo el comprador de ese pedido) | fábrica, `/admin` | **Obligatoria para encargar**: sin `lista`, el botón Encargar no se habilita si hay algo físico. Editable hasta `en_produccion`; después la web no la toca. |
 | `estado = 'en_produccion'`, `produccion_at` | **fábrica** | web, `/admin` | **Es el portón de impresión de «Su voz»**: congela la selección de frases y arma el PDF de imprenta con la sección QR. Si la entrega no está `lista`, la fábrica **no produce lo físico** y avisa a los socios. |
-| `etiqueta_proveedor`, `etiqueta_url`, `envio_externo_id`, `transportista`, `seguimiento`, `seguimiento_url`, `peso_g`, `dimensiones` | **fábrica** (al pasar a `en_produccion`, crea el envío en el agregador del país) | `/admin`, la imprenta (imprime `etiqueta_url`) | Agregador por país (ES: Sendcloud/Packlink; AR: Enviopack/Zippin/Shipnow — a elegir). El envío va **incluido en el precio**: nada se cotiza al comprador. |
-| `estado = 'impreso'`, `impreso_at` | **fábrica / Naza** (`/admin` → Envíos) | web | |
+| `etiqueta_proveedor`, `etiqueta_url`, `envio_externo_id`, `transportista`, `seguimiento`, `seguimiento_url`, `peso_g`, `dimensiones` | **fábrica** (al pasar a `en_produccion`, crea el envío en el agregador del país) y **Naza** (`/admin/pedidos`: `transportista`, `seguimiento`, `seguimiento_url`, `peso_g` y `dimensiones`, a mano) | `/admin`, la imprenta (imprime `etiqueta_url`) | Agregador por país (ES: Sendcloud/Packlink; AR: Enviopack/Zippin/Shipnow — a elegir; hoy todo `manual`). El envío va **incluido en el precio**: nada se cotiza al comprador. El peso y las medidas de la fábrica son estimados: se corrigen en la ficha al pesar la caja. |
+| `estado = 'impreso'`, `impreso_at` | **fábrica / Naza** (`/admin/pedidos`) | web | |
 | `estado = 'enviado'`, `enviado_at` | **fábrica / Naza** | web | Dispara el **mail de hito "enviado"** (con seguimiento). |
 | `estado = 'entregado'`, `entregado_at` | **fábrica / Naza**, o **web** (botón "ya me llegó" del comprador) | `/admin` | Dispara el mail de hito "entregado"; en la web, gracias + link a Trustpilot. |
-| `estado = 'con_problema'`, `problema` | **fábrica / Naza** | web | Aviso a los socios y mail al comprador. |
+| `estado = 'con_problema'`, `problema` | **fábrica / Naza** | web | **No manda ningún mail** (la fábrica no lo tiene entre sus hitos): a la familia hay que escribirle a mano. La familia ve el texto de `problema` en su panel y puede corregir la dirección. Antes de imprenta, eso vuelve la entrega a `lista` y borra `problema`. Si ya pasó por imprenta, la dirección se guarda y sigue `con_problema` hasta que Naza la resuelva: volver a `lista` imprimiría otro libro. |
 
 `direccion` es `{ linea1, linea2?, ciudad, provincia?, cp, pais }` (texto libre por país; lo valida la
 web al guardar). `updated_at` lo mantiene un trigger. RLS prendido y **sin políticas**: sólo la
@@ -1091,8 +1106,10 @@ no está aplicada, la web no muestra la sección Envío y el resto del producto 
 
 **Estados válidos y quién puede pasar de uno a otro:** `sin_direccion → lista` (web) · `lista →
 en_produccion` (fábrica) · `en_produccion → impreso → enviado → entregado` (fábrica/Naza; `entregado`
-también la web) · cualquiera `→ con_problema` (fábrica/Naza) y de `con_problema` vuelve al estado
-anterior a mano desde `/admin`. `lista → sin_direccion` no existe: una dirección cargada no se borra,
+también la web; Naza puede saltear `impreso`, y entonces `impreso_at` queda vacío) · cualquiera `→ con_problema`
+(fábrica/Naza) y de `con_problema` vuelve al estado anterior a mano desde `/admin/pedidos`, que lo deduce de la fecha
+más avanzada que tenga. **Excepción de «Vitácora de una historia»:** su libro va a imprenta por su lado y el portón no
+la toca, así que su entrega se queda en `lista`; Naza la pasa de `lista` a `impreso` o `enviado`. `lista → sin_direccion` no existe: una dirección cargada no se borra,
 se corrige.
 
 **La dirección es un dato personal nuevo**: una línea en `/legal/privacidad` §7 (se guarda solo
