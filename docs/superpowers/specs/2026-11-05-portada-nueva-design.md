@@ -27,7 +27,7 @@ No se copian sus textos, sus imágenes ni su animación. El movimiento de los au
 2. **Tienda.** Título «Vitácora convierte una vida en un libro para siempre», bajada, fila de atajos y seis cajitas.
 3. **Audios que se vuelven capítulos.** Movimiento propio, solo con CSS.
 4. **Así se hace su libro.** Cuatro fotos: se lo regalas, responde por WhatsApp, añades tus preguntas, llega a casa.
-5. **Se lee y se escucha.** Foto o video con el QR, y un fragmento de voz real.
+5. **Se lee y se escucha.** Foto o video con el QR, y la onda de voz quieta, sin reproducir, como decidió Naza el 25/10.
 6. **Lo que dicen las familias.** Solo con videos reales y permiso firmado. Mientras no los haya, la sección no se muestra. Las fotos generadas no se presentan como clientes.
 7. **Privacidad.** Un bloque corto. Sin «Unión Europea» ni «no los vendemos».
 8. **Preguntas.** Se queda el acordeón actual, porque la garantía vive ahí (D1).
@@ -74,7 +74,7 @@ La opción A la implementa el Claude de Joaquín en otro PR. El bloque de privac
 
 ## Pruebas y comprobación
 
-- Actualizar `test/portada-trato.test.tsx` y `test/seo.test.tsx` a la nueva estructura. Los datos estructurados de `seo.ts` siguen con los mismos productos.
+- Actualizar `test/portada-trato.test.tsx` y `test/seo.test.tsx` a la nueva estructura. Los datos estructurados de `seo.ts` dejan de anunciar el marco, porque la portada ya no lo muestra; el libro impreso sigue igual.
 - Tests nuevos: las seis cajitas y sus enlaces; precios del catálogo en es y ar; sin Biógrafo cuando falte su configuración; sin sección de familias cuando no haya videos.
 - En el navegador, a 1440 y 390 px: el libro termina cerrado, la hoja blanca sube al empezar a bajar, sin movimiento horizontal, con «menos movimiento» todo se ve quieto y completo.
 - Volver a medir las cuatro metas y comparar carga contra la portada actual.
