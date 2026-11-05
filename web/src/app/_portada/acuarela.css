@@ -1,0 +1,112 @@
+/* La paleta Acuarela de la portada (05/11): blanco cálido, manchas de rosa
+   bordó y aqua, bordó en títulos y botones. Vive acá: los tokens compartidos
+   con el checkout y el panel no cambian. Prefijo acu-. */
+.dir-portada {
+  --acu-blanco: #fffdfa;
+  --acu-tinta: #2a1c1c;
+  --acu-suave: #6a5a57;
+  --acu-bordo: #7a1f2e;
+  --acu-titulo: #6d1b2a;
+  --acu-sobre-bordo: #fff9f1;
+  --acu-linea: rgba(90, 40, 45, 0.17);
+  --acu-t1: #f8e4e3; --acu-t2: #dff0ec; --acu-t3: #fbeee0; --acu-t4: #ede3ef; --acu-t5: #fbf3d6; --acu-t6: #e4eedd;
+  --acu-banda: #e5f2ef; --acu-banda2: #fbf0ee;
+  --acu-lavado:
+    radial-gradient(60% 75% at 12% 12%, rgba(201, 108, 120, 0.34), transparent 72%),
+    radial-gradient(55% 70% at 90% 22%, rgba(128, 197, 186, 0.4), transparent 72%),
+    radial-gradient(70% 60% at 62% 104%, rgba(226, 160, 160, 0.3), transparent 72%);
+}
+.acu-tinte-1 { background-color: var(--acu-t1); } .acu-tinte-2 { background-color: var(--acu-t2); }
+.acu-tinte-3 { background-color: var(--acu-t3); } .acu-tinte-4 { background-color: var(--acu-t4); }
+.acu-tinte-5 { background-color: var(--acu-t5); } .acu-tinte-6 { background-color: var(--acu-t6); }
+
+.acu-hoja-lisa { background: var(--acu-blanco); color: var(--acu-tinta); }
+.acu-hoja-banda { background: var(--acu-banda); color: var(--acu-tinta); }
+.acu-hoja-banda2 { background: var(--acu-banda2); color: var(--acu-tinta); }
+.dir-portada .acu-hoja-lisa .dir-titular, .dir-portada .acu-hoja-banda2 .dir-titular { color: var(--acu-tinta); }
+.dir-portada .acu-hoja-banda .dir-titular { color: var(--acu-titulo); }
+
+/* El inicio y el cierre: la acuarela. La cabecera lee --texto-oscuro. */
+.acu-lavado {
+  --texto-oscuro: var(--acu-titulo);
+  --texto-oscuro-fuerte: var(--acu-titulo);
+  --texto-oscuro-suave: var(--acu-suave);
+  --texto-oscuro-menor: var(--acu-suave);
+  --linea-oscura: var(--acu-linea);
+  --borde-oscuro: var(--acu-linea);
+  --borde-oscuro-fuerte: var(--acu-linea);
+  --boton: var(--acu-bordo);
+  --sobre-boton: var(--acu-sobre-bordo);
+  background-color: #fdf6f1;
+  background-image: var(--acu-lavado);
+  color: var(--acu-titulo);
+}
+.acu-lavado .dir-titular { color: var(--acu-titulo); }
+.dir-portada .dir-boton--lleno.acu-boton { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
+.dir-portada .dir-boton--lleno.acu-boton:hover { background: #631826; }
+.dir-portada .dir-boton--lleno.acu-boton:focus-visible { outline-color: var(--acu-bordo); }
+.prt-libro.acu-libro .l3-sombra { background: radial-gradient(closest-side, rgba(90, 30, 40, 0.28), rgba(90, 30, 40, 0)); }
+
+/* La tienda */
+.acu-bajada { max-width: 60ch; margin-inline: auto; color: var(--acu-suave); font-size: clamp(16px, 1.7vw, 18px); line-height: 1.55; }
+.acu-ruta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 1000px; margin: 28px auto 0; padding: 10px; border: 1px solid var(--acu-linea); border-radius: 20px; background: #fff; }
+.acu-ruta a { display: block; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--acu-tinta); text-align: left; }
+.acu-ruta small { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 400; color: var(--acu-suave); }
+.acu-cajas { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 760px; margin: 20px auto 0; text-align: left; }
+.acu-caja { position: relative; display: flex; flex-direction: column; width: calc((100% - 28px) / 3); min-width: 0; overflow: hidden; background: #fff; border: 1px solid var(--acu-linea); border-radius: 14px; scroll-margin-top: 24px; }
+@media (max-width: 640px) { .acu-cajas { gap: 10px; } .acu-caja { width: calc((100% - 10px) / 2); } }
+.acu-caja--regalo { border: 2px solid var(--acu-bordo); box-shadow: 0 18px 30px -24px rgba(122, 31, 46, 0.7); }
+.acu-marca { position: absolute; top: 10px; left: 50%; z-index: 1; transform: translateX(-50%); padding: 4px 11px; border-radius: 999px; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.acu-marca--gris { background: var(--acu-suave); }
+.acu-foto { position: relative; aspect-ratio: 4 / 3; }
+.acu-foto img { object-fit: cover; object-position: center 30%; filter: saturate(0.88) brightness(1.03); }
+.acu-cuerpo { display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 12px; }
+.acu-cuerpo h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: 19px; line-height: 1.1; color: var(--acu-tinta); }
+.acu-cuerpo > p { font-size: 13px; line-height: 1.4; color: var(--acu-suave); }
+.acu-cuerpo > p.acu-ideal { padding: 8px 10px; border-radius: 9px; font-size: 12px; font-weight: 500; line-height: 1.3; color: var(--acu-tinta); }
+.acu-precios { margin: auto 0 0; border: 1px solid var(--acu-linea); border-radius: 9px; font-variant-numeric: tabular-nums; }
+.acu-precios > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 7px 10px; font-size: 12px; color: var(--acu-suave); }
+.acu-precios > div + div { border-top: 1px solid var(--acu-linea); }
+.acu-precios dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--acu-tinta); white-space: nowrap; }
+.acu-ir { font-size: 13px; font-weight: 600; color: var(--acu-bordo); cursor: pointer; }
+.acu-biografo > div { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 13px; color: var(--acu-suave); }
+.acu-biografo strong { font-size: 16px; color: var(--acu-tinta); }
+.acu-biografo a { color: var(--acu-bordo); text-decoration: underline; }
+.acu-pie { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; max-width: 760px; margin: 20px auto 0; padding: 13px 18px; border-radius: 12px; background: var(--acu-banda2); font-size: 14px; color: var(--acu-tinta); }
+.acu-pie li::before { content: "✓ "; font-weight: 700; color: var(--acu-bordo); }
+
+/* Los audios que se vuelven libro */
+.acu-escena { position: relative; max-width: 760px; height: 320px; margin: 20px auto 0; overflow: hidden; }
+.acu-abierto { position: absolute; top: 36px; left: 50%; display: grid; grid-template-columns: 1fr 1fr; width: min(430px, 88%); height: 250px; transform: translateX(-50%); box-shadow: 0 24px 34px -24px rgba(60, 20, 20, 0.6); }
+.acu-hoja { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 18px 16px; background: #fffcf4; color: #2a241e; text-align: left; }
+.acu-hoja:first-child { border-right: 1px solid #e0d7c5; }
+.acu-hoja small { font-family: var(--fuente-titulo), Georgia, serif; font-size: 15px; font-style: italic; }
+.acu-hoja i { height: 6px; border-radius: 1px; background: #3d352c; opacity: 0; animation: acu-linea 9s infinite; }
+.acu-hoja i:nth-of-type(1) { animation-delay: 1.3s; }
+.acu-hoja i:nth-of-type(2) { width: 92%; animation-delay: 1.6s; }
+.acu-hoja i:nth-of-type(3) { width: 97%; animation-delay: 1.9s; }
+.acu-audio { position: absolute; display: flex; align-items: center; gap: 8px; padding: 8px 13px; border-radius: 18px; background: #fff; color: var(--acu-bordo); font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: 0 6px 16px -8px rgba(60, 20, 20, 0.5); animation: acu-entra 9s infinite both; }
+.acu-audio svg { width: 46px; height: 14px; }
+.acu-audio--1 { top: 22px; left: 2%; }
+.acu-audio--2 { top: 118px; right: 2%; --acu-x: -120px; animation-delay: 2.2s; }
+.acu-audio--3 { top: 244px; left: 3%; animation-delay: 4.4s; }
+@keyframes acu-linea { 0% { opacity: 0; transform: scaleX(0.2); transform-origin: left; } 6%, 88% { opacity: 0.72; transform: scaleX(1); } 96%, 100% { opacity: 0; } }
+@keyframes acu-entra { 0% { opacity: 0; transform: translate(0, 8px); } 5%, 14% { opacity: 1; transform: none; } 24%, 100% { opacity: 0; transform: translate(var(--acu-x, 120px), 10px) scale(0.5); } }
+
+/* Los pasos */
+.acu-pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 18px; max-width: 1040px; margin: 28px auto 0; text-align: left; }
+.acu-paso { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.acu-paso-img { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: var(--acu-t2); }
+.acu-paso-img img { object-fit: cover; }
+.acu-paso small { font-size: 12px; color: var(--acu-suave); }
+.acu-paso h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: 20px; line-height: 1.15; color: var(--acu-tinta); }
+.acu-paso p { font-size: 14px; line-height: 1.45; color: var(--acu-suave); }
+.acu-pantallita { display: flex; flex-direction: column; justify-content: center; gap: 8px; height: 100%; padding: 16px; font-size: 12px; color: var(--acu-suave); }
+.acu-pantallita span { padding: 7px 10px; border: 1px solid var(--acu-linea); border-radius: 7px; background: #fff; }
+.acu-pantallita span:last-child { border: 0; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-weight: 600; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .acu-hoja i, .acu-audio { animation: none; }
+  .acu-hoja i { opacity: 0.72; }
+  .acu-audio { opacity: 1; }
+}

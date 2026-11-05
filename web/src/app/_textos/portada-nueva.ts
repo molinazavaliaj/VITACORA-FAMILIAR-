@@ -15,7 +15,7 @@ export type TextosPortadaNueva = {
   cajas: Record<"familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo", TextoCaja>;
   atajos: Record<"familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo", { pista: string; nombre: string }>;
   biografo: { etiqueta: string; nombre: string; rol: string; texto: string; boton: string; fotoFalta: string };
-  audios: { titulo: string };
+  audios: { titulo: string; capitulos: [string, string] };
   pasos: { titulo: string; lista: [Paso, Paso, Paso, Paso]; ejemplo: [string, string]; agregar: string };
   voz: { titulo: string; texto: string };
   privacidad: { titulo: string; texto: string; enlace: string };
@@ -49,7 +49,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       biografo: { pista: "¿Prefieres a una editora?", nombre: "Con una editora" },
     },
     biografo: { etiqueta: "Vitácora Biógrafo", nombre: "Florencia Monfort", rol: "Editora especializada", texto: "Es la persona que edita estos libros.", boton: "Escribir por WhatsApp", fotoFalta: "Florencia Monfort" },
-    audios: { titulo: "Sus audios de WhatsApp se vuelven capítulos." },
+    audios: { titulo: "Sus audios de WhatsApp se vuelven capítulos.", capitulos: ["La infancia", "Sus primeros años"] },
     pasos: {
       titulo: "Así se hace su libro.",
       lista: [
@@ -91,7 +91,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       biografo: { pista: "¿Preferís a una editora?", nombre: "Con una editora" },
     },
     biografo: { etiqueta: "Vitácora Biógrafo", nombre: "Florencia Monfort", rol: "Editora especializada", texto: "Es la persona que edita estos libros.", boton: "Escribir por WhatsApp", fotoFalta: "Florencia Monfort" },
-    audios: { titulo: "Sus audios de WhatsApp se vuelven capítulos." },
+    audios: { titulo: "Sus audios de WhatsApp se vuelven capítulos.", capitulos: ["La infancia", "Sus primeros años"] },
     pasos: {
       titulo: "Así se hace su libro.",
       lista: [
@@ -133,7 +133,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       biografo: { pista: "Prefereixes una editora?", nombre: "Amb una editora" },
     },
     biografo: { etiqueta: "Vitácora Biògraf", nombre: "Florencia Monfort", rol: "Editora especialitzada", texto: "És la persona que edita aquests llibres.", boton: "Escriure per WhatsApp", fotoFalta: "Florencia Monfort" },
-    audios: { titulo: "Els seus àudios de WhatsApp es tornen capítols." },
+    audios: { titulo: "Els seus àudios de WhatsApp es tornen capítols.", capitulos: ["La infància", "Els seus primers anys"] },
     pasos: {
       titulo: "Així es fa el seu llibre.",
       lista: [
