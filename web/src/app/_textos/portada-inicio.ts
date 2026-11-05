@@ -2,8 +2,8 @@ import type { Textos } from "@/lib/idioma-web";
 
 // Lo que se sumó a la portada al acercarla al esquema de tienda (05/11): la
 // franja de confianza, el WhatsApp de ejemplo del inicio y dos tapas de
-// ejemplo. Son propuestas: Naza los aprueba antes del merge. El catalán falta
-// revisarlo con Imma. La franja no dice «garantía»: vive solo en las preguntas
+// ejemplo. APROBADOS por Naza el 05/11, en castellano de España. La versión de
+// Argentina cambia el trato y el catalán falta revisarlo con Imma. La franja no dice «garantía»: vive solo en las preguntas
 // frecuentes (DECISIONES D1) y la mira el abogado.
 
 export type TapaEjemplo = { etiqueta: string; nombre: [string, string]; firma: string };
