@@ -46,6 +46,17 @@
   color: var(--acu-titulo);
 }
 .acu-lavado .dir-titular { color: var(--acu-titulo); }
+
+/* Las solapas de producto sobre la acuarela: pastilla clara, la activa en
+   bordó (la cabecera pública las pinta negras; solo acá cambian). El texto
+   deja el mix-blend y lleva su color, que cambia junto con la pastilla. */
+.acu-lavado .m-solapas { background: rgba(255, 255, 255, 0.72); border-color: var(--acu-linea); }
+.acu-lavado .m-solapas .m-pill { background: var(--acu-bordo); }
+.acu-lavado .m-solapas > [data-solapa] { mix-blend-mode: normal; color: var(--acu-titulo); transition: color var(--d-base) var(--ease-io); }
+.acu-lavado .m-solapas[data-activa="familiar"] > [data-solapa="familiar"],
+.acu-lavado .m-solapas > [data-solapa]:hover,
+.acu-lavado .m-solapas > [data-solapa]:focus-visible { color: var(--acu-sobre-bordo); }
+.acu-lavado .m-solapas[data-activa="familiar"]:has(> [data-solapa]:not([data-solapa="familiar"]):hover, > [data-solapa]:not([data-solapa="familiar"]):focus-visible) > [data-solapa="familiar"] { color: var(--acu-titulo); }
 .dir-portada .dir-boton--lleno.acu-boton { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
 .dir-portada .dir-boton--lleno.acu-boton:hover { background: #631826; }
 .dir-portada .dir-boton--lleno.acu-boton:focus-visible { outline-color: var(--acu-bordo); }

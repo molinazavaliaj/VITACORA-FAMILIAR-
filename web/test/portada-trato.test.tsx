@@ -286,4 +286,13 @@ describe("la portada según el idioma", () => {
       for (const color of ["#8f7be0", "#a08ce8", "#b9a8f5", "#5d3fd3"]) expect(html, `${idioma}: ${color}`).not.toContain(color);
     }
   });
+
+  it("la barra fija del teléfono usa la variante clara, no la tinta oscura", () => {
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const html = portada(idioma);
+      expect(html, idioma).toContain("bg-[var(--acu-blanco)]/95");
+      expect(html, idioma).toContain("bg-[var(--acu-bordo)]");
+      expect(html, idioma).not.toContain("bg-[#070706]/95");
+    }
+  });
 });

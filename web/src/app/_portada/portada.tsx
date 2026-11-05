@@ -241,6 +241,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <CtaSticky
           precio={precioLibro}
           href={comprar}
+          variante="acuarela"
           textos={{ desde: "", conImpreso: t.elLibro.pagoUnico, sinImpreso: t.elLibro.pagoUnico, boton: t.iniciar }}
         />
       ) : null}

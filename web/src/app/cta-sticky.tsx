@@ -36,8 +36,9 @@ export function CtaSticky({
   conImpreso?: boolean;
   href?: string;
   textos?: TextosCta;
-  /** «kids»: la barra en el papel y el botón de Kids (su paleta es clara). */
-  variante?: "tinta" | "kids";
+  /** «kids»: la barra en el papel y el botón de Kids (su paleta es clara).
+   *  «acuarela»: la portada clara (blanco cálido, tinta y bordó). */
+  variante?: "tinta" | "kids" | "acuarela";
 }) {
   const [visible, setVisible] = useState(false);
   const centinela = useRef<HTMLDivElement>(null);
@@ -89,13 +90,18 @@ export function CtaSticky({
   }, [visible]);
 
   const kids = variante === "kids";
+  const acuarela = variante === "acuarela";
 
   return (
     <div
       ref={centinela}
       aria-hidden={!visible}
       className={`fixed inset-x-0 bottom-0 z-40 border-t px-4 pt-3 backdrop-blur transition-[transform,opacity] duration-[var(--d-base)] ease-out lg:hidden ${
-        kids ? "border-[var(--kids-hilo)] bg-[var(--kids-fondo)]/95 text-[var(--kids-texto)]" : "border-[rgba(238,234,225,0.16)] bg-[#070706]/95 text-[#eeeae1]"
+        kids
+          ? "border-[var(--kids-hilo)] bg-[var(--kids-fondo)]/95 text-[var(--kids-texto)]"
+          : acuarela
+            ? "border-[var(--acu-linea)] bg-[var(--acu-blanco)]/95 text-[var(--acu-tinta)]"
+            : "border-[rgba(238,234,225,0.16)] bg-[#070706]/95 text-[#eeeae1]"
       } ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
@@ -104,7 +110,7 @@ export function CtaSticky({
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{textos.desde ? `${textos.desde} ${precio}` : precio}</p>
-          <p className={`truncate text-[11px] [font-family:var(--fuente-micro)] ${kids ? "opacity-70" : "text-[#a39f96]"}`}>{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
+          <p className={`truncate text-[11px] [font-family:var(--fuente-micro)] ${kids ? "opacity-70" : acuarela ? "text-[var(--acu-suave)]" : "text-[#a39f96]"}`}>{conImpreso ? textos.conImpreso : textos.sinImpreso}</p>
         </div>
         <Link prefetch={false}
           href={href}
@@ -113,7 +119,9 @@ export function CtaSticky({
           className={
             kids
               ? "kids-boton h-11 shrink-0 px-6 text-[15px]"
-              : "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#eeeae1] px-6 text-[15px] font-semibold text-[#070706] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"
+              : acuarela
+                ? "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[var(--acu-bordo)] px-6 text-[15px] font-semibold text-[var(--acu-sobre-bordo)] transition-colors hover:bg-[#631826] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acu-bordo)] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
+                : "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#eeeae1] px-6 text-[15px] font-semibold text-[#070706] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"
           }
         >
           {textos.boton}
