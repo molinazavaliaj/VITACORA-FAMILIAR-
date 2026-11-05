@@ -296,3 +296,19 @@ describe("la portada según el idioma", () => {
     }
   });
 });
+
+describe("portada: la pregunta de los audios no promete quién escucha", () => {
+  const NUEVA = {
+    es: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
+    ar: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
+    ca: "Els àudios són privats, només es fan servir per al seu llibre i es poden esborrar tots quan vulgui.",
+  } as const;
+  for (const idioma of ["es", "ar", "ca"] as const) {
+    it(`${idioma}: sin «Solo su familia» y con la frase nueva`, () => {
+      const html = portada(idioma);
+      expect(html).not.toContain("Solo su familia");
+      expect(html).not.toContain("Només la seva família");
+      expect(html).toContain(escapar(NUEVA[idioma]));
+    });
+  }
+});

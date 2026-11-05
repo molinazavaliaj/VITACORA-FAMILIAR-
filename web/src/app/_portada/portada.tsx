@@ -67,7 +67,10 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const comprar = ruta(idioma, "/comprar");
   const whatsapp = urlWhatsAppDudas();
   const cajas = cajasPortada(idioma, cat, formatear);
-  const preguntas = [{ ...t.faq.preguntas[0], pregunta: t.preguntas.usarlo }, ...t.faq.preguntas.slice(1), ...t.preguntas.nuevas];
+  const preguntaAudios = t.faq.preguntas.find((q) => /^¿?Qui[ée]n escucha|^Qui escolta/.test(q.pregunta))?.pregunta;
+  const preguntas = [{ ...t.faq.preguntas[0], pregunta: t.preguntas.usarlo }, ...t.faq.preguntas.slice(1), ...t.preguntas.nuevas].map((q) =>
+    q.pregunta === preguntaAudios ? { ...q, respuesta: n.faqAudios } : q,
+  );
 
   return (
     <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada flex flex-1 flex-col">
@@ -232,7 +235,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
           {n.cierre.boton}
         </Link>
       </section>
-      <div className="dir-tinta relative z-[8]">
+      <div className="dir-tinta relative z-[8]" data-cta-propio>
         <Pie idioma={idioma} camino="/" rasca landings={["preguntas", "voz"]} />
       </div>
 
