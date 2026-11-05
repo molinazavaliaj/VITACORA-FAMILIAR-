@@ -556,3 +556,30 @@ a.adm-hoja:hover,
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
 }
+
+/* ── La etiqueta del paquete (/admin/pedidos/[id]): en pantalla, una hoja; impresa, lo único
+   que sale. Colores fijos a propósito: en papel va negro sobre blanco, con cualquier tema. ── */
+.adm-etiqueta {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  padding: 16px 18px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.adm-etiqueta-ref { font-size: 24px; font-weight: 700; letter-spacing: 0.02em; text-align: right; }
+.adm-etiqueta-bloque { margin-top: 8px; }
+.adm-etiqueta-de { margin-top: 14px; padding-top: 8px; border-top: 1px solid #999; font-size: 12px; }
+.adm-etiqueta-vacio { min-height: 44px; }
+.adm-etiqueta-rotulo { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #555; }
+.adm-etiqueta-pie { margin-top: 10px; padding-top: 8px; border-top: 1px solid #999; font-size: 12px; }
+
+@media print {
+  .adm-lomo, .adm-sin-imprimir { display: none !important; }
+  .adm, .adm main { background: #fff !important; padding: 0 !important; }
+  .adm-entra > * { animation: none !important; }
+  .adm-etiqueta { break-inside: avoid; }
+}

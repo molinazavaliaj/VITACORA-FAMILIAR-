@@ -295,7 +295,7 @@ async function datosDeEnvio(db: Db, entrega: EntregaParaImprimir): Promise<Recor
       },
       direccion: (entrega.direccion as Record<string, unknown> | null) ?? null,
       bulto,
-      referencia: `Vitácora ${entrega.id.slice(0, 8)}`,
+      referencia: await referenciaDelPaquete(db, entrega.id, entrega.pedido_id),
     });
 
     return {
@@ -312,6 +312,17 @@ async function datosDeEnvio(db: Db, entrega: EntregaParaImprimir): Promise<Recor
     console.error(`envio: no se pudo preparar el envío de ${entrega.id} (el libro sale igual):`, err);
     return {};
   }
+}
+
+/**
+ * El número de pedido (VF-1001): lo que dice la etiqueta para saber qué caja es cuál. Se lee
+ * aparte del resto del pedido: sin la migración aplicada, pedir la columna hace fallar toda
+ * la lectura, y el peso del paquete no tiene por qué perderse por eso.
+ */
+async function referenciaDelPaquete(db: Db, entregaId: string, pedidoId: string): Promise<string> {
+  const { data, error } = await db.from('pedidos').select('numero').eq('id', pedidoId).maybeSingle();
+  const numero = error ? null : (data as { numero?: number | null } | null)?.numero;
+  return numero ? `VF-${numero}` : `Vitácora ${entregaId.slice(0, 8)}`;
 }
 
 type EntregaParaImprimir = {

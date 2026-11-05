@@ -8,7 +8,7 @@
 //
 // Mientras tanto anda el camino `manual`, que el CONTRATO ya contemplaba: el
 // sistema calcula el bulto y deja la entrega lista para despachar, y quien va al
-// correo carga el seguimiento desde `/admin`. Eso alcanza para los primeros envíos
+// correo carga el seguimiento desde `/admin/pedidos`. Eso alcanza para los primeros envíos
 // —que son de a uno— y no frena el lanzamiento esperando una cuenta.
 //
 // Cuando se elija el agregador, lo único que se agrega es un adaptador que cumpla
@@ -48,7 +48,7 @@ export interface ProveedorDeEtiqueta {
 /**
  * El camino de hoy: no llama a nadie. Deja constancia de que la etiqueta se hace a
  * mano, con el peso y las medidas ya calculados para no tener que medir la caja en
- * el mostrador del correo. El seguimiento lo carga una persona desde `/admin`, y
+ * el mostrador del correo. El seguimiento lo carga una persona desde `/admin/pedidos`, y
  * ahí sale solo el mail de "va en camino".
  */
 export const PROVEEDOR_MANUAL: ProveedorDeEtiqueta = {

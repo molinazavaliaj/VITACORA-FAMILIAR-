@@ -15,7 +15,7 @@ export type VentaParaAviso = {
 };
 
 /** Qué se vendió. Sin `pdf: true` son copias o marcos sobre un libro que ya existe. */
-function nombreDelProducto(venta: VentaParaAviso): string {
+export function nombreDelProducto(venta: Pick<VentaParaAviso, "extras" | "modo">): string {
   const { extras, modo } = venta;
   if (extras?.tipo === "kids") return "Kids";
   if (extras?.tipo === "viaje") return "Viaje";
