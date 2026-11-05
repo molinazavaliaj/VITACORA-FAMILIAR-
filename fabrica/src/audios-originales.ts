@@ -23,6 +23,7 @@
 import type { obtenerClienteDb } from './db.js';
 import { armarZip, type ArchivoZip } from './libro/zip.js';
 import { subirTexto } from './libro/comun.js';
+import { esPrivado } from './escritor/produccion/privacidad.js';
 import { enviarMailBorradoAudios } from './mail/borrado-audios.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
@@ -207,6 +208,10 @@ export async function revisarAudiosOriginales(
   for (const narradorId of narradores) {
     if (o.kids?.has(narradorId)) continue;
     try {
+      // Privado (Naza, 05/11): este mail lleva TODOS los audios, y quien regala nunca recibe los audios completos. Hasta
+      // que el narrador pueda recibirlos por WhatsApp no se manda ni se borra nada de esas historias.
+      const { data: fila } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+      if (esPrivado((fila as { contexto?: unknown } | null)?.contexto)) continue;
       const c = await candados(db, narradorId);
       const libroListo = c.get(o.candadoLibroListo);
       const paso = queToca(

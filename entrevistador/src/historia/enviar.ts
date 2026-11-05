@@ -3,6 +3,7 @@
 // reintenta. Ningún texto se arma acá: salen de la cola, que llenó turno.ts con textos del banco. Fuera de la
 // ventana de 24 h van las plantillas de historia (PLANTILLAS_HISTORIA: `pregunta` y `recordatorio` son las de V3).
 
+import { datosDelLink, esPrivado, textoDelLink } from '../link-respuestas.js';
 import { PLANTILLAS_HISTORIA, type CualPlantillaHistoria } from '../config.js';
 import { plantillaLista as plantillaListaV3 } from '../v3/enviar.js';
 import type { DepsHistoria } from './deps.js';
@@ -10,7 +11,7 @@ import { conReintento, soltarTurno, tomarTurno, TOMA_MS } from './estado.js';
 import { claveMadre } from './filas.js';
 import { preguntaPorId } from './nucleo/entrevista/banco.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
-import type { EstadoHistoria, FilaHistoria } from './tipos.js';
+import { fichaTexto, type EstadoHistoria, type FilaHistoria } from './tipos.js';
 import { quitarSalientes } from './turno.js';
 
 /** La ventana de Meta es de 24 h desde el último mensaje del narrador; se deja media hora de margen. */
@@ -164,7 +165,10 @@ export async function drenar(deps: DepsHistoria, narradorId: string): Promise<Re
     // contestó nada.
     mailAcepto = resultado === 'enviado' && contexto.regalo === true && fila.estado.fase !== 'bienvenida' && fila.estado.respuestas.length === 0
       && !(Array.isArray(contexto.mailsEnviados) && contexto.mailsEnviados.includes('acepto'));
-    if (fila.estado.terminada) await completar(deps, narradorId, fila.estado);
+    if (fila.estado.terminada) {
+      await completar(deps, narradorId, fila.estado);
+      await mandarLinkAlTerminar(deps, narradorId, fila, telefono);
+    }
     return resultado;
   } finally {
     await soltarTurno(deps.db, narradorId, tomada);
@@ -200,6 +204,33 @@ export function preguntasContestadas(e: Pick<EstadoHistoria, 'respuestas'>): num
  * terminó sin material para un libro.
  */
 export const RESPUESTAS_PARA_UN_LIBRO = 10;
+
+/**
+ * Terminó de contar y el libro es para otra persona: le llega su link, con hasta cuándo puede sacar algo (05/11). Una
+ * sola vez (`estado.linkFinal`). Sale con la ventana abierta: FIN acaba de salir. Si no, se avisa a los socios: hace
+ * falta una plantilla de Meta, que llega con el PR de las dudas por WhatsApp. Nunca frena el cierre.
+ */
+async function mandarLinkAlTerminar(deps: DepsHistoria, narradorId: string, fila: FilaHistoria, telefono: string): Promise<void> {
+  try {
+    if (fila.estado.linkFinal) return;
+    const datos = await datosDelLink(deps.db, narradorId);
+    if (!datos || !esPrivado(datos.contexto) || !datos.ultima_respuesta_at) return;
+    const ahora = deps.ahora();
+    const marcar = () => conReintento(deps.db, narradorId, (f) => ({ cambio: { estado: { ...f.estado, linkFinal: ahora.toISOString() } }, resultado: true }));
+    if (!ventanaAbierta(fila.estado, ahora)) {
+      await deps.avisar(`link-final-${narradorId}`, 'Un narrador terminó y no le llegó su link',
+        `${narradorId} terminó con la ventana de WhatsApp cerrada: no se le puede mandar el link para sacar algo sin una plantilla de Meta.`);
+      await marcar();
+      return;
+    }
+    const texto = textoDelLink({ ...datos, estado: 'completado' }, narradorId, fila.idioma, fichaTexto(fila), ahora);
+    if (!texto) return;
+    await deps.wa.texto(telefono, texto);
+    await marcar();
+  } catch (err) {
+    console.error(`historia: no pude mandar el link final de ${narradorId}:`, err instanceof Error ? err.message : err);
+  }
+}
 
 /** FIN-H salió: `activo → completado` (la misma transición de siempre). */
 async function completar(deps: DepsHistoria, narradorId: string, estado: EstadoHistoria): Promise<void> {

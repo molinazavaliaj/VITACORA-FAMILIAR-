@@ -39,17 +39,38 @@ export function puedeVolverAPreguntar(o: { estadoNarrador: string; alFinal: bool
   return !ESTADOS_CERRADOS.includes(o.estadoNarrador) && !o.alFinal && o.preguntasFamilia < MAXIMO_PREGUNTAS_FAMILIA_V3;
 }
 
+/** Lo que tiene el narrador, desde su último mensaje, para sacar algo. La fábrica espera lo mismo (HORAS_PARA_SACAR). */
+export const HORAS_PARA_SACAR = 48;
+
+/** Hasta cuándo puede sacar algo el narrador, o null si todavía no contó nada. */
+export function plazoDelNarrador(n: { ultima_respuesta_at?: string | null }): number | null {
+  const t = n.ultima_respuesta_at ? Date.parse(n.ultima_respuesta_at) : NaN;
+  return Number.isFinite(t) ? t + HORAS_PARA_SACAR * 3_600_000 : null;
+}
+
+/** Mientras cuenta, siempre. Cuando terminó, hasta 48 horas después de su último mensaje: el libro no se escribe antes. */
+export function puedeSacarElNarrador(n: { estado: string; ultima_respuesta_at?: string | null }, ahora: number): boolean {
+  if (!ESTADOS_CERRADOS.includes(n.estado)) return true;
+  const plazo = plazoDelNarrador(n);
+  return plazo !== null && ahora < plazo;
+}
+
 export async function aplicarFueraDelLibro(
   admin: ClienteMinimo,
-  o: { narradorId: string; rol: Rol; usuarioId: string; pedido: PedidoFueraDelLibro; error: string },
+  // `narrador`: lo saca él mismo desde su link (05/11): sin usuario, y con su propio plazo en vez del cierre del libro.
+  o: { narradorId: string; rol: Rol | "narrador"; usuarioId: string | null; pedido: PedidoFueraDelLibro; error: string; ahora?: number },
 ): Promise<ResultadoFueraDelLibro> {
-  if (o.rol !== "duena") return mal(403, "No autorizado.");
+  if (o.rol !== "duena" && o.rol !== "narrador") return mal(403, "No autorizado.");
   const { narradorId, pedido } = o;
 
-  const nar = await admin.from("narradores").select("estado, libro_aprobado_at, contexto").eq("id", narradorId).maybeSingle();
+  const nar = await admin.from("narradores").select("estado, libro_aprobado_at, contexto, ultima_respuesta_at").eq("id", narradorId).maybeSingle();
   if (nar.error || !nar.data) return mal(500, o.error);
-  const narrador = nar.data as { estado: string; libro_aprobado_at: string | null; contexto?: { modo?: unknown } | null };
-  if (narrador.libro_aprobado_at) return mal(400, "El libro ya está cerrado y no se cambia más.");
+  const narrador = nar.data as { estado: string; libro_aprobado_at: string | null; contexto?: { modo?: unknown } | null; ultima_respuesta_at?: string | null };
+  if (o.rol === "narrador") {
+    if (!puedeSacarElNarrador(narrador, o.ahora ?? Date.now())) return mal(400, "Ya no se puede sacar nada: tu libro se está escribiendo.");
+  } else if (narrador.libro_aprobado_at) {
+    return mal(400, "El libro ya está cerrado y no se cambia más.");
+  }
   // «Vitácora de una historia» (23/10): la misma regla, con su fila (`historias`), su columna (`clave_historia`) y
   // su final (HC10). El bot de historia también lee respuestas_fuera (entrevistador/src/historia/fuera.ts).
   const historia = narrador.contexto?.modo === "historia";

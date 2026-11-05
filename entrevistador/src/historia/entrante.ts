@@ -14,6 +14,7 @@
 
 import { fechaLocal } from '../flujo/tiempo.js';
 import { esSaludo } from '../v3/saludo.js';
+import { avisoDePrivacidad, esPrivado } from '../link-respuestas.js';
 import { textoFijo } from '../v3/textos-fijos.js';
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { leerSiNo, respuestaAntesDelSi, textoDeBienvenida } from './arranque.js';
@@ -145,7 +146,9 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
     if (f.estado.fase !== 'bienvenida' || yaVisto(f.estado, m.waMessageId)) return null;
     const e = anotarVisto(f.estado, m.waMessageId);
     if (dijo === 'si') {
-      const a = arrancar(e, fichaTexto(f));
+      // Lo que cuenta queda privado y cómo sacar algo (05/11): la V3 lo lleva en su aceptación; acá va suelto, antes de lo primero.
+      const aviso = esPrivado(n.contexto) ? avisoDePrivacidad(f.idioma, fichaTexto(f)) : null;
+      const a = arrancar(aviso ? encolar(e, { texto: aviso, tipo: 'suelto' }) : e, fichaTexto(f));
       return { cambio: { estado: a.abrio ? { ...a.estado, abiertaDesde: ahora.toISOString() } : a.estado }, resultado: 'si' };
     }
     if (dijo !== 'no' && !e.bienvenida) {

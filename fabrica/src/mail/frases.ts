@@ -38,7 +38,8 @@ export const RUTA_RECORDATORIO_FRASES = (narradorId: string) =>
 
 // Con vos para las familias de Argentina (familias.region = 'AR'): textos aprobados por Naza el 06/10 (rama
 // web-textos-v3), por país el 09/10. España sigue con tú.
-export function asuntoRecordatorioFrases(comoLeDicen: string, vos = false): string {
+export function asuntoRecordatorioFrases(comoLeDicen: string, vos = false, privado = false): string {
+  if (privado) return `El libro de tu ${comoLeDicen} espera ${vos ? 'tu OK' : 'tu confirmación'} para imprimirse`;
   return vos
     ? `Las frases de tu ${comoLeDicen}: ¿querés elegir vos las que se imprimen?`
     : `Las frases de tu ${comoLeDicen}: ¿quieres elegir tú las que se imprimen?`;
@@ -74,6 +75,19 @@ const PARRAFOS_VOS = (quien: string, conImpreso: boolean): string[] =>
         `No hay apuro: quedan guardadas así hasta que decidas.`,
       ];
 
+// Privado (05/11, PROPUESTO, falta el OK de Naza): quien regala no cambia las frases, y confirmar es mandar a imprimir.
+const PARRAFOS_PRIVADO_VOS = (quien: string): string[] => [
+  `El libro de tu ${quien} ya está terminado. Podés leerlo en la página de su historia, junto con las frases con su voz que eligió el biógrafo.`,
+  `Encargaste el libro impreso, y sale con esas frases, cada una con su código para escucharla.`,
+  `<strong>Se manda a imprimir cuando lo confirmes.</strong> Si está bien, tocá «Está bien, mandar a imprimir». Si hay un error en un nombre o una fecha, tocá «Hay un error, avisanos» y frenamos la impresión.`,
+];
+
+const PARRAFOS_PRIVADO = (quien: string): string[] => [
+  `El libro de tu ${quien} ya está terminado. Puedes leerlo en la página de su historia, junto con las frases con su voz que eligió el biógrafo.`,
+  `Has encargado el libro impreso, y sale con esas frases, cada una con su código para escucharla.`,
+  `<strong>Se manda a imprimir cuando lo confirmes.</strong> Si está bien, toca «Está bien, mandar a imprimir». Si hay un error en un nombre o una fecha, toca «Hay un error, avísanos» y frenamos la impresión.`,
+];
+
 const PARRAFOS = (quien: string, conImpreso: boolean): string[] =>
   conImpreso
     ? [
@@ -96,11 +110,16 @@ export function cuerpoRecordatorioFrases(opciones: {
   conImpreso?: boolean;
   /** Familia de Argentina: con vos. */
   vos?: boolean;
+  /** Lo contado es privado (05/11): solo se manda con algo impreso, y dice otra cosa. */
+  privado?: boolean;
 }): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
 
-  const parrafos = (opciones.vos ? PARRAFOS_VOS : PARRAFOS)(quien, opciones.conImpreso === true)
+  const lista = opciones.privado
+    ? (opciones.vos ? PARRAFOS_PRIVADO_VOS : PARRAFOS_PRIVADO)(quien)
+    : (opciones.vos ? PARRAFOS_VOS : PARRAFOS)(quien, opciones.conImpreso === true);
+  const parrafos = lista
     .map(
       (parrafo) => `        <tr><td style="padding-bottom:24px;">
           ${parrafo}
@@ -120,7 +139,7 @@ ${parrafos}
 
         <tr><td style="padding-bottom:32px;">
           <a href="${url}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;letter-spacing:0.02em;">
-            Ver las frases
+            ${opciones.privado ? 'Ver el libro' : 'Ver las frases'}
           </a>
         </td></tr>
 
@@ -149,6 +168,8 @@ export async function enviarMailRecordatorioFrases(opciones: {
   conImpreso?: boolean;
   /** Familia de Argentina: con vos. */
   vos?: boolean;
+  /** Lo contado es privado (05/11). */
+  privado?: boolean;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -166,12 +187,13 @@ export async function enviarMailRecordatorioFrases(opciones: {
     body: JSON.stringify({
       from: REMITENTE,
       to: [opciones.para],
-      subject: asuntoRecordatorioFrases(opciones.comoLeDicen, opciones.vos === true),
+      subject: asuntoRecordatorioFrases(opciones.comoLeDicen, opciones.vos === true, opciones.privado === true),
       html: cuerpoRecordatorioFrases({
         comoLeDicen: opciones.comoLeDicen,
         enlace: opciones.enlace,
         conImpreso: opciones.conImpreso,
         vos: opciones.vos === true,
+        privado: opciones.privado,
       }),
     }),
   });

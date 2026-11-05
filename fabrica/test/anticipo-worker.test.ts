@@ -58,7 +58,7 @@ import { tick } from '../src/worker.js';
 const NARRADOR = { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' };
 
 /** El contexto del narrador en la base falsa (null = un Familiar sin contexto). */
-let contextoNarrador: Record<string, unknown> | null = null;
+let contextoNarrador: Record<string, unknown> | null = { vinculoComprador: 'yo mismo' };
 
 /** La región de la familia en la base falsa (ES = el texto de siempre). */
 let regionFamilia = 'ES';
@@ -149,9 +149,18 @@ describe('rama del anticipo en el tick', () => {
     contextoNarrador = { modo: 'viaje', viaje: { salida: '2026-10-01', vuelta: '2026-11-18', etapas: [] } };
     obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
     await tick();
-    contextoNarrador = null;
+    contextoNarrador = { vinculoComprador: 'yo mismo' };
     expect(generarAnticipoMock).not.toHaveBeenCalled();
     expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
+  });
+
+  it('el libro es para otra persona: no se arma ni sale el anticipo (privacidad, 05/11)', async () => {
+    contextoNarrador = { vinculoComprador: 'hija' };
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
+    await tick();
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
+    expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
+    contextoNarrador = { vinculoComprador: 'yo mismo' };
   });
 
   it('con 2 respuestas todavía no hace nada: no le paga al modelo', async () => {

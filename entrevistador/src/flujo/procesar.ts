@@ -1,6 +1,7 @@
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { db } from '../db/cliente.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
+import { contestarLinkSiLoPide } from '../link-respuestas.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte } from '../db/respuestas.js';
@@ -165,6 +166,8 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   // el de un número nuevo. Con el código escrito (con su VF: un «buenas» no es un código) o con el regalo que se le
   // mandó a este número el día elegido. Si no hay regalo, sigue como siempre.
   if ((ESTADOS_TERMINADOS as readonly string[]).includes(narrador.estado)) {
+    // Ya terminó y pide «mis respuestas»: su link (privacidad, 05/11).
+    if (m.tipo === 'texto' && m.texto && (await contestarLinkSiLoPide(db, narrador, m.texto, (t) => enviarTexto(narrador.telefono_whatsapp, t)))) return;
     const conCodigo = m.tipo === 'texto' && !!m.texto && /VF/i.test(m.texto) && extraerCodigo(m.texto) !== null;
     if (conCodigo || (await codigoPorEntrega(db, m.telefono)) !== null) {
       const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });

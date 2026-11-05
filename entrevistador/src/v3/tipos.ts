@@ -89,6 +89,8 @@ export type EstadoV3 = {
    * podido marcar `respuestas.reservada` (ver supabase/CONTRATO.md).
    */
   reservadas?: string[];
+  /** Cuándo le salió su link al terminar (privacidad, 05/11): una sola vez. */
+  linkFinal?: string;
   /**
    * Las preguntas de la familia (ids) que llegaron después de FO1 y ya no
    * entran: se avisó a los socios una vez por cada una (reloj.ts).

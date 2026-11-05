@@ -89,7 +89,7 @@ describe('mails de hitos', () => {
   it('«dijo que sí» de un regalo, de vos: ya le mandamos la primera pregunta, sin guion ni «mañana»', () => {
     const r = redactarHito('acepto', n, { regalo: true, trato: 'vos' });
     expect(r.asunto).toBe('Roberto dijo que sí');
-    expect(r.cuerpo).toContain('Roberto dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que vaya contando lo vas a poder escuchar en tu tablero.');
+    expect(r.cuerpo).toContain('Roberto dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que cuente queda privado hasta que el libro esté listo. En tu tablero vas a ver cuánto lleva contado.');
     expect(r.cuerpo).toContain('href="https://www.vitacorafamiliar.com/tablero/n1"');
     expect(r.cuerpo).not.toMatch(/Mañana|guion/);
   });
@@ -97,7 +97,7 @@ describe('mails de hitos', () => {
   it('«dijo que sí» de un regalo, de tú', () => {
     const r = redactarHito('acepto', n, { regalo: true, trato: 'tu' });
     expect(r.asunto).toBe('Roberto ha dicho que sí');
-    expect(r.cuerpo).toContain('Roberto ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que vaya contando lo podrás escuchar en tu tablero.');
+    expect(r.cuerpo).toContain('Roberto ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que cuente queda privado hasta que el libro esté listo. En tu tablero verás cuánto lleva contado.');
     expect(r.cuerpo).toContain('/tablero/n1');
   });
 

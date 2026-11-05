@@ -41,6 +41,7 @@ import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
+import { DESTINO_DUDAS, asegurarDestinoDudas, avisarOcultasSinContestar, dudasQueCuentan, esperaPorElNarrador, plazoParaSacar } from './privacidad.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
 import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
@@ -270,6 +271,10 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
   try {
     const archivos = await listarEscritor(db, narradorId);
     if (archivos.has(CARPETA_A)) {
+      // Privacidad (05/11): a quién se le pregunta cada duda. Sin clasificar, la familia no ve ninguna.
+      if (archivos.has(DUDAS) && !archivos.has(DESTINO_DUDAS) && !cola.ocupada(narradorId)) {
+        await asegurarDestinoDudas(db, narradorId, new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId)), { quien: await quienEs(db, narradorId), archivoDudas: DUDAS, siFalla: 'esperar' });
+      }
       const avisadas = archivos.has(DUDAS_AVISADAS) ? await new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId)).leer(DUDAS_AVISADAS) : null;
       if (!avisadas?.trim() && !cola.ocupada(narradorId)) await avisarDudas(db, narradorId, archivos);
       return;
@@ -304,7 +309,10 @@ export async function dudasParaLaFamilia(db: Db, narradorId: string): Promise<{ 
   if (!archivos.has(CARPETA_A)) return null;
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   const t = archivos.has(DUDAS) ? await almacen.leer(DUDAS) : null;
-  const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
+  const todas = (t ? (JSON.parse(t) as { dudas?: { id?: string; pregunta?: string }[] }).dudas : []) ?? [];
+  // Las ocultas no se cuentan (05/11). Sin clasificar todavía, tampoco se sabe nada.
+  const dudas = await dudasQueCuentan(db, narradorId, almacen, todas);
+  if (!dudas) return null;
   return { cantidad: dudas.length, contestadas: dudas.length > 0 && (await todasContestadas(dudas, almacen)) };
 }
 
@@ -361,9 +369,11 @@ const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
  * Naza, 13/10: si todas las dudas ya tienen respuesta en correcciones.json, no hay nada que esperar: el libro
  * se escribe en cuanto se encarga.
  */
-async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
+export async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
-  const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
+  const todas = (t ? (JSON.parse(t) as { dudas?: { id?: string; pregunta?: string }[] }).dudas : []) ?? [];
+  // Las ocultas no se esperan: nadie las puede contestar acá (05/11). Quien llama ya las clasificó.
+  const dudas = (await dudasQueCuentan(db, narradorId, almacen, todas)) ?? [];
   if (!dudas.length || esperaPorDudasMs() === 0) return 0;
   if (await todasContestadas(dudas, almacen)) {
     console.log(`escritor ${narradorId}: las ${dudas.length} dudas tienen respuesta; el libro no espera`);
@@ -450,6 +460,16 @@ export class FalloDelEscritor extends Error {
 export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id: string }, motor: Motor = motorReal(db)): Promise<void> {
   const narradorId = pedido.narrador_id;
   try {
+    // El narrador tiene 48 horas desde su último mensaje para sacar algo (privacidad, 05/11). No es un error: el pedido
+    // vuelve a 'pagado' y se retoma después, sin pagar nada de más.
+    const delNarrador = await esperaPorElNarrador(db, narradorId);
+    if (delNarrador > 0) {
+      esperaLibro.set(narradorId, Date.now() + delNarrador);
+      const { error: errorVuelta } = await db.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id).eq('estado', 'generando');
+      if (errorVuelta) console.error(`escritor ${narradorId}: no se pudo devolver a 'pagado' el pedido ${pedido.id}:`, errorVuelta.message);
+      console.log(`escritor ${narradorId}: el libro espera ${Math.ceil(delNarrador / 3_600_000)} horas más, el plazo del narrador para sacar algo`);
+      return;
+    }
     const desdeBase = await (motor.material ?? carpetaDeLaBase)(db, narradorId);
     const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
     let snapA = await cargarSnapshot(almacen, 'A');
@@ -467,6 +487,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       const a = await etapaA(x);
       if (!a.ok) throw new FalloDelEscritor(`Etapa A: ${a.motivo}`);
     }
+    await asegurarDestinoDudas(db, narradorId, almacen, { quien: await quienEs(db, narradorId), archivoDudas: DUDAS, siFalla: 'alNarrador' });
     const espera = await esperaPorDudas(db, narradorId, almacen);
     if (espera > 0) {
       // No es un error: el pedido vuelve a 'pagado' y el libro se retoma cuando pase la espera (sin repagar la A).
@@ -476,7 +497,9 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       x.log(`hay dudas de datos: el libro espera ${Math.ceil(espera / 3_600_000)} horas más por las correcciones`);
       return;
     }
-    const b = await etapaB(x, [...(await leerCorrecciones(almacen)), ...(await correccionesDeLaFamilia(db, narradorId))]);
+    const correcciones = await leerCorrecciones(almacen);
+    await avisarOcultasSinContestar(db, narradorId, almacen, { quien: await quienEs(db, narradorId), archivoDudas: DUDAS, contestadas: new Set(correcciones.filter((c) => c.texto.trim()).map((c) => c.dudaId)) });
+    const b = await etapaB(x, [...correcciones, ...(await correccionesDeLaFamilia(db, narradorId))]);
     if (!b.ok) throw new FalloDelEscritor(`Etapa B: ${b.motivo}`);
     const r = await etapaC(x);
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);
@@ -604,10 +627,11 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
     if (errorE) throw new Error(`no pude leer los pedidos entregados: ${errorE.message}`);
     for (const e of (entregados ?? []) as { narrador_id: string }[]) pendientes.delete(e.narrador_id);
     if (!pendientes.size) return;
-    const { data: narradores, error: errorN } = await db.from('narradores').select('id, libro_aprobado_at').in('id', [...pendientes.keys()]);
+    const { data: narradores, error: errorN } = await db.from('narradores').select('id, libro_aprobado_at, contexto, ultima_respuesta_at').in('id', [...pendientes.keys()]);
     if (errorN) throw new Error(`no pude leer los narradores: ${errorN.message}`);
-    for (const n of (narradores ?? []) as { id: string; libro_aprobado_at: string | null }[]) {
-      const cerrado = n.libro_aprobado_at ? new Date(n.libro_aprobado_at).getTime() : NaN;
+    for (const n of (narradores ?? []) as { id: string; libro_aprobado_at: string | null; contexto?: unknown; ultima_respuesta_at?: string | null }[]) {
+      // Las 48 horas del narrador no son demora: el reloj arranca cuando terminan.
+      const cerrado = n.libro_aprobado_at ? Math.max(new Date(n.libro_aprobado_at).getTime(), plazoParaSacar(n) ?? 0) : NaN;
       if (!Number.isFinite(cerrado) || ahora - cerrado < DEMORA_ALERTA_MS) continue;
       const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(n.id));
       if ((await almacen.leer(ALERTA_DEMORADO)) !== null) continue;

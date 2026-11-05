@@ -36,6 +36,7 @@ import { LoteAnthropic, type ClienteLotes } from '../../escritor/modelo/lote-ant
 import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
 import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
+import { DESTINO_DUDAS, asegurarDestinoDudas, avisarOcultasSinContestar, dudasQueCuentan, esperaPorElNarrador } from '../../escritor/produccion/privacidad.js';
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
 import { leerEdicion } from '../../libro/edicion.js';
@@ -299,7 +300,9 @@ async function correccionesDeLaFamilia(db: Db, id: string): Promise<CorreccionFa
 /** Cuántos ms faltan para escribir el libro por las dudas (0 = ya). Como esperaPorDudas de V3. */
 async function esperaPorDudas(db: Db, id: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
-  const dudas = (t ? (JSON.parse(t) as { dudas?: { id?: string }[] }).dudas : []) ?? [];
+  const todas = (t ? (JSON.parse(t) as { dudas?: { id?: string; pregunta?: string }[] }).dudas : []) ?? [];
+  // Las ocultas no se esperan: nadie las puede contestar acá (05/11). Quien llama ya las clasificó.
+  const dudas = (await dudasQueCuentan(db, id, almacen, todas)) ?? [];
   if (!dudas.length || esperaPorDudasMs() === 0) return 0;
   let correcciones: CorreccionFamilia[] = [];
   try { correcciones = await leerCorreccionesHistoria(almacen); } catch { /* roto: se espera el plazo */ }
@@ -320,6 +323,10 @@ async function revisarEtapaA(db: Db, id: string, o: { motor?: MotorHistoria; aho
   try {
     const archivos = await listar(db, PREFIJO_HISTORIA(id));
     if (archivos.has(CARPETA_A)) {
+      // Privacidad (05/11): a quién se le pregunta cada duda. Sin clasificar, la familia no ve ninguna.
+      if (archivos.has(DUDAS) && !archivos.has(DESTINO_DUDAS) && !cola.ocupada(id)) {
+        await asegurarDestinoDudas(db, id, almacenDe(db, id), { quien: await quienEs(db, id), archivoDudas: DUDAS, siFalla: 'esperar' });
+      }
       const avisadas = archivos.has(DUDAS_AVISADAS) ? await almacenDe(db, id).leer(DUDAS_AVISADAS) : null;
       if (!avisadas?.trim() && !cola.ocupada(id)) await avisarDudas(db, id);
       return;
@@ -424,6 +431,15 @@ export const alEntregarHistoria = (f: DespuesDeEntregar | null): void => { despu
 export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrador_id: string }, motor: MotorHistoria = motorRealHistoria(db)): Promise<void> {
   const id = pedido.narrador_id;
   try {
+    // El narrador tiene 48 horas desde su último mensaje para sacar algo (privacidad, 05/11).
+    const delNarrador = await esperaPorElNarrador(db, id);
+    if (delNarrador > 0) {
+      esperaLibro.set(id, Date.now() + delNarrador);
+      const { error } = await db.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id).eq('estado', 'generando');
+      if (error) console.error(`historia ${id}: no se pudo devolver a 'pagado' el pedido ${pedido.id}:`, error.message);
+      console.log(`historia ${id}: el libro espera ${Math.ceil(delNarrador / 3_600_000)} horas más, el plazo del narrador para sacar algo`);
+      return;
+    }
     const desdeBase = await (motor.material ?? carpetaHistoriaDeLaBase)(db, id);
     const almacen = almacenDe(db, id);
     let snapA = await cargarSnapshot(almacen, 'A');
@@ -438,6 +454,7 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
       const a = await etapaAHistoria(x);
       if (!a.ok) throw new FalloDelEscritorHistoria(`Etapa A: ${a.motivo}`);
     }
+    await asegurarDestinoDudas(db, id, almacen, { quien: await quienEs(db, id), archivoDudas: DUDAS, siFalla: 'alNarrador' });
     const espera = await esperaPorDudas(db, id, almacen);
     if (espera > 0) {
       esperaLibro.set(id, Date.now() + espera);
@@ -446,7 +463,9 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
       x.log(`hay dudas de datos: el libro espera ${Math.ceil(espera / 3_600_000)} horas más por las correcciones`);
       return;
     }
-    const b = await etapaBHistoria(x, [...(await leerCorreccionesHistoria(almacen)), ...(await correccionesDeLaFamilia(db, id))]);
+    const correcciones = await leerCorreccionesHistoria(almacen);
+    await avisarOcultasSinContestar(db, id, almacen, { quien: await quienEs(db, id), archivoDudas: DUDAS, contestadas: new Set(correcciones.filter((c) => c.texto.trim()).map((c) => c.dudaId)) });
+    const b = await etapaBHistoria(x, [...correcciones, ...(await correccionesDeLaFamilia(db, id))]);
     if (!b.ok) throw new FalloDelEscritorHistoria(`Etapa B: ${b.motivo}`);
     const r = await etapaCHistoria(x);
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);

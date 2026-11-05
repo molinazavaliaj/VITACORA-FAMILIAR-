@@ -18,5 +18,25 @@
     "es-AR": "Entendido. Eso no va a ir al libro.",
     "es-ES": "Entendido. Eso no irá en el libro.",
     "ca": "Entesos. Això no anirà al llibre."
+  },
+  "linkRespuestas": {
+    "es-AR": "Acá podés escuchar lo que me contaste, {{nombre}}, y sacar lo que no quieras que vaya al libro. Solo lo ves vos. El link dura 7 días, y me lo podés volver a pedir cuando quieras.\n\n{{link}}",
+    "es-ES": "Aquí puedes escuchar lo que me has contado, {{nombre}}, y quitar lo que no quieras que vaya al libro. Solo lo ves tú. El enlace dura 7 días, y me lo puedes volver a pedir cuando quieras.\n\n{{link}}",
+    "ca": "Aquí pots escoltar el que m'has explicat, {{nombre}}, i treure el que no vulguis que vagi al llibre. Només ho veus tu. L'enllaç dura 7 dies, i me'l pots tornar a demanar quan vulguis.\n\n{{link}}"
+  },
+  "linkFinal": {
+    "es-AR": "Antes de que escribamos tu libro, {{nombre}}, acá podés escuchar lo que me contaste y sacar lo que no quieras. Tenés tiempo hasta el {{fecha}}. Después ya no se puede sacar nada.\n\n{{link}}",
+    "es-ES": "Antes de que escribamos tu libro, {{nombre}}, aquí puedes escuchar lo que me has contado y quitar lo que no quieras. Tienes tiempo hasta el {{fecha}}. Después ya no se puede quitar nada.\n\n{{link}}",
+    "ca": "Abans que escrivim el teu llibre, {{nombre}}, aquí pots escoltar el que m'has explicat i treure el que no vulguis. Tens temps fins al {{fecha}}. Després ja no es pot treure res.\n\n{{link}}"
+  },
+  "linkCerrado": {
+    "es-AR": "Acá podés escuchar lo que me contaste, {{nombre}}. Ya no se puede sacar nada, porque tu libro se está escribiendo.\n\n{{link}}",
+    "es-ES": "Aquí puedes escuchar lo que me has contado, {{nombre}}. Ya no se puede quitar nada, porque tu libro se está escribiendo.\n\n{{link}}",
+    "ca": "Aquí pots escoltar el que m'has explicat, {{nombre}}. Ja no es pot treure res, perquè el teu llibre s'està escrivint.\n\n{{link}}"
+  },
+  "avisoPrivacidad": {
+    "es-AR": "Gracias, {{nombre}}. Lo que me cuentes queda privado hasta que tu libro esté listo, y lo usamos solo para tu libro. Si algo no querés que aparezca, decímelo acá mientras charlamos. Cuando terminemos te mando un link, y vas a tener 48 horas para sacar lo que quieras.",
+    "es-ES": "Gracias, {{nombre}}. Lo que me cuentes queda privado hasta que tu libro esté listo, y solo lo usamos para tu libro. Si hay algo que no quieres que aparezca, dímelo aquí mientras hablamos. Cuando terminemos te enviaré un enlace, y tendrás 48 horas para quitar lo que quieras.",
+    "ca": "Gràcies, {{nombre}}. El que m'expliquis queda privat fins que el teu llibre estigui llest, i només el fem servir per al teu llibre. Si hi ha alguna cosa que no vols que hi surti, digues-m'ho aquí mentre parlem. Quan acabem t'enviaré un enllaç, i tindràs 48 hores per treure el que vulguis."
   }
 }

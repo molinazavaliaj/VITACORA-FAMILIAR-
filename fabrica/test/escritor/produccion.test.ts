@@ -27,6 +27,8 @@ type Fila = Record<string, unknown>;
 function baseFalsa(o: { tablas?: Record<string, Fila[]>; archivos?: Record<string, string> } = {}) {
   const archivos = new Map<string, string | Buffer>(Object.entries(o.archivos ?? {}));
   const tablas: Record<string, Fila[]> = { narradores: [], pedidos: [], consumo_ia: [], entrevistas_v3: [], ...(o.tablas ?? {}) };
+  // La privacidad del panel (05/11) tiene sus tests en test/privacidad.test.ts: acá, «para mí», sin espera del narrador.
+  tablas.narradores = (tablas.narradores.length ? tablas.narradores : [{ id: 'n1' }]).map((n) => ({ ...n, contexto: { vinculoComprador: 'yo mismo', ...(n.contexto as object | undefined) } }));
   const updates: { tabla: string; cambios: Fila }[] = [];
   const db = {
     from(tabla: string) {

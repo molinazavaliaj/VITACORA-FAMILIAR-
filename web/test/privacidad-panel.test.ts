@@ -22,6 +22,11 @@ import { GET as frasesGet, POST as frasesPost } from "../src/app/api/frases/rout
 import { GET as fraseAudio } from "../src/app/api/frases/audio/[fraseId]/route";
 import { GET as anticipoAudio } from "../src/app/api/anticipo/[token]/audio/route";
 import { armarMuestra, primerParrafoDelLibro } from "@/lib/muestra";
+import { createHmac } from "node:crypto";
+import { verificarTokenRespuestas } from "@/lib/token-respuestas";
+import { puedeSacarElNarrador } from "@/lib/fuera-del-libro";
+import { GET as audioNarrador } from "../src/app/api/mis-respuestas/[token]/audio/[respuestaId]/route";
+import { POST as fueraNarrador } from "../src/app/api/mis-respuestas/[token]/fuera/route";
 
 // Privacidad del panel (Naza y Joaquín, 05/11). Lo que importa es el rechazo en el servidor, no los botones: quien
 // regala y sus invitados no reciben audios ni transcripciones; el narrador que compró para sí, sí. Viaje y Kids igual.
@@ -335,5 +340,69 @@ describe("las frases", () => {
   it("el dueño de su propia historia cambia y confirma como siempre", async () => {
     preparar(base(PROPIA), { [RUTA]: archivo() });
     expect((await frasesPost(pedir(`/api/frases${q}`, { seleccion: [{ numero: 1, elegidas: ["b"] }], confirmar: true }))).status).toBe(200);
+  });
+});
+
+describe("el link del narrador", () => {
+  const SECRETO = "secreto-de-prueba";
+  const token = (o: { exp?: number; tipo?: string; narradorId?: string } = {}) => {
+    const enc = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+    const pay = Buffer.from(JSON.stringify({ narradorId: o.narradorId ?? "n1", tipo: o.tipo ?? "respuestas", exp: o.exp ?? Date.now() + 86_400_000 })).toString("base64url");
+    return `${enc}.${pay}.${createHmac("sha256", SECRETO).update(`${enc}.${pay}`).digest("base64url")}`;
+  };
+  beforeEach(() => { process.env.FIRMA_TOKENS = SECRETO; });
+
+  it("verifica firma, tipo y vencimiento", () => {
+    expect(verificarTokenRespuestas(token())).toEqual({ ok: true, narradorId: "n1" });
+    expect(verificarTokenRespuestas(token({ exp: Date.now() - 1 }))).toEqual({ ok: false, motivo: "vencido" });
+    expect(verificarTokenRespuestas(token({ tipo: "voz" }))).toEqual({ ok: false, motivo: "invalido" });
+    expect(verificarTokenRespuestas(`${token().slice(0, -3)}abc`)).toEqual({ ok: false, motivo: "invalido" });
+    expect(verificarTokenRespuestas("nada")).toEqual({ ok: false, motivo: "invalido" });
+  });
+
+  it("el plazo: mientras cuenta sí; al terminar, 48 horas desde su último mensaje", () => {
+    const ultima = "2026-11-01T12:00:00Z";
+    const t0 = Date.parse(ultima);
+    expect(puedeSacarElNarrador({ estado: "activo", ultima_respuesta_at: ultima }, t0 + 100 * 3_600_000)).toBe(true);
+    expect(puedeSacarElNarrador({ estado: "completado", ultima_respuesta_at: ultima }, t0 + 47 * 3_600_000)).toBe(true);
+    expect(puedeSacarElNarrador({ estado: "completado", ultima_respuesta_at: ultima }, t0 + 49 * 3_600_000)).toBe(false);
+    expect(puedeSacarElNarrador({ estado: "cerrado_anticipado", ultima_respuesta_at: null }, t0)).toBe(false);
+  });
+
+  it("escucha sus audios sin sesión, y solo los suyos", async () => {
+    preparar(base(REGALO));
+    const r = await audioNarrador(pedir("/x"), { params: Promise.resolve({ token: token(), respuestaId: "r1" }) });
+    expect(r.status).toBe(302);
+    expect((await audioNarrador(pedir("/x"), { params: Promise.resolve({ token: token({ narradorId: "otro" }), respuestaId: "r1" }) })).status).toBe(404);
+    expect((await audioNarrador(pedir("/x"), { params: Promise.resolve({ token: token({ exp: Date.now() - 1 }), respuestaId: "r1" }) })).status).toBe(403);
+    expect((await audioNarrador(pedir("/x"), { params: Promise.resolve({ token: "basura", respuestaId: "r1" }) })).status).toBe(403);
+  });
+
+  const sacar = (t: string) => fueraNarrador(pedir("/x", { accion: "sacar", respuestaId: "r1", volverAPreguntar: true }), { params: Promise.resolve({ token: t }) });
+
+  it("con el link saca sin sesión, sin usuario y sin volver a preguntar, aunque el libro ya esté encargado", async () => {
+    const t = base(REGALO, { libro_aprobado_at: "2026-11-01" });
+    Object.assign(t.narradores[0], { estado: "completado", ultima_respuesta_at: new Date(Date.now() - 3_600_000).toISOString() });
+    t.entrevistas_v3 = [{ narrador_id: "n1", estado: { respuestas: [], charla: [{ de: "bio", partes: [{ id: "OR1", texto: "¿Dónde naciste?" }] }] } }];
+    (t.respuestas[0] as Fila).clave_v3 = "OR1";
+    const altas: Fila[] = [];
+    const r = preparar(t);
+    const original = r.admin.from;
+    r.admin.from = vi.fn((tabla: string) => {
+      const b = original(tabla) as Record<string, unknown>;
+      b.upsert = async (fila: Fila) => { altas.push({ tabla, ...fila }); return { error: null }; };
+      b.insert = async (fila: Fila) => { altas.push({ tabla, ...fila }); return { error: null }; };
+      return b;
+    }) as never;
+    expect((await sacar(token())).status).toBe(200);
+    expect(altas).toEqual([{ tabla: "respuestas_fuera", respuesta_id: "r1", narrador_id: "n1", marcada_por: null }]);
+  });
+
+  it("pasado el plazo, no; con un link vencido, tampoco", async () => {
+    const t = base(REGALO);
+    Object.assign(t.narradores[0], { estado: "completado", ultima_respuesta_at: new Date(Date.now() - 49 * 3_600_000).toISOString() });
+    preparar(t);
+    expect((await sacar(token())).status).toBe(400);
+    expect((await sacar(token({ exp: Date.now() - 1 }))).status).toBe(403);
   });
 });

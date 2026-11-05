@@ -24,10 +24,10 @@ afterEach(() => {
   delete process.env.WA_PLANTILLAS_V3_LISTAS;
 });
 
-async function preparar(o: { ficha?: Partial<FichaFila>; temaAbierto?: boolean; propias?: string[]; idioma?: Idioma; estado?: string } = {}) {
+async function preparar(o: { vinculo?: string; ficha?: Partial<FichaFila>; temaAbierto?: boolean; propias?: string[]; idioma?: Idioma; estado?: string } = {}) {
   const narrador: NarradorHistoria = {
     id: 'n1', familia_id: 'f1', como_le_dicen: 'Marta', telefono_whatsapp: TEL, hora_preferida: '10:00:00',
-    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia' }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false,
+    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia', vinculoComprador: o.vinculo ?? 'yo mismo' }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false,
   };
   const base = crearBaseFalsa({ narradores: [{ ...narrador }] }, { ahora: () => AHORA });
   const ficha: FichaFila = { nombre: 'Marta', genero: 'mujer', tema: 'mudanza', ...o.ficha };
@@ -180,6 +180,26 @@ describe('la entrevista entera', () => {
     await entra(texto('No tengo fotos', true));
     expect((await fila())!.estado.esperando).toBe('HC5');
     expect(enviados.at(-1)!.texto).toMatch(/^Bien, seguimos\.\nAhora vamos a lo más difícil, Marta\./);
+  });
+});
+
+describe('la privacidad (05/11)', () => {
+  it('un regalo: con el SÍ sale el aviso, antes de lo primero; «para mí», no', async () => {
+    const { entra, enviados } = await preparar({ vinculo: 'hija' });
+    await entra(texto('Sí'));
+    expect(enviados[0].texto).toContain('Lo que me cuentes queda privado hasta que tu libro esté listo');
+    expect(enviados[0].texto).toContain('48 horas');
+    expect(enviados[1].texto).toContain('Funciona así');
+  });
+
+  it('«que no vaya al libro» mandado como audio se reserva también en una historia', async () => {
+    const { entra, silencio, fila, base } = await preparar({ vinculo: 'hija' });
+    await entra(texto('Sí'));
+    await entra(audio(CUENTA));
+    await silencio();
+    await entra(audio('Eso que no vaya al libro.'));
+    expect((await fila())!.estado.reservadas?.length).toBe(1);
+    expect(base.tablas.respuestas.at(-1)?.clave_historia).toBe(SIN_CLAVE_HISTORIA);
   });
 });
 

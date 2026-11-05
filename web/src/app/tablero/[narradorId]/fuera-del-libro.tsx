@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TratoComprador } from "@/lib/regalo-textos";
-import { idiomaFueraDelLibro, textosFueraDelLibro } from "@/lib/fuera-del-libro-textos";
+import { idiomaFueraDelLibro, textosFueraDelLibro, type IdiomaFueraDelLibro } from "@/lib/fuera-del-libro-textos";
 
 // «Que esto no vaya al libro» en cada respuesta de la historia V3 (Naza, 21/10). La dueña la saca (y, si la
 // entrevista sigue, puede pedir que se la volvamos a hacer) o la vuelve a poner. Patrón de la casa: llama a
@@ -15,8 +15,8 @@ const botonChico = "text-sm text-[var(--texto-menor)] underline decoration-[var(
 const opcion = (elegida: boolean) =>
   `${boton} border ${elegida ? "border-[var(--texto)] bg-[var(--hueco)] text-[var(--texto)]" : "border-[var(--linea-fuerte)] text-[var(--texto-suave)] hover:bg-[var(--hueco)]"}`;
 
-async function pedir(narradorId: string, cuerpo: Record<string, unknown>, error: string): Promise<void> {
-  const r = await fetch(`/api/fuera-del-libro?narrador=${encodeURIComponent(narradorId)}`, {
+async function pedir(destino: string, cuerpo: Record<string, unknown>, error: string): Promise<void> {
+  const r = await fetch(destino, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cuerpo),
@@ -26,9 +26,14 @@ async function pedir(narradorId: string, cuerpo: Record<string, unknown>, error:
 }
 
 export function SacarDelLibro({
-  narradorId, respuestaId, fuera, propia, trato, puedeVolverAPreguntar,
-}: { narradorId: string; respuestaId: string; fuera: boolean; propia: boolean; trato: TratoComprador; puedeVolverAPreguntar: boolean }) {
-  const T = textosFueraDelLibro(idiomaFueraDelLibro(trato));
+  narradorId, respuestaId, fuera, propia, trato, puedeVolverAPreguntar, endpoint, idioma,
+}: {
+  narradorId: string; respuestaId: string; fuera: boolean; propia: boolean; trato: TratoComprador; puedeVolverAPreguntar: boolean;
+  /** Desde el link del narrador (05/11): su propia ruta y su idioma, también catalán. */
+  endpoint?: string; idioma?: IdiomaFueraDelLibro;
+}) {
+  const T = textosFueraDelLibro(idioma ?? idiomaFueraDelLibro(trato));
+  const destino = endpoint ?? `/api/fuera-del-libro?narrador=${encodeURIComponent(narradorId)}`;
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [volver, setVolver] = useState(false);
@@ -39,7 +44,7 @@ export function SacarDelLibro({
     setOcupado(true);
     setError(null);
     try {
-      await pedir(narradorId, cuerpo, T.error);
+      await pedir(destino, cuerpo, T.error);
       setAbierto(false);
       router.refresh();
     } catch (e) {

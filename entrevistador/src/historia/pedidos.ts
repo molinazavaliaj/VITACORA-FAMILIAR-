@@ -17,6 +17,7 @@
 // Los textos son los textos fijos de V3 (src/v3/textos-fijos.json, aprobados): sin texto en su idioma no sale nada
 // (la acción igual se hace).
 
+import { datosDelLink, pideMisRespuestas, textoDelLink } from '../link-respuestas.js';
 import { textoFijo } from '../v3/textos-fijos.js';
 import type { DepsHistoria } from './deps.js';
 import { conReintento } from './estado.js';
@@ -28,7 +29,7 @@ import { CLAVE_TEMA, fichaTexto, SIN_CLAVE_HISTORIA, type EstadoHistoria } from 
 import { anotarVisto, encolar, yaVisto } from './turno.js';
 
 /** `largo`: el mensaje tiene más de PALABRAS_MENSAJE_CORTO palabras. */
-export type Pedido = { reserva: boolean; pausa: boolean; largo: boolean };
+export type Pedido = { reserva: boolean; pausa: boolean; largo: boolean; link?: boolean };
 
 /** Un mensaje de más palabras que esto es largo: su reserva no alcanza a la respuesta anterior. */
 export const PALABRAS_MENSAJE_CORTO = 15;
@@ -37,7 +38,8 @@ export const PALABRAS_MENSAJE_CORTO = 15;
 export function pedidoDe(texto: string, idioma: Idioma): Pedido | null {
   const reserva = pideReserva(texto, idioma);
   const pausa = pidePausa(texto, idioma);
-  if (!reserva && !pausa) return null;
+  // «Mis respuestas», «quiero borrar algo»: el link propio del narrador (privacidad, 05/11).
+  if (!reserva && !pausa) return pideMisRespuestas(texto, idioma) ? { reserva: false, pausa: false, largo: false, link: true } : null;
   const largo = normalizar(texto).split(' ').filter(Boolean).length > PALABRAS_MENSAJE_CORTO;
   return { reserva, pausa, largo };
 }
@@ -59,7 +61,7 @@ export function claveAReservar(e: EstadoHistoria, largo = false): string | null 
 export type PedidoAnotado = { estado: EstadoHistoria; reservada: string | null; reservaLarga: boolean };
 
 /** El estado con el pedido anotado (reservadas y textos a la cola). Puro. */
-export function anotarPedido(anterior: EstadoHistoria, ficha: FichaTexto, idioma: Idioma, pedido: Pedido): PedidoAnotado {
+export function anotarPedido(anterior: EstadoHistoria, ficha: FichaTexto, idioma: Idioma, pedido: Pedido, textoLink: string | null = null): PedidoAnotado {
   let e = anterior;
   let reservada: string | null = null;
   let reservaLarga = false;
@@ -74,6 +76,7 @@ export function anotarPedido(anterior: EstadoHistoria, ficha: FichaTexto, idioma
     const t = textoFijo('pausa', idioma, ficha);
     if (t) e = encolar(e, { texto: t, tipo: 'suelto' });
   }
+  if (pedido.link && textoLink) e = encolar(e, { texto: textoLink, tipo: 'suelto' });
   return { estado: e, reservada, reservaLarga };
 }
 
@@ -84,9 +87,11 @@ export function anotarPedido(anterior: EstadoHistoria, ficha: FichaTexto, idioma
  * drena: lo hace quien llama.
  */
 export async function cumplirPedido(deps: DepsHistoria, narradorId: string, pedido: Pedido, guardada: { id: string; waMessageId: string }): Promise<void> {
+  const datos = pedido.link ? await datosDelLink(deps.db, narradorId) : null;
   const r = await conReintento(deps.db, narradorId, (f) => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
-    const p = anotarPedido(f.estado, fichaTexto(f), f.idioma, pedido);
+    const textoLink = datos ? textoDelLink(datos, narradorId, f.idioma, fichaTexto(f), deps.ahora()) : null;
+    const p = anotarPedido(f.estado, fichaTexto(f), f.idioma, pedido, textoLink);
     return { cambio: { estado: anotarVisto(p.estado, guardada.waMessageId) }, resultado: p };
   });
   if (!r) {
