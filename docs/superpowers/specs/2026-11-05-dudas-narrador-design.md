@@ -56,14 +56,19 @@ Si algo no lo contó, no se pregunta. Si dijo «creo que fue con Cámpora», el 
 
 **Dónde va.** En el paso que redacta las preguntas (`### Dudas para la familia` y `### Dudas para quien narra`), que también descarta las que no cumplen. No se toca el paso 1 del lector, para no cambiar el resto de la lectura. La frase «El libro lo pidió para sí» se cambia, porque ya no siempre es cierta. Siempre se usa la versión que le habla al narrador.
 
-**Vara de prueba** (las 25 de Juan Domingo, una corrida):
+**Modelo.** Este paso pasa de Haiku a Opus (`dudas$` sale de `MECANICO` en `configuracion.ts`). Probado el 05/11 con las 25 de Juan Domingo, desde Claude Code y no desde la fábrica:
 
-| Resultado esperado | Dudas |
-|---|---|
-| Quedan | D01, D02, D03, D04, D06, D07, D08, D09, D11, D16, D18, D19, D20, D23 |
-| Salen | D05, D10, D12, D13, D14, D15, D17, D21, D22, D24, D25 |
+| Prueba | Coincide con la primera lista | Quedan | Preguntas de «contá más» que pasaron |
+|---|---|---|---|
+| Haiku, primera regla | 15 de 25 | 12 | D21, D22, D24 |
+| Opus, regla ajustada | 17 de 25 | 8 | ninguna |
 
-D15, D17 y D20 las ubiqué yo: Naza puede moverlas.
+**Resultado con Opus** (pendiente del OK de Naza):
+- Quedan: D03, D04, D05, D06, D07, D11, D18, D20.
+- Salen, de las que la primera lista dejaba: D01, D02, D08, D09, D16, D19, D23. Opus entendió la respuesta al leer las citas.
+- D05 queda con otra pregunta: qué quiso decir con una frase que no se entiende, no cómo le pusieron el apodo.
+
+Una prueba con un solo libro no alcanza para dar el filtro por bueno. Hay que mirar el resultado del próximo libro real.
 
 ## Cómo se arma
 
@@ -121,7 +126,7 @@ Se aprueban en tandas de 10 y se anotan en `docs/web-textos-v3/aprobados.md`: me
 - **Plazo de dudas:** recordatorio una sola vez, y sin recordatorio si ya contestó todo.
 - **Quien regala:** no puede leer dudas ni por pantalla ni por API, ni invitar para contestarlas. «Para mí» sigue pudiendo.
 - **Interruptor apagado:** todo igual que hoy.
-- **Filtro:** corrida real contra la vara de arriba, con el costo avisado antes.
+- **Filtro:** `validarDudas` descarta las que vienen con `real: false`, y una duda sin preguntas no frena el libro.
 
 ## Antes de publicar
 
