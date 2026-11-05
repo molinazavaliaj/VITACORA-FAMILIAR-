@@ -50,6 +50,7 @@ const FOTOS = {
   regalo: "/rediseno/para-tu-abuelo.jpg",
   audio: "/rediseno/viaje-audio-hotel.jpg",
   familia: "/rediseno/familia-con-el-libro.jpg",
+  banda: "/rediseno/familia-leyendo-ancha.jpg",
 } as const;
 
 const FOTOS_PASOS = [FOTOS.regalo, FOTOS.audio, null, FOTOS.familia] as const;
@@ -105,6 +106,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <ul className="acu-pie">
           {n.tienda.pie.map((p) => <li key={p}>{p}</li>)}
         </ul>
+      </section>
+
+      {/* La foto de ancho completo: ilustra y se reemplaza por una real cuando esté filmado. */}
+      <section aria-hidden className="relative z-[3] aspect-[4/3] w-full overflow-hidden bg-[var(--acu-banda)] sm:aspect-[21/9]">
+        <Image src={FOTOS.banda} alt="" fill sizes="100vw" className="object-cover object-[50%_40%]" />
       </section>
 
       {/* 3 · Los audios que se vuelven capítulos */}
