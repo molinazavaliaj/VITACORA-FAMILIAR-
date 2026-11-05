@@ -203,6 +203,14 @@ describe("los otros pasos", () => {
     expect((await guardarBulto(form({ peso: "820", medidas: "30 x 18 x 8,4" }))).error).toBeNull();
     expect(updates[0].cambios).toEqual({ peso_g: 820, dimensiones: "30x18x8.4" });
   });
+  it("antes de imprenta no se carga el peso: el portón de la fábrica lo pisaría", async () => {
+    estado.pedido = fila({ estado: "lista" });
+    expect((await guardarBulto(form({ peso: "820", medidas: "30x18x8" }))).error).toMatch(/no se puede dar/);
+    expect(updates).toHaveLength(0);
+    expect(await html(ficha())).toContain("Recién ahí se pueden corregir");
+    estado.pedido = fila({ estado: "lista" }, { narrador: { nombre: "R", como_le_dicen: "R", modo: "historia" } });
+    expect((await guardarBulto(form({ peso: "820", medidas: "30x18x8" }))).error).toBeNull();
+  });
   it("crea la entrega que faltó, solo si falta", async () => {
     expect((await crearEntrega(form())).error).toMatch(/no necesita/);
     estado.pedido = fila(null);

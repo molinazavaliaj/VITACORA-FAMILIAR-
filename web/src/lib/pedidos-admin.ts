@@ -186,6 +186,13 @@ export function puedePasar(desde: EstadoEntrega, hacia: "impreso" | "enviado" | 
   return desde === "en_produccion" || desde === "impreso";
 }
 
+/**
+ * El peso y las medidas se cargan desde que la fábrica mandó a imprenta: antes, el portón los
+ * pisaría con los estimados. Una historia no pasa por el portón.
+ */
+export const puedeCargarBulto = (estado: EstadoEntrega, esDeHistoria: boolean): boolean =>
+  estado !== "sin_direccion" && (estado !== "lista" || esDeHistoria);
+
 /** A dónde vuelve una entrega con problema: la fila no guarda el estado de antes, pero sí las fechas. */
 export function estadoAnterior(e: Pick<EntregaAdmin, "direccion_at" | "produccion_at" | "impreso_at" | "enviado_at" | "entregado_at">): EstadoEntrega {
   if (e.entregado_at) return "entregado";

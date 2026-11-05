@@ -8,9 +8,9 @@
 -- Stripe, /api/pago/vuelta, un piloto pasado a mano en el SQL Editor) y así ninguno se
 -- puede olvidar. Un pedido sin pagar no consume número.
 --
--- `fallido` no da número por sí solo: es ambiguo. Puede ser un pago que no se completó, o
--- un libro cobrado que falló al escribirse. El segundo pasó antes por `pagado`, así que ya
--- tiene su número y lo conserva.
+-- `fallido` es un libro que falló al escribirse: de acá en adelante ya pasó por `pagado`, tiene
+-- su número y lo conserva. En el relleno, los fallidos viejos reciben número solo si tienen
+-- referencia del proveedor de pago: es lo que prueba que se cobraron.
 --
 -- Idempotente: se puede correr de nuevo sin cambiarle el número a nadie.
 -- ⚠️ Toca supabase/CONTRATO.md («Número de pedido»). La aplica Naza en el SQL Editor.
@@ -40,7 +40,9 @@ declare
 begin
   for fila in
     select id from pedidos
-    where numero is null and estado in ('pagado', 'generando', 'esperando_voz', 'entregado')
+    where numero is null
+      and (estado in ('pagado', 'generando', 'esperando_voz', 'entregado')
+           or (estado = 'fallido' and referencia_externa is not null))
     order by created_at, id
   loop
     update pedidos set numero = nextval('public.pedidos_numero_seq') where id = fila.id;

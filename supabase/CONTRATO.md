@@ -1073,9 +1073,9 @@ confundir con `entregas.seguimiento`, que lo da el correo.
 | **trigger** `pedidos_poner_numero` de la base, al insertar o cambiar `estado` | `/admin/pedidos`, fábrica (`referencia` del envío) | Nadie lo escribe a mano ni desde el código. Sale de la secuencia `pedidos_numero_seq`, que arranca en 1001. |
 
 Lo reciben los estados cobrados: `pagado`, `generando`, `esperando_voz`, `entregado`. `pendiente` no consume número.
-`fallido` tampoco lo da, porque es ambiguo: con número es un libro cobrado que falló al escribirse (pasó por `pagado`);
-sin número, un pago que no se completó. Una vez puesto no cambia. La migración rellena los cobrados que ya existían, por
-fecha. Sin la migración aplicada `/admin/pedidos` lo avisa y el resto del producto sigue igual.
+`fallido` tampoco lo da por sí solo: es un libro cobrado que falló al escribirse, que ya recibió su número al pasar por
+`pagado`. Una vez puesto no cambia. La migración rellena por fecha los cobrados que ya existían, y de los `fallido` viejos
+solo los que tienen `referencia_externa` (sin ella no hay prueba de cobro: el panel los muestra como no completados). Sin la migración aplicada `/admin/pedidos` lo avisa y el resto del producto sigue igual.
 
 ## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
 
@@ -1097,7 +1097,7 @@ adentro no se duplica**: se lee de `pedidos.extras` (copias, acabado, marcos).
 | `estado = 'impreso'`, `impreso_at` | **fábrica / Naza** (`/admin/pedidos`) | web | |
 | `estado = 'enviado'`, `enviado_at` | **fábrica / Naza** | web | Dispara el **mail de hito "enviado"** (con seguimiento). |
 | `estado = 'entregado'`, `entregado_at` | **fábrica / Naza**, o **web** (botón "ya me llegó" del comprador) | `/admin` | Dispara el mail de hito "entregado"; en la web, gracias + link a Trustpilot. |
-| `estado = 'con_problema'`, `problema` | **fábrica / Naza** | web | **No manda ningún mail** (la fábrica no lo tiene entre sus hitos): a la familia hay que escribirle a mano. La familia ve el texto de `problema` en su panel y puede corregir la dirección, lo que vuelve la entrega a `lista`. |
+| `estado = 'con_problema'`, `problema` | **fábrica / Naza** | web | **No manda ningún mail** (la fábrica no lo tiene entre sus hitos): a la familia hay que escribirle a mano. La familia ve el texto de `problema` en su panel y puede corregir la dirección. Antes de imprenta, eso vuelve la entrega a `lista` y borra `problema`. Si ya pasó por imprenta, la dirección se guarda y sigue `con_problema` hasta que Naza la resuelva: volver a `lista` imprimiría otro libro. |
 
 `direccion` es `{ linea1, linea2?, ciudad, provincia?, cp, pais }` (texto libre por país; lo valida la
 web al guardar). `updated_at` lo mantiene un trigger. RLS prendido y **sin políticas**: sólo la

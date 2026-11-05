@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esAdminQuienLlama } from "@/lib/admin/quien-llama";
-import { envioDe, esHistoria, estadoAnterior, puedePasar, validarBulto, validarDespacho, type PedidoAdmin } from "@/lib/pedidos-admin";
+import { envioDe, esHistoria, estadoAnterior, puedeCargarBulto, puedePasar, validarBulto, validarDespacho, type PedidoAdmin } from "@/lib/pedidos-admin";
 import { cambiarEntrega, crearEntregaFaltante, leerPedido, type ResultadoEscritura } from "@/lib/pedidos-admin-base";
 
 // Las escrituras de /admin/pedidos. Cada acción vuelve a chequear que quien llama esté en
@@ -112,6 +112,7 @@ export async function guardarBulto(datos: FormData): Promise<ResultadoPedido> {
   if ("error" in p) return p;
   const { pedido } = p;
   if (!pedido.entrega) return SIN_ENTREGA;
+  if (!puedeCargarBulto(pedido.entrega.estado, esHistoria(pedido))) return NO_SE_PUEDE;
   const bulto = validarBulto(texto(datos.get("peso")), texto(datos.get("medidas")));
   if ("error" in bulto) return { error: bulto.error };
   const r = await cambiarEntrega(crearClienteServidor(), pedido.entrega.id, pedido.entrega.estado, bulto);

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { datosEtiqueta, direccionEnLineas, envioDe, esHistoria, estadoAnterior, estadoDelPago, lineasDelProducto, numeroDePedido, puedePasar, sinMailDeEnvio, tarjetaDe, type EntregaAdmin, type PedidoAdmin } from "@/lib/pedidos-admin";
+import { datosEtiqueta, direccionEnLineas, envioDe, esHistoria, estadoAnterior, estadoDelPago, lineasDelProducto, numeroDePedido, puedeCargarBulto, puedePasar, sinMailDeEnvio, tarjetaDe, type EntregaAdmin, type PedidoAdmin } from "@/lib/pedidos-admin";
 import { leerPedido, mailDeEntregaSalio } from "@/lib/pedidos-admin-base";
 import { Chip, Tarjeta, Titulo, fechaCorta } from "../../ui";
 import { FormPedido } from "../formulario";
@@ -132,12 +132,15 @@ function Envio({ p, e, mailEnviado, mailEntregado }: { p: PedidoAdmin; e: Entreg
       <section className="adm-sin-imprimir">
         <h2 className={H2}>Peso y medidas</h2>
         <Tarjeta>
-          <p className="mb-3 text-sm text-[var(--texto-menor)]">
-            {e.peso_g || e.dimensiones
-              ? "Los calcula la fábrica con valores estimados. Corregilos cuando peses y midas la caja: de esto depende lo que cobra el correo."
-              : "Todavía no hay. La fábrica los calcula al mandar a imprenta, o cargalos a mano."}
+          <p className="text-sm text-[var(--texto-menor)]">
+            {!puedeCargarBulto(e.estado, historia)
+              ? "La fábrica los calcula al mandar a imprenta. Recién ahí se pueden corregir."
+              : e.peso_g || e.dimensiones
+                ? "Los calcula la fábrica con valores estimados. Corregilos cuando peses y midas la caja: de esto depende lo que cobra el correo."
+                : "Todavía no hay. Cargalos cuando peses y midas la caja."}
           </p>
-          <FormPedido accion={guardarBulto} boton="guardar" estilo="hilo">
+          {puedeCargarBulto(e.estado, historia) ? (
+          <FormPedido accion={guardarBulto} boton="guardar" estilo="hilo" className="mt-3">
             <input type="hidden" name="id" value={p.id} />
             <label className={ETIQUETA}>
               Peso (g)
@@ -148,6 +151,7 @@ function Envio({ p, e, mailEnviado, mailEntregado }: { p: PedidoAdmin; e: Entreg
               <input className={CAMPO} key={`medidas-${e.dimensiones}`} name="medidas" defaultValue={e.dimensiones ?? ""} placeholder="30x18x8" required size={12} />
             </label>
           </FormPedido>
+          ) : null}
         </Tarjeta>
       </section>
 
@@ -176,7 +180,7 @@ function Envio({ p, e, mailEnviado, mailEntregado }: { p: PedidoAdmin; e: Entreg
             boton="marcar con problema"
             estilo="hilo"
             className="mt-4"
-            confirmar="La familia va a ver este texto en su panel, y no recibe ningún mail. ¿Seguimos?"
+            confirmar="La familia va a ver este texto en su panel y no recibe ningún mail. Si corrige la dirección, se guarda sin imprimir otro libro. ¿Seguimos?"
           >
             <input type="hidden" name="id" value={p.id} />
             <label className={`${ETIQUETA} min-w-[280px] flex-1`}>
