@@ -52,6 +52,9 @@ const FOTOS = {
   familia: "/rediseno/familia-con-el-libro.jpg",
 } as const;
 
+const FOTOS_PASOS = [FOTOS.regalo, FOTOS.audio, null, FOTOS.familia] as const;
+const CONTRAPORTADA = "/rediseno/juan-domingo-contraportada.jpg";
+
 export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_PORTADA[idioma];
   const n = TEXTOS_PORTADA_NUEVA[idioma];
@@ -65,7 +68,6 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   const whatsapp = urlWhatsAppDudas();
   const cajas = cajasPortada(idioma, cat, formatear);
   const preguntas = [{ ...t.faq.preguntas[0], pregunta: t.preguntas.usarlo }, ...t.faq.preguntas.slice(1), ...t.preguntas.nuevas];
-  const FOTOS_PASOS = [FOTOS.regalo, FOTOS.audio, null, FOTOS.familia] as const;
 
   return (
     <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada flex flex-1 flex-col">
@@ -142,14 +144,28 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         <div className="mx-auto grid max-w-[1040px] grid-cols-1 items-center gap-10 md:grid-cols-2">
           <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
             <Image src={FOTOS.familia} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
-            <Image
-              src={FOTOS.portada}
-              alt={t.libro.altPortada}
-              width={760}
-              height={981}
-              sizes="(min-width: 768px) 120px, 24vw"
-              className="absolute bottom-3 right-3 h-auto w-[24%] rounded-sm shadow-lg"
-            />
+            <div className="absolute bottom-3 right-3 flex w-[58%] items-end gap-[6%]">
+              <div className="prt-fisico w-[47%]">
+                <Image
+                  src={FOTOS.portada}
+                  alt={t.libro.altPortada}
+                  width={760}
+                  height={981}
+                  sizes="(min-width: 768px) 140px, 28vw"
+                  className="h-auto w-full shadow-lg"
+                />
+              </div>
+              <div className="prt-fisico prt-fisico--espalda w-[47%]">
+                <Image
+                  src={CONTRAPORTADA}
+                  alt={t.voz.altContraportada}
+                  width={760}
+                  height={981}
+                  sizes="(min-width: 768px) 140px, 28vw"
+                  className="h-auto w-full shadow-lg"
+                />
+              </div>
+            </div>
           </div>
           <div className="flex flex-col gap-4">
             <h2 className="dir-titular dir-t3">{n.voz.titulo}</h2>

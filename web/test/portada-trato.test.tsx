@@ -178,6 +178,15 @@ describe("la portada según el idioma", () => {
     expect(inicio).toContain("min-h-[100svh]");
     expect(inicio).not.toContain("pb-[40svh]");
     expect(inicio).toContain('href="#tienda"');
+    expect(inicio).toContain("data-capa");
+    expect(es.indexOf('id="tienda"')).toBeGreaterThan(es.indexOf('id="hero"'));
+  });
+
+  it("«Se lee y se escucha» muestra la contraportada con su QR", () => {
+    const es = portada("es");
+    const desde = es.indexOf("acu-hoja-banda2");
+    expect(desde).toBeGreaterThan(-1);
+    expect(es.slice(desde)).toContain("juan-domingo-contraportada.jpg");
   });
 
   it("las cajitas: cinco sin Biógrafo, y Florencia solo cuando se prende", () => {
