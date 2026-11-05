@@ -1449,14 +1449,39 @@ body {
 .l3-seccion[data-libro="abierto"] .l3-brillo { transform: translateX(30%); }
 .l3-seccion[data-libro="abierto"] .l3-sombra { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; }
 
-/* La portada (data-libro-cierra): después de abrirse espera un momento, se
-   vuelve a cerrar y queda la tapa. Es el mismo camino, al revés. */
-@keyframes l3-cerrar {
-  from { transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(0deg); }
-  to { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg); }
+/* La portada (data-libro-cierra): una sola animación de punta a punta, que gira
+   y se abre, espera y se vuelve a cerrar, y termina en la misma pose en la que
+   empezó. El giro va en un solo tramo: en l3-girar, cada parada intermedia
+   frena y arranca de nuevo, y ahí se notaba trabado. rotateY(-328deg) es la
+   misma pose que rotateY(32deg). */
+.l3-seccion[data-libro-cierra] { --l3-viaje: 8s; --l3-curva: cubic-bezier(0.45, 0.05, 0.35, 1); }
+@keyframes l3-viaje {
+  0% { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(32deg); animation-timing-function: var(--l3-curva); }
+  48%, 70% { transform: translateX(calc(var(--l3-w) * 0.5 * var(--l3-s))) scale(calc(var(--l3-ki) * var(--l3-s))) rotateX(0deg) rotateY(-360deg); animation-timing-function: var(--l3-curva); }
+  100% { transform: translateX(0) scale(var(--l3-ki)) rotateX(10deg) rotateY(-328deg); }
 }
-.l3-seccion[data-libro="cierra"] { --l3-espera: 2.2s; --l3-cierre: 1.4s; }
-.l3-seccion[data-libro="cierra"] .l3-libro { animation: l3-cerrar var(--l3-cierre) var(--ease-io) var(--l3-espera) both; }
-.l3-seccion[data-libro="cierra"] .l3-tapa { animation: l3-abrir var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
-.l3-seccion[data-libro="cierra"] .l3-hoja { animation: l3-pasar var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
-.l3-seccion[data-libro="cierra"] .l3-sombra { animation: l3-piso var(--l3-cierre) var(--ease-io) var(--l3-espera) reverse both; }
+@keyframes l3-viaje-tapa {
+  0%, 30% { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg) translateZ(0); animation-timing-function: var(--l3-curva); }
+  48%, 72% { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(-180deg) translateZ(calc(var(--l3-W) * 0.03)); animation-timing-function: var(--l3-curva); }
+  96%, 100% { transform: translateZ(calc(var(--l3-D) / 2)) rotateY(0deg) translateZ(0); }
+}
+@keyframes l3-viaje-hoja {
+  0%, 38% { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(0deg); animation-timing-function: var(--l3-curva); }
+  52%, 70% { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(-180deg); animation-timing-function: var(--l3-curva); }
+  90%, 100% { transform: translateZ(calc(var(--l3-D) / 2 - var(--l3-W) * 0.008)) rotateY(0deg); }
+}
+@keyframes l3-viaje-sombra {
+  0%, 22% { transform: scaleX(1); opacity: 1; animation-timing-function: var(--l3-curva); }
+  48%, 70% { transform: scaleX(calc(1.7 * var(--l3-s))); opacity: 0.8; animation-timing-function: var(--l3-curva); }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes l3-viaje-brillo {
+  0% { transform: translateX(-30%); animation-timing-function: var(--l3-curva); }
+  48%, 70% { transform: translateX(30%); animation-timing-function: var(--l3-curva); }
+  100% { transform: translateX(-30%); }
+}
+.l3-seccion[data-libro-cierra][data-libro="anda"] .l3-libro { animation: l3-viaje var(--l3-viaje) linear both; }
+.l3-seccion[data-libro-cierra][data-libro="anda"] .l3-tapa { animation: l3-viaje-tapa var(--l3-viaje) linear both; }
+.l3-seccion[data-libro-cierra][data-libro="anda"] .l3-hoja { animation: l3-viaje-hoja var(--l3-viaje) linear both; }
+.l3-seccion[data-libro-cierra][data-libro="anda"] .l3-sombra { animation: l3-viaje-sombra var(--l3-viaje) linear both; }
+.l3-seccion[data-libro-cierra][data-libro="anda"] .l3-brillo { animation: l3-viaje-brillo var(--l3-viaje) linear both; }

@@ -12,9 +12,9 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
     <>
       <nav className="acu-ruta" aria-label={t.inicio.boton}>
         {cajas.map((c) => (
-          <a key={c.id} href={`#caja-${c.id}`} className={`acu-tinte-${c.tinte}`}>
+          <a key={c.id} href={`#caja-${c.id}`}>
             <small>{t.atajos[c.id].pista}</small>
-            {t.atajos[c.id].nombre}
+            <span className={`acu-resalta acu-resalta-${c.tinte}`}>{t.atajos[c.id].nombre}</span>
           </a>
         ))}
       </nav>
@@ -22,7 +22,7 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
         {cajas.map((c) => (
           <article key={c.id} id={`caja-${c.id}`} className={`acu-caja${c.marca === "regalo" ? " acu-caja--regalo" : ""}`}>
             {c.marca ? <span className={`acu-marca${c.marca === "pronto" ? " acu-marca--gris" : ""}`}>{t.marcas[c.marca]}</span> : null}
-            <div className={`acu-foto acu-tinte-${c.tinte}`}>
+            <div className="acu-foto">
               {c.tapa ? (
                 <div className={`prt-ed-libro${c.tapa.apaisado ? " prt-ed-libro--apaisado" : ""}`}>
                   <div className={`prt-ed-tapa${c.tapa.apaisado ? " prt-ed-tapa--viaje" : ""}`}>
@@ -54,7 +54,9 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
             <div className="acu-cuerpo">
               <h3>{c.textos.titulo}</h3>
               <p>{c.textos.linea}</p>
-              <p className={`acu-ideal acu-tinte-${c.tinte}`}>{c.textos.ideal}</p>
+              <p className="acu-ideal">
+                <span className={`acu-resalta acu-resalta-${c.tinte}`}>{c.textos.ideal}</span>
+              </p>
               <dl className="acu-precios">
                 {c.filas.map((f) => (
                   <div key={f.etiqueta}>

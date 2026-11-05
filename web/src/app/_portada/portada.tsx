@@ -75,7 +75,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
   );
 
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-imanes flex flex-1 flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Coreografia />
 
@@ -112,7 +112,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
       {/* 2 · La tienda */}
-      <section id="tienda" className="acu-hoja-lisa dir-hoja dir-sobre-1 relative z-[2] -mt-px scroll-mt-0 px-4 py-14 text-center sm:px-8 md:py-20">
+      <section id="tienda" className="acu-iman acu-hoja-lisa dir-hoja dir-sobre-1 relative z-[2] -mt-px scroll-mt-0 px-4 py-14 text-center sm:px-8 md:py-20">
         <ul className="acu-confianza -mx-4 -mt-14 mb-12 sm:-mx-8 md:-mt-20 md:mb-16">
           {TEXTOS_PORTADA_INICIO[idioma].confianza.map((c) => <li key={c}>{c}</li>)}
         </ul>
@@ -130,13 +130,13 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* 3 · Los audios que se vuelven capítulos */}
-      <section className="acu-hoja-banda relative z-[3] px-4 py-14 text-center sm:px-8 md:py-20">
+      <section className="acu-iman acu-hoja-banda relative z-[3] px-4 py-14 text-center sm:px-8 md:py-20">
         <h2 className="dir-titular dir-t3 mx-auto max-w-[18ch]">{n.audios.titulo}</h2>
         <AudiosLibro idioma={idioma} capitulos={n.audios.capitulos} />
       </section>
 
       {/* 4 · Los cuatro pasos */}
-      <section id="como-funciona" className="acu-hoja-lisa relative z-[4] scroll-mt-6 px-4 py-14 text-center sm:px-8 md:py-20">
+      <section id="como-funciona" className="acu-iman acu-hoja-lisa relative z-[4] scroll-mt-6 px-4 py-14 text-center sm:px-8 md:py-20">
         <h2 className="dir-titular dir-t3">{n.pasos.titulo}</h2>
         <ol className="acu-pasos">
           {n.pasos.lista.map((paso, i) => {
@@ -165,7 +165,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* 5 · Se lee y se escucha: quieta, sin reproducir (Naza, 25/10). La miniatura
           es la tapa real que anuncia el JSON-LD: la foto de la ficha tiene que estar en la página. */}
-      <section className="acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
+      <section className="acu-iman acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
         <div className="mx-auto grid max-w-[1040px] grid-cols-1 items-center gap-10 md:grid-cols-2">
           <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
             <Image src={FOTOS.familia} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />

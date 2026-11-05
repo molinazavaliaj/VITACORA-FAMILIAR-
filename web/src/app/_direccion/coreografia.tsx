@@ -89,7 +89,17 @@ export function Coreografia() {
           (entradas) => {
             if (!entradas.some((e) => e.isIntersecting)) return;
             ver.disconnect();
-            correr();
+            if (!("libroCierra" in seccion.dataset)) {
+              correr();
+              return;
+            }
+            // En la portada arranca con las fotos ya listas: si cargan a mitad del
+            // giro, se nota un tirón. Si tardan, no la espera más de 1,5 s.
+            const fotos = Array.from(seccion.querySelectorAll("img")).map((foto) => {
+              foto.loading = "eager";
+              return foto.decode().catch(() => undefined);
+            });
+            void Promise.race([Promise.all(fotos), new Promise((listo) => setTimeout(listo, 1500))]).then(correr);
           },
           // Entero y en la franja central de la pantalla, no apenas entra.
           { threshold: 0.95, rootMargin: "-10% 0px -10% 0px" },
