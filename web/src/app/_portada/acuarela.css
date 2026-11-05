@@ -23,6 +23,10 @@
 .acu-hoja-lisa { background: var(--acu-blanco); color: var(--acu-tinta); }
 .acu-hoja-banda { background: var(--acu-banda); color: var(--acu-tinta); }
 .acu-hoja-banda2 { background: var(--acu-banda2); color: var(--acu-tinta); }
+/* Las preguntas llevan dir-papel, por las variables claras del acordeón. Las dos
+   clases pintan fondo con la misma fuerza: esta regla gana siempre, sin depender
+   de qué hoja de estilo se cargó última. */
+.dir-portada .dir-papel.acu-hoja-lisa { background: var(--acu-blanco); color: var(--acu-tinta); }
 .dir-portada .acu-hoja-lisa .dir-titular, .dir-portada .acu-hoja-banda2 .dir-titular { color: var(--acu-tinta); }
 .dir-portada .acu-hoja-banda .dir-titular { color: var(--acu-titulo); }
 
@@ -92,6 +96,9 @@
 .acu-audio--3 { top: 244px; left: 3%; animation-delay: 4.4s; }
 @keyframes acu-linea { 0% { opacity: 0; transform: scaleX(0.2); } 6%, 88% { opacity: 0.72; transform: scaleX(1); } 96%, 100% { opacity: 0; } }
 @keyframes acu-entra { 0% { opacity: 0; transform: translate(0, 8px); } 5%, 14% { opacity: 1; transform: none; } 24%, 100% { opacity: 0; transform: translate(var(--acu-x, 120px), 10px) scale(0.5); } }
+
+/* OndaQuieta pinta con las variables de la tinta: sobre la hoja clara, en bordó. */
+.acu-onda { --dir-sobre-tinta: var(--acu-bordo); --dir-sobre-tinta-suave: var(--acu-suave); }
 
 /* Los pasos */
 .acu-pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 18px; max-width: 1040px; margin: 28px auto 0; text-align: left; }
