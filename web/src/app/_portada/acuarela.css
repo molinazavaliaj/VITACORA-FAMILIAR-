@@ -123,33 +123,24 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 /* El marcapáginas que cuelga del borde de arriba. */
 .acu-marca { position: absolute; top: 0; left: 12px; z-index: 2; padding: 10px 5px 16px; writing-mode: vertical-rl; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
 .acu-marca--gris { background: var(--acu-suave); }
-/* El fondo es una sola acuarela repartida entre los libros: no se ve dónde termina cada uno. */
+/* El estante es una foto: una tabla de madera sobre una pared con la acuarela de
+   la marca, repartida entre los libros para que se vea entera. Los libros se
+   apoyan sobre la tabla (bottom: 20 % de cada cuadro). */
 .acu-foto {
   position: relative;
   display: block;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background-color: #f8eeea;
-  background-image:
-    radial-gradient(45% 80% at 12% 20%, rgba(201, 108, 120, 0.3), transparent 72%),
-    radial-gradient(40% 80% at 88% 25%, rgba(128, 197, 186, 0.38), transparent 72%),
-    radial-gradient(40% 70% at 50% 15%, rgba(226, 190, 150, 0.28), transparent 72%);
-  background-size: 500% 100%;
+  background: #f3ece2 url("/rediseno/estante.jpg") no-repeat;
+  background-size: 500% auto;
 }
-@media (max-width: 640px) {
-  .acu-foto { background-size: 200% 100%; }
-  .acu-estante .acu-estante-item:nth-child(odd) .acu-foto { background-position: 0% 0; }
-  .acu-estante .acu-estante-item:nth-child(even) .acu-foto { background-position: 100% 0; }
-}
-.acu-estante-item:nth-child(1) .acu-foto { background-position: 0% 0; }
-.acu-estante-item:nth-child(2) .acu-foto { background-position: 25% 0; }
-.acu-estante-item:nth-child(3) .acu-foto { background-position: 50% 0; }
-.acu-estante-item:nth-child(4) .acu-foto { background-position: 75% 0; }
-.acu-estante-item:nth-child(n + 5) .acu-foto { background-position: 100% 0; }
-/* El estante. */
-.acu-foto::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 11px; background: linear-gradient(180deg, #fffaf2, #e8dccb); box-shadow: 0 7px 9px -5px rgba(70, 40, 30, 0.35); }
-.acu-foto .prt-ed-libro { bottom: 11px; z-index: 1; display: block; width: 58%; }
-.acu-foto .prt-ed-libro--apaisado { width: 82%; }
+.acu-estante-item:nth-child(1) .acu-foto { background-position: 0% 73%; }
+.acu-estante-item:nth-child(2) .acu-foto { background-position: 25% 73%; }
+.acu-estante-item:nth-child(3) .acu-foto { background-position: 50% 73%; }
+.acu-estante-item:nth-child(4) .acu-foto { background-position: 75% 73%; }
+.acu-estante-item:nth-child(n + 5) .acu-foto { background-position: 100% 73%; }
+.acu-foto .prt-ed-libro { bottom: 20%; z-index: 1; display: block; width: 50%; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 7px 2px 12px -4px rgba(60, 40, 20, 0.45); }
+.acu-foto .prt-ed-libro--apaisado { width: 72%; }
 .acu-foto .prt-ed-libro::after { display: none; }
 .acu-foto .prt-ed-tapa, .acu-foto .prt-ed-tapa-foto, .acu-foto .prt-ed-tapa-banda { display: flex; }
 .acu-foto .prt-ed-tapa-foto { display: block; }
@@ -215,9 +206,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-onda { --dir-sobre-tinta: var(--acu-bordo); --dir-sobre-tinta-suave: var(--acu-suave); }
 
 /* «Se lee y también se escucha»: tapa y contratapa paradas en el mismo estante de la tienda. */
-.acu-voz-libros { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 8%; padding: 32px 7% 11px; border-radius: 14px 14px 0 0; background: #f8eeea radial-gradient(70% 90% at 15% 15%, rgba(201, 108, 120, 0.26), transparent 72%), radial-gradient(60% 90% at 90% 20%, rgba(128, 197, 186, 0.36), transparent 72%); }
-.acu-voz-libros .prt-fisico { z-index: 1; width: 42%; box-shadow: 10px 12px 22px -12px rgba(50, 25, 20, 0.5); }
-.acu-voz-libros::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 11px; background: linear-gradient(180deg, #fffaf2, #e8dccb); box-shadow: 0 7px 9px -5px rgba(70, 40, 30, 0.35); }
+.acu-voz-libros { position: relative; display: flex; aspect-ratio: 5 / 4; align-items: flex-end; justify-content: center; gap: 7%; padding-bottom: 19.2%; overflow: hidden; border-radius: 14px; background: #f3ece2 url("/rediseno/estante.jpg") no-repeat center bottom / auto 100%; }
+.acu-voz-libros .prt-fisico { z-index: 1; width: 37%; box-shadow: 7px 2px 12px -4px rgba(60, 40, 20, 0.45); }
 
 /* Los pasos */
 .acu-pasos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 14px; max-width: 1360px; margin: 32px auto 0; text-align: left; }
