@@ -41,7 +41,7 @@ Tres por fila en compu, dos en celular, con el ancho máximo de la maqueta (760 
 
 | Cajita | Precios | Enlace |
 |---|---|---|
-| Para un familiar (marca «El regalo») | impreso y digital, solo digital | Ver Vitácora Familiar → `/regalar` |
+| Para un familiar (marca «El regalo») | impreso y digital, solo digital | Ver Vitácora Familiar → `/comprar?regalo=1` |
 | Para ti | impreso y digital, solo digital | Ver Vitácora para ti → `/comprar` |
 | Para un niño (Próximamente) | sin precio | Ver Mi Primer Capítulo → `/kids` |
 | Para un viaje | impreso y digital, solo digital | Ver Vitácora de Viaje → `/viaje` |
@@ -49,7 +49,7 @@ Tres por fila en compu, dos en celular, con el ancho máximo de la maqueta (760 
 | Con una editora | Consultar hasta tener precio | Ver Vitácora Biógrafo: abre el bloque de Florencia |
 
 - Los precios salen de `catalogo()` por región, nunca escritos a mano. Viaje impreso es `viaje + impreso`. Si la región no tiene un producto, esa fila no se muestra.
-- «Para un familiar» lleva a `/regalar`, porque es el camino que resuelve el regalo. Hoy «Solo digital» se elige en ese flujo.
+- «Para un familiar» lleva a `/comprar?regalo=1`, con el regalo ya elegido. No lleva a `/regalar`, que solo vende el PDF y se dejó de enlazar el 26/10 porque confundía.
 - «Vitácora de una historia» queda fuera hasta que se venda.
 - Marcos y copias quedan como extras de la compra.
 - Vitácora Biógrafo no vende en esta etapa: el bloque lleva a escribir por WhatsApp. No se publica hasta tener el permiso de Florencia, su foto real y su texto; hasta entonces la cajita no se muestra.
