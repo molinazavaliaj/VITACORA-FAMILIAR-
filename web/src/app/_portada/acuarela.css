@@ -101,32 +101,28 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-resalta-1 { --acu-resalta: #f5c8c6; } .acu-resalta-2 { --acu-resalta: #b9e3da; } .acu-resalta-3 { --acu-resalta: #fbd9b3; }
 .acu-resalta-4 { --acu-resalta: #dcc9e6; } .acu-resalta-5 { --acu-resalta: #f7e49c; } .acu-resalta-6 { --acu-resalta: #cce2bd; }
 /* La estantería: los libros se apoyan en un mismo estante, de punta a punta, y
-   cada uno tiene su etiqueta colgada, como en una librería. En el celular el
-   estante se desliza de costado. */
-.acu-estante { max-width: 1240px; margin: 32px auto 0; overflow-x: auto; scrollbar-width: none; }
-.acu-estante::-webkit-scrollbar { display: none; }
-.acu-estante-fila { display: flex; width: max-content; min-width: 100%; }
-.acu-estante-item { position: relative; display: block; flex: 1 0 158px; color: var(--acu-tinta); }
-@media (min-width: 900px) { .acu-estante-item { flex-basis: 0; } .acu-estante-fila { width: 100%; } }
-.acu-etiqueta { display: block; width: fit-content; max-width: 92%; margin: 0 auto 8px; padding: 7px 13px; border: 1px solid var(--acu-linea); border-top: 0; border-radius: 0 0 8px 8px; background: #fffdf8; box-shadow: 0 7px 10px -8px rgba(70, 40, 30, 0.4); font-family: var(--fuente-titulo), Georgia, serif; font-size: 15px; line-height: 1.2; text-align: center; transition: transform 0.2s ease; }
-.acu-estante-item:hover .acu-etiqueta { transform: translateY(2px); }
-.acu-estante-item:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: -2px; }
+   debajo de cada uno cuelga una nota de papel acuarela, cada una de su color. */
+.acu-estante { display: flex; flex-wrap: wrap; justify-content: center; max-width: 900px; margin: 32px auto 0; text-align: left; }
+.acu-estante-item { position: relative; display: flex; flex-direction: column; width: 33.333%; min-width: 0; scroll-margin-top: 24px; }
+@media (max-width: 640px) { .acu-estante-item { width: 50%; } }
+@media (min-width: 1024px) {
+  .acu-estante--cinco { max-width: 1240px; }
+  .acu-estante--cinco .acu-estante-item { width: 20%; }
+}
+/* La nota: papel de acuarela pegado con cinta. Va derecha porque torcida se ve
+   borrosa la letra; al pasar por encima baja un poco. */
+.acu-nota { position: relative; z-index: 1; display: flex; flex: 1; flex-direction: column; gap: 9px; margin: -3px 6px 12px; padding: 18px 14px 14px; border-radius: 4px 4px 18px 14px; background-image: radial-gradient(90% 60% at 30% 20%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 75%), radial-gradient(70% 50% at 85% 95%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 75%); box-shadow: 0 12px 18px -14px rgba(70, 40, 30, 0.5); transform-origin: 50% 0; transition: transform 0.25s var(--dir-curva), box-shadow 0.25s ease; }
+.acu-estante-item:hover .acu-nota { transform: translateY(3px); box-shadow: 0 18px 24px -16px rgba(70, 40, 30, 0.6); }
+.acu-estante-item:nth-child(even) .acu-nota::before { transform: translateX(-50%) rotate(1.5deg); }
+.acu-nota::before { content: ""; position: absolute; top: -6px; left: 50%; width: 46px; height: 13px; border-radius: 2px; background: rgba(255, 250, 240, 0.8); box-shadow: 0 1px 2px rgba(70, 40, 30, 0.14); transform: translateX(-50%) rotate(-1.5deg); }
+.acu-nota h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: 21px; line-height: 1.1; color: var(--acu-tinta); }
+.acu-nota > p { font-size: 13.5px; line-height: 1.4; color: #5c4d4a; }
+.acu-nota > p.acu-ideal { font-size: 13.5px; font-style: italic; color: var(--acu-tinta); }
+.acu-estante-item--regalo h3 { color: var(--acu-bordo); }
+@media (prefers-reduced-motion: reduce) { .acu-nota { transition: none; } }
 /* El marcapáginas que cuelga del borde de arriba. */
 .acu-marca { position: absolute; top: 0; left: 12px; z-index: 2; padding: 10px 5px 16px; writing-mode: vertical-rl; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
 .acu-marca--gris { background: var(--acu-suave); }
-/* El índice: una línea por producto, como el índice de un libro. */
-.acu-indice { max-width: 1120px; margin: 26px auto 0; border-top: 2px solid var(--acu-tinta); text-align: left; }
-.acu-fila { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 18px 4px; border-bottom: 1px solid var(--acu-linea); scroll-margin-top: 24px; }
-@media (min-width: 900px) {
-  .acu-fila { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1.05fr) minmax(0, 1.05fr) 188px; align-items: center; gap: 30px; padding: 20px 14px; transition: background-color 0.2s ease; }
-  .acu-fila:hover { background: var(--acu-banda2); }
-  .acu-fila .acu-ir { justify-self: end; text-align: right; }
-}
-.acu-fila--regalo { background: linear-gradient(90deg, rgba(248, 228, 227, 0.75), rgba(248, 228, 227, 0)); }
-.acu-fila--regalo h3 { color: var(--acu-bordo); }
-.acu-fila-nombre h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: clamp(21px, 2vw, 26px); line-height: 1.12; color: var(--acu-tinta); }
-.acu-fila-nombre p { margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--acu-suave); }
-.acu-fila > .acu-ideal { font-size: 14px; font-style: italic; line-height: 1.55; color: var(--acu-tinta); }
 /* El fondo es una sola acuarela repartida entre los libros: no se ve dónde termina cada uno. */
 .acu-foto {
   position: relative;
@@ -139,6 +135,11 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
     radial-gradient(40% 80% at 88% 25%, rgba(128, 197, 186, 0.38), transparent 72%),
     radial-gradient(40% 70% at 50% 15%, rgba(226, 190, 150, 0.28), transparent 72%);
   background-size: 500% 100%;
+}
+@media (max-width: 640px) {
+  .acu-foto { background-size: 200% 100%; }
+  .acu-estante .acu-estante-item:nth-child(odd) .acu-foto { background-position: 0% 0; }
+  .acu-estante .acu-estante-item:nth-child(even) .acu-foto { background-position: 100% 0; }
 }
 .acu-estante-item:nth-child(1) .acu-foto { background-position: 0% 0; }
 .acu-estante-item:nth-child(2) .acu-foto { background-position: 25% 0; }
@@ -155,8 +156,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 /* El nombre en la tapa va a la izquierda, como en el libro impreso (Naza, 02/11). */
 .acu-foto .prt-ed-tapa { text-align: left; }
 /* Los precios como una lista de libro: la línea de puntos lleva al número. */
-.acu-precios { margin: 0; font-variant-numeric: tabular-nums; }
-.acu-precios > div { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; font-size: 13px; color: var(--acu-suave); }
+.acu-precios { margin: auto 0 0; font-variant-numeric: tabular-nums; }
+.acu-precios > div { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; font-size: 12.5px; color: #5c4d4a; }
 .acu-precios dt { display: flex; flex: 1; align-items: baseline; gap: 5px; min-width: 0; }
 .acu-precios dt::after { content: ""; flex: 1; min-width: 8px; border-bottom: 1px dotted var(--acu-suave); }
 .acu-precios dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--acu-tinta); white-space: nowrap; }

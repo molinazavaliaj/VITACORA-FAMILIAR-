@@ -279,12 +279,13 @@ describe("la portada según el idioma", () => {
     expect(sinPreguntas(es).toLowerCase()).not.toContain("garantía");
   });
 
-  it("la tienda es una estantería con su índice abajo", () => {
+  it("la tienda es una estantería con una nota colgada debajo de cada libro", () => {
     const es = portada("es");
     expect(es.match(/class="prt-ed-tapa[ "]/g)?.length).toBe(5);
-    expect(es.match(/class="acu-fila[ "]/g)?.length).toBe(5);
-    expect(es.match(/class="acu-estante-item"/g)?.length).toBe(5);
-    expect(es.indexOf("acu-estante")).toBeLessThan(es.indexOf("acu-indice"));
+    expect(es.match(/class="acu-nota /g)?.length).toBe(5);
+    expect(es.match(/class="acu-estante-item[ "]/g)?.length).toBe(5);
+    expect(es).not.toContain("acu-indice");
+    expect(es).toContain("acu-estante--cinco");
   });
 
   it("la foto de ancho completo va entre las cajitas y los audios, en los tres idiomas", () => {
