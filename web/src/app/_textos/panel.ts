@@ -29,6 +29,7 @@ export type Quien = {
 type TextosPanel = {
   /** La historia de otra persona (Naza, 05/11): lo que cuenta queda privado hasta que el libro esté listo. */
   privadaTexto: (q: Quien, invitado: boolean) => string;
+  privadaTermino: string;
   privadaEscribiendo: string;
   privadaLeer: string;
   privadaFrases: string;
@@ -199,6 +200,7 @@ const ES: TextosPanel = {
     invitado
       ? "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, y puedes añadir preguntas y fotos."
       : "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, puedes añadir preguntas y fotos, y eliges la tapa.",
+  privadaTermino: "Terminó de contar. Lo que contó queda privado hasta que el libro esté listo.",
   privadaEscribiendo: "Estamos escribiendo el libro. Te avisamos por mail cuando esté listo.",
   privadaLeer: "Leer su libro",
   privadaFrases: "Escuchar sus mejores frases",

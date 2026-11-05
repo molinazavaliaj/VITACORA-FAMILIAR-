@@ -33,6 +33,7 @@ describe("la historia privada", () => {
     expect(html).toContain("Leer su libro");
     expect(html).toContain("/tablero/n1/frases");
     expect(html).not.toContain("Elegí la tapa");
+    expect(html).not.toContain("queda privado hasta");
   });
 
   it("encargado y sin escribir, lo dice", () => {

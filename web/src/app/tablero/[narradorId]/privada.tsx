@@ -58,7 +58,9 @@ export function HistoriaPrivada({
         </div>
       ) : null}
 
-      <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTexto(quien, rol !== "duena")}</p>
+      {/* Mientras cuenta, qué se puede hacer. Terminó, solo que sigue privado. Con el libro listo, nada: lo dicen los botones. */}
+      {!cerrado ? <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTexto(quien, rol !== "duena")}</p> : null}
+      {cerrado && !libroListo && !aprobado ? <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTermino}</p> : null}
 
       {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (
         <div className="mt-6"><CerrarEdicion narradorId={n.id} propia={false} trato={trato} /></div>

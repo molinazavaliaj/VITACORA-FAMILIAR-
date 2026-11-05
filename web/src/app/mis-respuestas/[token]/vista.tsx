@@ -1,5 +1,5 @@
 import type { BloqueHistoriaV3 } from "@/lib/v3";
-import type { IdiomaFueraDelLibro } from "@/lib/fuera-del-libro-textos";
+import { textosFueraDelLibro, type IdiomaFueraDelLibro } from "@/lib/fuera-del-libro-textos";
 import { ReproductorRespuesta } from "../../tablero/reproductor";
 import { SacarDelLibro } from "../../tablero/[narradorId]/fuera-del-libro";
 import { Toroide } from "../../marca";
@@ -100,6 +100,8 @@ export function VistaRespuestas({ idioma, bloques, puede, hasta, token, narrador
                     {r.audio ? <ReproductorRespuesta src={`/api/mis-respuestas/${token}/audio/${r.id}`} duracion={r.duracion} etiqueta={p.pregunta.slice(0, 60)} /> : null}
                     {puede ? (
                       <SacarDelLibro narradorId={narradorId} respuestaId={r.id} fuera={r.fuera === true} propia trato={trato} puedeVolverAPreguntar={false} endpoint={`/api/mis-respuestas/${token}/fuera`} idioma={IDIOMA_FUERA[idioma]} />
+                    ) : r.fuera ? (
+                      <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{textosFueraDelLibro(IDIOMA_FUERA[idioma]).marca}</span>
                     ) : null}
                   </div>
                 ))}
