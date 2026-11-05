@@ -260,6 +260,15 @@ describe("la portada según el idioma", () => {
     expect([...orden].sort((a, b) => a - b)).toEqual(orden);
   });
 
+  it("la foto de ancho completo va entre las cajitas y los audios, en los tres idiomas", () => {
+    for (const idioma of ["es", "ar", "ca"] as const) {
+      const html = portada(idioma);
+      const foto = html.indexOf("familia-leyendo-ancha");
+      expect(foto, idioma).toBeGreaterThan(html.indexOf('class="acu-pie"'));
+      expect(foto, idioma).toBeLessThan(html.indexOf("acu-escena"));
+    }
+  });
+
   it("sin vídeo", () => {
     const html = portada("es");
     expect(html).not.toContain("<video");
