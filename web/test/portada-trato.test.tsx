@@ -279,13 +279,12 @@ describe("la portada según el idioma", () => {
     expect(sinPreguntas(es).toLowerCase()).not.toContain("garantía");
   });
 
-  it("cada cajita muestra el libro de frente sobre su color", () => {
+  it("la tienda es una estantería con su índice abajo", () => {
     const es = portada("es");
     expect(es.match(/class="prt-ed-tapa[ "]/g)?.length).toBe(5);
-    expect(es).toContain("acu-cajas--fila");
-    process.env.VITACORA_BIOGRAFO = "1";
-    expect(portada("es")).not.toContain("acu-cajas--fila");
-    delete process.env.VITACORA_BIOGRAFO;
+    expect(es.match(/class="acu-fila[ "]/g)?.length).toBe(5);
+    expect(es.match(/class="acu-estante-item"/g)?.length).toBe(5);
+    expect(es.indexOf("acu-estante")).toBeLessThan(es.indexOf("acu-indice"));
   });
 
   it("la foto de ancho completo va entre las cajitas y los audios, en los tres idiomas", () => {

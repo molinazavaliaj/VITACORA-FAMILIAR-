@@ -100,27 +100,37 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-resalta { padding-inline: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; background-image: linear-gradient(transparent 52%, var(--acu-resalta) 52%, var(--acu-resalta) 94%, transparent 94%); }
 .acu-resalta-1 { --acu-resalta: #f5c8c6; } .acu-resalta-2 { --acu-resalta: #b9e3da; } .acu-resalta-3 { --acu-resalta: #fbd9b3; }
 .acu-resalta-4 { --acu-resalta: #dcc9e6; } .acu-resalta-5 { --acu-resalta: #f7e49c; } .acu-resalta-6 { --acu-resalta: #cce2bd; }
-.acu-ruta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 30px; max-width: 1000px; margin: 28px auto 0; }
-.acu-ruta a { display: block; font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--acu-tinta); text-align: left; }
-.acu-ruta small { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 400; color: var(--acu-suave); }
 /* La estantería: los libros se apoyan en un mismo estante, de punta a punta, y
-   abajo cada columna lleva sus datos, como en una librería. */
-.acu-cajas { display: flex; flex-wrap: wrap; justify-content: center; max-width: 900px; margin: 28px auto 0; text-align: left; }
-.acu-caja { position: relative; display: flex; flex-direction: column; width: 33.333%; min-width: 0; scroll-margin-top: 24px; }
-@media (max-width: 640px) { .acu-caja { width: 50%; } }
+   cada uno tiene su etiqueta colgada, como en una librería. En el celular el
+   estante se desliza de costado. */
+.acu-estante { max-width: 1240px; margin: 32px auto 0; overflow-x: auto; scrollbar-width: none; }
+.acu-estante::-webkit-scrollbar { display: none; }
+.acu-estante-fila { display: flex; width: max-content; min-width: 100%; }
+.acu-estante-item { position: relative; display: block; flex: 1 0 158px; color: var(--acu-tinta); }
+@media (min-width: 900px) { .acu-estante-item { flex-basis: 0; } .acu-estante-fila { width: 100%; } }
+.acu-etiqueta { display: block; width: fit-content; max-width: 92%; margin: 0 auto 8px; padding: 7px 13px; border: 1px solid var(--acu-linea); border-top: 0; border-radius: 0 0 8px 8px; background: #fffdf8; box-shadow: 0 7px 10px -8px rgba(70, 40, 30, 0.4); font-family: var(--fuente-titulo), Georgia, serif; font-size: 15px; line-height: 1.2; text-align: center; transition: transform 0.2s ease; }
+.acu-estante-item:hover .acu-etiqueta { transform: translateY(2px); }
+.acu-estante-item:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: -2px; }
 /* El marcapáginas que cuelga del borde de arriba. */
 .acu-marca { position: absolute; top: 0; left: 12px; z-index: 2; padding: 10px 5px 16px; writing-mode: vertical-rl; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
 .acu-marca--gris { background: var(--acu-suave); }
-.acu-caja--regalo h3 { color: var(--acu-bordo); }
-/* Cinco entran en una fila en la compu; seis van de a tres. */
-@media (min-width: 1024px) {
-  .acu-cajas--fila { max-width: 1240px; }
-  .acu-cajas--fila .acu-caja { width: 20%; }
-  .acu-cajas--fila .acu-caja + .acu-caja .acu-cuerpo { border-left: 1px solid var(--acu-linea); }
+/* El índice: una línea por producto, como el índice de un libro. */
+.acu-indice { max-width: 1120px; margin: 26px auto 0; border-top: 2px solid var(--acu-tinta); text-align: left; }
+.acu-fila { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 18px 4px; border-bottom: 1px solid var(--acu-linea); scroll-margin-top: 24px; }
+@media (min-width: 900px) {
+  .acu-fila { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1.05fr) minmax(0, 1.05fr) 188px; align-items: center; gap: 30px; padding: 20px 14px; transition: background-color 0.2s ease; }
+  .acu-fila:hover { background: var(--acu-banda2); }
+  .acu-fila .acu-ir { justify-self: end; text-align: right; }
 }
+.acu-fila--regalo { background: linear-gradient(90deg, rgba(248, 228, 227, 0.75), rgba(248, 228, 227, 0)); }
+.acu-fila--regalo h3 { color: var(--acu-bordo); }
+.acu-fila-nombre h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: clamp(21px, 2vw, 26px); line-height: 1.12; color: var(--acu-tinta); }
+.acu-fila-nombre p { margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--acu-suave); }
+.acu-fila > .acu-ideal { font-size: 14px; font-style: italic; line-height: 1.55; color: var(--acu-tinta); }
 /* El fondo es una sola acuarela repartida entre los libros: no se ve dónde termina cada uno. */
 .acu-foto {
   position: relative;
+  display: block;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background-color: #f8eeea;
@@ -128,36 +138,25 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
     radial-gradient(45% 80% at 12% 20%, rgba(201, 108, 120, 0.3), transparent 72%),
     radial-gradient(40% 80% at 88% 25%, rgba(128, 197, 186, 0.38), transparent 72%),
     radial-gradient(40% 70% at 50% 15%, rgba(226, 190, 150, 0.28), transparent 72%);
-  background-size: 300% 100%;
+  background-size: 500% 100%;
 }
-.acu-caja:nth-child(3n + 1) .acu-foto { background-position: 0% 0; }
-.acu-caja:nth-child(3n + 2) .acu-foto { background-position: 50% 0; }
-.acu-caja:nth-child(3n) .acu-foto { background-position: 100% 0; }
-@media (max-width: 640px) {
-  .acu-foto { background-size: 200% 100%; }
-  .acu-caja:nth-child(odd) .acu-foto { background-position: 0% 0; }
-  .acu-caja:nth-child(even) .acu-foto { background-position: 100% 0; }
-}
-@media (min-width: 1024px) {
-  .acu-cajas--fila .acu-foto { background-size: 500% 100%; }
-  .acu-cajas--fila .acu-caja:nth-child(1) .acu-foto { background-position: 0% 0; }
-  .acu-cajas--fila .acu-caja:nth-child(2) .acu-foto { background-position: 25% 0; }
-  .acu-cajas--fila .acu-caja:nth-child(3) .acu-foto { background-position: 50% 0; }
-  .acu-cajas--fila .acu-caja:nth-child(4) .acu-foto { background-position: 75% 0; }
-  .acu-cajas--fila .acu-caja:nth-child(5) .acu-foto { background-position: 100% 0; }
-}
+.acu-estante-item:nth-child(1) .acu-foto { background-position: 0% 0; }
+.acu-estante-item:nth-child(2) .acu-foto { background-position: 25% 0; }
+.acu-estante-item:nth-child(3) .acu-foto { background-position: 50% 0; }
+.acu-estante-item:nth-child(4) .acu-foto { background-position: 75% 0; }
+.acu-estante-item:nth-child(n + 5) .acu-foto { background-position: 100% 0; }
 /* El estante. */
-.acu-foto::after { content: ""; position: absolute; left: 0; right: 0; bottom: 9%; height: 10px; background: linear-gradient(180deg, #fffaf2, #e8dccb); box-shadow: 0 7px 9px -5px rgba(70, 40, 30, 0.35); }
-.acu-foto .prt-ed-libro { bottom: calc(9% + 10px); z-index: 1; width: 54%; }
-.acu-foto .prt-ed-libro--apaisado { width: 78%; }
+.acu-foto::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 11px; background: linear-gradient(180deg, #fffaf2, #e8dccb); box-shadow: 0 7px 9px -5px rgba(70, 40, 30, 0.35); }
+.acu-foto .prt-ed-libro { bottom: 11px; z-index: 1; display: block; width: 58%; }
+.acu-foto .prt-ed-libro--apaisado { width: 82%; }
 .acu-foto .prt-ed-libro::after { display: none; }
-.acu-cuerpo { display: flex; flex: 1; flex-direction: column; gap: 9px; padding: 14px 14px 6px; }
-.acu-cuerpo h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: 21px; line-height: 1.1; color: var(--acu-tinta); }
-.acu-cuerpo > p { font-size: 13.5px; line-height: 1.4; color: var(--acu-suave); }
-.acu-cuerpo > p.acu-ideal { font-size: 13.5px; font-style: italic; line-height: 1.5; color: var(--acu-tinta); }
+.acu-foto .prt-ed-tapa, .acu-foto .prt-ed-tapa-foto, .acu-foto .prt-ed-tapa-banda { display: flex; }
+.acu-foto .prt-ed-tapa-foto { display: block; }
+/* El nombre en la tapa va a la izquierda, como en el libro impreso (Naza, 02/11). */
+.acu-foto .prt-ed-tapa { text-align: left; }
 /* Los precios como una lista de libro: la línea de puntos lleva al número. */
-.acu-precios { margin: auto 0 0; font-variant-numeric: tabular-nums; }
-.acu-precios > div { display: flex; align-items: baseline; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--acu-suave); }
+.acu-precios { margin: 0; font-variant-numeric: tabular-nums; }
+.acu-precios > div { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; font-size: 13px; color: var(--acu-suave); }
 .acu-precios dt { display: flex; flex: 1; align-items: baseline; gap: 5px; min-width: 0; }
 .acu-precios dt::after { content: ""; flex: 1; min-width: 8px; border-bottom: 1px dotted var(--acu-suave); }
 .acu-precios dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--acu-tinta); white-space: nowrap; }
@@ -228,7 +227,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-pantallita span:last-child { border: 0; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-weight: 600; text-align: center; }
 
 .acu-biografo summary::-webkit-details-marker { display: none; }
-.acu-ir:focus-visible, .acu-ruta a:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: 2px; }
+.acu-ir:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .acu-hoja i, .acu-audio, .acu-tel-globo { animation: none; }
