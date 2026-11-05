@@ -17,6 +17,8 @@ import { OndaQuieta, conVar } from "../_direccion/piezas";
 import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
 import { cajasPortada } from "./datos-cajas";
+import { TelefonoWhatsApp } from "./telefono-whatsapp";
+import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
 // Una sola hoja de estilo para la portada: portada.css trae adentro
 // direccion.css, los tokens y la paleta Acuarela (cada archivo CSS aparte es un
 // pedido más que frena el primer pintado).
@@ -80,26 +82,42 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* 1 · Inicio: una pantalla. Es la única capa: la tienda sube y lo tapa apenas se baja. */}
       <section data-capa className="acu-lavado relative z-[1]">
-        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-10 pt-24 text-center sm:px-8">
+        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-8 pt-28 text-center sm:px-8 lg:px-12">
           <div className="absolute inset-x-0 top-0">
             <Cabecera idioma={idioma} camino="/" sobreHero />
           </div>
-          <h1 className="dir-titular dir-t2 dir-asienta max-w-[13ch] sm:max-w-none">
-            {t.hero.titulo[0]} <br className="hidden sm:block" />
-            {t.hero.titulo[1]}
-          </h1>
-          <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro dir-entra mt-6 w-full" style={conVar({ "--e": "0.5s" })}>
-            <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
+          <div className="acu-inicio">
+            <div className="acu-inicio-texto">
+              <h1 className="dir-titular dir-t2 dir-asienta">
+                {t.hero.titulo[0]} <br className="hidden sm:block" />
+                {t.hero.titulo[1]}
+              </h1>
+              <p className="acu-inicio-bajada dir-entra" style={conVar({ "--e": "0.35s" })}>{t.inicio.bajada}</p>
+              <div className="acu-inicio-botones dir-entra" style={conVar({ "--e": "0.5s" })}>
+                <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton">
+                  {n.inicio.boton}
+                </a>
+                <a href="#como-funciona" className="acu-boton-hilo">
+                  {t.inicio.comoFunciona}
+                </a>
+              </div>
+            </div>
+            <div className="acu-inicio-visual dir-entra" style={conVar({ "--e": "0.6s" })}>
+              <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
+                <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
+              </div>
+              <TelefonoWhatsApp idioma={idioma} />
+            </div>
           </div>
-          <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton dir-entra mt-4" style={conVar({ "--e": "0.7s" })}>
-            {n.inicio.boton}
-          </a>
         </div>
       </section>
       <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
       {/* 2 · La tienda */}
       <section id="tienda" className="acu-hoja-lisa dir-hoja dir-sobre-1 relative z-[2] -mt-px scroll-mt-0 px-4 py-14 text-center sm:px-8 md:py-20">
+        <ul className="acu-confianza -mx-4 -mt-14 mb-12 sm:-mx-8 md:-mt-20 md:mb-16">
+          {TEXTOS_PORTADA_INICIO[idioma].confianza.map((c) => <li key={c}>{c}</li>)}
+        </ul>
         <h2 className="dir-titular dir-t3 mx-auto max-w-[20ch]">{n.tienda.titulo}</h2>
         <p className="acu-bajada mt-4">{n.tienda.bajada}</p>
         <Cajas idioma={idioma} cajas={cajas} whatsapp={whatsapp} />
@@ -129,7 +147,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               <li key={paso.titulo} className="acu-paso">
                 <div className="acu-paso-img">
                   {foto ? (
-                    <Image src={foto} alt="" fill sizes="(min-width: 768px) 25vw, 90vw" />
+                    <Image src={foto} alt="" fill sizes="(min-width: 900px) 25vw, 50vw" />
                   ) : (
                     <div aria-hidden className="acu-pantallita">
                       <span>{n.pasos.ejemplo[0]}</span>

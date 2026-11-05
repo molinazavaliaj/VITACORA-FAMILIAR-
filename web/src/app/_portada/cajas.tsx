@@ -18,12 +18,38 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
           </a>
         ))}
       </nav>
-      <div className="acu-cajas">
+      <div className={`acu-cajas${cajas.length === 5 ? " acu-cajas--fila" : ""}`}>
         {cajas.map((c) => (
           <article key={c.id} id={`caja-${c.id}`} className={`acu-caja${c.marca === "regalo" ? " acu-caja--regalo" : ""}`}>
             {c.marca ? <span className={`acu-marca${c.marca === "pronto" ? " acu-marca--gris" : ""}`}>{t.marcas[c.marca]}</span> : null}
             <div className={`acu-foto acu-tinte-${c.tinte}`}>
-              {c.foto ? <Image src={c.foto} alt="" fill sizes="(min-width: 640px) 244px, 46vw" /> : null}
+              {c.tapa ? (
+                <div className={`prt-ed-libro${c.tapa.apaisado ? " prt-ed-libro--apaisado" : ""}`}>
+                  <div className={`prt-ed-tapa${c.tapa.apaisado ? " prt-ed-tapa--viaje" : ""}`}>
+                    <div className="prt-ed-tapa-foto">
+                      <Image src={c.tapa.foto} alt="" fill sizes="(min-width: 640px) 170px, 34vw" style={{ objectPosition: "50% 40%" }} />
+                    </div>
+                    <div className="prt-ed-tapa-banda">
+                      <span className="prt-ed-et">{c.tapa.etiqueta}</span>
+                      <span className="prt-ed-nom">
+                        {Array.isArray(c.tapa.nombre) ? (
+                          <>
+                            {c.tapa.nombre[0]}
+                            <br />
+                            {c.tapa.nombre[1]}
+                          </>
+                        ) : (
+                          c.tapa.nombre
+                        )}
+                      </span>
+                      <span className="prt-ed-abajo">
+                        <span className="prt-ed-firma">{c.tapa.firma}</span>
+                        <span className="prt-ed-vf">V · F</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
             <div className="acu-cuerpo">
               <h3>{c.textos.titulo}</h3>

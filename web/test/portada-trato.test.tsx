@@ -260,6 +260,32 @@ describe("la portada según el idioma", () => {
     expect([...orden].sort((a, b) => a - b)).toEqual(orden);
   });
 
+  it("el inicio muestra el producto: bajada, dos botones, libro y celular con WhatsApp", () => {
+    const es = portada("es");
+    const inicio = es.slice(0, es.indexOf('id="hero"'));
+    expect(inicio).toContain(escapar("Tu familiar nos cuenta su vida con audios de WhatsApp."));
+    expect(inicio).toContain('href="#como-funciona"');
+    expect(inicio).toContain("acu-tel");
+    expect(inicio).toContain(escapar("¿Qué recuerdas de la casa donde creciste?"));
+    expect(portada("ar")).toContain(escapar("¿Qué recordás de la casa donde creciste?"));
+  });
+
+  it("la franja de confianza abre la tienda y no habla de la garantía", () => {
+    const es = portada("es");
+    const tienda = es.slice(es.indexOf('id="tienda"'));
+    expect(tienda.indexOf(escapar("Pago seguro y cifrado"))).toBeLessThan(tienda.indexOf(escapar("Vitácora convierte una vida")));
+    expect(sinPreguntas(es).toLowerCase()).not.toContain("garantía");
+  });
+
+  it("cada cajita muestra el libro de frente sobre su color", () => {
+    const es = portada("es");
+    expect(es.match(/class="prt-ed-tapa[ "]/g)?.length).toBe(5);
+    expect(es).toContain("acu-cajas--fila");
+    process.env.VITACORA_BIOGRAFO = "1";
+    expect(portada("es")).not.toContain("acu-cajas--fila");
+    delete process.env.VITACORA_BIOGRAFO;
+  });
+
   it("la foto de ancho completo va entre las cajitas y los audios, en los tres idiomas", () => {
     for (const idioma of ["es", "ar", "ca"] as const) {
       const html = portada(idioma);
