@@ -245,8 +245,6 @@ export const PUEDE = {
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
   comprarCopia: (_rol: Rol) => true,
-  /** Respuestas, audios y transcripciones. Ver loContadoEsPrivado. */
-  verLoContado: (rol: Rol, narrador: { contexto?: Record<string, unknown> | null }) => rol !== "visitante" && !loContadoEsPrivado(narrador),
   /** «Que esto no vaya al libro» desde el panel: la dueña, salvo que el libro sea para otra persona (ahí, solo el narrador). */
   sacarDelLibro: (rol: Rol, narrador: { contexto?: Record<string, unknown> | null }) => rol === "duena" && !loContadoEsPrivado(narrador),
 } as const;

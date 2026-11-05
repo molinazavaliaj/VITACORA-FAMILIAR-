@@ -112,14 +112,6 @@ describe("la regla", () => {
     expect(loContadoEsPrivado({ contexto: { modo: "viaje", vinculoComprador: "le regala el viaje" } })).toBe(false);
     expect(loContadoEsPrivado({ contexto: { modo: "kids", vinculoComprador: "padre" } })).toBe(false);
   });
-
-  it("verLoContado: el invitado de una historia propia sigue viendo; el del regalo no; el visitante nunca", () => {
-    expect(PUEDE.verLoContado("duena", { contexto: REGALO })).toBe(false);
-    expect(PUEDE.verLoContado("invitado", { contexto: REGALO })).toBe(false);
-    expect(PUEDE.verLoContado("duena", { contexto: PROPIA })).toBe(true);
-    expect(PUEDE.verLoContado("invitado", { contexto: PROPIA })).toBe(true);
-    expect(PUEDE.verLoContado("visitante", { contexto: PROPIA })).toBe(false);
-  });
 });
 
 describe("los audios completos", () => {
