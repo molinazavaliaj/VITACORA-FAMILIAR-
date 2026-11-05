@@ -17,7 +17,6 @@ import { OndaQuieta, conVar } from "../_direccion/piezas";
 import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
 import { cajasPortada } from "./datos-cajas";
-import { TelefonoWhatsApp } from "./telefono-whatsapp";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
 // Una sola hoja de estilo para la portada: portada.css trae adentro
 // direccion.css, los tokens y la paleta Acuarela (cada archivo CSS aparte es un
@@ -106,7 +105,6 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
               <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
                 <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
               </div>
-              <TelefonoWhatsApp idioma={idioma} />
             </div>
           </div>
         </div>
@@ -134,7 +132,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       {/* 3 · Los audios que se vuelven capítulos */}
       <section className="acu-hoja-banda relative z-[3] px-4 py-14 text-center sm:px-8 md:py-20">
         <h2 className="dir-titular dir-t3 mx-auto max-w-[18ch]">{n.audios.titulo}</h2>
-        <AudiosLibro capitulos={n.audios.capitulos} />
+        <AudiosLibro idioma={idioma} capitulos={n.audios.capitulos} />
       </section>
 
       {/* 4 · Los cuatro pasos */}

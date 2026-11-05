@@ -260,13 +260,15 @@ describe("la portada según el idioma", () => {
     expect([...orden].sort((a, b) => a - b)).toEqual(orden);
   });
 
-  it("el inicio muestra el producto: bajada, dos botones, libro y celular con WhatsApp", () => {
+  it("el inicio muestra bajada, dos botones y el libro; el celular va abajo, en la escena de los audios", () => {
     const es = portada("es");
     const inicio = es.slice(0, es.indexOf('id="hero"'));
     expect(inicio).toContain(escapar("Tu familiar nos cuenta su vida con audios de WhatsApp."));
     expect(inicio).toContain('href="#como-funciona"');
-    expect(inicio).toContain("acu-tel");
-    expect(inicio).toContain(escapar("¿Qué recuerdas de la casa donde creciste?"));
+    expect(inicio).not.toContain("acu-tel");
+    const escena = es.slice(es.indexOf("acu-escena"));
+    expect(escena).toContain("acu-tel");
+    expect(escena).toContain(escapar("¿Qué recuerdas de la casa donde creciste?"));
     expect(portada("ar")).toContain(escapar("¿Qué recordás de la casa donde creciste?"));
   });
 
