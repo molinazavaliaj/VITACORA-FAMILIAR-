@@ -502,6 +502,27 @@ Spec: `docs/superpowers/specs/2026-10-21-respuesta-fuera-del-libro-design.md`. M
   texto con que le llegó, si la entrevista no llegó a FO1 y hay lugar (máximo 10). Deshacer no la borra.
 - Sin la tabla (42P01 / PGRST205), todos toman que no hay nada sacado.
 
+## Lo contado es privado — el libro para otra persona (Naza y Joaquín, 05/11)
+
+Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `contexto.vinculoComprador` no es `yo mismo`, quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron. Sin vínculo cargado cuenta como regalo. Viaje (`modo = 'viaje'`), Kids (`modo = 'kids'`) y «para mí» siguen como estaban. La regla está repetida a propósito, una por servicio: `loContadoEsPrivado` (web/src/lib/panel.ts), `esPrivado` (fabrica/src/escritor/produccion/privacidad.ts) y `esPrivado` (entrevistador/src/link-respuestas.ts).
+
+**Libro listo** es el pedido en `entregado`, no `libro_aprobado_at`. El orden: termina de contar → dudas → encarga → 48 horas del narrador → se escribe → libro listo → confirma → imprenta.
+
+| Archivo o dato | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `{carpeta del escritor}/dudas-destino.json` | fábrica (socios a mano) | web, fábrica | `{dudas: [{id, pregunta, destino: 'familia' \| 'narrador'}]}`. A quién se le pregunta cada duda. Vale solo con el mismo `id` y la misma `pregunta` que `dudas-familia.json`. Sin clasificación vigente, quien regala no ve ninguna. Las de `narrador` no cuentan como pendientes en la espera, en el aviso del panel ni en los mails. |
+| `{carpeta del escritor}/dudas-ocultas-avisadas.txt`, `dudas-ocultas-al-escribir.txt` | fábrica | fábrica | Candados de los dos mails a los socios sobre dudas ocultas sin contestar. |
+| `{id}/paquete/frenar_imprenta.json` | web («Hay un error, avisanos») | fábrica, web | `{reportado_at, por, detalle}`. Mientras exista, el libro no entra a imprenta, aunque esté confirmado. Lo borran los socios a mano después de corregirlo. |
+| `{id}/paquete/socios_frases_30_dias.txt` | fábrica | fábrica | Candado del mail a los socios a los 30 días sin confirmar. No se confirma solo. |
+| `entrevistas_v3.estado.linkFinal`, `historias.estado.linkFinal` | entrevistador | entrevistador | Cuándo le salió al narrador su link al terminar. Una sola vez. |
+| Token `tipo: 'respuestas'` | entrevistador | web (`/mis-respuestas/<token>`) | HS256 con `FIRMA_TOKENS`, como los otros links, con `narradorId` y `exp` (7 días). Es el único que vence. |
+
+**Quién saca algo del libro.** En un libro para otra persona, solo el narrador: por el chat (`reservadas`, como siempre) o desde su link (`respuestas_fuera`, con `marcada_por` null). Puede mientras cuenta y hasta 48 horas después de `narradores.ultima_respuesta_at`, aunque el libro ya esté encargado: la fábrica no lo escribe antes (`esperaPorElNarrador`). Pasado eso, el link abre para escuchar y lo dice.
+
+**Quién confirma para imprenta.** Quien regala, con el libro listo, sin poder cambiar las frases: `POST /api/frases` rechaza una selección. Confirma `frases.json.confirmado_at` con lo que eligió el biógrafo. Sin confirmar no se imprime y a los 30 días se avisa a los socios.
+
+**Limitación conocida hasta el PR de las dudas por WhatsApp.** Si la entrevista termina con la ventana de 24 horas cerrada, o por `cerrado_anticipado`, el narrador no recibe su link: hace falta una plantilla de Meta. El primer caso avisa a los socios. Mientras tanto, el mail previo al borrado de audios no sale para estas historias y sus audios no se borran.
+
 ## Respuestas de otra parte — "esto es de otra parte" (PROPUESTA del 21/09, acordada entre los dos, pendiente de aplicar)
 
 > **Actualizado 15/10:** aplicada por Naza el 21/09 y verificada (HTTP 200 en `respuestas.tema_de_orden` / `tema_motivo`). El «No está aplicada todavía» de abajo quedó viejo.
@@ -728,6 +749,7 @@ etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generar
 | `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **Etapa A hecha** (candado). |
 | `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
 | `dudas-familia.json` | fábrica | socios, web (pantalla `/tablero/<id>/dudas`, dueña e invitados; aviso del Inicio) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. La web solo valida contra estos `id`; si `dudas` no es una lista, lo trata como archivo roto. El Inicio avisa mientras quede alguna duda sin respuesta y no haya `libro.md`. |
+| `dudas-destino.json` | fábrica | web, fábrica | A quién se le pregunta cada duda si lo contado es privado. Ver "Lo contado es privado". |
 | `dudas-avisadas.txt` | fábrica | fábrica, web | Candado del mail de dudas a los socios. La web cuenta el plazo desde esta fecha. |
 | `correcciones.json` | **socios a mano**, web (pantalla `/tablero/<id>/dudas`, dueña e invitados) | fábrica (Etapa B), web | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail de dudas (`ESCRITOR_ESPERA_DUDAS_HORAS`): ese es el rato para escribirlo. Sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. Lo que escribe la web trae además `quien` (nombre de quien contestó, solo si la base lo tiene: hoy `familias.nombre` de la dueña), `mail` (para los socios, no se muestra) y `cuando` (ISO); la fábrica los ignora. La web hace merge por `dudaId`: lee el archivo, cambia solo las dudas que tocó ese familiar (si el texto no cambió, conserva `quien` y `cuando`) y conserva siempre las de los socios (sin `dudaId` o con uno que no está en `dudas-familia.json`). Si no puede leerlo o está roto, no escribe. Con `libro.md` presente, la web ya no acepta respuestas (409). |
 | `libro.md` | fábrica | fábrica, imprenta, web (solo si existe) | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. Para la web cierra la pantalla de dudas. |

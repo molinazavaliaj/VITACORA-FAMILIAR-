@@ -91,7 +91,7 @@ describe("POST /api/invitados", () => {
     const r = await POST(request({ email: "Tia@Mail.com" }));
     expect(r.status).toBe(200);
     expect(inserts[0].valores).toMatchObject({ narrador_id: "n1", email: "tia@mail.com", invitado_por: "fam-martina" });
-    expect(enviarMailInvitacion).toHaveBeenCalledWith({ para: "tia@mail.com", nombreNarrador: "Alfredo", quienInvita: "Martina", region: "AR", paraDudas: false });
+    expect(enviarMailInvitacion).toHaveBeenCalledWith({ para: "tia@mail.com", nombreNarrador: "Alfredo", quienInvita: "Martina", region: "AR", paraDudas: false, privado: false });
   });
 
   it("a la historia de un chico de Kids no se invita → 403, sin fila ni mail", async () => {

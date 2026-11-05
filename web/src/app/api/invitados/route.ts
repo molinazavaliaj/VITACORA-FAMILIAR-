@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { loContadoEsPrivado, narradorDeLaSesion } from "@/lib/panel";
 import { esKids } from "@/lib/kids-panel";
 import { enviarMailInvitacion } from "@/lib/mail";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
   const region = (familia as { region?: string } | null)?.region ?? null;
 
   try {
-    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region, paraDudas });
+    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region, paraDudas, privado: loContadoEsPrivado(narrador) });
   } catch (err) {
     // La invitación existe igual: si el mail falla, entra con su correo cuando quiera.
     console.error("invitados: fallo el mail", err);

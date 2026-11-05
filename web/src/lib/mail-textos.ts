@@ -63,9 +63,9 @@ export type TextosMailInvitacion = {
   asuntoDudas: (quien: string, narrador: string) => string;
   /** La primera línea: está contando, y el libro se escribe cuando termina (DECISIONES D4). */
   contando: (narrador: string) => string;
-  cuerpo: (quien: string) => string;
+  cuerpo: (quien: string, privado?: boolean) => string;
   tituloDudas: (narrador: string) => string;
-  cuerpoDudas: (quien: string) => string;
+  cuerpoDudas: (quien: string, privado?: boolean) => string;
   entra: string;
   boton: (narrador: string) => string;
   botonDudas: string;
@@ -78,7 +78,7 @@ const VOS = textosComprador("vos");
 const TU = textosComprador("tu");
 
 // Aprobado 06/10 (#18 y #19), igual en vos y en tú.
-const DESDE_LA_PRIMERA = "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir.";
+const DESDE_LA_PRIMERA = "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado.";
 const AL_TERMINAR = "Cuando termina de contar, el biógrafo escribe su libro.";
 // Aprobado 06/10 (mail de acceso y de invitación).
 const CODIGO = "Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.";
@@ -104,8 +104,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entra a la página con este mismo correo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí. Lo que cuente queda privado hasta que el libro esté listo.",
+      paraEscuchar: "Para ver cuánto lleva contado, entra a la página con este mismo correo.",
     },
     regalo: {
       asunto: TU.mailAsunto,
@@ -120,11 +120,13 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       asunto: (quien, n) => `${quien} te invita a la historia de ${n}`,
       asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
       contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo escribirá su libro.`,
-      cuerpo: (quien) =>
-        `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, escribir preguntas que te gustaría que le hicieran y añadir fotos de cada época.`,
+      cuerpo: (quien, privado) => privado
+        ? `${quien} te ha invitado a su historia. Podrás ver cuánto lleva contado, escribir preguntas que te gustaría que le hicieran y añadir fotos de cada época. Lo que cuenta queda privado hasta que el libro esté listo.`
+        : `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, escribir preguntas que te gustaría que le hicieran y añadir fotos de cada época.`,
       tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
-      cuerpoDudas: (quien) =>
-        `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
+      cuerpoDudas: (quien, privado) => privado
+        ? `${quien} te ha invitado porque han quedado algunas dudas, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro.`
+        : `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
       entra: "Entra con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
@@ -151,8 +153,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.",
-      paraEscuchar: "Para ir escuchando lo que cuenta, entrá a la página con este mismo correo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá. Lo que cuente queda privado hasta que el libro esté listo.",
+      paraEscuchar: "Para ver cuánto lleva contado, entrá a la página con este mismo correo.",
     },
     regalo: {
       asunto: VOS.mailAsunto,
@@ -168,12 +170,14 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       asuntoDudas: (quien, n) => `${quien} te pide ayuda con la historia de ${n}`,
       contando: (n) => `${n} está contando su vida con audios de WhatsApp. Cuando termine, un biógrafo va a escribir su libro.`,
       // Aprobado 06/10.
-      cuerpo: (quien) =>
-        `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época.`,
+      cuerpo: (quien, privado) => privado
+        ? `${quien} te invitó a su historia. Vas a poder ver cuánto lleva contado, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época. Lo que cuenta queda privado hasta que el libro esté listo.`
+        : `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época.`,
       // Aprobados 13/10.
       tituloDudas: (n) => `${n} terminó de contar su vida y estamos por escribir su libro.`,
-      cuerpoDudas: (quien) =>
-        `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
+      cuerpoDudas: (quien, privado) => privado
+        ? `${quien} te invitó porque quedaron algunas dudas, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro.`
+        : `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
       entra: "Entrá con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
@@ -202,8 +206,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gràcies per confiar en nosaltres. Ja està en marxa.",
       enUnRato: (como) => `D'aquí a una estona li arriba un missatge nostre per WhatsApp a ${como}, explicant-li de què es tracta.`,
       arranca: "Que comenci quan vulgui.",
-      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí, i podràs escoltar la seva veu des de la pàgina de la seva història.",
-      paraEscuchar: "Per anar escoltant el que explica, entra a la pàgina amb aquest mateix correu:",
+      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí. El que expliqui queda privat fins que el llibre estigui llest.",
+      paraEscuchar: "Per veure quant porta explicat, entra a la pàgina amb aquest mateix correu:",
     },
     regalo: {
       asunto: (como) => `El teu regal per a ${como} ja està llest`,
@@ -211,7 +215,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       cuerpo: (como) =>
         `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, començarà la seva entrevista i ho veuràs a la pàgina de la seva història.`,
       boton: "Veure la targeta",
-      mientrasCuentaTexto: "Des de la primera resposta, a la pàgina de la seva història apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses.",
+      mientrasCuentaTexto: "El que explica queda privat fins que el llibre estigui llest. A la pàgina de la seva història es veu quant porta explicat.",
     },
 
     invitacion: {
@@ -219,11 +223,13 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       asunto: (quien, n) => `${quien} et convida a la història de ${n}`,
       asuntoDudas: (quien, n) => `${quien} et demana ajuda amb la història de ${n}`,
       contando: (n) => `${n} està explicant la seva vida amb àudios de WhatsApp. Quan acabi, un biògraf escriurà el seu llibre.`,
-      cuerpo: (quien) =>
-        `${quien} t'ha convidat a seguir la seva història. Podràs escoltar el que va explicant, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època.`,
+      cuerpo: (quien, privado) => privado
+        ? `${quien} t'ha convidat a la seva història. Podràs veure quant porta explicat, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època. El que explica queda privat fins que el llibre estigui llest.`
+        : `${quien} t'ha convidat a seguir la seva història. Podràs escoltar el que va explicant, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època.`,
       tituloDudas: (n) => `${n} ha acabat d'explicar la seva vida i estem a punt d'escriure el seu llibre.`,
-      cuerpoDudas: (quien) =>
-        `${quien} t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.`,
+      cuerpoDudas: (quien, privado) => privado
+        ? `${quien} t'ha convidat perquè han quedat alguns dubtes, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre.`
+        : `${quien} t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.`,
       entra: "Entra amb aquest mateix correu:",
       boton: (n) => `Veure la història de ${n}`,
       botonDudas: "Veure els dubtes",

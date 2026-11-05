@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { historiaAccesible, PUEDE, loContadoEsPrivado } from "@/lib/panel";
 import { productosDelPedido, NOMBRE_VOZ } from "@/lib/productos";
 import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
 import { ReproductorRespuesta } from "../../reproductor";
@@ -167,9 +167,11 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
               {compro.audiolibro
                 ? "El audiolibro todavía no está listo."
-                : "Sus mejores frases, en su voz real, elegidas por el biógrafo leyendo el libro. Se escuchan, se cambian y se mandan por WhatsApp desde su página."}
+                : loContadoEsPrivado(n)
+                  ? "Sus mejores frases, en su voz real, elegidas por el biógrafo leyendo el libro."
+                  : "Sus mejores frases, en su voz real, elegidas por el biógrafo leyendo el libro. Se escuchan, se cambian y se mandan por WhatsApp desde su página."}
             </p>
-            {!compro.audiolibro ? <div className="mt-4"><ProximoPaso href={`/tablero/${n.id}/frases`}>Escuchar y elegir sus frases</ProximoPaso></div> : null}
+            {!compro.audiolibro ? <div className="mt-4"><ProximoPaso href={`/tablero/${n.id}/frases`}>{loContadoEsPrivado(n) ? "Escuchar sus frases" : "Escuchar y elegir sus frases"}</ProximoPaso></div> : null}
           </Tarjeta>
         )}
       </section>

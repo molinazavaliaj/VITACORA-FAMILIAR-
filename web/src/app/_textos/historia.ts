@@ -82,7 +82,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Esa historia, hecha libro.",
-      texto: "Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar los audios. Impreso en tapa dura o en PDF, lo elegís al comprar.",
+      texto: "Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar su voz. Impreso en tapa dura o en PDF, lo elegís al comprar.",
     },
     precio: { titulo: "Un solo pago.", texto: "Las preguntas, los audios, las fotos y el libro de esa historia.", nota: "Sin suscripciones." },
     faq: {
@@ -165,7 +165,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Esa historia, hecha libro.",
-      texto: "Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar los audios. Impreso en tapa dura o en PDF, lo eliges al comprar.",
+      texto: "Un relato con las palabras de quien la cuenta, no una transcripción. Lo que contó va como lo contó, sin inventar nada. Con las fotos de esa época y un código QR para escuchar su voz. Impreso en tapa dura o en PDF, lo eliges al comprar.",
     },
     precio: { titulo: "Un solo pago.", texto: "Las preguntas, los audios, las fotos y el libro de esa historia.", nota: "Sin suscripciones." },
     faq: {
@@ -248,7 +248,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Aquesta història, feta llibre.",
-      texto: "Un relat amb les paraules de qui l'explica, no una transcripció. El que va explicar hi va tal com ho va explicar, sense inventar res. Amb les fotos d'aquella època i un codi QR per escoltar els àudios. Imprès en tapa dura o en PDF, ho tries en comprar.",
+      texto: "Un relat amb les paraules de qui l'explica, no una transcripció. El que va explicar hi va tal com ho va explicar, sense inventar res. Amb les fotos d'aquella època i un codi QR per escoltar la seva veu. Imprès en tapa dura o en PDF, ho tries en comprar.",
     },
     precio: { titulo: "Un sol pagament.", texto: "Les preguntes, els àudios, les fotos i el llibre d'aquesta història.", nota: "Sense subscripcions." },
     faq: {

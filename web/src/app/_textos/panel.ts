@@ -186,7 +186,7 @@ const ES: TextosPanel = {
       ? "Invita a quien quieras para que siga el viaje y escuche tus audios."
       : q.propia
         ? "Invita a tu familia para que escuche tus audios y proponga preguntas."
-        : "Invita a tus hermanos para que escuchen sus audios y propongan preguntas.",
+        : "Invita a tus hermanos para que sumen preguntas y fotos.",
 
   fotos: (q) => (q.propia || q.viaje ? "Tus fotos" : "Sus fotos"),
   faltaPortada: (q) => `Falta ${q.viaje ? "tu" : tuOSu(q)} foto para la portada.`,
@@ -235,7 +235,7 @@ const AR: TextosPanel = {
       ? "Invitá a quien quieras para que siga el viaje y escuche tus audios."
       : q.propia
         ? "Invitá a tu familia para que escuche tus audios y proponga preguntas."
-        : "Invitá a tus hermanos para que escuchen sus audios y propongan preguntas.",
+        : "Invitá a tus hermanos para que sumen preguntas y fotos.",
   fotosTexto: (q) => `La de la portada es la que va a ver todo el mundo. Podés sumarla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
   anadirMarco: "Sumar el marco",
   marcoTexto: (q) =>

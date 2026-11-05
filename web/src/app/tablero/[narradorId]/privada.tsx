@@ -100,7 +100,7 @@ export function HistoriaPrivada({
       ) : null}
 
       {preguntasFamilia.length > 0 ? (
-        <PreguntasDeLaFamilia preguntas={preguntasFamilia} propia={false} trato={trato} historia={historia}>{sumar}</PreguntasDeLaFamilia>
+        <PreguntasDeLaFamilia preguntas={preguntasFamilia} propia={false} trato={trato} historia={historia} privado>{sumar}</PreguntasDeLaFamilia>
       ) : sumar ? (
         <div className="mt-8">{sumar}</div>
       ) : null}

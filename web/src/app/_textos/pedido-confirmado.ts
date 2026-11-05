@@ -43,18 +43,18 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloPropio: "Ya está. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
     // Naza 20/10 (texto suyo)
-    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mira en promociones o en spam.",
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página de su historia, donde vas a ver cuánto lleva contado. Si no lo ves, mira en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por correo. Si no la ves, mira en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
       { cuando: "Antes", que: `Avísale a ${n} que le va a escribir «Vitácora» por WhatsApp.` }, // sin «de que» (Naza 20/10)
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     regalo: (n, impreso) => [
       { cuando: "Hoy", que: "Imprime la tarjeta o mándala por WhatsApp, y guárdala hasta el día del regalo." },
       { cuando: "Ese día", que: `Cuando ${n} la escanee, empieza su entrevista por WhatsApp.` },
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     propio: (impreso) => [
@@ -64,7 +64,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     ],
     generico: [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
     ],
     // TEXTO PARA NAZA: Viaje V2, de tú y sirve para un regalo.
     viaje: (numero) =>
@@ -86,18 +86,18 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloPropio: "Listo. Tu libro está en marcha.",
     tituloGenerico: "Gracias. Ya está en marcha.",
     // Naza 20/10 (texto suyo, de vos)
-    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página para seguir su historia de cerca, donde vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.",
+    correo: "Te mandamos un correo con toda la información explicando cómo entrar a la página de su historia, donde vas a ver cuánto lleva contado. Si no lo ves, mirá en promociones o en spam.",
     correoRegalo: "Te mandamos la tarjeta por mail. Si no la ves, mirá en promociones o en spam.",
     otro: (n, impreso) => [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
       { cuando: "Antes", que: `Avisale a ${n} que le va a escribir «Vitácora» por WhatsApp.` },
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     regalo: (n, impreso) => [
       { cuando: "Hoy", que: "Imprimí la tarjeta o mandala por WhatsApp, y guardala hasta el día del regalo." },
       { cuando: "Ese día", que: `Cuando ${n} la escanee, empieza su entrevista por WhatsApp.` },
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
       { cuando: "Al terminar", que: `Cuando termina de contar, el biógrafo escribe su libro.${impreso ? " Te avisamos cuando salga de imprenta y te mandamos el seguimiento." : ""}` },
     ],
     propio: (impreso) => [
@@ -107,7 +107,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     ],
     generico: [
       { cuando: "Hoy", que: "En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué se trata. Arranca cuando quiera." },
-      { cuando: "Mientras cuenta", que: "Desde la primera respuesta, en la página de su historia aparecen sus audios, uno por uno, con su voz y sus modos de decir." },
+      { cuando: "Mientras cuenta", que: "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado." },
     ],
     // TEXTO PARA NAZA: sin «esa noche llega la primera pregunta» (en la V2 no es así).
     viaje: (numero) =>
@@ -129,18 +129,18 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     tituloPropio: "Ja està. El teu llibre està en marxa.",
     tituloGenerico: "Gràcies. Ja està en marxa.",
     // PENDIENTE REVISIÓN NATIVA (Imma) · traducción del texto de Naza del 20/10
-    correo: "T'enviem un correu amb tota la informació i t'expliquem com entrar a la pàgina per seguir la seva història de prop, on aniràs escoltant el que explica. Si no el veus, mira a promocions o a correu brossa.",
+    correo: "T'enviem un correu amb tota la informació i t'expliquem com entrar a la pàgina de la seva història, on veuràs quant porta explicat. Si no el veus, mira a promocions o a correu brossa.",
     correoRegalo: "T'enviem la targeta per correu. Si no la veus, mira a promocions o a correu brossa.",
     otro: (n, impreso) => [
       { cuando: "Avui", que: "D'aquí a una estona li arriba un missatge nostre per WhatsApp, explicant-li de què es tracta. Comença quan vulgui." },
       { cuando: "Abans", que: `Avisa ${n} que li escriurà «Vitácora» per WhatsApp.` },
-      { cuando: "Mentre explica", que: "Des de la primera resposta, a la pàgina de la seva història apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses." },
+      { cuando: "Mentre explica", que: "El que explica queda privat fins que el llibre estigui llest. A la pàgina de la seva història es veu quant porta explicat." },
       { cuando: "En acabar", que: `Quan acaba d'explicar, el biògraf escriu el seu llibre.${impreso ? " T'avisem quan surti d'impremta i t'enviem el seguiment." : ""}` },
     ],
     regalo: (n, impreso) => [
       { cuando: "Avui", que: "Imprimeix la targeta o envia-la per WhatsApp, i guarda-la fins al dia del regal." },
       { cuando: "Aquell dia", que: `Quan ${n} l'escanegi, comença la seva entrevista per WhatsApp.` },
-      { cuando: "Mentre explica", que: "Des de la primera resposta, a la pàgina de la seva història apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses." },
+      { cuando: "Mentre explica", que: "El que explica queda privat fins que el llibre estigui llest. A la pàgina de la seva història es veu quant porta explicat." },
       { cuando: "En acabar", que: `Quan acaba d'explicar, el biògraf escriu el seu llibre.${impreso ? " T'avisem quan surti d'impremta i t'enviem el seguiment." : ""}` },
     ],
     propio: (impreso) => [
@@ -150,7 +150,7 @@ export const CONFIRMADO: Textos<TextosConfirmado> = {
     ],
     generico: [
       { cuando: "Avui", que: "D'aquí a una estona li arriba un missatge nostre per WhatsApp, explicant-li de què es tracta. Comença quan vulgui." },
-      { cuando: "Mentre explica", que: "Des de la primera resposta, a la pàgina de la seva història apareixen els seus àudios, un per un, amb la seva veu i la seva manera de dir les coses." },
+      { cuando: "Mentre explica", que: "El que explica queda privat fins que el llibre estigui llest. A la pàgina de la seva història es veu quant porta explicat." },
     ],
     viaje: (numero) =>
       numero

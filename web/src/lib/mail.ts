@@ -390,6 +390,8 @@ export function armarMailInvitacion(opciones: {
   region?: string | null;
   /** Terminó de contar: la invitación es para contestar las dudas del escritor (13/10). */
   paraDudas?: boolean;
+  /** Lo que cuenta es privado (05/11): el mail no promete escuchar nada. */
+  privado?: boolean;
   idioma?: IdiomaWeb;
 }): MailArmado {
   const idioma = opciones.idioma ?? idiomaMailDeRegion(opciones.region);
@@ -401,7 +403,7 @@ export function armarMailInvitacion(opciones: {
   const asunto = dudas ? t.asuntoDudas(quien, narrador) : t.asunto(quien, narrador);
   // Con dudas, el título es el aprobado del 13/10; si no, el asunto, como el del regalo.
   const titulo = dudas ? t.tituloDudas(narrador) : asunto;
-  const parrafos = dudas ? [t.cuerpoDudas(quien)] : [t.contando(narrador), t.cuerpo(quien)];
+  const parrafos = dudas ? [t.cuerpoDudas(quien, opciones.privado)] : [t.contando(narrador), t.cuerpo(quien, opciones.privado)];
   const textoBoton = dudas ? t.botonDudas : t.boton(narrador);
 
   const html = cascaron({
@@ -436,6 +438,8 @@ export async function enviarMailInvitacion(opciones: {
   region?: string | null;
   /** Terminó de contar: la invitación es para contestar las dudas del escritor (13/10). */
   paraDudas?: boolean;
+  /** Lo que cuenta es privado (05/11): el mail no promete escuchar nada. */
+  privado?: boolean;
   idioma?: IdiomaWeb;
 }): Promise<boolean> {
   const mail = armarMailInvitacion(opciones);

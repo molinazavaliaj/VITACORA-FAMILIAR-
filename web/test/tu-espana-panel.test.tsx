@@ -280,7 +280,7 @@ describe("/comprar", () => {
 
   it("España, de tú y sin nada de vos", () => {
     const html = checkout("es");
-    soloEste(html, ["¿Cómo quieres su libro?", "Escuchas sus audios mientras cuenta, desde la página de su historia"], ["¿Cómo querés", "Escuchás"]);
+    soloEste(html, ["¿Cómo quieres su libro?", "Ves cuánto lleva contado, desde la página de su historia"], ["¿Cómo querés", "Escuchás"]);
     expect(html).not.toMatch(VOSEO);
     soloEste(checkout("es", 2), ["Mi padre", "Mi madre"], ["Mi papá", "Mi mamá"]);
     expect(checkout("es", 2)).not.toMatch(VOSEO);
@@ -289,7 +289,7 @@ describe("/comprar", () => {
   });
 
   it("Argentina, de vos", () => {
-    soloEste(checkout("ar"), ["¿Cómo querés su libro?", "Escuchás sus audios mientras cuenta, desde la página de su historia"], ["¿Cómo quieres", "Escuchas sus"]);
+    soloEste(checkout("ar"), ["¿Cómo querés su libro?", "Ves cuánto lleva contado, desde la página de su historia"], ["¿Cómo quieres", "Escuchas sus"]);
     soloEste(checkout("ar", 2), ["Mi papá", "Mi mamá"], ["Mi padre", "Mi madre"]);
     soloEste(renderToStaticMarkup(<SugerenciaRegalo />), ["¿Querés que sea una sorpresa?", "Regalalo con una tarjeta"], ["¿Quieres"]);
   });
@@ -308,9 +308,9 @@ describe("el mail de acceso", () => {
       await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
       await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
       const [es, ar] = enviados.map((m) => m.html.replace(/\s+/g, " "));
-      expect(es).toContain("te avisamos por aquí, y vas a poder");
+      expect(es).toContain("te avisamos por aquí. Lo que cuente");
       expect(es).not.toMatch(/acá|entrá/);
-      expect(ar).toContain("te avisamos por acá, y vas a poder");
+      expect(ar).toContain("te avisamos por acá. Lo que cuente");
     } finally {
       vi.unstubAllEnvs();
       vi.unstubAllGlobals();

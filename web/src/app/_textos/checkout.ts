@@ -94,7 +94,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde la página de tu historia"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchas sus audios mientras cuenta, desde la página de su historia"],
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Ves cuánto lleva contado, desde la página de su historia"],
   },
   ar: {
     etiqueta: "Resumen del pedido",
@@ -120,7 +120,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde la página de tu historia"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchás sus audios mientras cuenta, desde la página de su historia"],
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Ves cuánto lleva contado, desde la página de su historia"],
   },
   ca: {
     etiqueta: "Resum de la comanda",
@@ -145,7 +145,7 @@ export const RESUMEN: Textos<TextosResumen> = {
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des de la pàgina de la teva història"]
-        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Escoltes els seus àudios mentre explica, des de la pàgina de la seva història"],
+        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Veus quant porta explicat, des de la pàgina de la seva història"],
   },
 };
 
@@ -336,7 +336,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     libroTitulo: "¿Cómo quieres su libro?",
     libroBajada: "Todas las opciones incluyen la entrevista completa y el libro en PDF con su voz.",
     digitalTitulo: "Libro digital",
-    digitalDetalle: "PDF para leer en cualquier pantalla, con «Su voz», sus audios a un toque.",
+    digitalDetalle: "PDF para leer en cualquier pantalla, con «Su voz», sus mejores frases a un toque.",
     impresoEtiqueta: "Para regalar",
     impresoTitulo: "Libro impreso en tapa dura + digital",
     impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF con su voz. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
@@ -508,7 +508,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     libroTitulo: "¿Cómo querés su libro?",
     libroBajada: "Todas las opciones incluyen la entrevista completa y el libro en PDF con su voz.",
     digitalTitulo: "Libro digital",
-    digitalDetalle: "PDF para leer en cualquier pantalla, con «Su voz», sus audios a un toque.",
+    digitalDetalle: "PDF para leer en cualquier pantalla, con «Su voz», sus mejores frases a un toque.",
     impresoEtiqueta: "Para regalar",
     impresoTitulo: "Libro impreso en tapa dura + digital",
     impresoDetalle: "El mismo libro, impreso y encuadernado, y también en PDF con su voz. El envío está incluido. Te avisamos cuando salga de imprenta y te mandamos el seguimiento.",
@@ -681,7 +681,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     libroTitulo: "Com vols el seu llibre?",
     libroBajada: "Totes les opcions inclouen l'entrevista completa i el llibre en PDF amb la seva veu.",
     digitalTitulo: "Llibre digital",
-    digitalDetalle: "PDF per llegir a qualsevol pantalla, amb «La seva veu», els seus àudios a un toc.",
+    digitalDetalle: "PDF per llegir a qualsevol pantalla, amb «La seva veu», les seves millors frases a un toc.",
     impresoEtiqueta: "Per regalar",
     impresoTitulo: "Llibre imprès en tapa dura + digital",
     impresoDetalle: "El mateix llibre, imprès i enquadernat, i també en PDF amb la seva veu. L'enviament està inclòs. T'avisem quan surti d'impremta i t'enviem el seguiment.",
