@@ -24,7 +24,22 @@ El escritor dice que esta frase del libro está respaldada por una respuesta. Fr
 ```
 Preparás las preguntas que la familia de {{NOMBRE}} contesta antes de que se escriba su libro. Te paso la ficha y unas dudas de datos que encontró quien leyó la entrevista: nombres que pueden estar mal escritos, fechas que no cierran, dos personas que pueden ser la misma, respuestas que se contradicen. Cada duda trae lo que dijo {{NOMBRE}}, textual.
 
-Para cada duda escribí una pregunta para la familia, en {{IDIOMA}}, que se pueda contestar sin haber escuchado la entrevista.
+Primero decidí si cada duda es real. Una duda es real solo si es una de estas cuatro cosas y el libro no se puede escribir bien sin el dato:
+- un nombre o una palabra que no se entiende o que aparece escrita de formas distintas;
+- una fecha o un número que no cierra con otra cosa que dijo;
+- dos versiones distintas del mismo hecho;
+- dos personas que pueden ser la misma, o una que no se sabe quién es.
+
+No es real, y va con "real": false:
+- lo que no contó. Si la pregunta sería quién, por qué, cómo o dónde sobre algo que no dijo, no es una duda: es pedirle que cuente más, por interesante que sea;
+- lo que dijo con duda («creo», «no sé», «más o menos»). El libro lo cuenta con su duda;
+- lo que ya está claro en lo que dijo o en la ficha;
+- lo que quien leyó ya resolvió en su nota. Una advertencia para quien escribe («no afirmar», «no agregar más») tampoco es una duda, salvo que deje sin saber un nombre o un hecho que dijo;
+- lo que parece contradicción pero se entiende al leer lo que dijo.
+
+Con "real": false, la pregunta va vacía y "motivo" dice por qué en pocas palabras.
+
+Para cada duda real escribí una pregunta para la familia, en {{IDIOMA}}, que se pueda contestar sin haber escuchado la entrevista.
 1. Una sola cosa por pregunta. Contá de qué se habla con lo que dijo, entre comillas, y preguntá el dato.
 2. Frases simples y cortas. Nada de palabras de oficio (registro, transcripción, episodio, id, respuesta R..).
 3. Si se contesta eligiendo, dos o tres opciones cortas con las palabras de lo que dijo. Si no, la lista de opciones va vacía.
@@ -34,15 +49,30 @@ Devolvé solo el JSON del esquema, una entrada por duda y con los mismos ids.
 ```
 
 ```json
-{"dudas": [{"id": "D01", "pregunta": "", "opciones": []}]}
+{"dudas": [{"id": "D01", "real": true, "motivo": "", "pregunta": "", "opciones": []}]}
 ```
 
 ### Dudas para quien narra
 
 ```
-Preparás las preguntas que {{NOMBRE}} contesta antes de que se escriba su libro. El libro lo pidió para sí, así que las preguntas las lee la misma persona que contó. Te paso la ficha y unas dudas de datos que encontró quien leyó la entrevista: nombres que pueden estar mal escritos, fechas que no cierran, dos personas que pueden ser la misma, respuestas que se contradicen. Cada duda trae lo que dijo {{NOMBRE}}, textual.
+Preparás las preguntas que {{NOMBRE}} contesta antes de que se escriba su libro. Las preguntas las lee la misma persona que contó. Te paso la ficha y unas dudas de datos que encontró quien leyó la entrevista: nombres que pueden estar mal escritos, fechas que no cierran, dos personas que pueden ser la misma, respuestas que se contradicen. Cada duda trae lo que dijo {{NOMBRE}}, textual.
 
-Para cada duda escribí una pregunta para {{NOMBRE}}, en {{IDIOMA}}, que se pueda contestar sin volver a escuchar la entrevista.
+Primero decidí si cada duda es real. Una duda es real solo si es una de estas cuatro cosas y el libro no se puede escribir bien sin el dato:
+- un nombre o una palabra que no se entiende o que aparece escrita de formas distintas;
+- una fecha o un número que no cierra con otra cosa que dijo;
+- dos versiones distintas del mismo hecho;
+- dos personas que pueden ser la misma, o una que no se sabe quién es.
+
+No es real, y va con "real": false:
+- lo que no contó. Si la pregunta sería quién, por qué, cómo o dónde sobre algo que no dijo, no es una duda: es pedirle que cuente más, por interesante que sea;
+- lo que dijo con duda («creo», «no sé», «más o menos»). El libro lo cuenta con su duda;
+- lo que ya está claro en lo que dijo o en la ficha;
+- lo que quien leyó ya resolvió en su nota. Una advertencia para quien escribe («no afirmar», «no agregar más») tampoco es una duda, salvo que deje sin saber un nombre o un hecho que dijo;
+- lo que parece contradicción pero se entiende al leer lo que dijo.
+
+Con "real": false, la pregunta va vacía y "motivo" dice por qué en pocas palabras.
+
+Para cada duda real escribí una pregunta para {{NOMBRE}}, en {{IDIOMA}}, que se pueda contestar sin volver a escuchar la entrevista.
 1. Hablale directo, en segunda persona y con el trato de la ficha («dijiste», «contaste», «tu mamá»). Nunca lo nombres en tercera persona ni hables de «la familia».
 2. Una sola cosa por pregunta. Contá de qué se habla con lo que dijo, entre comillas, y preguntá el dato.
 3. Frases simples y cortas. Nada de palabras de oficio (registro, transcripción, episodio, id, respuesta R..).
@@ -53,7 +83,7 @@ Devolvé solo el JSON del esquema, una entrada por duda y con los mismos ids.
 ```
 
 ```json
-{"dudas": [{"id": "D01", "pregunta": "", "opciones": []}]}
+{"dudas": [{"id": "D01", "real": true, "motivo": "", "pregunta": "", "opciones": []}]}
 ```
 
 ### Corrección del registro

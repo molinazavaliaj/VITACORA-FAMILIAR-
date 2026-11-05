@@ -35,7 +35,7 @@ describe('dudas de datos para la familia', () => {
   it('si el libro es propio, la llamada usa el prompt que le habla a quien narra', () => {
     const dudas = dudasDelRegistro(reg, respuestas(c));
     const propia = llamadaDudas(c, dudas, { propia: true });
-    expect(propia.instr).toContain('las preguntas las lee la misma persona que contó');
+    expect(propia.instr).toContain('Las preguntas las lee la misma persona que contó');
     expect(propia.instr).toContain('segunda persona');
     expect(propia.instr).not.toContain('la familia de Nélida');
     expect(propia.instr).toContain('en castellano rioplatense');
@@ -48,6 +48,18 @@ describe('dudas de datos para la familia', () => {
     const dudas = dudasDelRegistro(reg, respuestas(c));
     expect(validarDudas(dudas, { dudas: [{ id: 'D01', pregunta: ' ¿Cómo se llamaba la Negra? ', opciones: ['', 'Ofelia'] }] })[0]).toMatchObject({ pregunta: '¿Cómo se llamaba la Negra?', opciones: ['Ofelia'] });
     expect(() => validarDudas(dudas, { dudas: [] })).toThrow(/D01/);
+  });
+
+  it('validarDudas deja afuera las que no son reales y toma como real la que no trae el campo', () => {
+    const base = { tipo: 'nombre' as const, que: 'x', ids: [], citas: [] };
+    const dudas = [{ id: 'D01', ...base }, { id: 'D02', ...base }, { id: 'D03', ...base }];
+    const r = validarDudas(dudas, { dudas: [
+      { id: 'D01', real: false, motivo: 'x', pregunta: '', opciones: [] },
+      { id: 'D02', real: true, motivo: '', pregunta: '¿Cuál?', opciones: [] },
+      { id: 'D03', pregunta: '¿Otra?', opciones: [] },
+    ] });
+    expect(r.map((d) => d.id)).toEqual(['D02', 'D03']);
+    expect(() => validarDudas(dudas, { dudas: [{ id: 'D01', real: true, pregunta: '', opciones: [] }, { id: 'D02', real: false }, { id: 'D03', real: false }] })).toThrow(/D01/);
   });
 });
 
