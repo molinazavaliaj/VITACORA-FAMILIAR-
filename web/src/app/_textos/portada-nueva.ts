@@ -3,7 +3,8 @@ import type { Textos } from "@/lib/idioma-web";
 // Los textos de la portada nueva (05/11). Naza los aprueba en tandas de 10
 // antes del merge. Tanda 1 APROBADA el 05/11, en castellano de España: título
 // y bajada de la tienda, botón del inicio, las seis cajitas y la respuesta de
-// quién escucha. El resto, propuestas. La versión de Argentina sale de las
+// quién escucha. Tanda 2 APROBADA el 05/11: audios, pasos, voz, privacidad,
+// cierre y lo de abajo de las cajitas. El resto, propuestas. La versión de Argentina sale de las
 // aprobadas cambiando el trato. El catalán falta revisarlo con Imma.
 // Reglas: sin dos puntos, ninguna oración empieza con «Y», sin «padre».
 
