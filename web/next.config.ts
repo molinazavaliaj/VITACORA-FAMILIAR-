@@ -43,8 +43,21 @@ export function cabecerasSinIndexar(entorno: string | undefined = process.env.VE
   return [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }];
 }
 
+// La dirección de cada versión de prueba (noviembre 2026, docs/publicar-con-vercel.md).
+// URL_BASE arma las vueltas del pago y los enlaces de los mails. En Preview era una
+// sola dirección fija y una prueba hecha en una rama volvía a otra. Ahora cada rama
+// usa la suya, que Vercel da en VERCEL_BRANCH_URL. En producción no cambia nada.
+export function urlBaseDeLaRama(
+  entorno: string | undefined = process.env.VERCEL_ENV,
+  urlDeLaRama: string | undefined = process.env.VERCEL_BRANCH_URL,
+): { URL_BASE?: string } {
+  if (entorno !== "preview" || !urlDeLaRama) return {};
+  return { URL_BASE: `https://${urlDeLaRama}` };
+}
+
 const nextConfig: NextConfig = {
   compress: true,
+  env: urlBaseDeLaRama(),
   // El chequeo de tipos del build deja afuera test/: algunos tests importan de
   // ../entrevistador, que no existe cuando Vercel construye solo web/ (preview).
   // Los tests se chequean con vitest y con `npx tsc --noEmit` (tsconfig.json).

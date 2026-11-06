@@ -9,18 +9,18 @@ nombres, previsualización y compra del libro/audiolibro, y la descarga final.
 
 ## Deploy (leer antes de tocar producción)
 
-- **Automático, por GitHub Actions** (`.github/workflows/deploy-web.yml`): cada push a `main` que toque
-  `web/` corre los tests y, si pasan, `vercel pull` (variables de producción) + `vercel build --prod` +
-  `vercel deploy --prebuilt --prod`. Se mira en GitHub → Actions → "Deploy web" (o `gh run list --workflow deploy-web.yml`).
-- Por eso en Vercel los deployments **no traen commit ni branch** y no hay previews: los sube el
-  runner con la CLI, no la integración de git de Vercel (que no se puede usar: plan Hobby + repo ajeno, 2.8).
-- **No reusa caché**: cada build es en un runner limpio. La trampa de `vercel --prod` que recicla el
-  build es solo de los deploys a mano desde una máquina; si hay que deployar a mano, `vercel --prod --force`.
-- **Cambiar una variable en Vercel no basta**: el build la lee al construir. Después de cambiarla,
-  volver a correr el último workflow (GitHub → Actions → Deploy web → "Re-run all jobs") o pushear.
-- Desde el 21/09 (2.12) la home y los checkouts se renderizan **por request** (leen el país del
-  visitante), así que los precios ya no quedan horneados en el HTML: con el re-run alcanza, no hace
-  falta forzar nada.
+Paso a paso del cambio y la marcha atrás: `docs/publicar-con-vercel.md`.
+
+- **Automático, con la conexión directa de Vercel y GitHub.** Cada push a `main` que toque `web/` arma una
+  versión en Vercel, que queda **retenida** hasta que el check `web` de GitHub (`tests.yml`) da verde. Recién
+  ahí pasa al dominio. Si los tests fallan, la web sigue como estaba.
+- **Cada rama tiene su versión de prueba**, con enlace en el PR. Usa la misma base de Supabase que
+  producción: solo la ven quienes tienen acceso al equipo de Vercel. Las ramas de dependabot no publican.
+- **Cambiar una variable en Vercel no basta**: hay que volver a publicar. En Vercel → Deployments → la última
+  → **Redeploy**, destildando **Use existing Build Cache** y **Use project's Ignore Build Step**. Si no se
+  destilda el segundo, y el último merge no tocó `web/`, Vercel cancela la publicación.
+- La home y los checkouts se renderizan **por request** (leen el país del visitante), así que los precios no
+  quedan horneados en el HTML.
 
 ## Precios (variables en Vercel)
 

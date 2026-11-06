@@ -1,4 +1,5 @@
 {
+  "git": { "deploymentEnabled": { "dependabot/**": false } },
   "regions": ["dub1"],
   "crons": [
     { "path": "/api/cupon/recordatorios", "schedule": "0 9 * * *" },

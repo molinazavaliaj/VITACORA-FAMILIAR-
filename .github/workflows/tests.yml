@@ -1,8 +1,12 @@
 # Tests de los cuatro servicios en cada PR (pedido de Joaquín, 17/10).
 #
-# Antes el único workflow era deploy-web.yml: ocho PR abiertos y ningún check.
 # Un test que se rompe al juntar ramas (como el del mail de acceso en #49) tiene
 # que saltar acá, en el PR, y no al probar a mano.
+#
+# OJO: este workflow es también el freno de producción. Vercel retiene cada
+# publicación de main hasta que el check llamado `web` da verde (Deployment
+# Checks, docs/publicar-con-vercel.md). Si se cambia el nombre de ese job o se le
+# pone un filtro de carpetas, hay que actualizar la configuración de Vercel.
 #
 # No usa secretos ni toca la base: los tests corren con dobles (Supabase,
 # WhatsApp, modelos falsos). Cada servicio en su job, para ver cuál falló.
