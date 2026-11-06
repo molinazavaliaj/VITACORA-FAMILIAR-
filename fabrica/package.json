@@ -16,7 +16,7 @@
     "@sentry/node": "10.76.0",
     "@supabase/supabase-js": "^2.118.0",
     "jsqr": "^1.4.0",
-    "pdfjs-dist": "5.4.624",
+    "pdfjs-dist": "6.4.299",
     "playwright": "^1.64.1",
     "pngjs": "^5.0.0",
     "qrcode": "^1.5.4"
