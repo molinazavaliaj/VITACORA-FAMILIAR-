@@ -44,7 +44,7 @@ Recibe los mismos dos mensajes. Al terminar las dudas ve un botón para elegir l
 
 ## Solo dudas reales
 
-Las 25 de Juan Domingo muestran el problema: algunas pedían contar más, y en otras el escritor ya sabía qué hacer («no agregar más», «no usar como nombre»).
+Las 25 dudas de un libro real muestran el problema: algunas pedían contar más, y en otras el escritor ya sabía qué hacer («no agregar más», «no usar como nombre»).
 
 **La regla.** Una duda es solo una de estas cuatro:
 - un nombre o palabra que no se entiende;
@@ -56,7 +56,7 @@ Si algo no lo contó, no se pregunta. Si dijo «creo que fue con Cámpora», el 
 
 **Dónde va.** En el paso que redacta las preguntas (`### Dudas para la familia` y `### Dudas para quien narra`), que también descarta las que no cumplen. No se toca el paso 1 del lector, para no cambiar el resto de la lectura. La frase «El libro lo pidió para sí» se cambia, porque ya no siempre es cierta. Siempre se usa la versión que le habla al narrador.
 
-**Modelo.** Este paso pasa de Haiku a Opus (`dudas$` sale de `MECANICO` en `configuracion.ts`). Probado el 05/11 con las 25 de Juan Domingo, desde Claude Code y no desde la fábrica:
+**Modelo.** Este paso pasa de Haiku a Opus (`dudas$` sale de `MECANICO` en `configuracion.ts`). Probado el 05/11 con las 25 dudas de un libro real, desde Claude Code y no desde la fábrica:
 
 | Prueba | Coincide con la primera lista | Quedan | Preguntas de «contá más» que pasaron |
 |---|---|---|---|
@@ -66,7 +66,7 @@ Si algo no lo contó, no se pregunta. Si dijo «creo que fue con Cámpora», el 
 **Resultado con Opus** (pendiente del OK de Naza):
 - Quedan: D03, D04, D05, D06, D07, D11, D18, D20.
 - Salen, de las que la primera lista dejaba: D01, D02, D08, D09, D16, D19, D23. Opus entendió la respuesta al leer las citas.
-- D05 queda con otra pregunta: qué quiso decir con una frase que no se entiende, no cómo le pusieron el apodo.
+- D05 queda con otra pregunta: qué quiso decir con una frase que no se entiende.
 
 Una prueba con un solo libro no alcanza para dar el filtro por bueno. Hay que mirar el resultado del próximo libro real.
 

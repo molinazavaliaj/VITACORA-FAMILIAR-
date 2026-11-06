@@ -73,3 +73,10 @@ Antes de escribir páginas, leé `web/AGENTS.md` y `web/node_modules/next/dist/d
 ## Cierre
 
 Revisión final de otro agente sobre todo el diff contra `origin/privacidad-panel`; textos a Naza en tandas de 10, anotados en `docs/web-textos-v3/aprobados.md`; PR contra `privacidad-panel` o `main`, según esté mergeado el 212.
+
+## Ajustes al cierre
+
+- La regla es la del PR 214: solo ventas nuevas y el narrador elige. «Mi familia» sigue el flujo de hoy.
+- La alerta de libros demorados en privados quedó en 120 horas, y 48 si ya no hay dudas.
+- Si quien contó escribe por WhatsApp con dudas pendientes, recibe el link y los socios un aviso.
+- Si vence el plazo sin respuesta, los socios reciben un mail y el libro sigue.
