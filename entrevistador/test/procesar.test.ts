@@ -74,7 +74,10 @@ vi.mock('../src/db/cliente.js', () => {
     b.then = (res: any, rej: any) => Promise.resolve(resolver(tabla, b._op, b._filtros)).then(res, rej);
     return b;
   }
-  return { db: { from: (t: string) => crearBuilder(t) } };
+  return { db: {
+    from: (t: string) => crearBuilder(t),
+    rpc: async (nombre: string, args: any) => { mocks.estado.capturas.push({ op: 'rpc', tabla: nombre, p: args }); return { data: true, error: null }; },
+  } };
 });
 
 vi.mock('../src/whatsapp/enviar.js', () => ({
@@ -367,7 +370,7 @@ describe('procesarEntrante', () => {
     mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
     expect(mocks.enviarBotones).toHaveBeenCalledOnce();
-    expect(mocks.enviarBotones.mock.calls[0][2]).toEqual(['Mi familia', 'Prefiero yo']);
+    expect(mocks.enviarBotones.mock.calls[0][2]).toEqual(['Mi familia', 'Solo yo']);
     const dicho = mocks.enviarTexto.mock.calls.map((c: unknown[]) => c[1]).join(' ');
     expect(dicho).not.toContain('leer y escuchar');
     expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
@@ -392,16 +395,16 @@ describe('procesarEntrante', () => {
   it('el botón de la elección nunca llega a la entrevista', async () => {
     mocks.estado.narrador = narradorEn('activo', 3, { acceso: { elige: true } });
     mocks.estado.filaV3 = { narrador_id: 'n1' };
-    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Prefiero yo', waMessageId: 'w' });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Solo yo', waMessageId: 'w' });
     expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
     expect(mocks.procesarEntranteHistoria).not.toHaveBeenCalled();
-    expect(update('narradores')?.p).toMatchObject({ contexto: { acceso: { quien: 'narrador' } } });
+    expect(mocks.estado.capturas.find((c: any) => c.op === 'rpc')?.p).toMatchObject({ p_narrador: 'n1', p_acceso: { quien: 'narrador' } });
   });
 
   it('sin la marca, un botón con ese texto sigue a la entrevista como siempre', async () => {
     mocks.estado.narrador = narradorEn('activo', 3, {});
     mocks.estado.filaV3 = { narrador_id: 'n1' };
-    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Prefiero yo', waMessageId: 'w' });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Solo yo', waMessageId: 'w' });
     expect(mocks.procesarEntranteV3).toHaveBeenCalledOnce();
   });
 

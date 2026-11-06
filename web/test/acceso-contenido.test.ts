@@ -12,7 +12,7 @@ describe("el modo de cada historia", () => {
     expect(modoAcceso({ acceso: { elige: true } })).toBe("narrador");
   });
 
-  it("«Prefiero yo» es privado y «Mi familia» abre todo", () => {
+  it("«Solo yo» es privado y «Mi familia» abre todo", () => {
     expect(modoAcceso({ acceso: { elige: true, quien: "narrador" } })).toBe("narrador");
     expect(modoAcceso({ acceso: { elige: true, quien: "familia" } })).toBe("familia");
   });

@@ -504,7 +504,9 @@ Spec: `docs/superpowers/specs/2026-10-21-respuesta-fuera-del-libro-design.md`. M
 
 ## Lo contado es privado — el libro para otra persona (Naza y Joaquín, 05/11)
 
-Sin tablas ni columnas nuevas, sin DDL. Lo decide `contexto.acceso`, que pone la compra solo en ventas nuevas de Familiar e Historia para otra persona: `{ elige: true, quien?: 'familia' | 'narrador', at?, waMessageId?, version? }`. **Sin esa marca (todas las entrevistas anteriores, «para mí», Viaje y Kids) nada de esto corre.** Con la marca y `quien = 'familia'`, tampoco. Con la marca y `quien` en `narrador` o vacío (no contestó), quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron.
+Sin tablas ni columnas nuevas. Lo decide `contexto.acceso`, que pone la compra solo en ventas nuevas de Familiar e Historia para otra persona: `{ elige: true, quien?: 'familia' | 'narrador', at?, waMessageId?, version? }`. **Sin esa marca (todas las entrevistas anteriores, «para mí», Viaje y Kids) nada de esto corre.** Con la marca y `quien = 'familia'`, tampoco. Con la marca y `quien` en `narrador` o vacío (no contestó), quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron.
+
+**La elección solo se escribe con `anotar_eleccion_acceso(narrador, acceso)`** (migración `20261106000100`, va antes de desplegar). Un trigger la conserva si cualquier otra escritura de `contexto` la cambia o la saca, porque `contexto` se escribe entero desde muchos lados. Un `UPDATE` a mano sobre `contexto.acceso.quien` vuelve al valor anterior sin dar error: para corregirla, usar la función.
 
 **En los dos casos** la familia lee el libro y escucha las frases elegidas apenas el pedido está `entregado`, y confirma para imprenta quien compró.
 

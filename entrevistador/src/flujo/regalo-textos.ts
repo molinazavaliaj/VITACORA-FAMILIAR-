@@ -54,7 +54,7 @@ export const HITO_ACEPTO_VIAJE: Readonly<Record<TratoComprador, { asunto: (quien
   },
 };
 
-/** El «dijo que sí» con la marca de acceso: todavía no eligió quién ve lo que cuenta. ESPERA aprobación de Naza · A-04 (05/11) */
+/** El «dijo que sí» con la marca de acceso: todavía no eligió quién ve lo que cuenta. APROBADO por Naza el 06/11 · A-04 */
 export const HITO_ACEPTO_ELIGE: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
   vos: {
     asunto: (quien: string) => `${quien} dijo que sí`,
@@ -91,7 +91,7 @@ export const ARRANQUE: Readonly<Record<Idioma, TextosArranque>> = {
     pedidoSi: 'Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.',
     // 20/10 (Naza): quién lee lo que cuenta y cómo pedir que se borre (informar al narrador, RGPD art. 14). Solo para las entrevistas sin marca.
     aceptacion: 'Gracias, {{nombre}}. Lo que me cuentes lo va a poder leer y escuchar quien te regaló el libro, en una página privada, y lo usamos solo para tu libro. Si en algún momento querés que borremos algo, escribinos a soporte@vitacorafamiliar.com. Ahí te mando la primera pregunta. Sin apuro, y no hay respuestas incorrectas.',
-    // Con la marca de acceso (flujo/acceso.ts): no dice quién lo ve, porque lo elige en el mensaje que sigue. ESPERA aprobación de Naza · A-03 (05/11)
+    // Con la marca de acceso (flujo/acceso.ts): no dice quién lo ve, porque lo elige en el mensaje que sigue. APROBADO por Naza el 06/11 · A-03
     aceptacionConEleccion: 'Gracias, {{nombre}}. Lo que me cuentes lo usamos solo para tu libro. Si algo no querés que aparezca, decímelo acá mientras charlamos. Ahí te mando la primera pregunta. Sin apuro, y no hay respuestas incorrectas.',
     noEntendi: 'Perdón, no te entendí. Para arrancar necesito que me escribas SÍ. ¿Vamos?',
     noQuiere: 'Sin problema, {{nombre}}. Cuando tengas ganas me escribís SÍ y arrancamos. Acá voy a estar.',

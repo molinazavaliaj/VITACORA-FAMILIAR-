@@ -11,44 +11,38 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Idioma } from '../v3/nucleo/entrevista/idioma.js';
+import { avisarSocios } from '../v3/avisos.js';
 
-export const VERSION_ELECCION = '2026-11-05';
+export const VERSION_ELECCION = '2026-11-06';
 
 type Quien = 'familia' | 'narrador';
-export type VozEleccion = Idioma | 'usted';
 
-// ESPERA aprobación de Naza · A-01 (05/11). «usted» es el guion clásico, que tutea o no según la ficha.
-const PREGUNTA: Record<VozEleccion, string> = {
-  'es-AR': 'Una cosa más, {{nombre}}. ¿Quién querés que vea lo que me vas contando mientras contás? Si elegís a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas desde ahora. Si preferís ser solo vos, nadie de tu familia los ve mientras tanto, y cuando terminemos vas a tener 48 horas para sacar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestás, queda como si hubieras elegido ser solo vos. Podés cambiarlo cuando quieras tocando el otro botón.',
-  'es-ES': 'Una cosa más, {{nombre}}. ¿Quién quieres que vea lo que me vas contando mientras cuentas? Si eliges a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas desde ahora. Si prefieres ser solo tú, nadie de tu familia los ve mientras tanto, y cuando terminemos tendrás 48 horas para quitar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestas, queda como si hubieras elegido ser solo tú. Puedes cambiarlo cuando quieras pulsando el otro botón.',
-  ca: "Una cosa més, {{nombre}}. Qui vols que vegi el que m'expliques mentre ho expliques? Si tries la teva família, qui te l'ha regalat i els familiars que convidi poden escoltar els teus àudios i llegir les teves respostes des d'ara. Si prefereixes ser només tu, ningú de la teva família no els veu mentrestant, i quan acabem tindràs 48 hores per treure el que vulguis. En tots dos casos, la teva família llegeix el llibre quan estigui a punt. Si no contestes, queda com si haguessis triat ser només tu. Ho pots canviar quan vulguis tocant l'altre botó.",
-  usted: 'Una cosa más, {{nombre}}. ¿Quién quiere que vea lo que me va contando mientras cuenta? Si elige a su familia, quien se lo regaló y los familiares que invite pueden escuchar sus audios y leer sus respuestas desde ahora. Si prefiere ser solo usted, nadie de su familia los ve mientras tanto, y cuando terminemos va a tener 48 horas para sacar lo que quiera. En los dos casos, su familia lee el libro cuando esté listo. Si no contesta, queda como si hubiera elegido ser solo usted. Puede cambiarlo cuando quiera tocando el otro botón.',
+// A-01 · vos y tú: APROBADOS por Naza el 06/11. El catalán lo revisa Imma.
+const PREGUNTA: Record<Idioma, string> = {
+  'es-AR': 'Una cosa más, {{nombre}}. ¿Quién querés que vea lo que me vas contando mientras armamos tu libro? Si elegís a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas, y quien te lo regaló puede dejar cosas afuera del libro. Si elegís solo vos, nadie de tu familia los ve mientras tanto, y cuando terminemos vas a tener 48 horas para sacar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestás, queda como si hubieras elegido solo vos. Podés cambiarlo cuando quieras tocando el otro botón.',
+  'es-ES': 'Una cosa más, {{nombre}}. ¿Quién quieres que vea lo que me vas contando mientras preparamos tu libro? Si eliges a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas, y quien te lo regaló puede dejar cosas fuera del libro. Si eliges solo tú, nadie de tu familia los ve mientras tanto, y cuando terminemos tendrás 48 horas para quitar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestas, queda como si hubieras elegido solo tú. Puedes cambiarlo cuando quieras pulsando el otro botón.',
+  ca: "Una cosa més, {{nombre}}. Qui vols que vegi el que m'expliques mentre preparem el teu llibre? Si tries la teva família, qui te l'ha regalat i els familiars que convidi poden escoltar els teus àudios i llegir les teves respostes, i qui te l'ha regalat pot deixar coses fora del llibre. Si tries només tu, ningú de la teva família no els veu mentrestant, i quan acabem tindràs 48 hores per treure el que vulguis. En tots dos casos, la teva família llegeix el llibre quan estigui a punt. Si no contestes, queda com si haguessis triat només tu. Ho pots canviar quan vulguis tocant l'altre botó.",
 };
 
-const BOTONES: Record<VozEleccion, { familia: string; narrador: string }> = {
-  'es-AR': { familia: 'Mi familia', narrador: 'Prefiero yo' },
-  'es-ES': { familia: 'Mi familia', narrador: 'Prefiero yo' },
-  ca: { familia: 'La meva família', narrador: 'Prefereixo jo' },
-  usted: { familia: 'Mi familia', narrador: 'Prefiero yo' },
+const BOTONES: Record<Idioma, { familia: string; narrador: string }> = {
+  'es-AR': { familia: 'Mi familia', narrador: 'Solo yo' },
+  'es-ES': { familia: 'Mi familia', narrador: 'Solo yo' },
+  ca: { familia: 'La meva família', narrador: 'Només jo' },
 };
 
-// ESPERA aprobación de Naza · A-02 (05/11)
-const ACUSE: Record<VozEleccion, Record<Quien, string>> = {
+// A-02 · vos y tú: APROBADOS por Naza el 06/11. El catalán lo revisa Imma.
+const ACUSE: Record<Idioma, Record<Quien, string>> = {
   'es-AR': {
-    familia: 'Listo, {{nombre}}. Tu familia va a poder ver lo que vayas contando.',
-    narrador: 'Listo, {{nombre}}. Lo que me cuentes no lo ve tu familia hasta que el libro esté listo. Cuando terminemos te mando un link, y vas a tener 48 horas para sacar lo que quieras.',
+    familia: 'Listo, {{nombre}}. Tu familia va a poder ver todo lo que me cuentes, también lo que ya me contaste.',
+    narrador: 'Listo, {{nombre}}. Lo que me cuentes no lo va a ver tu familia hasta que el libro esté listo. Cuando terminemos te mando un link, y vas a tener 48 horas para sacar lo que quieras.',
   },
   'es-ES': {
-    familia: 'Listo, {{nombre}}. Tu familia podrá ver lo que vayas contando.',
+    familia: 'Listo, {{nombre}}. Tu familia podrá ver todo lo que me cuentes, también lo que ya me has contado.',
     narrador: 'Listo, {{nombre}}. Lo que me cuentes no lo verá tu familia hasta que el libro esté listo. Cuando terminemos te enviaré un enlace, y tendrás 48 horas para quitar lo que quieras.',
   },
   ca: {
-    familia: "D'acord, {{nombre}}. La teva família podrà veure el que vagis explicant.",
+    familia: "D'acord, {{nombre}}. La teva família podrà veure tot el que m'expliquis, també el que ja m'has explicat.",
     narrador: "D'acord, {{nombre}}. El que m'expliquis no ho veurà la teva família fins que el llibre estigui a punt. Quan acabem t'enviaré un enllaç, i tindràs 48 hores per treure el que vulguis.",
-  },
-  usted: {
-    familia: 'Listo, {{nombre}}. Su familia va a poder ver lo que vaya contando.',
-    narrador: 'Listo, {{nombre}}. Lo que me cuente no lo ve su familia hasta que el libro esté listo. Cuando terminemos le mando un link, y va a tener 48 horas para sacar lo que quiera.',
   },
 };
 
@@ -60,17 +54,17 @@ export function eligeAcceso(n: ConContexto): boolean {
 
 const conNombre = (t: string, nombre: string) => t.replaceAll('{{nombre}}', nombre);
 
-/** La voz del mensaje: el idioma, o el trato en el guion clásico. */
-export function vozDeEleccion(contexto: ConContexto['contexto']): VozEleccion {
+/** El idioma del mensaje. Nunca de usted (Naza, 06/11): si una venta nueva pasara por el guion clásico, va de tú. */
+export function vozDeEleccion(contexto: ConContexto['contexto']): Idioma {
   if (contexto?.idioma === 'ca' || contexto?.idioma === 'es-ES') return contexto.idioma;
-  if (contexto?.regalo === true || contexto?.bienvenidaV3 === true || contexto?.modo === 'historia') return 'es-AR';
-  return contexto?.trato === 'vos' ? 'es-AR' : 'usted';
+  if (contexto?.regalo === true || contexto?.bienvenidaV3 === true || contexto?.modo === 'historia' || contexto?.trato === 'vos') return 'es-AR';
+  return 'es-ES';
 }
 
 /** La pregunta con sus botones, si le toca. Nunca tira: si no sale, queda privado y la entrevista sigue. */
 export async function preguntarAcceso(
   n: ConContexto & { id: string; como_le_dicen: string | null; telefono_whatsapp: string },
-  voz: VozEleccion,
+  voz: Idioma,
   botones: (telefono: string, texto: string, botones: string[]) => Promise<unknown>,
 ): Promise<void> {
   if (!eligeAcceso(n) || n.contexto?.acceso?.quien) return;
@@ -93,8 +87,9 @@ export function quienDelBoton(texto: string | null | undefined): Quien | null {
 }
 
 /**
- * Atiende el botón. true: era de la elección y ya está (no sigue a ningún motor). Se relee el contexto: otro módulo puede
- * haberlo escrito entre medio. Un reenvío de Meta o el mismo botón otra vez no cambian nada ni contestan.
+ * Atiende el botón. true: era de la elección y ya está (no sigue a ningún motor). Guarda con anotar_eleccion_acceso,
+ * que la escribe de una sola vez y sin tocar el resto del contexto; un trigger impide que otra escritura la pise
+ * (migración 20261106000100). Solo confirma lo que quedó guardado. Un reenvío de Meta o el mismo botón no cambian nada.
  */
 export async function atenderEleccion(
   db: SupabaseClient,
@@ -106,23 +101,20 @@ export async function atenderEleccion(
   if (!eligeAcceso(n) || m.esBoton !== true) return false;
   const quien = quienDelBoton(m.texto);
   if (!quien) return false;
-  const { data, error } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
+  const acceso = { quien, at: ahora.toISOString(), waMessageId: m.waMessageId, version: VERSION_ELECCION };
+  const { data: cambio, error } = await db.rpc('anotar_eleccion_acceso', { p_narrador: n.id, p_acceso: acceso });
   if (error) {
-    // No se pisa nada a ciegas. El botón se traga igual: no puede terminar como respuesta de la entrevista.
-    console.error(`acceso: no pude leer a ${n.id} para anotar su elección:`, error.message);
+    // El botón se traga igual: no puede terminar como respuesta de la entrevista. No se le confirma nada.
+    console.error(`acceso: no pude anotar la elección de ${n.id}:`, error.message);
+    await avisarSocios(`acceso-eleccion:${n.id}`, 'No se guardó la elección de un narrador',
+      `${n.id} tocó «${m.texto}» y no se pudo guardar (${error.message}). No se le confirmó nada y sigue como estaba. Si es la primera vez, mirar que la migración 20261106000100 esté aplicada.`,
+      { unaVez: true }).catch(() => undefined);
     return true;
   }
-  const contexto = { ...((data as ConContexto | null)?.contexto ?? n.contexto ?? {}) };
-  if (contexto.acceso?.quien === quien) return true;
-  contexto.acceso = { ...contexto.acceso, elige: true, quien, at: ahora.toISOString(), waMessageId: m.waMessageId, version: VERSION_ELECCION };
-  const { error: errorUpdate } = await db.from('narradores').update({ contexto }).eq('id', n.id);
-  if (errorUpdate) {
-    console.error(`acceso: no pude anotar la elección de ${n.id}:`, errorUpdate.message);
-    return true;
-  }
-  n.contexto = contexto;
+  if (cambio !== true) return true;
+  n.contexto = { ...n.contexto, acceso: { ...n.contexto?.acceso, ...acceso } };
   try {
-    await enviarTexto(n.telefono_whatsapp, conNombre(ACUSE[vozDeEleccion(contexto)][quien], n.como_le_dicen ?? ''));
+    await enviarTexto(n.telefono_whatsapp, conNombre(ACUSE[vozDeEleccion(n.contexto)][quien], n.como_le_dicen ?? ''));
   } catch (err) {
     console.error(`acceso: no pude confirmarle a ${n.id}:`, err instanceof Error ? err.message : err);
   }
