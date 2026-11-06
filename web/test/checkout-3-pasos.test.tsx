@@ -200,7 +200,7 @@ describe("/comprar en tres pasos", () => {
     const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={cat} />);
     const extras = html.indexOf('class="chk-extras"');
     expect(extras).toBeGreaterThan(html.indexOf('value="impreso"'));
-    expect(extras).toBeLessThan(html.indexOf('value="digital"'));
+    expect(extras).toBeGreaterThan(html.indexOf('value="digital"')); // en la nota de la elegida, debajo de las tres
     expect(html).toContain(escapar(ES.copiasTitulo));
     // En el impreso la fila es el primer marco: «Marco con su foto».
     expect(html).toContain(escapar(ES.marcoPrimeroTitulo));

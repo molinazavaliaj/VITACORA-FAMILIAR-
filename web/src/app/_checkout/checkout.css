@@ -517,6 +517,15 @@
 .chk .chk-est-nota .chk-extras { margin: 0 14px; }
 .chk .chk-est-nota .chk-extra-marca { grid-template-columns: 22px minmax(0, 1fr) auto; }
 .chk .chk-est-nota .chk-extra-contador { margin-left: 34px; }
+/* La nota de la elegida: en el teléfono, justo debajo de ella; en compu, a todo el ancho debajo de las tres. */
+.chk .chk-est-nota { order: var(--orden, 0); }
+.chk .chk-est-elegida { padding: 16px 14px 6px; }
+.chk .chk-est-elegida .chk-op-detalle { margin: 0 0 10px; text-wrap: pretty; }
+.chk .chk-est-elegida .chk-extras { margin: 0; }
+@container (min-width: 620px) {
+  .chk .chk-est-nota { order: 0; }
+  .chk .chk-est-elegida { order: 1; grid-column: 1 / -1; padding: 18px 20px 8px; }
+}
 /* Tres columnas si el lugar del paso alcanza (cuando no, una sola, como en el teléfono). */
 @container (min-width: 620px) {
   .chk-est-notas { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 14px; }
@@ -524,6 +533,9 @@
   .chk .chk-est-nota .chk-op-precio { grid-column: 2; flex-direction: row; justify-content: flex-start; margin-top: 8px; }
   .chk .chk-est-nota .chk-extra-marca { grid-template-columns: 22px minmax(0, 1fr); }
   .chk .chk-est-nota .chk-extra-precio { grid-column: 2; }
+  /* La nota de la elegida es ancha: sus filas llevan el precio al lado. */
+  .chk .chk-est-elegida .chk-extra-marca { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .chk .chk-est-elegida .chk-extra-precio { grid-column: 3; }
 }
 
 @media (max-width: 639px) {

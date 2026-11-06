@@ -111,15 +111,14 @@ describe("el estante del paso 1", () => {
     expect(repisa(html)).toMatch(/for="formato-impreso"[^>]*data-elegido="true"/);
   });
 
-  it("cada opción con su nota de color, y los extras adentro de la elegida", () => {
+  it("cada opción con su nota de color, y los extras en la nota de la elegida", () => {
     const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
     for (const [o, tinte] of [["marco", 1], ["impreso", 2], ["digital", 3]] as const) {
       expect(html).toContain(`class="chk-op chk-est-nota acu-nota acu-tinte-${tinte}" data-opcion="${o}"`);
     }
-    const impreso = html.indexOf('data-opcion="impreso"');
-    const extras = html.indexOf('class="chk-extras"');
-    expect(extras).toBeGreaterThan(impreso);
-    expect(extras).toBeLessThan(html.indexOf('data-opcion="digital"'));
+    const elegida = html.indexOf("chk-est-elegida acu-nota acu-tinte-2");
+    expect(elegida).toBeGreaterThan(html.indexOf('data-opcion="digital"'));
+    expect(html.indexOf('class="chk-extras"')).toBeGreaterThan(elegida);
   });
 
   it("con una sola opción no hay nada que elegir: va la lista", () => {

@@ -183,7 +183,7 @@ export function OpcionesLibro({
         const esta = elegida === o;
         const cinta = o === "marco" && T.cinta ? T.cinta : null;
         return (
-          <div key={o} className={enEstante ? `chk-op chk-est-nota acu-nota acu-tinte-${TINTE_NOTA[o]}` : "chk-op"} data-opcion={o}>
+          <div key={o} className={enEstante ? `chk-op chk-est-nota acu-nota acu-tinte-${TINTE_NOTA[o]}` : "chk-op"} data-opcion={o} style={enEstante ? { ["--orden" as string]: opciones.indexOf(o) * 2 } : undefined}>
             {cinta ? (
               <span aria-hidden className="chk-cinta">
                 {cinta}
@@ -198,13 +198,13 @@ export function OpcionesLibro({
                 <span className="chk-op-cabeza">{frase ? frase.cabeza : titulos[o].titulo}</span>
                 {frase ? <span className="chk-op-bajada">{frase.bajada}</span> : null}
                 {frase ? <span className="chk-op-meta">{titulos[o].titulo}</span> : null}
-                {esta ? <span className="chk-op-detalle">{titulos[o].detalle}</span> : null}
+                {esta && !enEstante ? <span className="chk-op-detalle">{titulos[o].detalle}</span> : null}
               </span>
               <span className="chk-op-precio">
                 <span className="chk-op-cifra">{precio === null ? "" : f(precio)}</span>
               </span>
             </label>
-            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={o === "impreso" ? oferta : null} conMiniatura={!enEstante} /> : null}
+            {esta && o !== "digital" && !enEstante ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={o === "impreso" ? oferta : null} conMiniatura={!enEstante} /> : null}
           </div>
         );
   });
@@ -220,7 +220,14 @@ export function OpcionesLibro({
               </label>
             ))}
           </div>
-          <div className="chk-est-notas">{notas}</div>
+          {/* El detalle y los extras de la elegida van en una nota aparte: en compu, a todo el ancho debajo de las tres, así ninguna se estira sola; en el teléfono, justo debajo de la elegida (--orden). */}
+          <div className="chk-est-notas">
+            {notas}
+            <div className={`chk-est-nota chk-est-elegida acu-nota acu-tinte-${TINTE_NOTA[elegida]}`} style={{ ["--orden" as string]: opciones.indexOf(elegida) * 2 + 1 }}>
+              <p className="chk-op-detalle">{titulos[elegida].detalle}</p>
+              {elegida !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={elegida === "impreso" ? oferta : null} conMiniatura={false} /> : null}
+            </div>
+          </div>
         </div>
       ) : (
         notas
