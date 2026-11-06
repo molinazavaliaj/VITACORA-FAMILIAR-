@@ -4,8 +4,8 @@
 // lo contesta acá. Lo que se guarda va a `{narrador}/escritor/correcciones.json`,
 // que la Etapa B lee antes de escribir el libro.
 //
-// El plazo manda: la fábrica espera ESCRITOR_ESPERA_DUDAS_HORAS desde el mail de
-// dudas y después escribe igual, con o sin correcciones. Esto es lo puro: qué se
+// El plazo manda: la fábrica espera 72 horas desde el aviso a quien contó y después
+// escribe igual, con o sin correcciones. Esto es lo puro: qué se
 // puede guardar, cómo se junta con lo que ya había y cuánto tiempo queda. Sin red.
 
 import { esZonaValida } from "./horario";
@@ -24,27 +24,6 @@ export type DudaFamilia = {
   /** Si vienen, se ofrecen como botones; el campo libre queda igual. */
   opciones?: string[];
 };
-
-/** A quién se le pregunta cada duda: `dudas-destino.json`, que deja la fábrica al clasificarlas (CONTRATO). */
-export const ARCHIVO_DESTINO_DUDAS = "dudas-destino.json";
-
-/**
- * Las dudas que puede ver quien regala (Naza, 05/11): solo las que la fábrica clasificó como `familia` con ese mismo
- * texto, sin citas ni lo que quedó sin resolver. Lo demás va al narrador. Sin clasificación válida, ninguna: ante la
- * duda, se muestra menos. Lo que no se devuelve acá no cuenta como pendiente en ningún lado.
- */
-export function dudasParaQuienRegala(dudas: DudaFamilia[], destinoJson: string | null): DudaFamilia[] {
-  const permitidas = new Map<string, string>();
-  try {
-    const j = JSON.parse(destinoJson ?? "null") as { dudas?: { id?: unknown; pregunta?: unknown; destino?: unknown }[] } | null;
-    for (const d of Array.isArray(j?.dudas) ? j.dudas : []) {
-      if (typeof d?.id === "string" && typeof d.pregunta === "string" && d.destino === "familia") permitidas.set(d.id, d.pregunta);
-    }
-  } catch {
-    return [];
-  }
-  return dudas.filter((d) => permitidas.get(d.id) === d.pregunta).map((d) => ({ id: d.id, pregunta: d.pregunta, ...(d.opciones ? { opciones: d.opciones } : {}) }));
-}
 
 /**
  * Una respuesta de la familia, como queda en `correcciones.json`. La fábrica lee
@@ -67,17 +46,35 @@ export type CorreccionFamilia = {
  */
 export type PedidoRespuesta = { dudaId: string; texto: string; borrar?: true; antes?: string };
 
+/** El plazo de quien contó: privados y «Para mí» (`restaPlazoDudas` de la fábrica). La variable no lo cambia. */
+export const HORAS_PLAZO_DUDAS = 72;
+/** Lo que espera la fábrica en un `modo` viaje o kids si `ESCRITOR_ESPERA_DUDAS_HORAS` no está. */
+const HORAS_ESPERA_VIAJE_KIDS = 24;
+/** Unos minutos de diferencia entre relojes no hacen «del futuro» a una marca que escribe otro servicio. */
+const MS_RELOJES = 5 * 60_000;
+
 /**
- * Lo que espera la fábrica si `ESCRITOR_ESPERA_DUDAS_HORAS` no está. La web lee
- * la misma variable (`horasPlazoDudas`): en Vercel tiene que valer lo mismo que
+ * Cuántas horas espera la fábrica. A quien contó, 72. Un `modo` viaje o kids no recibe el WhatsApp y sigue con
+ * `ESCRITOR_ESPERA_DUDAS_HORAS`: 24 por defecto, 0 vale (no espera), basura es 24. En Vercel tiene que valer lo mismo que
  * en Railway, o la pantalla promete un plazo que no es el de la fábrica.
  */
-export const HORAS_PLAZO_DUDAS = 24;
+export function horasPlazoDudas(aQuienConto: boolean, valor: string | undefined = process.env.ESCRITOR_ESPERA_DUDAS_HORAS): number {
+  if (aQuienConto) return HORAS_PLAZO_DUDAS;
+  const h = Number(valor ?? HORAS_ESPERA_VIAJE_KIDS);
+  return Number.isFinite(h) && h >= 0 ? h : HORAS_ESPERA_VIAJE_KIDS;
+}
 
-/** Como `esperaPorDudasMs` de la fábrica: 24 por defecto, 0 vale (no espera), basura es 24. */
-export function horasPlazoDudas(valor: string | undefined = process.env.ESCRITOR_ESPERA_DUDAS_HORAS): number {
-  const h = Number(valor ?? HORAS_PLAZO_DUDAS);
-  return Number.isFinite(h) && h >= 0 ? h : HORAS_PLAZO_DUDAS;
+/**
+ * Desde cuándo corre el plazo, como la fábrica. A quien contó: `dudas-narrador-avisadas.txt` o, si nunca salió,
+ * `dudas-avisadas.txt`; vacía, rota o del futuro no cuenta. Viaje y kids: solo `dudas-avisadas.txt`.
+ */
+export function desdeCuandoCorreElPlazo(marcaNarrador: string | null, marcaSocios: string | null, aQuienConto: boolean, ahora: number = Date.now()): string | null {
+  if (!aQuienConto) return marcaSocios;
+  const vigente = (texto: string | null) => {
+    const f = Date.parse(texto?.trim() ?? "");
+    return Number.isFinite(f) && f <= ahora + MS_RELOJES ? texto!.trim() : null;
+  };
+  return vigente(marcaNarrador) ?? vigente(marcaSocios);
 }
 
 /** Una respuesta de persona: se corta, no se rechaza. Perder lo que escribió es peor que guardarlo largo. */
@@ -91,8 +88,8 @@ export type EstadoPlazo = {
 };
 
 /**
- * Hasta cuándo sirve contestar. `avisadasAt` es el contenido de `dudas-avisadas.txt`
- * (cuándo salió el mail): sin esa fecha no se inventa un plazo, porque mostrar una
+ * Hasta cuándo sirve contestar. `avisadasAt` es lo que da `desdeCuandoCorreElPlazo`:
+ * sin esa fecha no se inventa un plazo, porque mostrar una
  * cuenta regresiva equivocada es peor que no mostrar ninguna.
  *
  * Que el plazo haya vencido no cierra la pantalla: mientras el libro no esté escrito,
@@ -102,7 +99,7 @@ export function estadoDelPlazo(
   avisadasAt: string | null,
   libroEscrito: boolean,
   ahora: Date = new Date(),
-  horas: number = horasPlazoDudas(),
+  horas: number = HORAS_PLAZO_DUDAS,
 ): EstadoPlazo {
   if (libroEscrito) return { estado: "libro_escrito", venceAt: null };
 
@@ -267,6 +264,27 @@ export function correccionesPorDuda(correcciones: unknown[]): Map<string, Correc
 export function hayDudasSinContestar(dudas: DudaFamilia[], correcciones: unknown[]): boolean {
   const porDuda = correccionesPorDuda(correcciones);
   return dudas.some((d) => (porDuda.get(d.id)?.texto ?? "").trim() === "");
+}
+
+/** Lo que necesita quien contó para contestar una duda, y nada más: ni qué quedó sin resolver, ni de qué respuesta salió. */
+export type PreguntaDePantalla = { id: string; numero: number; pregunta: string; citas: string[]; opciones: string[] };
+
+/** Las que le faltan, en orden, con su número entre todas. Lo que no esté acá no llega al navegador. */
+export function preguntasParaLaPantalla(dudas: DudaFamilia[], correcciones: unknown[]): PreguntaDePantalla[] {
+  const porDuda = correccionesPorDuda(correcciones);
+  const textos = (lista: unknown[] | undefined, de: (x: unknown) => unknown) =>
+    (Array.isArray(lista) ? lista : []).map(de).filter((t): t is string => typeof t === "string" && t.trim() !== "");
+  return dudas.flatMap((d, i) =>
+    (porDuda.get(d.id)?.texto ?? "").trim() !== ""
+      ? []
+      : [{
+          id: d.id,
+          numero: i + 1,
+          pregunta: d.pregunta,
+          citas: [...new Set(textos(d.citas, (c) => (c as { texto?: unknown } | null)?.texto))],
+          opciones: [...new Set(textos(d.opciones, (o) => o))],
+        }],
+  );
 }
 
 /**

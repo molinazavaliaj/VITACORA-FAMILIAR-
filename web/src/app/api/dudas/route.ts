@@ -4,14 +4,14 @@
 // el libro (supabase/CONTRATO.md, "Escritor V3 en la fábrica").
 //
 // Contestan la dueña y los invitados (son los que conocen los datos reales); el
-// visitante no. A diferencia de `nombres`, esto NO es `soloDuena`.
+// visitante no. A diferencia de `nombres`, esto NO es `soloDuena`. Si lo contado es
+// privado, nadie contesta por acá: las dudas van a quien contó, por su link (Naza, 06/11).
 
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, PUEDE } from "@/lib/panel";
-import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "@/lib/dudas";
-import { archivosDelEscritor, carpetaDelEscritor, leerDelEscritor, dudasQueVe } from "@/lib/dudas-archivos";
+import { historiaAccesible, loContadoEsPrivado, PUEDE } from "@/lib/panel";
+import { ESTADO_DE_LA_FALLA, guardarRespuestasDudas } from "@/lib/dudas-guardar";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { regionDelRequest } from "@/lib/region";
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     console.error("dudas POST: fallo el acceso", errorHistoria);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO() }, { status: 500 });
   }
-  if (!historia || !PUEDE.contestarDudas(historia.rol)) {
+  if (!historia || !PUEDE.contestarDudas(historia.rol) || loContadoEsPrivado(historia.narrador)) {
     // Sin acceso no se lee la familia de la historia: el trato sale del país del pedido.
     const tu = tratoDeRegion(regionDelRequest(request.headers)) === "tu";
     return NextResponse.json({ error: tu ? "No tienes acceso a esta historia." : "No tenés acceso a esta historia." }, { status: 404 });
@@ -54,76 +54,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El cuerpo de la solicitud no es JSON válido." }, { status: 400 });
   }
 
-  // Con el libro escrito, lo que se conteste ya no entra: no se guarda para que
-  // nadie crea que sí. El cliente muestra su mensaje de falla de siempre.
-  const { nombres, error: errorListado } = await archivosDelEscritor(admin, id);
-  if (errorListado) {
-    console.error("dudas POST: fallo el listado de escritor/", errorListado);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-  }
-  if (nombres.has("libro.md")) {
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 409 });
-  }
-
-  // Las dudas mandan: una respuesta que no apunta a ninguna no se sabe dónde
-  // aplicar. Sin el archivo no hay nada que contestar; si no se pudo leer, es un error.
-  const archivoDudas = await leerDelEscritor(admin, id, "dudas-familia.json");
-  if (archivoDudas.error) {
-    console.error("dudas POST: fallo la descarga de dudas-familia.json", archivoDudas.error);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-  }
-  if (archivoDudas.texto === null) {
-    return NextResponse.json({ error: "Esta historia no tiene dudas para contestar." }, { status: 404 });
-  }
-  const leidas = leerDudas(archivoDudas.texto);
-  if (!leidas) {
-    console.error("dudas POST: dudas-familia.json invalido");
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-  }
-  // Una duda oculta se rechaza igual que una inventada (Naza, 05/11).
-  const dudas = await dudasQueVe(admin, historia.narrador, leidas);
-
-  const resultado = validarCorreccionesFamilia(body.correcciones, dudas);
-  if (!resultado.ok) {
-    return NextResponse.json({ error: resultado.mensaje }, { status: 400 });
-  }
-
-  // Lo que ya está guardado, de otros familiares y de los socios. Si no se pudo
-  // leer o está roto, no se escribe: reescribirlo perdería lo que había.
-  const archivoCorrecciones = await leerDelEscritor(admin, id, "correcciones.json");
-  if (archivoCorrecciones.error) {
-    console.error("dudas POST: fallo la descarga de correcciones.json", archivoCorrecciones.error);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-  }
-  let guardadas: unknown[] = [];
-  if (archivoCorrecciones.texto !== null) {
-    const leidas = leerCorreccionesGuardadas(archivoCorrecciones.texto);
-    if (!leidas) {
-      console.error("dudas POST: correcciones.json invalido, no se pisa");
-      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-    }
-    guardadas = leidas;
-  }
-
   const autor = { quien: await nombreDeQuienContesta(admin, historia), mail: user.email ?? undefined };
-  const correcciones = fusionarCorrecciones(guardadas, resultado.correcciones, dudas, autor);
+  const resultado = await guardarRespuestasDudas(admin, id, body.correcciones, autor);
+  if (resultado.ok) return NextResponse.json({ ok: true }, { status: 200 });
 
-  // La carpeta ya se leyó arriba sin error (el listado la usa): una historia guarda en la suya.
-  const { carpeta } = await carpetaDelEscritor(admin, id);
-  const { error: errorSubida } = await admin.storage
-    .from("audios")
-    .upload(`${carpeta}/correcciones.json`, JSON.stringify({ correcciones }), {
-      contentType: "application/json",
-      upsert: true,
-      cacheControl: "0",
-    });
-
-  if (errorSubida) {
-    console.error("dudas POST: fallo la subida de correcciones.json", errorSubida);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true }, { status: 200 });
+  // Con el libro escrito o con una falla, el cliente muestra su mensaje de siempre.
+  const mensaje = resultado.motivo === "sin_dudas" ? "Esta historia no tiene dudas para contestar." : resultado.mensaje ?? MENSAJE_ERROR_GENERICO(trato);
+  return NextResponse.json({ error: mensaje }, { status: ESTADO_DE_LA_FALLA[resultado.motivo] });
 }
 
 /**

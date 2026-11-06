@@ -51,8 +51,13 @@ export async function POST(request: NextRequest) {
   if (n?.libro_aprobado_at) {
     return NextResponse.json({ error: "El libro ya está cerrado: ya no se invita, se comparte." }, { status: 400 });
   }
-  // Terminó de contar: se invita solo para contestar las dudas que quedan.
+  // Terminó de contar: se invita solo para contestar las dudas que quedan. Si lo contado es privado, las contesta quien
+  // contó (Naza, 06/11): no hay nada para lo que invitar.
   const paraDudas = ESTADOS_CERRADOS.includes(n?.estado ?? narrador.estado);
+  if (paraDudas && loContadoEsPrivado(narrador)) {
+    const tu = (await tratoDeLaFamilia(admin, narrador.familia_id)) === "tu";
+    return NextResponse.json({ error: `Ya terminó de contar. Cuando el libro esté listo ${tu ? "podrás" : "vas a poder"} compartirlo con un link.` }, { status: 400 });
+  }
   if (paraDudas && !(await hayDudasPendientes(admin, narrador))) {
     return NextResponse.json({ error: "Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link." }, { status: 400 });
   }

@@ -65,7 +65,7 @@ export type TextosMailInvitacion = {
   contando: (narrador: string) => string;
   cuerpo: (quien: string, privado?: boolean) => string;
   tituloDudas: (narrador: string) => string;
-  cuerpoDudas: (quien: string, privado?: boolean) => string;
+  cuerpoDudas: (quien: string) => string;
   entra: string;
   boton: (narrador: string) => string;
   botonDudas: string;
@@ -124,9 +124,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
         ? `${quien} te ha invitado a su historia. Podrás ver cuánto lleva contado, escribir preguntas que te gustaría que le hicieran y añadir fotos de cada época. Lo que cuenta queda privado hasta que el libro esté listo.`
         : `${quien} te ha invitado a seguir su historia. Podrás escuchar lo que va contando, escribir preguntas que te gustaría que le hicieran y añadir fotos de cada época.`,
       tituloDudas: (n) => `${n} ha terminado de contar su vida y estamos a punto de escribir su libro.`,
-      cuerpoDudas: (quien, privado) => privado
-        ? `${quien} te ha invitado porque han quedado algunas dudas, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro.`
-        : `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
+      cuerpoDudas: (quien) => `${quien} te ha invitado porque han quedado algunas dudas sobre lo que contó, como un nombre o un año. Si sabes la respuesta, puedes escribirla antes de que se escriba el libro. También podrás escuchar lo que contó.`,
       entra: "Entra con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
@@ -175,9 +173,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
         : `${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época.`,
       // Aprobados 13/10.
       tituloDudas: (n) => `${n} terminó de contar su vida y estamos por escribir su libro.`,
-      cuerpoDudas: (quien, privado) => privado
-        ? `${quien} te invitó porque quedaron algunas dudas, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro.`
-        : `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
+      cuerpoDudas: (quien) => `${quien} te invitó porque quedaron algunas dudas sobre lo que contó, como un nombre o un año. Si sabés la respuesta, podés escribirla antes de que se escriba el libro. También vas a poder escuchar lo que contó.`,
       entra: "Entrá con este mismo correo.",
       boton: (n) => `Ver la historia de ${n}`,
       botonDudas: "Ver las dudas",
@@ -227,9 +223,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
         ? `${quien} t'ha convidat a la seva història. Podràs veure quant porta explicat, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època. El que explica queda privat fins que el llibre estigui llest.`
         : `${quien} t'ha convidat a seguir la seva història. Podràs escoltar el que va explicant, proposar preguntes que t'agradaria que li fessin i afegir fotos de cada època.`,
       tituloDudas: (n) => `${n} ha acabat d'explicar la seva vida i estem a punt d'escriure el seu llibre.`,
-      cuerpoDudas: (quien, privado) => privado
-        ? `${quien} t'ha convidat perquè han quedat alguns dubtes, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre.`
-        : `${quien} t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.`,
+      cuerpoDudas: (quien) => `${quien} t'ha convidat perquè han quedat alguns dubtes sobre el que va explicar, com un nom o un any. Si saps la resposta, pots escriure-la abans que s'escrigui el llibre. També podràs escoltar el que va explicar.`,
       entra: "Entra amb aquest mateix correu:",
       boton: (n) => `Veure la història de ${n}`,
       botonDudas: "Veure els dubtes",

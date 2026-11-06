@@ -371,9 +371,13 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
 
   // Las dudas del escritor tienen plazo: el libro se escribe con o sin ellas, así
   // que ganan a elegir la tapa, que no vence.
-  it('con dudas sin contestar, el paso es contestarlas y no encargar el libro', () => {
-    const paso = proximoPaso(h('completado'), { ...r, dudasPendientes: true });
-    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.' });
+  it('«para mí», con dudas sin contestar: el paso es contestarlas y no encargar el libro', () => {
+    const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  });
+  it('en un regalo las contesta quien contó: a quien regala y a sus invitados no se les ofrece la pantalla', () => {
+    expect(proximoPaso(h('completado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
+    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3');
   });
   it('si el libro es para quien lo compró, le habla de vos', () => {
     const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
@@ -384,8 +388,10 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
     const propiaInvitado = { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
     expect(proximoPaso(propiaInvitado, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.');
   });
-  it('un invitado también las ve: son los que saben los datos', () => {
-    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  it('un invitado de «para mí» también las ve: son los que saben los datos', () => {
+    const base = h('completado', 'invitado');
+    const propiaInvitado = { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propiaInvitado, { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
   });
   it('un visitante no', () => {
     expect(proximoPaso(h('completado', 'visitante'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');

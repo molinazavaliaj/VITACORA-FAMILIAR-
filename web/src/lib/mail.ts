@@ -403,7 +403,7 @@ export function armarMailInvitacion(opciones: {
   const asunto = dudas ? t.asuntoDudas(quien, narrador) : t.asunto(quien, narrador);
   // Con dudas, el título es el aprobado del 13/10; si no, el asunto, como el del regalo.
   const titulo = dudas ? t.tituloDudas(narrador) : asunto;
-  const parrafos = dudas ? [t.cuerpoDudas(quien, opciones.privado)] : [t.contando(narrador), t.cuerpo(quien, opciones.privado)];
+  const parrafos = dudas ? [t.cuerpoDudas(quien)] : [t.contando(narrador), t.cuerpo(quien, opciones.privado)];
   const textoBoton = dudas ? t.botonDudas : t.boton(narrador);
 
   const html = cascaron({
