@@ -3,7 +3,7 @@ import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, loContadoEsPrivado, PUEDE } from "@/lib/panel";
 import { frasesElegidasParaVer, imprentaFrenada, leerFrases, resumenDeCorte } from "@/lib/frases";
-import { hayLibroListo } from "@/lib/libro-listo";
+import { familiaPuedeVerElLibro } from "@/lib/libro-listo";
 import { FrasesElegidas } from "./elegidas";
 import { firmarTokenVoz } from "@/lib/token-libro";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
@@ -41,7 +41,7 @@ export default async function PaginaFrases({ params }: PageProps<"/tablero/[narr
     leerFrases(admin, n.id),
     admin.from("narradores").select("libro_aprobado_at").eq("id", n.id).maybeSingle(),
     tratoDeLaFamilia(admin, n.familia_id),
-    privado ? hayLibroListo(admin, n.id) : Promise.resolve(true),
+    familiaPuedeVerElLibro(admin, n, historia.rol),
   ]);
   // Si lo contado es privado: las frases elegidas, y solo con el libro listo (Naza, 05/11).
   const frases = leidas && listo ? (privado ? frasesElegidasParaVer(leidas) : leidas) : null;

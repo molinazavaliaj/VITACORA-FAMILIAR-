@@ -1,3 +1,5 @@
+import { libroAbierto } from "@/lib/acceso-contenido";
+import { idiomaDelTrato, PANEL } from "../../../_textos/panel";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
@@ -34,6 +36,18 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
   }
   if (!historia || !PUEDE.verHistoriaCompleta(historia.rol)) notFound();
   const n = historia.narrador;
+  // Privado: el libro se abre con el OK, o cuando llega el impreso (lib/acceso-contenido).
+  if (!(await libroAbierto(admin, n, historia.rol))) {
+    const tratoCerrado = await tratoDeLaFamilia(admin, n.familia_id);
+    return (
+      <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
+        <Etiqueta>Su libro · La historia de {n.nombre}</Etiqueta>
+        <Tarjeta className="mt-6">
+          <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">{PANEL[idiomaDelTrato(tratoCerrado)].privadaRevision}</p>
+        </Tarjeta>
+      </ConRiel>
+    );
+  }
 
   // Qué compró la dueña (los pedidos de su familia); qué pedido manda (el
   // entregado más nuevo, aunque haya uno pendiente de un desconocido después).

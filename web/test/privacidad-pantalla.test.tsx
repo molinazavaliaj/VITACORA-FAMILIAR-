@@ -81,8 +81,8 @@ describe("el Inicio", () => {
   const h = (estado: string, contexto: Record<string, unknown>, rol: "duena" | "invitado" = "duena") => ({ rol, narrador: { id: "n1", nombre: "A", como_le_dicen: "A", estado, contexto } }) as unknown as Historia;
   const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: false };
   it("no invita a escuchar ni a leer", () => {
-    expect(proximoPaso(h("activo", { vinculoComprador: "hija" }), r)?.texto).toBe("Mirá cuánto lleva contado");
-    expect(proximoPaso(h("completado", { vinculoComprador: "hija" }, "invitado"), r)?.texto).toBe("Ya terminó de contar. Cuando el libro esté listo, se abre acá");
+    expect(proximoPaso(h("activo", { vinculoComprador: "hija", acceso: { elige: true } }), r)?.texto).toBe("Mirá cuánto lleva contado");
+    expect(proximoPaso(h("completado", { vinculoComprador: "hija", acceso: { elige: true } }, "invitado"), r)?.texto).toBe("Ya terminó de contar. Cuando el libro esté listo, se abre acá");
     expect(proximoPaso(h("activo", { vinculoComprador: "yo mismo" }), r)?.texto).toContain("Escuchá");
   });
 });

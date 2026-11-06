@@ -18,10 +18,10 @@ const TIPO = 'respuestas';
 const ESTADOS_TERMINADOS = ['completado', 'cerrado_anticipado'];
 
 /** La misma regla que loContadoEsPrivado de la web (web/src/lib/panel.ts). */
+// Solo las ventas nuevas, y solo si el narrador no eligió a su familia (Joaquín, 05/11; flujo/acceso.ts).
 export function esPrivado(contexto: unknown): boolean {
-  const c = contexto as { modo?: unknown; vinculoComprador?: unknown } | null | undefined;
-  if (c?.modo === 'viaje' || c?.modo === 'kids') return false;
-  return c?.vinculoComprador !== 'yo mismo';
+  const a = (contexto as { acceso?: { elige?: unknown; quien?: unknown } } | null | undefined)?.acceso;
+  return a?.elige === true && a.quien !== 'familia';
 }
 
 export function firmarTokenRespuestas(narradorId: string, ahora: Date): string {

@@ -30,10 +30,10 @@ export type SumarClasico = {
 };
 
 export function HistoriaPrivada({
-  n, rol, quien, preguntasFamilia, fotos, usuarioId, aprobado, historiaCerrada, libroListo, dudasPendientes, alFinal, ritmo, horario, trato, historia = false, clasico,
+  n, rol, quien, preguntasFamilia, fotos, usuarioId, aprobado, historiaCerrada, libroListo, libroEscrito = libroListo, dudasPendientes, alFinal, ritmo, horario, trato, historia = false, clasico,
 }: {
   n: Narrador; rol: Rol; quien: Quien; preguntasFamilia: PreguntaFamiliaV3[]; fotos: FotoVista[]; usuarioId: string;
-  aprobado: boolean; historiaCerrada: boolean; libroListo: boolean; dudasPendientes: boolean; alFinal: boolean;
+  aprobado: boolean; historiaCerrada: boolean; libroListo: boolean; /** Ya está escrito, aunque todavía no se haya abierto para la familia. */ libroEscrito?: boolean; dudasPendientes: boolean; alFinal: boolean;
   ritmo: Ritmo; horario?: { hora: string; zona: string }; trato: TratoComprador; historia?: boolean; clasico?: SumarClasico;
 }) {
   const T = PANEL[idiomaDelTrato(trato)];
@@ -60,7 +60,7 @@ export function HistoriaPrivada({
 
       {/* Mientras cuenta, qué se puede hacer. Terminó, solo que sigue privado. Con el libro listo, nada: lo dicen los botones. */}
       {!cerrado ? <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTexto(quien, rol !== "duena")}</p> : null}
-      {cerrado && !libroListo && !aprobado ? <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTermino}</p> : null}
+      {cerrado && !libroEscrito && !aprobado ? <p className="max-w-prose text-[16px] leading-relaxed text-[var(--texto-suave)]">{T.privadaTermino}</p> : null}
 
       {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (
         <div className="mt-6"><CerrarEdicion narradorId={n.id} propia={false} trato={trato} /></div>
@@ -77,6 +77,8 @@ export function HistoriaPrivada({
           <ProximoPaso href={`/tablero/${n.id}/leer`}>{T.privadaLeer}</ProximoPaso>
           <ProximoPaso href={`/tablero/${n.id}/frases`}>{T.privadaFrases}</ProximoPaso>
         </div>
+      ) : libroEscrito ? (
+        <p className="mt-8 text-[15px] text-[var(--texto-suave)]">{T.privadaRevision}</p>
       ) : aprobado ? (
         <p className="mt-8 text-[15px] text-[var(--texto-suave)]">{T.privadaEscribiendo}</p>
       ) : cerrado && historiaCerrada && PUEDE.cerrarLibro(rol) ? (

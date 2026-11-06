@@ -1,6 +1,6 @@
 // Privacidad del panel en la fábrica (Naza y Joaquín, 05/11; CONTRATO, «Lo contado es privado»). La misma regla que
-// loContadoEsPrivado de la web (web/src/lib/panel.ts): en Familiar y en una historia, si el libro es para otra persona,
-// quien regala no ve lo contado. Viaje y Kids siguen igual, y «para mí» no cambia. Sin vínculo cargado, cuenta como regalo.
+// loContadoEsPrivado de la web (web/src/lib/panel.ts): en las ventas nuevas de Familiar e Historia para otra persona, salvo
+// que el narrador elija a su familia, quien regala no ve lo contado. Sin la marca `contexto.acceso`, todo sigue como siempre.
 //
 // Acá viven tres cosas de esa regla: a quién se le pregunta cada duda, cuánto espera el libro al narrador (48 horas para
 // sacar lo que quiera) y el freno de la imprenta («Hay un error, avisanos»).
@@ -13,10 +13,10 @@ import { avisarSocios } from './avisos.js';
 
 type Db = SupabaseClient;
 
+// Solo las ventas nuevas, y solo si el narrador no eligió a su familia (Joaquín, 05/11; web/src/lib/acceso-contenido.ts).
 export function esPrivado(contexto: unknown): boolean {
-  const c = contexto as { modo?: unknown; vinculoComprador?: unknown } | null | undefined;
-  if (c?.modo === 'viaje' || c?.modo === 'kids') return false;
-  return c?.vinculoComprador !== 'yo mismo';
+  const a = (contexto as { acceso?: { elige?: unknown; quien?: unknown } } | null | undefined)?.acceso;
+  return a?.elige === true && a.quien !== 'familia';
 }
 
 // ---------------------------------------------------------------- las 48 horas del narrador

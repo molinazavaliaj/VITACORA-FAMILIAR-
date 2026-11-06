@@ -504,7 +504,9 @@ Spec: `docs/superpowers/specs/2026-10-21-respuesta-fuera-del-libro-design.md`. M
 
 ## Lo contado es privado — el libro para otra persona (Naza y Joaquín, 05/11)
 
-Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `contexto.vinculoComprador` no es `yo mismo`, quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron. Sin vínculo cargado cuenta como regalo. Viaje (`modo = 'viaje'`), Kids (`modo = 'kids'`) y «para mí» siguen como estaban. La regla está repetida a propósito, una por servicio: `loContadoEsPrivado` (web/src/lib/panel.ts), `esPrivado` (fabrica/src/escritor/produccion/privacidad.ts) y `esPrivado` (entrevistador/src/link-respuestas.ts).
+Sin tablas ni columnas nuevas, sin DDL. Lo decide `contexto.acceso`, que pone la compra solo en ventas nuevas de Familiar e Historia para otra persona: `{ elige: true, quien?: 'familia' | 'narrador', at?, waMessageId?, version?, revisado_at?, revisa_familia_at? }`. **Sin esa marca (todas las entrevistas anteriores, «para mí», Viaje y Kids) nada de esto corre.** Con la marca y `quien = 'familia'`, tampoco. Con la marca y `quien` en `narrador` o vacío (no contestó), quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron.
+
+**Cuándo se abre el libro a la familia** (`familiaVeLibro`, web): con impreso, cuando una entrega está `entregado`; solo digital, con `revisado_at`. Quien compró puede antes si soporte puso `revisa_familia_at`: lee el libro y confirma, nunca audios ni respuestas. Nada sale a imprenta sin ese OK, y nunca se aprueba solo.
 
 **Libro listo** es el pedido en `entregado`, no `libro_aprobado_at`. El orden: termina de contar → dudas → encarga → 48 horas del narrador → se escribe → libro listo → confirma → imprenta.
 
@@ -513,6 +515,7 @@ Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `conte
 | `{carpeta del escritor}/dudas-destino.json` | fábrica (socios a mano) | web, fábrica | `{dudas: [{id, pregunta, destino: 'familia' \| 'narrador'}]}`. A quién se le pregunta cada duda. Vale solo con el mismo `id` y la misma `pregunta` que `dudas-familia.json`. Sin clasificación vigente, quien regala no ve ninguna. Las de `narrador` no cuentan como pendientes en la espera, en el aviso del panel ni en los mails. |
 | `{carpeta del escritor}/dudas-ocultas-avisadas.txt`, `dudas-ocultas-al-escribir.txt` | fábrica | fábrica | Candados de los dos mails a los socios sobre dudas ocultas sin contestar. |
 | `{id}/paquete/frenar_imprenta.json` | web («Hay un error, avisanos») | fábrica, web | `{reportado_at, por, detalle}`. Mientras exista, el libro no entra a imprenta, aunque esté confirmado. Lo borran los socios a mano después de corregirlo. |
+| `{id}/paquete/socios_revision_privada.txt` | fábrica | fábrica | Candado del mail a los socios cuando un libro privado ya escrito espera un OK. Lo deja solo si salió. |
 | `{id}/paquete/socios_frases_30_dias.txt` | fábrica | fábrica | Candado del mail a los socios a los 30 días sin confirmar. No se confirma solo. |
 | `entrevistas_v3.estado.linkFinal`, `historias.estado.linkFinal` | entrevistador | entrevistador | Cuándo le salió al narrador su link al terminar. Una sola vez. |
 | Token `tipo: 'respuestas'` | entrevistador | web (`/mis-respuestas/<token>`) | HS256 con `FIRMA_TOKENS`, como los otros links, con `narradorId` y `exp` (7 días). Es el único que vence. |

@@ -1,6 +1,6 @@
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { db } from '../db/cliente.js';
-import { enviarTexto } from '../whatsapp/enviar.js';
+import { enviarBotones, enviarTexto } from '../whatsapp/enviar.js';
 import { contestarLinkSiLoPide } from '../link-respuestas.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
@@ -30,6 +30,7 @@ import type { NarradorHistoria } from '../historia/tipos.js';
 import { canjearRegalo, codigoPorEntrega, mandarBienvenidaDeRegalo } from './regalo.js';
 import { elegirNarrador, ESTADOS_TERMINADOS } from './elegir-narrador.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
+import { atenderEleccion, eligeAcceso, preguntarAcceso, vozDeEleccion } from './acceso.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { avisarSocios } from '../v3/avisos.js';
 
@@ -150,6 +151,8 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }
+  // El botón de quién ve lo que cuenta: antes que cualquier motor, nunca es una respuesta de la entrevista.
+  if (await atenderEleccion(db, narrador, m, enviarTexto)) return;
 
   // Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico con fila en kids_v2 va entero por el motor de Kids, desde
   // antes del arranque hasta después del final, y a nada más (ni al canje del regalo, ni a la V3, ni a la Viaje V2, ni
@@ -402,9 +405,11 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await enviarTexto(
     narrador.telefono_whatsapp,
     idiomaRegalo
-      ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
+      ? textoDeArranque(idiomaRegalo, eligeAcceso(narrador) ? 'aceptacionConEleccion' : 'aceptacion', narrador.como_le_dicen)
       : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { enseguida }),
   );
+  // Venta nueva: elige quién ve lo que cuenta (flujo/acceso.ts). No frena nada: la primera pregunta sale igual.
+  await preguntarAcceso(narrador, vozDeEleccion(narrador.contexto), enviarBotones);
   // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
   // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
   // queda en 'acepto' sin fila V3 y lo retoma recuperarRegaloFrenado con su
@@ -503,6 +508,8 @@ async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
     return;
   }
   if (yaEsV3) return;
+  // Se frenó antes de la pregunta de quién ve lo que cuenta: le toca ahora, antes de la primera.
+  await preguntarAcceso(narrador, vozDeEleccion(narrador.contexto), enviarBotones);
   await primeraDelRegalo(narrador, 'regalo frenado');
 }
 

@@ -12,7 +12,7 @@ import { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } from '../src/mail/
 
 // Privacidad del panel en la fábrica (Naza y Joaquín, 05/11).
 
-const REGALO = { vinculoComprador: 'hija' };
+const REGALO = { vinculoComprador: 'hija', acceso: { elige: true } };
 const PROPIA = { vinculoComprador: 'yo mismo' };
 
 function baseCon(narrador: Record<string, unknown>, archivos: Record<string, string> = {}) {
@@ -43,10 +43,13 @@ describe('la regla', () => {
   it('es la misma de la web', () => {
     expect(esPrivado(REGALO)).toBe(true);
     expect(esPrivado({ modo: 'historia', ...REGALO })).toBe(true);
-    expect(esPrivado(null)).toBe(true);
+    expect(esPrivado(null)).toBe(false); // sin la marca: una entrevista anterior, sigue como se prometió
+    expect(esPrivado({ vinculoComprador: 'hija' })).toBe(false);
     expect(esPrivado(PROPIA)).toBe(false);
-    expect(esPrivado({ modo: 'viaje', ...REGALO })).toBe(false);
-    expect(esPrivado({ modo: 'kids', ...REGALO })).toBe(false);
+    expect(esPrivado({ modo: 'viaje' })).toBe(false);
+    expect(esPrivado({ modo: 'kids' })).toBe(false);
+    expect(esPrivado({ acceso: { elige: true, quien: 'narrador' } })).toBe(true);
+    expect(esPrivado({ acceso: { elige: true, quien: 'familia' } })).toBe(false);
   });
 });
 

@@ -1,3 +1,4 @@
+import { libroAbierto } from "@/lib/acceso-contenido";
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -50,6 +51,7 @@ export async function GET(
     );
   }
   const narrador = acceso.narrador;
+  if (!(await libroAbierto(admin, narrador, acceso.rol))) return NextResponse.json({ error: "Esto se abre cuando el libro esté listo." }, { status: 403 });
 
   const { pedido, error: errorPedidos } = await pedidoAMostrar(admin, narrador.id);
 

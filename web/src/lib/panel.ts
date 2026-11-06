@@ -1,3 +1,4 @@
+import { modoAcceso } from "./acceso-contenido";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { familiaDelUsuario, type FamiliaResumen } from "./familia";
@@ -49,9 +50,9 @@ export function esPropia(narrador: { contexto?: Record<string, unknown> | null }
  * Sin el vínculo cargado cuenta como regalo: ante la duda, se muestra menos.
  */
 export function loContadoEsPrivado(narrador: { contexto?: Record<string, unknown> | null }): boolean {
-  const modo = (narrador.contexto as { modo?: unknown } | null | undefined)?.modo;
-  if (modo === "viaje" || modo === "kids") return false;
-  return !esPropia(narrador);
+  // Solo las ventas nuevas, y solo si el narrador no eligió a su familia (Joaquín, 05/11; lib/acceso-contenido). Las
+  // entrevistas anteriores no llevan la marca y siguen con lo que se les prometió al comprar (términos §12).
+  return modoAcceso(narrador.contexto) === "narrador";
 }
 
 type Usuario = { id: string; email?: string | null };

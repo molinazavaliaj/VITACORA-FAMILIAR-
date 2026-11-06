@@ -762,17 +762,27 @@ async function avisarLibrosListos(): Promise<void> {
     try {
       const archivos = await listarPaquete(db, narradorId);
       if (archivos.has(CANDADO_POR_HITO.libro_listo)) {
+        // Privado: el aviso a socios para que soporte se comunique tiene su candado. Si no salió, se reintenta: el libro no
+        // se aprueba solo, y sin este aviso nadie se entera de que está frenado.
+        if (!archivos.has(CANDADO_SOCIOS_REVISION) && !(await avisarSociosRevision(db, narradorId))) continue;
         anotarHecho(db, `libro-listo:${narradorId}`);
         continue;
       }
 
       const { data: narrador, error: errorNarrador } = await db
         .from('narradores')
-        .select('id, como_le_dicen, familia_id')
+        .select('id, como_le_dicen, familia_id, contexto')
         .eq('id', narradorId)
         .single();
       if (errorNarrador || !narrador) {
         throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      }
+
+      // Lo contado es privado (Joaquín, 05/11): a la familia no se la invita a leer, y el libro no sale a imprenta sin el OK
+      // del narrador o de quien compró. Nunca se aprueba solo: soporte se comunica.
+      if (esPrivado((narrador as { contexto?: unknown }).contexto)) {
+        await mandarHito(db, narrador as NarradorConFamilia, 'libro_listo_privado', `${urlBase}/tablero/${narradorId}`, archivos, idiomaHistoria === undefined ? undefined : idiomaHistoria === 'es-AR' ? 'vos' : 'tu');
+        continue;
       }
 
       if (idiomaHistoria === undefined) {
@@ -787,6 +797,23 @@ async function avisarLibrosListos(): Promise<void> {
       console.error(`tick: falló el mail de libro listo de ${narradorId}:`, err);
     }
   }
+}
+
+const CANDADO_SOCIOS_REVISION = 'socios_revision_privada.txt';
+
+/** Un libro privado ya escrito espera un OK: se avisa a los socios una vez. False: no salió, el próximo tick reintenta. */
+async function avisarSociosRevision(db: Db, narradorId: string): Promise<boolean> {
+  const { data, error } = await db.from('narradores').select('como_le_dicen, contexto').eq('id', narradorId).single();
+  if (error || !data) throw new Error(`No se pudo leer el narrador: ${error?.message ?? 'sin datos'}`);
+  const n = data as { como_le_dicen?: string | null; contexto?: unknown };
+  if (!esPrivado(n.contexto)) return true;
+  const salio = await avisarSocios(
+    `Libro de ${n.como_le_dicen ?? narradorId} esperando revisión`,
+    `El libro de ${narradorId} ya está escrito y lo que contó es privado. No se abre a la familia ni se imprime hasta tener su OK o el de quien compró. `
+      + 'Hay que comunicarse personalmente para pedir ese paso. Para abrirle la revisión a quien compró: `contexto.acceso.revisa_familia_at` con la fecha de hoy.',
+  );
+  if (salio) await subirTexto(db, `${narradorId}/paquete/${CANDADO_SOCIOS_REVISION}`, new Date().toISOString());
+  return salio;
 }
 
 /**
@@ -895,8 +922,10 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
         throw new Error(`No se pudo leer la familia de ${narradorId}: ${errorFamilia?.message ?? 'sin datos'}`);
       }
 
-      // Privado (05/11): sin impreso no hay nada para confirmar ni para elegir, así que no se manda nada.
-      if (privado && impresoPorNarrador.get(narradorId) !== true) {
+      // Privado (05/11): nadie de la familia puede confirmar hasta que soporte le abra la revisión. Y sin impreso no hay
+      // nada para confirmar ni para elegir. En esos casos no se manda nada.
+      const revisaLaFamilia = Boolean((narrador as { contexto?: { acceso?: { revisa_familia_at?: unknown } } }).contexto?.acceso?.revisa_familia_at);
+      if (privado && (!revisaLaFamilia || impresoPorNarrador.get(narradorId) !== true)) {
         anotarHecho(db, `frases:${narradorId}`);
         continue;
       }

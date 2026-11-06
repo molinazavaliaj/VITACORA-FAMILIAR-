@@ -3,7 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { loContadoEsPrivado, narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { elegidasDe, leerFrases, tieneAudio } from "@/lib/frases";
-import { hayLibroListo } from "@/lib/libro-listo";
+import { familiaPuedeVerElLibro } from "@/lib/libro-listo";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // Si lo contado es privado: solo las elegidas y con el libro listo (Naza, 05/11).
   const privado = loContadoEsPrivado(acceso.narrador);
-  if (privado && !(await hayLibroListo(admin, acceso.narrador.id))) return NextResponse.json({ error: "Esa frase todavía no tiene audio." }, { status: 404 });
+  if (privado && !(await familiaPuedeVerElLibro(admin, acceso.narrador, acceso.rol))) return NextResponse.json({ error: "Esa frase todavía no tiene audio." }, { status: 404 });
   const frases = await leerFrases(admin, acceso.narrador.id);
   const frase = frases?.capitulos.flatMap((c) => (privado ? elegidasDe(c) : c.candidatas)).find((f) => f.id === fraseId);
   if (!frase || !tieneAudio(frase)) return NextResponse.json({ error: "Esa frase todavía no tiene audio." }, { status: 404 });
