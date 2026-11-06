@@ -33,6 +33,9 @@ export function PaginaComprar({ idioma }: { idioma: IdiomaWeb }) {
         // creador. No se suma a precios ya rebajados: con la promo global prendida, no hay campo.
         conCupon={(rascaPrendido() || creadoresPrendido()) && promoPorcentaje() === null}
         pistaCupon={rascaPrendido()}
+        // Ambos flags se leen acá, en el servidor; apagados por defecto.
+        garantiaALaVista={process.env.GARANTIA_A_LA_VISTA === "1"}
+        cuotasAr={process.env.CUOTAS_AR === "1"}
       />
     </CascaronCheckout>
   );

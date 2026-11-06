@@ -256,12 +256,15 @@ describe("/comprar en tres pasos", () => {
     expect(armarCompra(cat, "ES", carritoDe(dos)).total).toBe(49 + 50 + 19 * 2);
   });
 
-  it("el pack (Naza 14/10): el libro completo cuesta el pack, con la suma tachada; el ticket lleva una línea y lo que se ahorra", () => {
+  it("el pack (Naza 14/10): el libro completo cuesta el pack, sin tachado ni «Ahorras»; el ticket lleva una línea", () => {
     process.env.PRECIO_PACK_EUR = "109";
     try {
       const eur = (n: number) => escapar(new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n));
       const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
-      expect(html).toContain(`<s class="chk-op-tachado">${eur(119)}</s>`);
+      // Sin tachado ni «Ahorras» (Naza 06/11): el libro completo muestra solo el precio del pack.
+      expect(html).not.toContain("chk-op-tachado");
+      expect(html).not.toContain("chk-ahorro");
+      expect(html).not.toMatch(/Ahorras|Ahorrás/);
       expect(html).toContain(`<span class="chk-op-cifra">${eur(109)}</span>`);
       // El ticket del pack (una línea y lo que se ahorra) se ve al elegir el libro completo: se arranca en el impreso (25/10).
       const e = estadoInicial("es", catalogo("ES"));
@@ -305,8 +308,8 @@ describe("/comprar en tres pasos", () => {
         expect(html).toContain('id="pago-compra"');
         expect(enLaBarra).toContain(escapar(ES.pagar(total)));
       } else {
-        // Paso 1: «Iniciar Vitácora» (Naza 15/10); paso 2: «Continuar».
-        expect(enLaBarra).toContain(`>${escapar(paso === 1 ? ES.quieroLibro(false) : ES.continuar)}<`);
+        // Pasos 1 y 2: «Seguir» (Naza 06/11).
+        expect(enLaBarra).toContain(`>${escapar(ES.seguir)}<`);
       }
       // El botón del paso (el mismo) se esconde en el teléfono, y la página deja lugar para la barra.
       expect(html).toContain("chk-solo-escritorio");
@@ -698,5 +701,126 @@ describe("«Pedido confirmado»", () => {
     const html = await pagina({ viaje: "1", idioma: "es" });
     expect(html).toContain("El biógrafo de viaje");
     expect(html).toContain('data-producto="viaje"');
+  });
+});
+
+describe("checkout etapa 1: textos y marco (Naza 06/11)", () => {
+  const eur = (n: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+  const conPack = () => {
+    process.env.PRECIO_PACK_EUR = "109";
+  };
+  const sinPack = () => {
+    delete process.env.PRECIO_PACK_EUR;
+  };
+
+  it("con pack, la fila del impreso muestra la diferencia y al tocarla elige el libro completo", () => {
+    conPack();
+    try {
+      const cat = catalogo("ES");
+      const e = estadoInicial("es", cat);
+      const elegidas: string[] = [];
+      const el = (
+        <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => elegidas.push(o)} onCambio={() => {}}
+          textos={{ ...ES, titulo: ES.libroTitulo, cinta: ES.impresoEtiqueta }} tapa={{ titulo: "", idioma: "es" }} conPack formatear={eur} />
+      );
+      const html = renderToStaticMarkup(el);
+      // 109 (pack) - 99 (base + impreso) = 10
+      expect(html).toContain(escapar(ES.marcoFila(eur(10))));
+      expect(html).toContain('data-oferta="marco"');
+      expect(html).not.toContain(escapar(ES.marcoPrimeroTitulo));
+      // Elegirla = la acción de la opción «marco» (el pack).
+      expect(eleccionDe("marco", e).marcos).toBe(1);
+      expect(precioDeOpcion("marco", cat.base.precio, cat, true)).toBe(109);
+    } finally {
+      sinPack();
+    }
+  });
+
+  it("sin pack (o en Viaje, sin conPack) queda la fila de siempre", () => {
+    sinPack();
+    const cat = catalogo("ES");
+    const e = estadoInicial("es", cat);
+    for (const conPackProp of [true, false]) {
+      const html = renderToStaticMarkup(
+        <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={() => {}} onCambio={() => {}}
+          textos={{ ...ES, titulo: ES.libroTitulo, cinta: ES.impresoEtiqueta }} tapa={{ titulo: "", idioma: "es" }} conPack={conPackProp} formatear={eur} />,
+      );
+      expect(html).not.toContain("data-oferta");
+      expect(html).toContain(escapar(ES.marcoPrimeroTitulo));
+    }
+  });
+
+  it("el botón de los pasos 1 y 2 dice «Seguir» y no quedan «Iniciar Vitácora» ni «Continuar» en el checkout", () => {
+    for (const idioma of ["es", "ar"] as const) {
+      for (const paso of [1, 2] as const) {
+        const html = renderToStaticMarkup(<Checkout idioma={idioma} catalogo={catalogo(idioma === "ar" ? "AR" : "ES")} pasoInicial={paso} />);
+        expect(html).toContain(">Seguir<");
+        expect(html).not.toContain("Iniciar Vitácora");
+        expect(html).not.toContain(">Continuar<");
+      }
+    }
+  });
+
+  it("los tres ítems debajo de las opciones salen en el paso 1", () => {
+    const html = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} />);
+    for (const x of ES.seguridad) expect(html).toContain(escapar(x));
+    expect(html).toContain("chk-seguridad");
+  });
+
+  it("la nota «Si no sabe usarlo» sale en el paso 2 y en el pago, salvo en «Para mí»", () => {
+    const cat = catalogo("ES");
+    const hay = (paso: 2 | 3, para: EstadoCompra["para"]) =>
+      renderToStaticMarkup(<Checkout idioma="es" catalogo={cat} pasoInicial={paso} estadoDePrueba={{ para }} />).includes(escapar(ES.notaUso.cuerpo));
+    expect(hay(2, "padre")).toBe(true);
+    expect(hay(3, "padre")).toBe(true);
+    expect(hay(2, "yo")).toBe(false);
+    expect(hay(3, "yo")).toBe(false);
+  });
+
+  it("las notas de la fecha de la tarjeta salen con Navidad y con otra fecha elegida", () => {
+    const cat = catalogo("ES");
+    const html = (cambios: Partial<EstadoCompra>) =>
+      renderToStaticMarkup(<Checkout idioma="es" catalogo={cat} pasoInicial={2} estadoDePrueba={{ para: "padre", regalo: true, ...cambios }} />);
+    const navidad = html({ modoFecha: "navidad", fechaEntrega: proximaNavidad(new Date()) });
+    expect(navidad).toContain(escapar(ES.notaFecha.navidad.titulo));
+    expect(navidad).toContain(escapar(ES.notaFecha.navidad.cuerpo));
+    const otra = html({ modoFecha: "otra", fechaEntrega: "2027-03-01" });
+    expect(otra).toContain(escapar(ES.notaFecha.otra.titulo));
+    expect(otra).not.toContain(escapar(ES.notaFecha.navidad.titulo));
+    expect(html({ modoFecha: "otra", fechaEntrega: "" })).not.toContain(escapar(ES.notaFecha.otra.titulo));
+  });
+
+  it("los 3 textos de pago y resumen nuevos, en es y ar", () => {
+    expect(CHECKOUT.es.metodos).toBe("Pagas en la página segura de Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.");
+    expect(CHECKOUT.ar.metodos).toBe("Pagás en Mercado Pago, con cuenta o sin cuenta.");
+    expect(RESUMEN.es.incluye(false)[2]).toBe("Ves cómo avanza su libro desde la página de su historia");
+    expect(RESUMEN.ar.incluye(false)[2]).toBe("Ves cómo avanza su libro desde la página de su historia");
+    expect(RESUMEN.es.incluye(true)[2]).toBe("Escuchas tus audios desde la página de tu historia");
+    expect(CHECKOUT.es.notaFecha.navidad.titulo).toBe("El 24 le das la tarjeta");
+    expect(CHECKOUT.es.notaFecha.otra.titulo).toBe("Ese día le das la tarjeta");
+  });
+
+  it("los flags de garantía a la vista y de cuotas están apagados por defecto", () => {
+    delete process.env.GARANTIA_A_LA_VISTA;
+    delete process.env.CUOTAS_AR;
+    const es = render(PaginaComprarEs);
+    expect(es).not.toContain(`<p class="chk-nota-cuerpo">${escapar(ES.garantiaFamiliar)}`);
+    const ar = render(PaginaComprarAr);
+    expect(ar).not.toMatch(/3 cuotas de/);
+    // La garantía sigue en la letra chica.
+    const pagoEs = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} pasoInicial={3} />);
+    expect(pagoEs).toContain(escapar(ES.garantiaFamiliar));
+    // Encendidos, la garantía va en una nota y sale de la letra chica; las cuotas solo en AR.
+    const vista = renderToStaticMarkup(<Checkout idioma="es" catalogo={catalogo("ES")} pasoInicial={3} garantiaALaVista cuotasAr />);
+    expect(vista).toContain(`<p class="chk-nota-cuerpo">${escapar(ES.garantiaFamiliar)}</p>`);
+    expect(vista).not.toMatch(/3 cuotas de/);
+    const cuotas = renderToStaticMarkup(<Checkout idioma="ar" catalogo={catalogo("AR")} pasoInicial={3} cuotasAr />);
+    expect(cuotas).toMatch(/3 cuotas de/);
+  });
+
+  it("la cabecera del celular es de un renglón: pago seguro y «Ya compré» solo desde sm", () => {
+    const html = render(PaginaComprarEs);
+    expect(html).not.toContain("flex-wrap items-center justify-between");
+    expect(html).toMatch(/chk-cabecera-dato hidden[^"]*sm:flex/);
   });
 });

@@ -252,6 +252,8 @@
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 .chk-barra :focus-visible { outline-color: var(--dir-sobre-tinta); }
+/* Con el aviso de cookies abierto, la barra se apoya encima de él (medicion.tsx publica su alto). */
+.chk .chk-barra { bottom: var(--alto-aviso, 0px); }
 @media (max-width: 1023px) {
   .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
   .chk-solo-escritorio { display: none; }
@@ -309,7 +311,6 @@
   color: var(--texto-oscuro-fuerte);
   font-variant-numeric: tabular-nums lining-nums;
 }
-.chk-op-tachado { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-oscuro-menor); text-decoration-thickness: 1px; }
 
 /* La cinta de marcapáginas del libro completo: tela de tinta que cuelga del
    borde de arriba, con la punta cortada en V. */
@@ -400,8 +401,20 @@
 .chk-extra-precio { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .chk-extra-contador { display: flex; align-items: center; gap: 10px; margin-left: 34px; }
 
-/* El ahorro del pack, debajo del total de la ficha. */
-.chk-ahorro { font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); }
+/* La fila del impreso que ofrece el marco con su foto por la diferencia (botón, no casilla). */
+.chk-extra--oferta { width: 100%; justify-content: flex-start; gap: 14px; text-align: left; cursor: pointer; background: none; border: 0; border-top: 1px solid var(--linea-oscura); min-height: 48px; font: inherit; color: inherit; touch-action: manipulation; }
+.chk-extra--oferta .chk-extra-titulo { text-decoration: underline; text-underline-offset: 3px; }
+.chk-extra--oferta:focus-visible { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 2px; border-radius: 4px; }
+
+/* Las notas de papel (fecha de la tarjeta, «si no sabe usarlo», garantía). */
+.chk-nota { border: 1px solid var(--borde-oscuro); border-radius: 6px; background: var(--tarjeta); padding: 14px 18px; display: flex; flex-direction: column; gap: 4px; }
+.chk-nota-titulo { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); }
+.chk-nota-cuerpo { font-size: 14.5px; line-height: 1.5; color: var(--texto-oscuro-suave); text-wrap: pretty; }
+
+/* Tres ítems debajo de las opciones del libro. */
+.chk-seguridad { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0 4px; list-style: none; font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-oscuro-suave); }
+.chk-seguridad li { display: inline-flex; align-items: center; gap: 7px; }
+.chk-seguridad li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--texto-oscuro-menor); }
 
 @media (max-width: 639px) {
   .chk-op-tarjeta { grid-template-columns: 20px 60px minmax(0, 1fr); gap: 12px 14px; padding: 16px; align-items: start; }

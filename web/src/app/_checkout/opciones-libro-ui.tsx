@@ -40,6 +40,8 @@ export type TextosOpciones = {
   cinta?: string;
   /** Las frases de valor de cada opción (cabeza y bajada). Sin ellas, la cabeza es el título. */
   frases?: Record<OpcionLibro, { cabeza: string; bajada: string }>;
+  /** La fila del impreso que ofrece pasar al libro completo por la diferencia (Naza 06/11). Solo con pack. */
+  marcoFila?: (dif: string) => string;
   copiasTitulo: string;
   /** La fila del marco cuando la opción ya trae uno (el libro completo): «Marco extra». */
   marcoExtraTitulo: string;
@@ -119,7 +121,14 @@ export function OpcionesLibro({
   formatear: (n: number) => string;
 }) {
   const elegida = opcionDe(estado);
-  const tachado = conPack ? sumaSinPack(base, cat) : null;
+  // Con pack real, la fila del primer marco del impreso ofrece pasar al libro completo por la diferencia (sin tachados).
+  const conOferta = conPack && sumaSinPack(base, cat) !== null && Boolean(T.marcoFila);
+  const completo = precioDeOpcion("marco", base, cat, conPack);
+  const soloImpreso = precioDeOpcion("impreso", base, cat);
+  const oferta =
+    conOferta && completo !== null && soloImpreso !== null && marcosParaRegalar(estado) === 0 && T.marcoFila
+      ? { texto: T.marcoFila(f(Math.round((completo - soloImpreso) * 100) / 100)), onElegir: () => onElegir("marco") }
+      : null;
   const titulos: Record<OpcionLibro, { titulo: string; detalle: string }> = {
     marco: { titulo: T.marcoOpcionTitulo, detalle: T.marcoOpcionDetalle },
     impreso: { titulo: T.impresoTitulo, detalle: T.impresoDetalle },
@@ -152,11 +161,10 @@ export function OpcionesLibro({
                 {esta ? <span className="chk-op-detalle">{titulos[o].detalle}</span> : null}
               </span>
               <span className="chk-op-precio">
-                {o === "marco" && tachado !== null ? <s className="chk-op-tachado">{f(tachado)}</s> : null}
                 <span className="chk-op-cifra">{precio === null ? "" : f(precio)}</span>
               </span>
             </label>
-            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} /> : null}
+            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={o === "impreso" ? oferta : null} /> : null}
           </div>
         );
       })}
@@ -179,8 +187,11 @@ function Extras({
   textos: T,
   tapa,
   formatear: f,
+  oferta = null,
 }: {
   cat: Pick<Catalogo, "impreso" | "marco">;
+  /** Si va, reemplaza la fila del primer marco por un botón que elige el libro completo. */
+  oferta?: { texto: string; onElegir: () => void } | null;
   estado: ConLibro;
   onCambio: (cambios: Partial<ConLibro>) => void;
   textos: TextosOpciones;
@@ -207,7 +218,12 @@ function Extras({
           miniatura={<Miniatura tipo="copia" tapa={tapa} />}
         />
       ) : null}
-      {marco ? (
+      {marco && oferta ? (
+        <button type="button" className="chk-extra chk-extra--oferta" data-oferta="marco" onClick={oferta.onElegir}>
+          <Miniatura tipo="marco-solo" tapa={tapa} />
+          <span className="chk-extra-titulo">{oferta.texto}</span>
+        </button>
+      ) : marco ? (
         <FilaExtra
           nombre="marcos"
           titulo={tituloMarco}

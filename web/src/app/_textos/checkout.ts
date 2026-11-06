@@ -65,8 +65,6 @@ export type TextosResumen = {
   lineas: Record<LineaId, string>;
   total: string;
   pagoUnico: string;
-  /** Debajo del total, cuando va el pack: lo que se ahorra frente a la suma. Aprobado por Naza el 14/10 (es y ar). */
-  ahorras: (cifra: string) => string;
   incluye: (propia: boolean) => string[];
 };
 
@@ -90,11 +88,10 @@ export const RESUMEN: Textos<TextosResumen> = {
     },
     total: "Total",
     pagoUnico: "IVA incluido. Un solo pago, sin suscripciones.",
-    ahorras: (c) => `Ahorras ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchas tus audios desde la página de tu historia"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchas sus audios mientras cuenta, desde la página de su historia"],
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Ves cómo avanza su libro desde la página de su historia"],
   },
   ar: {
     etiqueta: "Resumen del pedido",
@@ -116,11 +113,10 @@ export const RESUMEN: Textos<TextosResumen> = {
     total: "Total",
     // «IVA incluido» en Argentina: POR COMPROBAR con el socio (TEXTOS-Y-REGLAS §2).
     pagoUnico: "Un solo pago, sin suscripciones.",
-    ahorras: (c) => `Ahorrás ${c} con el pack`,
     incluye: (propia) =>
       propia
         ? ["La entrevista por WhatsApp, a tu ritmo y con audios", "El libro en PDF con «Tu voz»", "Escuchás tus audios desde la página de tu historia"]
-        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Escuchás sus audios mientras cuenta, desde la página de su historia"],
+        : ["La entrevista por WhatsApp, a su ritmo y con audios", "El libro en PDF con «Su voz»", "Ves cómo avanza su libro desde la página de su historia"],
   },
   ca: {
     etiqueta: "Resum de la comanda",
@@ -141,11 +137,10 @@ export const RESUMEN: Textos<TextosResumen> = {
     },
     total: "Total",
     pagoUnico: "IVA inclòs. Un sol pagament, sense subscripcions.",
-    ahorras: (c) => `Estalvies ${c} amb el paquet`, // ca: revisado con el corrector de Softcatalà (18/10)
     incluye: (propia) =>
       propia
         ? ["L'entrevista per WhatsApp, al teu ritme i amb àudios", "El llibre en PDF amb «La teva veu»", "Escoltes els teus àudios des de la pàgina de la teva història"]
-        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Escoltes els seus àudios mentre explica, des de la pàgina de la seva història"],
+        : ["L'entrevista per WhatsApp, al seu ritme i amb àudios", "El llibre en PDF amb «La seva veu»", "Veus com avança el seu llibre des de la pàgina de la seva història"], // ca: sin revisar con Imma (tercera línea)
   },
 };
 
@@ -158,7 +153,8 @@ export type TextosCheckout = {
   pasos: [string, string, string];
   pasosEtiqueta: string;
   pasoDe: (n: number, total: number) => string;
-  continuar: string;
+  /** El botón de los pasos 1 y 2 (Naza 06/11). El último sigue siendo «Pagar». */
+  seguir: string;
   atras: string;
 
   // Paso 1 · Su libro
@@ -193,8 +189,16 @@ export type TextosCheckout = {
   primeroYDemas: (primero: string, demas: string) => string;
   /** Las frases de valor de las opciones del paso 1 (Naza 14/10, APROBADAS en es; ca pendiente nativa). */
   frases: Record<"marco" | "impreso" | "digital", { cabeza: string; bajada: string }>;
-  /** El botón del paso 1: «Iniciar Vitácora» en los dos casos (Naza 15/10, amigo/textos.md 3). ca: revisado con el corrector de Softcatalà (18/10). */
-  quieroLibro: (propia: boolean) => string;
+  /** La fila del impreso que ofrece el marco por la diferencia con el libro completo (Naza 06/11). */
+  marcoFila: (dif: string) => string;
+  /** Debajo de las opciones del libro (Naza 06/11): cómo se contesta, el pago, sin cuenta. */
+  seguridad: [string, string, string];
+  /** La nota del regalo con tarjeta, según la fecha (Naza 06/11). */
+  notaFecha: { navidad: { titulo: string; cuerpo: string }; otra: { titulo: string; cuerpo: string } };
+  /** La nota de «si no sabe usarlo», en el paso 2 y arriba del botón de pagar. No sale en «Para mí». */
+  notaUso: { titulo: string; cuerpo: string };
+  /** «3 cuotas de X. Precio de contado Y.» Solo Argentina, con CUOTAS_AR=1. PENDIENTE OK de Naza: no está aprobado. */
+  cuotas: (cuota: string, contado: string) => string;
   unoMenos: (que: string) => string;
   unoMas: (que: string) => string;
 
@@ -330,7 +334,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pasos: ["Su libro", "Para quién", "Pago"],
     pasosEtiqueta: "Pasos de la compra",
     pasoDe: (n, t) => `Paso ${n} de ${t}`,
-    continuar: "Continuar",
+    seguir: "Seguir",
     atras: "Atrás",
 
     libroTitulo: "¿Cómo quieres su libro?",
@@ -367,7 +371,14 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
       digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
     },
-    quieroLibro: () => "Iniciar Vitácora",
+    marcoFila: (dif) => `Añade el marco con su foto por ${dif} más`,
+    seguridad: ["Se contesta con audios por WhatsApp", "Un solo pago", "Sin cuenta"],
+    notaFecha: {
+      navidad: { titulo: "El 24 le das la tarjeta", cuerpo: "Te la mandamos por correo nada más pagar. Con ella empieza a contar por WhatsApp, a su ritmo. Su libro sale cuando termina, unas semanas después." },
+      otra: { titulo: "Ese día le das la tarjeta", cuerpo: "Te la mandamos por correo nada más pagar. Con ella empieza a contar por WhatsApp, a su ritmo. Su libro sale cuando termina, unas semanas después." },
+    },
+    cuotas: (c, t) => `3 cuotas de ${c}. Precio de contado ${t}.`, // PENDIENTE OK de Naza
+    notaUso: { titulo: "Si no sabe usarlo", cuerpo: "Solo necesita WhatsApp. Contesta con audios, sin app ni contraseñas." },
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -463,7 +474,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       cp: { nombre: "Código postal", ejemplo: "47001" },
       pais: { nombre: "País", ejemplo: "España" },
     },
-    metodos: "Pagas con tarjeta en la página segura de Stripe.",
+    metodos: "Pagas en la página segura de Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.",
     pagar: (t) => `Pagar ${t}`,
     procesando: "Procesando…",
     subiendoFoto: (i, n) => `Subiendo foto ${i} de ${n}…`,
@@ -502,7 +513,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pasos: ["Su libro", "Para quién", "Pago"],
     pasosEtiqueta: "Pasos de la compra",
     pasoDe: (n, t) => `Paso ${n} de ${t}`,
-    continuar: "Continuar",
+    seguir: "Seguir",
     atras: "Atrás",
 
     libroTitulo: "¿Cómo querés su libro?",
@@ -539,7 +550,14 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Para la estantería", bajada: "Su libro en papel y en PDF" },
       digital: { cabeza: "Solo digital", bajada: "Para leer y escuchar en cualquier pantalla" },
     },
-    quieroLibro: () => "Iniciar Vitácora",
+    marcoFila: (dif) => `Sumale el marco con su foto por ${dif} más`,
+    seguridad: ["Se contesta con audios por WhatsApp", "Un solo pago", "Sin cuenta"],
+    notaFecha: {
+      navidad: { titulo: "El 24 le das la tarjeta", cuerpo: "Te la mandamos por correo nada más pagar. Con ella empieza a contar por WhatsApp, a su ritmo. Su libro sale cuando termina, unas semanas después." },
+      otra: { titulo: "Ese día le das la tarjeta", cuerpo: "Te la mandamos por correo nada más pagar. Con ella empieza a contar por WhatsApp, a su ritmo. Su libro sale cuando termina, unas semanas después." },
+    },
+    cuotas: (c, t) => `3 cuotas de ${c}. Precio de contado ${t}.`, // PENDIENTE OK de Naza
+    notaUso: { titulo: "Si no sabe usarlo", cuerpo: "Solo necesita WhatsApp. Contesta con audios, sin app ni contraseñas." },
     unoMenos: (q) => `Uno menos: ${q}`,
     unoMas: (q) => `Uno más: ${q}`,
 
@@ -635,7 +653,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       cp: { nombre: "Código postal", ejemplo: "1638" },
       pais: { nombre: "País", ejemplo: "Argentina" },
     },
-    metodos: "Pagás en la página segura de Mercado Pago.",
+    metodos: "Pagás en Mercado Pago, con cuenta o sin cuenta.",
     pagar: (t) => `Pagar ${t}`,
     procesando: "Procesando…",
     subiendoFoto: (i, n) => `Subiendo foto ${i} de ${n}…`,
@@ -675,7 +693,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
     pasos: ["El seu llibre", "Per a qui", "Pagament"],
     pasosEtiqueta: "Passos de la compra",
     pasoDe: (n, t) => `Pas ${n} de ${t}`,
-    continuar: "Continuar",
+    seguir: "Seguir", // ca: sin revisar con Imma
     atras: "Enrere",
 
     libroTitulo: "Com vols el seu llibre?",
@@ -710,7 +728,14 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       impreso: { cabeza: "Per a la prestatgeria", bajada: "El seu llibre en paper i en PDF" },
       digital: { cabeza: "Només digital", bajada: "Per llegir i escoltar a qualsevol pantalla" },
     },
-    quieroLibro: () => "Iniciar Vitácora",
+    marcoFila: (dif) => `Afegeix el marc amb la seva foto per ${dif} més`, // ca: sin revisar con Imma
+    seguridad: ["Es contesta amb àudios per WhatsApp", "Un sol pagament", "Sense compte"], // ca: sin revisar con Imma
+    notaFecha: {
+      navidad: { titulo: "El 24 li dones la targeta", cuerpo: "Te l'enviem per correu tan bon punt pagues. Amb ella comença a explicar per WhatsApp, al seu ritme. El seu llibre surt quan acaba, unes setmanes després." },
+      otra: { titulo: "Aquell dia li dones la targeta", cuerpo: "Te l'enviem per correu tan bon punt pagues. Amb ella comença a explicar per WhatsApp, al seu ritme. El seu llibre surt quan acaba, unes setmanes després." },
+    }, // ca: sin revisar con Imma
+    cuotas: (c, t) => `3 quotes de ${c}. Preu de contat ${t}.`, // PENDIENTE OK de Naza · ca: sin revisar con Imma
+    notaUso: { titulo: "Si no sap fer-ho servir", cuerpo: "Només necessita WhatsApp. Contesta amb àudios, sense app ni contrasenyes." }, // ca: sin revisar con Imma
     unoMenos: (q) => `Un menys: ${q}`,
     unoMas: (q) => `Un més: ${q}`,
 
@@ -806,7 +831,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       cp: { nombre: "Codi postal", ejemplo: "17001" },
       pais: { nombre: "País", ejemplo: "Espanya" },
     },
-    metodos: "Pagues amb targeta a la pàgina segura de Stripe.",
+    metodos: "Pagues a la pàgina segura de Stripe. Si el teu mòbil té Apple Pay o Google Pay, et surten allà.", // ca: sin revisar con Imma
     pagar: (t) => `Pagar ${t}`,
     procesando: "Processant…",
     subiendoFoto: (i, n) => `Pujant la foto ${i} de ${n}…`,

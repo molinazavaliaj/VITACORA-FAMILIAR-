@@ -63,6 +63,16 @@ export function AvisoFallo({ textos: T, guardado }: { textos: TextosFallo; guard
   );
 }
 
+/** Una nota de papel, con título opcional (fecha de la tarjeta, «si no sabe usarlo», garantía). Sin JS. */
+export function NotaPapel({ titulo, children }: { titulo?: string; children: ReactNode }) {
+  return (
+    <aside className="chk-nota">
+      {titulo ? <p className="chk-nota-titulo">{titulo}</p> : null}
+      <p className="chk-nota-cuerpo">{children}</p>
+    </aside>
+  );
+}
+
 /** Un contador − n + (copias extra, marcos para regalar). `precio`, si va, es la línea de lo que cuesta cada uno. */
 export function Contador({
   titulo,
@@ -164,7 +174,6 @@ export function Resumen({
   cabeza,
   incluye,
   tachado,
-  ahorro,
   descuento,
 }: {
   compra: Compra;
@@ -174,8 +183,6 @@ export function Resumen({
   incluye: string[];
   /** El precio de lista de la promo, si hay (se muestra tachado junto al total). */
   tachado?: string | null;
-  /** Lo que se ahorra con el pack, ya formateado, si el ticket lo lleva. */
-  ahorro?: string | null;
   /** El cupón de bienvenida (20/10): su línea y el importe ya formateado; `compra.total` ya viene con el descuento. */
   descuento?: { nombre: string; importe: string } | null;
 }) {
@@ -215,7 +222,6 @@ export function Resumen({
               </span>
             </span>
           </div>
-          {ahorro ? <span className="chk-ahorro">{T.ahorras(ahorro)}</span> : null}
           <span className="text-[12.5px] text-[var(--texto-oscuro-menor)]">{T.pagoUnico}</span>
         </div>
       </div>
@@ -244,7 +250,7 @@ export function Resumen({
  */
 export function BarraPaso({ etiqueta, total, children }: { etiqueta: string; total: string; children: ReactNode }) {
   return (
-    <div data-barra-paso className="chk-barra dir-tinta fixed inset-x-0 bottom-0 z-30 lg:hidden">
+    <div data-barra-paso className="chk-barra dir-tinta fixed inset-x-0 z-30 lg:hidden">
       <div className="mx-auto flex max-w-[640px] items-center justify-between gap-4 px-4 pt-3">
         <div className="min-w-0">
           <p className="text-[11.5px] uppercase tracking-[0.14em] text-[var(--dir-sobre-tinta-suave)] [font-family:var(--fuente-micro)]">{etiqueta}</p>
