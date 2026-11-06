@@ -78,7 +78,7 @@ export function reglasRobots(entorno: string | undefined = process.env.VERCEL_EN
   };
 }
 
-type Foto = { libro: string; marco: string };
+type Foto = { libro: string; marco?: string };
 
 /**
  * El precio del marco que la portada REALMENTE muestra, o null si la portada no
@@ -146,8 +146,8 @@ export function datosEstructurados(idioma: IdiomaWeb, fotos: Foto) {
       }),
     );
   }
-  const precioMarco = precioMarcoQueMuestraLaPagina(idioma, cat);
-  if (precioMarco !== null) {
+  const precioMarco = fotos.marco ? precioMarcoQueMuestraLaPagina(idioma, cat) : null;
+  if (precioMarco !== null && fotos.marco) {
     productos.push(
       producto({
         nombre: NOMBRES.marco,

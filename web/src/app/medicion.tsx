@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { medicionConfigurada } from "@/lib/medicion";
 import {
   EVENTO_ABRIR_COOKIES,
@@ -29,6 +29,7 @@ export function Medicion() {
   const [abierto, setAbierto] = useState(false);
   const [acepto, setAcepto] = useState(false);
   const configurada = medicionConfigurada();
+  const aviso = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!configurada) return;
@@ -48,6 +49,26 @@ export function Medicion() {
   useEffect(() => {
     if (acepto) medirVisita();
   }, [acepto, pathname]);
+
+  // Mientras el aviso está abierto publica su alto en --alto-aviso (la barra del checkout se apoya encima); al cerrarse, lo borra.
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const nodo = aviso.current;
+    if (!abierto || !nodo) return;
+    const poner = () => raiz.style.setProperty("--alto-aviso", `${nodo.offsetHeight}px`);
+    poner();
+    let ro: ResizeObserver | null = null;
+    try {
+      ro = new ResizeObserver(poner);
+      ro.observe(nodo);
+    } catch {
+      // sin ResizeObserver, queda el alto de ahora
+    }
+    return () => {
+      ro?.disconnect();
+      raiz.style.removeProperty("--alto-aviso");
+    };
+  }, [abierto, configurada]);
 
   if (!configurada || !abierto) return null;
   const { idioma } = idiomaDeRuta(pathname);
@@ -70,6 +91,7 @@ export function Medicion() {
     "min-h-11 flex-1 rounded-full border border-[var(--texto-oscuro-suave)] px-5 text-[13px] uppercase tracking-[0.14em] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)] hover:bg-white/10 sm:flex-none";
   return (
     <div
+      ref={aviso}
       role="dialog"
       aria-live="polite"
       aria-label={t.cookies}

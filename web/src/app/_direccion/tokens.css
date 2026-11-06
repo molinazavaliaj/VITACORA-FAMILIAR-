@@ -55,7 +55,7 @@
      libro (letra grande, tela, hojas que se tapan), pero de noche. Donde
      Familiar tiene papel crema, Viaje tiene la hoja azul noche de la maqueta
      (el bloque «Para regalar», #141d30). Se aplican con el alcance
-     [data-producto="viaje"] (viaje.css): Familiar no cambia. */
+     [data-producto="viaje"] (el panel, tablero/panel.css): Familiar no cambia. */
   --viaje-fondo: #0a0a0a;             /* la noche: lo que se VE */
   --viaje-fondo-pintado: #020202;     /* lo que se pinta: la tela y el grano lo aclaran a ~#0b0b0b */
   --viaje-tarjeta: #12120f;

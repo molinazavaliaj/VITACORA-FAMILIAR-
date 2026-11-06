@@ -9,6 +9,8 @@ import type { Textos } from "@/lib/idioma-web";
 // 15/10, es y ar). Los demás (la carta, las preguntas, el marco con chip, el
 // libro de Osvaldo) son los aprobados antes (docs/rediseno-2026-10/fase-*).
 //
+// ca, frases de privacidad del 06/11 (quién escucha los audios, Naza): PENDIENTES de revisión de Imma.
+//
 // Reglas (amigo/textos.md): sin dos puntos, ninguna oración empieza con «Y»
 // después de punto, sin «padre» en la portada (se dice «tu familiar»), sin
 // «desde 49 €», el panel se llama «la página de su historia».
@@ -176,7 +178,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     siguiendo: {
       titulo: "Tú lo vas siguiendo de cerca.",
       pasos: [
-        "Escuchas cada audio en cuanto lo manda.",
+        "Ves cómo avanza su historia.",
         "Le añades preguntas y fotos para su libro.",
         "Lo ves terminado y eliges la tapa antes de imprimirlo.",
       ],
@@ -184,7 +186,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
     privacidad: {
       titulo: "Su historia es de tu familia.",
-      texto: "Sabemos que lo que cuenta es personal. Sus audios y su libro solo los ven tu familia y quienes lo escriben. Se guardan en la Unión Europea, no los vendemos, no los usamos para publicidad y no entrenamos ninguna inteligencia artificial con ellos. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pides.",
+      texto: "Sabemos que lo que cuenta es personal. Mientras cuenta, elige si tu familia puede escuchar sus audios. Su libro solo lo ven tu familia y quienes lo escriben. Todo se guarda en la Unión Europea, no lo vendemos, no lo usamos para publicidad y no entrenamos ninguna inteligencia artificial con eso. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pides.",
       enlace: "Cómo cuidamos sus datos",
     },
     pieTelefono: "Así se ve la página de su historia.",
@@ -235,7 +237,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       ],
       incluye: [
         "La entrevista entera por WhatsApp, hasta completar su historia",
-        "La página de su historia, para escuchar cada audio",
+        "La página de su historia, para ver cómo avanza",
         "El libro impreso en tapa dura, con el envío incluido",
         "El libro en PDF, con sus mejores frases en su voz",
       ],
@@ -285,7 +287,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         {
           titulo: "El biógrafo escribe",
           texto:
-            "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde la página de su historia vas escuchando lo que cuenta.",
+            "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde la página de su historia ves cómo avanza.",
         },
       ],
     },
@@ -351,7 +353,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
-          respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
+          respuesta: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
         },
         // APROBADO por Naza el 26/10 · jurado de compradores, texto 3
         {
@@ -423,7 +425,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     siguiendo: {
       titulo: "Vos lo vas siguiendo de cerca.",
       pasos: [
-        "Escuchás cada audio en cuanto lo manda.",
+        "Ves cómo avanza su historia.",
         "Le sumás preguntas y fotos para su libro.",
         "Lo ves terminado y elegís la tapa antes de imprimirlo.",
       ],
@@ -431,7 +433,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
     privacidad: {
       titulo: "Su historia es de tu familia.",
-      texto: "Sabemos que lo que cuenta es personal. Sus audios y su libro solo los ven tu familia y quienes lo escriben. Se guardan en la Unión Europea, no los vendemos, no los usamos para publicidad y no entrenamos ninguna inteligencia artificial con ellos. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pedís.",
+      texto: "Sabemos que lo que cuenta es personal. Mientras cuenta, elige si tu familia puede escuchar sus audios. Su libro solo lo ven tu familia y quienes lo escriben. Todo se guarda en la Unión Europea, no lo vendemos, no lo usamos para publicidad y no entrenamos ninguna inteligencia artificial con eso. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pedís.",
       enlace: "Cómo cuidamos sus datos",
     },
     pieTelefono: "Así se ve la página de su historia.",
@@ -483,7 +485,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       ],
       incluye: [
         "La entrevista entera por WhatsApp, hasta completar su historia",
-        "La página de su historia, para escuchar cada audio",
+        "La página de su historia, para ver cómo avanza",
         "El libro impreso en tapa dura, con el envío incluido",
         "El libro en PDF, con sus mejores frases en su voz",
       ],
@@ -533,7 +535,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         {
           titulo: "El biógrafo escribe",
           texto:
-            "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde la página de su historia vas escuchando lo que cuenta.",
+            "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde la página de su historia ves cómo avanza.",
         },
       ],
     },
@@ -599,7 +601,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         { pregunta: "¿Y si no quiere hacerlo?", respuesta: "Te devolvemos todo lo que pagaste. Si empieza y contesta menos de diez preguntas, también te devolvemos todo." },
         {
           pregunta: "¿Quién escucha sus audios?",
-          respuesta: "Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
+          respuesta: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
         },
         // es APROBADO por Naza el 26/10 (texto 3); de vos
         {
@@ -679,7 +681,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     siguiendo: {
       titulo: "Tu ho vas seguint de prop.",
       pasos: [
-        "Escoltes cada àudio tan bon punt l'envia.",
+        "Veus com avança la seva història.",
         "Li afegeixes preguntes i fotos per al seu llibre.",
         "El veus acabat i tries la tapa abans d'imprimir-lo.",
       ],
@@ -687,7 +689,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
     // PARA NAZA (25/10): el aviso de privacidad, con lo que ya dice la política (§5, §6 y §8).
     privacidad: {
       titulo: "La seva història és de la teva família.",
-      texto: "Sabem que el que explica és personal. Els seus àudios i el seu llibre només els veuen la teva família i qui l'escriu. Es guarden a la Unió Europea, no els venem, no els fem servir per a publicitat i no entrenem cap intel·ligència artificial amb ells. Els àudios originals s'esborren tres mesos després d'acabar el llibre, o abans si ho demanes.",
+      texto: "Sabem que el que explica és personal. Mentre explica, tria si la teva família pot escoltar els seus àudios. El seu llibre només el veuen la teva família i qui l'escriu. Tot es guarda a la Unió Europea, no ho venem, no ho fem servir per a publicitat i no entrenem cap intel·ligència artificial amb això. Els àudios originals s'esborren tres mesos després d'acabar el llibre, o abans si ho demanes.",
       enlace: "Com cuidem les seves dades",
     },
     pieTelefono: "Així es veu la pàgina de la seva història.",
@@ -739,7 +741,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       ],
       incluye: [
         "L'entrevista sencera per WhatsApp, fins a completar la seva història",
-        "La pàgina de la seva història, per escoltar cada àudio",
+        "La pàgina de la seva història, per veure com avança",
         "El llibre imprès en tapa dura, amb l'enviament inclòs",
         "El llibre en PDF, amb les seves millors frases amb la seva veu",
       ],
@@ -789,7 +791,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         {
           titulo: "El biògraf escriu",
           texto:
-            "Amb les seves respostes, el biògraf escriu el llibre de la seva vida. Mentrestant, des de la pàgina de la seva història vas escoltant el que explica.",
+            "Amb les seves respostes, el biògraf escriu el llibre de la seva vida. Mentrestant, des de la pàgina de la seva història veus com avança.",
         },
       ],
     },
@@ -855,7 +857,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
         { pregunta: "I si no ho vol fer?", respuesta: "Et retornem tot el que vas pagar. Si comença i contesta menys de deu preguntes, també t'ho retornem tot." },
         {
           pregunta: "Qui escolta els seus àudios?",
-          respuesta: "Només la seva família. Els àudios són privats, s'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
+          respuesta: "Ho decideix el teu familiar. Mentre explica, pot deixar que la seva família els escolti o guardar-se'ls. S'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
         },
         // PENDIENTE REVISIÓN NATIVA (Imma) · traducción del texto 3 aprobado el 26/10
         {

@@ -52,8 +52,15 @@ jobs:
       # build de acá las leía vacías (el impreso desaparecía de /comprar). El
       # build lo hace Vercel en sus servidores, que sí las tienen.
       - name: Deploy (preview) y alias fijo
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           URL=$(vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})
           echo "Preview: $URL"
-          vercel alias set "$URL" "$ALIAS" --token=${{ secrets.VERCEL_TOKEN }}
+          # El alias va por la API: `vercel alias set` pide /v2/user y con este token da 404.
+          API=https://api.vercel.com
+          ID=$(curl -fsS -H "Authorization: Bearer $TOKEN" "$API/v13/deployments/${URL#https://}?teamId=$VERCEL_ORG_ID" | jq -r .id)
+          curl --fail-with-body -sS -o /dev/null -w "alias: %{http_code}\n" -X POST \
+            -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            -d "{\"alias\":\"$ALIAS\"}" "$API/v2/deployments/$ID/aliases?teamId=$VERCEL_ORG_ID"
           echo "### Preview: https://$ALIAS" >> "$GITHUB_STEP_SUMMARY"

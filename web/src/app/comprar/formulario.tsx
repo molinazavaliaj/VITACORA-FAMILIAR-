@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { origenDelNavegador } from "@/lib/origen";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
-import { ahorroDelPack, armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
+import { armarCompra, type Catalogo as CatalogoRegion } from "@/lib/productos";
 import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO } from "@/lib/regalo-reglas";
 import { nombreDePila } from "@/lib/como-le-dicen";
@@ -19,12 +19,12 @@ import { TEXTOS_HISTORIA, type TextosHistoria } from "../_textos/historia";
 import { CHECKOUT_VIAJE, type TextosViaje } from "../_textos/checkout-viaje";
 import { HISTORIA_TEMAS, MAX_PROPIAS_HISTORIA, PROPIA_MAXIMO, TEMA_LIBRE_MAXIMO } from "@/lib/historia";
 import { COMPRADOR_WEB } from "../_textos/regalar";
-import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
+import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, NotaPapel, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
 import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, vieneParaRegalar } from "../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
-import { eleccionDe } from "../_checkout/opciones-libro";
+import { eleccionDe, normalizarConPack, sumaSinPack } from "../_checkout/opciones-libro";
 import { OpcionesLibro } from "../_checkout/opciones-libro-ui";
 import { CampoCupon, type CuponAplicado } from "../_checkout/cupon";
 import { TEXTOS_CUPON } from "../_textos/cupon";
@@ -32,6 +32,7 @@ import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { CamposTarjeta, SIN_TARJETA, ofreceTarjeta } from "../_checkout/tarjeta-impresa";
 import { formatearPrecio, listaDe } from "./productos-ui";
+import { contarPaso } from "@/lib/embudo-cliente";
 import {
   carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, historiaInicial, idiomaInicial, llevaDireccion, pasoDelPago, proximaNavidad, quiereTarjeta,
   type EstadoCompra, type EstadoHistoriaCompra, type Falla, type Paso,
@@ -87,7 +88,19 @@ export function Checkout({
   conCupon = false,
   pistaCupon = true,
   historia = false,
+  garantiaALaVista = false,
+  cuotasAr = false,
+  embudo = false,
+  estadoDePrueba,
 }: {
+  /** Cuenta los pasos en el embudo (solo /comprar). Un contador por día, sin cookies ni datos de persona. */
+  embudo?: boolean;
+  /** Para probar un paso con lo ya elegido (por ejemplo «Para mí») sin navegador. */
+  estadoDePrueba?: Partial<EstadoCompra>;
+  /** GARANTIA_A_LA_VISTA=1 (se lee en el servidor): la garantía va a tamaño normal arriba del botón y sale de la letra chica. */
+  garantiaALaVista?: boolean;
+  /** CUOTAS_AR=1 (se lee en el servidor): en Argentina, «3 cuotas de…» arriba del botón. Texto sin aprobar. */
+  cuotasAr?: boolean;
   /** «Vitácora de una historia» (/comprar/historia, 23/10): el paso «La historia» entre «Para quién» y el pago. */
   historia?: boolean;
   idioma: IdiomaWeb;
@@ -109,7 +122,7 @@ export function Checkout({
   const trato = idioma === "ar" ? "vos" : "tu";
 
   const [paso, setPaso] = useState<Paso>(pasoInicial);
-  const [e, setE] = useState<EstadoCompra>(() => ({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}) }));
+  const [e, setE] = useState<EstadoCompra>(() => ({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...estadoDePrueba }));
   const TH = TEXTOS_HISTORIA[idioma];
   // Historia tiene un paso más: «La historia» (3) antes del pago (4).
   const pago = pasoDelPago({ historia: historia ? historiaInicial() : undefined });
@@ -227,7 +240,7 @@ export function Checkout({
     // Lo dice la URL de vuelta: en una página estática solo se puede leer acá, ya en el navegador.
     setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
-      setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...guardado });
+      setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...normalizarConPack(guardado, sumaSinPack(cat.base.precio, cat) !== null) });
       setPaso(pago);
     }
     window.history.replaceState(null, "", window.location.pathname);
@@ -246,6 +259,14 @@ export function Checkout({
   }, [pagador]);
 
   useEffect(() => () => fotos.forEach((x) => URL.revokeObjectURL(x.url)), [fotos]);
+
+  // El embudo: cada paso que se alcanza, una vez por pestaña. Nunca frena la compra.
+  useEffect(() => {
+    if (!embudo) return;
+    if (paso === 1) contarPaso("entro", region);
+    else if (paso === 2) contarPaso("para_quien", region);
+    else if (paso === pago) contarPaso("pago", region);
+  }, [embudo, paso, pago, region]);
 
   // Al cambiar de paso, arriba del todo y el foco al título del paso nuevo.
   useEffect(() => {
@@ -332,6 +353,7 @@ export function Checkout({
     const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     setFalla(null);
+    if (embudo) contarPaso("pagar", region);
     setEnviando(true);
     const r = await pagador.pagar(
       { ...cuerpoDeLaCompra(e, idioma), ...(cupon ? { cupon: cupon.codigo } : {}) },
@@ -347,15 +369,12 @@ export function Checkout({
   }
 
   const tachado = promo ? listaDe(compra.total, cat.moneda, region, promo).texto : null;
-  // Si el ticket va con el pack, cuánto se ahorra frente a la suma (calculado del catálogo).
-  const ahorroPack = compra.lineas.some((l) => l.id === "pack") ? ahorroDelPack(cat) : null;
-  const ahorro = ahorroPack === null ? null : f(ahorroPack);
   const nombreVisible = (e.comoLeDicen || nombreDePila(e.nombre)).trim();
   const pideContacto = regalo || e.regalo === false || yo;
 
   const cabezaResumen = (
     <div className="flex items-center gap-4">
-      <div className="w-[68px] shrink-0 overflow-hidden rounded-[3px] shadow-[0_12px_22px_rgba(0,0,0,0.55)]">
+      <div className="w-[68px] shrink-0 overflow-hidden rounded-[3px] shadow-[0_8px_14px_-6px_rgba(60,40,20,0.5)]">
         <TapaLibro titulo={e.nombre.trim()} fotoSrc={null} idioma={idiomaDelLibro(e.idioma)} />
       </div>
       <div className="flex min-w-0 flex-col gap-1">
@@ -380,13 +399,20 @@ export function Checkout({
             <ContenidoPaso key="p1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, total)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
-              <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
+              <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e, sumaSinPack(cat.base.precio, cat) !== null))} onCambio={cambiar}
                 textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }}
-                tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack formatear={f} />
+                tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack estante={!historia} formatear={f} />
+              {historia ? null : (
+                <ul className="chk-seguridad">
+                  {T.seguridad.map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+                </ul>
+              )}
 
               <div className="chk-solo-escritorio">
                 <button type="button" onClick={() => seguir(1)} className={BOTON_PRIMARIO}>
-                  {T.quieroLibro(yo)}
+                  {T.seguir}
                 </button>
               </div>
             </ContenidoPaso>
@@ -478,6 +504,12 @@ export function Checkout({
                             onChange={(ev) => cambiar({ fechaEntrega: ev.target.value, ...(ev.target.value ? {} : { entrega: SIN_ENTREGA }) })} />
                         ) : null}
                       </fieldset>
+                      {/* Con entrega automática o tarjeta impresa no es «le das la tarjeta». */}
+                      {(e.modoFecha === "navidad" || (e.modoFecha === "otra" && e.fechaEntrega)) && !e.entrega.canal && !e.tarjeta?.quiere ? (
+                        <NotaPapel tinte={3} titulo={(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).titulo}>
+                          {(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).cuerpo}
+                        </NotaPapel>
+                      ) : null}
                       <CamposEntrega fecha={e.fechaEntrega} idioma={e.idioma} eleccion={e.entrega} onCambio={(entrega) => cambiar({ entrega })} whatsapp={entregaWhatsApp} textos={TR} marca={marca} />
                       <div className="flex flex-wrap items-center gap-7 border-y border-[var(--borde-oscuro)] px-3 py-8">
                         <TarjetaChica comoLeDicen={nombreVisible} mensaje={e.mensaje.trim()} firma={e.nombreComprador.trim()} />
@@ -590,8 +622,9 @@ export function Checkout({
                 </>
               ) : null}
 
+              {e.para && !yo ? <NotaPapel titulo={T.notaUso.titulo}>{T.notaUso.cuerpo}</NotaPapel> : null}
               <ErrorPaso texto={falla?.texto ?? null} />
-              <Botonera atras={() => irA(1)} siguiente={() => seguir(2)} textoAtras={T.atras} textoSiguiente={T.continuar} />
+              <Botonera atras={() => irA(1)} siguiente={() => seguir(2)} textoAtras={T.atras} textoSiguiente={T.seguir} />
             </ContenidoPaso>
           )}
 
@@ -610,7 +643,7 @@ export function Checkout({
                 describe={describe}
               />
               <ErrorPaso texto={falla?.texto ?? null} />
-              <Botonera atras={() => irA(2)} siguiente={() => seguir(3)} textoAtras={T.atras} textoSiguiente={T.continuar} />
+              <Botonera atras={() => irA(2)} siguiente={() => seguir(3)} textoAtras={T.atras} textoSiguiente={T.seguir} />
             </ContenidoPaso>
           ) : null}
 
@@ -663,6 +696,12 @@ export function Checkout({
                 ) : null}
 
                 <p className="text-[14px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">{T.metodos}</p>
+                {yo ? null : <NotaPapel titulo={T.notaUso.titulo}>{T.notaUso.cuerpo}</NotaPapel>}
+                {garantiaALaVista ? <NotaPapel tinte={6}>{yo ? T.garantiaPropia : T.garantiaFamiliar}</NotaPapel> : null}
+                {cuotasAr && region === "AR" ? (
+                  // PENDIENTE OK de Naza: texto sin aprobar, flag CUOTAS_AR apagado.
+                  <p className="text-[14.5px] font-medium text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.cuotas(f(Math.round(compra.total / 3)), f(compra.total))}</p>
+                ) : null}
                 <ErrorPaso texto={falla?.texto ?? null} />
                 <div className="chk-solo-escritorio">
                   <BotonPagar enviando={enviando} texto={T.pagar(f(compra.total))} procesando={progreso ?? T.procesando} />
@@ -672,7 +711,7 @@ export function Checkout({
                   <a href={ruta(idioma, "/legal/terminos")} className="underline underline-offset-2" target="_blank" rel="noreferrer">
                     {T.terminos}
                   </a>
-                  {T.legalDespues} {yo ? T.garantiaPropia : T.garantiaFamiliar}
+                  {T.legalDespues}{garantiaALaVista ? "" : ` ${yo ? T.garantiaPropia : T.garantiaFamiliar}`}
                 </p>
                 <div>
                   <button type="button" disabled={enviando} onClick={() => irA((pago - 1) as Paso)} className={BOTON_FANTASMA}>
@@ -691,7 +730,6 @@ export function Checkout({
           cabeza={cabezaResumen}
           incluye={R.incluye(yo)}
           tachado={tachado}
-          ahorro={ahorro}
           descuento={cupon && conDescuento ? { nombre: cupon.linea ?? TEXTOS_CUPON[idioma].checkout.linea, importe: f(cupon.importe) } : null}
         />
       </div>
@@ -702,7 +740,7 @@ export function Checkout({
           <BotonPagar form={FORM_PAGO} enviando={enviando} texto={T.pagar(f(compra.total))} procesando={progreso ?? T.procesando} className="min-h-12 shrink-0 px-6 text-[15.5px]" />
         ) : (
           <button type="button" onClick={() => seguir(paso)} className={BOTON_BARRA}>
-            {paso === 1 ? T.quieroLibro(yo) : T.continuar}
+            {T.seguir}
           </button>
         )}
       </BarraPaso>

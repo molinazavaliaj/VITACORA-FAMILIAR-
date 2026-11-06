@@ -7,6 +7,7 @@ import { TEXTOS_PORTADA } from "../_textos/portada";
 import { OPINIONES, URL_OPINIONES_GOOGLE, hayOpiniones, ordenarOpiniones, type Opinion } from "@/lib/opiniones";
 import { langDeIdioma, localeDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import "../_direccion/direccion.css";
+import "../_portada/acuarela.css";
 import "./opiniones.css";
 
 // /opiniones, /ca/opiniones y /ar/opiniones (rediseño 2026-10). Diseño elegido
@@ -55,7 +56,7 @@ export function Opiniones({
   const comprobadasEnPapel = lista.length % 2 === 0;
 
   return (
-    <div lang={lang} className="dir-pagina opn flex flex-1 flex-col">
+    <div lang={lang} className="dir-pagina acu-tema opn flex flex-1 flex-col">
       <Coreografia />
 
       {/* Inicio, sobre tinta. La única capa: queda fija y la tapa la primera opinión. */}

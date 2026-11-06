@@ -1,17 +1,18 @@
 import "../../_direccion/tokens.css";
+import "../../_portada/acuarela.css";
 import "../../_checkout/checkout.css";
 
 // Mientras carga la confirmación del pago (RENDIMIENTO.md §3.1). Sin esto
 // mandaría el esqueleto de más arriba (si lo hubiera), con otra forma, y la
 // página aparecería con un salto de color. El mismo cascarón de las compras
-// (la tinta arriba, la hoja de papel debajo), una forma mínima y un aviso para
+// (la franja con las manchas arriba, el blanco cálido debajo), una forma mínima y un aviso para
 // lectores de pantalla.
 
 export default function CargandoGracias() {
   return (
-    <div aria-busy="true" className="dir-pagina chk flex min-h-dvh flex-1 flex-col">
-      <div className="dir-tinta chk-cabecera h-[92px] sm:h-[108px]" />
-      <div className="dir-deckle chk-hoja flex flex-col">
+    <div aria-busy="true" className="dir-pagina chk acu-tema acu-acento-familiar flex min-h-dvh flex-1 flex-col">
+      <div className="chk-cabecera h-[53px] sm:h-[61px]" />
+      <div className="chk-hoja flex flex-col">
         <p role="status" className="sr-only">
           Cargando…
         </p>

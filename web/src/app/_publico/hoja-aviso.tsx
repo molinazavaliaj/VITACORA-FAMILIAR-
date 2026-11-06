@@ -7,6 +7,7 @@ import { TEXTOS_AVISOS, type TextosAviso } from "../_textos/avisos";
 import { TEXTOS_PUBLICO } from "../_textos/publico";
 import { Toroide } from "../marca";
 import "./aviso.css";
+import "../_portada/acuarela.css";
 
 // La hoja de aviso (rediseño 2026-10, fase 3, maqueta `Casos` 5): el 404 y los
 // enlaces que ya no sirven. Componente de servidor, sin JS: la franja de tinta
@@ -63,7 +64,7 @@ export function HojaAviso({
     escribirnos: t.escribirnos,
   };
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina avi">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina acu-tema avi">
       <header className="dir-tinta avi-cabecera">
         <div className="mx-auto flex w-full max-w-[1240px] items-center px-4 pb-4 pt-5 sm:px-8 sm:pb-6 sm:pt-6">
           <Link href={ruta(idioma, "/")} aria-label={t.inicio} prefetch={false} className="flex min-h-11 items-center gap-3 text-[var(--dir-sobre-tinta)]">

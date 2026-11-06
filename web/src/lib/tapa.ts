@@ -17,12 +17,12 @@ export const TEXTOS_CONTRATAPA: Record<IdiomaLibro, { contra: (nombre: string) =
   es: {
     contra: (n) => `Estas páginas guardan la vida de ${n}, contada con sus propias palabras: sus mejores historias, tal como las vivió. En este QR, sus mejores frases.`,
     escucha: (tu) => (tu ? "Escucha su voz" : "Escuchá su voz"),
-    lema: "Para las vidas que merecen su propio libro",
+    lema: "Todas las vidas merecen su propio libro",
   },
   ca: {
     contra: (n) => `Aquestes pàgines guarden la vida ${deCatalan(n)}, explicada amb les seves pròpies paraules: les seves millors històries, tal com les va viure. En aquest QR, les seves millors frases.`,
     escucha: () => "Escolta la seva veu",
-    lema: "Per a les vides que mereixen el seu propi llibre",
+    lema: "Totes les vides mereixen el seu propi llibre",
   },
 };
 

@@ -1,31 +1,36 @@
+import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
-import { DudaWhatsApp } from "../_landing/landing";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Acordeon } from "../_ui/acordeon";
-import { TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
+import { LIBRO_KIDS_EJEMPLO, TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
 import { obtenerPrecioKids } from "@/lib/precios";
 import { kidsVendeEn } from "@/lib/kids";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
-import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import { BotonEscribir, ChatKids, FOTOS_KIDS, FotoKids, PaginaKids, conVar } from "./piezas";
-import { VideoLibro } from "../_direccion/video-libro";
-import { LogoTrazo } from "../_direccion/logo-trazo";
-import { Ventajas } from "../_direccion/piezas";
+import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { ChatKids, FOTOS_KIDS, enlaceEscribir } from "./piezas";
+import { Coreografia } from "../_direccion/coreografia";
+import { Libro3D } from "../_direccion/libro-3d";
+import { Cajas } from "../_portada/cajas";
+import { filasDePrecio, type Caja } from "../_portada/datos-cajas";
+import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "../_portada/piezas-acuarela";
+import { TEXTOS_EDICIONES } from "../_textos/ediciones";
 import { TEXTOS_PORTADA } from "../_textos/portada";
+import { TEXTOS_PORTADA_NUEVA } from "../_textos/portada-nueva";
+import "../_portada/portada.css";
 
-// /kids, /ca/kids y /ar/kids: Vitácora Kids («Mi Primer Capítulo», 15/10). La
-// maqueta Kids y KidsMovil con la paleta de Kids de la guía (fondo #fbf8f3,
-// acento #c4502e, botón #ff8a6b) en el lenguaje de la dirección nueva: letra
-// grande, papel, hilos en vez de filas de tarjetas, fotos con forma.
+// /kids, /ca/kids y /ar/kids: Vitácora Kids («Mi Primer Capítulo», 15/10), con
+// el armado de la portada nueva (06/11) y el acento terracota. Las landings
+// (/kids/su-mundo, /kids/a-los-once) siguen con la paleta de kids.css.
 //
 // ESTÁTICA: no lee headers ni cookies. Lo que vende lo deciden las variables al
 // construir: con KIDS_VENTA="1", PRECIO_KIDS_* válido y una región que vende
 // (KIDS_REGIONES: /ar y España, con /ca desde la tanda 10), los botones llevan a /comprar/kids de su
-// idioma y se ve el precio; si falta alguna, «Próximamente» y «Escríbenos»
+// idioma y se ven los precios; si falta alguna, «Próximamente» y «Escríbenos»
 // (WhatsApp de dudas o correo). KIDS_VENTA no se prende hasta que Joaquín
 // conecte el motor y esté aplicada la migración de kids_v2 (lib/kids.ts).
 //
@@ -33,11 +38,6 @@ import { TEXTOS_PORTADA } from "../_textos/portada";
 // voz» ni reseñas. La garantía es la de Familiar, en las preguntas (Naza, 25/10). La
 // conversación de ejemplo usa una pregunta del banco y un acuse aprobados: el
 // bot nunca dice que algo le gusta.
-//
-// Orden: 1 inicio (como el de Familiar, 19/10: logo, lema centrado y el libro
-// que se abre), 2 los dibujos se pierden (con la foto del chico), 3 cómo funciona, 4 la
-// conversación, 5 el libro, 6 las preguntas, 7 tú lo ves todo y los temas,
-// 8 el precio o «Próximamente», 9 preguntas frecuentes, 10 cierre y pie.
 
 /** El precio de Kids en la región del idioma, y si se vende. */
 export function preciosKids(idioma: IdiomaWeb) {
@@ -53,278 +53,221 @@ export function preciosKids(idioma: IdiomaWeb) {
 
 export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
   const t = TEXTOS_KIDS[idioma];
+  const portada = TEXTOS_PORTADA[idioma];
+  const n = TEXTOS_PORTADA_NUEVA[idioma];
   const { vende, precio, formatear, promo, lista } = preciosKids(idioma);
   const comprar = ruta(idioma, "/comprar/kids");
   const whatsapp = urlWhatsAppDudas();
-
-  const Promo = () =>
-    lista && promo ? (
-      <>
-        <s className="mr-2 opacity-70">{lista}</s>
-        <span className="mr-2">−{promo} %</span>
-      </>
-    ) : null;
+  const escribir = enlaceEscribir(t);
+  const cat = catalogo(regionDeIdioma(idioma));
+  const conPrecio = vende && precio !== null;
 
   /** El botón principal: comprar si se vende; si no, escribirnos. */
-  const Accion = ({ className = "" }: { className?: string }) =>
-    vende ? (
-      <Link prefetch={false} href={comprar} className={`kids-boton ${className}`}>
-        {t.empezar}
-      </Link>
-    ) : (
-      <BotonEscribir t={t} className={className} />
-    );
+  const accion = vende ? (
+    <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
+      {t.empezar}
+    </Link>
+  ) : (
+    <a href={escribir.href} {...(escribir.externo ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="dir-boton dir-boton--lleno acu-boton">
+      {t.escribir}
+    </a>
+  );
 
-  const dato: ReactNode =
-    vende && precio !== null ? (
-      <>
-        <Promo />
-        {t.desde(formatear(precio))}
-      </>
-    ) : (
-      t.proximamente
-    );
+  const dato: ReactNode = conPrecio ? (
+    <>
+      {lista && promo ? (
+        <>
+          <s className="mr-2 opacity-70">{lista}</s>
+          <span className="mr-2">−{promo} %</span>
+        </>
+      ) : null}
+      {t.desde(formatear(precio))}
+    </>
+  ) : (
+    t.proximamente
+  );
+
+  const tapa = TEXTOS_EDICIONES[idioma].tapaKids;
+  const ejemplo = LIBRO_KIDS_EJEMPLO[idioma];
+  const caja: Caja = {
+    id: "nino",
+    textos: { titulo: t.etiqueta, linea: conPrecio ? t.precio.texto : t.proximamenteTexto, ideal: n.cajas.nino.ideal, enlace: conPrecio ? t.empezar : t.escribir },
+    tinte: 3,
+    tapa: { etiqueta: tapa.etiqueta, nombre: tapa.nombre, firma: tapa.edad, foto: FOTOS_KIDS.cuarto.src, contra: { iniciales: ejemplo.libro.iniciales, texto: ejemplo.libro.contra, escucha: ejemplo.libro.escucha } },
+    filas: conPrecio ? filasDePrecio(idioma, cat, formatear, precio, lista) : [{ etiqueta: n.precios.pronto, valor: n.precios.prontoValor }],
+    href: conPrecio ? comprar : escribir.href,
+    externo: !conPrecio,
+    marca: conPrecio ? null : "pronto",
+  };
 
   return (
-    <PaginaKids idioma={idioma}>
-      {/* ═══ 1 · INICIO, como el de Familiar (Naza, 19/10): el logo que se dibuja,
-          el lema enorme centrado, la bajada y el libro de Nico que se abre ═══ */}
-      <section className="relative">
-        <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
-          <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero textoComprar={t.empezar} />
-          </div>
-          <LogoTrazo id="trazo-kids" halo="var(--kids-fondo)" className="w-[124px] text-[var(--kids-texto)] sm:w-[180px]" />
-          <h1 className="kids-titular dir-t1 kids-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-[16ch]">
-            {t.titulo[0]} <em>{t.titulo[1]}</em>
-          </h1>
-          <p className="kids-bajada kids-entra mx-auto mt-6 max-w-[40ch] sm:mt-8" style={conVar({ "--e": "0.7s" })}>
-            {t.bajada}
-          </p>
-          {/* El libro de Nico en video (MOTION 14): va acá y solo acá. */}
-          <VideoLibro
-            src="/video/kids-libro.mp4"
-            poster="/video/kids-libro-poster.jpg"
-            alt={t.dibujos.altVideo}
-            ancho={1120}
-            alto={640}
-            sizes="(min-width: 960px) 880px, 100vw"
-            className="kids-video kids-entra mt-10 w-full max-w-[880px] sm:mt-12"
-          />
-          <div className="kids-entra mt-10 flex w-full max-w-[358px] flex-col items-center gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
-            <Accion className="w-full sm:w-auto" />
-            <a href="#como-funciona" className="kids-boton kids-boton--hilo w-full sm:w-auto">
-              {TEXTOS_PORTADA[idioma].inicio.comoFunciona}
+    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-tema acu-acento-kids acu-imanes flex flex-1 flex-col">
+      <Coreografia />
+
+      {/* 1 · Inicio: el libro de Nico en 3D, igual que el de Familiar (Naza, 06/11). Debajo de
+          los botones, quién escucha lo que cuenta (Naza, 25/10). */}
+      <InicioAcuarela
+        cabecera={<Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero textoComprar={t.empezar} />}
+        titulo={
+          <>
+            {t.titulo[0]} <em className="dir-destaca">{t.titulo[1]}</em>
+          </>
+        }
+        bajada={t.bajada}
+        botones={
+          <>
+            {accion}
+            <a href="#como-funciona" className="acu-boton-hilo">
+              {portada.inicio.comoFunciona}
             </a>
-          </div>
-          {/* En lugar del precio, quién escucha lo que cuenta (Naza, 25/10). El precio sigue en su bloque, en el cierre y en la barra del teléfono. */}
-          <p className="kids-dato kids-entra mt-6 max-w-[46ch]" style={conVar({ "--e": "1.05s" })}>
+          </>
+        }
+        dato={
+          <>
             {t.privacidad.texto}{" "}
             <Link prefetch={false} href={ruta(idioma, "/legal/privacidad")} className="underline underline-offset-4">
               {t.privacidad.enlace}
             </Link>
-          </p>
-          <Ventajas items={t.ventajas} className="kids-entra mt-10 text-[var(--kids-texto)]" style={conVar({ "--e": "1.15s" })} />
-        </div>
-      </section>
+          </>
+        }
+        visual={
+          <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
+            <Libro3D
+              idioma={idioma}
+              b={ejemplo.libro}
+              c={{ ...TEXTOS_EJEMPLO.es.libro, ...ejemplo.capitulo }}
+              diseno={{ tapa: FOTOS_KIDS.cuarto.src, interior: FOTOS_KIDS.familia.src }}
+            />
+          </div>
+        }
+      />
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
-      <div id="hero" aria-hidden className="relative h-px" />
+      <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
-      {/* ═══ 2 · LOS DIBUJOS SE PIERDEN: una frase sola, centrada, y el chico que graba, en arco ═══ */}
-      <section className="kids-hilo-arriba">
-        <div className="mx-auto flex max-w-[1100px] flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
-          <h2 className="kids-titular kids-t2 kids-aparece">
-            <span className="block">{t.dibujos.frase[0]}</span>
-            {/* Las tres primeras palabras juntas: en el teléfono quedaba «Lo que» solo arriba (revisión del 25/10, A13). */}
-            <em className="block">{t.dibujos.frase[1].replace(/^(\S+) (\S+) (\S+)/, "$1\u00a0$2\u00a0$3")}</em>
-          </h2>
-          <p className="kids-bajada kids-aparece mt-8 max-w-[46ch]">{t.dibujos.texto}</p>
-          <FotoKids
-            src={FOTOS_KIDS.audio.src}
-            alt={t.altHero}
-            forma="arco"
-            sizes="(min-width: 768px) 360px, 78vw"
-            className="mt-14 w-[78%] max-w-[360px] md:mt-20"
-          />
+      {/* 2 · El libro en el estante, con la nota de precios o «Próximamente». */}
+      <TiendaAcuarela confianza={t.ventajas} titulo={conPrecio ? t.precio.titulo : t.proximamente} ctaPropio>
+        <Cajas idioma={idioma} cajas={[caja]} whatsapp={whatsapp} />
+        {conPrecio ? <p className="dir-dato mt-2 text-[var(--acu-suave)]">{t.precio.nota}</p> : null}
+      </TiendaAcuarela>
+
+      <BandaFotos fotos={[FOTOS_KIDS.libroAbierto.src]} alt={t.libro.altFoto} posicion="50% 50%" />
+
+      {/* 3 · Los juguetes y su libro: una frase sola, centrada. */}
+      <section className="acu-iman acu-hoja-banda relative z-[3] px-4 py-14 text-center sm:px-8 md:py-20">
+        <h2 className="dir-titular dir-t3 mx-auto max-w-[24ch]">
+          <span className="block">{t.dibujos.frase[0]}</span>
+          {/* Las tres primeras palabras juntas: en el teléfono quedaba «Lo que» solo arriba (revisión del 25/10, A13). */}
+          <em className="dir-destaca block">{t.dibujos.frase[1].replace(/^(\S+) (\S+) (\S+)/, "$1 $2 $3")}</em>
+        </h2>
+      </section>
+
+      {/* 4 · Cómo funciona */}
+      <PasosFotos
+        titulo={t.como.titulo}
+        etiqueta={t.como.paso}
+        pasos={t.como.pasos.map((paso, i) => ({
+          ...paso,
+          foto: [FOTOS_KIDS.audio.src, FOTOS_KIDS.cuarto.src, FOTOS_KIDS.libroTapa.src][i],
+          alt: i === 0 ? t.altHero : i === 1 ? t.chat.altFoto : "",
+        }))}
+      />
+
+      {/* 5 · Tú lo ves todo y los temas: lo que cuida a quien regala y al chico */}
+      <section className="acu-iman acu-hoja-banda relative z-[5] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par">
+          <div className="acu-par-img">
+            <Image src={FOTOS_KIDS.familia.src} alt={t.panel.altFoto} fill sizes="(min-width: 820px) 50vw, 100vw" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <h2 className="dir-titular dir-t3">{t.panel.titulo}</h2>
+            <p className="acu-parrafo">{t.panel.texto}</p>
+            <p className="acu-parrafo">{t.panel.tuyas}</p>
+            <p className="dir-pie border-l-2 border-[var(--acu-bordo)] pl-4">{t.panel.pedido}</p>
+            <h3 className="dir-titular dir-t4 mt-6">{t.temas.titulo}</h3>
+            <p className="acu-parrafo">{t.temas.texto}</p>
+          </div>
         </div>
       </section>
 
-      {/* ═══ 3 · CÓMO FUNCIONA: título que se queda y tres pasos con hilo ═══ */}
-      <section id="como-funciona" className="kids-hondo scroll-mt-6">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:py-36 lg:px-12">
-          <div className="md:col-span-5">
-            <h2 className="kids-titular kids-t3 kids-aparece max-w-[16ch] md:sticky md:top-24">{t.como.titulo}</h2>
+      {/* 6 · La conversación de ejemplo y las preguntas del banco */}
+      <section className="acu-iman acu-hoja-banda2 relative z-[6] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par">
+          <div className="flex flex-col gap-4">
+            <h2 className="dir-titular dir-t3">{t.chat.titulo}</h2>
+            <h3 className="dir-titular dir-t4 mt-6">{t.preguntas.titulo}</h3>
+            <ul className="flex flex-col">
+              {t.preguntas.items.map((p) => (
+                <li key={p} className="border-t border-[var(--acu-linea)] py-4">
+                  <p className="dir-pregunta">«{p}»</p>
+                </li>
+              ))}
+            </ul>
+            <p className="dir-dato border-t border-[var(--acu-linea)] pt-4 text-[var(--acu-suave)]">{t.preguntas.pie}</p>
           </div>
-          <div className="md:col-span-6 md:col-start-7">
-            <PasosKids pasos={t.como.pasos} etiqueta={t.como.paso} />
+          <div className="kids acu-chat flex justify-center">
+            <ChatKids c={t.chat} />
           </div>
         </div>
       </section>
 
-      {/* ═══ 4 · LA CONVERSACIÓN: la foto del cuarto y el WhatsApp de ejemplo ═══ */}
-      <section>
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <div className="flex flex-col gap-6 md:col-span-5">
-            <h2 className="kids-titular kids-t3 kids-aparece">{t.chat.titulo}</h2>
-            <p className="kids-parrafo kids-aparece max-w-[40ch]">{t.chat.texto}</p>
-            <div className="kids-aparece mt-4">
-              <ChatKids c={t.chat} />
-            </div>
+      {/* 7 · El libro y el sobre cerrado */}
+      <section className="acu-iman acu-hoja-lisa relative z-[6] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par">
+          <div className="flex flex-col gap-4">
+            <h2 className="dir-titular dir-t3">{t.libro.titulo}</h2>
+            <p className="acu-parrafo max-w-[44ch]">{t.libro.texto}</p>
           </div>
-          <FotoKids
-            src={FOTOS_KIDS.cuarto.src}
-            alt={t.chat.altFoto}
-            forma="ovalo"
-            sizes="(min-width: 768px) 36vw, 80vw"
-            className="mx-auto w-[80%] md:col-span-5 md:col-start-8 md:w-full"
-          />
-        </div>
-      </section>
-
-      {/* ═══ 5 · EL LIBRO: la foto ancha del libro abierto y el índice ═══ */}
-      <section className="kids-hilo-arriba">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <div className="md:col-span-12">
-            <FotoKids src={FOTOS_KIDS.libroAbierto.src} alt={t.libro.altFoto} forma="ancha" sizes="(min-width: 1360px) 1264px, 92vw" className="w-full" />
-          </div>
-          <div className="flex flex-col gap-6 md:col-span-5">
-            <h2 className="kids-titular kids-t3 kids-aparece">{t.libro.titulo}</h2>
-            <p className="kids-parrafo kids-aparece max-w-[40ch]">{t.libro.texto}</p>
-          </div>
-          <ol className="kids-indice kids-aparece md:col-span-6 md:col-start-7">
+          <ol className="dir-indice">
             {t.libro.capitulos.map((cap, i) => (
               <li key={cap}>
-                <span aria-hidden className="kids-indice-num">
-                  {i + 1}
-                </span>
-                <span className="kids-indice-cap">{cap}</span>
-                {i === t.libro.capitulos.length - 1 ? <span className="kids-dato ml-auto">{t.libro.sobre}</span> : null}
+                <span aria-hidden className="dir-indice-num">{i + 1}</span>
+                <span className="dir-indice-cap">{cap}</span>
+                {i === t.libro.capitulos.length - 1 ? <span className="dir-dato ml-auto text-right text-[var(--acu-suave)]">{t.libro.sobre}</span> : null}
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      {/* ═══ 6 · LAS PREGUNTAS: tres del banco, en cursiva grande ═══ */}
-      <section className="kids-hondo">
-        <div className="mx-auto max-w-[1100px] px-4 py-24 sm:px-8 md:py-36">
-          <h2 className="kids-titular kids-t3 kids-aparece max-w-[18ch]">{t.preguntas.titulo}</h2>
-          <ul className="mt-12 flex flex-col md:mt-16">
-            {t.preguntas.items.map((p, i) => (
-              <li key={p} className={`kids-aparece border-t border-[var(--kids-hilo)] py-8 ${i % 2 === 1 ? "md:pl-[12%]" : ""}`}>
-                <p className="kids-cita max-w-[30ch]">«{p}»</p>
-              </li>
-            ))}
-          </ul>
-          <p className="kids-dato kids-aparece border-t border-[var(--kids-hilo)] pt-6">{t.preguntas.pie}</p>
-        </div>
-      </section>
+      {/* 8 · Preguntas (la garantía vive acá: D1) */}
+      <PreguntasAcuarela titulo={t.faq.titulo} duda={portada.faq.duda} whatsapp={whatsapp}>
+        {t.faq.preguntas.filter((d) => !d.soloLanding).map((d, i) => (
+          <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas-kids">
+            {d.respuesta}
+          </Acordeon>
+        ))}
+      </PreguntasAcuarela>
 
-      {/* ═══ 7 · TÚ LO VES TODO y LOS TEMAS ═══ */}
-      <section>
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <FotoKids
-            src={FOTOS_KIDS.familia.src}
-            alt={t.panel.altFoto}
-            forma="suave"
-            sizes="(min-width: 768px) 44vw, 92vw"
-            className="w-full md:col-span-6"
-          />
-          <div className="flex flex-col gap-6 md:col-span-5 md:col-start-8">
-            <h2 className="kids-titular kids-t3 kids-aparece">{t.panel.titulo}</h2>
-            <p className="kids-parrafo kids-aparece">{t.panel.texto}</p>
-            <p className="kids-parrafo kids-aparece">{t.panel.tuyas}</p>
-            <p className="kids-cita kids-aparece border-l-2 border-[var(--kids-acento)] pl-6 text-[clamp(1.3rem,1.1rem+0.8vw,1.75rem)]">{t.panel.pedido}</p>
-          </div>
-        </div>
-        <div className="mx-auto max-w-[1360px] px-4 pb-24 sm:px-8 md:pb-36 lg:px-12">
-          <div className="kids-hilo-arriba grid grid-cols-1 gap-6 pt-14 md:grid-cols-12 md:gap-8">
-            <h3 className="kids-titular kids-aparece text-[clamp(1.6rem,1.25rem+1.4vw,2.4rem)] leading-[1.12] md:col-span-5">{t.temas.titulo}</h3>
-            <p className="kids-parrafo kids-aparece md:col-span-6 md:col-start-7">{t.temas.texto}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 8 · EL PRECIO, o «Próximamente» ═══ */}
-      <section data-cta-propio className="kids-hondo">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-32 lg:px-12">
-          <FotoKids src={FOTOS_KIDS.libroTapa.src} alt="" forma="ancha" sizes="(min-width: 768px) 46vw, 92vw" className="w-full md:col-span-6 md:col-start-7 md:row-start-1" />
-          <div className="flex flex-col items-start gap-6 md:col-span-5 md:col-start-1 md:row-start-1">
-            {vende && precio !== null ? (
-              <>
-                <h2 className="kids-titular kids-t3">{t.precio.titulo}</h2>
-                <p className="flex flex-wrap items-baseline gap-3">
-                  {lista ? (
-                    <span className="kids-dato">
-                      <Promo />
-                    </span>
-                  ) : null}
-                  <span className="kids-precio">{formatear(precio)}</span>
-                </p>
-                <p className="kids-parrafo max-w-[38ch]">{t.precio.texto}</p>
-                <Accion />
-                <span className="kids-dato">{t.precio.nota}</span>
-              </>
-            ) : (
-              <>
-                <h2 className="kids-titular kids-t2">
-                  <em>{t.proximamente}</em>
-                </h2>
-                <p className="kids-parrafo max-w-[38ch]">{t.proximamenteTexto}</p>
-                <BotonEscribir t={t} />
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 9 · PREGUNTAS FRECUENTES ═══ */}
-      <section>
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 gap-10 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <h2 className="kids-titular kids-t3 kids-aparece md:col-span-4">{t.faq.titulo}</h2>
-          <div className="kids-aparece flex flex-col gap-14 md:col-span-7 md:col-start-6">
-            <div className="border-t border-[var(--kids-hilo)]">
-              {t.faq.preguntas.map((d, i) => (
-                <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas-kids">
-                  {d.respuesta}
-                </Acordeon>
-              ))}
-            </div>
-            {/* «¿Te queda alguna duda?», como en la portada (revisión del 25/10). */}
-            {whatsapp ? <DudaWhatsApp duda={TEXTOS_PORTADA[idioma].faq.duda} href={whatsapp} papel /> : null}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 10 · CIERRE ═══ */}
-      <section data-cta-propio className="kids-hilo-arriba">
-        <div className="flex flex-col items-center px-4 py-24 text-center sm:px-8 md:py-36">
-          <h2 className="kids-titular kids-t2 kids-aparece max-w-[20ch]">
+      {/* 9 · Cierre */}
+      <CierreAcuarela
+        titulo={
+          <>
             <span className="block">{t.cierre.titulo[0]}</span>
-            <em className="block">{t.cierre.titulo[1]}</em>
-          </h2>
-          <div className="kids-aparece mt-11 flex w-full flex-col items-center gap-4">
-            <Accion className="w-full max-w-[358px] sm:w-auto" />
-            <span className="kids-dato">{dato}</span>
-          </div>
-          <Link prefetch={false} href={ruta(idioma, "/")} className="kids-enlace kids-aparece mt-8">
-            {t.cierre.familiar}
-          </Link>
-        </div>
+            <em className="dir-destaca block">{t.cierre.titulo[1]}</em>
+          </>
+        }
+      >
+        {accion}
+        <span className="dir-dato text-[var(--acu-suave)]">{dato}</span>
+        <Link prefetch={false} href={ruta(idioma, "/")} className="acu-enlace">
+          {t.cierre.familiar}
+        </Link>
+      </CierreAcuarela>
+      <div className="dir-tinta relative z-[8]" data-cta-propio>
         <Pie idioma={idioma} camino="/kids" />
-      </section>
+      </div>
 
       {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono, si se vende. */}
       <WhatsAppFlotante idioma={idioma} />
-      {vende && precio !== null ? (
+      {conPrecio ? (
         <CtaSticky
           precio={formatear(precio)}
           href={comprar}
-          variante="kids"
-          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: t.empezar }}
+          variante="acuarela"
+          textos={{ desde: "", conImpreso: portada.elLibro.pagoUnico, sinImpreso: portada.elLibro.pagoUnico, boton: t.empezar }}
         />
       ) : null}
-    </PaginaKids>
+    </div>
   );
 }
 
