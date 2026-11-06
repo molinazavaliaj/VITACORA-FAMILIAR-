@@ -3,7 +3,7 @@
 // reintenta. Ningún texto se arma acá: salen de la cola, que llenó turno.ts con textos del banco. Fuera de la
 // ventana de 24 h van las plantillas de historia (PLANTILLAS_HISTORIA: `pregunta` y `recordatorio` son las de V3).
 
-import { datosDelLink, esPrivado, textoDelLink } from '../link-respuestas.js';
+import { datosDelLink, esPrivado, linkConVentanaCerrada, textoDelLink } from '../link-respuestas.js';
 import { PLANTILLAS_HISTORIA, type CualPlantillaHistoria } from '../config.js';
 import { plantillaLista as plantillaListaV3 } from '../v3/enviar.js';
 import type { DepsHistoria } from './deps.js';
@@ -207,8 +207,8 @@ export const RESPUESTAS_PARA_UN_LIBRO = 10;
 
 /**
  * Terminó de contar y el libro es para otra persona: le llega su link, con hasta cuándo puede sacar algo (05/11). Una
- * sola vez (`estado.linkFinal`). Sale con la ventana abierta: FIN acaba de salir. Si no, se avisa a los socios: hace
- * falta una plantilla de Meta, que llega con el PR de las dudas por WhatsApp. Nunca frena el cierre.
+ * sola vez (`estado.linkFinal`). Con la ventana abierta sale como texto: FIN acaba de salir. Cerrada, con la plantilla
+ * `revision` (linkConVentanaCerrada). Nunca frena el cierre.
  */
 async function mandarLinkAlTerminar(deps: DepsHistoria, narradorId: string, fila: FilaHistoria, telefono: string): Promise<void> {
   try {
@@ -218,9 +218,10 @@ async function mandarLinkAlTerminar(deps: DepsHistoria, narradorId: string, fila
     const ahora = deps.ahora();
     const marcar = () => conReintento(deps.db, narradorId, (f) => ({ cambio: { estado: { ...f.estado, linkFinal: ahora.toISOString() } }, resultado: true }));
     if (!ventanaAbierta(fila.estado, ahora)) {
-      await deps.avisar(`link-final-${narradorId}`, 'Un narrador terminó y no le llegó su link',
-        `${narradorId} terminó con la ventana de WhatsApp cerrada: no se le puede mandar el link para sacar algo sin una plantilla de Meta.`);
-      await marcar();
+      const listo = await linkConVentanaCerrada(deps, narradorId, datos, telefono, fila.idioma, {
+        lista: plantillaListaV3(fila.idioma, 'revision'), nombre: enLineaParaPlantilla([datos.como_le_dicen ?? '']), ahora,
+      });
+      if (listo) await marcar();
       return;
     }
     const texto = textoDelLink({ ...datos, estado: 'completado' }, narradorId, fila.idioma, fichaTexto(fila), ahora);

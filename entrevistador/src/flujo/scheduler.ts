@@ -443,6 +443,22 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     console.error('scheduler: falló la entrega de regalos del día', err);
   }
 
+  // El aviso de dudas a quien contó y su recordatorio. Aislado como el de arriba.
+  try {
+    const { atenderRevisiones } = await import('./revision-narrador.js');
+    const { enviarTexto } = await import('../whatsapp/enviar.js');
+    await atenderRevisiones({
+      db,
+      enviarTexto: (tel, texto, o) => enviarTexto(tel, texto, o),
+      enviarPlantilla: (tel, nombre, variables, idiomaMeta, o) => enviarPlantilla(tel, nombre, variables, idiomaMeta, o),
+      avisarSocios: (clave, asunto, detalle, o) => avisarSocios(clave, asunto, detalle, o),
+      plantillaLista: (idioma, cual) => plantillaLista(idioma, cual),
+      urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+    }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló el aviso de dudas a quien contó', err);
+  }
+
   // El latido, último y con su try adentro: si no se puede anotar que
   // estamos vivos, el tick no se cae por eso.
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });

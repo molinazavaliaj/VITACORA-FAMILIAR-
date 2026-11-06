@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { controlarPlantillas, faltantes } from '../src/flujo/control-plantillas.js';
 
 const KIDS = ['kids_bienvenida', 'kids_bienvenida_plural', 'kids_bienvenida_padre', 'kids_aviso_padre', 'kids_recordatorio_padre', 'kids_recordatorio_padre_8', 'kids_recordatorio_lo_hago_yo', 'kids_recordatorio_lo_hago_yo_8', 'kids_pregunta_nueva', 'kids_pregunta_nueva_padre', 'kids_termino_padre', 'kids_final', 'kids_final_plural'];
-const V3 = ['es-AR', 'es-ES', 'ca'].flatMap((i) => ['bienvenida', 'pregunta', 'recordatorio', 'regalo_entrega'].map((c) => `${i}:${c}`)).join(',');
+const V3 = ['es-AR', 'es-ES', 'ca'].flatMap((i) => ['bienvenida', 'pregunta', 'recordatorio', 'regalo_entrega', 'revision', 'dudas_narrador'].map((c) => `${i}:${c}`)).join(',');
 const VIAJE = ['es-AR', 'es-ES', 'ca'].flatMap((i) => ['bienvenida', 'bienvenida_regalo', 'mensaje', 'recordatorio', 'recordatorio_ultima'].map((c) => `${i}:${c}`)).join(',');
 
 // 21/10: el caso de Martí. La web vendía Kids en catalán y el bot solo tenía marcadas las de Argentina.
@@ -28,6 +28,16 @@ describe('control de plantillas contra lo que vende la web', () => {
     expect(f.some((x) => x.includes('«es-ES:pregunta»'))).toBe(true);
     expect(f.some((x) => x.includes('«es-ES:regalo_entrega»'))).toBe(true);
     expect(f.some((x) => x.includes('Viaje (catalán)'))).toBe(true);
+  });
+
+  it('las plantillas del link y de las dudas se exigen en los idiomas que se venden', () => {
+    const familiar = { familiar: ['ca'], viaje: [], kids: [], regaloEntrega: false } as Parameters<typeof faltantes>[0];
+    const sinEllas = V3.split(',').filter((e) => !/:(revision|dudas_narrador)$/.test(e)).join(',');
+    const f = faltantes(familiar, { WA_PLANTILLAS_V3_LISTAS: sinEllas } as NodeJS.ProcessEnv);
+    expect(f).toHaveLength(2);
+    expect(f[0]).toContain('«ca:revision»');
+    expect(f[1]).toContain('«ca:dudas_narrador»');
+    expect(faltantes(familiar, { WA_PLANTILLAS_V3_LISTAS: V3 } as NodeJS.ProcessEnv)).toEqual([]);
   });
 
   it('lee /api/vende de la web; si no contesta, no avisa y devuelve null', async () => {

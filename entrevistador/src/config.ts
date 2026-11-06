@@ -99,6 +99,18 @@ export const PLANTILLA_REGALO_ENTREGA: Readonly<Record<'es-AR' | 'es-ES' | 'ca',
   ca: { nombre: 'regalo_entrega_ca', idiomaMeta: 'ca' },
 };
 
+/**
+ * Las plantillas para quien contó, cuando la ventana de 24 horas ya se cerró: cuerpo {{1}} = como_le_dicen y botón de URL
+ * con sufijo {{1}} = el token (`/mi-historia/{{1}}`). `revision` es el mensaje final con el link para sacar respuestas;
+ * `dudas`, el aviso de dudas y su recordatorio. Salen solo si WA_PLANTILLAS_V3_LISTAS incluye `<idioma>:revision` o
+ * `<idioma>:dudas_narrador`.
+ */
+export const PLANTILLAS_REVISION: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { revision: PlantillaV3; dudas: PlantillaV3 }>> = {
+  'es-AR': { revision: { nombre: 'revision_vos', idiomaMeta: 'es' }, dudas: { nombre: 'dudas_narrador_vos', idiomaMeta: 'es' } },
+  'es-ES': { revision: { nombre: 'revision_es_es', idiomaMeta: 'es_ES' }, dudas: { nombre: 'dudas_narrador_es_es', idiomaMeta: 'es_ES' } },
+  ca: { revision: { nombre: 'revision_ca', idiomaMeta: 'ca' }, dudas: { nombre: 'dudas_narrador_ca', idiomaMeta: 'ca' } },
+};
+
 export type CualPlantillaViaje = 'mensaje' | 'recordatorio' | 'recordatorio_ultima' | 'bienvenida' | 'bienvenida_regalo';
 
 /**
