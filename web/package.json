@@ -13,9 +13,9 @@
     "@stripe/stripe-js": "^9.17.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.112.4",
-    "heic-to": "1.6.6",
+    "heic-to": "1.6.7",
     "mercadopago": "^3.6.1",
-    "next": "16.4.2",
+    "next": "16.4.5",
     "qrcode": "^1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -29,6 +29,6 @@
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   }
 }
