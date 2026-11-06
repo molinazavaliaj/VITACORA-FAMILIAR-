@@ -24,6 +24,13 @@ export function textoDudas(propia: boolean, comoLeDicen: string, tu: boolean): s
     : `Hay dudas sobre lo que contó ${comoLeDicen}. ${contestalas} antes de que se escriba el libro.`;
 }
 
+/** Lo único que ve quien regala de las dudas: cuántas faltan, sin link (Naza, 06/11). Igual de vos y de tú. */
+export function textoQuedanPreguntas(comoLeDicen: string, cuantas: number): string {
+  return cuantas === 1
+    ? `A ${comoLeDicen} le queda una pregunta por contestar.`
+    : `A ${comoLeDicen} le quedan ${cuantas} preguntas por contestar.`;
+}
+
 export function viajeDe(h: Historia): (Partial<CompraViaje> & { salida: string; vuelta: string }) | null {
   return viajeDelContexto(h.narrador.contexto);
 }
@@ -45,7 +52,8 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
       if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: tu ? "Pide tu copia impresa" : "Pedí tu copia impresa" };
       // Las dudas tienen plazo: pasado el rato de espera el libro se escribe con
       // o sin ellas. Elegir la tapa no vence, así que las dudas van primero.
-      if (r.dudasPendientes) {
+      // Si lo contado es privado las contesta quien contó, por su link: a quien regala no se le ofrece nada.
+      if (r.dudasPendientes && !privado) {
         return { href: `/tablero/${id}/dudas`, texto: textoDudas(propia && esDuena, h.narrador.como_le_dicen, tu) };
       }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: tu

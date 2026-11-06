@@ -157,6 +157,7 @@ const update = (tabla: string) => mocks.estado.capturas.find((c) => c.op === 'up
 const insert = (tabla: string) => mocks.estado.capturas.find((c) => c.op === 'insert' && c.tabla === tabla);
 
 beforeEach(() => {
+  mocks.enviarBotones.mockClear();
   mocks.estado.narrador = null;
   mocks.estado.narradores = null;
   mocks.codigoPorEntrega.mockReset();

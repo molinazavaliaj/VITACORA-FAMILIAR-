@@ -7,7 +7,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, loContadoEsPrivado, PUEDE, tratoEditable, type NarradorPanel, type Rol } from "@/lib/panel";
 import { hayLibroListo } from "@/lib/libro-listo";
 import { tratoDeLaFamilia } from "@/lib/trato";
-import { hayDudasPendientes } from "@/lib/dudas-archivos";
+import { cuantasDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../proximo-paso";
 import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
@@ -251,9 +251,10 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         )
       : Promise.resolve([]);
   // Terminó de contar y el escritor dejó dudas sin contestar (13/10). Solo depende del rol y del estado.
-  const pDudas: Promise<boolean> =
-    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? hayDudasPendientes(admin, n).catch(() => false) : Promise.resolve(false);
-  const parametros = { admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato };
+  const pCuantasDudas: Promise<number> =
+    PUEDE.contestarDudas(rol) && ESTADOS_CERRADOS.includes(n.estado) ? cuantasDudasPendientes(admin, n).catch(() => 0) : Promise.resolve(0);
+  const pDudas = pCuantasDudas.then((c) => c > 0);
+  const parametros = { admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pCuantasDudas, pTrato };
   const pLectura = privado ? leerHistoriaPrivada(parametros) : leerHistoria(parametros);
 
   const contexto = (n.contexto ?? {}) as Record<string, unknown>;
@@ -432,16 +433,16 @@ type Lectura = {
  * ronda; ahora devuelve las piezas en vez de la página entera. Nunca rechaza.
  */
 async function leerHistoria({
-  admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato,
+  admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pCuantasDudas, pTrato,
 }: {
   admin: SupabaseClient; user: User; n: NarradorPanel; rol: Rol; propia: boolean;
   editar: string | string[] | undefined; sobre: string | string[] | undefined;
   pFila: Promise<FilaNarrador>; pFotos: Promise<FotoVista[]>; pInvitados: Promise<(InvitadoVista & { rol?: string })[]>;
-  pDudas: Promise<boolean>; pTrato: Promise<TratoComprador>;
+  pDudas: Promise<boolean>; pCuantasDudas: Promise<number>; pTrato: Promise<TratoComprador>;
 }): Promise<Lectura> {
   const sinNada = { voz: null, subirFoto: null, familia: null, cierre: null };
   try {
-    return await armarLectura({ admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pTrato });
+    return await armarLectura({ admin, user, n, rol, propia, editar, sobre, pFila, pFotos, pInvitados, pDudas, pCuantasDudas, pTrato });
   } catch (e) {
     console.error("historia: fallo la carga", e);
     return { cuerpo: <EstadoError trato={await pTrato.catch(() => "vos" as const)} />, ...sinNada };
@@ -462,10 +463,10 @@ async function leerHistoriaPrivada(p: Parameters<typeof leerHistoria>[0]): Promi
 const PREGUNTAS_HISTORIA = 10;
 
 async function armarLecturaPrivada({
-  admin, user, n, rol, pFila, pFotos, pInvitados, pDudas, pTrato,
+  admin, user, n, rol, pFila, pFotos, pInvitados, pCuantasDudas, pTrato,
 }: Parameters<typeof leerHistoria>[0]): Promise<Lectura> {
   const esHistoria = (n.contexto as { modo?: unknown } | null | undefined)?.modo === "historia";
-  const [{ data: propias, error: e1 }, { data: filas, error: e2 }, fotos, invitados, fila, trato, dudasPendientes, entrevista, libroListo] = await Promise.all([
+  const [{ data: propias, error: e1 }, { data: filas, error: e2 }, fotos, invitados, fila, trato, quedanPreguntas, entrevista, libroListo] = await Promise.all([
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").eq("narrador_id", n.id),
     // Solo para contar: ni el texto, ni el audio, ni la duración.
     admin.from("respuestas").select(esHistoria ? "clave_v3:clave_historia, pregunta_orden, es_repregunta" : "clave_v3, pregunta_orden, es_repregunta").eq("narrador_id", n.id),
@@ -473,7 +474,7 @@ async function armarLecturaPrivada({
     pInvitados,
     pFila,
     pTrato,
-    pDudas,
+    pCuantasDudas,
     esHistoria ? entrevistaHistoria(admin, n.id) : entrevistaV3(admin, n.id),
     hayLibroListo(admin, n.id),
   ]);
@@ -534,11 +535,11 @@ async function armarLecturaPrivada({
   // El link público del libro, recién con el libro listo. Invitar, como siempre.
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && libroListo ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
-  const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
-  const deshabilitarCompartir = historiaCerrada && !aprobado && !dudasAbiertas;
+  // Las dudas las contesta quien contó: a quien regala solo le llega cuántas faltan, y no hay para qué invitar a nadie.
+  const deshabilitarCompartir = historiaCerrada && !aprobado;
   const familia = PUEDE.invitar(rol) ? (
     <span className={deshabilitarCompartir ? "pointer-events-none opacity-50" : ""} aria-disabled={deshabilitarCompartir ? true : undefined}>
-      <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} dudasAbiertas={dudasAbiertas} linkPublico={linkPublico} invitados={invitados.filter((i) => i.rol !== "visitante")} trato={trato} privado />
+      <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={invitados.filter((i) => i.rol !== "visitante")} trato={trato} privado />
     </span>
   ) : null;
 
@@ -554,7 +555,7 @@ async function armarLecturaPrivada({
         aprobado={aprobado}
         historiaCerrada={historiaCerrada}
         libroListo={libroListo}
-        dudasPendientes={dudasPendientes}
+        quedanPreguntas={quedanPreguntas}
         alFinal={alFinal}
         ritmo={ritmo}
         horario={horario}

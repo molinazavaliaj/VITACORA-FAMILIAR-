@@ -13,7 +13,9 @@ import { lineaDeTiempo, titularDe } from "../../../tablero/momento";
 import { estadoEnHumano } from "../../../tablero/ui";
 import { BotonTema } from "../../../tablero/tema";
 import { Navegacion } from "../../../tablero/nav";
-import { VistaRespuestas } from "../../../mis-respuestas/[token]/vista";
+import { Aviso, VistaRespuestas } from "../../../mis-respuestas/[token]/vista";
+import { VistaDudas, VistaGracias } from "../../../mi-historia/[token]/vista";
+import { textosMiHistoria, type IdiomaMiHistoria } from "@/lib/mi-historia-textos";
 import type { TratoComprador } from "@/lib/regalo-textos";
 import "../../../tablero/panel.css";
 
@@ -38,9 +40,9 @@ function Panel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Historia({ rol, listo, trato }: { rol: "duena" | "invitado"; listo: boolean; trato: TratoComprador }) {
+function Historia({ rol, listo, trato, quedanPreguntas = 0 }: { rol: "duena" | "invitado"; listo: boolean; trato: TratoComprador; quedanPreguntas?: number }) {
   const idioma = idiomaDelTrato(trato);
-  const estado = listo ? "completado" : "activo";
+  const estado = listo || quedanPreguntas > 0 ? "completado" : "activo";
   const contacto = { whatsapp: null, correo: "soporte@vitacorafamiliar.com" };
   return (
     <MarcoHistoria
@@ -58,7 +60,7 @@ function Historia({ rol, listo, trato }: { rol: "duena" | "invitado"; listo: boo
       }
       arriba={!listo ? <HojaFotos idioma={idioma} quien={quien} fotos={[]} hayPortada={false} subir={<SubirFoto narradorId={n.id} capitulos={[]} variante="barra" trato={trato}>Agregar fotos</SubirFoto>} /> : null}
       cuerpo={
-        <HistoriaPrivada n={{ ...n, estado }} rol={rol} quien={quien} preguntasFamilia={listo ? [] : preguntas} fotos={[]} usuarioId="u1" aprobado={listo} historiaCerrada={false} libroListo={listo} dudasPendientes={false} alFinal={listo} ritmo="diario" horario={rol === "duena" && !listo ? { hora: "10:00", zona: "Europe/Madrid" } : undefined} trato={trato} />
+        <HistoriaPrivada n={{ ...n, estado }} rol={rol} quien={quien} preguntasFamilia={listo ? [] : preguntas} fotos={[]} usuarioId="u1" aprobado={listo} historiaCerrada={false} libroListo={listo} quedanPreguntas={quedanPreguntas} alFinal={listo} ritmo="diario" horario={rol === "duena" && !listo ? { hora: "10:00", zona: "Europe/Madrid" } : undefined} trato={trato} />
       }
       abajo={
         <>
@@ -78,15 +80,17 @@ function Historia({ rol, listo, trato }: { rol: "duena" | "invitado"; listo: boo
 const frase = (id: string, texto: string) => ({ id, texto, origen: "cita" as const, grupo: null, respuesta_id: null, pregunta_orden: 0, por_que: "", elegida: true, elegida_por: "modelo" as const, estado: "cortada" as const, audio_path: "x", segundos: 7, inicio: 0, fin: 7 });
 const respuesta = (id: string, texto: string, fuera = false) => ({ id, texto, audio: true, duracion: 42, recibidoAt: "2026-11-01T10:00:00Z", fuera });
 
-export default async function Muestra({ params, searchParams }: { params: Promise<{ que: string }>; searchParams: Promise<{ tu?: string }> }) {
+export default async function Muestra({ params, searchParams }: { params: Promise<{ que: string }>; searchParams: Promise<{ tu?: string; idioma?: string }> }) {
   if (process.env.VERCEL_ENV === "production") notFound();
   const { que } = await params;
-  const { tu } = await searchParams;
+  const { tu, idioma: idiomaPedido } = await searchParams;
   const trato: TratoComprador = tu ? "tu" : "vos";
   const T = PANEL[idiomaDelTrato(trato)];
   void T;
   if (que === "regalo") return <Panel><Historia rol="duena" listo={false} trato={trato} /></Panel>;
   if (que === "invitado") return <Panel><Historia rol="invitado" listo={false} trato={trato} /></Panel>;
+  // Quien regala, mientras quien contó contesta: solo cuántas faltan.
+  if (que === "regalo-dudas") return <Panel><Historia rol="duena" listo={false} trato={trato} quedanPreguntas={3} /></Panel>;
   if (que === "listo") return <Panel><Historia rol="duena" listo trato={trato} /></Panel>;
   if (que === "frases") {
     return (
@@ -113,6 +117,19 @@ export default async function Muestra({ params, searchParams }: { params: Promis
       { clave: "OR2", pregunta: "¿Cómo era tu casa?", estado: "contestada" as const, reservada: false, respuestas: [respuesta("r2", "Otra respuesta de ejemplo, ya sacada del libro.", true)] },
     ] }];
     return <VistaRespuestas idioma={trato === "tu" ? "es-ES" : "es-AR"} bloques={bloques} puede={que === "link"} hasta={que === "link" ? "sábado 7 de noviembre a las 18:30" : null} token="ejemplo" narradorId={n.id} />;
+  }
+  // La pantalla de dudas de quien contó, en sus tres idiomas (?idioma=es-ES o ?idioma=ca).
+  if (que === "dudas" || que === "dudas-gracias" || que === "dudas-para-mi" || que === "dudas-libro") {
+    const lengua: IdiomaMiHistoria = idiomaPedido === "es-ES" || idiomaPedido === "ca" ? idiomaPedido : "es-AR";
+    const linkLibro = que === "dudas-para-mi" ? `/tablero/${n.id}/libro` : null;
+    if (que === "dudas-gracias") return <VistaGracias idioma={lengua} linkLibro={null} />;
+    if (que === "dudas-libro") return <Aviso titulo={textosMiHistoria(lengua).libroEscrito} texto="" />;
+    const preguntasDudas = [
+      { id: "D1", numero: 1, pregunta: "¿Cómo se llamaba la maestra que te enseñó a leer?", citas: ["Ejemplo de frase. La señorita me sentaba adelante porque hablaba mucho."], opciones: ["Elena", "Helena"] },
+      { id: "D2", numero: 2, pregunta: "¿En qué año se mudaron a la casa del río?", citas: [], opciones: [] },
+      { id: "D3", numero: 3, pregunta: "¿Quién manejaba el camión aquel verano?", citas: ["Otra frase de ejemplo. El camión era viejo y nos llevaba a todos."], opciones: [] },
+    ];
+    return <VistaDudas idioma={lengua} token="ejemplo" total={preguntasDudas.length} preguntas={preguntasDudas} linkLibro={linkLibro} muestra />;
   }
   notFound();
 }

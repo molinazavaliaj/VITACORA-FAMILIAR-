@@ -2,13 +2,13 @@
 // loContadoEsPrivado de la web (web/src/lib/panel.ts): en las ventas nuevas de Familiar e Historia para otra persona, salvo
 // que el narrador elija a su familia, quien regala no ve lo contado. Sin la marca `contexto.acceso`, todo sigue como siempre.
 //
-// Acá viven tres cosas de esa regla: a quién se le pregunta cada duda, cuánto espera el libro al narrador (48 horas para
-// sacar lo que quiera) y el freno de la imprenta («Hay un error, avisanos»).
+// Acá viven las dos esperas por quien contó: 48 horas desde su último mensaje para sacar lo que quiera y 72 para
+// contestar las dudas (Naza, 06/11: las dudas de un libro privado o «Para mí» van a quien contó; un regalo no privado sigue
+// con el mail a la familia y la espera de siempre). Las dos tienen fin aunque nadie escriba nada: un mensaje que no salió
+// nunca traba un libro.
 import type { SupabaseClient } from '@supabase/supabase-js';
-import Anthropic from '@anthropic-ai/sdk';
 import type { Almacen } from '../almacen/tipos.js';
-import { HAIKU } from '../modelo/configuracion.js';
-import { vigilarClave } from '../../alarma-anthropic.js';
+import { parseJSONTolerante } from '../carpeta.js';
 import { avisarSocios } from './avisos.js';
 
 type Db = SupabaseClient;
@@ -17,6 +17,11 @@ type Db = SupabaseClient;
 export function esPrivado(contexto: unknown): boolean {
   const a = (contexto as { acceso?: { elige?: unknown; quien?: unknown } } | null | undefined)?.acceso;
   return a?.elige === true && a.quien !== 'familia';
+}
+
+/** «Para mí» en la compra: el libro es de quien lo compró (mismo criterio que esPropia en web/src/lib/panel.ts). */
+export function esLibroPropio(contexto: unknown): boolean {
+  return (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
 }
 
 // ---------------------------------------------------------------- las 48 horas del narrador
@@ -40,149 +45,112 @@ export async function esperaPorElNarrador(db: Db, narradorId: string, ahora: num
   return plazo === null ? 0 : Math.max(0, plazo - ahora);
 }
 
-// ---------------------------------------------------------------- a quién se le pregunta cada duda
+// ---------------------------------------------------------------- las esperas
 
-/** Lo deja la fábrica en la carpeta del escritor; lo lee la web. Mismo nombre en web/src/lib/dudas.ts. */
-export const DESTINO_DUDAS = 'dudas-destino.json';
-const OCULTAS_AVISADAS = 'dudas-ocultas-avisadas.txt';
-const OCULTAS_AL_ESCRIBIR = 'dudas-ocultas-al-escribir.txt';
+/** ISO, lo escribe el entrevistador: salió el aviso de las dudas. Vacío: una Etapa A rehecha lo dejó sin valor (CONTRATO). */
+export const DUDAS_NARRADOR_AVISADAS = 'dudas-narrador-avisadas.txt';
+const MS_PLAZO_DUDAS = 72 * 60 * 60 * 1000;
+const MS_VOLVER_A_MIRAR = 15 * 60 * 1000;
+/** La marca la escribe otro servicio: unos minutos de diferencia entre relojes no la hacen «del futuro». */
+const MS_RELOJES = 5 * 60 * 1000;
 
-export type DudaParaClasificar = { id: string; pregunta: string; opciones?: string[] };
-export type Destino = 'familia' | 'narrador';
-export type DudaConDestino = { id: string; pregunta: string; destino: Destino };
-
-/** Una sola llamada al modelo: recibe el pedido y devuelve el texto. Inyectable, para probar sin red. */
-export type PedirClasificacion = (sistema: string, pedido: string) => Promise<string>;
-
-export const PROMPT_CLASIFICAR_DUDAS = `Una persona le regaló a un familiar un libro con su historia. El familiar la cuenta por WhatsApp y lo que cuenta es privado: quien regaló no lo conoce hasta que el libro esté listo.
-
-El escritor del libro tiene dudas de datos. Para cada duda, decidí si se le puede preguntar a quien regaló sin revelarle nada de lo que contó el narrador.
-
-- "familia": un dato que no revela nada, porque cualquier familiar lo sabe sin haber oído la entrevista. Por ejemplo, cómo se escribe el apellido de la familia, o el año en que nació el narrador.
-- "narrador": la pregunta o sus opciones dejan ver una persona, un hecho, un lugar, un episodio o un sentimiento que contó el narrador.
-
-Si no estás seguro, es "narrador".
-
-Respondé solo con JSON, sin nada más: {"dudas":[{"id":"D01","destino":"familia"}]}`;
-
-async function pedirAlModelo(sistema: string, pedido: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('falta ANTHROPIC_API_KEY');
-  const r = await vigilarClave(new Anthropic({ apiKey, maxRetries: 2 }), 'las dudas').messages.create({ model: HAIKU, max_tokens: 2000, system: sistema, messages: [{ role: 'user', content: pedido }] });
-  return r.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
+/**
+ * ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Privados y «Para mí». Lo demás (un regalo en curso
+ * sin marca, alguien que eligió a su familia, viaje, kids) no recibe ese WhatsApp: sigue con el prompt para la familia, el
+ * mail `dudas` y la espera de `ESCRITOR_ESPERA_DUDAS_HORAS`. Viaje y Kids quedan afuera aunque sean «Para mí». Es la única
+ * decisión: nada de esto mira el vínculo por su cuenta.
+ */
+export function dudasAQuienConto(contexto: unknown): boolean {
+  const modo = (contexto as { modo?: unknown } | null | undefined)?.modo;
+  if (modo === 'viaje' || modo === 'kids') return false;
+  return esPrivado(contexto) || esLibroPropio(contexto);
 }
 
-/** Lo que no vuelve clasificado como `familia`, va al narrador. Si la respuesta no se entiende, tira. */
-export function leerClasificacion(texto: string, dudas: DudaParaClasificar[]): DudaConDestino[] {
-  const desde = texto.indexOf('{');
-  const hasta = texto.lastIndexOf('}');
-  const j = JSON.parse(desde >= 0 ? texto.slice(desde, hasta + 1) : texto) as { dudas?: { id?: unknown; destino?: unknown }[] };
-  if (!Array.isArray(j?.dudas)) throw new Error('la clasificación no trae la lista "dudas"');
-  const familia = new Set(j.dudas.filter((d) => d?.destino === 'familia').map((d) => d.id));
-  return dudas.map((d) => ({ id: d.id, pregunta: d.pregunta, destino: familia.has(d.id) ? 'familia' : 'narrador' }));
-}
-
-/** ¿El archivo clasifica todas estas dudas, con este mismo texto? Una Etapa A nueva puede traer otras. */
-export function clasificacionVigente(dudas: { id?: string; pregunta?: string }[], destinoTexto: string | null): boolean {
-  if (!destinoTexto) return false;
-  try {
-    const lista = (JSON.parse(destinoTexto) as { dudas?: DudaConDestino[] }).dudas ?? [];
-    return dudas.every((d) => lista.some((x) => x.id === d.id && x.pregunta === d.pregunta));
-  } catch {
-    return false;
-  }
-}
-
-/** Las dudas que se le pueden preguntar a quien regala. Como dudasParaQuienRegala de la web. Sin clasificar, ninguna. */
-export function dudasVisibles<T extends { id?: string; pregunta?: string }>(dudas: T[], destinoTexto: string | null): T[] {
-  if (!destinoTexto) return [];
-  try {
-    const lista = (JSON.parse(destinoTexto) as { dudas?: DudaConDestino[] }).dudas ?? [];
-    return dudas.filter((d) => lista.some((x) => x.id === d.id && x.pregunta === d.pregunta && x.destino === 'familia'));
-  } catch {
-    return [];
-  }
-}
-
-async function contextoDe(db: Db, narradorId: string): Promise<unknown> {
+/** El `contexto` del narrador. Si la base falla, tira: quien llama reintenta. */
+export async function contextoDe(db: Db, narradorId: string): Promise<unknown> {
   const { data, error } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer al narrador ${narradorId}: ${error.message}`);
   return (data as { contexto?: unknown } | null)?.contexto ?? null;
 }
 
-const leerDudasDe = async (almacen: Almacen, archivo: string): Promise<DudaParaClasificar[]> => {
-  const t = await almacen.leer(archivo);
-  return (t ? ((JSON.parse(t) as { dudas?: DudaParaClasificar[] }).dudas ?? []) : []).filter((d) => typeof d?.id === 'string');
+/**
+ * Cuánto tarda en volver a reclamarse un pedido que espera: poco, porque lo que lo libera llega de afuera (la última
+ * respuesta a las dudas) y el libro tiene que seguir enseguida, no al vencer el plazo.
+ */
+export const volverAMirarEn = (espera: number): number => Math.min(espera, MS_VOLVER_A_MIRAR);
+
+/** La fecha de una marca. Ausente, vacía, rota o del futuro, null: se la toma como si no estuviera. */
+const fecha = (texto: string | null, ahora: number): number | null => {
+  const f = Date.parse(texto?.trim() ?? '');
+  return Number.isFinite(f) && f <= ahora + MS_RELOJES ? f : null;
 };
 
-/**
- * Las dudas tal como cuentan para esta historia: todas o, si es privada, solo las que no revelan nada. Las ocultas no
- * cuentan como pendientes en la espera, en el aviso del panel ni en los mails a la familia. Null: es privada y todavía
- * no se clasificaron, así que no se sabe.
- */
-export async function dudasQueCuentan<T extends { id?: string; pregunta?: string }>(db: Db, narradorId: string, almacen: Almacen, dudas: T[]): Promise<T[] | null> {
-  if (!dudas.length || !esPrivado(await contextoDe(db, narradorId))) return dudas;
-  const destino = await almacen.leer(DESTINO_DUDAS);
-  if (!clasificacionVigente(dudas, destino)) return null;
-  return dudasVisibles(dudas, destino);
-}
+/** ¿Esta marca sirve para contar el plazo? Si no, hay que volver a escribirla. */
+export const marcaVigente = (texto: string | null, ahora: number = Date.now()): boolean => fecha(texto, ahora) !== null;
 
 /**
- * Clasifica las dudas de una historia privada, si faltan, y avisa a los socios de las que quedan ocultas: entre este PR
- * y el que se las pregunta al narrador por WhatsApp, un libro puede salir con ellas sin contestar (Naza, 05/11).
- *
- * `siFalla`: `esperar` no escribe nada y se reintenta en el próximo tick. `alNarrador` las oculta todas, para no frenar
- * un libro ya encargado: ante la duda, va al narrador.
+ * Cuántos ms faltan del plazo de las dudas: desde dudas-narrador-avisadas.txt o, si nunca salió, desde `desdeRespaldo`
+ * (el ISO de dudas-avisadas.txt, el mail a los socios). Una fecha del futuro no cuenta: trabaría el libro hasta esa fecha.
+ * Sin ninguna que sirva, el plazo entero.
  */
-export async function asegurarDestinoDudas(
-  db: Db,
-  narradorId: string,
+export async function restaPlazoDudas(almacen: Almacen, desdeRespaldo: string | null, ahora: number = Date.now()): Promise<number> {
+  const desde = fecha(await almacen.leer(DUDAS_NARRADOR_AVISADAS), ahora) ?? fecha(desdeRespaldo, ahora) ?? ahora;
+  return Math.max(0, Math.min(MS_PLAZO_DUDAS, desde + MS_PLAZO_DUDAS - ahora));
+}
+
+// ---------------------------------------------------------------- venció el plazo sin todas las respuestas
+
+/** ISO: los socios ya saben que este libro se escribe con dudas sin contestar. Vacío: una Etapa A rehecha lo dejó sin valor. */
+export const DUDAS_SIN_CONTESTAR_AVISADAS = 'dudas-sin-contestar-avisadas.txt';
+
+/**
+ * El libro de quien contó va a empezar a escribirse: llamar recién cuando ya no hay nada que esperar. Si quedan dudas sin
+ * contestar, venció el plazo y los socios se enteran, una vez. La marca se escribe solo si el mail salió. Nunca tira: el
+ * libro no se frena por un aviso.
+ */
+export async function avisarDudasSinContestar(
   almacen: Almacen,
-  o: { quien: string; archivoDudas: string; siFalla: 'esperar' | 'alNarrador'; pedir?: PedirClasificacion },
+  o: { contexto: unknown; archivoDudas: string; quien: () => Promise<string>; correcciones: () => Promise<{ dudaId?: string; texto: string }[]> },
 ): Promise<void> {
-  const dudas = await leerDudasDe(almacen, o.archivoDudas);
-  if (!dudas.length) return;
-  if (!esPrivado(await contextoDe(db, narradorId))) return;
-  if (clasificacionVigente(dudas, await almacen.leer(DESTINO_DUDAS))) return;
-  let clasificadas: DudaConDestino[];
   try {
-    const pedido = JSON.stringify(dudas.map((d) => ({ id: d.id, pregunta: d.pregunta, opciones: d.opciones ?? [] })));
-    clasificadas = leerClasificacion(await (o.pedir ?? pedirAlModelo)(PROMPT_CLASIFICAR_DUDAS, pedido), dudas);
+    if (!dudasAQuienConto(o.contexto)) return;
+    if ((await almacen.leer(DUDAS_SIN_CONTESTAR_AVISADAS))?.trim()) return;
+    const t = await almacen.leer(o.archivoDudas);
+    const dudas = (t ? (JSON.parse(t) as { dudas?: { id?: unknown }[] }).dudas : []) ?? [];
+    const conTexto = new Set((await o.correcciones()).filter((c) => c.dudaId && c.texto.trim()).map((c) => c.dudaId));
+    const n = dudas.filter((d) => typeof d?.id !== 'string' || !conTexto.has(d.id)).length;
+    if (n === 0) return;
+    const quien = await o.quien();
+    const cuantas = n === 1 ? '1 duda' : `${n} dudas`;
+    const salio = await avisarSocios(
+      `El libro de ${quien} empieza con ${cuantas} sin contestar`,
+      `Se empieza a escribir el libro de ${quien} con ${cuantas} sin contestar. Quien contó no las respondió en el plazo.`,
+    );
+    if (salio) await almacen.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, new Date().toISOString());
   } catch (err) {
-    console.error(`escritor ${narradorId}: no pude clasificar las dudas:`, err instanceof Error ? err.message : err);
-    if (o.siFalla === 'esperar') return;
-    clasificadas = dudas.map((d) => ({ id: d.id, pregunta: d.pregunta, destino: 'narrador' }));
+    console.error('escritor: no pude avisar de las dudas sin contestar:', err instanceof Error ? err.message : err);
   }
-  await almacen.escribir(DESTINO_DUDAS, JSON.stringify({ dudas: clasificadas }, null, 2));
-  await almacen.escribir(OCULTAS_AVISADAS, '');
-  await almacen.escribir(OCULTAS_AL_ESCRIBIR, '');
-  const ocultas = clasificadas.filter((d) => d.destino === 'narrador');
-  if (!ocultas.length) return;
-  const salio = await avisarSocios(
-    `El libro de ${o.quien} tiene ${ocultas.length === 1 ? 'una duda oculta' : `${ocultas.length} dudas ocultas`}`,
-    `Estas dudas revelan algo de lo que contó, así que no se le preguntan a quien regaló. Todavía no le llegan al narrador por WhatsApp: si nadie las contesta, el libro sale sin esas respuestas.\n\n`
-      + `${ocultas.map((d) => `- ${d.id}: ${d.pregunta}`).join('\n')}\n\n`
-      + `Para contestar alguna a mano, sumala a correcciones.json antes de que se escriba el libro (${narradorId}).`,
-  );
-  if (salio) await almacen.escribir(OCULTAS_AVISADAS, new Date().toISOString());
 }
 
-/** Justo antes de escribir el libro: una última vez, si quedan dudas ocultas sin contestar. Una vez por clasificación. */
-export async function avisarOcultasSinContestar(
-  db: Db,
-  narradorId: string,
-  almacen: Almacen,
-  o: { quien: string; archivoDudas: string; contestadas: ReadonlySet<string | undefined> },
-): Promise<void> {
-  const dudas = await leerDudasDe(almacen, o.archivoDudas);
-  if (!dudas.length || !esPrivado(await contextoDe(db, narradorId))) return;
-  if ((await almacen.leer(OCULTAS_AL_ESCRIBIR))?.trim()) return;
-  const visibles = new Set(dudasVisibles(dudas, await almacen.leer(DESTINO_DUDAS)).map((d) => d.id));
-  const sinContestar = dudas.filter((d) => !visibles.has(d.id) && !o.contestadas.has(d.id));
-  if (!sinContestar.length) return;
-  const salio = await avisarSocios(
-    `Se empieza a escribir el libro de ${o.quien} con ${sinContestar.length} dudas ocultas sin contestar`,
-    `El libro sale sin estas respuestas. Si alguna es importante, frená el pedido ahora.\n\n${sinContestar.map((d) => `- ${d.id}: ${d.pregunta}`).join('\n')}\n\n(${narradorId})`,
-  );
-  if (salio) await almacen.escribir(OCULTAS_AL_ESCRIBIR, new Date().toISOString());
+// ---------------------------------------------------------------- una Etapa A rehecha
+
+/**
+ * Los ids de las dudas son por posición: en una A nueva, D01 puede ser otra pregunta, y una respuesta vieja se aplicaría a
+ * ella y saldría impresa. Saca las entradas con `dudaId` de correcciones.json y deja las de los socios, que no llevan.
+ * Si el archivo está roto no se pisa: quien lo lee lo dice. Llamar antes de pagar la A.
+ */
+export async function sacarRespuestasDeDudasViejas(almacen: Almacen): Promise<void> {
+  const t = await almacen.leer('correcciones.json');
+  if (t === null) return;
+  let j: unknown;
+  try {
+    j = parseJSONTolerante(t);
+  } catch {
+    return;
+  }
+  const lista = Array.isArray(j) ? j : (j as { correcciones?: unknown } | null)?.correcciones;
+  if (!Array.isArray(lista)) return;
+  const quedan = lista.filter((c) => typeof (c as { dudaId?: unknown } | null)?.dudaId !== 'string' || !(c as { dudaId: string }).dudaId);
+  if (quedan.length === lista.length) return;
+  await almacen.escribir('correcciones.json', JSON.stringify(Array.isArray(j) ? quedan : { ...(j as object), correcciones: quedan }));
 }

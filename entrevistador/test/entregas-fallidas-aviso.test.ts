@@ -153,6 +153,11 @@ describe('el mail a la familia cuando no le llega (11/10)', () => {
     await anotarEntrega(fallo(131026));
     expect(mocks.noLlega).toEqual([]);
   });
+  it.each(['revision', 'dudas_narrador'])('`%s` no: es de quien contó', async (tipo) => {
+    mocks.fila = { id: 'e1', entrega: 'enviado', narrador_id: NID, tipo };
+    await anotarEntrega(fallo(131026));
+    expect(mocks.noLlega).toEqual([]);
+  });
   it('si ya se había entregado, no', async () => {
     mocks.fila = { id: 'e1', entrega: 'leido', narrador_id: NID, tipo: 'v3' };
     await anotarEntrega(fallo(131026));

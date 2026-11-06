@@ -35,6 +35,41 @@ beforeEach(() => {
   h.enviarTexto.mockClear();
 });
 
+describe('quien terminó y escribe con dudas pendientes', () => {
+  const DUDAS = JSON.stringify({ dudas: [{ id: 'D1', pregunta: '¿Cómo se llamaba?' }] });
+  const conDudas = (carpeta: string) => {
+    h.base.archivos.set(`audios/n1/${carpeta}/carpeta-A.json`, '{}');
+    h.base.archivos.set(`audios/n1/${carpeta}/dudas-familia.json`, DUDAS);
+  };
+  beforeEach(() => {
+    vi.stubEnv('FIRMA_TOKENS', 'secreto');
+    vi.stubEnv('ESCRITOR_HISTORIA', '1');
+    h.base.archivos.clear();
+    h.base.tablas.historias = [];
+    h.base.tablas.pedidos = [];
+    h.base.tablas.envios = [];
+  });
+
+  it.each([['V3', {}, 'entrevistas_v3', 'escritor'], ['historia', { modo: 'historia' }, 'historias', 'escritor-historia']])('en %s le contesta con el link y no guarda nada', async (_n, contexto, tabla, carpeta) => {
+    h.base.tablas.narradores = [{ ...NARRADOR, id: `n1`, estado: 'completado', contexto: { vinculoComprador: 'hija', acceso: { elige: true }, ...(contexto as object) } }];
+    h.base.tablas[tabla as string] = [{ narrador_id: 'n1', idioma: 'es-AR', estado: {}, version: 0 }];
+    h.base.tablas.respuestas = [];
+    conDudas(carpeta as string);
+    await procesarEntrante({ ...m('texto'), waMessageId: `wamid.${_n}` });
+    expect(h.enviarTexto).toHaveBeenCalledTimes(1);
+    expect((h.enviarTexto.mock.calls[0] as unknown as [string, string])[1]).toContain('/mi-historia/');
+    expect(h.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(h.base.tablas.respuestas).toEqual([]);
+  });
+
+  it('sin dudas pendientes sigue como hoy: no le contesta', async () => {
+    h.base.tablas.narradores = [{ ...NARRADOR, estado: 'completado', contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }];
+    h.base.tablas.entrevistas_v3 = [{ narrador_id: 'n1', idioma: 'es-AR', estado: {}, version: 0 }];
+    await procesarEntrante(m('texto'));
+    expect(h.enviarTexto).not.toHaveBeenCalled();
+  });
+});
+
 describe('la bifurcación V3 en procesar.ts', () => {
   it('un narrador activo con fila V3 va a la V3 (antes de las fotos, del texto y de la evaluación)', async () => {
     h.base.tablas.narradores = [{ ...NARRADOR, estado: 'activo' }];

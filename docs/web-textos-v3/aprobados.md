@@ -335,3 +335,39 @@ El aviso interno a los socios de arriba (avisarDudas) se reemplaza por uno corto
 | fabrica/src/mail/hitos.ts, `dudas` | Asunto: Unas preguntas sobre lo que contó tu {quien}. Al leer lo que contó tu {quien} nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar. / Son {n} preguntas cortas. Las podés contestar vos o cualquiera de la familia que invitaste. / Lo que nos digas entra al libro. Contestalas antes de encargarlo. Botón: Contestar las preguntas |
 | fabrica/src/mail/hitos.ts, `dudas_listas` | Asunto: Falta un paso para el libro de tu {quien}. Ya tenemos todas las respuestas. Gracias. / Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro. / Recién ahí empezamos a escribirlo. Te avisamos cuando esté. Botón: Encargar el libro |
 | web/src/lib/dudas-textos.ts, `textoTodasContestadas` | Ya están todas. El libro todavía no empezó. Para que empiece, elegí la tapa, sumá las fotos que falten y tocá Encargar. Botón: Ir a encargar el libro. Ya encargado: Ya están todas. El libro ya está en camino, te avisamos cuando esté. |
+
+## Dudas a quien contó, tanda 1 (aprobados por Naza el 06/11)
+
+Solo en una historia privada (`esPrivado`). Un regalo no privado sigue con los textos de «Dudas: mails a la familia y cartel». En vos; la versión en tú y en catalán van en la tanda 2.
+
+| Dónde | Texto |
+|---|---|
+| Plantilla Meta `dudas_narrador_vos`, también recordatorio | Hola, {{1}}. Antes de escribir tu libro nos quedaron unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Tocá el botón para contestarlas. Botón: Contestar las preguntas |
+| Plantilla Meta `revision_vos`, ventana cerrada al terminar | Hola, {{1}}. Terminamos la entrevista. Si hay alguna respuesta que no querés que vaya al libro, la podés quitar desde este enlace. Si está todo bien, no tenés que hacer nada. Botón: Ver mis respuestas |
+| `revision-narrador-textos.ts`, `dudas`, ventana abierta | Antes de escribir tu libro nos quedaron unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Las podés contestar desde este enlace. {link} |
+| `revision-narrador-textos.ts`, `escribio` | Gracias. Para que lo que nos digas entre en el libro, contestá las preguntas desde este enlace, escribiendo o dictando con el micrófono del teclado. {link} |
+| `mi-historia-textos.ts`, inicio | Unas últimas preguntas. Son cosas que no entendimos bien. Lo que nos digas entra al libro. |
+| `mi-historia-textos.ts`, cada pregunta | Pregunta {n} de {total} · Lo que dijiste |
+| `mi-historia-textos.ts`, campo | Escribí acá, o tocá el micrófono del teclado y dictalo. |
+| `mi-historia-textos.ts`, botones | No me acuerdo · Seguir |
+| `mi-historia-textos.ts`, final | Eso es todo. Gracias. En «Para mí», botón: Elegir la tapa y encargar el libro |
+| Panel de quien regala | A {como} le quedan {n} preguntas por contestar. / A {como} le queda una pregunta por contestar. |
+
+## Dudas a quien contó, tanda 2 (aprobados por Naza el 06/11)
+
+El catalán falta revisarlo con Imma. Si cambia una plantilla, vuelve a revisión en Meta.
+
+| Dónde | es-ES | ca |
+|---|---|---|
+| Plantilla `dudas_narrador_*` | Hola, {{1}}. Antes de escribir tu libro nos han quedado unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Toca el botón para contestarlas. Botón: Contestar las preguntas | Hola, {{1}}. Abans d'escriure el teu llibre ens han quedat unes últimes preguntes sobre el que vas explicar. Un nom que no es va entendre, una data. Toca el botó per contestar-les. Botón: Contestar les preguntes |
+| Plantilla `revision_*` | Hola, {{1}}. Hemos terminado la entrevista. Si hay alguna respuesta que no quieres que vaya al libro, puedes quitarla desde este enlace. Si está todo bien, no tienes que hacer nada. Botón: Ver mis respuestas | Hola, {{1}}. Hem acabat l'entrevista. Si hi ha alguna resposta que no vols que vagi al llibre, la pots treure des d'aquest enllaç. Si està tot bé, no cal que facis res. Botón: Veure les meves respostes |
+| `revision-narrador-textos.ts`, `dudas` | Antes de escribir tu libro nos han quedado unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Puedes contestarlas desde este enlace. {link} | Abans d'escriure el teu llibre ens han quedat unes últimes preguntes sobre el que vas explicar. Un nom que no es va entendre, una data. Les pots contestar des d'aquest enllaç. {link} |
+| `revision-narrador-textos.ts`, `escribio` | Gracias. Para que lo que nos digas entre en el libro, contesta las preguntas desde este enlace, escribiendo o dictando con el micrófono del teclado. {link} | Gràcies. Perquè el que ens diguis entri al llibre, contesta les preguntes des d'aquest enllaç, escrivint o dictant amb el micròfon del teclat. {link} |
+| `mi-historia-textos.ts` | Unas últimas preguntas · Son cosas que no entendimos bien. Lo que nos digas entra al libro. · Lo que dijiste · Escribe aquí, o toca el micrófono del teclado y díctalo. · No me acuerdo · Seguir · Eso es todo. Gracias. · Elegir la tapa y encargar el libro · Tu libro ya está escrito. · No pudimos guardar. Prueba de nuevo. | Unes últimes preguntes · Són coses que no vam entendre bé. El que ens diguis entra al llibre. · El que vas dir · Escriu aquí, o toca el micròfon del teclat i dicta-ho. · No me'n recordo · Continuar · Això és tot. Gràcies. · Triar la tapa i encarregar el llibre · El teu llibre ja està escrit. · No ho hem pogut desar. Torna-ho a provar. |
+
+| Dónde | Texto |
+|---|---|
+| `mi-historia-textos.ts`, vos | Tu libro ya está escrito. · No pudimos guardar. Probá de nuevo. |
+| `fabrica/src/mail/hitos.ts`, `dudas_listas_privado` | Asunto: Falta un paso para el libro de tu {quien}. Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro. Recién ahí empezamos a escribirlo. Te avisamos cuando esté. Botón: Encargar el libro. En tú: Elige, suma, encarga. |
+| `api/invitados`, ya terminó de contar en un privado | Ya terminó de contar. Cuando el libro esté listo vas a poder compartirlo con un link. En tú: podrás. |
+| Mails a socios | El libro de {quien} empieza con {n} dudas sin contestar: Se empieza a escribir el libro de {quien} con {n} dudas sin contestar. Quien contó no las respondió en el plazo. · {quien} escribió por WhatsApp con dudas pendientes · Hay {n} dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. |

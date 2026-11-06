@@ -4,7 +4,7 @@
 // queda y el tick siguiente reintenta. Ningún texto se arma acá: salen de la
 // cola, que llenó turno.ts con textos del banco.
 
-import { datosDelLink, esPrivado, textoDelLink } from '../link-respuestas.js';
+import { datosDelLink, esPrivado, linkConVentanaCerrada, textoDelLink } from '../link-respuestas.js';
 import { PLANTILLAS_V3 } from '../config.js';
 import type { DepsV3 } from './deps.js';
 import { conReintento, soltarTurno, tomarTurno, TOMA_MS } from './estado.js';
@@ -27,7 +27,7 @@ export const TIEMPO_MAXIMO_DRENAR_MS = TOMA_MS / 2;
 
 export { PLANTILLAS_V3, type PlantillaV3 } from '../config.js';
 
-export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio' | 'bienvenida' | 'bienvenida_quien', env: NodeJS.ProcessEnv = process.env): boolean {
+export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio' | 'bienvenida' | 'bienvenida_quien' | 'revision' | 'dudas_narrador', env: NodeJS.ProcessEnv = process.env): boolean {
   if (idioma === 'es-AR' && cual === 'pregunta') return true;
   return (env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
 }
@@ -191,8 +191,8 @@ export const RESPUESTAS_PARA_UN_LIBRO = 10;
 
 /**
  * Terminó de contar y el libro es para otra persona: le llega su link, con hasta cuándo puede sacar algo (05/11). Una
- * sola vez (`estado.linkFinal`). Sale con la ventana abierta: FIN acaba de salir. Si no, se avisa a los socios: hace
- * falta una plantilla de Meta, que llega con el PR de las dudas por WhatsApp. Nunca frena el cierre.
+ * sola vez (`estado.linkFinal`). Con la ventana abierta sale como texto: FIN acaba de salir. Cerrada, con la plantilla
+ * `revision` (linkConVentanaCerrada). Nunca frena el cierre.
  */
 async function mandarLinkAlTerminar(deps: DepsV3, narradorId: string, fila: FilaV3, telefono: string): Promise<void> {
   try {
@@ -202,9 +202,10 @@ async function mandarLinkAlTerminar(deps: DepsV3, narradorId: string, fila: Fila
     const ahora = deps.ahora();
     const marcar = () => conReintento(deps.db, narradorId, (f) => ({ cambio: { estado: { ...f.estado, linkFinal: ahora.toISOString() } }, resultado: true }));
     if (!ventanaAbierta(fila.estado, ahora)) {
-      await deps.avisar(`link-final-${narradorId}`, 'Un narrador terminó y no le llegó su link',
-        `${narradorId} terminó con la ventana de WhatsApp cerrada: no se le puede mandar el link para sacar algo sin una plantilla de Meta.`);
-      await marcar();
+      const listo = await linkConVentanaCerrada(deps, narradorId, datos, telefono, fila.idioma, {
+        lista: plantillaLista(fila.idioma, 'revision'), nombre: enLineaParaPlantilla([datos.como_le_dicen ?? '']), ahora,
+      });
+      if (listo) await marcar();
       return;
     }
     const texto = textoDelLink({ ...datos, estado: 'completado' }, narradorId, fila.idioma, fichaTexto(fila), ahora);

@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
-vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true) }));
+vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true), enviarMailInvitacion: vi.fn(async () => true) }));
+
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { createServerClient } from "@supabase/ssr";
-import { enviarMailSocios } from "@/lib/mail";
+import { enviarMailInvitacion, enviarMailSocios } from "@/lib/mail";
 import { NextRequest } from "next/server";
 import { loContadoEsPrivado, PUEDE } from "@/lib/panel";
 import { GET as audio } from "../src/app/api/audio/[respuestaId]/route";
@@ -47,6 +48,7 @@ function crearAdmin(tablas: Record<string, Fila[]>, archivos: Record<string, str
     b.in = (c: string, v: unknown[]) => { filtros.push((f) => v.includes(f[c])); return b; };
     b.ilike = (c: string, v: string) => { filtros.push((f) => String(f[c] ?? "").toLowerCase() === v.toLowerCase()); return b; };
     b.update = () => b;
+    b.insert = () => b;
     let single = false;
     b.maybeSingle = () => { single = true; return b; };
     b.single = b.maybeSingle;
@@ -217,48 +219,120 @@ describe("las dudas del escritor", () => {
     { id: "D1", pregunta: "¿Cómo se escribe su apellido?", que: "Se oye de dos formas", citas: [{ id: "R1", texto: "lo que contó en secreto" }], opciones: ["Pérez", "Peres"] },
     { id: "D2", pregunta: "¿Quién era la mujer con la que se fue en 1962?", que: "x", citas: [{ id: "R2", texto: "otra cita" }] },
   ] });
-  const destino = JSON.stringify({ dudas: [
-    { id: "D1", pregunta: "¿Cómo se escribe su apellido?", destino: "familia" },
-    { id: "D2", pregunta: "¿Quién era la mujer con la que se fue en 1962?", destino: "narrador" },
-  ] });
+  const correccion = JSON.stringify({ correcciones: [{ dudaId: "D1", texto: "Pérez" }] });
 
-  it("quien regala ve solo las que no revelan nada, sin citas", async () => {
-    const { dudasParaQuienRegala, leerDudas } = await import("@/lib/dudas");
-    const v = dudasParaQuienRegala(leerDudas(dudas)!, destino);
-    expect(v).toEqual([{ id: "D1", pregunta: "¿Cómo se escribe su apellido?", opciones: ["Pérez", "Peres"] }]);
+  it("cuantasDudasPendientes cuenta las que faltan; con el libro escrito, ninguna", async () => {
+    const { cuantasDudasPendientes, hayDudasPendientes } = await import("@/lib/dudas-archivos");
+    const narrador = { id: "n1" };
+    const sinContestar = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas });
+    expect(await cuantasDudasPendientes(sinContestar.admin as never, narrador)).toBe(2);
+    expect(await hayDudasPendientes(sinContestar.admin as never, narrador)).toBe(true);
+    const una = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/correcciones.json": correccion });
+    expect(await cuantasDudasPendientes(una.admin as never, narrador)).toBe(1);
+    const escrito = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/libro.md": "# L" });
+    expect(await cuantasDudasPendientes(escrito.admin as never, narrador)).toBe(0);
+    expect(await cuantasDudasPendientes(crearAdmin({}, {}).admin as never, narrador)).toBe(0);
+    expect(await hayDudasPendientes(una.admin as never, narrador)).toBe(true);
   });
 
-  it("sin clasificar, roto, o con el texto cambiado: ninguna", async () => {
-    const { dudasParaQuienRegala, leerDudas } = await import("@/lib/dudas");
-    const l = leerDudas(dudas)!;
-    expect(dudasParaQuienRegala(l, null)).toEqual([]);
-    expect(dudasParaQuienRegala(l, "{roto")).toEqual([]);
-    expect(dudasParaQuienRegala(l, JSON.stringify({ dudas: [{ id: "D1", pregunta: "otra", destino: "familia" }] }))).toEqual([]);
-  });
-
-  it("las ocultas no cuentan como pendientes", async () => {
-    const { hayDudasPendientes } = await import("@/lib/dudas-archivos");
-    const narrador = { id: "n1", contexto: REGALO };
-    const correccion = JSON.stringify({ correcciones: [{ dudaId: "D1", texto: "Pérez" }] });
-    const conVisible = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino });
-    expect(await hayDudasPendientes(conVisible.admin as never, narrador)).toBe(true);
-    // Contestó la visible: la oculta no deja nada pendiente.
-    const contestada = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino, "n1/escritor/correcciones.json": correccion });
-    expect(await hayDudasPendientes(contestada.admin as never, narrador)).toBe(false);
-    // Sin clasificar no hay nada a la vista: tampoco hay aviso.
-    const sinClasificar = crearAdmin({}, { "n1/escritor/dudas-familia.json": dudas });
-    expect(await hayDudasPendientes(sinClasificar.admin as never, narrador)).toBe(false);
-    // Para mí, como siempre.
-    expect(await hayDudasPendientes(sinClasificar.admin as never, { id: "n1", contexto: PROPIA })).toBe(true);
-  });
-
-  it("no se puede contestar una duda oculta", async () => {
+  it("quien regala y sus invitados: POST da 404 sin escribir", async () => {
     const { POST } = await import("../src/app/api/dudas/route");
     const t = base(REGALO);
     t.narradores[0].estado = "completado";
-    preparar(t, { "n1/escritor/dudas-familia.json": dudas, "n1/escritor/dudas-destino.json": destino });
-    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D2", texto: "Ofelia" }] }))).status).toBe(400);
-    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
+    const { subidas } = preparar(t, { "n1/escritor/dudas-familia.json": dudas });
+    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(404);
+    sesion(invitado);
+    expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(404);
+    expect(subidas).toEqual([]);
+  });
+
+  it("«para mí», viaje y kids siguen contestando en el panel", async () => {
+    const { POST } = await import("../src/app/api/dudas/route");
+    for (const contexto of [PROPIA, { modo: "viaje", vinculoComprador: "le regala el viaje" }, { modo: "kids", vinculoComprador: "padre" }]) {
+      const t = base(contexto);
+      t.narradores[0].estado = "completado";
+      preparar(t, { "n1/escritor/dudas-familia.json": dudas });
+      expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
+    }
+  });
+
+  it("la pantalla: quien regala y sus invitados van a la historia, sin ver una pregunta", async () => {
+    const { default: Pagina } = await import("../src/app/tablero/[narradorId]/dudas/page");
+    const abrir = () => Pagina({ params: Promise.resolve({ narradorId: "n1" }) } as never);
+    const t = base(REGALO);
+    t.narradores[0].estado = "completado";
+    preparar(t, { "n1/escritor/dudas-familia.json": dudas });
+    await expect(abrir()).rejects.toThrow("NEXT_REDIRECT");
+    sesion(invitado);
+    await expect(abrir()).rejects.toThrow("NEXT_REDIRECT");
+  });
+
+  it("invitar con la entrevista terminada: 400 si es privado, aunque queden dudas", async () => {
+    const { POST } = await import("../src/app/api/invitados/route");
+    const t = base(REGALO);
+    t.narradores[0].estado = "completado";
+    preparar(t, { "n1/escritor/dudas-familia.json": dudas });
+    expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(400);
+  });
+
+  describe.each([
+    ["sin la marca", { vinculoComprador: "hija" }],
+    ["con «Mi familia»", { vinculoComprador: "hija", acceso: { elige: true, quien: "familia" } }],
+  ])("un regalo %s sigue como hoy", (_regalo, NO_PRIVADO) => {
+    const terminada = () => {
+      const t = base(NO_PRIVADO);
+      t.narradores[0].estado = "completado";
+      return t;
+    };
+
+    it("POST guarda, para la dueña y para sus invitados", async () => {
+      const { POST } = await import("../src/app/api/dudas/route");
+      const { subidas } = preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
+      sesion(invitado);
+      expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D2", texto: "Ana" }] }))).status).toBe(200);
+      expect(subidas.map((s) => s.ruta)).toEqual(["n1/escritor/correcciones.json", "n1/escritor/correcciones.json"]);
+    });
+
+    it("la pantalla se abre, con las preguntas", async () => {
+      const { default: Pagina } = await import("../src/app/tablero/[narradorId]/dudas/page");
+      preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      const pantalla = await Pagina({ params: Promise.resolve({ narradorId: "n1" }) } as never);
+      expect(JSON.stringify(pantalla)).toContain("¿Cómo se escribe su apellido?");
+    });
+
+    it("invitar para dudas funciona; sin dudas pendientes dice lo de siempre", async () => {
+      const { POST } = await import("../src/app/api/invitados/route");
+      preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(200);
+      expect(enviarMailInvitacion).toHaveBeenCalledWith(expect.objectContaining({ paraDudas: true, privado: false }));
+      preparar(terminada(), {});
+      const r = await POST(pedir(`/api/invitados${q}`, { email: "prima@mail.com" }));
+      expect(r.status).toBe(400);
+      expect((await r.json()).error).toContain("Ya no quedan dudas para contestar.");
+    });
+
+    it("el próximo paso lleva a contestarlas", async () => {
+      const { proximoPaso } = await import("../src/app/tablero/proximo-paso");
+      const h = { rol: "duena", narrador: { id: "n1", estado: "completado", contexto: NO_PRIVADO, nombre: "Marta", como_le_dicen: "Marta" } };
+      const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: true, v3: true, dudasPendientes: true };
+      expect(proximoPaso(h as never, r as never)).toEqual({ href: "/tablero/n1/dudas", texto: "Hay dudas sobre lo que contó Marta. Contestalas antes de que se escriba el libro." });
+    });
+
+    it("el helper: `loContadoEsPrivado` o `esPropia`, y nada más; Viaje y Kids nunca", async () => {
+      const { dudasAQuienConto } = await import("@/lib/dudas-archivos");
+      expect(dudasAQuienConto({ contexto: NO_PRIVADO })).toBe(false);
+      expect(dudasAQuienConto({ contexto: REGALO })).toBe(true);
+      expect(dudasAQuienConto({ contexto: PROPIA })).toBe(true);
+      expect(dudasAQuienConto({ contexto: { modo: "viaje", ...PROPIA } })).toBe(false);
+      expect(dudasAQuienConto({ contexto: { modo: "kids", ...PROPIA } })).toBe(false);
+    });
+  });
+
+  it("el texto de cuántas faltan", async () => {
+    const { textoQuedanPreguntas } = await import("../src/app/tablero/proximo-paso");
+    expect(textoQuedanPreguntas("Marta", 1)).toBe("A Marta le queda una pregunta por contestar.");
+    expect(textoQuedanPreguntas("Marta", 3)).toBe("A Marta le quedan 3 preguntas por contestar.");
   });
 });
 
@@ -348,7 +422,7 @@ describe("el link del narrador", () => {
 
   it("verifica firma, tipo y vencimiento", () => {
     expect(verificarTokenRespuestas(token())).toEqual({ ok: true, narradorId: "n1" });
-    expect(verificarTokenRespuestas(token({ exp: Date.now() - 1 }))).toEqual({ ok: false, motivo: "vencido" });
+    expect(verificarTokenRespuestas(token({ exp: Date.now() - 1 }))).toEqual({ ok: false, motivo: "vencido", narradorId: "n1" });
     expect(verificarTokenRespuestas(token({ tipo: "voz" }))).toEqual({ ok: false, motivo: "invalido" });
     expect(verificarTokenRespuestas(`${token().slice(0, -3)}abc`)).toEqual({ ok: false, motivo: "invalido" });
     expect(verificarTokenRespuestas("nada")).toEqual({ ok: false, motivo: "invalido" });

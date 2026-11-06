@@ -4,7 +4,7 @@ import type { TratoComprador } from "@/lib/regalo-textos";
 import { idiomaPreguntasFamilia, textosPanelHistoria } from "@/lib/preguntas-familia-textos";
 import { idiomaDelTrato, PANEL, type Quien } from "../../_textos/panel";
 import { BannerAlertaSilencio } from "../acciones";
-import { textoDudas } from "../proximo-paso";
+import { textoQuedanPreguntas } from "../proximo-paso";
 import { Etiqueta, ProximoPaso } from "../ui";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -30,15 +30,14 @@ export type SumarClasico = {
 };
 
 export function HistoriaPrivada({
-  n, rol, quien, preguntasFamilia, fotos, usuarioId, aprobado, historiaCerrada, libroListo, dudasPendientes, alFinal, ritmo, horario, trato, historia = false, clasico,
+  n, rol, quien, preguntasFamilia, fotos, usuarioId, aprobado, historiaCerrada, libroListo, quedanPreguntas, alFinal, ritmo, horario, trato, historia = false, clasico,
 }: {
   n: Narrador; rol: Rol; quien: Quien; preguntasFamilia: PreguntaFamiliaV3[]; fotos: FotoVista[]; usuarioId: string;
-  aprobado: boolean; historiaCerrada: boolean; libroListo: boolean; dudasPendientes: boolean; alFinal: boolean;
+  aprobado: boolean; historiaCerrada: boolean; libroListo: boolean; quedanPreguntas: number; alFinal: boolean;
   ritmo: Ritmo; horario?: { hora: string; zona: string }; trato: TratoComprador; historia?: boolean; clasico?: SumarClasico;
 }) {
   const T = PANEL[idiomaDelTrato(trato)];
   const TH = textosPanelHistoria(idiomaPreguntasFamilia(trato));
-  const tu = trato === "tu";
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
   const puedeSumar = !cerrado && !alFinal && PUEDE.agregarPreguntasYFotos(rol);
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
@@ -66,10 +65,8 @@ export function HistoriaPrivada({
         <div className="mt-6"><CerrarEdicion narradorId={n.id} propia={false} trato={trato} /></div>
       ) : null}
 
-      {dudasPendientes ? (
-        <div className="mt-8">
-          <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(false, n.como_le_dicen, tu)}</ProximoPaso>
-        </div>
+      {quedanPreguntas > 0 ? (
+        <p className="mt-8 max-w-prose text-[16px] leading-relaxed text-[var(--texto)]">{textoQuedanPreguntas(n.como_le_dicen, quedanPreguntas)}</p>
       ) : null}
 
       {libroListo ? (

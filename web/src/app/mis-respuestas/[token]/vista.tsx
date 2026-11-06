@@ -55,7 +55,7 @@ export const TEXTOS: Record<Idioma, {
   },
 };
 
-function Marco({ children }: { children: React.ReactNode }) {
+export function Marco({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-full bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)]">
       <header className="oscuro flex items-center gap-3 bg-[var(--fondo)] px-6 py-5 text-[var(--texto)]">
@@ -71,7 +71,7 @@ export function Aviso({ titulo, texto }: { titulo: string; texto: string }) {
   return (
     <Marco>
       <h1 className="text-3xl leading-tight font-medium [font-family:var(--fuente-titulo)]">{titulo}</h1>
-      <p className="mt-4 text-[17px] leading-relaxed text-[var(--texto-suave)]">{texto}</p>
+      {texto ? <p className="mt-4 text-[17px] leading-relaxed text-[var(--texto-suave)]">{texto}</p> : null}
     </Marco>
   );
 }
