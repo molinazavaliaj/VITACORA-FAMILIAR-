@@ -281,7 +281,7 @@ const ES: TextosLegal = {
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
       "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, o si contesta menos de diez preguntas, te devolvemos todo.",
       "Antes de imprimir el libro lo lees tú. Lo que se imprime es lo que confirmas.",
-      // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+      // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
       "Si el libro es para otra persona, ella elige si su familia ve lo que cuenta mientras tanto.",
       "Con el libro ya escrito vale el plazo de la ley, 14 días naturales desde la compra en España y 10 días corridos desde que recibes el libro en Argentina (desde la compra, si es solo digital).",
       "La historia, los audios y la voz son de tu familia. Nunca los publicamos. El libro entero solo se abre con el código del libro impreso, o con el enlace que tú compartas.",
@@ -351,7 +351,7 @@ const ES: TextosLegal = {
         id: "entrega",
         titulo: "5. Qué te entregamos y cuándo",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+          // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
           p("El ritmo lo pone el narrador: la entrevista dura lo que él tarde en responder. Cuando termina, producimos el libro y te avisamos por correo."),
           p("**Quién ve lo que cuenta.** Si el libro es para otra persona, en Familiar o en Historia, lo elige el narrador después de darnos su permiso. Vale para los libros comprados desde el " + PUBLICADO + "."),
           lista(
@@ -572,7 +572,7 @@ const ES: TextosLegal = {
         id: "con-quien",
         titulo: "8. Con quién compartimos",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-07: también §7 y §9
+          // APROBADO por Naza el 06/11 · A-07; el catalán lo revisa Imma: también §7 y §9
           p("Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas. Si el libro es para otra persona, en Familiar o en Historia, lo elige el narrador después de su permiso, con su consentimiento, y puede cambiarlo cuando quiera. Si elige a su familia, tú y tus invitados podéis escuchar sus audios y leer sus respuestas. Si prefiere no compartirlo o no contesta, no veis sus respuestas, los audios completos ni las transcripciones. En los dos casos, leéis el libro y escucháis sus frases cuando está listo. Los invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contraportada (y uno al lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro." + (MIDE ? " Nunca vendemos datos y nunca los entregamos a terceros salvo obligación legal. Lo único que va a publicidad es el aviso de compra de la sección 12, y solo si aceptas las cookies." : " Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal.")),
         ],
       },
@@ -580,7 +580,7 @@ const ES: TextosLegal = {
         id: "derechos",
         titulo: "9. Tus derechos (y los del narrador)",
         bloques: [
-          p("Tú, el narrador y cada invitado podéis pedir en cualquier momento: **acceder** a sus datos, **corregirlos**, **borrarlos**, **llevárselos** en un formato usable (el libro en PDF, sus frases y los audios originales), **oponerse** a un uso o pedir que lo **limitemos**, y **retirar un consentimiento** (por ejemplo, el del narrador para seguir la entrevista) sin que eso afecte lo hecho hasta entonces. Los audios originales y las transcripciones son del narrador: si no eligió a su familia, solo los puede pedir el narrador."),
+          p("Tú, el narrador y cada invitado podéis pedir en cualquier momento: **acceder** a sus datos, **corregirlos**, **borrarlos**, **llevárselos** en un formato usable (el libro en PDF, sus frases y los audios originales), **oponerse** a un uso o pedir que lo **limitemos**, y **retirar un consentimiento** (por ejemplo, el del narrador para seguir la entrevista) sin que eso afecte lo hecho hasta entonces. Los audios originales y las transcripciones son del narrador: si no ha elegido a su familia, solo los puede pedir el narrador."),
           p("Cómo: un correo a {hola} desde la dirección de tu cuenta (o, si eres el narrador, un mensaje por el mismo WhatsApp). Contestamos en un mes como máximo; casi siempre en días. Si crees que no te hicimos caso, puedes reclamar ante la {autoridad:ES} si estás en España o ante la {autoridad:AR} si estás en Argentina."),
         ],
       },
@@ -757,7 +757,7 @@ const AR: TextosLegal = {
       "Pago único, por adelantado. Sin suscripción y sin renovación automática.",
       "La entrevista es por WhatsApp, con audios, al ritmo del narrador. Nada empieza sin su permiso. Si no acepta, o si contesta menos de diez preguntas, te devolvemos todo.",
       "Antes de imprimir el libro lo leés vos. Lo que se imprime es lo que confirmás.",
-      // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+      // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
       "Si el libro es para otra persona, ella elige si su familia ve lo que cuenta mientras tanto.",
       "Con el libro ya escrito vale el plazo de la ley, 10 días corridos desde que recibís el libro en Argentina (desde la compra, si es solo digital) y 14 días naturales desde la compra en España.",
       "La historia, los audios y la voz son de tu familia. Nunca los publicamos. El libro entero solo se abre con el código del libro impreso, o con el enlace que vos compartas.",
@@ -827,7 +827,7 @@ const AR: TextosLegal = {
         id: "entrega",
         titulo: "5. Qué te entregamos y cuándo",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+          // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
           p("El ritmo lo pone el narrador: la entrevista dura lo que él tarde en responder. Cuando termina, producimos el libro y te avisamos por correo."),
           p("**Quién ve lo que cuenta.** Si el libro es para otra persona, en Familiar o en Historia, lo elige el narrador después de darnos su permiso. Vale para los libros comprados desde el " + PUBLICADO + "."),
           lista(
@@ -1048,7 +1048,7 @@ const AR: TextosLegal = {
         id: "con-quien",
         titulo: "8. Con quién compartimos",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-07: también §7 y §9
+          // APROBADO por Naza el 06/11 · A-07; el catalán lo revisa Imma: también §7 y §9
           p("Con nadie, salvo los proveedores de la sección 5 y la familia que vos elijas. Si el libro es para otra persona, en Familiar o en Historia, lo elige el narrador después de su permiso, con su consentimiento, y puede cambiarlo cuando quiera. Si elige a su familia, vos y tus invitados pueden escuchar sus audios y leer sus respuestas. Si prefiere no compartirlo o no contesta, no ven sus respuestas, los audios completos ni las transcripciones. En los dos casos, leen el libro y escuchan sus frases cuando está listo. Los invitados ven el libro y las fotos, y quien abra un enlace de muestra que vos compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al lado de cada frase de «Su voz») que abre en el celular el libro entero y sus frases, sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual que podría prestar el libro." + (MIDE ? " Nunca vendemos datos y nunca los entregamos a terceros salvo obligación legal. Lo único que va a publicidad es el aviso de compra de la sección 12, y solo si aceptás las cookies." : " Nunca vendemos datos, nunca los usamos para publicidad y nunca los entregamos a terceros salvo obligación legal.")),
         ],
       },
@@ -1231,7 +1231,7 @@ const CA: TextosLegal = {
       "Pagament únic, per avançat. Sense subscripció i sense renovació automàtica.",
       "L'entrevista és per WhatsApp, amb àudios, al ritme del narrador. No comença res sense el seu permís. Si no accepta, o si contesta menys de deu preguntes, t'ho retornem tot.",
       "Abans d'imprimir el llibre el llegeixes tu. El que s'imprimeix és el que confirmes.",
-      // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+      // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
       "Si el llibre és per a una altra persona, ella tria si la seva família veu el que explica mentrestant.",
       "Amb el llibre ja escrit val el termini de la llei, 14 dies naturals des de la compra a Espanya i 10 dies seguits des que reps el llibre a l'Argentina (des de la compra, si és només digital).",
       "La història, els àudios i la veu són de la teva família. No els publiquem mai. El llibre sencer només s'obre amb el codi del llibre imprès, o amb l'enllaç que tu comparteixis.",
@@ -1301,7 +1301,7 @@ const CA: TextosLegal = {
         id: "entrega",
         titulo: "5. Què et lliurem i quan",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-06
+          // APROBADO por Naza el 06/11 · A-06; el catalán lo revisa Imma
           p("El ritme el posa el narrador: l'entrevista dura el que ell trigui a respondre. Quan acaba, produïm el llibre i t'avisem per correu."),
           p("**Qui veu el que explica.** Si el llibre és per a una altra persona, a Familiar o a Història, ho tria el narrador després de donar-nos el seu permís. Val per als llibres comprats des del " + PUBLICAT + "."),
           lista(
@@ -1522,7 +1522,7 @@ const CA: TextosLegal = {
         id: "con-quien",
         titulo: "8. Amb qui compartim",
         bloques: [
-          // ESPERA el OK de Naza a los cambios del 06/11 · A-07: también §7 y §9
+          // APROBADO por Naza el 06/11 · A-07; el catalán lo revisa Imma: también §7 y §9
           p("Amb ningú, tret dels proveïdors de la secció 5 i la família que tu triïs. Si el llibre és per a una altra persona, a Familiar o a Història, ho tria el narrador després del seu permís, amb el seu consentiment, i ho pot canviar quan vulgui. Si tria la seva família, tu i els teus convidats podeu escoltar els seus àudios i llegir les seves respostes. Si prefereix no compartir-ho o no contesta, no veieu les seves respostes, els àudios complets ni les transcripcions. En tots dos casos, llegiu el llibre i escolteu les seves frases quan està llest. Els convidats veuen el llibre i les fotos, i qui obri un enllaç de mostra que tu has compartit veu la portada, els títols dels capítols, el primer paràgraf i un minut d'àudio. El llibre imprès porta a més un codi a la contracoberta (i un al costat de cada frase de «La seva veu») que obre al mòbil el llibre sencer i les seves frases, sense compte: qui tingui el llibre a la mà el pot obrir i reenviar aquest enllaç, igual que podria deixar el llibre." + (MIDE ? " Mai no venem dades i mai no les lliurem a tercers tret d'obligació legal. L'únic que va a publicitat és l'avís de compra de la secció 12, i només si acceptes les galetes." : " Mai no venem dades, mai no les fem servir per a publicitat i mai no les lliurem a tercers tret d'obligació legal.")),
         ],
       },

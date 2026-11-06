@@ -17,7 +17,7 @@ export const VERSION_ELECCION = '2026-11-06';
 
 type Quien = 'familia' | 'narrador';
 
-// A-01 · vos: APROBADO por Naza el 06/11. tú y catalán: ESPERAN su OK; el catalán lo revisa Imma.
+// A-01 · vos y tú: APROBADOS por Naza el 06/11. El catalán lo revisa Imma.
 const PREGUNTA: Record<Idioma, string> = {
   'es-AR': 'Una cosa más, {{nombre}}. ¿Quién querés que vea lo que me vas contando mientras armamos tu libro? Si elegís a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas, y quien te lo regaló puede dejar cosas afuera del libro. Si elegís solo vos, nadie de tu familia los ve mientras tanto, y cuando terminemos vas a tener 48 horas para sacar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestás, queda como si hubieras elegido solo vos. Podés cambiarlo cuando quieras tocando el otro botón.',
   'es-ES': 'Una cosa más, {{nombre}}. ¿Quién quieres que vea lo que me vas contando mientras preparamos tu libro? Si eliges a tu familia, quien te lo regaló y los familiares que invite pueden escuchar tus audios y leer tus respuestas, y quien te lo regaló puede dejar cosas fuera del libro. Si eliges solo tú, nadie de tu familia los ve mientras tanto, y cuando terminemos tendrás 48 horas para quitar lo que quieras. En los dos casos, tu familia lee el libro cuando esté listo. Si no contestas, queda como si hubieras elegido solo tú. Puedes cambiarlo cuando quieras pulsando el otro botón.',
@@ -30,7 +30,7 @@ const BOTONES: Record<Idioma, { familia: string; narrador: string }> = {
   ca: { familia: 'La meva família', narrador: 'Només jo' },
 };
 
-// A-02 · vos: APROBADO por Naza el 06/11. tú y catalán: ESPERAN su OK; el catalán lo revisa Imma.
+// A-02 · vos y tú: APROBADOS por Naza el 06/11. El catalán lo revisa Imma.
 const ACUSE: Record<Idioma, Record<Quien, string>> = {
   'es-AR': {
     familia: 'Listo, {{nombre}}. Tu familia va a poder ver todo lo que me cuentes, también lo que ya me contaste.',
