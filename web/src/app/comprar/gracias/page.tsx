@@ -11,7 +11,7 @@ import { CONFIRMADO, momentosKids, type CanalConfirmadoKids, type Momento } from
 import { CascaronCheckout } from "../../_checkout/cascaron";
 import { clasesBoton } from "../../_ui";
 import { AlConfirmar } from "./al-confirmar";
-import { MedirCompra } from "./medir-compra";
+import { ContarPagado, MedirCompra } from "./medir-compra";
 
 // «Pedido confirmado» (rediseño 2026-10, paso 4 de la maqueta Checkout).
 // Adonde vuelve la pasarela: /api/pago/vuelta confirma el pago, abre la sesión
@@ -141,6 +141,8 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
         ) : null}
 
         {confirmado?.compra ? <MedirCompra {...confirmado.compra} /> : null}
+        {/* El embudo mide la compra del libro de una vida: ni Viaje ni Kids. */}
+        {confirmado?.compra && !esViaje && !confirmado.kids ? <ContarPagado pedidoId={confirmado.compra.pedidoId} region={idioma === "ar" ? "AR" : "ES"} /> : null}
 
         <AlConfirmar
           narradorId={confirmado?.narradorId ?? null}

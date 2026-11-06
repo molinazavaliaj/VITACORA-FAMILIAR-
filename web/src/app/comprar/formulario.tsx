@@ -32,6 +32,7 @@ import { TapaLibro } from "../tapa-libro";
 import { CamposEntrega, SIN_ENTREGA } from "../regalar/entrega";
 import { CamposTarjeta, SIN_TARJETA, ofreceTarjeta } from "../_checkout/tarjeta-impresa";
 import { formatearPrecio, listaDe } from "./productos-ui";
+import { contarPaso } from "@/lib/embudo-cliente";
 import {
   carritoDe, claveDeCompra, cuerpoDeLaCompra, esPropia, esRegalo, estadoInicial, fallaDelPaso, generoDe, historiaInicial, idiomaInicial, llevaDireccion, pasoDelPago, proximaNavidad, quiereTarjeta,
   type EstadoCompra, type EstadoHistoriaCompra, type Falla, type Paso,
@@ -89,8 +90,11 @@ export function Checkout({
   historia = false,
   garantiaALaVista = false,
   cuotasAr = false,
+  embudo = false,
   estadoDePrueba,
 }: {
+  /** Cuenta los pasos en el embudo (solo /comprar). Un contador por día, sin cookies ni datos de persona. */
+  embudo?: boolean;
   /** Para probar un paso con lo ya elegido (por ejemplo «Para mí») sin navegador. */
   estadoDePrueba?: Partial<EstadoCompra>;
   /** GARANTIA_A_LA_VISTA=1 (se lee en el servidor): la garantía va a tamaño normal arriba del botón y sale de la letra chica. */
@@ -256,6 +260,14 @@ export function Checkout({
 
   useEffect(() => () => fotos.forEach((x) => URL.revokeObjectURL(x.url)), [fotos]);
 
+  // El embudo: cada paso que se alcanza, una vez por pestaña. Nunca frena la compra.
+  useEffect(() => {
+    if (!embudo) return;
+    if (paso === 1) contarPaso("entro", region);
+    else if (paso === 2) contarPaso("para_quien", region);
+    else if (paso === pago) contarPaso("pago", region);
+  }, [embudo, paso, pago, region]);
+
   // Al cambiar de paso, arriba del todo y el foco al título del paso nuevo.
   useEffect(() => {
     if (primerPaso.current) {
@@ -341,6 +353,7 @@ export function Checkout({
     const problema = fallaDelPaso(pago, e, T, TR.entrega, new Date(), TH.paso, TR.tarjeta);
     if (problema) return setFalla(problema);
     setFalla(null);
+    if (embudo) contarPaso("pagar", region);
     setEnviando(true);
     const r = await pagador.pagar(
       { ...cuerpoDeLaCompra(e, idioma), ...(cupon ? { cupon: cupon.codigo } : {}) },

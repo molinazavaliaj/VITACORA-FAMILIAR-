@@ -36,6 +36,7 @@ export function PaginaComprar({ idioma }: { idioma: IdiomaWeb }) {
         // Ambos flags se leen acá, en el servidor; apagados por defecto.
         garantiaALaVista={process.env.GARANTIA_A_LA_VISTA === "1"}
         cuotasAr={process.env.CUOTAS_AR === "1"}
+        embudo
       />
     </CascaronCheckout>
   );
