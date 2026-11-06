@@ -4,6 +4,7 @@ import { firmarToken } from "./token-firmado";
 import type { Compra } from "@/lib/productos";
 import { lineasParaCobrar } from "@/lib/cupon";
 import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { urlFormularioPago } from "@/lib/pago-embebido";
 
 // Crea el link de pago (Stripe para ES, Mercado Pago para AR) a partir de una
 // compra ya calculada (productos.ts). Los clientes de cada SDK se instancian
@@ -38,15 +39,14 @@ export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: Ori
   const urlVuelta = `${urlBase}/api/pago/vuelta?pedido=${encodeURIComponent(pedido.id)}&t=${firmarToken("vuelta", pedido.id)}${esViaje ? "&viaje=1" : ""}${origen ? `&idioma=${origen.idioma}` : ""}`;
   // Si no se cobró (cancelar, tarjeta rechazada): de vuelta a la compra de donde salió.
   const pantalla = origen?.pantalla === "regalar" ? "/regalar" : origen?.pantalla === "kids" ? "/comprar/kids" : origen?.pantalla === "historia" ? "/comprar/historia" : `/comprar${vuelta}`;
-  const urlCancelada = origen
-    ? `${urlBase}${ruta(origen.idioma, pantalla)}?pago=fallido`
-    : `${urlBase}/comprar${vuelta}`;
+  const caminoCompra = origen ? ruta(origen.idioma, pantalla) : `/comprar${vuelta}`;
+  const urlCancelada = origen ? `${urlBase}${caminoCompra}?pago=fallido` : `${urlBase}${caminoCompra}`;
 
   if (compra.region === "ES") {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+    const comunes = {
+      mode: "payment" as const,
       customer_email: pedido.email,
       line_items: lineas.map((linea) => ({
         price_data: {
@@ -59,6 +59,26 @@ export async function crearCheckout(pedido: Pedido, compra: Compra, origen?: Ori
         quantity: linea.cantidad,
       })),
       metadata: { pedido_id: pedido.id },
+    };
+
+    // Pago embebido (06/11, pedido de Naza): el formulario de Stripe dentro de
+    // nuestra página /pagar, sin salir de la web. Se prende con la clave pública
+    // de Stripe (STRIPE_PUBLISHABLE_KEY): sin ella sigue el pago en la página de
+    // Stripe, así que sacar la variable es la marcha atrás.
+    if (process.env.STRIPE_PUBLISHABLE_KEY) {
+      const session = await stripe.checkout.sessions.create({
+        ...comunes,
+        ui_mode: "embedded_page",
+        return_url: `${urlVuelta}&session_id={CHECKOUT_SESSION_ID}`,
+      });
+      // Una tarjeta rechazada se reintenta dentro del formulario: a la compra
+      // solo se vuelve por decisión propia, y eso no es un pago fallido.
+      const volver = origen ? `${caminoCompra}?pago=volvio` : caminoCompra;
+      return { urlPago: urlFormularioPago(urlBase ?? "", session.id, volver, origen?.idioma) };
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      ...comunes,
       success_url: `${urlVuelta}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: urlCancelada,
     });

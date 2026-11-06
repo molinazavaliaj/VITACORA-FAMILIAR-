@@ -12,7 +12,7 @@ import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
 import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
 import { AREA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO } from "../_checkout/piezas";
-import { vieneDePagoFallido } from "../_checkout/memoria";
+import { vieneDePagoFallido, volvioPorSuCuenta } from "../_checkout/memoria";
 import { PasosLibro } from "../_checkout/pasos-libro";
 import { CHECKOUT, FALLO, RESUMEN } from "../_textos/checkout";
 import { COMPRADOR_WEB } from "../_textos/regalar";
@@ -87,7 +87,7 @@ export function FormularioRegalo({
   // recordado (vitacora-regalo-pendiente): el próximo pago retoma el mismo regalo.
   useEffect(() => {
     if (!vieneDePagoFallido(window.location.search)) return;
-    setFallo(true);
+    if (!volvioPorSuCuenta(window.location.search)) setFallo(true);
     window.history.replaceState(null, "", window.location.pathname);
   }, []);
 

@@ -12,7 +12,7 @@ import { CHECKOUT_VIAJE } from "../../_textos/checkout-viaje";
 import { AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, Resumen, TituloPaso, arriba } from "../../_checkout/piezas";
 import { CamposDireccion } from "../../_checkout/direccion";
 import { PasosLibro } from "../../_checkout/pasos-libro";
-import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido } from "../../_checkout/memoria";
+import { CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, volvioPorSuCuenta } from "../../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../../_checkout/pagador";
 import { formatearPrecio, listaDe } from "../productos-ui";
 import { cuerpoViaje, diasDe, estadoViajeInicial, fallaViaje, hoyLocal, type EstadoViaje, type PasoViaje } from "./compra-viaje";
@@ -96,7 +96,7 @@ export function CheckoutViaje({
   useEffect(() => {
     if (!vieneDePagoFallido(window.location.search)) return;
     const guardado = leer<EstadoViaje>(sesion, CLAVE_COMPRA_VIAJE, clave);
-    setFallo(guardado ? "guardado" : "solo");
+    if (!volvioPorSuCuenta(window.location.search)) setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
       setE({ ...estadoViajeInicial(idioma, cat.impreso !== null), ...guardado });
       setPaso(3);
