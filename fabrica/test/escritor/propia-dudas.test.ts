@@ -9,13 +9,17 @@ vi.mock('../../src/escritor-historia/material/carpeta.js', () => ({ carpetaDeHis
 
 import { carpetaHistoriaDeLaBase } from '../../src/escritor-historia/produccion/libro-historia.js';
 import { carpetaDeLaBase } from '../../src/escritor/produccion/libro-v3.js';
+import { regla } from '../../src/escritor/produccion/privacidad.js';
 
 const base = (contexto: unknown) => {
   const q: any = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: { contexto }, error: null }) };
   return { from: () => q } as any;
 };
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe.each([
   ['V3', carpetaDeLaBase],
@@ -34,5 +38,17 @@ describe.each([
     ['kids', { modo: 'kids', vinculoComprador: 'hija' }],
   ])('%s de regalo queda como antes: le hablan a la familia', async (_caso, contexto) => {
     expect((await carpeta(base(contexto), 'n')).propia).toBe(false);
+  });
+
+  it('solo mira la regla: en false, un regalo le habla a la familia; «Para mí» sigue con quien contó', async () => {
+    vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
+    expect((await carpeta(base({ vinculoComprador: 'hija' }), 'n')).propia).toBe(false);
+    expect((await carpeta(base({}), 'n')).propia).toBe(false);
+    expect((await carpeta(base({ vinculoComprador: 'yo mismo' }), 'n')).propia).toBe(true);
+  });
+
+  it('solo mira la regla: en true, le habla a quien contó', async () => {
+    vi.spyOn(regla, 'esPrivado').mockReturnValue(true);
+    expect((await carpeta(base({ modo: 'viaje', vinculoComprador: 'hija' }), 'n')).propia).toBe(true);
   });
 });

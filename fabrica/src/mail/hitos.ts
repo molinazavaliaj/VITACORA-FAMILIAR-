@@ -37,7 +37,9 @@ export type Hito =
   | 'cierre_automatico'
   // Las dudas del escritor V3 (Naza, 30/10): cuando aparecen, y cuando ya están todas contestadas y falta encargar.
   | 'dudas'
-  | 'dudas_listas';
+  | 'dudas_listas'
+  /** El mismo, cuando las dudas eran de quien contó: sin las gracias a quien regala, que no contestó nada. */
+  | 'dudas_listas_privado';
 
 /** Nombre del archivo candado en `{narrador_id}/paquete/` para cada hito. */
 export const CANDADO_POR_HITO: Record<Hito, string> = {
@@ -51,6 +53,7 @@ export const CANDADO_POR_HITO: Record<Hito, string> = {
   cierre_automatico: 'cierre_automatico_enviado.txt',
   dudas: 'dudas_enviado.txt',
   dudas_listas: 'dudas_listas_enviado.txt',
+  dudas_listas_privado: 'dudas_listas_enviado.txt',
   // Los de la entrega llevan además el id de la entrega en la ruta (`entregas.ts`):
   // una familia puede tener dos pedidos con impreso —el suyo y el de un primo— y
   // cada uno viaja por su cuenta.
@@ -78,6 +81,15 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     boton: 'Contestar las preguntas',
   },
   dudas_listas: {
+    asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
+    parrafos: () => [
+      'Ya tenemos todas las respuestas. Gracias.',
+      'Falta un solo paso. Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.',
+      'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
+    ],
+    boton: 'Encargar el libro',
+  },
+  dudas_listas_privado: {
     asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
     parrafos: () => [
       'Falta un solo paso. Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.',
@@ -277,6 +289,15 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
       boton: 'Contestar las preguntas',
     },
     dudas_listas: {
+      asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
+      parrafos: () => [
+        'Ya tenemos todas las respuestas. Gracias.',
+        'Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.',
+        'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
+      ],
+      boton: 'Encargar el libro',
+    },
+    dudas_listas_privado: {
       asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
       parrafos: () => [
         'Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.',

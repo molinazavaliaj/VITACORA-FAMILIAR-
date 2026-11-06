@@ -72,7 +72,7 @@ export async function archivosDelEscritor(
   return { nombres: new Set((data ?? []).map((a) => a.name)), error: null };
 }
 
-/** ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Como `dudasAQuienConto` de la fábrica. */
+/** ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Como `dudasAQuienConto` de la fábrica. Si no, siguen con la familia, en el panel. */
 export function dudasAQuienConto(narrador: { contexto?: Record<string, unknown> | null }): boolean {
   return loContadoEsPrivado(narrador) || esPropia(narrador);
 }

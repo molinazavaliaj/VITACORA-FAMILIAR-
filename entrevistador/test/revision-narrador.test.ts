@@ -3,6 +3,13 @@ import { crearBaseFalsa } from './v3/base-falsa.js';
 import { atenderRevisiones, olvidarRevisiones, queMandar, type DepsRevision, type Situacion } from '../src/flujo/revision-narrador.js';
 import { TEXTOS_REVISION } from '../src/flujo/revision-narrador-textos.js';
 
+// La regla sin depender de su definición de hoy: `null` usa la de verdad; una función simula sus dos respuestas.
+const regla = vi.hoisted(() => ({ esPrivado: null as null | ((c: unknown) => boolean) }));
+vi.mock('../src/link-respuestas.js', async (original) => {
+  const real = await original<typeof import('../src/link-respuestas.js')>();
+  return { ...real, esPrivado: (c: unknown) => (regla.esPrivado ? regla.esPrivado(c) : real.esPrivado(c)) };
+});
+
 // El aviso de dudas a quien contó y su recordatorio (plan 2026-11-06-dudas-narrador-sobre-212). El link para sacar
 // respuestas lo manda el mensaje final (src/v3/enviar.ts y src/historia/enviar.ts), no este módulo.
 
@@ -122,8 +129,56 @@ describe('atenderRevisiones', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
   afterEach(() => {
+    regla.esPrivado = null;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
+  });
+
+  describe('un regalo que no es privado no recibe ningún WhatsApp de dudas (la regla en false)', () => {
+    const REGALO = { vinculoComprador: 'hija' };
+
+    it.each([['con la ventana abierta', abierta()], ['con la ventana cerrada', cerrada()]])('%s, en V3: ni texto, ni plantilla, ni marca', async (_caso, fila) => {
+      regla.esPrivado = () => false;
+      const a = armar({ narradores: [narrador('n1', { contexto: REGALO })], v3: [fila] });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toEqual([]);
+      expect(a.plantillas).toEqual([]);
+      expect(a.socios).toEqual([]);
+      expect(a.archivo('n1', 'dudas-narrador-avisadas.txt')).toBeUndefined();
+    });
+
+    it('en una historia, tampoco', async () => {
+      regla.esPrivado = () => false;
+      const a = armar({ narradores: [narrador('n1', { contexto: { ...REGALO, modo: 'historia' } })], v3: [], historias: [abierta()], carpeta: 'escritor-historia' });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toEqual([]);
+      expect(a.archivo('n1', 'dudas-narrador-avisadas.txt', 'escritor-historia')).toBeUndefined();
+    });
+
+    it('«para mí» sigue recibiéndolo, aunque la regla diga que no es privado', async () => {
+      regla.esPrivado = () => false;
+      const a = armar({ narradores: [narrador('n1', { contexto: { vinculoComprador: 'yo mismo' } })] });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toHaveLength(1);
+    });
+
+    it('la regla decide por narrador: el privado recibe, el otro no', async () => {
+      regla.esPrivado = (c) => (c as { privado?: boolean }).privado === true;
+      const a = armar({
+        narradores: [narrador('n1', { contexto: { ...REGALO, privado: true } }), narrador('n2', { contexto: REGALO, telefono_whatsapp: '5491199999999' })],
+        v3: [abierta('n1'), abierta('n2')],
+      });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos.map((t) => t.tel)).toEqual(['5491112345678']);
+      expect(a.archivo('n2', 'dudas-narrador-avisadas.txt')).toBeUndefined();
+    });
+
+    it('con la regla en true sale con cualquier forma de contexto', async () => {
+      regla.esPrivado = () => true;
+      const a = armar({ narradores: [narrador('n1', { contexto: { acceso: { elige: true, quien: 'narrador' } } })] });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toHaveLength(1);
+    });
   });
 
   it('fuera de 9 a 21 en su zona no manda ni marca', async () => {

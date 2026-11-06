@@ -21,6 +21,7 @@ import { Ejecutor } from '../../src/escritor/ejecutor.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { carpetaDeHistoria } from '../../src/escritor-historia/material/carpeta.js';
 import { alEntregarHistoria, colaHistoria, escribirLibroHistoria, escritorHistoriaPrendido, revisarLibrosHistoria, SinMaterialHistoria, topeHistoria, type MotorHistoria } from '../../src/escritor-historia/produccion/libro-historia.js';
+import { regla } from '../../src/escritor/produccion/privacidad.js';
 import { narradoresConHistoria } from '../../src/historia/candado.js';
 import { DEFECTOS_RUBEN, RUBEN, salidasRuben } from './ayuda.js';
 
@@ -377,6 +378,84 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
     await escribirLibroHistoria(db, libro, motor);
     expect(tablas.pedidos[0].estado).toBe('entregado');
   }, 30_000);
+
+  describe('un regalo que no es privado sigue como hoy (la regla en false)', () => {
+    const conRegalo = (o: { pedido?: boolean; aprobado?: boolean } = { pedido: true, aprobado: true }) => {
+      const t0 = tablasDeRuben(o);
+      t0.narradores[0].contexto = { vinculoComprador: 'hija' };
+      return t0;
+    };
+    beforeEach(() => {
+      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    });
+
+    it('24 horas desde el mail, con su texto, y sin aviso de dudas sin contestar al vencer', async () => {
+      const { db, archivos, tablas } = baseFalsa(conRegalo());
+      const { motor } = motorFalso(db);
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      expect(tablas.pedidos[0].estado).toBe('pagado');
+      const text = mails.find((m) => m.subject.includes('Dudas de datos'))?.text;
+      expect(text).toContain('La familia las contesta en este link');
+      expect(text).not.toContain('WhatsApp');
+      archivos.set(prefijo('dudas-narrador-avisadas.txt'), hace(1));
+      archivos.set(prefijo('dudas-avisadas.txt'), hace(24));
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      expect(tablas.pedidos[0].estado).toBe('entregado');
+      expect(mails.filter((m) => m.text?.includes('Se empieza a escribir'))).toEqual([]);
+      expect(archivos.has(prefijo('dudas-sin-contestar-avisadas.txt'))).toBe(false);
+    }, 30_000);
+
+    it('con ESCRITOR_ESPERA_DUDAS_HORAS=0 no espera', async () => {
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+      const { db, tablas } = baseFalsa(conRegalo());
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motorFalso(db).motor);
+      expect(tablas.pedidos[0].estado).toBe('entregado');
+    }, 30_000);
+
+    it('el tick no espera 48 horas para la lectura', async () => {
+      const { db } = baseFalsa(conUltima(conRegalo({}), hace(1)));
+      const { motor, modelo } = motorFalso(db);
+      await vuelta(db, motor);
+      expect(modelo.llamadas.map((p) => p.clave)).toEqual(clavesA);
+    });
+  });
+
+  describe('si quien contó no contesta, los socios se enteran', () => {
+    it.each([['un privado', { vinculoComprador: 'hija' }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca', async (_caso, contexto) => {
+      const t0 = tablasDeRuben({ pedido: true, aprobado: true });
+      t0.narradores[0].contexto = contexto;
+      const { db, archivos, tablas } = baseFalsa(t0);
+      const { motor } = motorFalso(db);
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      expect(mails.filter((m) => m.text?.includes('Se empieza a escribir'))).toEqual([]);
+      archivos.set(prefijo('dudas-avisadas.txt'), hace(72));
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      expect(tablas.pedidos[0].estado).toBe('entregado');
+      const avisos = mails.filter((m) => m.text?.includes('Se empieza a escribir'));
+      expect(avisos).toHaveLength(1);
+      expect(avisos[0].text).toMatch(/^Se empieza a escribir el libro de Rubén .*con \d+ dudas? sin contestar\. Quien contó no las respondió en el plazo\./);
+      expect(archivos.has(prefijo('dudas-sin-contestar-avisadas.txt'))).toBe(true);
+    }, 30_000);
+
+    it('si el mail falla, el libro sale igual y no queda la marca', async () => {
+      const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+      const { motor } = motorFalso(db);
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      archivos.set(prefijo('dudas-avisadas.txt'), hace(72));
+      vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
+      generando(tablas);
+      await escribirLibroHistoria(db, libro, motor);
+      expect(tablas.pedidos[0].estado).toBe('entregado');
+      expect(archivos.has(prefijo('dudas-sin-contestar-avisadas.txt'))).toBe(false);
+    }, 30_000);
+  });
 
   it('un modo viaje con ESCRITOR_ESPERA_DUDAS_HORAS=0 no espera', async () => {
     vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');

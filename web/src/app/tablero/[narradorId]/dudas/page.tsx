@@ -29,7 +29,7 @@ import { VolverAlTablero } from "../../pasos";
 // Etapa B lo usa al escribir el libro.
 //
 // Si lo contado es privado, esta pantalla no se abre: las dudas las contesta quien contó, en /mi-historia/<token>, y
-// quien regala solo ve cuántas faltan (Naza, 06/11). Queda para «Para mí», viaje y kids.
+// quien regala solo ve cuántas faltan (Naza, 06/11). Queda para «Para mí», viaje, kids y un regalo no privado.
 
 const MENSAJE_ERROR_CARGA: Record<TratoComprador, string> = {
   vos: "No pudimos cargar las dudas. Actualizá la página en un momento.",
@@ -123,7 +123,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     else console.error("tablero/dudas: correcciones.json invalido");
   }
 
-  // El mismo plazo que espera la fábrica (72 horas desde el aviso a quien contó; viaje y kids, el de siempre). El libro escrito lo cierra.
+  // El mismo plazo que espera la fábrica (72 horas desde el aviso a quien contó; si contesta la familia, el de siempre). El libro escrito lo cierra.
   const aQuienConto = dudasAQuienConto(narrador);
   const plazo = estadoDelPlazo(
     desdeCuandoCorreElPlazo(archivoAvisoNarrador.texto, archivoAvisadas.texto, aQuienConto),

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenRespuestas } from "@/lib/token-respuestas";
+import { dudasAQuienConto } from "@/lib/dudas-archivos";
 import { ESTADO_DE_LA_FALLA, guardarRespuestasDudas } from "@/lib/dudas-guardar";
 
 // Quien contó contesta las dudas desde su link. Sin sesión: el token firmado es el permiso, y se verifica en cada POST.
@@ -30,9 +31,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     console.error("mi-historia/dudas: fallo la lectura del narrador", error.message);
     return responder({ error: ERROR }, 500);
   }
-  const n = data as { id: string; como_le_dicen?: string | null; contexto?: { modo?: unknown } | null } | null;
-  // Viaje y Kids no reciben este link: sus dudas siguen en el panel.
-  if (!n || n.contexto?.modo === "viaje" || n.contexto?.modo === "kids") return responder({ error: "Este link ya no sirve." }, 404);
+  const n = data as { id: string; como_le_dicen?: string | null; contexto?: Record<string, unknown> | null } | null;
+  // Solo un libro privado o «Para mí»: en lo demás (un regalo no privado, viaje, kids) las dudas siguen en el panel.
+  if (!n || !dudasAQuienConto(n)) return responder({ error: "Este link ya no sirve." }, 404);
 
   const resultado = await guardarRespuestasDudas(admin, n.id, body.correcciones, { quien: n.como_le_dicen?.trim() || undefined });
   if (resultado.ok) return responder({ ok: true }, 200);

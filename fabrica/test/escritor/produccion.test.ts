@@ -19,6 +19,7 @@ import { Cola } from '../../src/escritor/produccion/cola.js';
 import {
   alertarLibrosDemorados, colaDelEscritor, dudasParaLaFamilia, escribirLibroV3, esLibroPropio, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, SinMaterial, soloConAudio, type Motor,
 } from '../../src/escritor/produccion/libro-v3.js';
+import { regla } from '../../src/escritor/produccion/privacidad.js';
 import { carpetaNelida, DEFECTOS_NELIDA, salidasModeloNelida } from './ayuda.js';
 
 // ---------------------------------------------------------------- base falsa
@@ -498,7 +499,7 @@ describe('el libro espera hasta 72 horas si la Etapa A encontró dudas (Naza, 06
     await escribirLibroV3(db, libro('n8'), motor);
     expect(tablas.pedidos[0].estado).toBe('entregado');
     expect(modelo.llamadas.filter((p) => p.clave.startsWith('A/'))).toHaveLength(3);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledTimes(2); // el de las dudas y, vencido el plazo, el de que quedaron sin contestar
   });
 
   it('vale igual para «Para mí» y para un regalo', async () => {
@@ -879,5 +880,197 @@ describe('esLibroPropio', () => {
     expect(esLibroPropio({})).toBe(false);
     expect(esLibroPropio(null)).toBe(false);
     expect(esLibroPropio(undefined)).toBe(false);
+  });
+});
+
+describe('un regalo que no es privado sigue como hoy (la regla en false, Joaquín 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const REGALO = { vinculoComprador: 'hija' };
+  const pedidoDe = (id: string, n: Fila = {}) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto: REGALO, ...n }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+  const conMail = (status = 200) => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async (_url: string, _init: { body: string }) => new Response('{}', { status }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  const mails = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { subject: string; text: string });
+
+  beforeEach(() => { vi.spyOn(regla, 'esPrivado').mockReturnValue(false); });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('espera ESCRITOR_ESPERA_DUDAS_HORAS desde el mail, con su texto, y se retoma al vencer, no a los 15 minutos', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r1'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r1'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    const { text } = mails(fetch)[0];
+    expect(text).toContain('A la familia le llega un mail para contestarlas.');
+    expect(text).toContain('espera 24 horas desde este mail');
+    expect(text).not.toContain('WhatsApp');
+    expect(hayLugarParaLibroV3('r1', Date.now() + 16 * 60_000)).toBe(false);
+    expect(hayLugarParaLibroV3('r1', Date.now() + 25 * H)).toBe(true);
+    archivos.set('r1/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r1'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('la marca del WhatsApp no cuenta: manda dudas-avisadas.txt', async () => {
+    conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r2'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r2'), motor);
+    archivos.set('r2/escritor/dudas-narrador-avisadas.txt', hace(1));
+    archivos.set('r2/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r2'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('con ESCRITOR_ESPERA_DUDAS_HORAS=0 o sin a quién avisar, no espera', async () => {
+    conMail();
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+    const a = baseFalsa(pedidoDe('r3'));
+    await escribirLibroV3(a.db, libro('r3'), motorFalso().motor);
+    expect(a.tablas.pedidos[0].estado).toBe('entregado');
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', '');
+    const b = baseFalsa(pedidoDe('r4'));
+    await escribirLibroV3(b.db, libro('r4'), motorFalso().motor);
+    expect(b.tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('si el mail no sale, no da por avisado', async () => {
+    conMail(500);
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r5'));
+    await escribirLibroV3(db, libro('r5'), motorFalso().motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(String(archivos.get('r5/escritor/dudas-avisadas.txt') ?? '')).toBe('');
+  });
+
+  it('la Etapa A no espera 48 horas, y el pedido tampoco', async () => {
+    const { db } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'r6', contexto: REGALO, ultima_respuesta_at: hace(1) }] } });
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'r6', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas.length).toBeGreaterThan(0);
+    const b = baseFalsa(pedidoDe('r7', { ultima_respuesta_at: hace(1) }));
+    const m2 = motorFalso(sinDudas());
+    await escribirLibroV3(b.db, libro('r7'), m2.motor);
+    expect(b.tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('venció la espera con dudas sin contestar: se escribe sin avisar nada a los socios', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r8'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r8'), motor);
+    archivos.set('r8/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r8'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(mails(fetch).filter((m) => /sin contestar/.test(m.text))).toEqual([]);
+    expect(archivos.has('r8/escritor/dudas-sin-contestar-avisadas.txt')).toBe(false);
+  });
+
+  it('la alerta de demora: a las 48 horas, aunque tenga dudas, con su texto de siempre', async () => {
+    const fetch = conMail();
+    const ahora = Date.parse('2026-11-10T12:00:00Z');
+    const { db } = baseFalsa({
+      tablas: { narradores: [{ id: 'r9', contexto: REGALO, libro_aprobado_at: new Date(ahora - 48 * H).toISOString() }], pedidos: [{ id: 'p-r9', narrador_id: 'r9', estado: 'pagado' }] },
+      archivos: { 'r9/escritor/dudas-familia.json': '{"dudas":[{"id":"D01"}]}' },
+    });
+    await alertarLibrosDemorados(db, new Set(['r9']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(mails(fetch)[0].text).toContain('La familia cerró el libro hace 48 horas');
+    expect(mails(fetch)[0].text).toContain('más 24 si hubo dudas');
+  });
+
+  it('con la regla en true, el mismo contexto va a quien contó: la prueba de que nada mira el vínculo', async () => {
+    const fetch = conMail();
+    vi.mocked(regla.esPrivado).mockReturnValue(true);
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r10'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r10'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(mails(fetch)[0].text).toContain('Se las mandamos por WhatsApp a quien contó.');
+    archivos.set('r10/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r10'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+  });
+});
+
+describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const pedidoDe = (id: string, contexto: Fila) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+  const conMail = (status = 200) => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async (_url: string, _init: { body: string }) => new Response('{}', { status }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  const delAviso = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { text: string }).filter((m) => m.text.includes('Se empieza a escribir'));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it.each([['un privado', { vinculoComprador: 'hija' }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca, y el libro sale', async (_caso, contexto) => {
+    const fetch = conMail();
+    const id = `s-${contexto.vinculoComprador === 'hija' ? 'a' : 'b'}`;
+    const { db, tablas, archivos } = baseFalsa(pedidoDe(id, contexto));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro(id), motor);
+    expect(delAviso(fetch)).toEqual([]);
+    const total = (JSON.parse(String(archivos.get(`${id}/escritor/dudas-familia.json`))).dudas as unknown[]).length;
+    archivos.set(`${id}/escritor/dudas-avisadas.txt`, hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro(id), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(delAviso(fetch)).toHaveLength(1);
+    expect(delAviso(fetch)[0].text).toMatch(new RegExp(`^Se empieza a escribir el libro de .+ con ${total} dudas? sin contestar\\. Quien contó no las respondió en el plazo\\.`));
+    expect(archivos.has(`${id}/escritor/dudas-sin-contestar-avisadas.txt`)).toBe(true);
+  });
+
+  it('si el mail falla, el libro sale igual y no queda la marca', async () => {
+    conMail(500);
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-c', { vinculoComprador: 'hija' }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('s-c'), motor);
+    archivos.set('s-c/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('s-c'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(archivos.has('s-c/escritor/dudas-sin-contestar-avisadas.txt')).toBe(false);
+  });
+
+  it('con todas contestadas, nada', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-d', { vinculoComprador: 'hija' }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('s-d'), motor);
+    const ids = (JSON.parse(String(archivos.get('s-d/escritor/dudas-familia.json'))).dudas as { id: string }[]).map((d) => d.id);
+    archivos.set('s-d/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((dudaId) => ({ dudaId, texto: 'Sí' })) }));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('s-d'), motor);
+    expect(delAviso(fetch)).toEqual([]);
+  });
+
+  it('una A rehecha deja la marca sin valor', async () => {
+    conMail();
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('s-e', { vinculoComprador: 'hija' }));
+    const { motor } = motorFalso();
+    await revisarEtapaAV3(db, 's-e', { motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('s-e/escritor/dudas-sin-contestar-avisadas.txt', hace(100));
+    const cambiado = materialNelida();
+    cambiado.escribir('entradas/respuestas.xml', cambiado.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    await escribirLibroV3(db, libro('s-e'), { ...motor, material: async () => ({ c: cambiado.clonar(), audios: AUDIOS }) });
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(String(archivos.get('s-e/escritor/dudas-sin-contestar-avisadas.txt'))).toBe('');
   });
 });

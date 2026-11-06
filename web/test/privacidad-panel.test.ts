@@ -3,11 +3,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
-vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true) }));
+vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true), enviarMailInvitacion: vi.fn(async () => true) }));
+
+// La regla sin depender de su definición de hoy: `null` usa la de verdad; un booleano simula sus dos respuestas.
+const regla = vi.hoisted(() => ({ privado: null as boolean | null }));
+vi.mock("@/lib/panel", async (original) => {
+  const real = await original<typeof import("@/lib/panel")>();
+  return { ...real, loContadoEsPrivado: (n: Parameters<typeof real.loContadoEsPrivado>[0]) => regla.privado ?? real.loContadoEsPrivado(n) };
+});
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { createServerClient } from "@supabase/ssr";
-import { enviarMailSocios } from "@/lib/mail";
+import { enviarMailInvitacion, enviarMailSocios } from "@/lib/mail";
 import { NextRequest } from "next/server";
 import { loContadoEsPrivado, PUEDE } from "@/lib/panel";
 import { GET as audio } from "../src/app/api/audio/[respuestaId]/route";
@@ -47,6 +54,7 @@ function crearAdmin(tablas: Record<string, Fila[]>, archivos: Record<string, str
     b.in = (c: string, v: unknown[]) => { filtros.push((f) => v.includes(f[c])); return b; };
     b.ilike = (c: string, v: string) => { filtros.push((f) => String(f[c] ?? "").toLowerCase() === v.toLowerCase()); return b; };
     b.update = () => b;
+    b.insert = () => b;
     let single = false;
     b.maybeSingle = () => { single = true; return b; };
     b.single = b.maybeSingle;
@@ -99,7 +107,7 @@ const pedir = (ruta: string, cuerpo?: unknown, metodo = cuerpo === undefined ? "
   new NextRequest(`https://x.test${ruta}`, { method: metodo, ...(cuerpo === undefined ? {} : { body: JSON.stringify(cuerpo), headers: { "Content-Type": "application/json" } }) });
 const pedirAudio = () => audio(pedir("/api/audio/r1"), { params: Promise.resolve({ respuestaId: "r1" }) });
 
-beforeEach(() => { vi.clearAllMocks(); sesion(compradora); });
+beforeEach(() => { vi.clearAllMocks(); regla.privado = null; sesion(compradora); });
 
 describe("la regla", () => {
   it("regalo y sin vínculo: privado. Para mí, viaje y kids: no", () => {
@@ -269,6 +277,61 @@ describe("las dudas del escritor", () => {
     t.narradores[0].estado = "completado";
     preparar(t, { "n1/escritor/dudas-familia.json": dudas });
     expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(400);
+  });
+
+  describe("un regalo que no es privado sigue como hoy (la regla en false)", () => {
+    const terminada = () => {
+      const t = base(REGALO);
+      t.narradores[0].estado = "completado";
+      return t;
+    };
+
+    it("POST guarda, para la dueña y para sus invitados", async () => {
+      regla.privado = false;
+      const { POST } = await import("../src/app/api/dudas/route");
+      const { subidas } = preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
+      sesion(invitado);
+      expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D2", texto: "Ana" }] }))).status).toBe(200);
+      expect(subidas.map((s) => s.ruta)).toEqual(["n1/escritor/correcciones.json", "n1/escritor/correcciones.json"]);
+    });
+
+    it("la pantalla se abre, con las preguntas", async () => {
+      regla.privado = false;
+      const { default: Pagina } = await import("../src/app/tablero/[narradorId]/dudas/page");
+      preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      const pantalla = await Pagina({ params: Promise.resolve({ narradorId: "n1" }) } as never);
+      expect(JSON.stringify(pantalla)).toContain("¿Cómo se escribe su apellido?");
+    });
+
+    it("invitar para dudas funciona; sin dudas pendientes dice lo de siempre", async () => {
+      regla.privado = false;
+      const { POST } = await import("../src/app/api/invitados/route");
+      preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
+      expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(200);
+      expect(enviarMailInvitacion).toHaveBeenCalledWith(expect.objectContaining({ paraDudas: true, privado: false }));
+      preparar(terminada(), {});
+      const r = await POST(pedir(`/api/invitados${q}`, { email: "prima@mail.com" }));
+      expect(r.status).toBe(400);
+      expect((await r.json()).error).toContain("Ya no quedan dudas para contestar.");
+    });
+
+    it("el próximo paso lleva a contestarlas", async () => {
+      regla.privado = false;
+      const { proximoPaso } = await import("../src/app/tablero/proximo-paso");
+      const h = { rol: "duena", narrador: { id: "n1", estado: "completado", contexto: REGALO, nombre: "Marta", como_le_dicen: "Marta" } };
+      const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: true, v3: true, dudasPendientes: true };
+      expect(proximoPaso(h as never, r as never)).toEqual({ href: "/tablero/n1/dudas", texto: "Hay dudas sobre lo que contó Marta. Contestalas antes de que se escriba el libro." });
+    });
+
+    it("el helper: `loContadoEsPrivado` o `esPropia`, y nada más", async () => {
+      const { dudasAQuienConto } = await import("@/lib/dudas-archivos");
+      regla.privado = false;
+      expect(dudasAQuienConto({ contexto: REGALO })).toBe(false);
+      expect(dudasAQuienConto({ contexto: PROPIA })).toBe(true);
+      regla.privado = true;
+      expect(dudasAQuienConto({ contexto: { modo: "viaje", vinculoComprador: "hija" } })).toBe(true);
+    });
   });
 
   it("el texto de cuántas faltan", async () => {

@@ -3,10 +3,12 @@
 // quien regala no ve lo contado. Viaje y Kids siguen igual, y «para mí» no cambia. Sin vínculo cargado, cuenta como regalo.
 //
 // Acá viven las dos esperas por quien contó: 48 horas desde su último mensaje para sacar lo que quiera y 72 para
-// contestar las dudas (Naza, 06/11: todas las dudas de un regalo van a quien contó). Las dos tienen fin aunque nadie
-// escriba nada: un mensaje que no salió nunca traba un libro.
+// contestar las dudas (Naza, 06/11: las dudas de un libro privado o «Para mí» van a quien contó; un regalo no privado sigue
+// con el mail a la familia y la espera de siempre). Las dos tienen fin aunque nadie escriba nada: un mensaje que no salió
+// nunca traba un libro.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Almacen } from '../almacen/tipos.js';
+import { avisarSocios } from './avisos.js';
 
 type Db = SupabaseClient;
 
@@ -14,6 +16,17 @@ export function esPrivado(contexto: unknown): boolean {
   const c = contexto as { modo?: unknown; vinculoComprador?: unknown } | null | undefined;
   if (c?.modo === 'viaje' || c?.modo === 'kids') return false;
   return c?.vinculoComprador !== 'yo mismo';
+}
+
+/**
+ * Por donde pasan las decisiones de las dudas y las esperas. `esPrivado` sigue siendo la única fuente de la regla; esto
+ * deja que un test simule sus dos respuestas (`vi.spyOn(regla, 'esPrivado')`), sin depender de la definición de hoy.
+ */
+export const regla = { esPrivado };
+
+/** «Para mí» en la compra: el libro es de quien lo compró (mismo criterio que esPropia en web/src/lib/panel.ts). */
+export function esLibroPropio(contexto: unknown): boolean {
+  return (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
 }
 
 // ---------------------------------------------------------------- las 48 horas del narrador
@@ -24,7 +37,7 @@ const MS_PARA_SACAR = HORAS_PARA_SACAR * 60 * 60 * 1000;
 
 /** Hasta cuándo puede sacar algo. Null si no es privado o si todavía no contó nada. */
 export function plazoParaSacar(n: { contexto?: unknown; ultima_respuesta_at?: string | null }): number | null {
-  if (!esPrivado(n.contexto) || !n.ultima_respuesta_at) return null;
+  if (!regla.esPrivado(n.contexto) || !n.ultima_respuesta_at) return null;
   const t = Date.parse(n.ultima_respuesta_at);
   return Number.isFinite(t) ? t + MS_PARA_SACAR : null;
 }
@@ -47,11 +60,12 @@ const MS_VOLVER_A_MIRAR = 15 * 60 * 1000;
 const MS_RELOJES = 5 * 60 * 1000;
 
 /**
- * ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Privados y «Para mí». Un `modo` viaje o kids no
- * recibe ese WhatsApp: sigue con la espera vieja (`ESCRITOR_ESPERA_DUDAS_HORAS`) y el mail a la familia.
+ * ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Privados y «Para mí». Lo demás (un regalo en curso
+ * sin marca, alguien que eligió a su familia, viaje, kids) no recibe ese WhatsApp: sigue con el prompt para la familia, el
+ * mail `dudas` y la espera de `ESCRITOR_ESPERA_DUDAS_HORAS`. Es la única decisión: nada de esto mira el vínculo por su cuenta.
  */
 export function dudasAQuienConto(contexto: unknown): boolean {
-  return esPrivado(contexto) || (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
+  return regla.esPrivado(contexto) || esLibroPropio(contexto);
 }
 
 /** El `contexto` del narrador. Si la base falla, tira: quien llama reintenta. */
@@ -84,4 +98,38 @@ export const marcaVigente = (texto: string | null, ahora: number = Date.now()): 
 export async function restaPlazoDudas(almacen: Almacen, desdeRespaldo: string | null, ahora: number = Date.now()): Promise<number> {
   const desde = fecha(await almacen.leer(DUDAS_NARRADOR_AVISADAS), ahora) ?? fecha(desdeRespaldo, ahora) ?? ahora;
   return Math.max(0, Math.min(MS_PLAZO_DUDAS, desde + MS_PLAZO_DUDAS - ahora));
+}
+
+// ---------------------------------------------------------------- venció el plazo sin todas las respuestas
+
+/** ISO: los socios ya saben que este libro se escribe con dudas sin contestar. Vacío: una Etapa A rehecha lo dejó sin valor. */
+export const DUDAS_SIN_CONTESTAR_AVISADAS = 'dudas-sin-contestar-avisadas.txt';
+
+/**
+ * El libro de quien contó va a empezar a escribirse: llamar recién cuando ya no hay nada que esperar. Si quedan dudas sin
+ * contestar, venció el plazo y los socios se enteran, una vez. La marca se escribe solo si el mail salió. Nunca tira: el
+ * libro no se frena por un aviso.
+ */
+export async function avisarDudasSinContestar(
+  almacen: Almacen,
+  o: { contexto: unknown; archivoDudas: string; quien: () => Promise<string>; correcciones: () => Promise<{ dudaId?: string; texto: string }[]> },
+): Promise<void> {
+  try {
+    if (!dudasAQuienConto(o.contexto)) return;
+    if ((await almacen.leer(DUDAS_SIN_CONTESTAR_AVISADAS))?.trim()) return;
+    const t = await almacen.leer(o.archivoDudas);
+    const dudas = (t ? (JSON.parse(t) as { dudas?: { id?: unknown }[] }).dudas : []) ?? [];
+    const conTexto = new Set((await o.correcciones()).filter((c) => c.dudaId && c.texto.trim()).map((c) => c.dudaId));
+    const n = dudas.filter((d) => typeof d?.id !== 'string' || !conTexto.has(d.id)).length;
+    if (n === 0) return;
+    const quien = await o.quien();
+    const cuantas = n === 1 ? '1 duda' : `${n} dudas`;
+    const salio = await avisarSocios(
+      `El libro de ${quien} empieza con ${cuantas} sin contestar`,
+      `Se empieza a escribir el libro de ${quien} con ${cuantas} sin contestar. Quien contó no las respondió en el plazo.`,
+    );
+    if (salio) await almacen.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, new Date().toISOString());
+  } catch (err) {
+    console.error('escritor: no pude avisar de las dudas sin contestar:', err instanceof Error ? err.message : err);
+  }
 }

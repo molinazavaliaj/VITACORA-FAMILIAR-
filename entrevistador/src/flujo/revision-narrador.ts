@@ -1,7 +1,8 @@
 // El aviso de dudas por WhatsApp a quien contó (plan 2026-11-06-dudas-narrador-sobre-212): si la Etapa A dejó dudas, un
-// link para contestarlas y un recordatorio a las 48 horas. Vale para privados y para «para mí». Solo V3 (`escritor/`) e
-// historia (`escritor-historia/`): Kids y Viaje no tienen esas filas. El link para sacar respuestas no sale de acá:
-// lo manda el mensaje final (`mandarLinkAlTerminar`).
+// link para contestarlas y un recordatorio a las 48 horas. Vale para privados y para «para mí» (`dudasAQuienConto`): un
+// regalo no privado no recibe nada de acá, sus dudas siguen con la familia. Solo V3 (`escritor/`) e historia
+// (`escritor-historia/`): Kids y Viaje no tienen esas filas. El link para sacar respuestas no sale de acá: lo manda el
+// mensaje final (`mandarLinkAlTerminar`).
 //
 // Corre en el tick de 15 minutos. Lo que ya pasó se lee de las marcas en Storage (CONTRATO, «Las dudas para quien
 // contó»), las mismas que mira la fábrica. Un mensaje que no sale no escribe marca y se reintenta en el tick siguiente;
@@ -13,7 +14,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PLANTILLAS_REVISION } from '../config.js';
-import { firmarTokenRespuestas } from '../link-respuestas.js';
+import { esPrivado, firmarTokenRespuestas } from '../link-respuestas.js';
 import { esTablaAusente } from '../v3/estado.js';
 import { enLineaParaPlantilla, ventanaAbierta } from '../v3/enviar.js';
 import type { Idioma } from '../v3/nucleo/entrevista/idioma.js';
@@ -80,6 +81,11 @@ export function queMandar(s: Situacion, ahora: Date): Mensaje | null {
   return pasaron >= RECORDAR_A_LAS_MS && pasaron < DUDAS_VENCIDAS_MS ? 'recordatorio' : null;
 }
 
+/** ¿Las dudas se las preguntamos a quien contó? Como `dudasAQuienConto` de la fábrica: `esPrivado` es la única fuente de la regla. */
+export function dudasAQuienConto(contexto: unknown): boolean {
+  return esPrivado(contexto) || (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
+}
+
 /** El mismo criterio que `escritorHistoriaPrendido` de la fábrica: sin escritor, a esa historia no le toca nada. */
 function escritorHistoriaPrendido(narradorId: string): boolean {
   const v = (process.env.ESCRITOR_HISTORIA ?? '').trim();
@@ -88,7 +94,7 @@ function escritorHistoriaPrendido(narradorId: string): boolean {
   return v.slice(5).split(',').map((s) => s.trim()).filter(Boolean).includes(narradorId);
 }
 
-type Narrador = { id: string; telefono_whatsapp: string | null; zona_horaria: string | null; como_le_dicen: string | null };
+type Narrador = { id: string; telefono_whatsapp: string | null; zona_horaria: string | null; como_le_dicen: string | null; contexto?: unknown };
 type FilaEntrevista = { narrador_id: string; idioma: Idioma; estado: { ultimoEntranteAt?: string } | null };
 type Candidato = { narrador: Narrador; fila: FilaEntrevista; carpeta: 'escritor' | 'escritor-historia' };
 type Marca = { path: string; contenido: string };
@@ -161,10 +167,10 @@ async function candidatos(db: SupabaseClient): Promise<Candidato[]> {
   const salida: Candidato[] = [];
   for (const tanda of enTandas(ids)) {
     const { data, error } = await db.from('narradores')
-      .select('id, telefono_whatsapp, zona_horaria, como_le_dicen')
+      .select('id, telefono_whatsapp, zona_horaria, como_le_dicen, contexto')
       .in('id', tanda).in('estado', ESTADOS_TERMINADA);
     if (error) throw new Error(`No pude leer los narradores: ${error.message}`);
-    const narradores = (data as Narrador[] | null) ?? [];
+    const narradores = ((data as Narrador[] | null) ?? []).filter((n) => dudasAQuienConto(n.contexto));
     if (narradores.length === 0) continue;
     const idsTanda = narradores.map((n) => n.id);
 

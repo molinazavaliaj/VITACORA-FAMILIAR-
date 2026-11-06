@@ -10,6 +10,13 @@ import { crearFila as crearFilaHistoria, leerFila as leerFilaHistoria } from '..
 import { drenar as drenarHistoria } from '../src/historia/enviar.js';
 import { estadoInicial as estadoHistoria } from '../src/historia/tipos.js';
 
+// La regla sin depender de su definición de hoy: `null` usa la de verdad; una función simula sus dos respuestas.
+const regla = vi.hoisted(() => ({ esPrivado: null as null | ((c: unknown) => boolean) }));
+vi.mock('../src/link-respuestas.js', async (original) => {
+  const real = await original<typeof import('../src/link-respuestas.js')>();
+  return { ...real, esPrivado: (c: unknown) => (regla.esPrivado ? regla.esPrivado(c) : real.esPrivado(c)) };
+});
+
 // El mensaje final con el link para sacar respuestas (PR 212), cuando la entrevista termina con la ventana de 24 horas
 // cerrada: sale la plantilla `revision` si está aprobada y el plazo de 48 horas sigue abierto.
 
@@ -107,6 +114,19 @@ describe.each([['V3', prepararV3], ['historia', prepararHistoria]] as const)('el
     const a = await preparar({ ultimaRespuesta: horasAntes(60) });
     await a.drenar();
     expect(delLink(a)).toEqual([]);
+  });
+
+  it('un regalo que no es privado (la regla en false): nada, ni aviso a los socios', async () => {
+    regla.esPrivado = () => false;
+    try {
+      const a = await preparar({});
+      await a.drenar();
+      expect(a.enviados).toEqual([]);
+      expect(delLink(a)).toEqual([]);
+      expect((await a.fila())?.estado.linkFinal).toBeUndefined();
+    } finally {
+      regla.esPrivado = null;
+    }
   });
 
   it('«para mí»: nada, no es un privado', async () => {

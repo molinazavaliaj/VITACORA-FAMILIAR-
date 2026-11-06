@@ -3,6 +3,13 @@ import { createHmac } from "node:crypto";
 import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
+
+// La regla sin depender de su definición de hoy: `null` usa la de verdad; un booleano simula sus dos respuestas.
+const regla = vi.hoisted(() => ({ privado: null as boolean | null }));
+vi.mock("@/lib/panel", async (original) => {
+  const real = await original<typeof import("@/lib/panel")>();
+  return { ...real, loContadoEsPrivado: (n: Parameters<typeof real.loContadoEsPrivado>[0]) => regla.privado ?? real.loContadoEsPrivado(n) };
+});
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((ruta: string) => { throw new Error(`REDIRECT:${ruta}`); }),
   useRouter: () => ({ refresh() {}, push() {} }),
@@ -76,7 +83,7 @@ const contestadas = (...ids: string[]) => JSON.stringify({ correcciones: ids.map
 const abrir = async (t = token()) => renderToStaticMarkup(await PaginaMiHistoria({ params: Promise.resolve({ token: t }) }));
 const enviar = (t: string, cuerpo: unknown) => POST(new Request("https://x.test", { method: "POST", body: JSON.stringify(cuerpo), headers: { "Content-Type": "application/json" } }) as never, { params: Promise.resolve({ token: t }) });
 
-beforeEach(() => { vi.clearAllMocks(); process.env.FIRMA_TOKENS = SECRETO; });
+beforeEach(() => { vi.clearAllMocks(); regla.privado = null; process.env.FIRMA_TOKENS = SECRETO; });
 
 describe("la puerta /mi-historia/<token>", () => {
   it("sin token válido no muestra ni un dato, y el mensaje es el de /mis-respuestas", async () => {
@@ -160,6 +167,27 @@ describe("la puerta /mi-historia/<token>", () => {
     await expect(abrir(t)).rejects.toThrow(destino);
   });
 
+  it("un regalo que no es privado (la regla en false) no muestra dudas y va a /mis-respuestas", async () => {
+    regla.privado = false;
+    const t = token();
+    preparar(conDudas);
+    await expect(abrir(t)).rejects.toThrow(`REDIRECT:/mis-respuestas/${t}`);
+    preparar({ ...conDudas, [`${AQUI}/libro.md`]: "# L" });
+    await expect(abrir(t)).rejects.toThrow(`REDIRECT:/mis-respuestas/${t}`);
+  });
+
+  it("«para mí» sigue viendo sus dudas aunque la regla diga que no es privado", async () => {
+    regla.privado = false;
+    preparar(conDudas, { contexto: { vinculoComprador: "yo mismo" } });
+    expect(await abrir()).toContain("¿Cómo se llamaba tu maestra?");
+  });
+
+  it("con la regla en true muestra las dudas con cualquier forma de contexto", async () => {
+    regla.privado = true;
+    preparar(conDudas, { contexto: { acceso: { elige: true, quien: "narrador" } } });
+    expect(await abrir()).toContain("¿Cómo se llamaba tu maestra?");
+  });
+
   it("un GET nunca escribe", async () => {
     const { subidas } = preparar(conDudas);
     await abrir();
@@ -213,6 +241,13 @@ describe("POST /api/mi-historia/<token>/dudas", () => {
     const b = preparar({ ...conDudas, [`${AQUI}/libro.md`]: "# L" });
     expect((await enviar(token(), { correcciones: [{ dudaId: "D1", texto: "x" }] })).status).toBe(409);
     expect(b.subidas).toEqual([]);
+  });
+
+  it("un regalo que no es privado (la regla en false) no contesta por acá", async () => {
+    regla.privado = false;
+    const { subidas } = preparar(conDudas);
+    expect((await enviar(token(), { correcciones: [{ dudaId: "D1", texto: "x" }] })).status).toBe(404);
+    expect(subidas).toEqual([]);
   });
 
   it("viaje y kids no contestan por acá", async () => {

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "./dudas";
 import { archivosDelEscritor, carpetaDelEscritor, leerDelEscritor } from "./dudas-archivos";
 
-// Guardar respuestas a las dudas en `correcciones.json`. Lo usan el panel («Para mí», viaje y kids, con sesión) y el link
+// Guardar respuestas a las dudas en `correcciones.json`. Lo usan el panel (lo que no es privado, con sesión) y el link
 // de quien contó (con el token): quién tiene permiso lo decide cada ruta antes de llamar acá.
 
 export type ResultadoGuardarDudas =

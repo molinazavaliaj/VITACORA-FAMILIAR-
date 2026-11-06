@@ -161,13 +161,23 @@ describe('los mails de las dudas a la familia (Naza, 30/10)', () => {
   it('todas contestadas: falta encargar', () => {
     expect(asuntoHito('dudas_listas', 'papá', 'vos')).toBe('Falta un paso para el libro de tu papá');
     const vos = cuerpoHito('dudas_listas', { ...o, variante: 'vos' });
-    expect(vos).not.toContain('Ya tenemos todas las respuestas');
-    expect(cuerpoHito('dudas_listas', { ...o, variante: 'tu' })).not.toContain('Ya tenemos todas las respuestas');
-    expect(cuerpoHito('dudas_listas', o)).not.toContain('Ya tenemos todas las respuestas');
+    expect(vos).toContain('Ya tenemos todas las respuestas. Gracias.');
+    expect(cuerpoHito('dudas_listas', { ...o, variante: 'tu' })).toContain('Ya tenemos todas las respuestas. Gracias.');
+    expect(cuerpoHito('dudas_listas', o)).toContain('Ya tenemos todas las respuestas. Gracias.');
     expect(vos).toContain('Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.');
     expect(vos).toContain('Recién ahí empezamos a escribirlo. Te avisamos cuando esté.');
     expect(vos).toContain('Encargar el libro');
     expect(cuerpoHito('dudas_listas', { ...o, variante: 'tu' })).toContain('Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.');
+  });
+
+  it('en un libro privado, el mismo mail y el mismo candado, sin agradecerle a quien regala lo que no contestó', () => {
+    expect(CANDADO_POR_HITO.dudas_listas_privado).toBe(CANDADO_POR_HITO.dudas_listas);
+    expect(asuntoHito('dudas_listas_privado', 'papá', 'vos')).toBe(asuntoHito('dudas_listas', 'papá', 'vos'));
+    for (const c of [cuerpoHito('dudas_listas_privado', { ...o, variante: 'vos' }), cuerpoHito('dudas_listas_privado', { ...o, variante: 'tu' }), cuerpoHito('dudas_listas_privado', o)]) {
+      expect(c).not.toContain('Ya tenemos todas las respuestas');
+      expect(c).toContain('Falta un solo paso.');
+      expect(c).toContain('Encargar el libro');
+    }
   });
 
 });

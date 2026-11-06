@@ -6,7 +6,7 @@ import { entrevistaV3 } from "@/lib/v3";
 import { entrevistaHistoria } from "@/lib/historia-panel";
 import { esPropia } from "@/lib/panel";
 import { leerCorreccionesGuardadas, leerDudas, preguntasParaLaPantalla } from "@/lib/dudas";
-import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
+import { archivosDelEscritor, dudasAQuienConto, leerDelEscritor } from "@/lib/dudas-archivos";
 import { textosMiHistoria, type IdiomaMiHistoria } from "@/lib/mi-historia-textos";
 import { Aviso, TEXTOS } from "../../mis-respuestas/[token]/vista";
 import { VistaDudas, VistaGracias } from "./vista";
@@ -39,8 +39,8 @@ export default async function PaginaMiHistoria({ params }: { params: Promise<{ t
   if (!n) return <Aviso titulo={avisos.invalidoTitulo} texto={avisos.invalido} />;
 
   const aLoQueContaste = `/mis-respuestas/${token}`;
-  // Viaje y Kids no reciben este link: sus dudas siguen en el panel.
-  if (n.contexto?.modo === "viaje" || n.contexto?.modo === "kids") redirect(aLoQueContaste);
+  // Solo un libro privado o «Para mí»: en lo demás (un regalo no privado, viaje, kids) las dudas siguen en el panel.
+  if (!dudasAQuienConto(n)) redirect(aLoQueContaste);
 
   const { nombres, error } = await archivosDelEscritor(admin, n.id);
   if (error) {

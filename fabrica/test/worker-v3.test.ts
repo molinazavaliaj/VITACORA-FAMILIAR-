@@ -27,6 +27,7 @@ vi.mock('../src/mail/hitos.js', async () => ({ ...(await vi.importActual<object>
 vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ urlBase: 'https://x', resendApiKey: '' }) }));
 vi.mock('../src/db.js', async () => ({ ...(await vi.importActual<object>('../src/db.js')), obtenerClienteDb: m.obtenerClienteDb }));
 
+import { regla } from '../src/escritor/produccion/privacidad.js';
 import { procesarPedidosPagados, tick } from '../src/worker.js';
 
 type Fila = Record<string, unknown>;
@@ -224,12 +225,43 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
   });
 
+  describe('un regalo que no es privado sigue como hoy (la regla en false)', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('con dudas sin contestar, el mail de siempre con el link, aunque el plazo de 72 horas haya pasado', async () => {
+      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+    });
+
+    it('con todas contestadas, `dudas_listas` con su texto de antes', async () => {
+      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: true, plazoVencido: false });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro' })]);
+    });
+
+    it('con la regla en true y cualquier forma de contexto, ningún mail mientras el plazo corre', async () => {
+      vi.spyOn(regla, 'esPrivado').mockReturnValue(true);
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: false });
+      const { db } = base(conDudas({ contexto: { modo: 'viaje' } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([]);
+    });
+  });
+
   it('venció el plazo sin todas contestadas: que falta encargarlo, nunca el de las dudas', async () => {
     m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
     const { db } = base(conDudas() as never);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro', variante: 'vos' })]);
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas_privado', enlace: 'https://x/tablero/v3/libro', variante: 'vos' })]);
   });
 
   it('con todas contestadas y el libro sin encargar, que falta encargarlo (link a Encargar)', async () => {
@@ -238,7 +270,7 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     const { db } = base(conDudas() as never);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro', variante: 'tu' })]);
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas_privado', enlace: 'https://x/tablero/v3/libro', variante: 'tu' })]);
   });
 
   it('sin mail si el libro ya está encargado, si es «Para mí», si la Etapa A no terminó o si no dejó dudas', async () => {

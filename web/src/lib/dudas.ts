@@ -4,7 +4,8 @@
 // lo contesta acá. Lo que se guarda va a `{narrador}/escritor/correcciones.json`,
 // que la Etapa B lee antes de escribir el libro.
 //
-// El plazo manda: la fábrica espera 72 horas desde el aviso a quien contó y después
+// El plazo manda: la fábrica espera 72 horas desde el aviso a quien contó, o
+// ESCRITOR_ESPERA_DUDAS_HORAS desde el mail de dudas si las contesta la familia, y después
 // escribe igual, con o sin correcciones. Esto es lo puro: qué se
 // puede guardar, cómo se junta con lo que ya había y cuánto tiempo queda. Sin red.
 
@@ -48,25 +49,25 @@ export type PedidoRespuesta = { dudaId: string; texto: string; borrar?: true; an
 
 /** El plazo de quien contó: privados y «Para mí» (`restaPlazoDudas` de la fábrica). La variable no lo cambia. */
 export const HORAS_PLAZO_DUDAS = 72;
-/** Lo que espera la fábrica en un `modo` viaje o kids si `ESCRITOR_ESPERA_DUDAS_HORAS` no está. */
-const HORAS_ESPERA_VIAJE_KIDS = 24;
+/** Lo que espera la fábrica cuando contesta la familia, si `ESCRITOR_ESPERA_DUDAS_HORAS` no está. */
+const HORAS_ESPERA_FAMILIA = 24;
 /** Unos minutos de diferencia entre relojes no hacen «del futuro» a una marca que escribe otro servicio. */
 const MS_RELOJES = 5 * 60_000;
 
 /**
- * Cuántas horas espera la fábrica. A quien contó, 72. Un `modo` viaje o kids no recibe el WhatsApp y sigue con
- * `ESCRITOR_ESPERA_DUDAS_HORAS`: 24 por defecto, 0 vale (no espera), basura es 24. En Vercel tiene que valer lo mismo que
+ * Cuántas horas espera la fábrica. A quien contó, 72. Lo demás (un regalo no privado, viaje, kids) no recibe el WhatsApp y
+ * sigue con `ESCRITOR_ESPERA_DUDAS_HORAS`: 24 por defecto, 0 vale (no espera), basura es 24. En Vercel tiene que valer lo mismo que
  * en Railway, o la pantalla promete un plazo que no es el de la fábrica.
  */
 export function horasPlazoDudas(aQuienConto: boolean, valor: string | undefined = process.env.ESCRITOR_ESPERA_DUDAS_HORAS): number {
   if (aQuienConto) return HORAS_PLAZO_DUDAS;
-  const h = Number(valor ?? HORAS_ESPERA_VIAJE_KIDS);
-  return Number.isFinite(h) && h >= 0 ? h : HORAS_ESPERA_VIAJE_KIDS;
+  const h = Number(valor ?? HORAS_ESPERA_FAMILIA);
+  return Number.isFinite(h) && h >= 0 ? h : HORAS_ESPERA_FAMILIA;
 }
 
 /**
  * Desde cuándo corre el plazo, como la fábrica. A quien contó: `dudas-narrador-avisadas.txt` o, si nunca salió,
- * `dudas-avisadas.txt`; vacía, rota o del futuro no cuenta. Viaje y kids: solo `dudas-avisadas.txt`.
+ * `dudas-avisadas.txt`; vacía, rota o del futuro no cuenta. Si contesta la familia: solo `dudas-avisadas.txt`.
  */
 export function desdeCuandoCorreElPlazo(marcaNarrador: string | null, marcaSocios: string | null, aQuienConto: boolean, ahora: number = Date.now()): string | null {
   if (!aQuienConto) return marcaSocios;

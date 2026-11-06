@@ -2,13 +2,14 @@
 // recorrido que el libro V3 de Familiar (escritor/produccion/libro-v3.ts, que no se toca), con el escritor de historia
 // (escritor-historia/orquestador.ts) y su propia carpeta en Storage:
 //
-//   1. La entrevista terminó (narrador `completado` o `cerrado_anticipado`) y, en un regalo, pasaron las 48 horas del
-//      narrador para sacar algo → Etapa A en segundo plano: registro, plan y dudas de datos. Hecha =
+//   1. La entrevista terminó (narrador `completado` o `cerrado_anticipado`) y, en un libro privado, pasaron las 48 horas
+//      del narrador para sacar algo → Etapa A en segundo plano: registro, plan y dudas de datos. Hecha =
 //      `{id}/escritor-historia/carpeta-A.json`. Si no pasa sus controles, queda `fallo-A.json` y se avisa a los socios
 //      (no se reintenta sola).
-//   2. Las dudas de datos las contesta quien contó, por WhatsApp (`dudas-narrador-avisadas.txt`). A los socios les llega
-//      un mail, una vez (`dudas-avisadas.txt`). Las correcciones se escriben en `{id}/escritor-historia/correcciones.json`
-//      (como en V3). El libro espera hasta 72 horas o hasta que estén todas contestadas.
+//   2. Las dudas de datos, en un libro privado o «Para mí», las contesta quien contó, por WhatsApp
+//      (`dudas-narrador-avisadas.txt`), y el libro espera hasta 72 horas o hasta que estén todas contestadas. Si no, las
+//      contesta la familia y espera `ESCRITOR_ESPERA_DUDAS_HORAS` desde `dudas-avisadas.txt`. A los socios les llega un
+//      mail, una vez. Las correcciones se escriben en `{id}/escritor-historia/correcciones.json` (como en V3).
 //   3. Pedido `pagado` + libro cerrado (`libro_aprobado_at`) → en segundo plano: A si faltaba (o si el material
 //      cambió), la espera por las dudas, B con las correcciones, C, plantilla → libro.html y libro.pdf, «Su voz» y el
 //      pedido a `entregado`. Después, la imprenta (imprenta.ts: Bookmundo sin Notas, o el aviso de libro flaco).
@@ -38,7 +39,7 @@ import { LoteAnthropic, type ClienteLotes } from '../../escritor/modelo/lote-ant
 import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
 import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
-import { contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, esPrivado, esperaPorElNarrador, marcaVigente, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
+import { avisarDudasSinContestar, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
 import { leerEdicion } from '../../libro/edicion.js';
@@ -128,9 +129,6 @@ export class FalloDelEscritorHistoria extends Error {
   constructor(m: string) { super(m); this.name = 'FalloDelEscritorHistoria'; }
 }
 
-/** «Para mí» en la compra: el libro es de quien lo compró (el mismo criterio que V3, esLibroPropio). */
-const esPropia = (contexto: unknown): boolean => (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
-
 export async function carpetaHistoriaDeLaBase(db: Db, narradorId: string): Promise<MaterialHistoriaBase> {
   const r = await leerEntrevistaHistoria(db, narradorId);
   if (!r) throw new SinMaterialHistoria(narradorId);
@@ -138,9 +136,8 @@ export async function carpetaHistoriaDeLaBase(db: Db, narradorId: string): Promi
   if (!/<respuesta id=/.test(c.leer('entradas/respuestas.xml'))) throw new SinMaterialHistoria(narradorId);
   const { data, error } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer el contexto de ${narradorId}: ${error.message}`);
-  const ctx = (data as { contexto?: unknown } | null)?.contexto;
-  // A quién le hablan las dudas: un regalo también se las pregunta a quien contó (Naza, 06/11).
-  return { c, audios: r.audios, propia: esPrivado(ctx) || esPropia(ctx) };
+  // A quién le hablan las dudas: a quien contó, en un libro privado o «Para mí» (Naza, 06/11).
+  return { c, audios: r.audios, propia: dudasAQuienConto((data as { contexto?: unknown } | null)?.contexto) };
 }
 
 // ---------------------------------------------------------------- ayudas
@@ -271,14 +268,14 @@ async function avisarDudas(db: Db, id: string): Promise<boolean> {
 }
 
 /**
- * La espera vieja, solo para un `modo` viaje o kids: no reciben el WhatsApp de las dudas. Desde que salió el mail, esto
+ * La espera de cuando las dudas no van a quien contó (dudasAQuienConto). Desde que salió el mail, esto
  * (`ESCRITOR_ESPERA_DUDAS_HORAS`, como V3; 24 por defecto; 0 = no espera).
  */
 const esperaPorDudasMs = (): number => {
   const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
   return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
 };
-/** Si el mail de dudas no salió, en la espera vieja el libro reintenta mandarlo en este rato. */
+/** Si el mail de dudas no salió, en esa espera el libro reintenta mandarlo en este rato. */
 const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
 /** Las correcciones (como V3). Sin archivo, ninguna. Roto: tira (un libro sin las correcciones pedidas está mal). */
@@ -439,10 +436,13 @@ const imprentaPorDefecto: DespuesDeEntregar = async (db, id) => { await imprenta
 let despuesDeEntregar: DespuesDeEntregar = imprentaPorDefecto;
 export const alEntregarHistoria = (f: DespuesDeEntregar | null): void => { despuesDeEntregar = f ?? imprentaPorDefecto; };
 
-/** Una vuelta de espera: el pedido vuelve a 'pagado' y se vuelve a mirar en un rato. Un libro pasa días así: no gasta reintentos. */
-async function volverAPagado(db: Db, pedidoId: string, id: string, espera: number): Promise<void> {
-  erroresLibro.delete(pedidoId);
-  esperaLibro.set(id, Date.now() + volverAMirarEn(espera));
+/**
+ * Una vuelta de espera: el pedido vuelve a 'pagado'. Si espera a quien contó, se vuelve a mirar en un rato y no gasta
+ * reintentos, porque un libro pasa días así. Si no, se retoma al vencer la espera, como siempre.
+ */
+async function volverAPagado(db: Db, pedidoId: string, id: string, espera: number, aQuienConto: boolean): Promise<void> {
+  if (aQuienConto) erroresLibro.delete(pedidoId);
+  esperaLibro.set(id, Date.now() + (aQuienConto ? volverAMirarEn(espera) : espera));
   const { error } = await db.from('pedidos').update({ estado: 'pagado' }).eq('id', pedidoId).eq('estado', 'generando');
   if (error) console.error(`historia ${id}: no se pudo devolver a 'pagado' el pedido ${pedidoId}:`, error.message);
 }
@@ -459,7 +459,7 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
     // si en la espera sacó todas sus respuestas, el pedido no puede quedar 'fallido'.
     const delNarrador = await esperaPorElNarrador(db, id);
     if (delNarrador > 0) {
-      await volverAPagado(db, pedido.id, id, delNarrador);
+      await volverAPagado(db, pedido.id, id, delNarrador, true);
       console.log(`historia ${id}: el libro espera ${Math.ceil(delNarrador / 3_600_000)} horas más, el plazo del narrador para sacar algo`);
       return;
     }
@@ -475,15 +475,17 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
     if (!snapA) {
       if ((await almacen.leer(DUDAS_AVISADAS)) !== null) await almacen.escribir(DUDAS_AVISADAS, '');
       if ((await almacen.leer(DUDAS_NARRADOR_AVISADAS)) !== null) await almacen.escribir(DUDAS_NARRADOR_AVISADAS, '');
+      if ((await almacen.leer(DUDAS_SIN_CONTESTAR_AVISADAS)) !== null) await almacen.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, '');
       const a = await etapaAHistoria(x);
       if (!a.ok) throw new FalloDelEscritorHistoria(`Etapa A: ${a.motivo}`);
     }
     const espera = await esperaPorDudas(db, id, almacen);
     if (espera > 0) {
-      await volverAPagado(db, pedido.id, id, espera);
+      await volverAPagado(db, pedido.id, id, espera, dudasAQuienConto(await contextoDe(db, id)));
       x.log(`hay dudas de datos: el libro espera ${Math.ceil(espera / 3_600_000)} horas más por las correcciones`);
       return;
     }
+    await avisarDudasSinContestar(almacen, { contexto: await contextoDe(db, id), archivoDudas: DUDAS, quien: () => quienEs(db, id), correcciones: () => leerCorreccionesHistoria(almacen) });
     const b = await etapaBHistoria(x, [...(await leerCorreccionesHistoria(almacen)), ...(await correccionesDeLaFamilia(db, id))]);
     if (!b.ok) throw new FalloDelEscritorHistoria(`Etapa B: ${b.motivo}`);
     const r = await etapaCHistoria(x);
