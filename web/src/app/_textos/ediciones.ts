@@ -1,5 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
-// ESPERA aprobación de Naza · A-05 (05/11): «Con un QR para escuchar su voz».
+// APROBADO por Naza el 06/11 · A-05: «Con un QR para escuchar su voz».
 
 // «Nuestras ediciones» en la portada (maqueta aprobada por Naza el 02/11):
 // cuatro fichas iguales, como una tienda, con el libro cerrado en el mismo

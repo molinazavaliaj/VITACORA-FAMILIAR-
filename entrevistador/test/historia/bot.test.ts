@@ -187,7 +187,7 @@ describe('la privacidad (05/11)', () => {
   it('venta nueva: con el SÍ elige con dos botones, antes de lo primero, y la entrevista sigue igual', async () => {
     const { entra, enviados } = await preparar({ vinculo: 'hija' });
     await entra(texto('Sí'));
-    expect(enviados[0]).toMatchObject({ tipo: 'botones', botones: ['Mi familia', 'Prefiero yo'] });
+    expect(enviados[0]).toMatchObject({ tipo: 'botones', botones: ['Mi familia', 'Solo yo'] });
     expect(enviados[1].texto).toContain('Funciona así');
   });
 

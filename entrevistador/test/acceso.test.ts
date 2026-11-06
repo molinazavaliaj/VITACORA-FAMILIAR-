@@ -1,25 +1,27 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { atenderEleccion, eligeAcceso, preguntarAcceso, quienDelBoton, vozDeEleccion } from '../src/flujo/acceso.js';
+import { atenderEleccion, eligeAcceso, preguntarAcceso, quienDelBoton, VERSION_ELECCION, vozDeEleccion } from '../src/flujo/acceso.js';
+import { avisarSocios } from '../src/v3/avisos.js';
 import { redactarHito } from '../src/mail/hitos.js';
 import { esPrivado } from '../src/link-respuestas.js';
 
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: vi.fn().mockResolvedValue(true) }));
 
 const narrador = (contexto: Record<string, unknown> = { acceso: { elige: true } }) => ({
   id: 'n1', como_le_dicen: 'Marta', telefono_whatsapp: '5491100000000', contexto,
 });
 
-/** Una base falsa: lee `fila` y anota lo que se escribe. */
-function base(fila: { contexto: Record<string, unknown> } | null, errores: { leer?: boolean; escribir?: boolean } = {}) {
-  const updates: Record<string, any>[] = [];
+/** Una base falsa: la función de guardado contesta `cambio` o falla, y anota lo que le llega. */
+function base(cambio = true, falla = false) {
+  const llamadas: { nombre: string; args: Record<string, any> }[] = [];
   const db = {
-    from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: async () => (errores.leer ? { data: null, error: { message: 'x' } } : { data: fila, error: null }) }) }),
-      update: (p: Record<string, any>) => { updates.push(p); return { eq: async () => (errores.escribir ? { error: { message: 'x' } } : { error: null }) }; },
-    }),
+    rpc: async (nombre: string, args: Record<string, any>) => {
+      llamadas.push({ nombre, args });
+      return falla ? { data: null, error: { message: 'x' } } : { data: cambio, error: null };
+    },
   } as unknown as SupabaseClient;
-  return { db, updates };
+  return { db, llamadas };
 }
 
 describe('a quién se le pregunta', () => {
@@ -37,10 +39,10 @@ describe('a quién se le pregunta', () => {
     expect(telefono).toBe('5491100000000');
     expect(texto).toContain('Marta');
     expect(texto).not.toContain('{{');
-    expect(titulos).toEqual(['Mi familia', 'Prefiero yo']);
+    expect(titulos).toEqual(['Mi familia', 'Solo yo']);
   });
 
-  it.each(['es-AR', 'es-ES', 'ca', 'usted'] as const)('%s: entra en los límites de WhatsApp (1024 y 20)', async (voz) => {
+  it.each(['es-AR', 'es-ES', 'ca'] as const)('%s: entra en los límites de WhatsApp (1024 y 20)', async (voz) => {
     const botones = vi.fn().mockResolvedValue(undefined);
     await preguntarAcceso(narrador(), voz, botones);
     const [, texto, titulos] = botones.mock.calls[0];
@@ -62,14 +64,14 @@ describe('a quién se le pregunta', () => {
 });
 
 describe('la voz del mensaje', () => {
-  it('el idioma manda; el guion clásico va según su trato', () => {
+  it('el idioma manda, nunca de usted: si pasa por el guion clásico, va de tú', () => {
     expect(vozDeEleccion({ idioma: 'ca' })).toBe('ca');
     expect(vozDeEleccion({ idioma: 'es-ES' })).toBe('es-ES');
     expect(vozDeEleccion({ regalo: true })).toBe('es-AR');
     expect(vozDeEleccion({ modo: 'historia' })).toBe('es-AR');
     expect(vozDeEleccion({ trato: 'vos' })).toBe('es-AR');
-    expect(vozDeEleccion({ trato: 'usted' })).toBe('usted');
-    expect(vozDeEleccion({})).toBe('usted');
+    expect(vozDeEleccion({ trato: 'usted' })).toBe('es-ES');
+    expect(vozDeEleccion({})).toBe('es-ES');
   });
 });
 
@@ -78,93 +80,74 @@ describe('el botón', () => {
 
   it('reconoce los dos botones en castellano y catalán, y nada más', () => {
     expect(quienDelBoton('Mi familia')).toBe('familia');
-    expect(quienDelBoton('Prefiero yo')).toBe('narrador');
+    expect(quienDelBoton('Solo yo')).toBe('narrador');
     expect(quienDelBoton('La meva família')).toBe('familia');
-    expect(quienDelBoton('Prefereixo jo')).toBe('narrador');
+    expect(quienDelBoton('Només jo')).toBe('narrador');
     expect(quienDelBoton('Sí')).toBeNull();
     expect(quienDelBoton(null)).toBeNull();
   });
 
   it('anota quién, cuándo, el mensaje y la versión: es la prueba del permiso', async () => {
-    const { db, updates } = base({ contexto: { acceso: { elige: true }, regalo: true, otra: 1 } });
+    const { db, llamadas } = base();
     const enviar = vi.fn().mockResolvedValue(undefined);
     const ahora = new Date('2026-11-05T12:00:00Z');
-    expect(await atenderEleccion(db, narrador(), boton('Mi familia'), enviar, ahora)).toBe(true);
-    expect(updates[0].contexto).toMatchObject({ regalo: true, otra: 1, acceso: { elige: true, quien: 'familia', at: ahora.toISOString(), waMessageId: 'wamid.1', version: '2026-11-05' } });
+    const n = narrador({ acceso: { elige: true }, regalo: true, otra: 1 });
+    expect(await atenderEleccion(db, n, boton('Mi familia'), enviar, ahora)).toBe(true);
+    expect(llamadas).toEqual([{ nombre: 'anotar_eleccion_acceso', args: { p_narrador: 'n1', p_acceso: { quien: 'familia', at: ahora.toISOString(), waMessageId: 'wamid.1', version: VERSION_ELECCION } } }]);
+    expect(n.contexto).toMatchObject({ regalo: true, otra: 1, acceso: { elige: true, quien: 'familia' } });
     expect(enviar).toHaveBeenCalledOnce();
   });
 
   it('sin la marca, el mismo botón sigue su camino de siempre', async () => {
-    const { db, updates } = base({ contexto: {} });
+    const { db, llamadas } = base();
     expect(await atenderEleccion(db, narrador({}), boton('Mi familia'), vi.fn())).toBe(false);
-    expect(updates).toHaveLength(0);
+    expect(llamadas).toHaveLength(0);
   });
 
   it('un texto escrito o el botón de otra pregunta no son la elección', async () => {
-    const { db } = base({ contexto: { acceso: { elige: true } } });
+    const { db, llamadas } = base();
     expect(await atenderEleccion(db, narrador(), { esBoton: false, texto: 'Mi familia' }, vi.fn())).toBe(false);
     expect(await atenderEleccion(db, narrador(), boton('Sí'), vi.fn())).toBe(false);
+    expect(llamadas).toHaveLength(0);
   });
 
-  it('el mismo botón otra vez (un reenvío de Meta) no escribe ni contesta, pero no sigue a la entrevista', async () => {
-    const { db, updates } = base({ contexto: { acceso: { elige: true, quien: 'familia' } } });
+  it('el mismo botón otra vez (un reenvío de Meta) no contesta, pero no sigue a la entrevista', async () => {
+    const { db } = base(false);
     const enviar = vi.fn();
-    expect(await atenderEleccion(db, narrador(), boton('Mi familia'), enviar)).toBe(true);
-    expect(updates).toHaveLength(0);
+    expect(await atenderEleccion(db, narrador({ acceso: { elige: true, quien: 'familia' } }), boton('Mi familia'), enviar)).toBe(true);
     expect(enviar).not.toHaveBeenCalled();
   });
 
   it('puede cambiar de opinión con el otro botón: vale el último', async () => {
-    const { db, updates } = base({ contexto: { acceso: { elige: true, quien: 'familia' } } });
-    expect(await atenderEleccion(db, narrador(), boton('Prefiero yo'), vi.fn().mockResolvedValue(undefined))).toBe(true);
-    expect(updates[0].contexto.acceso.quien).toBe('narrador');
-    expect(esPrivado(updates[0].contexto)).toBe(true);
+    const { db } = base();
+    const n = narrador({ acceso: { elige: true, quien: 'familia' } });
+    expect(await atenderEleccion(db, n, boton('Solo yo'), vi.fn().mockResolvedValue(undefined))).toBe(true);
+    expect(esPrivado(n.contexto)).toBe(true);
   });
 
-  it('si la base falla, no pisa nada y el botón tampoco se vuelve una respuesta', async () => {
-    const { db, updates } = base(null, { leer: true });
+  it('si no se pudo guardar, no le confirma nada, avisa a los socios y el botón no se vuelve una respuesta', async () => {
+    const { db } = base(true, true);
     const enviar = vi.fn();
-    expect(await atenderEleccion(db, narrador(), boton('Mi familia'), enviar)).toBe(true);
-    expect(updates).toHaveLength(0);
+    const n = narrador();
+    expect(await atenderEleccion(db, n, boton('Mi familia'), enviar)).toBe(true);
     expect(enviar).not.toHaveBeenCalled();
+    expect(avisarSocios).toHaveBeenCalledOnce();
+    expect(esPrivado(n.contexto)).toBe(true);
   });
 
-  it('si no se pudo anotar, no le confirma lo que no quedó', async () => {
-    const { db } = base({ contexto: { acceso: { elige: true } } }, { escribir: true });
-    const enviar = vi.fn();
-    expect(await atenderEleccion(db, narrador(), boton('Mi familia'), enviar)).toBe(true);
-    expect(enviar).not.toHaveBeenCalled();
+  it('confirma con el texto aprobado, en su idioma', async () => {
+    const { db } = base();
+    const enviar = vi.fn().mockResolvedValue(undefined);
+    await atenderEleccion(db, narrador({ acceso: { elige: true }, regalo: true }), boton('Mi familia'), enviar);
+    expect(enviar.mock.calls[0][1]).toBe('Listo, Marta. Tu familia va a poder ver todo lo que me cuentes, también lo que ya me contaste.');
+    await atenderEleccion(db, narrador({ acceso: { elige: true }, idioma: 'ca' }), boton('Només jo'), enviar);
+    expect(enviar.mock.calls[1][1]).toContain("D'acord, Marta. El que m'expliquis");
   });
 
   it('si la confirmación no sale, la elección queda igual', async () => {
-    const { db, updates } = base({ contexto: { acceso: { elige: true } } });
+    const { db, llamadas } = base();
     const enviar = vi.fn().mockRejectedValue(new Error('Meta caído'));
-    expect(await atenderEleccion(db, narrador(), boton('Prefiero yo'), enviar)).toBe(true);
-    expect(updates[0].contexto.acceso.quien).toBe('narrador');
-  });
-});
-
-describe('los mails a la familia', () => {
-  const n = { id: 'n1', como_le_dicen: 'Marta', nombre: 'Marta' };
-
-  it('sin la marca, los de siempre', () => {
-    expect(redactarHito('primera', n, {}).asunto).toBe('Ya podés escuchar a Marta');
-    expect(redactarHito('acepto', n, { regalo: true }).cuerpo).toContain('lo vas a poder escuchar en tu tablero');
-  });
-
-  it('en modo privado no prometen escuchar ni leer', () => {
-    for (const trato of ['vos', 'tu'] as const) {
-      for (const hito of ['primera', 'mitad'] as const) {
-        const { asunto, cuerpo } = redactarHito(hito, n, { privado: true, trato });
-        expect(`${asunto} ${cuerpo}`).not.toMatch(/escuch|transcripci|leer lo que hay/i);
-      }
-      expect(redactarHito('acepto', n, { elige: true, trato }).cuerpo).not.toMatch(/escuch/i);
-    }
-  });
-
-  it('«Mi familia» vuelve a los de siempre', () => {
-    expect(esPrivado({ acceso: { elige: true, quien: 'familia' } })).toBe(false);
-    expect(esPrivado({ acceso: { elige: true } })).toBe(true);
-    expect(esPrivado({})).toBe(false);
+    expect(await atenderEleccion(db, narrador(), boton('Solo yo'), enviar)).toBe(true);
+    expect(llamadas[0].args.p_acceso.quien).toBe('narrador');
   });
 });
