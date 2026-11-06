@@ -7,6 +7,7 @@ import { HistoriaPrivada } from "../src/app/tablero/[narradorId]/privada";
 import { FrasesElegidas } from "../src/app/tablero/[narradorId]/frases/elegidas";
 import { Compartir } from "../src/app/tablero/[narradorId]/compartir";
 import { proximoPaso } from "../src/app/tablero/proximo-paso";
+import { VistaRespuestas } from "../src/app/mis-respuestas/[token]/vista";
 import type { Historia } from "@/lib/panel";
 
 // Lo que ve quien regala: la pantalla no recibe nada de lo contado, y los textos no prometen lo que ya no hace.
@@ -84,5 +85,29 @@ describe("el Inicio", () => {
     expect(proximoPaso(h("activo", { vinculoComprador: "hija" }), r)?.texto).toBe("Mirá cuánto lleva contado");
     expect(proximoPaso(h("completado", { vinculoComprador: "hija" }, "invitado"), r)?.texto).toBe("Ya terminó de contar. Cuando el libro esté listo, se abre acá");
     expect(proximoPaso(h("activo", { vinculoComprador: "yo mismo" }), r)?.texto).toContain("Escuchá");
+  });
+});
+
+describe("el link del narrador", () => {
+  const vista = (idioma: "es-AR" | "es-ES" | "ca", privado: boolean, puede = true) =>
+    renderToStaticMarkup(<VistaRespuestas idioma={idioma} bloques={[]} puede={puede} hasta={null} token="t" narradorId="n1" privado={privado} />);
+
+  it("en privado dice que solo lo ve él", () => {
+    expect(vista("es-AR", true)).toContain("Solo lo ves vos. Si algo no querés que vaya al libro, tocá el botón que está debajo.");
+    expect(vista("es-ES", true)).toContain("Solo lo ves tú. Si hay algo que no quieres que vaya al libro, toca el botón que está debajo.");
+    expect(vista("ca", true)).toContain("Només ho veus tu. Si hi ha alguna cosa que no vols que vagi al llibre, toca el botó que hi ha a sota.");
+  });
+
+  it("si pasó a «Mi familia» con el link vigente, no lo promete", () => {
+    expect(vista("es-AR", false)).toContain("Si algo no querés que vaya al libro, tocá el botón que está debajo.");
+    expect(vista("es-AR", false)).not.toContain("Solo lo ves");
+    expect(vista("es-ES", false)).not.toContain("Solo lo ves");
+    expect(vista("ca", false)).not.toContain("Només ho veus");
+  });
+
+  it("cuando ya no se puede sacar, el texto es el mismo en los dos casos", () => {
+    expect(vista("es-AR", true, false)).toContain("Ya no se puede sacar nada");
+    expect(vista("es-AR", true, false)).not.toContain("Solo lo ves");
+    expect(vista("es-AR", false, false)).toContain("Ya no se puede sacar nada");
   });
 });

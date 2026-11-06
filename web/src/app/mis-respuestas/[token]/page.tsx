@@ -4,6 +4,7 @@ import { verificarTokenRespuestas } from "@/lib/token-respuestas";
 import { entrevistaV3, historiaV3, respuestasFuera, type FilaHistoriaV3 } from "@/lib/v3";
 import { entrevistaHistoria, historiaDeHistoria } from "@/lib/historia-panel";
 import { plazoDelNarrador, puedeSacarElNarrador } from "@/lib/fuera-del-libro";
+import { loContadoEsPrivado } from "@/lib/panel";
 import { Aviso, LOCALE, TEXTOS, VistaRespuestas, type Idioma } from "./vista";
 
 // La página propia del narrador (Naza y Joaquín, 05/11): sin contraseña, con un link firmado que vence a los 7 días y le
@@ -31,7 +32,7 @@ export default async function PaginaMisRespuestas({ params }: { params: Promise<
 
   const admin = crearClienteServidor();
   const { data } = await admin.from("narradores").select("id, estado, contexto, zona_horaria, ultima_respuesta_at").eq("id", t.narradorId).maybeSingle();
-  const n = data as { id: string; estado: string; contexto?: { modo?: unknown } | null; zona_horaria?: string | null; ultima_respuesta_at?: string | null } | null;
+  const n = data as { id: string; estado: string; contexto?: Record<string, unknown> | null; zona_horaria?: string | null; ultima_respuesta_at?: string | null } | null;
   if (!n) return <Aviso titulo={TEXTOS["es-AR"].invalidoTitulo} texto={TEXTOS["es-AR"].invalido} />;
 
   const esHistoria = n.contexto?.modo === "historia";
@@ -55,5 +56,5 @@ export default async function PaginaMisRespuestas({ params }: { params: Promise<
   const termino = n.estado === "completado" || n.estado === "cerrado_anticipado";
   const fecha = plazo === null ? "" : new Date(plazo).toLocaleString(LOCALE[idioma], { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: n.zona_horaria ?? undefined });
 
-  return <VistaRespuestas idioma={idioma} bloques={bloques} puede={puede} hasta={puede && termino && fecha ? fecha : null} token={token} narradorId={n.id} />;
+  return <VistaRespuestas idioma={idioma} bloques={bloques} puede={puede} hasta={puede && termino && fecha ? fecha : null} token={token} narradorId={n.id} privado={loContadoEsPrivado(n)} />;
 }

@@ -11,12 +11,13 @@ const IDIOMA_FUERA: Record<Idioma, IdiomaFueraDelLibro> = { "es-AR": "ar", "es-E
 export const LOCALE: Record<Idioma, string> = { "es-AR": "es-AR", "es-ES": "es-ES", ca: "ca" };
 
 export const TEXTOS: Record<Idioma, {
-  titulo: string; abierto: string; hasta: (fecha: string) => string; cerrado: string; nada: string;
+  titulo: string; soloVos: string; abierto: string; hasta: (fecha: string) => string; cerrado: string; nada: string;
   vencidoTitulo: string; vencido: string; invalidoTitulo: string; invalido: string; sinTexto: string; reservada: string;
 }> = {
   "es-AR": {
     titulo: "Lo que contaste",
-    abierto: "Solo lo ves vos. Si algo no querés que vaya al libro, tocá el botón que está debajo.",
+    soloVos: "Solo lo ves vos.",
+    abierto: "Si algo no querés que vaya al libro, tocá el botón que está debajo.",
     hasta: (f) => `Podés sacar lo que quieras hasta el ${f}.`,
     cerrado: "Ya no se puede sacar nada, porque tu libro se está escribiendo. Lo podés seguir escuchando mientras dure este link.",
     nada: "Todavía no hay nada acá. Cuando contestes la primera pregunta, va a aparecer.",
@@ -29,7 +30,8 @@ export const TEXTOS: Record<Idioma, {
   },
   "es-ES": {
     titulo: "Lo que has contado",
-    abierto: "Solo lo ves tú. Si hay algo que no quieres que vaya al libro, toca el botón que está debajo.",
+    soloVos: "Solo lo ves tú.",
+    abierto: "Si hay algo que no quieres que vaya al libro, toca el botón que está debajo.",
     hasta: (f) => `Puedes quitar lo que quieras hasta el ${f}.`,
     cerrado: "Ya no se puede quitar nada, porque tu libro se está escribiendo. Lo puedes seguir escuchando mientras dure este enlace.",
     nada: "Todavía no hay nada aquí. Cuando contestes la primera pregunta, aparecerá.",
@@ -42,7 +44,8 @@ export const TEXTOS: Record<Idioma, {
   },
   ca: {
     titulo: "El que has explicat",
-    abierto: "Només ho veus tu. Si hi ha alguna cosa que no vols que vagi al llibre, toca el botó que hi ha a sota.",
+    soloVos: "Només ho veus tu.",
+    abierto: "Si hi ha alguna cosa que no vols que vagi al llibre, toca el botó que hi ha a sota.",
     hasta: (f) => `Pots treure el que vulguis fins al ${f}.`,
     cerrado: "Ja no es pot treure res, perquè el teu llibre s'està escrivint. Ho pots continuar escoltant mentre duri aquest enllaç.",
     nada: "Encara no hi ha res aquí. Quan contestis la primera pregunta, apareixerà.",
@@ -76,13 +79,15 @@ export function Aviso({ titulo, texto }: { titulo: string; texto: string }) {
   );
 }
 
-export function VistaRespuestas({ idioma, bloques, puede, hasta, token, narradorId }: { idioma: Idioma; bloques: BloqueHistoriaV3[]; puede: boolean; hasta: string | null; token: string; narradorId: string }) {
+// `privado`: «Solo lo ves vos» es cierto solo mientras la familia no pueda verlo. Un link sigue vigente aunque el narrador
+// cambie de opción, así que se mira en cada visita (Naza, 06/11).
+export function VistaRespuestas({ idioma, bloques, puede, hasta, token, narradorId, privado }: { idioma: Idioma; bloques: BloqueHistoriaV3[]; puede: boolean; hasta: string | null; token: string; narradorId: string; privado: boolean }) {
   const T = TEXTOS[idioma];
   const trato = idioma === "es-AR" ? "vos" : "tu";
   return (
     <Marco>
       <h1 className="text-3xl leading-tight font-medium [font-family:var(--fuente-titulo)]">{T.titulo}</h1>
-      <p className="mt-4 text-[17px] leading-relaxed text-[var(--texto-suave)]">{puede ? T.abierto : T.cerrado}</p>
+      <p className="mt-4 text-[17px] leading-relaxed text-[var(--texto-suave)]">{puede ? `${privado ? `${T.soloVos} ` : ""}${T.abierto}` : T.cerrado}</p>
       {hasta ? <p className="mt-2 text-[17px] font-medium leading-relaxed">{T.hasta(hasta)}</p> : null}
 
       <div className="mt-10 flex flex-col gap-10">
