@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
 
-import nextConfig, { cabecerasSinIndexar } from "../next.config";
+import nextConfig, { cabecerasSinIndexar, urlBaseDeLaRama } from "../next.config";
 import { origenPublico, URL_BASE } from "../src/lib/seo";
 import { altDe, titularDe } from "../src/app/_compartir/imagen";
 import * as PortadaEs from "../src/app/page";
@@ -105,6 +105,23 @@ describe("imagen para compartir", () => {
       const idioma = carpeta.startsWith("ar/") ? "ar" : carpeta.startsWith("ca/") ? "ca" : "es";
       expect(fuente, carpeta).toContain(`imagenParaCompartir("${producto}", "${idioma}")`);
     }
+  });
+});
+
+describe("cada versión de prueba vuelve a su propia rama (URL_BASE)", () => {
+  it("en Preview usa la dirección de la rama, con https", () => {
+    expect(urlBaseDeLaRama("preview", "vitacora-familiar-git-portada-equipo.vercel.app")).toEqual({
+      URL_BASE: "https://vitacora-familiar-git-portada-equipo.vercel.app",
+    });
+  });
+
+  it("en producción no toca URL_BASE, aunque Vercel mande una dirección de rama", () => {
+    expect(urlBaseDeLaRama("production", "vitacora-familiar-git-main-equipo.vercel.app")).toEqual({});
+  });
+
+  it("sin dirección de rama (deploy por CLI) o en local deja la variable como está", () => {
+    expect(urlBaseDeLaRama("preview", undefined)).toEqual({});
+    expect(urlBaseDeLaRama(undefined, undefined)).toEqual({});
   });
 });
 

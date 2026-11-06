@@ -10,7 +10,7 @@ la siguiente.
 
 | Pieza | Dónde vive | Cómo se vuelve | Cuánto tarda |
 |---|---|---|---|
-| Web (vitacorafamiliar.com) | Vercel, proyecto de Naza | «Instant Rollback» a un deploy viejo, y después `git revert` para que no vuelva | 1–2 min el rollback; 5–10 min el revert con su deploy |
+| Web (vitacorafamiliar.com) | Vercel, equipo de Joaquín (Naza es miembro) | «Instant Rollback» a un deploy viejo, y después `git revert` para que no vuelva | 1–2 min el rollback; 5–10 min el revert con su deploy |
 | Fábrica (la central) | Railway, proyecto `fearless-kindness`, servicio `dazzling-friendship` | «Redeploy» de un deploy viejo | 3–6 min |
 | Entrevistador (el bot) | Railway, mismo proyecto, servicio `VITACORA-FAMILIAR-` | «Redeploy» de un deploy viejo | 3–6 min |
 | Base de datos | Supabase (organización Vitácora, proyecto VITACORA FAMILIAR) | «Restore» de la copia del día anterior, o «Restore to new project» | ~15 min (medido el 19/10 con «Restore to new project») |
@@ -27,16 +27,17 @@ deploy no alcanza: hay que mirar la base también.
 
 ### Qué pasó cuando se rompió
 
-La web se publica sola: cada push a `main` que toca `web/` corre el workflow
-`.github/workflows/deploy-web.yml` (tests, después compila y sube a Vercel). Si
-ese workflow queda en rojo, **no se publicó nada**: la web sigue con la versión
-anterior y el problema es solo del repo. Se arregla el código y listo.
+La web se publica sola: cada push a `main` que toca `web/` arma una versión en
+Vercel, que queda retenida hasta que el check `web` de GitHub da verde
+(`docs/publicar-con-vercel.md`). Si los tests quedan en rojo, **no se publicó
+nada**: la web sigue con la versión anterior y el problema es solo del repo. Se
+arregla el código y listo.
 
-Si el workflow salió en verde pero la web está mal, ahí sí hay que volver atrás.
+Si los tests salieron en verde pero la web está mal, ahí sí hay que volver atrás.
 
 ### Volver a un deploy viejo (el atajo, 1–2 minutos)
 
-1. Entrar a [vercel.com](https://vercel.com) con la cuenta de Naza.
+1. Entrar a [vercel.com](https://vercel.com), en el equipo de Joaquín.
 2. Abrir el proyecto de la web (el que tiene el dominio `vitacorafamiliar.com`).
 3. Pestaña **Deployments**. Arriba de la lista está el deploy que está en
    producción, marcado **Production** / **Current**.
@@ -61,13 +62,14 @@ publicar el código roto. Para que no pase:
 1. En GitHub, abrir el Pull Request que trajo el cambio malo (o el commit).
 2. Botón **Revert** (GitHub arma solo un PR que deshace el cambio). Si no está,
    se lo pide a Joaquín o a Claude Code: `git revert <commit>` en una rama y PR.
-3. Aprobar y mergear ese revert. El workflow de deploy corre de nuevo y publica
-   el código sin el cambio malo.
-4. Cuando termine, mirar el deploy nuevo en Vercel: tiene que decir Production.
+3. Aprobar y mergear ese revert. Vercel arma una versión nueva sin el cambio malo.
+4. **Después de un Instant Rollback, Vercel deja de publicar solo.** La versión
+   nueva queda sin salir hasta tocar **Undo Rollback** en la pantalla del proyecto
+   y elegir esa versión. Recién ahí vuelve a publicar solo.
+5. Mirar el deploy nuevo en Vercel: tiene que decir Production y Current.
 
-**Cuidado con el rollback sin revert:** mientras el código roto siga en `main`,
-cualquier otro push lo republica. Si en esos días hay que mergear otra cosa, se
-mergea el revert primero.
+**Cuidado con el orden:** primero el revert, después Undo Rollback. Si se hace al
+revés, el código roto vuelve a publicarse con el próximo push.
 
 ---
 
@@ -184,8 +186,8 @@ Cinco chequeos, en este orden. Si alguno falla, no se publica.
    de «Tests» en verde (web, fábrica, entrevistador, voz). Si la rama base es
    `rediseno-web`, ojo: esa rama **todavía no tiene** el workflow de tests, así
    que hay que pedir el resultado a mano.
-2. **Un deploy de prueba a la vista.** Para la web, mergear primero a
-   `rediseno-web` y mirar el preview (el alias de prueba) antes de `main`. Para
+2. **Un deploy de prueba a la vista.** Para la web, abrir el enlace de Vercel que
+   aparece en el PR (cada rama tiene el suyo) antes de `main`. Para
    la fábrica, correr un libro de prueba con datos inventados, nunca de una
    familia real.
 3. **La copia del día está hecha.** Supabase → Backups: tiene que estar la de

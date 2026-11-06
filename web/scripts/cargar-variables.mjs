@@ -13,10 +13,8 @@
 //     Preview: en `preview` se separa (Production queda con el precio de hoy hasta el switch).
 //
 // Las claves salen del login de la CLI de Vercel (`npx vercel login`) y de RAILWAY_API_TOKEN en
-// fabrica/.env de la carpeta principal. Los cambios de Vercel se ven en el próximo deploy: en `preview` se
-// pide uno al final (workflow «Preview web (rediseño)»).
+// fabrica/.env de la carpeta principal. Los cambios de Vercel se ven en el próximo deploy de cada rama.
 
-import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -145,12 +143,5 @@ await poner("PRECIO_MARCO_EUR", PRECIO_MARCO);
 await poner("PRECIO_MARCO_ADICIONAL_EUR", PRECIO_MARCO);
 
 // 3. Que la página de prueba las tome.
-if (modo === "preview") {
-  try {
-    execFileSync("gh", ["workflow", "run", "preview-web.yml", "--ref", "rediseno-web", "--repo", "molinazavaliaj/VITACORA-FAMILIAR-"], { stdio: "ignore" });
-    console.log("✓ Pedí un deploy nuevo de la página de prueba (tarda unos 3 minutos).");
-  } catch {
-    console.log("· No pude pedir el deploy de la página de prueba: las variables se toman en el próximo push a rediseno-web.");
-  }
-}
+if (modo === "preview") console.log("Listo. Se toman en el próximo push de cada rama, o con Redeploy en Vercel.");
 if (modo === "produccion") console.log("Listo. Se toman en el deploy del switch (el merge de rediseno-web a main).");

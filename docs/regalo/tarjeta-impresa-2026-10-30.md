@@ -28,7 +28,7 @@ Reglas:
 ## Cómo prenderla
 
 1. En Vercel (Production), cargar `PRECIO_TARJETA_EUR=4`.
-2. Re-correr el deploy (GitHub → Actions → Deploy web → «Re-run all jobs»).
+2. Volver a publicar (Vercel → Deployments → la última → Redeploy; ver `web/README.md`).
 3. Confirmar que `MAIL_SOCIOS` está cargada en Vercel: de ahí sale el aviso.
 
 No cargar `PRECIO_TARJETA_ARS`: desde Argentina no se manda.

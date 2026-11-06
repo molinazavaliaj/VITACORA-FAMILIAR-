@@ -51,8 +51,8 @@ export function esProduccion(entorno: string | undefined = process.env.VERCEL_EN
 /**
  * La base de las URLs absolutas de los metadatos (`metadataBase` del layout:
  * og:image, twitter:image, og:url). En producción, siempre el dominio real.
- * Fuera de producción, la variable URL_BASE del entorno (en la preview de
- * Vercel es https://vitacora-rediseno.vercel.app, PASO-DE-MANOS.md): así la
+ * Fuera de producción, la variable URL_BASE del entorno (en cada versión de
+ * prueba es la dirección de su rama, `urlBaseDeLaRama` en next.config.ts): así la
  * imagen para compartir de la preview es la de la preview, que ya existe,
  * y no la de producción, que puede no estar todavía. Si falta, el dominio real.
  */
