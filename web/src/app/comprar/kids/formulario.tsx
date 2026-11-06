@@ -335,7 +335,7 @@ export function CheckoutKids({
                 ) : null}
                 {llevaImpreso ? <CamposDireccion textos={T} valor={e} onCambio={cambiar} campoConError={falla?.campo} /> : null}
 
-                <p className="border-l-2 border-[var(--kids-acento,#151412)] py-1 pl-5 text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">
+                <p className="border-l-2 border-[var(--acu-bordo)] py-1 pl-5 text-[16px] leading-relaxed text-[var(--texto-oscuro-suave)]">
                   <strong className="font-medium text-[var(--texto-oscuro-fuerte)]">{K.despues}</strong> {K.despuesTexto}
                 </p>
 
@@ -369,8 +369,8 @@ export function CheckoutKids({
         </div>
 
         <aside aria-label={K.resumen} className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8">
-          <div className="chk-ficha">
-            <div className="dir-tinta chk-ficha-cabeza">
+          <div className="chk-ficha acu-nota acu-tinte-5">
+            <div className="chk-ficha-cabeza">
               <div className="flex items-center gap-4">
                 <div className="relative h-[64px] w-[64px] shrink-0 overflow-hidden rounded-[14px]">
                   <Image src="/rediseno/kids-libro-tapa.jpg" alt="" fill sizes="64px" className="object-cover" />

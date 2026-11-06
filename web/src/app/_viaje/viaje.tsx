@@ -30,8 +30,6 @@ import "../_portada/portada.css";
 // El precio es el de la región del idioma (obtenerPrecioViaje vía catalogo):
 // sin PRECIO_VIAJE_* cargado, la página no vende (sin botones, «Próximamente»).
 //
-// La paleta azul noche (_direccion/viaje.css, data-producto="viaje") queda para
-// la compra: esta página ya no la lleva.
 
 const FOTOS = {
   hotel: "/rediseno/viaje-audio-hotel.jpg",

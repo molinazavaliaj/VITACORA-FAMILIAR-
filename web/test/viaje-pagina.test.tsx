@@ -77,8 +77,8 @@ describe("la página de Viaje por idioma", () => {
     for (const p of PROHIBIDO) expect(sinLibro(sinSolapas(html)), p).not.toContain(escapar(p));
   });
 
-  // 06/11: Viaje pasa a la acuarela, con su acento azul (acu-acento-viaje). La paleta de noche
-  // (data-producto="viaje", _direccion/viaje.css) queda solo para la compra.
+  // 06/11: Viaje pasa a la acuarela, con su acento azul (acu-acento-viaje). data-producto="viaje"
+  // queda solo para la compra y el panel.
   it("lleva el acento de Viaje en el contenedor, y la portada no", () => {
     for (const p of [ViajeEs, ViajeCa, ViajeAr]) {
       const html = renderToStaticMarkup(p());
