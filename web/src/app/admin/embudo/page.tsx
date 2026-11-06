@@ -41,7 +41,7 @@ export default async function PantallaEmbudo() {
       {!r.ok ? (
         <p className="adm-alerta">
           {r.sinMigracion
-            ? "Falta aplicar la migración 20261106000000_embudo_compra.sql en Supabase."
+            ? "Falta aplicar la migración 20261106000200_embudo_compra.sql en Supabase."
             : "No pude leer el embudo. Probá de nuevo en un rato."}
         </p>
       ) : !hayDatos ? (

@@ -49,7 +49,7 @@
 
 ### Task 2: contador del embudo
 
-**Files:** `supabase/migrations/20261106000000_embudo_compra.sql`, `web/src/lib/embudo.ts`, `web/src/app/api/embudo/route.ts`, `web/src/app/comprar/formulario.tsx`, `web/src/app/comprar/gracias/medir-compra.tsx` o equivalente, `web/src/app/admin/embudo/page.tsx`, tests.
+**Files:** `supabase/migrations/20261106000200_embudo_compra.sql`, `web/src/lib/embudo.ts`, `web/src/app/api/embudo/route.ts`, `web/src/app/comprar/formulario.tsx`, `web/src/app/comprar/gracias/medir-compra.tsx` o equivalente, `web/src/app/admin/embudo/page.tsx`, tests.
 
 - Tabla `embudo_compra(dia date, compra text, paso text, region text, dispositivo text, cuenta int, primary key (dia, compra, paso, region, dispositivo))`, con RLS activa y sin políticas públicas (mirar cómo lo hacen las migraciones recientes). Función `sumar_embudo(...)` con insert on conflict `cuenta = cuenta + 1`.
 - `lib/embudo.ts` puro: tipos y validación (`compra`: familiar; `paso`: entro, para_quien, pago, pagar, pagado; `region`: ES, AR; `dispositivo`: celular, compu). Rechaza lo demás.
