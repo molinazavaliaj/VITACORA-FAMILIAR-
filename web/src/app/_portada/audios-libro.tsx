@@ -10,12 +10,14 @@ import { TelefonoWhatsApp } from "./telefono-whatsapp";
 const ONDA = "M1 7v0M6 3v8M11 5v4M16 1v12M21 4v6M26 2v10M31 5v4M36 3v8M41 6v2";
 const FOTOS: [string, string] = ["/rediseno/juan-domingo-joven.jpg", "/rediseno/osvaldo-guitarra.jpg"];
 
+// Texto de relleno: va borroso y no se llega a leer. Solo da la textura de una página escrita.
+const RELLENO =
+  "Nos mudamos cuando yo era chico y la casa nueva olía a pintura y a pan. En el patio había una higuera que daba sombra todo el verano, y a la tarde nos sentábamos ahí a escuchar la radio. Mi madre cosía junto a la ventana mientras mi padre arreglaba lo que encontraba roto. Los domingos venían los primos y la mesa no alcanzaba para todos. De esos años me acuerdo de los olores, de las voces y de las cartas que llegaban de lejos.";
+
 function Renglones({ cuantos }: { cuantos: number }) {
   return (
-    <div className="acu-renglones">
-      {Array.from({ length: cuantos }, (_, i) => (
-        <i key={i} style={{ width: `${[100, 92, 97, 88, 95][i % 5]}%` }} />
-      ))}
+    <div className="acu-renglones" style={{ height: `${cuantos * 15}px` }}>
+      <p>{RELLENO}</p>
     </div>
   );
 }
