@@ -18,6 +18,7 @@ import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
 import { VideoLibro } from "../_direccion/video-libro";
 import { LogoTrazo } from "../_direccion/logo-trazo";
+import { Apertura } from "./apertura";
 import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "./piezas-acuarela";
 import { cajasPortada } from "./datos-cajas";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
@@ -81,11 +82,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
     <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-imanes flex flex-1 flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Coreografia />
+      <Apertura />
 
       {/* 1 · Inicio: una pantalla. Es la única capa: la tienda sube y lo tapa apenas se baja. */}
       <InicioAcuarela
         arriba="pt-28"
-        marca={<LogoTrazo id="trazo-portada" halo="rgba(255, 250, 248, 0.55)" className="acu-logo-inicio" />}
         cabecera={<Cabecera idioma={idioma} camino="/" sobreHero />}
         titulo={
           <>
