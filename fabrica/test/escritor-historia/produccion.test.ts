@@ -157,7 +157,7 @@ describe('el libro de historia en el worker', () => {
     expect(tablas.pedidos[0].estado).toBe('pagado');
     await vuelta(db, motor);
     expect(mails.filter((m) => m.subject.includes('Dudas de datos del libro de historia de Rubén'))).toHaveLength(1);
-    expect(mails.find((m) => m.subject.includes('Dudas de datos'))?.text).toContain(`/tablero/${ID}/dudas`);
+    expect(mails.find((m) => m.subject.includes('Dudas de datos'))?.text).not.toContain(`/tablero/${ID}/dudas`);
     expect(archivos.has(prefijo('dudas-avisadas.txt'))).toBe(true);
     expect(modelo.llamadas).toHaveLength(3);
   });
@@ -476,7 +476,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
     await vuelta(db, motor);
     const text = mails.find((m) => m.subject.includes('Dudas de datos'))?.text;
     expect(text).toContain('Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas.');
-    expect(text).toContain(`/tablero/${ID}/dudas`);
+    expect(text).not.toContain(`/tablero/${ID}/dudas`);
     expect(text).not.toContain('La familia las contesta');
     expect(text).not.toContain('horas después de este mail');
   });

@@ -210,8 +210,11 @@ describe('Etapa A al terminar la entrevista (revisarEtapaAV3)', () => {
     const cuerpo = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
     expect(cuerpo.subject).toContain('Dudas de datos');
     expect(cuerpo.text).toContain('n1/escritor/correcciones.json');
-    // Corto (Naza, 30/10): el link y cuántas son; las dudas se leen en la pantalla, no en el mail.
-    expect(cuerpo.text).toContain('Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: https://www.vitacorafamiliar.com/tablero/n1/dudas');
+    // Corto (Naza, 30/10): cuántas son; las dudas se leen en la pantalla, no en el mail.
+    // Sin link: en un privado esa pantalla no le abre a nadie (Naza, 06/11).
+    expect(cuerpo.text).toContain('Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas.');
+    expect(cuerpo.text).not.toContain('Para verlas');
+    expect(cuerpo.text).not.toContain('/tablero/n1/dudas');
     expect(cuerpo.text).not.toContain('A la familia le llega');
     expect(cuerpo.text).not.toContain('24 horas');
     expect(cuerpo.text).not.toContain('¿Cómo se llamaba la Negra');
