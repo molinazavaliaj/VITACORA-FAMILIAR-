@@ -27,12 +27,12 @@ export function PaginaComprarHistoria({ idioma }: { idioma: IdiomaWeb }) {
   if (!historiaVendeEn(idioma)) {
     const escribir = enlaceEscribir({ correo: { asunto: t.proximamente.asunto, cuerpo: t.proximamente.cuerpo } });
     return (
-      <CascaronCheckout idioma={idioma} inicio="/historia">
+      <CascaronCheckout idioma={idioma} inicio="/historia" historia>
         <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 px-4 py-24 sm:px-8">
           <h1 className="chk-h1">{t.proximamente.titulo}</h1>
           <p className="chk-bajada">{t.proximamente.texto}</p>
           <a href={escribir.href} {...(escribir.externo ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            className="m-btn inline-flex min-h-12 items-center self-start rounded-full bg-white px-6 font-medium text-[#14140f]">
+            className="m-btn inline-flex min-h-12 items-center self-start rounded-full bg-[var(--boton)] px-6 font-medium text-[var(--sobre-boton)]">
             {t.proximamente.boton}
           </a>
         </div>
@@ -40,7 +40,7 @@ export function PaginaComprarHistoria({ idioma }: { idioma: IdiomaWeb }) {
     );
   }
   return (
-    <CascaronCheckout idioma={idioma} inicio="/historia">
+    <CascaronCheckout idioma={idioma} inicio="/historia" historia>
       <Checkout
         idioma={idioma}
         historia

@@ -114,7 +114,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
       : T.generico;
 
   return (
-    <CascaronCheckout idioma={idioma} inicio={esViaje ? "/viaje" : "/"} viaje={esViaje}>
+    <CascaronCheckout idioma={idioma} inicio={esViaje ? "/viaje" : confirmado?.kids ? "/kids" : "/"} viaje={esViaje} kids={Boolean(confirmado?.kids)}>
       <main className="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-4 pb-28 pt-14 sm:px-8 sm:pt-20">
         <div className="flex flex-col gap-4">
           <span aria-hidden className="chk-sello m-up mb-3">
@@ -130,11 +130,11 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
         </div>
 
         {momentos.length > 0 ? (
-          <ol className="flex flex-col border-t border-[var(--texto-oscuro-fuerte)]">
-            {momentos.map((m) => (
-              <li key={m.cuando} className="m-up grid gap-1 border-b border-[var(--borde-oscuro)] py-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-6">
+          <ol className="flex flex-col gap-5">
+            {momentos.map((m, i) => (
+              <li key={m.cuando} className={`m-up chk-momento acu-nota acu-tinte-${[1, 2, 3, 5][i % 4]}`}>
                 <span className="chk-momento-cuando">{m.cuando}</span>
-                <span className="text-[17px] leading-[1.55] text-[var(--texto-oscuro)]">{m.que}</span>
+                <span className="chk-momento-que">{m.que}</span>
               </li>
             ))}
           </ol>

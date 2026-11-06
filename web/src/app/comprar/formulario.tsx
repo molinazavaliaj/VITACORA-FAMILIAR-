@@ -374,7 +374,7 @@ export function Checkout({
 
   const cabezaResumen = (
     <div className="flex items-center gap-4">
-      <div className="w-[68px] shrink-0 overflow-hidden rounded-[3px] shadow-[0_12px_22px_rgba(0,0,0,0.55)]">
+      <div className="w-[68px] shrink-0 overflow-hidden rounded-[3px] shadow-[0_8px_14px_-6px_rgba(60,40,20,0.5)]">
         <TapaLibro titulo={e.nombre.trim()} fotoSrc={null} idioma={idiomaDelLibro(e.idioma)} />
       </div>
       <div className="flex min-w-0 flex-col gap-1">
@@ -401,7 +401,7 @@ export function Checkout({
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
                 textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }}
-                tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack formatear={f} />
+                tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack estante={!historia} formatear={f} />
               {historia ? null : (
                 <ul className="chk-seguridad">
                   {T.seguridad.map((x) => (
@@ -505,7 +505,7 @@ export function Checkout({
                         ) : null}
                       </fieldset>
                       {e.modoFecha === "navidad" || (e.modoFecha === "otra" && e.fechaEntrega) ? (
-                        <NotaPapel titulo={(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).titulo}>
+                        <NotaPapel tinte={3} titulo={(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).titulo}>
                           {(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).cuerpo}
                         </NotaPapel>
                       ) : null}
@@ -696,7 +696,7 @@ export function Checkout({
 
                 <p className="text-[14px] text-[var(--texto-oscuro-suave)] [font-family:var(--fuente-micro)]">{T.metodos}</p>
                 {yo ? null : <NotaPapel titulo={T.notaUso.titulo}>{T.notaUso.cuerpo}</NotaPapel>}
-                {garantiaALaVista ? <NotaPapel>{yo ? T.garantiaPropia : T.garantiaFamiliar}</NotaPapel> : null}
+                {garantiaALaVista ? <NotaPapel tinte={6}>{yo ? T.garantiaPropia : T.garantiaFamiliar}</NotaPapel> : null}
                 {cuotasAr && region === "AR" ? (
                   // PENDIENTE OK de Naza: texto sin aprobar, flag CUOTAS_AR apagado.
                   <p className="text-[14.5px] font-medium text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)]">{T.cuotas(f(Math.round(compra.total / 3)), f(compra.total))}</p>

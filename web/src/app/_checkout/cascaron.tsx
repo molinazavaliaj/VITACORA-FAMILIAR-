@@ -4,13 +4,15 @@ import { langDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { CABECERA } from "../_textos/checkout";
 import { Toroide } from "../marca";
 import "../_direccion/tokens.css";
+import "../_portada/acuarela.css";
 import "./checkout.css";
 
-// El cascarón de las compras (dirección «la web es un libro», 14/10): la
-// cabecera mínima y propia en tinta —el logo que vuelve a la portada de su
-// idioma, «Pago seguro y cifrado» y «Ya compré · Entrar» (estos dos solo desde 640 px; en el celular, un solo renglón con el logo y las dudas)— y el contenido en una
-// hoja de papel crema que la tapa con el borde cortado a mano. No usa la
-// cabecera pública a propósito: en el checkout no hay menú del que escaparse.
+// El cascarón de las compras, en Acuarela (06/11): una franja fina con las manchas
+// —el logo que vuelve a la portada de su idioma, «Pago seguro y cifrado» y «Ya
+// compré · Entrar» (estos dos solo desde 640 px; en el celular, un solo renglón con
+// el logo y las dudas)— y el contenido sobre el blanco cálido, con el acento de cada
+// producto (acu-acento-*). No usa la cabecera pública a propósito: en el checkout no
+// hay menú del que escaparse.
 // Componente de servidor: no suma JS. Los estilos, en ./checkout.css.
 //
 // El botón de dudas por WhatsApp sale solo si está la variable
@@ -27,23 +29,27 @@ export function CascaronCheckout({
   inicio = "/",
   viaje = false,
   kids = false,
+  historia = false,
   children,
 }: {
   idioma: IdiomaWeb;
   /** Adónde lleva el logo, sin el prefijo de idioma (la compra de viaje vuelve a /viaje). */
   inicio?: string;
-  /** La compra de Viaje: data-producto="viaje" le da su paleta, noche y azul (checkout.css y _direccion/viaje.css). */
+  /** La compra de Viaje: el acento azul. */
   viaje?: boolean;
-  /** La compra de Kids (15/10): la hoja con la paleta de Kids (_kids/kids.css, .kids-chk). */
+  /** La compra de Kids: el acento terracota (y .kids-chk, lo propio de esa compra en _kids/kids.css). */
   kids?: boolean;
+  /** «Vitácora de una historia»: el acento verde. */
+  historia?: boolean;
   children: ReactNode;
 }) {
   const T = CABECERA[idioma];
   const dudas = numeroDeDudas();
+  const producto = kids ? "kids" : viaje ? "viaje" : historia ? "historia" : "familiar";
   return (
-    <div lang={langDeIdioma(idioma)} data-producto={kids ? "kids" : viaje ? "viaje" : "familiar"} className={`dir-pagina chk ${kids ? "kids-chk " : ""}flex min-h-dvh flex-1 flex-col`}>
-      <header className="dir-tinta chk-cabecera">
-        <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-x-6 px-4 pb-4 pt-5 sm:px-8 sm:pb-6 sm:pt-6">
+    <div lang={langDeIdioma(idioma)} data-producto={producto} className={`dir-pagina chk acu-tema acu-acento-${producto} ${kids ? "kids-chk " : ""}flex min-h-dvh flex-1 flex-col`}>
+      <header className="chk-cabecera">
+        <div className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-x-6 px-4 py-1 sm:px-8 sm:py-2">
           <Link href={ruta(idioma, inicio)} aria-label={T.inicio} className="flex min-h-11 items-center gap-3 text-[var(--dir-sobre-tinta)]">
             <Toroide className="h-6 w-auto" />
             <span aria-hidden className="dir-micro tracking-[0.22em]">
@@ -69,7 +75,7 @@ export function CascaronCheckout({
           </div>
         </div>
       </header>
-      <div className="dir-deckle chk-hoja flex flex-col">{children}</div>
+      <div className="chk-hoja flex flex-col">{children}</div>
     </div>
   );
 }

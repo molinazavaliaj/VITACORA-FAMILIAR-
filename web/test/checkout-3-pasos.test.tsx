@@ -604,7 +604,7 @@ describe("pago fallido: lo elegido sigue guardado (Casos 2)", () => {
 });
 
 describe("/comprar/viaje: la Vitácora de Viaje V2 (16/10)", () => {
-  // La compra de Viaje con su azul por data-producto="viaje" (checkout.css y _direccion/viaje.css), sin la
+  // La compra de Viaje con su acento azul (acu-acento-viaje) y data-producto="viaje", sin la
   // clase vieja .tema-viaje. Solo lo de la V2: nada de etapas, ciudades, «con quién viajás» ni ángulos.
   it("su paleta, tres pasos, y ni rastro del viaje viejo ni de «cada noche»", () => {
     const es = render(PaginaViajeEs);

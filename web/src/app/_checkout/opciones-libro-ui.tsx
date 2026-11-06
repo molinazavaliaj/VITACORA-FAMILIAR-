@@ -25,6 +25,11 @@ import {
 // libro completo lleva la cinta de marcapáginas «Para regalar» y, si hay pack
 // con descuento real, su precio y la suma tachada al lado. Sin texto propio:
 // todo llega del diccionario de cada compra. Estilos: .chk-op* en checkout.css.
+//
+// Con `estante` (el paso 1 de /comprar, Naza 06/11) las mismas opciones se muestran
+// como una estantería: la foto real con un libro por opción y, debajo, una nota de
+// papel de color por opción. Los radios son los mismos: están en la nota, y el libro
+// es otro <label> del mismo radio. Tocar cualquiera de los dos elige. Estilos: .chk-est*.
 
 type ConLibro = { formato: "digital" | "impreso"; marcos: number; copias: number; opcion?: OpcionLibro };
 
@@ -59,6 +64,34 @@ type Tapa = { titulo: string; idioma: IdiomaLibro; foto?: string | null };
 /** La foto de tapa chica, ya optimizada (la tapa de las miniaturas mide ~60 px). */
 // q=75: la única calidad que acepta el optimizador de imágenes (Next 16, sin `images.qualities`).
 const TAPA_CHICA = "/_next/image?url=%2Frediseno%2Fjuan-domingo-tapa-foto.jpg&w=128&q=75";
+/** La misma para el estante, donde el libro llega a medir ~125 px. */
+const TAPA_ESTANTE = "/_next/image?url=%2Frediseno%2Fjuan-domingo-tapa-foto.jpg&w=256&q=75";
+
+/** El color de la nota de cada opción, en el estante. */
+const TINTE_NOTA: Record<OpcionLibro, number> = { marco: 1, impreso: 2, digital: 3 };
+
+/** Lo que se para en el estante: el libro, el libro con su marco al lado, o una pantalla con la tapa. */
+function EnElEstante({ tipo, tapa }: { tipo: OpcionLibro; tapa: Tapa }) {
+  const foto = tapa.foto === undefined ? TAPA_ESTANTE : tapa.foto;
+  return (
+    <span aria-hidden className="chk-est-grupo">
+      {tipo === "digital" ? (
+        <span className="chk-est-pantalla">
+          <TapaLibro titulo={tapa.titulo} fotoSrc={foto} idioma={tapa.idioma} llenar />
+        </span>
+      ) : (
+        <span className="chk-est-libro">
+          <TapaLibro titulo={tapa.titulo} fotoSrc={foto} idioma={tapa.idioma} />
+        </span>
+      )}
+      {tipo === "marco" ? (
+        <span className="chk-est-marco">
+          <MarcoDibujado sizes="80px" />
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 /** Las miniaturas: el libro en 3/4, el libro con su marco al lado, una pantalla con la tapa, o solo el marco. */
 function Miniatura({ tipo, tapa }: { tipo: OpcionLibro | "copia" | "marco-solo"; tapa: Tapa }) {
@@ -104,6 +137,7 @@ export function OpcionesLibro({
   textos: T,
   tapa,
   conPack = false,
+  estante = false,
   formatear: f,
 }: {
   cat: Pick<Catalogo, "impreso" | "marco" | "pack">;
@@ -118,8 +152,12 @@ export function OpcionesLibro({
   tapa: Tapa;
   /** Si el libro completo puede ir con el precio de pack (solo el libro de una vida). */
   conPack?: boolean;
+  /** Las opciones como estantería (solo /comprar). Con una sola opción no hay nada que elegir: va la lista. */
+  estante?: boolean;
   formatear: (n: number) => string;
 }) {
+  const opciones = opcionesDeLibro(cat);
+  const enEstante = estante && opciones.length > 1;
   const elegida = opcionDe(estado);
   // Con pack real, la fila del primer marco del impreso ofrece pasar al libro completo por la diferencia (sin tachados).
   const conOferta = conPack && sumaSinPack(base, cat) !== null && Boolean(T.marcoFila);
@@ -134,25 +172,22 @@ export function OpcionesLibro({
     impreso: { titulo: T.impresoTitulo, detalle: T.impresoDetalle },
     digital: { titulo: T.digitalTitulo, detalle: T.digitalDetalle },
   };
-  return (
-    <fieldset className="flex flex-col gap-3.5">
-      <legend className="sr-only">{T.titulo}</legend>
-      {opcionesDeLibro(cat).map((o) => {
+  const notas = opciones.map((o) => {
         const precio = precioDeOpcion(o, base, cat, conPack);
         const frase = T.frases?.[o];
         const esta = elegida === o;
         const cinta = o === "marco" && T.cinta ? T.cinta : null;
         return (
-          <div key={o} className="chk-op" data-opcion={o}>
+          <div key={o} className={enEstante ? `chk-op chk-est-nota acu-nota acu-tinte-${TINTE_NOTA[o]}` : "chk-op"} data-opcion={o}>
             {cinta ? (
               <span aria-hidden className="chk-cinta">
                 {cinta}
               </span>
             ) : null}
-            <label className={`chk-op-tarjeta ${cinta ? "chk-op-tarjeta--cinta" : ""}`.trim()}>
-              <input type="radio" className="sr-only" name="formato" value={o} checked={esta} onChange={() => onElegir(o)} />
+            <label className={`chk-op-tarjeta ${cinta && !enEstante ? "chk-op-tarjeta--cinta" : ""}`.trim()}>
+              <input type="radio" id={enEstante ? `formato-${o}` : undefined} className="sr-only" name="formato" value={o} checked={esta} onChange={() => onElegir(o)} />
               <span aria-hidden className="chk-op-punto" />
-              <Miniatura tipo={o} tapa={tapa} />
+              {enEstante ? null : <Miniatura tipo={o} tapa={tapa} />}
               <span className="chk-op-textos">
                 {cinta ? <span className="sr-only">{cinta}. </span> : null}
                 <span className="chk-op-cabeza">{frase ? frase.cabeza : titulos[o].titulo}</span>
@@ -164,10 +199,27 @@ export function OpcionesLibro({
                 <span className="chk-op-cifra">{precio === null ? "" : f(precio)}</span>
               </span>
             </label>
-            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={o === "impreso" ? oferta : null} /> : null}
+            {esta && o !== "digital" ? <Extras cat={cat} estado={estado} onCambio={onCambio} textos={T} tapa={tapa} formatear={f} oferta={o === "impreso" ? oferta : null} conMiniatura={!enEstante} /> : null}
           </div>
         );
-      })}
+  });
+  return (
+    <fieldset className={enEstante ? "min-w-0" : "flex flex-col gap-3.5"}>
+      <legend className="sr-only">{T.titulo}</legend>
+      {enEstante ? (
+        <div className="chk-est" style={{ ["--n" as string]: opciones.length }}>
+          <div className="chk-est-repisa">
+            {opciones.map((o) => (
+              <label key={o} htmlFor={`formato-${o}`} className="chk-est-hueco" data-elegido={elegida === o || undefined}>
+                <EnElEstante tipo={o} tapa={tapa} />
+              </label>
+            ))}
+          </div>
+          <div className="chk-est-notas">{notas}</div>
+        </div>
+      ) : (
+        notas
+      )}
     </fieldset>
   );
 }
@@ -188,10 +240,13 @@ function Extras({
   tapa,
   formatear: f,
   oferta = null,
+  conMiniatura = true,
 }: {
   cat: Pick<Catalogo, "impreso" | "marco">;
   /** Si va, reemplaza la fila del primer marco por un botón que elige el libro completo. */
   oferta?: { texto: string; onElegir: () => void } | null;
+  /** En la nota angosta del estante, las filas van sin su dibujito. */
+  conMiniatura?: boolean;
   estado: ConLibro;
   onCambio: (cambios: Partial<ConLibro>) => void;
   textos: TextosOpciones;
@@ -215,12 +270,12 @@ function Extras({
           onValor={(n) => onCambio({ copias: n })}
           menos={T.unoMenos(T.copiasTitulo)}
           mas={T.unoMas(T.copiasTitulo)}
-          miniatura={<Miniatura tipo="copia" tapa={tapa} />}
+          miniatura={conMiniatura ? <Miniatura tipo="copia" tapa={tapa} /> : null}
         />
       ) : null}
       {marco && oferta ? (
         <button type="button" className="chk-extra chk-extra--oferta" data-oferta="marco" onClick={oferta.onElegir}>
-          <Miniatura tipo="marco-solo" tapa={tapa} />
+          {conMiniatura ? <Miniatura tipo="marco-solo" tapa={tapa} /> : null}
           <span className="chk-extra-titulo">{oferta.texto}</span>
         </button>
       ) : marco ? (
@@ -235,7 +290,7 @@ function Extras({
           onValor={(n) => onCambio(conMarcosParaRegalar(estado, n))}
           menos={T.unoMenos(tituloMarco)}
           mas={T.unoMas(tituloMarco)}
-          miniatura={<Miniatura tipo="marco-solo" tapa={tapa} />}
+          miniatura={conMiniatura ? <Miniatura tipo="marco-solo" tapa={tapa} /> : null}
         />
       ) : null}
     </div>

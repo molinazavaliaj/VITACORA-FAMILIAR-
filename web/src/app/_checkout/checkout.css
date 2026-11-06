@@ -1,62 +1,70 @@
-/* ── Las compras en la dirección «la web es un libro» (14/10) ──────────────
-   /comprar, /comprar/viaje, /regalar y «Pedido confirmado»: la cabecera en
-   tinta (tela de encuadernar) y el formulario en una hoja de papel crema que
-   la tapa con el borde cortado a mano (dir-deckle). Las clases dir- y sus
-   variables viven en globals.css (bloque del prototipo); acá va solo lo de
-   las compras, con prefijo chk-, en un archivo aparte para no tocar el final
-   de globals.css.
+/* ── Las compras en Acuarela (06/11) ───────────────────────────────────────
+   /comprar, /comprar/viaje, /comprar/kids, /comprar/historia, /regalar, «Pedido
+   confirmado» y las páginas del cupón. El cascarón lleva acu-tema y un acento
+   (_portada/acuarela.css): blanco cálido, manchas de rosa y aqua, títulos y
+   botones en el acento del producto, notas de papel de color con cinta. Acá va
+   solo lo de las compras, con prefijo chk-.
 
    Los formularios y las piezas de _ui pintan con los tokens del tema oscuro
-   (--texto-oscuro-fuerte, --tarjeta, --boton…). En vez de reescribir cada
-   clase, .chk les da valores de papel y tinta: el «oscuro» del nombre queda
-   como historia, el color es el de la hoja. Sin violeta. La de Viaje lleva
-   su paleta (15/10, al final de este archivo y en _direccion/viaje.css): la
-   misma hoja, de azul noche.
+   (--texto-oscuro-fuerte, --tarjeta, --boton…). En vez de reescribir cada clase,
+   les damos valores de papel claro: el «oscuro» del nombre queda como historia.
 
    Ojo: este archivo no va en una capa, así que le gana a las utilidades de
    Tailwind (que sí van en @layer). Por eso todo va bajo .chk y sin reglas
    sueltas sobre etiquetas. */
-@import "../_direccion/viaje.css";
 
 .chk {
-  --fondo-oscuro: #fbf9f4;            /* el fondo de los campos: un papel más claro */
-  --tarjeta: transparent;             /* las opciones son hilo, no cajas */
-  --tarjeta-alta: rgba(21, 20, 18, 0.12);
-  --texto-oscuro: #1f1d19;
-  --texto-oscuro-fuerte: #151412;
-  --texto-oscuro-suave: #45413a;
-  --texto-oscuro-menor: #5f5a51;      /* 6,1:1 sobre el papel */
-  --linea-oscura: rgba(21, 20, 18, 0.12);
-  --borde-oscuro: rgba(21, 20, 18, 0.17);
-  --borde-oscuro-fuerte: rgba(21, 20, 18, 0.36);
-  --punto-vacio: #736e64;             /* el punto vacío y las pistas de los campos: 4,7:1 */
-  --acento-oscuro: #151412;           /* foco, elegido, enlaces: tinta */
-  --boton: #0d0d0c;                   /* lleno = tinta sobre papel */
-  --sobre-boton: #f4f0e7;
-  --elegido-fondo: rgba(255, 253, 248, 0.7);
-  --sombra-boton: rgba(30, 24, 14, 0.22);
-  --error: #9a3412;
+  --fondo-oscuro: #ffffff;            /* el fondo de los campos */
+  --tarjeta: #ffffff;
+  --tarjeta-alta: #fbf0ee;
+  --texto-oscuro: #2a1c1c;
+  --texto-oscuro-fuerte: #2a1c1c;
+  --texto-oscuro-suave: #574846;
+  --texto-oscuro-menor: #5f504d;
+  --linea-oscura: rgba(90, 40, 45, 0.17);
+  --borde-oscuro: rgba(90, 40, 45, 0.17);
+  --borde-oscuro-fuerte: #8f7d79;     /* el borde de los campos: pasa 3:1 */
+  --punto-vacio: #7a6a66;             /* el punto vacío y las pistas */
+  --acento-oscuro: #7a1f2e;
+  --boton: #7a1f2e;
+  --sobre-boton: #fff9f1;
+  --elegido-fondo: #fbf0ee;
+  --sombra-boton: transparent;
+  --error: #a3341f;
   color: var(--texto-oscuro);
   font-family: var(--fuente-cuerpo), Georgia, serif;
 }
+/* Las mismas, con la fuerza justa para ganarle a .dir-pagina.acu-tema en el mismo
+   elemento: la acuarela da el suave y el borde más claros, y acá van textos sobre
+   papel de color y campos que tienen que verse. */
+.dir-pagina.acu-tema.chk {
+  --texto-oscuro-suave: #574846;
+  --texto-oscuro-menor: #5f504d;
+  --borde-oscuro-fuerte: #8f7d79;
+  --punto-vacio: #7a6a66;
+}
 
-/* El foco del tema (antes lo daba .tema-oscuro): tinta, separado 2 px. El
-   título del paso recibe el foco por código (tabindex=-1) y no lo dibuja. */
+/* El foco: el acento, separado 2 px. El título del paso recibe el foco por
+   código (tabindex=-1) y no lo dibuja. */
 .chk :focus-visible:not([tabindex="-1"]) { outline: 2px solid var(--acento-oscuro); outline-offset: 2px; }
-.chk-cabecera :focus-visible { outline-color: var(--dir-sobre-tinta); }
 
-/* La cabecera: tinta con trama de tela. Abajo deja 14 px más para que la
-   hoja la tape con sus dientes. */
-.chk-cabecera { padding-bottom: 14px; }
+/* La cabecera: una franja fina con las manchas de la acuarela. */
+.chk-cabecera {
+  --dir-sobre-tinta: var(--acu-titulo);
+  background-color: #fdf6f1;
+  background-image: var(--acu-lavado);
+  border-bottom: 1px solid var(--acu-linea);
+  color: var(--acu-tinta);
+}
 .chk-cabecera-dato {
   font-family: var(--fuente-micro), sans-serif;
   font-size: 13.5px;
-  color: var(--dir-sobre-tinta-suave);
+  color: var(--acu-tinta);
 }
 .chk-hoja {
   position: relative;
-  margin-top: -14px;
   flex: 1 1 auto;
+  background: var(--acu-blanco);
   color: var(--texto-oscuro);
 }
 
@@ -68,14 +76,14 @@
   font-family: var(--fuente-titulo), Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.9rem);
+  font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.4rem);
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: rgba(21, 20, 18, 0.28);
+  color: #8d7b77;
   transition: color var(--d-base) var(--ease-out);
 }
-.chk-paso[data-estado="hecho"] .chk-paso-numero { color: rgba(21, 20, 18, 0.55); }
-.chk-paso[data-estado="actual"] .chk-paso-numero { color: var(--texto-oscuro-fuerte); }
+.chk-paso[data-estado="hecho"] .chk-paso-numero { color: var(--acu-suave); }
+.chk-paso[data-estado="actual"] .chk-paso-numero { color: var(--acu-bordo); }
 .chk-paso-nombre {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -84,9 +92,9 @@
   font-size: 14.5px;
   color: var(--texto-oscuro-menor);
 }
-.chk-paso[data-estado="actual"] .chk-paso-nombre { color: var(--texto-oscuro-fuerte); font-weight: 500; }
-.chk-pasos-hilo { position: relative; margin-top: 14px; height: 1px; background: var(--borde-oscuro); }
-.chk-pasos-hilo > div { position: absolute; inset: -0.5px 0; background: var(--texto-oscuro-fuerte); }
+.chk-paso[data-estado="actual"] .chk-paso-nombre { color: var(--acu-titulo); font-weight: 600; }
+.chk-pasos-hilo { position: relative; margin-top: 10px; height: 3px; border-radius: 2px; background: #eadfdb; }
+.chk-pasos-hilo > div { position: absolute; inset: 0; border-radius: 2px; background: var(--acu-bordo); }
 
 /* ── El título de cada paso ── */
 .chk-antetitulo {
@@ -100,10 +108,10 @@
 .chk-h1 {
   font-family: var(--fuente-titulo), Georgia, serif;
   font-weight: 500;
-  font-size: clamp(2.3rem, 1.6rem + 2.6vw, 3.6rem);
-  line-height: 1.04;
-  letter-spacing: -0.025em;
-  color: var(--texto-oscuro-fuerte);
+  font-size: clamp(1.9rem, 1.45rem + 2.6vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--acu-titulo, var(--texto-oscuro-fuerte));
   text-wrap: balance;
 }
 .chk-h2 {
@@ -112,65 +120,84 @@
   font-size: clamp(1.6rem, 1.35rem + 0.9vw, 2.1rem);
   line-height: 1.1;
   letter-spacing: -0.015em;
-  color: var(--texto-oscuro-fuerte);
+  color: var(--acu-titulo, var(--texto-oscuro-fuerte));
 }
-.chk-bajada { font-size: 18px; line-height: 1.55; color: var(--texto-oscuro-suave); max-width: 58ch; text-wrap: pretty; }
+.chk-bajada { font-size: clamp(16px, 15px + 0.4vw, 18px); line-height: 1.55; color: var(--texto-oscuro-suave); max-width: 58ch; text-wrap: pretty; }
 
-/* ── Opciones elegibles (Opcion de _ui): hilo fino y esquinas de hoja, sin
-   caja pesada. Elegida: el hilo pasa a tinta y engorda hacia adentro (sin
-   mover nada). Las pastillas (.m-chip) siguen siendo píldoras. ── */
-.chk label.m-card:not(.m-chip) { border-radius: 6px; }
-.chk .m-card:has(:checked) {
-  border-color: var(--texto-oscuro-fuerte);
-  box-shadow: inset 0 0 0 0.5px var(--texto-oscuro-fuerte);
+/* ── Opciones elegibles (Opcion de _ui): notas de papel de color con cinta
+   (Viaje, «¿es un regalo?», los temas de Historia). Elegida: la nota no cambia de
+   color, se le dibuja un hilo del acento hacia adentro (sin mover nada) y el
+   punto se llena. Las pastillas (.m-chip) siguen siendo píldoras. ── */
+.chk label.m-card:not(.m-chip) {
+  --nota: var(--acu-t3);
+  position: relative;
+  border-color: transparent;
+  border-radius: 4px 4px 16px 12px;
+  background-color: var(--nota);
+  box-shadow: 0 10px 16px -14px rgba(70, 40, 30, 0.55);
 }
-.chk .m-chip:has(:checked) { box-shadow: none; }
-.chk .m-card:has(:checked) .m-dot { border-width: 5.5px; border-color: var(--texto-oscuro-fuerte); }
+.chk label.m-card:not(.m-chip):nth-of-type(3n + 2) { --nota: var(--acu-t2); }
+.chk label.m-card:not(.m-chip):nth-of-type(3n) { --nota: var(--acu-t1); }
+/* La cinta de la nota: la de la acuarela, sin el resto de .acu-nota (el <label> de
+   _ui lleva sus utilidades de flex y padding). */
+.chk label.m-card:not(.m-chip)::before,
+.chk-op:not(.acu-nota)::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 40px;
+  height: 11px;
+  border-radius: 2px;
+  background: rgba(255, 250, 240, 0.82);
+  box-shadow: 0 1px 2px rgba(70, 40, 30, 0.14);
+  transform: translateX(-50%) rotate(-1.5deg);
+  pointer-events: none;
+}
+.chk .m-card:has(:checked) { border-color: transparent; }
+.chk label.m-card:not(.m-chip):has(:checked) {
+  background-color: var(--nota);
+  box-shadow: inset 0 0 0 2px var(--acu-bordo, var(--acento-oscuro)), 0 10px 16px -14px rgba(70, 40, 30, 0.55);
+}
+.chk .m-dot { background-color: #ffffff; }
+.chk .m-card:has(:checked) .m-dot { border-width: 5.5px; border-color: var(--acu-bordo, var(--acento-oscuro)); }
+/* La pastilla: blanca hasta que se elige; elegida, llena del acento (globals.css). */
+.chk .m-chip:not(:has(:checked)) { background-color: #ffffff; }
+.chk .m-chip:has(:checked) { border-color: var(--boton); box-shadow: none; }
 @media (hover: hover) {
-  .chk label.m-card:not(.m-chip):not(:has(:checked)):hover { border-color: var(--borde-oscuro-fuerte); }
+  .chk label.m-card:not(.m-chip):not(:has(:checked)):hover { box-shadow: inset 0 0 0 1px var(--borde-oscuro-fuerte), 0 10px 16px -14px rgba(70, 40, 30, 0.55); }
 }
 
 /* ── El marco: la foto en arco, en sepia, con su hilo alrededor ── */
 .chk-marco { width: 100%; max-width: 168px; margin: 12px; flex: none; }
 @media (min-width: 640px) { .chk-marco { width: 148px; } }
 
-/* ── La ficha: el resumen de la derecha como la ficha de un libro. Arriba la
-   tela negra con la tapa; abajo el papel con el ticket y sus puntos guía. ── */
-.chk-ficha {
-  overflow: hidden;
-  border-radius: 6px;
-  border: 1px solid rgba(21, 20, 18, 0.14);
-  background-color: #fbf9f3;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 22px 44px -26px rgba(52, 40, 24, 0.38);
-}
-.chk-ficha-cabeza {
-  /* Adentro de la tela, los tokens vuelven a ser de tinta. */
-  --texto-oscuro-fuerte: #f4f0e7;
-  --texto-oscuro-menor: #b3aea4;
-  --acento-oscuro: #c9c3b6;
-  padding: 22px 22px 20px;
-}
+/* ── La ficha: el resumen como una nota de papel (acu-nota acu-tinte-5 en el
+   mismo elemento, la de la acuarela): arriba la tapa y el nombre, abajo el ticket
+   con sus puntos guía. ── */
+.chk .chk-ficha { flex: none; gap: 0; margin: 0; padding: 0; }
+.chk-ficha-cabeza { padding: 22px 18px 14px; }
 .chk-ficha-titulo {
   font-family: var(--fuente-titulo), Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: 25px;
+  font-size: 23px;
   line-height: 1.12;
   letter-spacing: -0.01em;
-  color: var(--texto-oscuro-fuerte);
+  color: var(--acu-titulo, var(--texto-oscuro-fuerte));
   padding-bottom: 0.08em;
 }
-.chk-ficha-cuerpo { padding: 18px 22px 20px; font-family: var(--fuente-micro), sans-serif; }
+.chk-ficha-cuerpo { padding: 14px 18px 18px; border-top: 1px solid rgba(90, 40, 45, 0.22); font-family: var(--fuente-micro), sans-serif; }
 .chk-renglon { display: flex; align-items: baseline; gap: 8px; font-size: 14.5px; color: var(--texto-oscuro-suave); }
-.chk-guia { flex: 1 1 auto; min-width: 12px; border-bottom: 1px dotted rgba(21, 20, 18, 0.32); transform: translateY(-4px); }
+.chk-guia { flex: 1 1 auto; min-width: 12px; border-bottom: 1px dotted rgba(90, 40, 45, 0.45); transform: translateY(-4px); }
 .chk-total {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   margin-top: 6px;
-  padding-top: 14px;
-  border-top: 1px solid var(--texto-oscuro-fuerte);
+  padding-top: 12px;
+  border-top: 1px solid rgba(90, 40, 45, 0.35);
   color: var(--texto-oscuro-fuerte);
 }
 .chk-total-cifra {
@@ -179,10 +206,12 @@
   font-size: 32px;
   line-height: 1;
   letter-spacing: -0.02em;
+  color: var(--acu-titulo, var(--texto-oscuro-fuerte));
   font-variant-numeric: tabular-nums lining-nums;
 }
 .chk-incluye { font-size: 15px; line-height: 1.45; color: var(--texto-oscuro-suave); }
 .chk-incluye li { display: flex; gap: 10px; }
+.chk-incluye li > svg { color: var(--acu-bordo, currentColor); }
 
 /* ── La tarjeta del regalo: una cartulina de algodón sobre la hoja ── */
 .chk-tarjeta {
@@ -198,8 +227,12 @@
   font-weight: 500;
   font-size: 19px;
   line-height: 1.25;
-  color: var(--texto-oscuro-fuerte);
+  color: var(--acu-titulo, var(--texto-oscuro-fuerte));
 }
+/* Cada momento, una nota de papel (acu-nota y su tinte): los dos renglones uno abajo del otro, y en compu lado a lado. */
+.chk .chk-momento { display: grid; flex: none; gap: 4px; margin: 0; padding: 20px 18px 16px; }
+.chk-momento-que { font-size: 16.5px; line-height: 1.5; color: var(--acu-tinta, var(--texto-oscuro)); }
+@media (min-width: 640px) { .chk .chk-momento { grid-template-columns: 150px minmax(0, 1fr); gap: 20px; } }
 .chk-sello {
   display: flex;
   height: 64px;
@@ -207,20 +240,19 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid var(--texto-oscuro-fuerte);
-  box-shadow: 0 0 0 5px #f4f0e7, 0 0 0 6px rgba(21, 20, 18, 0.25);
-  color: var(--texto-oscuro-fuerte);
+  background: var(--acu-t6);
+  color: var(--acu-bordo, var(--texto-oscuro-fuerte));
 }
 
 /* El aviso del pago que no se cobró, en papel. */
-.chk-aviso { border: 1px solid rgba(154, 52, 18, 0.35); background: rgba(154, 52, 18, 0.06); border-radius: 6px; }
+.chk-aviso { border: 1px solid rgba(163, 52, 31, 0.4); background: #fdf1ec; border-radius: 6px; }
 
 /* Las pistas de los campos: más claras que un valor escrito (4,2:1 sobre el
    campo). En la letra de siempre, no en cursiva: la cursiva de Source Serif
    es un archivo más (37 kB) en la primera pintada de cada paso. */
 .chk input::placeholder,
 .chk textarea::placeholder {
-  color: #7a756b;
+  color: var(--punto-vacio);
   opacity: 1;
 }
 
@@ -240,23 +272,25 @@
 }
 
 /* ── La barra de abajo en el teléfono (BarraPaso): el total y el botón del
-   paso. Adentro, el botón lleno es papel sobre tinta. Debajo de 1024 px la
-   página deja lugar para que la barra no tape lo último, y el botón principal
-   del paso (el mismo que el de la barra) se esconde. ── */
+   paso, sobre papel, con el botón del acento. Debajo de 1024 px la página deja
+   lugar para que la barra no tape lo último, y el botón principal del paso (el
+   mismo que el de la barra) se esconde. ── */
 .chk-barra {
-  --boton: #f4f0e7;
-  --sobre-boton: #0d0d0c;
-  --sombra-boton: rgba(0, 0, 0, 0.35);
-  border-top: 1px solid var(--dir-hilo-tinta);
-  box-shadow: 0 -18px 34px -20px rgba(30, 24, 14, 0.5);
+  background: var(--acu-blanco);
+  border-top: 1px solid var(--acu-linea);
+  box-shadow: 0 -14px 26px -20px rgba(70, 40, 30, 0.45);
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
-.chk-barra :focus-visible { outline-color: var(--dir-sobre-tinta); }
 /* Con el aviso de cookies abierto, la barra se apoya encima de él (medicion.tsx publica su alto). */
 .chk .chk-barra { bottom: var(--alto-aviso, 0px); }
 @media (max-width: 1023px) {
   .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
   .chk-solo-escritorio { display: none; }
+}
+/* En el teléfono la primera pantalla tiene que mostrar el título, el estante y un precio. */
+@media (max-width: 639px) {
+  .chk .chk-con-barra { padding-top: 16px; }
+  .chk .chk-pasos { margin-bottom: -20px; }
 }
 
 /* ── Las opciones del paso 1 con miniatura, frase y extras adentro (Naza
@@ -265,18 +299,20 @@
    la elegida, debajo, dentro del mismo borde. ── */
 .chk-op {
   position: relative;
-  border: 1px solid var(--borde-oscuro);
-  border-radius: 6px;
-  transition: border-color var(--d-rapido) var(--ease-out), background-color var(--d-rapido) var(--ease-out);
+  border-radius: 4px 4px 16px 12px;
+  box-shadow: 0 10px 16px -14px rgba(70, 40, 30, 0.55);
+  transition: box-shadow var(--d-rapido) var(--ease-out);
 }
-.chk-op:has(> label input[name="formato"]:checked) {
-  border-color: var(--texto-oscuro-fuerte);
-  box-shadow: inset 0 0 0 0.5px var(--texto-oscuro-fuerte);
-  background-color: var(--elegido-fondo);
+/* En la lista (Kids, Historia) el color lo da el orden; en el estante, su acu-tinte-*. */
+.chk-op:not(.acu-nota):nth-of-type(3n + 1) { background-color: var(--acu-t1); }
+.chk-op:not(.acu-nota):nth-of-type(3n + 2) { background-color: var(--acu-t2); }
+.chk-op:not(.acu-nota):nth-of-type(3n) { background-color: var(--acu-t3); }
+.chk .chk-op:has(> label input[name="formato"]:checked) {
+  box-shadow: inset 0 0 0 2px var(--acu-bordo), 0 10px 16px -14px rgba(70, 40, 30, 0.55);
 }
-.chk-op:has(> label input[name="formato"]:focus-visible) { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 2px; }
+.chk-op:has(> label input[name="formato"]:focus-visible) { outline: 2px solid var(--acu-bordo); outline-offset: 2px; }
 @media (hover: hover) {
-  .chk-op:not(:has(> label input[name="formato"]:checked)):hover { border-color: var(--borde-oscuro-fuerte); }
+  .chk .chk-op:not(:has(> label input[name="formato"]:checked)):hover { box-shadow: inset 0 0 0 1px var(--borde-oscuro-fuerte), 0 10px 16px -14px rgba(70, 40, 30, 0.55); }
 }
 .chk-op-tarjeta {
   display: grid;
@@ -293,9 +329,10 @@
   height: 20px;
   border-radius: 999px;
   border: 1.5px solid var(--punto-vacio);
+  background: #ffffff;
   transition: border-width var(--d-rapido) var(--ease-out), border-color var(--d-rapido);
 }
-.chk-op:has(> label input[name="formato"]:checked) .chk-op-punto { border-width: 5.5px; border-color: var(--texto-oscuro-fuerte); }
+.chk-op:has(> label input[name="formato"]:checked) .chk-op-punto { border-width: 5.5px; border-color: var(--acu-bordo); }
 .chk-op-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .chk-op-cabeza { font-family: var(--fuente-micro), sans-serif; font-size: 16.5px; font-weight: 600; line-height: 1.3; color: var(--texto-oscuro-fuerte); }
 .chk-op-bajada { font-size: 15.5px; line-height: 1.45; color: var(--texto-oscuro-suave); }
@@ -312,7 +349,7 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* La cinta de marcapáginas del libro completo: tela de tinta que cuelga del
+/* La cinta de marcapáginas del libro completo: tela del acento que cuelga del
    borde de arriba, con la punta cortada en V. */
 .chk-cinta {
   position: absolute;
@@ -321,11 +358,8 @@
   z-index: 1;
   width: 28px;
   padding: 12px 0 20px;
-  background-color: #141413;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 40%, rgba(0, 0, 0, 0.25));
-  color: #f4f0e7;
+  background-color: var(--acu-bordo);
+  color: var(--acu-sobre-bordo);
   font-family: var(--fuente-micro), sans-serif;
   font-size: 9.5px;
   font-weight: 600;
@@ -372,9 +406,9 @@
 .chk .chk-mini--fila .chk-mini-marco { right: auto; left: 4px; top: 5px; bottom: auto; width: 36px; }
 
 /* Los extras de la elegida: filas dentro de la tarjeta, separadas por hilos. */
-.chk-extras { margin: 0 20px; padding: 2px 0 8px; border-top: 1px solid var(--borde-oscuro); }
+.chk-extras { margin: 0 20px; padding: 2px 0 8px; border-top: 1px solid rgba(90, 40, 45, 0.22); }
 .chk-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; padding: 12px 0; }
-.chk-extra + .chk-extra { border-top: 1px solid var(--linea-oscura); }
+.chk-extra + .chk-extra { border-top: 1px solid rgba(90, 40, 45, 0.22); }
 .chk-extra-marca {
   display: grid;
   flex: 1 1 280px;
@@ -383,7 +417,7 @@
   gap: 12px;
   cursor: pointer;
 }
-.chk-extra-marca:has(:focus-visible) { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 4px; border-radius: 4px; }
+.chk-extra-marca:has(:focus-visible) { outline: 2px solid var(--acu-bordo); outline-offset: 4px; border-radius: 4px; }
 .chk-extra-caja {
   display: flex;
   width: 22px;
@@ -392,9 +426,10 @@
   justify-content: center;
   border: 1.5px solid var(--punto-vacio);
   border-radius: 5px;
+  background: #ffffff;
   transition: background-color var(--d-rapido), border-color var(--d-rapido);
 }
-.chk-extra[data-marcado] .chk-extra-caja { border-color: var(--texto-oscuro-fuerte); background: var(--texto-oscuro-fuerte); color: #f4f0e7; }
+.chk-extra[data-marcado] .chk-extra-caja { border-color: var(--acu-bordo); background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
 .chk-extra-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .chk-extra-titulo { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--texto-oscuro-fuerte); }
 .chk-extra-detalle { font-family: var(--fuente-micro), sans-serif; font-size: 13px; line-height: 1.4; color: var(--texto-oscuro-menor); }
@@ -402,19 +437,93 @@
 .chk-extra-contador { display: flex; align-items: center; gap: 10px; margin-left: 34px; }
 
 /* La fila del impreso que ofrece el marco con su foto por la diferencia (botón, no casilla). */
-.chk-extra--oferta { width: 100%; justify-content: flex-start; gap: 14px; text-align: left; cursor: pointer; background: none; border: 0; border-top: 1px solid var(--linea-oscura); min-height: 48px; font: inherit; color: inherit; touch-action: manipulation; }
-.chk-extra--oferta .chk-extra-titulo { text-decoration: underline; text-underline-offset: 3px; }
-.chk-extra--oferta:focus-visible { outline: 2px solid var(--texto-oscuro-fuerte); outline-offset: 2px; border-radius: 4px; }
+.chk-extra--oferta { width: 100%; justify-content: flex-start; flex-wrap: nowrap; gap: 14px; text-align: left; cursor: pointer; background: none; border: 0; border-top: 1px solid rgba(90, 40, 45, 0.22); min-height: 48px; font: inherit; touch-action: manipulation; }
+.chk .chk-extra--oferta .chk-extra-titulo { color: var(--acu-bordo); text-decoration: underline; text-underline-offset: 3px; }
+.chk-extra--oferta:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: 2px; border-radius: 4px; }
 
-/* Las notas de papel (fecha de la tarjeta, «si no sabe usarlo», garantía). */
-.chk-nota { border: 1px solid var(--borde-oscuro); border-radius: 6px; background: var(--tarjeta); padding: 14px 18px; display: flex; flex-direction: column; gap: 4px; }
-.chk-nota-titulo { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; color: var(--texto-oscuro-fuerte); }
-.chk-nota-cuerpo { font-size: 14.5px; line-height: 1.5; color: var(--texto-oscuro-suave); text-wrap: pretty; }
+/* Las notas de papel (fecha de la tarjeta, «si no sabe usarlo», garantía): acu-nota
+   y su tinte en el mismo elemento, la de la acuarela. Acá solo su tamaño y su letra. */
+.chk .chk-nota { flex: none; gap: 4px; margin: 0; padding: 18px 18px 14px; }
+.chk .chk-nota > .chk-nota-titulo { font-family: var(--fuente-titulo), Georgia, serif; font-size: 18px; font-weight: 500; line-height: 1.2; color: var(--acu-titulo); }
+.chk .chk-nota > .chk-nota-cuerpo { font-size: 15px; line-height: 1.5; color: var(--acu-tinta); text-wrap: pretty; }
 
-/* Tres ítems debajo de las opciones del libro. */
-.chk-seguridad { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0 4px; list-style: none; font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; color: var(--texto-oscuro-suave); }
-.chk-seguridad li { display: inline-flex; align-items: center; gap: 7px; }
-.chk-seguridad li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--texto-oscuro-menor); }
+/* Tres ítems debajo de las opciones del libro: una franja aqua, como la de la portada. */
+.chk-seguridad { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--acu-banda); list-style: none; font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; font-weight: 500; color: var(--acu-tinta); }
+.chk-seguridad li::before { content: "✓ "; font-weight: 700; color: var(--acu-bordo); }
+
+/* ── El estante del paso 1 de /comprar: la foto real, un libro por opción parado
+   en la tabla, y debajo una nota de papel por opción. Nada se pisa con nada: la
+   nota empieza después del estante y la cinta cae en el aire que hay entre los dos
+   (Naza, 06/11). Tocar el libro elige (su <label for> apunta al radio de la nota). ── */
+.chk-est { display: flex; flex-direction: column; gap: 20px; min-width: 0; container-type: inline-size; }
+/* La foto entera a lo ancho, cortada abajo de la sombra de la tabla (2400 × 960 de 2400 × 1122). */
+.chk-est-repisa {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  aspect-ratio: 2400 / 960;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f3ece2 url("/rediseno/estante.jpg") no-repeat 0 0 / 100% auto;
+}
+.chk-est-hueco { position: relative; display: block; min-width: 0; cursor: pointer; touch-action: manipulation; }
+/* El libro se apoya en la cara de arriba de la tabla (y = 856 de 960). */
+.chk-est-grupo {
+  position: absolute;
+  inset: auto 0 10.8%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4%;
+  transition: transform var(--d-base) var(--ease-out);
+}
+.chk-est-libro { display: block; flex: none; width: 52%; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
+.chk-est-marco { display: block; flex: none; width: 30%; }
+.chk-est-pantalla { display: block; flex: none; width: 42%; aspect-ratio: 9 / 16; overflow: hidden; border: 3px solid #1b1a17; border-radius: 7px; background: #1b1a17; box-shadow: 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
+/* Al elegir, el libro se levanta de la tabla. */
+.chk-est-hueco[data-elegido] .chk-est-grupo { transform: translateY(-7px); }
+.chk-est-hueco[data-elegido] .chk-est-libro,
+.chk-est-hueco[data-elegido] .chk-est-pantalla { outline: 2px solid var(--acu-bordo); outline-offset: 1px; }
+@media (hover: hover) {
+  .chk-est-hueco:not([data-elegido]):hover .chk-est-grupo { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chk-est-grupo { transition: none; }
+}
+.chk-est-notas { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 20px; }
+/* acu-nota trae la cinta, el papel y el color; acá, cómo se reparte adentro. */
+.chk .chk-est-nota { flex: none; gap: 0; margin: 0; padding: 0; transition: box-shadow var(--d-rapido) var(--ease-out); }
+.chk .chk-est-nota .chk-op-tarjeta { grid-template-columns: 20px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 18px 14px 14px; }
+.chk .chk-est-nota .chk-op-punto { margin-top: 3px; }
+.chk .chk-est-nota .chk-op-precio { grid-column: 3; }
+.chk .chk-est-nota .chk-op-cabeza { font-family: var(--fuente-titulo), Georgia, serif; font-size: 19px; font-weight: 500; line-height: 1.15; color: var(--acu-titulo); }
+.chk .chk-est-nota .chk-op-bajada { font-size: 14.5px; line-height: 1.4; color: var(--acu-tinta); }
+.chk .chk-est-nota .chk-op-detalle { color: var(--acu-tinta); }
+.chk .chk-est-nota .chk-op-cifra { font-size: 21px; color: var(--acu-tinta); }
+/* La cinta «Para regalar», adentro de la nota y en su lugar: no tapa nada. */
+.chk .chk-est-nota .chk-cinta {
+  position: static;
+  align-self: flex-start;
+  width: auto;
+  margin: 16px 0 -8px 14px;
+  padding: 4px 16px 4px 9px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  writing-mode: horizontal-tb;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%);
+}
+.chk .chk-est-nota .chk-cinta::before { display: none; }
+.chk .chk-est-nota .chk-extras { margin: 0 14px; }
+.chk .chk-est-nota .chk-extra-marca { grid-template-columns: 22px minmax(0, 1fr) auto; }
+.chk .chk-est-nota .chk-extra-contador { margin-left: 34px; }
+/* Tres columnas si el lugar del paso alcanza (cuando no, una sola, como en el teléfono). */
+@container (min-width: 620px) {
+  .chk-est-notas { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 14px; }
+  .chk .chk-est-nota .chk-op-tarjeta { grid-template-columns: 20px minmax(0, 1fr); }
+  .chk .chk-est-nota .chk-op-precio { grid-column: 2; flex-direction: row; justify-content: flex-start; margin-top: 8px; }
+  .chk .chk-est-nota .chk-extra-marca { grid-template-columns: 22px minmax(0, 1fr); }
+  .chk .chk-est-nota .chk-extra-precio { grid-column: 2; }
+}
 
 @media (max-width: 639px) {
   .chk-op-tarjeta { grid-template-columns: 20px 60px minmax(0, 1fr); gap: 12px 14px; padding: 16px; align-items: start; }
@@ -434,71 +543,3 @@
   /* El contador, debajo del texto de su fila (no contra el borde). */
   .chk-extra-contador { margin-left: 86px; }
 }
-
-/* ── La compra de Viaje con su color (15/10) ───────────────────────────────
-   Cabecera de noche y la hoja en azul noche (la de la maqueta CheckoutViaje:
-   «Para regalar», la opción elegida). Las opciones son hilo; la elegida
-   se marca con el azul de la guía. El botón, #7aa7ff con texto oscuro. */
-.dir-pagina.chk[data-producto="viaje"] {
-  --fondo-oscuro: var(--viaje-hoja-honda);   /* el fondo de los campos */
-  --tarjeta: transparent;
-  --tarjeta-alta: rgba(201, 214, 245, 0.12);
-  --texto-oscuro: #e9eefa;
-  --texto-oscuro-fuerte: var(--viaje-texto);
-  --texto-oscuro-suave: var(--viaje-hoja-suave);
-  --texto-oscuro-menor: var(--viaje-hoja-menor);
-  --linea-oscura: rgba(201, 214, 245, 0.14);
-  --borde-oscuro: rgba(201, 214, 245, 0.2);
-  --borde-oscuro-fuerte: rgba(201, 214, 245, 0.42);
-  --punto-vacio: #7d8bab;                      /* 4,9:1 sobre la hoja */
-  --acento-oscuro: var(--viaje-acento);
-  --boton: var(--viaje-boton);
-  --sobre-boton: var(--viaje-sobre-boton);
-  --elegido-fondo: var(--viaje-hoja-alta);
-  --sombra-boton: var(--viaje-sombra-boton);
-  --error: #ffb4a0;
-}
-.chk[data-producto="viaje"] .chk-paso-numero { color: rgba(201, 214, 245, 0.32); }
-.chk[data-producto="viaje"] .chk-paso[data-estado="hecho"] .chk-paso-numero { color: rgba(201, 214, 245, 0.62); }
-.chk[data-producto="viaje"] .chk-paso[data-estado="actual"] .chk-paso-numero { color: var(--viaje-acento); }
-.chk[data-producto="viaje"] .chk-pasos-hilo > div { background: var(--viaje-acento); }
-.chk[data-producto="viaje"] .chk-antetitulo { color: var(--viaje-acento); }
-.chk[data-producto="viaje"] .m-card:has(:checked),
-.chk[data-producto="viaje"] .chk-op:has(> label input[name="formato"]:checked) {
-  border-color: var(--viaje-acento);
-  box-shadow: inset 0 0 0 0.5px var(--viaje-acento);
-}
-.chk[data-producto="viaje"] .m-card:has(:checked) .m-dot,
-.chk[data-producto="viaje"] .chk-op:has(> label input[name="formato"]:checked) .chk-op-punto { border-color: var(--viaje-boton); }
-.chk[data-producto="viaje"] .chk-extra[data-marcado] .chk-extra-caja {
-  border-color: var(--viaje-boton);
-  background: var(--viaje-boton);
-  color: var(--viaje-sobre-boton);
-}
-.chk[data-producto="viaje"] .chk-ficha {
-  border-color: rgba(201, 214, 245, 0.16);
-  background-color: var(--viaje-hoja-honda);
-  box-shadow: 0 1px 0 rgba(157, 189, 255, 0.06) inset, 0 22px 44px -26px rgba(0, 0, 0, 0.8);
-}
-.chk[data-producto="viaje"] .chk-ficha-cabeza { --acento-oscuro: var(--viaje-acento); }
-.chk[data-producto="viaje"] .chk-guia { border-bottom-color: rgba(201, 214, 245, 0.3); }
-.chk[data-producto="viaje"] .chk-total { border-top-color: rgba(201, 214, 245, 0.5); }
-.chk[data-producto="viaje"] .chk-sello {
-  border-color: var(--viaje-acento);
-  color: var(--viaje-acento);
-  box-shadow: 0 0 0 5px var(--viaje-hoja), 0 0 0 6px rgba(157, 189, 255, 0.3);
-}
-.chk[data-producto="viaje"] .chk-aviso { border-color: rgba(255, 180, 160, 0.4); background: rgba(255, 180, 160, 0.08); }
-.chk[data-producto="viaje"] input::placeholder,
-.chk[data-producto="viaje"] textarea::placeholder { color: #8d9bbd; }
-.chk[data-producto="viaje"] .chk-barra {
-  --boton: var(--viaje-boton);
-  --sobre-boton: var(--viaje-sobre-boton);
-  --sombra-boton: var(--viaje-sombra-boton);
-}
-.chk[data-producto="viaje"] .chk-barra :focus-visible,
-.chk[data-producto="viaje"] .chk-cabecera :focus-visible { outline-color: var(--viaje-acento); }
-/* La marca de la cabecera sigue blanca (como en la maqueta): el azul es para
-   las etiquetas del contenido. Y el título de la ficha, en blanco. */
-.chk[data-producto="viaje"] .chk-cabecera .dir-micro { color: var(--viaje-texto); }
-.chk[data-producto="viaje"] .chk-ficha-cabeza { --texto-oscuro-fuerte: var(--viaje-texto); }

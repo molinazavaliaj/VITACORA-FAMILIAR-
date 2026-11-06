@@ -63,10 +63,10 @@ export function AvisoFallo({ textos: T, guardado }: { textos: TextosFallo; guard
   );
 }
 
-/** Una nota de papel, con título opcional (fecha de la tarjeta, «si no sabe usarlo», garantía). Sin JS. */
-export function NotaPapel({ titulo, children }: { titulo?: string; children: ReactNode }) {
+/** Una nota de papel de color con su cinta, con título opcional (fecha de la tarjeta, «si no sabe usarlo», garantía). Sin JS. */
+export function NotaPapel({ titulo, tinte = 2, children }: { titulo?: string; /** El color del papel (acu-tinte-*). */ tinte?: 1 | 2 | 3 | 4 | 5 | 6; children: ReactNode }) {
   return (
-    <aside className="chk-nota">
+    <aside className={`chk-nota acu-nota acu-tinte-${tinte}`}>
       {titulo ? <p className="chk-nota-titulo">{titulo}</p> : null}
       <p className="chk-nota-cuerpo">{children}</p>
     </aside>
@@ -162,8 +162,8 @@ export function BotonPagar({
 }
 
 /**
- * El resumen de la derecha, como la ficha de un libro: arriba la tela negra con
- * lo que se compra (la tapa, el título, para quién); abajo, en papel, el ticket
+ * El resumen de la derecha, una nota de papel: arriba lo que se compra (la tapa,
+ * el título, para quién); abajo el ticket
  * en vivo con la misma cuenta que cobra el servidor (renglones con puntos guía)
  * y el total, que se anima en cada cambio (MOTION.md patrón 7, `key={total}`).
  */
@@ -190,8 +190,8 @@ export function Resumen({
   const total = f(compra.total);
   return (
     <aside aria-label={T.etiqueta} className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8">
-      <div className="chk-ficha">
-        <div className="dir-tinta chk-ficha-cabeza">{cabeza}</div>
+      <div className="chk-ficha acu-nota acu-tinte-5">
+        <div className="chk-ficha-cabeza">{cabeza}</div>
         <div className="chk-ficha-cuerpo flex flex-col gap-2.5">
           {compra.lineas.map((l) => (
             <div key={l.id} className="chk-renglon">
@@ -243,14 +243,13 @@ export function Resumen({
  * La barra de abajo en el teléfono (Naza 14/10: «el continuar está arriba del
  * checkout»): el total y el botón del paso, siempre a un dedo, después del
  * resumen en el orden de la página. En escritorio no existe (el botón va en el
- * paso y el resumen a la derecha). Tinta sobre la hoja, como el CTA fijo de
- * la portada. El que la usa deja espacio abajo (.chk-con-barra) para que no
+ * paso y el resumen a la derecha). Sobre papel, con el botón del acento. El que la usa deja espacio abajo (.chk-con-barra) para que no
  * tape nada, y esconde en el teléfono su propio botón principal
  * (.chk-solo-escritorio) para que no haya dos iguales.
  */
 export function BarraPaso({ etiqueta, total, children }: { etiqueta: string; total: string; children: ReactNode }) {
   return (
-    <div data-barra-paso className="chk-barra dir-tinta fixed inset-x-0 z-30 lg:hidden">
+    <div data-barra-paso className="chk-barra fixed inset-x-0 z-30 lg:hidden">
       <div className="mx-auto flex max-w-[640px] items-center justify-between gap-4 px-4 pt-3">
         <div className="min-w-0">
           <p className="text-[11.5px] uppercase tracking-[0.14em] text-[var(--dir-sobre-tinta-suave)] [font-family:var(--fuente-micro)]">{etiqueta}</p>
@@ -264,7 +263,7 @@ export function BarraPaso({ etiqueta, total, children }: { etiqueta: string; tot
   );
 }
 
-/** El botón de la barra del teléfono (Continuar / Seguir), papel sobre tinta. */
+/** El botón de la barra del teléfono (Continuar / Seguir), en el acento. */
 export const BOTON_BARRA =
   "m-btn inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-[var(--boton)] px-7 text-[15.5px] font-semibold text-[var(--sobre-boton)] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]";
 
