@@ -335,3 +335,20 @@ El aviso interno a los socios de arriba (avisarDudas) se reemplaza por uno corto
 | fabrica/src/mail/hitos.ts, `dudas` | Asunto: Unas preguntas sobre lo que contó tu {quien}. Al leer lo que contó tu {quien} nos quedaron algunas dudas. Un nombre que no se entendió, una fecha, un lugar. / Son {n} preguntas cortas. Las podés contestar vos o cualquiera de la familia que invitaste. / Lo que nos digas entra al libro. Contestalas antes de encargarlo. Botón: Contestar las preguntas |
 | fabrica/src/mail/hitos.ts, `dudas_listas` | Asunto: Falta un paso para el libro de tu {quien}. Ya tenemos todas las respuestas. Gracias. / Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro. / Recién ahí empezamos a escribirlo. Te avisamos cuando esté. Botón: Encargar el libro |
 | web/src/lib/dudas-textos.ts, `textoTodasContestadas` | Ya están todas. El libro todavía no empezó. Para que empiece, elegí la tapa, sumá las fotos que falten y tocá Encargar. Botón: Ir a encargar el libro. Ya encargado: Ya están todas. El libro ya está en camino, te avisamos cuando esté. |
+
+## Dudas a quien contó, tanda 1 (aprobados por Naza el 06/11)
+
+Solo en una historia privada (`esPrivado`). Un regalo no privado sigue con los textos de «Dudas: mails a la familia y cartel». En vos; la versión en tú y en catalán van en la tanda 2.
+
+| Dónde | Texto |
+|---|---|
+| Plantilla Meta `dudas_narrador_vos`, también recordatorio | Hola, {{1}}. Antes de escribir tu libro nos quedaron unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Tocá el botón para contestarlas. Botón: Contestar las preguntas |
+| Plantilla Meta `revision_vos`, ventana cerrada al terminar | Hola, {{1}}. Terminamos la entrevista. Si hay alguna respuesta que no querés que vaya al libro, la podés quitar desde este enlace. Si está todo bien, no tenés que hacer nada. Botón: Ver mis respuestas |
+| `revision-narrador-textos.ts`, `dudas`, ventana abierta | Antes de escribir tu libro nos quedaron unas últimas preguntas sobre lo que contaste. Un nombre que no se entendió, una fecha. Las podés contestar desde este enlace. {link} |
+| `revision-narrador-textos.ts`, `escribio` | Gracias. Para que lo que nos digas entre en el libro, contestá las preguntas desde este enlace, escribiendo o dictando con el micrófono del teclado. {link} |
+| `mi-historia-textos.ts`, inicio | Unas últimas preguntas. Son cosas que no entendimos bien. Lo que nos digas entra al libro. |
+| `mi-historia-textos.ts`, cada pregunta | Pregunta {n} de {total} · Lo que dijiste |
+| `mi-historia-textos.ts`, campo | Escribí acá, o tocá el micrófono del teclado y dictalo. |
+| `mi-historia-textos.ts`, botones | No me acuerdo · Seguir |
+| `mi-historia-textos.ts`, final | Eso es todo. Gracias. En «Para mí», botón: Elegir la tapa y encargar el libro |
+| Panel de quien regala | A {como} le quedan {n} preguntas por contestar. / A {como} le queda una pregunta por contestar. |
