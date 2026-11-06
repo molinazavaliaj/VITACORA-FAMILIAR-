@@ -30,7 +30,8 @@ describe('pedirlo', () => {
     expect(pideMisRespuestas('Hoy no puedo, mañana te cuento de mi mamá', 'es-AR')).toBe(false);
   });
   it('historia lo reconoce igual', () => {
-    expect(pedidoHistoria('mis respuestas', 'es-AR')).toMatchObject({ link: true, reserva: false, pausa: false });
+    expect(pedidoHistoria('mis respuestas', 'es-AR', false)).toBeNull();
+    expect(pedidoHistoria('mis respuestas', 'es-AR', true)).toMatchObject({ link: true, reserva: false, pausa: false });
     expect(pedidoHistoria('esto que no vaya al libro', 'es-AR')).toMatchObject({ reserva: true });
   });
 });
