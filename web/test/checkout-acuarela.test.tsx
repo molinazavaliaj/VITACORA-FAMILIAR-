@@ -136,6 +136,20 @@ describe("el estante del paso 1", () => {
     expect(html).toContain("chk-mini");
   });
 
+  it("el libro de viaje en 3D conserva su estética: las reglas de l3--viaje están en globals.css", () => {
+    expect(fuente("_direccion/libro-3d.tsx")).toContain("l3--viaje");
+    const css = fuente("globals.css");
+    for (const selector of [".l3--viaje .l3-frente .l3-papel-tapa", ".l3--viaje .l3-lomo-cara", ".l3--viaje .l3-escucha"]) expect(css).toContain(selector);
+    expect(css).toMatch(/\.l3--viaje \.l3-guarda \{ background-color: #111a2c; \}/);
+  });
+
+  it("el estante escala los libros según cuántas opciones hay, y el aviso de cookies no tapa el final", () => {
+    const css = fuente("_checkout/checkout.css");
+    expect(css).toMatch(/\.chk-est-libro \{[^}]*width: calc\(52% \* var\(--n, 3\) \/ 3\)/);
+    expect(css).toMatch(/\.chk-est-pantalla \{[^}]*width: calc\(42% \* var\(--n, 3\) \/ 3\)/);
+    expect(css).toMatch(/\.chk-con-barra \{ padding-bottom: calc\(136px \+ env\(safe-area-inset-bottom\) \+ var\(--alto-aviso, 0px\)\); \}/);
+  });
+
   it("nada se pisa y el movimiento respeta a quien no lo quiere", () => {
     const css = fuente("_checkout/checkout.css");
     // Las notas no suben sobre el estante: el aire entre los dos es positivo y no hay margen negativo.

@@ -284,7 +284,7 @@
 /* Con el aviso de cookies abierto, la barra se apoya encima de él (medicion.tsx publica su alto). */
 .chk .chk-barra { bottom: var(--alto-aviso, 0px); }
 @media (max-width: 1023px) {
-  .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom)); }
+  .chk-con-barra { padding-bottom: calc(136px + env(safe-area-inset-bottom) + var(--alto-aviso, 0px)); }
   .chk-solo-escritorio { display: none; }
 }
 /* En el teléfono la primera pantalla tiene que mostrar el título, el estante y un precio. */
@@ -476,9 +476,10 @@
   gap: 4%;
   transition: transform var(--d-base) var(--ease-out);
 }
-.chk-est-libro { display: block; flex: none; width: 52%; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
+/* Los tamaños son de tres huecos: con dos (región sin marco) el hueco es más ancho y el libro, sin esto, no entra de alto. */
+.chk-est-libro { display: block; flex: none; width: calc(52% * var(--n, 3) / 3); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
 .chk-est-marco { display: block; flex: none; width: 30%; }
-.chk-est-pantalla { display: block; flex: none; width: 42%; aspect-ratio: 9 / 16; overflow: hidden; border: 3px solid #1b1a17; border-radius: 7px; background: #1b1a17; box-shadow: 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
+.chk-est-pantalla { display: block; flex: none; width: calc(42% * var(--n, 3) / 3); aspect-ratio: 9 / 16; overflow: hidden; border: 3px solid #1b1a17; border-radius: 7px; background: #1b1a17; box-shadow: 6px 2px 11px -4px rgba(60, 40, 20, 0.5); }
 /* Al elegir, el libro se levanta de la tabla. */
 .chk-est-hueco[data-elegido] .chk-est-grupo { transform: translateY(-7px); }
 .chk-est-hueco[data-elegido] .chk-est-libro,

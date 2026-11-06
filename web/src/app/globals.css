@@ -1234,6 +1234,23 @@ body {
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px),
     linear-gradient(270deg, rgba(0, 0, 0, 0.35), transparent 22%);
 }
+/* El libro de viaje en 3D del inicio de /viaje (19/10): la misma pieza
+   que el de Osvaldo con la estética del libro de viaje (viaje-libro-mesa.jpg):
+   banda de tinta bajo la foto, letras claras, lomo y guarda azul noche. */
+.l3--viaje .l3-frente .l3-papel-tapa,
+.l3--viaje .l3-contra .l3-papel-tapa {
+  background-color: #15171c;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
+  color: #f1efe9;
+}
+.l3--viaje .l3-etiqueta,
+.l3--viaje .l3-marca,
+.l3--viaje .l3-web { color: #b9b6ae; }
+.l3--viaje .l3-marca-toroide { color: #d6d3cb; }
+.l3--viaje .l3-contra-texto { color: #dedbd3; }
+.l3--viaje .l3-escucha { color: #9dbdff; }
+.l3--viaje .l3-lomo-cara { background: linear-gradient(90deg, #0b1220, #1a2740 45%, #0d1524); }
+.l3--viaje .l3-guarda { background-color: #111a2c; }
 .l3-portadilla-nombre { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 6.4cqw; color: #26231e; }
 .l3-portadilla-toroide { width: 12cqw; height: auto; color: #5a5750; }
 .l3-canto { position: absolute; background-color: #eee8da; backface-visibility: hidden; }
