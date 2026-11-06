@@ -15,10 +15,18 @@ export type Almacen = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 /** El parámetro con el que vuelve la pasarela cuando no se cobró (lib/pagos.ts). */
 export const PARAMETRO_FALLO = "pago";
 export const VALOR_FALLO = "fallido";
+/** Volvió por su cuenta desde el formulario de /pagar: se restaura lo elegido, pero el banco no rechazó nada. */
+export const VALOR_VOLVIO = "volvio";
 
 /** ¿La página se abrió de vuelta de un pago que no se cobró? */
 export function vieneDePagoFallido(busqueda: string): boolean {
-  return new URLSearchParams(busqueda).get(PARAMETRO_FALLO) === VALOR_FALLO;
+  const valor = new URLSearchParams(busqueda).get(PARAMETRO_FALLO);
+  return valor === VALOR_FALLO || valor === VALOR_VOLVIO;
+}
+
+/** ¿Volvió por su cuenta, sin que el banco rechazara el pago? Entonces no se muestra el aviso de fallo. */
+export function volvioPorSuCuenta(busqueda: string): boolean {
+  return new URLSearchParams(busqueda).get(PARAMETRO_FALLO) === VALOR_VOLVIO;
 }
 
 /**
