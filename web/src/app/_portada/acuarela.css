@@ -5,27 +5,31 @@
   --acu-blanco: #fffdfa;
   --acu-tinta: #2a1c1c;
   --acu-suave: #6a5a57;
-  --acu-bordo: #7a1f2e;
-  --acu-titulo: #6d1b2a;
-  --acu-bordo-hondo: #631826;
-  --acu-sobre-bordo: #fff9f1;
+  /* Letras, enlaces y bordes del acento. En Familiar van en negro (Naza, 06/11). */
+  --acu-bordo: #2a1c1c;
+  --acu-titulo: #2a1c1c;
+  --acu-bordo-hondo: #1a1111;
+  /* El color de relleno: botones, solapa activa, cintas. Nunca para letras: el rosa no se lee sobre claro. */
+  --acu-relleno: #fc75b4;
+  --acu-relleno-hondo: #ef5aa2;
+  --acu-sobre-relleno: #2a1c1c;
   --acu-linea: rgba(90, 40, 45, 0.17);
-  --acu-t1: #f8e4e3; --acu-t2: #dff0ec; --acu-t3: #fbeee0; --acu-t4: #ede3ef; --acu-t5: #fbf3d6; --acu-t6: #e4eedd;
-  --acu-banda: #e5f2ef; --acu-banda2: #fbf0ee;
+  --acu-t1: #fde3ef; --acu-t2: #dff0ec; --acu-t3: #fbeee0; --acu-t4: #ede3ef; --acu-t5: #fbf3d6; --acu-t6: #e4eedd;
+  --acu-banda: #e5f2ef; --acu-banda2: #fdf0f5;
   --acu-lavado:
-    radial-gradient(60% 75% at 12% 12%, rgba(201, 108, 120, 0.34), transparent 72%),
+    radial-gradient(60% 75% at 12% 12%, rgba(252, 117, 180, 0.34), transparent 72%),
     radial-gradient(55% 70% at 90% 22%, rgba(128, 197, 186, 0.4), transparent 72%),
-    radial-gradient(70% 60% at 62% 104%, rgba(226, 160, 160, 0.3), transparent 72%);
+    radial-gradient(70% 60% at 62% 104%, rgba(252, 117, 180, 0.24), transparent 72%);
 }
-/* Los acentos: la misma acuarela para todos los productos, solo cambia el
-   acento (títulos y botones). Cada uno llega a 4,5:1 sobre #fffdfa y con el
-   texto claro encima: bordó 10,0; azul 8,5; terracota 5,7; verde 7,1; ciruela 9,5.
+/* Los acentos: la misma acuarela para todos los productos. Familiar va en rosa con
+   letras negras (10:1 el negro sobre #fffdfa, 6:1 sobre el rosa). Los demás rellenan
+   con su color y llevan texto claro: azul 8,5; mostaza 5,3; verde 7,1; ciruela 9,5.
    Van después de .acu-tema para ganarle en el mismo elemento. */
-.acu-acento-familiar { --acu-bordo: #7a1f2e; --acu-titulo: #6d1b2a; --acu-bordo-hondo: #631826; }
-.acu-acento-viaje { --acu-bordo: #1f4e79; --acu-titulo: #1a4268; --acu-bordo-hondo: #183e60; }
-.acu-acento-kids { --acu-bordo: #8a6200; --acu-titulo: #6f4f00; --acu-bordo-hondo: #6f4f00; }
-.acu-acento-historia { --acu-bordo: #14625a; --acu-titulo: #10524b; --acu-bordo-hondo: #0f4f49; }
-.acu-acento-eventos { --acu-bordo: #6a2c6b; --acu-titulo: #5a245b; --acu-bordo-hondo: #552356; }
+.acu-acento-familiar { --acu-bordo: #2a1c1c; --acu-titulo: #2a1c1c; --acu-bordo-hondo: #1a1111; --acu-relleno: #fc75b4; --acu-relleno-hondo: #ef5aa2; --acu-sobre-relleno: #2a1c1c; }
+.acu-acento-viaje { --acu-bordo: #1f4e79; --acu-titulo: #1a4268; --acu-bordo-hondo: #183e60; --acu-relleno: #1f4e79; --acu-relleno-hondo: #183e60; --acu-sobre-relleno: #fff9f1; }
+.acu-acento-kids { --acu-bordo: #8a6200; --acu-titulo: #6f4f00; --acu-bordo-hondo: #6f4f00; --acu-relleno: #8a6200; --acu-relleno-hondo: #6f4f00; --acu-sobre-relleno: #fff9f1; }
+.acu-acento-historia { --acu-bordo: #14625a; --acu-titulo: #10524b; --acu-bordo-hondo: #0f4f49; --acu-relleno: #14625a; --acu-relleno-hondo: #0f4f49; --acu-sobre-relleno: #fff9f1; }
+.acu-acento-eventos { --acu-bordo: #6a2c6b; --acu-titulo: #5a245b; --acu-bordo-hondo: #552356; --acu-relleno: #6a2c6b; --acu-relleno-hondo: #552356; --acu-sobre-relleno: #fff9f1; }
 
 .acu-tinte-1 { background-color: var(--acu-t1); } .acu-tinte-2 { background-color: var(--acu-t2); }
 .acu-tinte-3 { background-color: var(--acu-t3); } .acu-tinte-4 { background-color: var(--acu-t4); }
@@ -50,8 +54,8 @@
   --linea-oscura: var(--acu-linea);
   --borde-oscuro: var(--acu-linea);
   --borde-oscuro-fuerte: var(--acu-linea);
-  --boton: var(--acu-bordo);
-  --sobre-boton: var(--acu-sobre-bordo);
+  --boton: var(--acu-relleno);
+  --sobre-boton: var(--acu-sobre-relleno);
   background-color: #fdf6f1;
   background-image: var(--acu-lavado);
   color: var(--acu-titulo);
@@ -62,14 +66,14 @@
    bordó (la cabecera pública las pinta negras; solo acá cambian). El texto
    deja el mix-blend y lleva su color, que cambia junto con la pastilla. */
 .acu-lavado .m-solapas { background: rgba(255, 255, 255, 0.72); border-color: var(--acu-linea); }
-.acu-lavado .m-solapas .m-pill { background: var(--acu-bordo); }
+.acu-lavado .m-solapas .m-pill { background: var(--acu-relleno); }
 .acu-lavado .m-solapas > [data-solapa] { mix-blend-mode: normal; color: var(--acu-titulo); transition: color var(--d-base) var(--ease-io); }
 .acu-lavado .m-solapas[data-activa="familiar"] > [data-solapa="familiar"],
 .acu-lavado .m-solapas > [data-solapa]:hover,
-.acu-lavado .m-solapas > [data-solapa]:focus-visible { color: var(--acu-sobre-bordo); }
+.acu-lavado .m-solapas > [data-solapa]:focus-visible { color: var(--acu-sobre-relleno); }
 .acu-lavado .m-solapas[data-activa="familiar"]:has(> [data-solapa]:not([data-solapa="familiar"]):hover, > [data-solapa]:not([data-solapa="familiar"]):focus-visible) > [data-solapa="familiar"] { color: var(--acu-titulo); }
-.dir-portada .dir-boton--lleno.acu-boton { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
-.dir-portada .dir-boton--lleno.acu-boton:hover { background: var(--acu-bordo-hondo); }
+.dir-portada .dir-boton--lleno.acu-boton { background: var(--acu-relleno); color: var(--acu-sobre-relleno); }
+.dir-portada .dir-boton--lleno.acu-boton:hover { background: var(--acu-relleno-hondo); }
 .dir-portada .dir-boton--lleno.acu-boton:focus-visible { outline-color: var(--acu-bordo); }
 .prt-libro.acu-libro .l3-sombra { background: radial-gradient(closest-side, rgba(90, 30, 40, 0.28), rgba(90, 30, 40, 0)); }
 
@@ -131,7 +135,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-estante-item--regalo h3 { color: var(--acu-bordo); }
 @media (prefers-reduced-motion: reduce) { .acu-nota { transition: none; } }
 /* El marcapáginas que cuelga del borde de arriba. */
-.acu-marca { position: absolute; top: 0; left: 12px; z-index: 2; padding: 10px 5px 16px; writing-mode: vertical-rl; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
+.acu-marca { position: absolute; top: 0; left: 12px; z-index: 2; padding: 10px 5px 16px; writing-mode: vertical-rl; background: var(--acu-relleno); color: var(--acu-sobre-relleno); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
 .acu-marca--gris { background: var(--acu-suave); }
 /* El estante es una foto: una tabla de madera sobre una pared con la acuarela de
    la marca, repartida entre los libros para que se vea entera. Los libros se
@@ -186,7 +190,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-tel-volver { font-size: 17px; line-height: 1; }
 .acu-tel-cabeza b { display: block; font-size: 13px; font-weight: 600; line-height: 1.15; }
 .acu-tel-cabeza small { display: block; font-size: 10px; line-height: 1.2; opacity: 0.85; }
-.acu-tel-avatar { display: flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--acu-sobre-bordo); color: var(--acu-bordo); font-family: var(--fuente-titulo), Georgia, serif; font-size: 14px; }
+.acu-tel-avatar { display: flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--acu-sobre-relleno); color: var(--acu-bordo); font-family: var(--fuente-titulo), Georgia, serif; font-size: 14px; }
 .acu-tel-charla { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; gap: 7px; padding: 10px 9px; }
 .acu-tel-globo { align-self: flex-start; max-width: 86%; padding: 7px 9px; border-radius: 10px 10px 10px 2px; background: #fff; font-size: 12px; line-height: 1.3; text-align: left; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); animation: acu-globo 9s infinite both; }
 .acu-tel-globo--2 { animation-delay: 1.4s; }
@@ -213,7 +217,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 @keyframes acu-entra { 0%, 3% { opacity: 0; transform: translateX(0); } 6% { opacity: 1; } 17% { opacity: 1; } 22%, 100% { opacity: 0; transform: translateX(62px); } }
 
 /* OndaQuieta pinta con las variables de la tinta: sobre la hoja clara, en bordó. */
-.acu-onda { --dir-sobre-tinta: var(--acu-bordo); --dir-sobre-tinta-suave: var(--acu-suave); }
+.acu-onda { --dir-sobre-tinta: var(--acu-relleno); --dir-sobre-tinta-suave: var(--acu-suave); }
 
 /* «Se lee y también se escucha»: tapa y contratapa paradas en el mismo estante de la tienda. */
 .acu-voz-libros { position: relative; display: flex; aspect-ratio: 5 / 4; align-items: flex-end; justify-content: center; gap: 7%; padding-bottom: 19.2%; overflow: hidden; border-radius: 14px; background: #f3ece2 url("/rediseno/estante.jpg") no-repeat center bottom / auto 100%; }
@@ -230,7 +234,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-paso p { font-size: 14px; line-height: 1.45; color: var(--acu-suave); }
 .acu-pantallita { display: flex; flex-direction: column; justify-content: center; gap: 8px; height: 100%; padding: 16px; font-size: 12px; color: var(--acu-suave); }
 .acu-pantallita span { padding: 7px 10px; border: 1px solid var(--acu-linea); border-radius: 7px; background: #fff; }
-.acu-pantallita span:last-child { border: 0; background: var(--acu-bordo); color: var(--acu-sobre-bordo); font-weight: 600; text-align: center; }
+.acu-pantallita span:last-child { border: 0; background: var(--acu-relleno); color: var(--acu-sobre-relleno); font-weight: 600; text-align: center; }
 
 .acu-biografo summary::-webkit-details-marker { display: none; }
 .acu-ir:focus-visible { outline: 2px solid var(--acu-bordo); outline-offset: 2px; }
@@ -332,8 +336,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
   --borde-oscuro: var(--acu-linea);
   --borde-oscuro-fuerte: rgba(70, 35, 35, 0.34);
   --acento-oscuro: var(--acu-bordo);
-  --boton: var(--acu-bordo);
-  --sobre-boton: var(--acu-sobre-bordo);
+  --boton: var(--acu-relleno);
+  --sobre-boton: var(--acu-sobre-relleno);
 }
 .dir-pagina.acu-tema .dir-tinta, .dir-pagina.acu-tema.dir-tinta {
   background-color: #fdf6f1;
@@ -369,8 +373,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .dir-pagina.acu-tema .prt-etiqueta { color: var(--acu-bordo); }
 
 /* Los botones */
-.dir-pagina.acu-tema .dir-boton--lleno, .dir-pagina.acu-tema .dir-boton--tinta { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
-.dir-pagina.acu-tema .dir-boton--lleno:hover, .dir-pagina.acu-tema .dir-boton--tinta:hover { background: var(--acu-bordo-hondo); }
+.dir-pagina.acu-tema .dir-boton--lleno, .dir-pagina.acu-tema .dir-boton--tinta { background: var(--acu-relleno); color: var(--acu-sobre-relleno); }
+.dir-pagina.acu-tema .dir-boton--lleno:hover, .dir-pagina.acu-tema .dir-boton--tinta:hover { background: var(--acu-relleno-hondo); }
 .dir-pagina.acu-tema .dir-boton--hilo { border-color: var(--acu-bordo); color: var(--acu-bordo); }
 .dir-pagina.acu-tema .dir-boton--hilo:hover { border-color: var(--acu-bordo); background: color-mix(in srgb, var(--acu-bordo) 7%, transparent); }
 .dir-pagina.acu-tema .dir-boton:focus-visible { outline-color: var(--acu-bordo); }
@@ -382,17 +386,17 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .dir-pagina.acu-tema .dir-foto img, .dir-pagina.acu-tema .dir-revela { filter: none; animation: none; will-change: auto; }
 
 /* La cabecera: el botón de comprar y las solapas con el acento de la página. */
-.dir-pagina.acu-tema header .m-btn { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
-.dir-pagina.acu-tema header .m-btn:hover { background: var(--acu-bordo-hondo); }
+.dir-pagina.acu-tema header .m-btn { background: var(--acu-relleno); color: var(--acu-sobre-relleno); }
+.dir-pagina.acu-tema header .m-btn:hover { background: var(--acu-relleno-hondo); }
 .dir-pagina.acu-tema .m-solapas { background: rgba(255, 255, 255, 0.72); border-color: var(--acu-linea); }
-.dir-pagina.acu-tema .m-solapas .m-pill { background: var(--acu-bordo); }
+.dir-pagina.acu-tema .m-solapas .m-pill { background: var(--acu-relleno); }
 .dir-pagina.acu-tema .m-solapas > [data-solapa] { mix-blend-mode: normal; color: var(--acu-titulo); transition: color var(--d-base) var(--ease-io); }
 .dir-pagina.acu-tema .m-solapas[data-activa="familiar"] > [data-solapa="familiar"],
 .dir-pagina.acu-tema .m-solapas[data-activa="kids"] > [data-solapa="kids"],
 .dir-pagina.acu-tema .m-solapas[data-activa="viaje"] > [data-solapa="viaje"],
 .dir-pagina.acu-tema .m-solapas[data-activa="historia"] > [data-solapa="historia"],
 .dir-pagina.acu-tema .m-solapas > [data-solapa]:hover,
-.dir-pagina.acu-tema .m-solapas > [data-solapa]:focus-visible { color: var(--acu-sobre-bordo); }
+.dir-pagina.acu-tema .m-solapas > [data-solapa]:focus-visible { color: var(--acu-sobre-relleno); }
 .dir-pagina.acu-tema .m-solapas:has(> [data-solapa]:hover, > [data-solapa]:focus-visible) > [data-solapa]:not(:hover):not(:focus-visible) { color: var(--acu-titulo); }
 
 /* El pie queda oscuro, como en la portada: vuelve a los tonos de la tinta. */
@@ -409,7 +413,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 
 /* ── Lo que cada página pinta con color fijo, para cuando lleva acu-tema ───── */
 /* El papel del checkout (ejemplo, /regalar): sus botones y su foco, con el acento. */
-.dir-pagina.acu-tema .chk, .dir-pagina.acu-tema.chk { --acento-oscuro: var(--acu-bordo); --boton: var(--acu-bordo); --sobre-boton: var(--acu-sobre-bordo); --fondo-oscuro: #ffffff; --sombra-boton: transparent; }
+.dir-pagina.acu-tema .chk, .dir-pagina.acu-tema.chk { --acento-oscuro: var(--acu-bordo); --boton: var(--acu-relleno); --sobre-boton: var(--acu-sobre-relleno); --fondo-oscuro: #ffffff; --sombra-boton: transparent; }
 /* Las landings: la nota del libro que gira y la lista con hilos. */
 .dir-pagina.acu-tema .dir-sobre-papel-onda { --dir-sobre-tinta: var(--acu-bordo); }
 /* /ejemplo */
@@ -443,8 +447,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .dir-pagina.acu-tema .ent-cabecera :focus-visible, .dir-pagina.acu-tema .ent-cuerpo :focus-visible { outline-color: var(--acu-bordo); }
 .dir-pagina.acu-tema .ent .bg-white\/10, .dir-pagina.acu-tema.ent .bg-white\/10 { background-color: var(--acu-linea); }
 /* Las hojas de aviso (404 y error) */
-.dir-pagina.acu-tema .avi-boton { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
-.dir-pagina.acu-tema .avi-boton:hover { background: var(--acu-bordo-hondo); }
+.dir-pagina.acu-tema .avi-boton { background: var(--acu-relleno); color: var(--acu-sobre-relleno); }
+.dir-pagina.acu-tema .avi-boton:hover { background: var(--acu-relleno-hondo); }
 .dir-pagina.acu-tema .avi-etiqueta { color: var(--acu-bordo); }
 .dir-pagina.acu-tema .avi-bajada { color: var(--acu-suave); }
 
