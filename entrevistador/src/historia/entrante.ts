@@ -14,7 +14,7 @@
 
 import { fechaLocal } from '../flujo/tiempo.js';
 import { esSaludo } from '../v3/saludo.js';
-import { avisoDePrivacidad, esPrivado } from '../link-respuestas.js';
+import { preguntarAcceso } from '../flujo/acceso.js';
 import { textoFijo } from '../v3/textos-fijos.js';
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { leerSiNo, respuestaAntesDelSi, textoDeBienvenida } from './arranque.js';
@@ -146,9 +146,7 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
     if (f.estado.fase !== 'bienvenida' || yaVisto(f.estado, m.waMessageId)) return null;
     const e = anotarVisto(f.estado, m.waMessageId);
     if (dijo === 'si') {
-      // Lo que cuenta queda privado y cómo sacar algo (05/11): la V3 lo lleva en su aceptación; acá va suelto, antes de lo primero.
-      const aviso = esPrivado(n.contexto) ? avisoDePrivacidad(f.idioma, fichaTexto(f)) : null;
-      const a = arrancar(aviso ? encolar(e, { texto: aviso, tipo: 'suelto' }) : e, fichaTexto(f));
+      const a = arrancar(e, fichaTexto(f));
       return { cambio: { estado: a.abrio ? { ...a.estado, abiertaDesde: ahora.toISOString() } : a.estado }, resultado: 'si' };
     }
     if (dijo !== 'no' && !e.bienvenida) {
@@ -178,6 +176,8 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
       .update({ estado: 'activo', alerta_silencio: false, consentimiento_voz_at: ahora.toISOString() }).eq('id', n.id).in('estado', ['invitado', 'acepto']);
     if (error) console.error(`historia: no pude dejar activo a ${n.id}: ${error.message}`);
     await marcarRespondido(deps.db, n.id, ahora);
+    // Venta nueva: elige quién ve lo que cuenta (flujo/acceso.ts). No frena nada: lo primero de la entrevista sale igual.
+    await preguntarAcceso(n, fila.idioma, deps.wa.botones);
   } else if (que === 'no') {
     await deps.avisar(
       `dijo-que-no:${n.id}`,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { conMarcaDeAcceso } from "@/lib/acceso-contenido";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, catalogo, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
@@ -226,9 +227,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validacion.mensaje }, { status: validacion.status });
   }
   const { familia: familiaAInsertar } = validacion;
-  const narradorAInsertar = datosRegalo
+  const conRegalo = datosRegalo
     ? { ...validacion.narrador, contexto: contextoDeRegalo(validacion.narrador.contexto, datosRegalo) }
     : validacion.narrador;
+  // Venta nueva de Familiar o Historia para otra persona: el narrador elige quién ve lo que cuenta (lib/acceso-contenido).
+  const narradorAInsertar = { ...conRegalo, contexto: conMarcaDeAcceso(conRegalo.contexto) };
 
   // Viaje V2 (16/10): el carrito sale del viaje ya validado (formato y álbum),
   // no de lo que diga el navegador. Un viaje sin sus datos, o con la tarjeta de

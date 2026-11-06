@@ -66,14 +66,17 @@ describe('el mensaje', () => {
     expect(fechaDelPlazo(Date.parse('2026-11-07T21:30:00Z'), 'Europe/Madrid', 'ca')).toBe('dissabte 7 de novembre a les 22:30');
   });
   it('la regla es la de la web', () => {
-    expect(esPrivado({ vinculoComprador: 'hija' })).toBe(true);
+    expect(esPrivado({ acceso: { elige: true } })).toBe(true);
+    expect(esPrivado({ acceso: { elige: true, quien: 'narrador' } })).toBe(true);
+    expect(esPrivado({ acceso: { elige: true, quien: 'familia' } })).toBe(false);
+    expect(esPrivado({ vinculoComprador: 'hija' })).toBe(false); // sin la marca: una entrevista anterior
     expect(esPrivado({ vinculoComprador: 'yo mismo' })).toBe(false);
     expect(esPrivado({ modo: 'viaje' })).toBe(false);
   });
 });
 
 describe('si ya terminó y lo pide', () => {
-  const base = (estado = 'completado', contexto: unknown = { vinculoComprador: 'hijo' }) => ({
+  const base = (estado = 'completado', contexto: unknown = { vinculoComprador: 'hijo', acceso: { elige: true } }) => ({
     from: (t: string) => {
       const q: Record<string, unknown> = {};
       q.select = () => q; q.eq = () => q;
@@ -83,9 +86,9 @@ describe('si ya terminó y lo pide', () => {
   }) as never;
   it('le contesta con el link; a otra cosa, no', async () => {
     const salidas: string[] = [];
-    expect(await contestarLinkSiLoPide(base(), { id: 'n1', contexto: { vinculoComprador: 'hijo' } }, 'mis respuestas', async (t) => { salidas.push(t); }, AHORA)).toBe(true);
+    expect(await contestarLinkSiLoPide(base(), { id: 'n1', contexto: { vinculoComprador: 'hijo', acceso: { elige: true } } }, 'mis respuestas', async (t) => { salidas.push(t); }, AHORA)).toBe(true);
     expect(salidas[0]).toContain('/mis-respuestas/');
-    expect(await contestarLinkSiLoPide(base(), { id: 'n1', contexto: { vinculoComprador: 'hijo' } }, 'Hola, ¿cómo están?', async () => {}, AHORA)).toBe(false);
+    expect(await contestarLinkSiLoPide(base(), { id: 'n1', contexto: { vinculoComprador: 'hijo', acceso: { elige: true } } }, 'Hola, ¿cómo están?', async () => {}, AHORA)).toBe(false);
   });
   it('para mí, no', async () => {
     expect(await contestarLinkSiLoPide(base(), { id: 'n1', contexto: { vinculoComprador: 'yo mismo' } }, 'mis respuestas', async () => {}, AHORA)).toBe(false);

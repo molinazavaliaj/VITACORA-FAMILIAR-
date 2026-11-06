@@ -80,6 +80,13 @@ describe('mails de hitos si lo contado es privado (05/11)', () => {
     expect(r.cuerpo).not.toMatch(/leer|escuch/i);
     expect(r.cuerpo).toContain('sumar');
   });
+  it('la venta nueva todavía no eligió: no promete escuchar', () => {
+    for (const trato of ['vos', 'tu'] as const) {
+      const r = redactarHito('acepto', n, { regalo: true, elige: true, trato });
+      expect(r.cuerpo).not.toMatch(/escuch/i);
+      expect(r.cuerpo).toMatch(/quién quiere que vea/);
+    }
+  });
   it('sin privado, los de siempre', () => {
     expect(redactarHito('primera', n).asunto).toBe('Ya podés escuchar a Roberto');
   });
@@ -110,7 +117,7 @@ describe('mails de hitos', () => {
   it('«dijo que sí» de un regalo, de vos: ya le mandamos la primera pregunta, sin guion ni «mañana»', () => {
     const r = redactarHito('acepto', n, { regalo: true, trato: 'vos' });
     expect(r.asunto).toBe('Roberto dijo que sí');
-    expect(r.cuerpo).toContain('Roberto dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que cuente queda privado hasta que el libro esté listo. En tu tablero vas a ver cuánto lleva contado.');
+    expect(r.cuerpo).toContain('Roberto dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que vaya contando lo vas a poder escuchar en tu tablero.');
     expect(r.cuerpo).toContain('href="https://www.vitacorafamiliar.com/tablero/n1"');
     expect(r.cuerpo).not.toMatch(/Mañana|guion/);
   });
@@ -118,7 +125,7 @@ describe('mails de hitos', () => {
   it('«dijo que sí» de un regalo, de tú', () => {
     const r = redactarHito('acepto', n, { regalo: true, trato: 'tu' });
     expect(r.asunto).toBe('Roberto ha dicho que sí');
-    expect(r.cuerpo).toContain('Roberto ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que cuente queda privado hasta que el libro esté listo. En tu tablero verás cuánto lleva contado.');
+    expect(r.cuerpo).toContain('Roberto ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que vaya contando lo podrás escuchar en tu tablero.');
     expect(r.cuerpo).toContain('/tablero/n1');
   });
 
@@ -143,7 +150,7 @@ describe('mails de hitos', () => {
   it('manda una sola vez por narrador y lo anota en contexto.mailsEnviados', async () => {
     await mandarHito({ ...n, contexto: {} }, 'primera');
     expect(estado.fetch).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(estado.fetch.mock.calls[0][1].body)).toMatchObject({ to: ['martina@mail.com'], subject: 'Roberto ya empezó a contar' });
+    expect(JSON.parse(estado.fetch.mock.calls[0][1].body)).toMatchObject({ to: ['martina@mail.com'], subject: 'Ya podés escuchar a Roberto' });
     expect(estado.updates[0].p.contexto.mailsEnviados).toEqual(['primera']);
 
     estado.contexto = { mailsEnviados: ['primera'] };

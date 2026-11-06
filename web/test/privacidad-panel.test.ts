@@ -95,7 +95,7 @@ function base(contexto: Record<string, unknown>, extra: { pedido?: string; libro
   };
 }
 
-const REGALO = { vinculoComprador: "hija" };
+const REGALO = { vinculoComprador: "hija", acceso: { elige: true } };
 const PROPIA = { vinculoComprador: "yo mismo" };
 
 function preparar(tablas: Record<string, Fila[]>, archivos: Record<string, string> = {}) {
@@ -110,11 +110,13 @@ const pedirAudio = () => audio(pedir("/api/audio/r1"), { params: Promise.resolve
 beforeEach(() => { vi.clearAllMocks(); regla.privado = null; sesion(compradora); });
 
 describe("la regla", () => {
-  it("regalo y sin vínculo: privado. Para mí, viaje y kids: no", () => {
+  it("venta nueva: privado, salvo que elija a su familia. Sin la marca (las entrevistas anteriores), para mí, viaje y kids: no", () => {
     expect(loContadoEsPrivado({ contexto: REGALO })).toBe(true);
-    expect(loContadoEsPrivado({ contexto: { modo: "historia", vinculoComprador: "hijo" } })).toBe(true);
-    expect(loContadoEsPrivado({ contexto: null })).toBe(true);
-    expect(loContadoEsPrivado({ contexto: {} })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: { modo: "historia", vinculoComprador: "hijo", acceso: { elige: true, quien: "narrador" } } })).toBe(true);
+    expect(loContadoEsPrivado({ contexto: { vinculoComprador: "hija", acceso: { elige: true, quien: "familia" } } })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: { vinculoComprador: "hija" } })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: null })).toBe(false);
+    expect(loContadoEsPrivado({ contexto: {} })).toBe(false);
     expect(loContadoEsPrivado({ contexto: PROPIA })).toBe(false);
     expect(loContadoEsPrivado({ contexto: { modo: "historia", ...PROPIA } })).toBe(false);
     expect(loContadoEsPrivado({ contexto: { modo: "viaje", vinculoComprador: "le regala el viaje" } })).toBe(false);

@@ -504,7 +504,9 @@ Spec: `docs/superpowers/specs/2026-10-21-respuesta-fuera-del-libro-design.md`. M
 
 ## Lo contado es privado — el libro para otra persona (Naza y Joaquín, 05/11)
 
-Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `contexto.vinculoComprador` no es `yo mismo`, quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron. Sin vínculo cargado cuenta como regalo. Viaje (`modo = 'viaje'`), Kids (`modo = 'kids'`) y «para mí» siguen como estaban. La regla está repetida a propósito, una por servicio: `loContadoEsPrivado` (web/src/lib/panel.ts), `esPrivado` (fabrica/src/escritor/produccion/privacidad.ts) y `esPrivado` (entrevistador/src/link-respuestas.ts).
+Sin tablas ni columnas nuevas, sin DDL. Lo decide `contexto.acceso`, que pone la compra solo en ventas nuevas de Familiar e Historia para otra persona: `{ elige: true, quien?: 'familia' | 'narrador', at?, waMessageId?, version? }`. **Sin esa marca (todas las entrevistas anteriores, «para mí», Viaje y Kids) nada de esto corre.** Con la marca y `quien = 'familia'`, tampoco. Con la marca y `quien` en `narrador` o vacío (no contestó), quien regala y sus invitados no reciben lo que cuenta el narrador: ni respuestas, ni audios completos, ni transcripciones, ni las preguntas como le llegaron.
+
+**En los dos casos** la familia lee el libro y escucha las frases elegidas apenas el pedido está `entregado`, y confirma para imprenta quien compró.
 
 **Libro listo** es el pedido en `entregado`, no `libro_aprobado_at`. El orden: termina de contar → 48 horas del narrador → la fábrica lee el material (Etapa A) → dudas por WhatsApp a quien contó, hasta 72 horas → se escribe, si ya encargó → libro listo → confirma → imprenta. Todas las dudas de un libro privado o «para mí» van a quien contó (Naza, 06/11): la fábrica no las clasifica y a quien regala solo le llega `dudas_listas_privado`, el mismo candado que `dudas_listas`, sin las gracias.
 

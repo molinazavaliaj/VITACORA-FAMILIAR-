@@ -1,4 +1,5 @@
 import type { Textos } from "@/lib/idioma-web";
+// ESPERA aprobación de Naza · A-05 (05/11): «Con un QR para escuchar su voz».
 
 // «Nuestras ediciones» en la portada (maqueta aprobada por Naza el 02/11):
 // cuatro fichas iguales, como una tienda, con el libro cerrado en el mismo
@@ -45,7 +46,7 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     historia: { nombre: "Vitácora de una historia", para: "Un capítulo de su vida, a fondo" },
     tapaKids: { etiqueta: "Mi primer capítulo", nombre: ["Nico", "Rivas"], edad: "11 años" },
     tapaHistoria: { etiqueta: "El libro de una historia", nombre: ["Ruiz & Hijos", "fundada en 1984"], firma: "Carmen Ruiz" },
-    pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar los audios", "Envío incluido"],
+    pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar su voz", "Envío incluido"],
   },
   ar: {
     titulo: "Nuestras ediciones",
@@ -58,7 +59,7 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     historia: { nombre: "Vitácora de una historia", para: "Un capítulo de su vida, a fondo" },
     tapaKids: { etiqueta: "Mi primer capítulo", nombre: ["Nico", "Rivas"], edad: "11 años" },
     tapaHistoria: { etiqueta: "El libro de una historia", nombre: ["Ruiz & Hijos", "fundada en 1984"], firma: "Carmen Ruiz" },
-    pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar los audios", "Envío incluido"],
+    pie: ["Se cuenta por WhatsApp, con audios", "Con un QR para escuchar su voz", "Envío incluido"],
   },
   ca: {
     titulo: "Les nostres edicions",
@@ -71,6 +72,6 @@ export const TEXTOS_EDICIONES: Textos<TextosEdiciones> = {
     historia: { nombre: "Vitácora d'una història", para: "Un capítol de la seva vida, a fons" },
     tapaKids: { etiqueta: "El meu primer capítol", nombre: ["Nico", "Rivas"], edad: "11 anys" },
     tapaHistoria: { etiqueta: "El llibre d'una història", nombre: ["Ruiz & Fills", "fundada el 1984"], firma: "Carmen Ruiz" },
-    pie: ["S'explica per WhatsApp, amb àudios", "Amb un QR per escoltar els àudios", "Enviament inclòs"],
+    pie: ["S'explica per WhatsApp, amb àudios", "Amb un QR per escoltar la seva veu", "Enviament inclòs"],
   },
 };

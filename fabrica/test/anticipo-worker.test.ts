@@ -155,7 +155,7 @@ describe('rama del anticipo en el tick', () => {
   });
 
   it('el libro es para otra persona: no se arma ni sale el anticipo (privacidad, 05/11)', async () => {
-    contextoNarrador = { vinculoComprador: 'hija' };
+    contextoNarrador = { vinculoComprador: 'hija', acceso: { elige: true } };
     obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
     await tick();
     expect(generarAnticipoMock).not.toHaveBeenCalled();

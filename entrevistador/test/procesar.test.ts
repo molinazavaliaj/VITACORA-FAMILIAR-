@@ -4,6 +4,7 @@ import type { MensajeEntrante } from '../src/whatsapp/webhook.js';
 // Mocks compartidos (hoisted: disponibles dentro de las fábricas de vi.mock).
 const mocks = vi.hoisted(() => ({
   enviarTexto: vi.fn(),
+  enviarBotones: vi.fn(),
   descargarAudio: vi.fn(),
   guardarRespuestaAudio: vi.fn(),
   guardarReserva: vi.fn(),
@@ -77,7 +78,7 @@ vi.mock('../src/db/cliente.js', () => {
 });
 
 vi.mock('../src/whatsapp/enviar.js', () => ({
-  enviarTexto: mocks.enviarTexto, enviarPlantilla: vi.fn(), enviarAudioPorLink: vi.fn(),
+  enviarTexto: mocks.enviarTexto, enviarBotones: mocks.enviarBotones, enviarPlantilla: vi.fn(), enviarAudioPorLink: vi.fn(),
 }));
 vi.mock('../src/whatsapp/media.js', () => ({ descargarAudio: mocks.descargarAudio, pathDeAudio: vi.fn() }));
 vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardarRespuestaAudio, guardarReserva: mocks.guardarReserva, guardarTemaDeOtraParte: mocks.guardarTemaDeOtraParte }));
@@ -357,6 +358,50 @@ describe('procesarEntrante', () => {
     expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
     expect(mocks.avisarSocios).not.toHaveBeenCalled();
     expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
+  });
+
+  // El narrador elige quién ve lo que cuenta (flujo/acceso.ts, 05/11).
+  it('venta nueva: después del SÍ elige con dos botones, y la primera pregunta sale igual', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon', acceso: { elige: true } });
+    mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    expect(mocks.enviarBotones).toHaveBeenCalledOnce();
+    expect(mocks.enviarBotones.mock.calls[0][2]).toEqual(['Mi familia', 'Prefiero yo']);
+    const dicho = mocks.enviarTexto.mock.calls.map((c: unknown[]) => c[1]).join(' ');
+    expect(dicho).not.toContain('leer y escuchar');
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
+  });
+
+  it('venta nueva: si la pregunta de los botones falla, la primera pregunta sale igual', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon', acceso: { elige: true } });
+    mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
+    mocks.enviarBotones.mockRejectedValueOnce(new Error('Meta caído'));
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
+  });
+
+  it('una entrevista en curso (sin la marca): ni botones ni cambio de texto', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon' });
+    mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    expect(mocks.enviarBotones).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('leer y escuchar'));
+  });
+
+  it('el botón de la elección nunca llega a la entrevista', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3, { acceso: { elige: true } });
+    mocks.estado.filaV3 = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Prefiero yo', waMessageId: 'w' });
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.procesarEntranteHistoria).not.toHaveBeenCalled();
+    expect(update('narradores')?.p).toMatchObject({ contexto: { acceso: { quien: 'narrador' } } });
+  });
+
+  it('sin la marca, un botón con ese texto sigue a la entrevista como siempre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3, {});
+    mocks.estado.filaV3 = { narrador_id: 'n1' };
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', esBoton: true, texto: 'Prefiero yo', waMessageId: 'w' });
+    expect(mocks.procesarEntranteV3).toHaveBeenCalledOnce();
   });
 
   it('(a) un "SÍ" de un invitado lo pasa a acepto y envía la confirmación', async () => {
