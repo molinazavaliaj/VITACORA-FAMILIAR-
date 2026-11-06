@@ -1,6 +1,6 @@
 # Publicar la web con la conexión directa de Vercel y GitHub
 
-**Estado: plan, sin ejecutar. No se hace antes de los anuncios del 9/11.** Revisado contra la
+**Estado: plan, sin ejecutar. Se hace antes de los anuncios del 9/11, después de los merges pendientes (decisión de Joaquín, 06/11).** Revisado contra la
 documentación de Vercel y el estado real del proyecto el 06/11/2026.
 
 ## Qué cambia y por qué
@@ -82,8 +82,13 @@ Ver la sección «Cómo volver atrás».
 
 ## Paso a paso
 
-**Fecha propuesta: martes 17/11 a la mañana**, con los merges de privacidad y portada ya hechos, una semana de
-anuncios sin sobresaltos y Naza disponible. Unos 45 minutos. Nunca un viernes a la tarde (`docs/rollback.md`).
+**Objetivo: domingo 8/11**, unos 45 minutos con Naza disponible. Antes tienen que estar:
+
+- Portada y privacidad fusionadas y publicadas con el sistema de hoy.
+- La compra de prueba real hecha.
+
+**Si el domingo a la noche falta algo, no se hace con apuro:** pasa a después de la primera semana de anuncios. Lo
+mismo si el cambio no quedó bien cerrado antes del lunes: se vuelve atrás y se reintenta después.
 
 ### Antes (cualquier día, sin riesgo)
 
