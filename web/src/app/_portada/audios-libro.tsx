@@ -12,7 +12,7 @@ const FOTOS: [string, string] = ["/rediseno/juan-domingo-joven.jpg", "/rediseno/
 
 // Texto de relleno: va borroso y no se llega a leer. Solo da la textura de una página escrita.
 const RELLENO =
-  "Nos mudamos cuando yo era chico y la casa nueva olía a pintura y a pan. En el patio había una higuera que daba sombra todo el verano, y a la tarde nos sentábamos ahí a escuchar la radio. Mi madre cosía junto a la ventana mientras mi padre arreglaba lo que encontraba roto. Los domingos venían los primos y la mesa no alcanzaba para todos. De esos años me acuerdo de los olores, de las voces y de las cartas que llegaban de lejos.";
+  "Nos mudamos cuando yo era chico y la casa nueva olía a pintura y a pan. En el patio había una higuera que daba sombra todo el verano, y a la tarde nos sentábamos ahí a escuchar la radio. Mi abuela cosía junto a la ventana mientras alguien arreglaba lo que encontraba roto. Los domingos venían los primos y la mesa no alcanzaba para todos. De esos años me acuerdo de los olores, de las voces y de las cartas que llegaban de lejos.";
 
 function Renglones({ cuantos }: { cuantos: number }) {
   return (
