@@ -161,7 +161,9 @@ describe('los mails de las dudas a la familia (Naza, 30/10)', () => {
   it('todas contestadas: falta encargar', () => {
     expect(asuntoHito('dudas_listas', 'papá', 'vos')).toBe('Falta un paso para el libro de tu papá');
     const vos = cuerpoHito('dudas_listas', { ...o, variante: 'vos' });
-    expect(vos).toContain('Ya tenemos todas las respuestas. Gracias.');
+    expect(vos).not.toContain('Ya tenemos todas las respuestas');
+    expect(cuerpoHito('dudas_listas', { ...o, variante: 'tu' })).not.toContain('Ya tenemos todas las respuestas');
+    expect(cuerpoHito('dudas_listas', o)).not.toContain('Ya tenemos todas las respuestas');
     expect(vos).toContain('Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.');
     expect(vos).toContain('Recién ahí empezamos a escribirlo. Te avisamos cuando esté.');
     expect(vos).toContain('Encargar el libro');

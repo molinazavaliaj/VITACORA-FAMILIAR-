@@ -12,7 +12,7 @@ const m = vi.hoisted(() => ({
   obtenerClienteDb: vi.fn(),
   idiomasV3: vi.fn(async () => new Map<string, string>()),
   enviarMailHito: vi.fn(async () => false),
-  dudasParaLaFamilia: vi.fn(async (): Promise<{ cantidad: number; contestadas: boolean } | null> => null),
+  dudasParaLaFamilia: vi.fn(async (): Promise<{ cantidad: number; contestadas: boolean; plazoVencido?: boolean } | null> => null),
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
@@ -208,12 +208,20 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     m.dudasParaLaFamilia.mockResolvedValue(null);
   });
 
-  it('con dudas sin contestar, el link para contestarlas, con cuántas son y con vos para Argentina', async () => {
-    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false });
+  it('con dudas sin contestar y el plazo corriendo, ningún mail a quien regala', async () => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: false });
     const { db } = base(conDudas() as never);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', variante: 'vos', cantidad: 25 })]);
+    expect(dudasMandadas()).toEqual([]);
+  });
+
+  it('venció el plazo sin todas contestadas: que falta encargarlo, nunca el de las dudas', async () => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+    const { db } = base(conDudas() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro', variante: 'vos' })]);
   });
 
   it('con todas contestadas y el libro sin encargar, que falta encargarlo (link a Encargar)', async () => {
@@ -227,8 +235,8 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
 
   it('sin mail si el libro ya está encargado, si es «Para mí», si la Etapa A no terminó o si no dejó dudas', async () => {
     for (const [narrador, estado] of [
-      [{ libro_aprobado_at: '2026-10-30' }, { cantidad: 3, contestadas: false }],
-      [{ contexto: { vinculoComprador: 'yo mismo' } }, { cantidad: 3, contestadas: true }],
+      [{ libro_aprobado_at: '2026-10-30' }, { cantidad: 3, contestadas: false, plazoVencido: true }],
+      [{ contexto: { vinculoComprador: 'yo mismo' } }, { cantidad: 3, contestadas: true, plazoVencido: true }],
       [{}, null],
       [{}, { cantidad: 0, contestadas: false }],
     ] as const) {

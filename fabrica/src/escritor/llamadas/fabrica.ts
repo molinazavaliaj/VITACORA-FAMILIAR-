@@ -24,8 +24,8 @@ export const llamadaDisputa = (docsHechos: string[], d: Disputa): Llamada => ({
 });
 
 /**
- * Las preguntas de las dudas de datos. `propia`: el libro lo compró quien narra, para sí («Para mí»,
- * vinculoComprador = "yo mismo"); las lee la misma persona que contó, así que le hablan de vos/tú (15/10).
+ * Las preguntas de las dudas de datos. `propia`: las lee la misma persona que contó, así que le hablan de vos/tú (15/10).
+ * En V3 e Historia es siempre así: «Para mí» y, desde el 06/11, también un regalo.
  */
 export const llamadaDudas = (c: Carpeta, dudas: DudaDeDatos[], o: { propia?: boolean } = {}): Llamada => {
   const encabezado = o.propia ? '### Dudas para quien narra' : '### Dudas para la familia';

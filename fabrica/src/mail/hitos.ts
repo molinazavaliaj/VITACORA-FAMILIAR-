@@ -80,7 +80,6 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
   dudas_listas: {
     asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
     parrafos: () => [
-      'Ya tenemos todas las respuestas. Gracias.',
       'Falta un solo paso. Elige la foto y el título de la tapa, suma las fotos que quieras adentro y encarga el libro.',
       'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
     ],
@@ -280,7 +279,6 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
     dudas_listas: {
       asunto: (quien) => `Falta un paso para el libro de tu ${quien}`,
       parrafos: () => [
-        'Ya tenemos todas las respuestas. Gracias.',
         'Falta un solo paso. Elegí la foto y el título de la tapa, sumá las fotos que quieras adentro y encargá el libro.',
         'Recién ahí empezamos a escribirlo. Te avisamos cuando esté.',
       ],
