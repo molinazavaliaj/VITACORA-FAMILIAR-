@@ -1,4 +1,3 @@
-import { puedeVerLoArmado } from "@/lib/libro-listo";
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenLibro } from "@/lib/token-libro";
@@ -12,10 +11,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (!datos) return NextResponse.json({ error: "Link no válido." }, { status: 404 });
 
   const admin = crearClienteServidor();
-  const { data: n } = await admin.from("narradores").select("edicion, libro_aprobado_at, contexto").eq("id", datos.narradorId).maybeSingle();
-  const fila = n as { edicion: Edicion | null; libro_aprobado_at: string | null; contexto?: Record<string, unknown> | null } | null;
-  const abierto = fila?.libro_aprobado_at && (await puedeVerLoArmado(admin, { id: datos.narradorId, contexto: fila.contexto }, "visitante"));
-  const fotoId = abierto ? fila.edicion?.portadaFotoId : null;
+  const { data: n } = await admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", datos.narradorId).maybeSingle();
+  const fila = n as { edicion: Edicion | null; libro_aprobado_at: string | null } | null;
+  const fotoId = fila?.libro_aprobado_at ? fila.edicion?.portadaFotoId : null;
   if (!fotoId) return NextResponse.json({ error: "Sin portada." }, { status: 404 });
 
   const { data: foto } = await admin.from("fotos").select("storage_path").eq("id", fotoId).eq("narrador_id", datos.narradorId).maybeSingle();

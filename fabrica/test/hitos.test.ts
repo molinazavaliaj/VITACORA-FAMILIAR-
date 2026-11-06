@@ -41,13 +41,6 @@ describe('asuntoHito / cuerpoHito', () => {
     for (const c of [vos, tu]) expect(c).not.toMatch(/voz|escuch/i);
     expect(asuntoHito('libro_listo_sin_voz', 'mamá')).toBe('El libro de tu mamá está listo');
     expect(CANDADO_POR_HITO.libro_listo_sin_voz).toBe(CANDADO_POR_HITO.libro_listo);
-    // Modo privado: el mismo aviso (sale uno solo), sin invitar a leer ni prometer su voz.
-    expect(CANDADO_POR_HITO.libro_listo_privado).toBe(CANDADO_POR_HITO.libro_listo);
-    for (const variante of [undefined, 'vos', 'tu'] as const) {
-      const cuerpo = cuerpoHito('libro_listo_privado', { comoLeDicen: 'mamá', enlace: 'https://x', variante });
-      expect(cuerpo).toContain('nada se imprime sin una revisión');
-      expect(cuerpo).not.toMatch(/Leer el libro|su voz real/);
-    }
   });
 
   it('cada hito tiene su candado, todos distintos (salvo «libro listo» sin voz, que comparte el suyo)', () => {

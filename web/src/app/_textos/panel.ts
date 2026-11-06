@@ -31,8 +31,6 @@ type TextosPanel = {
   privadaTexto: (q: Quien, invitado: boolean) => string;
   privadaTermino: string;
   privadaEscribiendo: string;
-  /** Ya está escrito y todavía no se abrió para la familia (Joaquín, 05/11). ESPERA aprobación de Naza · A-07 */
-  privadaRevision: string;
   privadaLeer: string;
   privadaFrases: string;
   privadaEncargar: string;
@@ -204,7 +202,6 @@ const ES: TextosPanel = {
       : "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, puedes añadir preguntas y fotos, y eliges la tapa.",
   privadaTermino: "Terminó de contar. Lo que contó queda privado hasta que el libro esté listo.",
   privadaEscribiendo: "Estamos escribiendo el libro. Te avisamos por mail cuando esté listo.",
-  privadaRevision: "El libro ya está escrito. Podrás leerlo y escuchar sus mejores frases cuando esté revisado o, si compraste el impreso, cuando llegue a tu casa.",
   privadaLeer: "Leer su libro",
   privadaFrases: "Escuchar sus mejores frases",
   privadaEncargar: "Elige la tapa y encarga su libro",
@@ -227,7 +224,6 @@ const ES: TextosPanel = {
 
 const AR: TextosPanel = {
   ...ES,
-  privadaRevision: "El libro ya está escrito. Vas a poder leerlo y escuchar sus mejores frases cuando esté revisado o, si compraste el impreso, cuando llegue a tu casa.",
   privadaTexto: (_q, invitado) =>
     invitado
       ? "Lo que cuenta queda privado hasta que el libro esté listo. Acá ves cuánto lleva contado, y podés sumar preguntas y fotos."

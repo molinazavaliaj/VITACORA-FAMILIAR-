@@ -27,7 +27,6 @@ export type Hito =
   | 'libro_listo'
   // «Vitácora de una historia» sin frases con su voz (el libro salió sin «Sus frases»): el mismo mail sin prometer la voz.
   | 'libro_listo_sin_voz'
-  | 'libro_listo_privado'
   // Lo físico que viaja (3t.26 fase 2; textos aprobados por Naza el 23/09).
   | 'falta_direccion'
   | 'enviado'
@@ -46,8 +45,6 @@ export const CANDADO_POR_HITO: Record<Hito, string> = {
   libro_listo: 'libro_listo_enviado.txt',
   // El mismo candado: es el mismo aviso, y sale uno solo de los dos.
   libro_listo_sin_voz: 'libro_listo_enviado.txt',
-  // Lo contado es privado: el mismo aviso, sin invitar a leer. El libro se abre recién con el OK o cuando llega el impreso.
-  libro_listo_privado: 'libro_listo_enviado.txt',
   recordatorio_3: 'recordatorio_cierre_3.txt',
   recordatorio_7: 'recordatorio_cierre_7.txt',
   recordatorio_14: 'recordatorio_cierre_14.txt',
@@ -139,15 +136,6 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
       'Queda ahí para siempre. Entra cuando quieras a leerlo, escucharlo o descargarlo.',
     ],
     boton: 'Leer el libro',
-  },
-  // ESPERA aprobación de Naza · A-08 (05/11)
-  libro_listo_privado: {
-    asunto: (quien) => `El libro de tu ${quien} ya está escrito`,
-    parrafos: (quien) => [
-      `Ya hemos escrito el libro de tu ${quien}. Lo que contó sigue siendo privado, y nada se imprime sin una revisión.`,
-      'Te escribiremos para contarte cómo sigue. Cuando el libro esté revisado o, si compraste el impreso, cuando llegue a tu casa, podrás leerlo aquí.',
-    ],
-    boton: 'Ver cómo va',
   },
   // Aprobado por Naza el 24/10 (la versión recomendada de Fable).
   libro_listo_sin_voz: {
@@ -325,15 +313,6 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
         'Queda ahí para siempre. Entrá cuando quieras a leerlo, escucharlo o descargarlo.',
       ],
       boton: 'Leer el libro',
-    },
-    // ESPERA aprobación de Naza · A-08 (05/11)
-    libro_listo_privado: {
-      asunto: (quien) => `El libro de tu ${quien} ya está escrito`,
-      parrafos: (quien) => [
-        `Ya escribimos el libro de tu ${quien}. Lo que contó sigue siendo privado, y nada se imprime sin una revisión.`,
-        'Te vamos a escribir para contarte cómo sigue. Cuando el libro esté revisado o, si compraste el impreso, cuando llegue a tu casa, vas a poder leerlo acá.',
-      ],
-      boton: 'Ver cómo va',
     },
     libro_listo_sin_voz: {
       asunto: (quien) => `El libro de tu ${quien} está listo`,

@@ -15,7 +15,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (!fila?.libro_aprobado_at) {
     return NextResponse.json({ error: "Este libro todavía no está cerrado." }, { status: 404 });
   }
-  if (!(await puedeVerLoArmado(admin, { id: datos.narradorId, contexto: fila.contexto }, "visitante"))) {
+  if (!(await puedeVerLoArmado(admin, { id: datos.narradorId, contexto: fila.contexto }))) {
     return NextResponse.json({ error: "Este libro todavía no está listo." }, { status: 404 });
   }
 

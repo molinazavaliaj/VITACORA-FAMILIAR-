@@ -88,10 +88,6 @@ function base(contexto: Record<string, unknown>, extra: { pedido?: string; libro
 }
 
 const REGALO = { vinculoComprador: "hija", acceso: { elige: true } };
-/** El OK al libro, y solo digital: el libro se abre para la familia. */
-const REGALO_REVISADO = { vinculoComprador: "hija", acceso: { elige: true, revisado_at: "2026-11-20T00:00:00Z" } };
-/** Soporte le abrió la revisión a quien compró: lee el libro y confirma; audios y respuestas siguen cerrados. */
-const REGALO_EN_REVISION = { vinculoComprador: "hija", acceso: { elige: true, revisa_familia_at: "2026-11-20T00:00:00Z" } };
 const PROPIA = { vinculoComprador: "yo mismo" };
 
 function preparar(tablas: Record<string, Fila[]>, archivos: Record<string, string> = {}) {
@@ -169,7 +165,7 @@ describe("lo que sale de lo contado", () => {
     preparar(base(REGALO, { pedido: "pagado" }), { "n1/paquete/preview.pdf": "x", "n1/paquete/muestra_audiolibro.mp3": "x" });
     expect((await previewPdf(pedir(`/api/preview-pdf${q}`))).status).toBe(403);
     expect((await previewAudio(pedir(`/api/preview-audio${q}`))).status).toBe(403);
-    preparar(base(REGALO_REVISADO, { pedido: "entregado" }), { "n1/paquete/preview.pdf": "x", "n1/paquete/muestra_audiolibro.mp3": "x" });
+    preparar(base(REGALO, { pedido: "entregado" }), { "n1/paquete/preview.pdf": "x", "n1/paquete/muestra_audiolibro.mp3": "x" });
     expect((await previewPdf(pedir(`/api/preview-pdf${q}`))).status).toBe(302);
     expect((await previewAudio(pedir(`/api/preview-audio${q}`))).status).toBe(302);
   });
@@ -202,7 +198,7 @@ describe("la muestra pública", () => {
     preparar(base(REGALO, { pedido: "generando", libro_aprobado_at: "2026-11-01" }), conLibro);
     const { admin } = crearAdmin(base(REGALO, { pedido: "generando", libro_aprobado_at: "2026-11-01" }), conLibro);
     expect(await armarMuestra(admin as never, "n1")).toBeNull();
-    const listo = crearAdmin(base(REGALO_REVISADO, { pedido: "entregado", libro_aprobado_at: "2026-11-01" }), conLibro);
+    const listo = crearAdmin(base(REGALO, { pedido: "entregado", libro_aprobado_at: "2026-11-01" }), conLibro);
     const m = await armarMuestra(listo.admin as never, "n1");
     expect(m?.primerParrafo).toBe("Este es el primer párrafo del libro escrito, con unas cuantas palabras.");
     expect(JSON.stringify(m)).not.toContain("Lo que contó");
@@ -276,7 +272,7 @@ describe("las frases", () => {
   it("GET: privado solo con el libro listo, solo las elegidas, sin de dónde salieron", async () => {
     preparar(base(REGALO, { pedido: "pagado" }), { [RUTA]: archivo() });
     expect((await frasesGet(pedir(`/api/frases${q}`))).status).toBe(404);
-    preparar(base(REGALO_EN_REVISION, { pedido: "entregado" }), { [RUTA]: archivo() });
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
     const j = await (await frasesGet(pedir(`/api/frases${q}`))).json();
     expect(j.capitulos[0].candidatas.map((f: { id: string }) => f.id)).toEqual(["a"]);
     expect(j.capitulos[0].candidatas[0]).toMatchObject({ respuesta_id: null, por_que: "", pregunta_orden: 0 });
@@ -289,7 +285,7 @@ describe("las frases", () => {
   });
 
   it("audio: una candidata no elegida da 404 a quien regala", async () => {
-    preparar(base(REGALO_EN_REVISION, { pedido: "entregado" }), { [RUTA]: archivo() });
+    preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
     expect((await fraseAudio(pedir(`/api/frases/audio/b${q}`), { params: Promise.resolve({ fraseId: "b" }) })).status).toBe(404);
     expect((await fraseAudio(pedir(`/api/frases/audio/a${q}`), { params: Promise.resolve({ fraseId: "a" }) })).status).toBe(302);
   });
@@ -302,7 +298,7 @@ describe("las frases", () => {
   });
 
   it("confirmar: con el libro listo deja la selección del biógrafo y anota la fecha", async () => {
-    const { subidas } = preparar(base(REGALO_EN_REVISION, { pedido: "entregado" }), { [RUTA]: archivo() });
+    const { subidas } = preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
     expect((await frasesPost(pedir(`/api/frases${q}`, { confirmar: true }))).status).toBe(200);
     const guardado = JSON.parse(subidas.find((s) => s.ruta === RUTA)!.contenido);
     expect(guardado.confirmado_at).toBeTruthy();
@@ -319,7 +315,7 @@ describe("las frases", () => {
   });
 
   it("«Hay un error, avisanos» frena la imprenta y avisa a los socios", async () => {
-    const { subidas } = preparar(base(REGALO_EN_REVISION, { pedido: "entregado" }), { [RUTA]: archivo() });
+    const { subidas } = preparar(base(REGALO, { pedido: "entregado" }), { [RUTA]: archivo() });
     expect((await frasesPost(pedir(`/api/frases${q}`, { error: "Mi tía se llama Ofelia, no Ofelio" }))).status).toBe(200);
     expect(subidas.find((s) => s.ruta === FRENO)?.contenido).toContain("Ofelia");
     expect(enviarMailSocios).toHaveBeenCalledOnce();

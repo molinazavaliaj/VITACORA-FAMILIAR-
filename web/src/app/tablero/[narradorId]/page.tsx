@@ -6,7 +6,6 @@ import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, loContadoEsPrivado, PUEDE, tratoEditable, type NarradorPanel, type Rol } from "@/lib/panel";
 import { hayLibroListo } from "@/lib/libro-listo";
-import { libroAbierto as abreParaLaFamilia } from "@/lib/acceso-contenido";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { hayDudasPendientes } from "@/lib/dudas-archivos";
 import { textoDudas } from "../proximo-paso";
@@ -466,7 +465,7 @@ async function armarLecturaPrivada({
   admin, user, n, rol, pFila, pFotos, pInvitados, pDudas, pTrato,
 }: Parameters<typeof leerHistoria>[0]): Promise<Lectura> {
   const esHistoria = (n.contexto as { modo?: unknown } | null | undefined)?.modo === "historia";
-  const [{ data: propias, error: e1 }, { data: filas, error: e2 }, fotos, invitados, fila, trato, dudasPendientes, entrevista, libroEscrito] = await Promise.all([
+  const [{ data: propias, error: e1 }, { data: filas, error: e2 }, fotos, invitados, fila, trato, dudasPendientes, entrevista, libroListo] = await Promise.all([
     admin.from("preguntas").select("id, orden, texto, capitulo, tipo, narrador_id").eq("narrador_id", n.id),
     // Solo para contar: ni el texto, ni el audio, ni la duración.
     admin.from("respuestas").select(esHistoria ? "clave_v3:clave_historia, pregunta_orden, es_repregunta" : "clave_v3, pregunta_orden, es_repregunta").eq("narrador_id", n.id),
@@ -478,8 +477,6 @@ async function armarLecturaPrivada({
     esHistoria ? entrevistaHistoria(admin, n.id) : entrevistaV3(admin, n.id),
     hayLibroListo(admin, n.id),
   ]);
-  // «Libro listo» no alcanza: se abre con el OK, o cuando llega el impreso (lib/libro-listo).
-  const libroAbierto = libroEscrito && (await abreParaLaFamilia(admin, n, rol));
   if (e1 || e2) throw new Error(`no pude leer la historia: ${(e1 ?? e2)?.message}`);
 
   const aprobado = Boolean(fila.libro_aprobado_at);
@@ -536,7 +533,7 @@ async function armarLecturaPrivada({
 
   // El link público del libro, recién con el libro listo. Invitar, como siempre.
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
-  const linkPublico = rol === "duena" && libroAbierto ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
+  const linkPublico = rol === "duena" && libroListo ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   const dudasAbiertas = dudasPendientes && rol === "duena" && !aprobado;
   const deshabilitarCompartir = historiaCerrada && !aprobado && !dudasAbiertas;
   const familia = PUEDE.invitar(rol) ? (
@@ -556,7 +553,7 @@ async function armarLecturaPrivada({
         usuarioId={user.id}
         aprobado={aprobado}
         historiaCerrada={historiaCerrada}
-        libroListo={libroAbierto} libroEscrito={libroEscrito}
+        libroListo={libroListo}
         dudasPendientes={dudasPendientes}
         alFinal={alFinal}
         ritmo={ritmo}

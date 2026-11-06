@@ -4,7 +4,7 @@ import { propuestaPorDefecto } from "./edicion";
 import { armarGuion, capitulosDelGuion } from "./guion";
 import { idiomaDelLibro, type IdiomaLibro } from "./tapa";
 import { loContadoEsPrivado } from "./panel";
-import { familiaPuedeVerElLibro } from "./libro-listo";
+import { hayLibroListo } from "./libro-listo";
 import { leerDelEscritor } from "./dudas-archivos";
 
 // La muestra de un libro cerrado (docs/panel-usuario.md §8): lo que ve quien
@@ -54,7 +54,7 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
   if (!narrador || !narrador.libro_aprobado_at) return null;
   // Privado (Naza, 05/11): con el libro listo, y con el primer párrafo del libro, nunca con la transcripción.
   const privado = loContadoEsPrivado(narrador);
-  if (privado && !(await familiaPuedeVerElLibro(admin, narrador, "visitante"))) return null;
+  if (privado && !(await hayLibroListo(admin, narrador.id))) return null;
 
   const [{ data: propias }, { data: globales }, { data: primera }, { data: paquete }, { data: entrevista }] = await Promise.all([
     admin.from("preguntas").select("orden, capitulo").eq("narrador_id", narrador.id).order("orden"),

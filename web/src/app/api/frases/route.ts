@@ -3,7 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { loContadoEsPrivado, narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { aplicarSeleccion, frasesElegidasParaVer, guardarFrases, imprentaFrenada, leerFrases, resumenDeCorte, RUTA_FRENO_IMPRENTA, validarSeleccion } from "@/lib/frases";
-import { familiaPuedeVerElLibro } from "@/lib/libro-listo";
+import { hayLibroListo } from "@/lib/libro-listo";
 import { enviarMailSocios } from "@/lib/mail";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   if (!PUEDE.verHistoriaCompleta(acceso.rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
 
   const privado = loContadoEsPrivado(acceso.narrador);
-  if (privado && !(await familiaPuedeVerElLibro(admin, acceso.narrador, acceso.rol))) return NextResponse.json({ error: "Todavía no hay frases." }, { status: 404 });
+  if (privado && !(await hayLibroListo(admin, acceso.narrador.id))) return NextResponse.json({ error: "Todavía no hay frases." }, { status: 404 });
   const frases = await leerFrases(admin, acceso.narrador.id);
   if (!frases) return NextResponse.json({ error: "Todavía no hay frases." }, { status: 404 });
   return NextResponse.json(privado ? frasesElegidasParaVer(frases) : frases, { status: 200 });
@@ -79,7 +79,7 @@ async function postDeQuienRegala(
   const trato = await tratoDeLaFamilia(admin, narrador.familia_id);
   const tu = trato === "tu";
   if (body.seleccion !== undefined) return NextResponse.json({ error: "Estas frases las elige el biógrafo." }, { status: 403 });
-  if (!(await familiaPuedeVerElLibro(admin, narrador, "duena"))) return NextResponse.json({ error: "El libro todavía no está listo." }, { status: 409 });
+  if (!(await hayLibroListo(admin, narrador.id))) return NextResponse.json({ error: "El libro todavía no está listo." }, { status: 409 });
   const actual = await leerFrases(admin, narrador.id);
   if (!actual) return NextResponse.json({ error: "Todavía no hay frases." }, { status: 404 });
 

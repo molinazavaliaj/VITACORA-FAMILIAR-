@@ -208,26 +208,6 @@ describe('worker: un narrador de historia no recibe nada del libro de siempre', 
     expect(m.enviarMailRecordatorioFrases).not.toHaveBeenCalled();
   });
 
-  it('en modo privado: el aviso que no invita a leer, y ningún recordatorio de frases aunque pasen los 15 días', async () => {
-    const frases = { version: 1, capitulos: [{ numero: 1, capitulo: 'I', candidatas: [{ id: 'R01', elegida: true, respuesta_id: 'r1' }] }] };
-    const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1), contexto: { modo: 'historia', acceso: { elige: true } } })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: { impreso: 'color' } }], historias: [{ narrador_id: 'chico', idioma: 'es-AR' }], familias };
-    const { db } = base(t, { paquetes: { chico: [{ name: 'frases.json', created_at: HACE(16) }, { name: 'terminado_enviado.txt' }] }, descargas: { 'chico/paquete/frases.json': JSON.stringify(frases) } });
-    m.obtenerClienteDb.mockReturnValue(db);
-    await tick();
-    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; variante?: string }])[0]);
-    expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo_privado', variante: 'vos' })]);
-    expect(m.enviarMailRecordatorioFrases).not.toHaveBeenCalled();
-  });
-
-  it('«Mi familia»: el «libro listo» de siempre', async () => {
-    const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1), contexto: { modo: 'historia', acceso: { elige: true, quien: 'familia' } } })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-AR' }], familias };
-    const { db } = base(t, { paquetes: { chico: [{ name: 'terminado_enviado.txt' }] } });
-    m.obtenerClienteDb.mockReturnValue(db);
-    await tick();
-    const llamadas = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string }])[0]);
-    expect(llamadas).toEqual([expect.objectContaining({ hito: 'libro_listo_sin_voz' })]);
-  });
-
   it('con frases elegidas con su audio: el «libro listo» de siempre (con su voz), en España con tú, y a los 15 días sin confirmar, el recordatorio', async () => {
     const frases = { version: 1, capitulos: [{ numero: 1, capitulo: 'I', candidatas: [{ id: 'R01', elegida: true, respuesta_id: 'r1' }] }] };
     const t = { narradores: [chico({ estado: 'completado', libro_aprobado_at: HACE(1) })], pedidos: [{ id: 'p1', narrador_id: 'chico', estado: 'entregado', extras: {} }], historias: [{ narrador_id: 'chico', idioma: 'es-ES' }], familias };

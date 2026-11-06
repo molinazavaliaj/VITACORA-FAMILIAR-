@@ -5,7 +5,6 @@ import { leerFilaKids, leerListo } from "./kids-panel-base";
 import { apodoPropio, nombrePropio } from "./nombre-propio";
 import type { Edicion } from "./edicion";
 import type { ProductoTapa } from "./tapa";
-import { codigoImpresoAbierto } from "./acceso-contenido";
 
 // Quién abre «Su voz» (`/voz/<token>`, su audio y su libro online). El token
 // firmado 'voz' ya se verificó antes de llamar acá: esto decide si el libro
@@ -47,8 +46,6 @@ export async function accesoVoz(admin: SupabaseClient, narradorId: string): Prom
   }
 
   if (!n.libro_aprobado_at) return { abre: false };
-  // Privado: el token solo está en el libro impreso o en pantallas cerradas hasta que se abra (lib/acceso-contenido).
-  if (!(await codigoImpresoAbierto(admin, { id: narradorId, contexto: n.contexto }))) return { abre: false };
   const nombre = nombrePropio(n.nombre);
   const tapa: TapaVoz = {
     titulo: n.edicion?.titulo?.trim() || nombre,
