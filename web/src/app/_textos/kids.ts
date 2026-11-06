@@ -442,3 +442,82 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
     },
   },
 };
+
+/**
+ * El libro de ejemplo de Nico en 3D, del inicio de /kids. Historia inventada.
+ * PENDIENTE OK de Naza. ca: sin revisar con Imma.
+ */
+export const LIBRO_KIDS_EJEMPLO: Textos<{
+  libro: { etiqueta: string; nombre: [string, string]; paraSiempre: string; iniciales: string; lomo: string; contra: string; escucha: string; web: string };
+  capitulo: { capitulo: string; tituloCapitulo: string; citaCapitulo: string; parrafos: [string, string]; altFoto: string; pieFoto: string };
+}> = {
+  es: {
+    libro: {
+      etiqueta: "Mi primer capítulo",
+      nombre: ["Nico", "Rivas"],
+      paraSiempre: "11 años",
+      iniciales: "N · R",
+      lomo: "Nico Rivas · Mi primer capítulo",
+      contra: "Estas páginas guardan cómo era Nico a los once años, contado con sus palabras y sus dibujos. En este QR, su voz.",
+      escucha: "Escucha su voz",
+      web: "vitacorafamiliar.com",
+    },
+    capitulo: {
+      capitulo: "Capítulo 1",
+      tituloCapitulo: "De pequeño",
+      citaCapitulo: "«Mi abuela dice que no me callaba ni dormido.»",
+      parrafos: [
+        "Cuando tenía cinco años me perdí en el mercado. Me encontró la señora de la fruta y me dio una mandarina.",
+        "Mi hermana y yo hacíamos carreras de caracoles en el patio. Siempre ganaba el mío, o eso digo yo.",
+      ],
+      altFoto: "Nico con sus padres en el sofá de casa",
+      pieFoto: "Con mis padres, en el sofá de casa.",
+    },
+  },
+  ar: {
+    libro: {
+      etiqueta: "Mi primer capítulo",
+      nombre: ["Nico", "Rivas"],
+      paraSiempre: "11 años",
+      iniciales: "N · R",
+      lomo: "Nico Rivas · Mi primer capítulo",
+      contra: "Estas páginas guardan cómo era Nico a los once años, contado con sus palabras y sus dibujos. En este QR, su voz.",
+      escucha: "Escuchá su voz",
+      web: "vitacorafamiliar.com",
+    },
+    capitulo: {
+      capitulo: "Capítulo 1",
+      tituloCapitulo: "De chico",
+      citaCapitulo: "«Mi abuela dice que no me callaba ni dormido.»",
+      parrafos: [
+        "Cuando tenía cinco años me perdí en el mercado. Me encontró la señora de la verdulería y me dio una mandarina.",
+        "Con mi hermana hacíamos carreras de caracoles en el patio. Siempre ganaba el mío, o eso digo yo.",
+      ],
+      altFoto: "Nico con sus padres en el sillón de casa",
+      pieFoto: "Con mis padres, en el sillón de casa.",
+    },
+  },
+  ca: {
+    libro: {
+      etiqueta: "El meu primer capítol",
+      nombre: ["Nico", "Rivas"],
+      paraSiempre: "11 anys",
+      iniciales: "N · R",
+      lomo: "Nico Rivas · El meu primer capítol",
+      contra: "Aquestes pàgines guarden com era en Nico als onze anys, explicat amb les seves paraules i els seus dibuixos. En aquest QR, la seva veu.",
+      escucha: "Escolta la seva veu",
+      web: "vitacorafamiliar.com",
+    },
+    capitulo: {
+      capitulo: "Capítol 1",
+      tituloCapitulo: "De petit",
+      citaCapitulo: "«La meva àvia diu que no callava ni adormit.»",
+      parrafos: [
+        "Quan tenia cinc anys em vaig perdre al mercat. Em va trobar la senyora de la fruita i em va donar una mandarina.",
+        "La meva germana i jo fèiem curses de cargols al pati. Sempre guanyava el meu, o això dic jo.",
+      ],
+      altFoto: "En Nico amb els seus pares al sofà de casa",
+      pieFoto: "Amb els meus pares, al sofà de casa.",
+    },
+  },
+};

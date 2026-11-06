@@ -106,15 +106,16 @@ describe("dónde va cada uno", () => {
     }
   });
 
-  // 19/10 (Naza): el inicio de /kids es como el de Familiar, con el libro de
-  // Nico que se abre debajo del lema, una sola vez.
+  // 06/11 (Naza): el inicio de /kids es como el de Familiar, con el libro de
+  // Nico en 3D, una sola vez. Ya no lleva el video.
   it("/kids: el libro de Nico en el inicio, una sola vez", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const html = renderToStaticMarkup(<PaginaKidsCompleta idioma={idioma} />);
-      const poster = html.indexOf("kids-libro-poster.jpg");
+      const poster = html.indexOf("l3-seccion");
       expect(poster).toBeGreaterThan(html.indexOf("</h1>"));
       expect(poster).toBeLessThan(html.indexOf(TEXTOS_KIDS[idioma].dibujos.frase[0]));
-      expect(html.split("kids-video ").length - 1).toBe(1);
+      expect(html.split("l3-seccion ").length - 1).toBe(1);
+      expect(html).not.toContain("kids-libro-poster.jpg");
     }
   });
 });

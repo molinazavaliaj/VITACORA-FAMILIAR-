@@ -23,7 +23,7 @@
    Van después de .acu-tema para ganarle en el mismo elemento. */
 .acu-acento-familiar { --acu-bordo: #7a1f2e; --acu-titulo: #6d1b2a; --acu-bordo-hondo: #631826; }
 .acu-acento-viaje { --acu-bordo: #1f4e79; --acu-titulo: #1a4268; --acu-bordo-hondo: #183e60; }
-.acu-acento-kids { --acu-bordo: #a8492a; --acu-titulo: #8f3c20; --acu-bordo-hondo: #8a3b21; }
+.acu-acento-kids { --acu-bordo: #8a6200; --acu-titulo: #6f4f00; --acu-bordo-hondo: #6f4f00; }
 .acu-acento-historia { --acu-bordo: #14625a; --acu-titulo: #10524b; --acu-bordo-hondo: #0f4f49; }
 .acu-acento-eventos { --acu-bordo: #6a2c6b; --acu-titulo: #5a245b; --acu-bordo-hondo: #552356; }
 
@@ -123,7 +123,6 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 /* La nota: papel de acuarela pegado con cinta. Va derecha porque torcida se ve
    borrosa la letra; al pasar por encima baja un poco. */
 .acu-nota { position: relative; z-index: 1; display: flex; flex: 1; flex-direction: column; gap: 9px; margin: -3px 6px 12px; padding: 18px 14px 14px; border-radius: 4px 4px 18px 14px; background-image: radial-gradient(90% 60% at 30% 20%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0) 75%), radial-gradient(70% 50% at 85% 95%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 75%); box-shadow: 0 12px 18px -14px rgba(70, 40, 30, 0.5); transform-origin: 50% 0; transition: transform 0.25s var(--dir-curva), box-shadow 0.25s ease; }
-.acu-estante-item:hover .acu-nota { transform: translateY(3px); box-shadow: 0 18px 24px -16px rgba(70, 40, 30, 0.6); }
 .acu-estante-item:nth-child(even) .acu-nota::before { transform: translateX(-50%) rotate(1.5deg); }
 .acu-nota::before { content: ""; position: absolute; top: -6px; left: 50%; width: 46px; height: 13px; border-radius: 2px; background: rgba(255, 250, 240, 0.8); box-shadow: 0 1px 2px rgba(70, 40, 30, 0.14); transform: translateX(-50%) rotate(-1.5deg); }
 .acu-nota h3 { font-family: var(--fuente-titulo), Georgia, serif; font-size: 21px; line-height: 1.1; color: var(--acu-tinta); }
@@ -448,3 +447,102 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .dir-pagina.acu-tema .avi-boton:hover { background: var(--acu-bordo-hondo); }
 .dir-pagina.acu-tema .avi-etiqueta { color: var(--acu-bordo); }
 .dir-pagina.acu-tema .avi-bajada { color: var(--acu-suave); }
+
+/* Al pasar el mouse por un producto (Naza, 06/11): el libro sale del estante hacia
+   afuera y la nota crece. Solo con mouse; en el teléfono queda como está. */
+@media (hover: hover) and (min-width: 641px) {
+  .acu-foto { overflow: visible; }
+  .acu-foto .prt-ed-libro { transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.15), box-shadow 0.35s ease; }
+  .acu-nota { transform-origin: 50% 0; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.25, 1), box-shadow 0.3s ease; }
+  .acu-estante-item:hover, .acu-estante-item:focus-within { z-index: 6; }
+  .acu-estante-item:hover .acu-foto .prt-ed-libro, .acu-estante-item:focus-within .acu-foto .prt-ed-libro {
+    z-index: 3;
+    transform: translateX(-50%) translateY(-13%) scale(1.26) rotate(-2.5deg);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08), 18px 26px 34px -12px rgba(50, 30, 15, 0.55);
+  }
+  .acu-estante-item:hover .acu-foto .acu-contra, .acu-estante-item:focus-within .acu-foto .acu-contra {
+    transform: translateX(-50%) translateY(-13%) scale(1.26) rotate(2.5deg);
+  }
+  .acu-estante-item:hover .acu-nota, .acu-estante-item:focus-within .acu-nota {
+    z-index: 2;
+    transform: scale(1.13);
+    box-shadow: 0 26px 34px -18px rgba(70, 40, 30, 0.65);
+  }
+  .acu-estante--uno .acu-estante-item:hover .acu-nota, .acu-estante--uno .acu-estante-item:focus-within .acu-nota { transform: scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) { .acu-foto .prt-ed-libro { transition: none; } }
+
+/* La parte de atrás del libro, al lado de la tapa, en los estantes de un solo libro. */
+.acu-estante--uno .acu-foto--doble .prt-ed-libro { left: 29%; }
+.acu-estante--uno .acu-foto--doble .prt-ed-libro.acu-contra { left: 71%; }
+@media (min-width: 641px) {
+  .acu-estante--uno .acu-foto--doble .prt-ed-libro { left: 38%; }
+  .acu-estante--uno .acu-foto--doble .prt-ed-libro.acu-contra { left: 62%; }
+}
+.acu-contra-papel { align-items: center; padding: 8% 10% 6%; background: #fbfaf6; color: #1b1a17; text-align: center; }
+.acu-contra-toroide { width: 15cqw; height: auto; }
+.acu-contra-iniciales { margin-top: 2%; font-family: var(--fuente-micro), sans-serif; font-size: 3.2cqw; letter-spacing: 0.2em; }
+.acu-contra-texto { margin-top: 9%; font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 4.6cqw; line-height: 1.32; }
+.acu-contra-qr { width: 25cqw; height: 25cqw; margin-top: 9%; }
+.acu-contra-escucha { margin-top: 2.5%; font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 3.8cqw; font-style: italic; }
+
+/* La escena de los audios (Naza, 06/11): más rápida, y también vuelan fotos que
+   quedan pegadas en el libro. Una sola vuelta de 6,5 s para todas las piezas. */
+.acu-escena { --acu-vuelta: 6.5s; }
+.acu-escena .acu-abierto { height: 300px; }
+.acu-escena .acu-hoja { gap: 7px; overflow: hidden; }
+.acu-escena .acu-tel-globo { animation-duration: var(--acu-vuelta); }
+.acu-escena .acu-tel-globo--2 { animation-delay: 0.3s; }
+.acu-escena .acu-tel-foto--1 { animation-delay: 1.9s; }
+.acu-escena .acu-tel-foto--2 { animation-delay: 2.7s; }
+.acu-escena .acu-tel-globo--3 { animation-delay: 4.2s; }
+.acu-tel-foto { align-self: flex-end; flex: none; width: 54%; padding: 3px; border-radius: 10px 10px 2px 10px; background: #d9fdd3; }
+.acu-tel-foto > span { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 8px; }
+.acu-tel-foto img { object-fit: cover; object-position: 50% 25%; }
+.acu-escena .acu-audio { animation-duration: var(--acu-vuelta); animation-delay: 0.5s; }
+.acu-escena .acu-audio--2 { animation-delay: 3.5s; }
+.acu-vuela { position: absolute; top: -14px; left: 2px; width: 60px; height: 60px; overflow: hidden; border: 3px solid #fff; border-radius: 4px; opacity: 0; box-shadow: 0 8px 18px -8px rgba(60, 20, 20, 0.6); animation: acu-vuela var(--acu-vuelta) infinite; }
+.acu-vuela img { object-fit: cover; object-position: 50% 25%; }
+.acu-vuela--1 { animation-delay: 2.05s; }
+.acu-vuela--2 { animation-delay: 2.85s; }
+@keyframes acu-vuela {
+  0% { opacity: 0; transform: translateX(0) scale(0.6) rotate(-8deg); }
+  2% { opacity: 1; }
+  10% { opacity: 1; transform: translateX(92px) scale(1.05) rotate(5deg); }
+  12%, 100% { opacity: 0; transform: translateX(100px) scale(0.9) rotate(0); }
+}
+.acu-escena .acu-hoja i { animation-duration: var(--acu-vuelta); }
+.acu-pegadas { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.acu-pega { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; opacity: 0; box-shadow: 0 2px 6px -2px rgba(60, 40, 20, 0.5); animation: acu-pega var(--acu-vuelta) infinite; }
+.acu-pega img { object-fit: cover; object-position: 50% 25%; }
+.acu-pega--1 { animation-delay: 2.65s; }
+.acu-pega--2 { animation-delay: 3.45s; }
+@keyframes acu-pega {
+  0% { opacity: 0; transform: scale(1.5) rotate(9deg); }
+  4% { opacity: 1; transform: scale(0.95) rotate(-1.5deg); }
+  6%, 76% { opacity: 1; transform: none; }
+  84%, 100% { opacity: 0; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acu-vuela { display: none; }
+  .acu-audio--2 { display: none; }
+  .acu-pega, .acu-tel-foto { animation: none; opacity: 1; }
+  .acu-escena .acu-hoja i { animation: none; opacity: 0.72; }
+}
+
+/* Se lee y se escucha: el libro más chico y un buen lugar para el video. */
+.acu-voz { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 28px; max-width: 1180px; margin-inline: auto; }
+@media (min-width: 820px) { .acu-voz { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 44px; } }
+.acu-voz .acu-voz-libros { width: min(320px, 100%); }
+.acu-video-marco { overflow: hidden; border-radius: 14px; box-shadow: 0 24px 34px -24px rgba(60, 20, 20, 0.6); }
+
+/* Banda con una pieza grande (el video, cuando esté) y fotos más chicas. */
+.acu-medios { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; max-width: 1180px; margin-inline: auto; }
+.acu-medios-grande { position: relative; grid-column: 1 / -1; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px; }
+.acu-medios-chica { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 10px; }
+.acu-medios img { object-fit: cover; }
+@media (min-width: 820px) {
+  .acu-medios { grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); grid-template-rows: 1fr 1fr; gap: 14px; }
+  .acu-medios-grande { grid-column: 1; grid-row: 1 / 3; aspect-ratio: auto; min-height: 420px; }
+  .acu-medios-chica { aspect-ratio: auto; }
+}
