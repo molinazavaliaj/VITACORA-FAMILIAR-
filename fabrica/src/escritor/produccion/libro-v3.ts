@@ -322,7 +322,7 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
     const salio = await avisarSocios(
       `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
       aQuienConto
-        ? `Hay ${dudas.length} dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: ${link}\n\nCorrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`
+        ? `Hay ${dudas.length} dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas.\n\nCorrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`
         : `Hay ${dudas.length} dudas de datos. A la familia le llega un mail para contestarlas. Para verlas: ${link}\n\nSi el libro ya está encargado, espera ${Math.round(esperaPorDudasMs() / 3_600_000)} horas desde este mail (o hasta que estén todas contestadas). Corrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`,
     );
     // Con quien contó, la marca se escribe igual: es el respaldo del plazo, y un libro no se traba por un mail (el panel de avisos lo ve).
