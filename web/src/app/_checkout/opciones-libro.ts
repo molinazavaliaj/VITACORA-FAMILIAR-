@@ -54,13 +54,27 @@ export function opcionDe(e: ConLibro): OpcionLibro {
 /**
  * Lo que cambia al elegir una. Los marcos para regalar que ya había se
  * conservan al pasar de la 2 a la 3 y al revés; con digital no hay marcos.
+ * `hayPack` (solo el libro de una vida con pack real, ver `sumaSinPack`): el
+ * impreso no lleva marcos, porque con uno ya se arma el pack; al pasar del libro
+ * completo al impreso los marcos extra se descartan.
  */
-export function eleccionDe(opcion: OpcionLibro, e: ConLibro): Required<ConLibro> {
+export function eleccionDe(opcion: OpcionLibro, e: ConLibro, hayPack = false): Required<ConLibro> {
+  if (hayPack && opcion === "impreso") return { formato: "impreso", marcos: 0, opcion };
   const actual = opcionDe(e);
   if (opcion === actual) return { formato: e.formato, marcos: e.marcos, opcion };
   if (opcion === "digital") return { formato: "digital", marcos: 0, opcion };
   const extras = marcosParaRegalar(e);
   return { formato: "impreso", marcos: opcion === "marco" ? extras + 1 : extras, opcion };
+}
+
+/**
+ * Lo guardado antes de ir a pagar (volver de un pago fallido), con la regla del
+ * pack: «impreso» con marcos ya es el libro completo con esos marcos. No cambia
+ * el carrito, solo cuál opción se ve elegida. Sin pack queda tal cual.
+ */
+export function normalizarConPack<T extends ConLibro>(e: T, hayPack: boolean): T {
+  if (!hayPack || e.formato !== "impreso" || e.opcion !== "impreso" || e.marcos <= 0) return e;
+  return { ...e, opcion: "marco" };
 }
 
 /** Los marcos del contador: todos en la 2; en la 3, los que van además del incluido. */
@@ -129,7 +143,7 @@ export function precioDeOpcion(
   return conPack && cat.pack && cat.pack.precio < suma ? cat.pack.precio : suma;
 }
 
-/** La suma sin pack del libro completo, para tacharla al lado del pack; null si no hay ahorro real. */
+/** La suma sin pack del libro completo; null si no hay ahorro real. No se muestra: decide si hay pack (la fila del marco, la regla de los marcos). */
 export function sumaSinPack(base: number, cat: Pick<Catalogo, "impreso" | "marco" | "pack">): number | null {
   if (!cat.impreso || !cat.marco || !cat.pack) return null;
   const suma = base + cat.impreso.precio + cat.marco.precio;

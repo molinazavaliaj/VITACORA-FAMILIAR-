@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import type { Catalogo } from "@/lib/productos";
 import type { IdiomaLibro } from "@/lib/tapa";
 import { TapaLibro } from "../tapa-libro";
@@ -23,8 +23,8 @@ import {
 // toque y ahí mismo aparece el contador para sumar más. Radios nativos del
 // mismo grupo (`formato`): una sola elegida, con el dedo o las flechas. El
 // libro completo lleva la cinta de marcapáginas «Para regalar» y, si hay pack
-// con descuento real, su precio y la suma tachada al lado. Sin texto propio:
-// todo llega del diccionario de cada compra. Estilos: .chk-op* en checkout.css.
+// con descuento real, el precio del pack, sin tachados (Naza 06/11). Sin texto
+// propio: todo llega del diccionario de cada compra. Estilos: .chk-op* en checkout.css.
 //
 // Con `estante` (el paso 1 de /comprar, Naza 06/11) las mismas opciones se muestran
 // como una estantería: la foto real con un libro por opción y, debajo, una nota de
@@ -159,13 +159,18 @@ export function OpcionesLibro({
   const opciones = opcionesDeLibro(cat);
   const enEstante = estante && opciones.length > 1;
   const elegida = opcionDe(estado);
+  const radioMarco = useRef<HTMLInputElement>(null);
   // Con pack real, la fila del primer marco del impreso ofrece pasar al libro completo por la diferencia (sin tachados).
   const conOferta = conPack && sumaSinPack(base, cat) !== null && Boolean(T.marcoFila);
   const completo = precioDeOpcion("marco", base, cat, conPack);
   const soloImpreso = precioDeOpcion("impreso", base, cat);
   const oferta =
     conOferta && completo !== null && soloImpreso !== null && marcosParaRegalar(estado) === 0 && T.marcoFila
-      ? { texto: T.marcoFila(f(Math.round((completo - soloImpreso) * 100) / 100)), onElegir: () => onElegir("marco") }
+      ? { texto: T.marcoFila(f(Math.round((completo - soloImpreso) * 100) / 100)), onElegir: () => {
+          onElegir("marco");
+          // La fila desaparece al elegir: el foco pasa al radio del libro completo, que sigue en su lugar.
+          radioMarco.current?.focus();
+        } }
       : null;
   const titulos: Record<OpcionLibro, { titulo: string; detalle: string }> = {
     marco: { titulo: T.marcoOpcionTitulo, detalle: T.marcoOpcionDetalle },
@@ -185,7 +190,7 @@ export function OpcionesLibro({
               </span>
             ) : null}
             <label className={`chk-op-tarjeta ${cinta && !enEstante ? "chk-op-tarjeta--cinta" : ""}`.trim()}>
-              <input type="radio" id={enEstante ? `formato-${o}` : undefined} className="sr-only" name="formato" value={o} checked={esta} onChange={() => onElegir(o)} />
+              <input ref={o === "marco" ? radioMarco : undefined} type="radio" id={enEstante ? `formato-${o}` : undefined} className="sr-only" name="formato" value={o} checked={esta} onChange={() => onElegir(o)} />
               <span aria-hidden className="chk-op-punto" />
               {enEstante ? null : <Miniatura tipo={o} tapa={tapa} />}
               <span className="chk-op-textos">

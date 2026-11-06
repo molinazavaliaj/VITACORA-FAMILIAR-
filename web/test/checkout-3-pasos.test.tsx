@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -21,7 +23,7 @@ vi.mock("@/lib/supabase/sesion", () => ({ usuarioDeLaSesion: vi.fn(async () => n
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
 import { armarCompra, catalogo } from "@/lib/productos";
-import { conMarcosParaRegalar, contadorDeMarcos, eleccionDe, eleccionInicial, marcosParaRegalar, opcionDe, opcionesDeLibro, precioDeOpcion, reglaDeMarcos } from "../src/app/_checkout/opciones-libro";
+import { conMarcosParaRegalar, contadorDeMarcos, eleccionDe, eleccionInicial, marcosParaRegalar, normalizarConPack, opcionDe, opcionesDeLibro, precioDeOpcion, reglaDeMarcos, sumaSinPack } from "../src/app/_checkout/opciones-libro";
 import { OpcionesLibro } from "../src/app/_checkout/opciones-libro-ui";
 import { idiomaDePrefijo, idiomaTrasElNumero } from "@/lib/idioma-telefono";
 import { textosComprador } from "@/lib/regalo-textos";
@@ -750,6 +752,59 @@ describe("checkout etapa 1: textos y marco (Naza 06/11)", () => {
     }
   });
 
+  it("con pack, «impreso» nunca queda con marcos: la fila no vuelve a decir «+19 €»", () => {
+    conPack();
+    try {
+      const cat = catalogo("ES");
+      const hayPack = sumaSinPack(cat.base.precio, cat) !== null;
+      expect(hayPack).toBe(true);
+      const pinta = (estado: EstadoCompra) =>
+        renderToStaticMarkup(
+          <OpcionesLibro cat={cat} base={cat.base.precio} estado={estado} onElegir={() => {}} onCambio={() => {}}
+            textos={{ ...ES, titulo: ES.libroTitulo, cinta: ES.impresoEtiqueta }} tapa={{ titulo: "", idioma: "es" }} conPack formatear={eur} />,
+        );
+      const inicial = estadoInicial("es", cat);
+
+      // Camino 1: libro completo, un marco extra, y pasa a la opción impresa.
+      const completo = { ...inicial, ...eleccionDe("marco", inicial, hayPack) };
+      const conExtra = { ...completo, ...conMarcosParaRegalar(completo, 1) };
+      expect(conExtra.marcos).toBe(2);
+      const impreso = { ...conExtra, ...eleccionDe("impreso", conExtra, hayPack) };
+      expect(impreso).toMatchObject({ formato: "impreso", marcos: 0, opcion: "impreso" });
+      expect(pinta(impreso)).toContain('data-oferta="marco"');
+      expect(pinta(impreso)).not.toContain(escapar(ES.marcoPrimeroTitulo));
+
+      // Camino 2: lo guardado al volver de ?pago=fallido.
+      const guardado = { ...inicial, opcion: "impreso" as const, marcos: 1 };
+      const vuelto = normalizarConPack(guardado, hayPack);
+      expect(vuelto).toMatchObject({ formato: "impreso", marcos: 1, opcion: "marco" });
+      expect(opcionDe(vuelto)).toBe("marco");
+      // El mismo carrito: lo que se cobra no cambia.
+      expect(carritoDe(vuelto)).toEqual(carritoDe(guardado));
+      const html = pinta(vuelto);
+      expect(html).not.toContain(escapar(ES.marcoPrimeroTitulo));
+      expect(html).toContain(`name="formato" checked="" value="marco"`);
+      // El formulario lo usa al restaurar y al elegir.
+      const fuente = readFileSync(resolve(__dirname, "../src/app/comprar/formulario.tsx"), "utf8");
+      expect(fuente).toContain("normalizarConPack(guardado, sumaSinPack(cat.base.precio, cat) !== null)");
+      expect(fuente).toContain("eleccionDe(o, e, sumaSinPack(cat.base.precio, cat) !== null)");
+    } finally {
+      sinPack();
+    }
+  });
+
+  it("sin pack la regla no aplica: los marcos se conservan y lo guardado queda igual", () => {
+    const tres = { formato: "impreso" as const, marcos: 3, opcion: "marco" as const };
+    expect(eleccionDe("impreso", tres)).toEqual({ formato: "impreso", marcos: 2, opcion: "impreso" });
+    expect(eleccionDe("impreso", tres, false)).toEqual({ formato: "impreso", marcos: 2, opcion: "impreso" });
+    const guardado = { formato: "impreso" as const, marcos: 1, opcion: "impreso" as const };
+    expect(normalizarConPack(guardado, false)).toBe(guardado);
+    expect(opcionDe(normalizarConPack(guardado, false))).toBe("impreso");
+    // Con pack, lo que no es «impreso con marcos» tampoco se toca.
+    const digital = { formato: "digital" as const, marcos: 0, opcion: "digital" as const };
+    expect(normalizarConPack(digital, true)).toBe(digital);
+  });
+
   it("el botón de los pasos 1 y 2 dice «Seguir» y no quedan «Iniciar Vitácora» ni «Continuar» en el checkout", () => {
     for (const idioma of ["es", "ar"] as const) {
       for (const paso of [1, 2] as const) {
@@ -788,6 +843,17 @@ describe("checkout etapa 1: textos y marco (Naza 06/11)", () => {
     expect(otra).toContain(escapar(ES.notaFecha.otra.titulo));
     expect(otra).not.toContain(escapar(ES.notaFecha.navidad.titulo));
     expect(html({ modoFecha: "otra", fechaEntrega: "" })).not.toContain(escapar(ES.notaFecha.otra.titulo));
+  });
+
+  it("la nota de la fecha no sale con entrega automática ni con la tarjeta impresa", () => {
+    const cat = catalogo("ES");
+    const html = (cambios: Partial<EstadoCompra>) =>
+      renderToStaticMarkup(<Checkout idioma="es" catalogo={cat} pasoInicial={2} estadoDePrueba={{ para: "padre", regalo: true, modoFecha: "navidad", fechaEntrega: proximaNavidad(new Date()), ...cambios }} />);
+    const titulo = escapar(ES.notaFecha.navidad.titulo);
+    expect(html({})).toContain(titulo);
+    expect(html({ entrega: { canal: "whatsapp", contacto: "+34600000000", hora: 9 } })).not.toContain(titulo);
+    expect(html({ tarjeta: { quiere: true } as EstadoCompra["tarjeta"] })).not.toContain(titulo);
+    expect(html({ modoFecha: "otra", fechaEntrega: "2027-03-01", entrega: { canal: "whatsapp", contacto: "+34600000000", hora: 9 } })).not.toContain(escapar(ES.notaFecha.otra.titulo));
   });
 
   it("los 3 textos de pago y resumen nuevos, en es y ar", () => {

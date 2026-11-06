@@ -24,7 +24,7 @@ import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFalli
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
-import { eleccionDe } from "../_checkout/opciones-libro";
+import { eleccionDe, normalizarConPack, sumaSinPack } from "../_checkout/opciones-libro";
 import { OpcionesLibro } from "../_checkout/opciones-libro-ui";
 import { CampoCupon, type CuponAplicado } from "../_checkout/cupon";
 import { TEXTOS_CUPON } from "../_textos/cupon";
@@ -240,7 +240,7 @@ export function Checkout({
     // Lo dice la URL de vuelta: en una página estática solo se puede leer acá, ya en el navegador.
     setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
-      setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...guardado });
+      setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...normalizarConPack(guardado, sumaSinPack(cat.base.precio, cat) !== null) });
       setPaso(pago);
     }
     window.history.replaceState(null, "", window.location.pathname);
@@ -399,7 +399,7 @@ export function Checkout({
             <ContenidoPaso key="p1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={T.pasoDe(1, total)} titulo={T.libroTitulo} bajada={T.libroBajada} />
               {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
-              <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e))} onCambio={cambiar}
+              <OpcionesLibro cat={cat} base={cat.base.precio} estado={e} onElegir={(o) => cambiar(eleccionDe(o, e, sumaSinPack(cat.base.precio, cat) !== null))} onCambio={cambiar}
                 textos={{ ...T, titulo: T.libroTitulo, cinta: T.impresoEtiqueta }}
                 tapa={{ titulo: e.nombre.trim(), idioma: idiomaDelLibro(e.idioma) }} conPack estante={!historia} formatear={f} />
               {historia ? null : (
@@ -504,7 +504,8 @@ export function Checkout({
                             onChange={(ev) => cambiar({ fechaEntrega: ev.target.value, ...(ev.target.value ? {} : { entrega: SIN_ENTREGA }) })} />
                         ) : null}
                       </fieldset>
-                      {e.modoFecha === "navidad" || (e.modoFecha === "otra" && e.fechaEntrega) ? (
+                      {/* Con entrega automática o tarjeta impresa no es «le das la tarjeta». */}
+                      {(e.modoFecha === "navidad" || (e.modoFecha === "otra" && e.fechaEntrega)) && !e.entrega.canal && !e.tarjeta?.quiere ? (
                         <NotaPapel tinte={3} titulo={(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).titulo}>
                           {(e.modoFecha === "navidad" ? T.notaFecha.navidad : T.notaFecha.otra).cuerpo}
                         </NotaPapel>
