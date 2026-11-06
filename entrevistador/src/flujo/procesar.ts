@@ -508,8 +508,7 @@ async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
     return;
   }
   if (yaEsV3) return;
-  // Se frenó antes de la pregunta de quién ve lo que cuenta: le toca ahora, antes de la primera.
-  await preguntarAcceso(narrador, vozDeEleccion(narrador.contexto), enviarBotones);
+  // La pregunta de quién ve lo que cuenta ya salió con el SÍ: acá no se repite con cada mensaje.
   await primeraDelRegalo(narrador, 'regalo frenado');
 }
 

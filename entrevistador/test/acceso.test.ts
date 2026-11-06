@@ -59,6 +59,7 @@ describe('a quién se le pregunta', () => {
   it('si la pregunta no sale, no tira: la entrevista sigue y queda privado', async () => {
     const botones = vi.fn().mockRejectedValue(new Error('Meta caído'));
     await expect(preguntarAcceso(narrador(), 'es-AR', botones)).resolves.toBeUndefined();
+    expect(avisarSocios).toHaveBeenCalledWith('acceso-pregunta:n1', expect.any(String), expect.any(String), { unaVez: true });
     expect(esPrivado(narrador().contexto)).toBe(true);
   });
 });

@@ -1132,6 +1132,12 @@ describe('un regalo frenado en acepto', () => {
     }
   };
 
+  it('con la marca, no repite la pregunta de quién ve lo que cuenta con cada mensaje', async () => {
+    mocks.estado.narrador = frenado({ acceso: { elige: true } });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola', waMessageId: 'w' });
+    expect(mocks.enviarBotones).not.toHaveBeenCalled();
+  });
+
   it('cualquier texto intenta la 1 con la ventana abierta y, si sale, manda el mail «dijo que sí»', async () => {
     mocks.estado.narrador = frenado();
     mocks.enviarPregunta.mockResolvedValue(true);
