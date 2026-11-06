@@ -1,14 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
-import { atenderRevisiones, contestarSiEscribeConDudas, olvidarRevisiones, queMandar, type DepsRevision, type Situacion } from '../src/flujo/revision-narrador.js';
+import { atenderRevisiones, contestarSiEscribeConDudas, dudasAQuienConto, olvidarRevisiones, queMandar, type DepsRevision, type Situacion } from '../src/flujo/revision-narrador.js';
 import { TEXTOS_REVISION } from '../src/flujo/revision-narrador-textos.js';
-
-// La regla sin depender de su definición de hoy: `null` usa la de verdad; una función simula sus dos respuestas.
-const regla = vi.hoisted(() => ({ esPrivado: null as null | ((c: unknown) => boolean) }));
-vi.mock('../src/link-respuestas.js', async (original) => {
-  const real = await original<typeof import('../src/link-respuestas.js')>();
-  return { ...real, esPrivado: (c: unknown) => (regla.esPrivado ? regla.esPrivado(c) : real.esPrivado(c)) };
-});
 
 // El aviso de dudas a quien contó y su recordatorio (plan 2026-11-06-dudas-narrador-sobre-212). El link para sacar
 // respuestas lo manda el mensaje final (src/v3/enviar.ts y src/historia/enviar.ts), no este módulo.
@@ -67,7 +60,7 @@ describe('queMandar', () => {
 type Fila = Record<string, unknown>;
 
 function narrador(id: string, extra: Fila = {}): Fila {
-  return { id, estado: 'completado', telefono_whatsapp: '5491112345678', zona_horaria: 'America/Argentina/Buenos_Aires', como_le_dicen: 'abuelo', ...extra };
+  return { id, estado: 'completado', telefono_whatsapp: '5491112345678', zona_horaria: 'America/Argentina/Buenos_Aires', como_le_dicen: 'abuelo', contexto: { vinculoComprador: 'hija', acceso: { elige: true } }, ...extra };
 }
 
 const DUDAS = JSON.stringify({ dudas: [{ id: 'D1', pregunta: '¿Cómo se llamaba?' }, { id: 'D2', pregunta: '¿En qué año?' }] });
@@ -129,16 +122,15 @@ describe('atenderRevisiones', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
   afterEach(() => {
-    regla.esPrivado = null;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
-  describe('un regalo que no es privado no recibe ningún WhatsApp de dudas (la regla en false)', () => {
-    const REGALO = { vinculoComprador: 'hija' };
-
+  describe.each([
+    ['sin la marca', { vinculoComprador: 'hija' }],
+    ['con «Mi familia»', { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }],
+  ])('un regalo %s no recibe ningún WhatsApp de dudas', (_regalo, REGALO) => {
     it.each([['con la ventana abierta', abierta()], ['con la ventana cerrada', cerrada()]])('%s, en V3: ni texto, ni plantilla, ni marca', async (_caso, fila) => {
-      regla.esPrivado = () => false;
       const a = armar({ narradores: [narrador('n1', { contexto: REGALO })], v3: [fila] });
       await atenderRevisiones(a.deps, AHORA);
       expect(a.textos).toEqual([]);
@@ -148,24 +140,22 @@ describe('atenderRevisiones', () => {
     });
 
     it('en una historia, tampoco', async () => {
-      regla.esPrivado = () => false;
       const a = armar({ narradores: [narrador('n1', { contexto: { ...REGALO, modo: 'historia' } })], v3: [], historias: [abierta()], carpeta: 'escritor-historia' });
       await atenderRevisiones(a.deps, AHORA);
       expect(a.textos).toEqual([]);
       expect(a.archivo('n1', 'dudas-narrador-avisadas.txt', 'escritor-historia')).toBeUndefined();
     });
 
-    it('«para mí» sigue recibiéndolo, aunque la regla diga que no es privado', async () => {
-      regla.esPrivado = () => false;
-      const a = armar({ narradores: [narrador('n1', { contexto: { vinculoComprador: 'yo mismo' } })] });
-      await atenderRevisiones(a.deps, AHORA);
-      expect(a.textos).toHaveLength(1);
+    it('escribiendo con dudas pendientes, tampoco: las contesta la familia en el panel', async () => {
+      const n = narrador('n1', { contexto: REGALO }) as Parameters<typeof contestarSiEscribeConDudas>[1];
+      const a = armar({ narradores: [n] });
+      expect(await contestarSiEscribeConDudas(a.deps, n, AHORA)).toBe(false);
+      expect(a.textos).toEqual([]);
     });
 
-    it('la regla decide por narrador: el privado recibe, el otro no', async () => {
-      regla.esPrivado = (c) => (c as { privado?: boolean }).privado === true;
+    it('se decide por narrador: el privado recibe, el otro no', async () => {
       const a = armar({
-        narradores: [narrador('n1', { contexto: { ...REGALO, privado: true } }), narrador('n2', { contexto: REGALO, telefono_whatsapp: '5491199999999' })],
+        narradores: [narrador('n1'), narrador('n2', { contexto: REGALO, telefono_whatsapp: '5491199999999' })],
         v3: [abierta('n1'), abierta('n2')],
       });
       await atenderRevisiones(a.deps, AHORA);
@@ -173,12 +163,24 @@ describe('atenderRevisiones', () => {
       expect(a.archivo('n2', 'dudas-narrador-avisadas.txt')).toBeUndefined();
     });
 
-    it('con la regla en true sale con cualquier forma de contexto', async () => {
-      regla.esPrivado = () => true;
-      const a = armar({ narradores: [narrador('n1', { contexto: { acceso: { elige: true, quien: 'narrador' } } })] });
+  });
+
+  it('«para mí» y «Prefiero yo» lo reciben', async () => {
+    for (const contexto of [{ vinculoComprador: 'yo mismo' }, { vinculoComprador: 'hija', acceso: { elige: true, quien: 'narrador' } }]) {
+      olvidarRevisiones();
+      const a = armar({ narradores: [narrador('n1', { contexto })] });
       await atenderRevisiones(a.deps, AHORA);
       expect(a.textos).toHaveLength(1);
-    });
+    }
+  });
+
+  it('a quién van: Viaje y Kids nunca, aunque sean «para mí»', () => {
+    expect(dudasAQuienConto({ vinculoComprador: 'yo mismo' })).toBe(true);
+    expect(dudasAQuienConto({ modo: 'historia', vinculoComprador: 'yo mismo' })).toBe(true);
+    for (const modo of ['viaje', 'kids']) {
+      expect(dudasAQuienConto({ modo, vinculoComprador: 'yo mismo' })).toBe(false);
+      expect(dudasAQuienConto({ modo, acceso: { elige: true } })).toBe(false);
+    }
   });
 
   it('fuera de 9 a 21 en su zona no manda ni marca', async () => {
@@ -420,7 +422,7 @@ describe('atenderRevisiones', () => {
   });
 
   describe('escribe por WhatsApp teniendo dudas pendientes', () => {
-    const REGALO = { contexto: { vinculoComprador: 'hija' } };
+    const REGALO = { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } };
     const uno = (extra: Fila = REGALO) => narrador('n1', extra) as Parameters<typeof contestarSiEscribeConDudas>[1];
 
     it.each([
@@ -449,7 +451,7 @@ describe('atenderRevisiones', () => {
     });
 
     it('en una historia lee su carpeta', async () => {
-      const n = uno({ contexto: { modo: 'historia', vinculoComprador: 'hija' } });
+      const n = uno({ contexto: { modo: 'historia', vinculoComprador: 'hija', acceso: { elige: true } } });
       const a = armar({ narradores: [n], v3: [], historias: [abierta()], carpeta: 'escritor-historia' });
       expect(await contestarSiEscribeConDudas(a.deps, n, AHORA)).toBe(true);
       expect(a.textos).toHaveLength(1);
@@ -472,10 +474,10 @@ describe('atenderRevisiones', () => {
 
     const nada = (a: ReturnType<typeof armar>) => { expect(a.textos).toEqual([]); expect(a.socios).toEqual([]); };
 
-    it('un regalo que no es privado (la regla en false): nada, sigue como hoy', async () => {
-      regla.esPrivado = () => false;
-      const a = armar({ narradores: [uno()] });
-      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(false);
+    it('un regalo que no es privado (sin la marca): nada, sigue como hoy', async () => {
+      const n = uno({ contexto: { vinculoComprador: 'hija' } });
+      const a = armar({ narradores: [n] });
+      expect(await contestarSiEscribeConDudas(a.deps, n, AHORA)).toBe(false);
       nada(a);
     });
 
@@ -627,7 +629,7 @@ describe('atenderRevisiones', () => {
   });
 
   it('un libro «para mí» recibe el aviso igual que un regalo', async () => {
-    const a = armar({ narradores: [narrador('n1', { contexto: { vinculoComprador: 'yo mismo' } }), narrador('n2', { contexto: { vinculoComprador: 'hija' } })], v3: [abierta('n1'), abierta('n2')] });
+    const a = armar({ narradores: [narrador('n1', { contexto: { vinculoComprador: 'yo mismo' } }), narrador('n2', { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } })], v3: [abierta('n1'), abierta('n2')] });
     await atenderRevisiones(a.deps, AHORA);
     expect(a.textos).toHaveLength(2);
   });

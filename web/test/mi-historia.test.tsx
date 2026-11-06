@@ -4,12 +4,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 
-// La regla sin depender de su definición de hoy: `null` usa la de verdad; un booleano simula sus dos respuestas.
-const regla = vi.hoisted(() => ({ privado: null as boolean | null }));
-vi.mock("@/lib/panel", async (original) => {
-  const real = await original<typeof import("@/lib/panel")>();
-  return { ...real, loContadoEsPrivado: (n: Parameters<typeof real.loContadoEsPrivado>[0]) => regla.privado ?? real.loContadoEsPrivado(n) };
-});
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((ruta: string) => { throw new Error(`REDIRECT:${ruta}`); }),
   useRouter: () => ({ refresh() {}, push() {} }),
@@ -39,7 +33,7 @@ type Fila = Record<string, unknown>;
 function preparar(archivos: Record<string, string>, narrador: Fila = {}, tablas: Record<string, Fila[]> = {}) {
   const subidas: { ruta: string; contenido: string }[] = [];
   const todas: Record<string, Fila[]> = {
-    narradores: [{ id: "n1", como_le_dicen: "Marta", contexto: { vinculoComprador: "hija" }, libro_aprobado_at: null, ...narrador }],
+    narradores: [{ id: "n1", como_le_dicen: "Marta", contexto: { vinculoComprador: "hija", acceso: { elige: true } }, libro_aprobado_at: null, ...narrador }],
     entrevistas_v3: [{ narrador_id: "n1", estado: {}, idioma: "es-AR" }],
     historias: [],
     ...tablas,
@@ -83,7 +77,7 @@ const contestadas = (...ids: string[]) => JSON.stringify({ correcciones: ids.map
 const abrir = async (t = token()) => renderToStaticMarkup(await PaginaMiHistoria({ params: Promise.resolve({ token: t }) }));
 const enviar = (t: string, cuerpo: unknown) => POST(new Request("https://x.test", { method: "POST", body: JSON.stringify(cuerpo), headers: { "Content-Type": "application/json" } }) as never, { params: Promise.resolve({ token: t }) });
 
-beforeEach(() => { vi.clearAllMocks(); regla.privado = null; process.env.FIRMA_TOKENS = SECRETO; });
+beforeEach(() => { vi.clearAllMocks(); process.env.FIRMA_TOKENS = SECRETO; });
 
 describe("la puerta /mi-historia/<token>", () => {
   it("sin token válido no muestra ni un dato, y el mensaje es el de /mis-respuestas", async () => {
@@ -186,23 +180,31 @@ describe("la puerta /mi-historia/<token>", () => {
     await expect(abrir(t)).rejects.toThrow(destino);
   });
 
-  it("un regalo que no es privado (la regla en false) no muestra dudas y va a /mis-respuestas", async () => {
-    regla.privado = false;
+  it.each([
+    ["sin la marca", { vinculoComprador: "hija" }],
+    ["con «Mi familia»", { vinculoComprador: "hija", acceso: { elige: true, quien: "familia" } }],
+  ])("un regalo %s no muestra dudas y va a /mis-respuestas", async (_caso, contexto) => {
     const t = token();
-    preparar(conDudas);
+    preparar(conDudas, { contexto });
     await expect(abrir(t)).rejects.toThrow(`REDIRECT:/mis-respuestas/${t}`);
-    preparar({ ...conDudas, [`${AQUI}/libro.md`]: "# L" });
+    preparar({ ...conDudas, [`${AQUI}/libro.md`]: "# L" }, { contexto });
     await expect(abrir(t)).rejects.toThrow(`REDIRECT:/mis-respuestas/${t}`);
   });
 
-  it("«para mí» sigue viendo sus dudas aunque la regla diga que no es privado", async () => {
-    regla.privado = false;
+  it("«para mí» sigue viendo sus dudas", async () => {
     preparar(conDudas, { contexto: { vinculoComprador: "yo mismo" } });
     expect(await abrir()).toContain("¿Cómo se llamaba tu maestra?");
   });
 
-  it("con la regla en true muestra las dudas con cualquier forma de contexto", async () => {
-    regla.privado = true;
+  it("Viaje y Kids «para mí» no ven dudas por acá", async () => {
+    for (const modo of ["viaje", "kids"]) {
+      const t = token();
+      preparar(conDudas, { contexto: { modo, vinculoComprador: "yo mismo" } });
+      await expect(abrir(t)).rejects.toThrow(`REDIRECT:/mis-respuestas/${t}`);
+    }
+  });
+
+  it("«Prefiero yo» muestra las dudas", async () => {
     preparar(conDudas, { contexto: { acceso: { elige: true, quien: "narrador" } } });
     expect(await abrir()).toContain("¿Cómo se llamaba tu maestra?");
   });
@@ -262,9 +264,8 @@ describe("POST /api/mi-historia/<token>/dudas", () => {
     expect(b.subidas).toEqual([]);
   });
 
-  it("un regalo que no es privado (la regla en false) no contesta por acá", async () => {
-    regla.privado = false;
-    const { subidas } = preparar(conDudas);
+  it("«Mi familia» no contesta por acá", async () => {
+    const { subidas } = preparar(conDudas, { contexto: { vinculoComprador: "hija", acceso: { elige: true, quien: "familia" } } });
     expect((await enviar(token(), { correcciones: [{ dudaId: "D1", texto: "x" }] })).status).toBe(404);
     expect(subidas).toEqual([]);
   });

@@ -19,12 +19,6 @@ export function esPrivado(contexto: unknown): boolean {
   return a?.elige === true && a.quien !== 'familia';
 }
 
-/**
- * Por donde pasan las decisiones de las dudas y las esperas. `esPrivado` sigue siendo la única fuente de la regla; esto
- * deja que un test simule sus dos respuestas (`vi.spyOn(regla, 'esPrivado')`), sin depender de la definición de hoy.
- */
-export const regla = { esPrivado };
-
 /** «Para mí» en la compra: el libro es de quien lo compró (mismo criterio que esPropia en web/src/lib/panel.ts). */
 export function esLibroPropio(contexto: unknown): boolean {
   return (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
@@ -38,7 +32,7 @@ const MS_PARA_SACAR = HORAS_PARA_SACAR * 60 * 60 * 1000;
 
 /** Hasta cuándo puede sacar algo. Null si no es privado o si todavía no contó nada. */
 export function plazoParaSacar(n: { contexto?: unknown; ultima_respuesta_at?: string | null }): number | null {
-  if (!regla.esPrivado(n.contexto) || !n.ultima_respuesta_at) return null;
+  if (!esPrivado(n.contexto) || !n.ultima_respuesta_at) return null;
   const t = Date.parse(n.ultima_respuesta_at);
   return Number.isFinite(t) ? t + MS_PARA_SACAR : null;
 }
@@ -63,10 +57,13 @@ const MS_RELOJES = 5 * 60 * 1000;
 /**
  * ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Privados y «Para mí». Lo demás (un regalo en curso
  * sin marca, alguien que eligió a su familia, viaje, kids) no recibe ese WhatsApp: sigue con el prompt para la familia, el
- * mail `dudas` y la espera de `ESCRITOR_ESPERA_DUDAS_HORAS`. Es la única decisión: nada de esto mira el vínculo por su cuenta.
+ * mail `dudas` y la espera de `ESCRITOR_ESPERA_DUDAS_HORAS`. Viaje y Kids quedan afuera aunque sean «Para mí». Es la única
+ * decisión: nada de esto mira el vínculo por su cuenta.
  */
 export function dudasAQuienConto(contexto: unknown): boolean {
-  return regla.esPrivado(contexto) || esLibroPropio(contexto);
+  const modo = (contexto as { modo?: unknown } | null | undefined)?.modo;
+  if (modo === 'viaje' || modo === 'kids') return false;
+  return esPrivado(contexto) || esLibroPropio(contexto);
 }
 
 /** El `contexto` del narrador. Si la base falla, tira: quien llama reintenta. */

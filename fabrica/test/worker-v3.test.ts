@@ -27,7 +27,6 @@ vi.mock('../src/mail/hitos.js', async () => ({ ...(await vi.importActual<object>
 vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ urlBase: 'https://x', resendApiKey: '' }) }));
 vi.mock('../src/db.js', async () => ({ ...(await vi.importActual<object>('../src/db.js')), obtenerClienteDb: m.obtenerClienteDb }));
 
-import { regla } from '../src/escritor/produccion/privacidad.js';
 import { procesarPedidosPagados, tick } from '../src/worker.js';
 
 type Fila = Record<string, unknown>;
@@ -192,7 +191,7 @@ describe('worker: el mail "terminó de contar" de un narrador V3', () => {
 
 describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
   const conDudas = (narrador: Fila = {}) => ({
-    narradores: [{ id: 'v3', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null, ...narrador }],
+    narradores: [{ id: 'v3', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null, contexto: { acceso: { elige: true } }, ...narrador }],
     pedidos: [],
     familias: [{ id: 'f', email: 'familia@ejemplo.com' }],
   });
@@ -225,11 +224,8 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
   });
 
-  describe('un regalo que no es privado sigue como hoy (la regla en false)', () => {
-    afterEach(() => vi.restoreAllMocks());
-
+  describe('un regalo que no es privado sigue como hoy (sin la marca, o con «Mi familia»)', () => {
     it('con dudas sin contestar, el mail de siempre con el link, aunque el plazo de 72 horas haya pasado', async () => {
-      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
       m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
       const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
       m.obtenerClienteDb.mockReturnValue(db);
@@ -237,8 +233,15 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
       expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
     });
 
+    it('«Mi familia»: el mail de siempre con el link a la pantalla del panel', async () => {
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+    });
+
     it('con todas contestadas, `dudas_listas` con su texto de antes', async () => {
-      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
       m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: true, plazoVencido: false });
       const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
       m.obtenerClienteDb.mockReturnValue(db);
@@ -246,10 +249,9 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
       expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro' })]);
     });
 
-    it('con la regla en true y cualquier forma de contexto, ningún mail mientras el plazo corre', async () => {
-      vi.spyOn(regla, 'esPrivado').mockReturnValue(true);
+    it('con la marca, el mismo vínculo no recibe ningún mail mientras el plazo corre', async () => {
       m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: false });
-      const { db } = base(conDudas({ contexto: { modo: 'viaje' } }) as never);
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }) as never);
       m.obtenerClienteDb.mockReturnValue(db);
       await tick();
       expect(dudasMandadas()).toEqual([]);

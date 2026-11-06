@@ -19,7 +19,6 @@ import { Cola } from '../../src/escritor/produccion/cola.js';
 import {
   alertarLibrosDemorados, colaDelEscritor, dudasParaLaFamilia, escribirLibroV3, esLibroPropio, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, SinMaterial, soloConAudio, type Motor,
 } from '../../src/escritor/produccion/libro-v3.js';
-import { regla } from '../../src/escritor/produccion/privacidad.js';
 import { carpetaNelida, DEFECTOS_NELIDA, salidasModeloNelida } from './ayuda.js';
 
 // ---------------------------------------------------------------- base falsa
@@ -506,7 +505,7 @@ describe('el libro espera hasta 72 horas si la Etapa A encontró dudas (Naza, 06
   });
 
   it('vale igual para «Para mí» y para un regalo', async () => {
-    for (const contexto of [{ vinculoComprador: 'yo mismo' }, { vinculoComprador: 'hija' }]) {
+    for (const contexto of [{ vinculoComprador: 'yo mismo' }, { vinculoComprador: 'hija', acceso: { elige: true } }]) {
       const { db, tablas } = baseFalsa(pedidoDe('n8b', { contexto }));
       await escribirLibroV3(db, libro('n8b'), motorFalso().motor);
       expect(tablas.pedidos[0].estado).toBe('pagado');
@@ -690,7 +689,7 @@ describe('el libro espera hasta 72 horas si la Etapa A encontró dudas (Naza, 06
 describe('las 48 horas de quien contó antes de pagar la lectura (Naza, 06/11)', () => {
   const H = 3_600_000;
   const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
-  const REGALO = { vinculoComprador: 'hija' };
+  const REGALO = { vinculoComprador: 'hija', acceso: { elige: true } };
   const pedidoDe = (id: string, ultima: string) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto: REGALO, ultima_respuesta_at: ultima }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
   const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
 
@@ -765,7 +764,7 @@ describe('la alerta de libro demorado con las esperas nuevas (Naza, 06/11)', () 
     tablas: { narradores: [{ id: 'a1', ...n }], pedidos: [{ id: 'p-a1', narrador_id: 'a1', estado: 'pagado' }] },
     archivos,
   });
-  const REGALO = { contexto: { vinculoComprador: 'hija' } };
+  const REGALO = { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } };
   const conMail = () => {
     vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
@@ -886,7 +885,7 @@ describe('esLibroPropio', () => {
   });
 });
 
-describe('un regalo que no es privado sigue como hoy (la regla en false, Joaquín 06/11)', () => {
+describe('un regalo que no es privado sigue como hoy (sin la marca, Joaquín 06/11)', () => {
   const H = 3_600_000;
   const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
   const REGALO = { vinculoComprador: 'hija' };
@@ -901,7 +900,6 @@ describe('un regalo que no es privado sigue como hoy (la regla en false, Joaquí
   };
   const mails = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { subject: string; text: string });
 
-  beforeEach(() => { vi.spyOn(regla, 'esPrivado').mockReturnValue(false); });
   afterEach(() => vi.unstubAllGlobals());
 
   it('espera ESCRITOR_ESPERA_DUDAS_HORAS desde el mail, con su texto, y se retoma al vencer, no a los 15 minutos', async () => {
@@ -993,10 +991,24 @@ describe('un regalo que no es privado sigue como hoy (la regla en false, Joaquí
     expect(mails(fetch)[0].text).toContain('más 24 si hubo dudas');
   });
 
-  it('con la regla en true, el mismo contexto va a quien contó: la prueba de que nada mira el vínculo', async () => {
+  it('«Mi familia» sigue el mismo camino: el mail con la pantalla del panel, sin WhatsApp ni plazo de 72 horas', async () => {
     const fetch = conMail();
-    vi.mocked(regla.esPrivado).mockReturnValue(true);
-    const { db, tablas, archivos } = baseFalsa(pedidoDe('r10'));
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r11', { contexto: { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }, ultima_respuesta_at: hace(1) }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r11'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(mails(fetch)[0].text).toContain('A la familia le llega un mail');
+    expect(mails(fetch)[0].text).toContain('/tablero/r11/dudas');
+    expect(mails(fetch)[0].text).not.toContain('WhatsApp');
+    archivos.set('r11/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r11'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('con la marca, el mismo vínculo va a quien contó: la prueba de que nada mira el vínculo', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r10', { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }));
     const { motor } = motorFalso();
     await escribirLibroV3(db, libro('r10'), motor);
     expect(tablas.pedidos[0].estado).toBe('pagado');
@@ -1022,7 +1034,7 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
   const delAviso = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { text: string }).filter((m) => m.text.includes('Se empieza a escribir'));
   afterEach(() => vi.unstubAllGlobals());
 
-  it.each([['un privado', { vinculoComprador: 'hija' }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca, y el libro sale', async (_caso, contexto) => {
+  it.each([['un privado', { vinculoComprador: 'hija', acceso: { elige: true } }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca, y el libro sale', async (_caso, contexto) => {
     const fetch = conMail();
     const id = `s-${contexto.vinculoComprador === 'hija' ? 'a' : 'b'}`;
     const { db, tablas, archivos } = baseFalsa(pedidoDe(id, contexto));
@@ -1041,7 +1053,7 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
 
   it('si el mail falla, el libro sale igual y no queda la marca', async () => {
     conMail(500);
-    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-c', { vinculoComprador: 'hija' }));
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-c', { vinculoComprador: 'hija', acceso: { elige: true } }));
     const { motor } = motorFalso();
     await escribirLibroV3(db, libro('s-c'), motor);
     archivos.set('s-c/escritor/dudas-avisadas.txt', hace(72));
@@ -1053,7 +1065,7 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
 
   it('con todas contestadas, nada', async () => {
     const fetch = conMail();
-    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-d', { vinculoComprador: 'hija' }));
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-d', { vinculoComprador: 'hija', acceso: { elige: true } }));
     const { motor } = motorFalso();
     await escribirLibroV3(db, libro('s-d'), motor);
     const ids = (JSON.parse(String(archivos.get('s-d/escritor/dudas-familia.json'))).dudas as { id: string }[]).map((d) => d.id);
@@ -1065,7 +1077,7 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
 
   it('una A rehecha saca las respuestas viejas a las dudas antes de pagarla, y deja las de los socios', async () => {
     conMail();
-    const { db, archivos } = baseFalsa(pedidoDe('s-f', { vinculoComprador: 'hija' }));
+    const { db, archivos } = baseFalsa(pedidoDe('s-f', { vinculoComprador: 'hija', acceso: { elige: true } }));
     const { motor } = motorFalso();
     await revisarEtapaAV3(db, 's-f', { motor });
     await colaDelEscritor.esperarTodo();
@@ -1078,7 +1090,7 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
 
   it('una A rehecha deja la marca sin valor', async () => {
     conMail();
-    const { db, archivos, tablas } = baseFalsa(pedidoDe('s-e', { vinculoComprador: 'hija' }));
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('s-e', { vinculoComprador: 'hija', acceso: { elige: true } }));
     const { motor } = motorFalso();
     await revisarEtapaAV3(db, 's-e', { motor });
     await colaDelEscritor.esperarTodo();

@@ -81,9 +81,11 @@ export function queMandar(s: Situacion, ahora: Date): Mensaje | null {
   return pasaron >= RECORDAR_A_LAS_MS && pasaron < DUDAS_VENCIDAS_MS ? 'recordatorio' : null;
 }
 
-/** ¿Las dudas se las preguntamos a quien contó? Como `dudasAQuienConto` de la fábrica: `esPrivado` es la única fuente de la regla. */
+/** ¿Las dudas se las preguntamos a quien contó? Como `dudasAQuienConto` de la fábrica: Viaje y Kids nunca, aunque sean «para mí». */
 export function dudasAQuienConto(contexto: unknown): boolean {
-  return esPrivado(contexto) || (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
+  const c = contexto as { modo?: unknown; vinculoComprador?: unknown } | null | undefined;
+  if (c?.modo === 'viaje' || c?.modo === 'kids') return false;
+  return esPrivado(contexto) || c?.vinculoComprador === 'yo mismo';
 }
 
 /** El mismo criterio que `escritorHistoriaPrendido` de la fábrica: sin escritor, a esa historia no le toca nada. */

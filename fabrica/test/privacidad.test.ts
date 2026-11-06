@@ -4,7 +4,7 @@ vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave
 
 import { AlmacenMemoria } from '../src/escritor/almacen/memoria.js';
 import * as privacidad from '../src/escritor/produccion/privacidad.js';
-import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, DUDAS_SIN_CONTESTAR_AVISADAS, dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, DUDAS_SIN_CONTESTAR_AVISADAS, dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
 import { dudasParaLaFamilia, esperaPorDudas } from '../src/escritor/produccion/libro-v3.js';
 import { armarLibroDeImprenta, imprentaFrenada } from '../src/libro/imprenta.js';
 import { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } from '../src/mail/frases.js';
@@ -125,7 +125,7 @@ describe('todas las dudas de un regalo van a quien contó (Naza, 06/11)', () => 
 
   it('a quién van: privados y «Para mí», no viaje ni kids', () => {
     expect(dudasAQuienConto(REGALO)).toBe(true);
-    expect(dudasAQuienConto(null)).toBe(true);
+    expect(dudasAQuienConto(null)).toBe(false); // sin la marca: una entrevista anterior, sigue con la familia
     expect(dudasAQuienConto(PROPIA)).toBe(true);
     expect(dudasAQuienConto({ modo: 'viaje', ...REGALO })).toBe(false);
     expect(dudasAQuienConto({ modo: 'kids', ...REGALO })).toBe(false);
@@ -172,25 +172,30 @@ describe('el recordatorio de los 15 días cuando el libro es para otra persona',
   });
 });
 
-describe('la regla, simulando sus dos respuestas', () => {
-  afterEach(() => vi.restoreAllMocks());
-
-  it('en false: dudas a quien contó solo si es «Para mí», y sin plazo para sacar', () => {
-    vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
-    expect(dudasAQuienConto(REGALO)).toBe(false);
+describe('a quién van las dudas, según la marca', () => {
+  it('sin la marca o con «Mi familia»: a quien contó solo si es «Para mí», y sin plazo para sacar', () => {
+    const SIN_MARCA = { vinculoComprador: 'hija' };
+    const MI_FAMILIA = { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } };
+    expect(dudasAQuienConto(SIN_MARCA)).toBe(false);
+    expect(dudasAQuienConto(MI_FAMILIA)).toBe(false);
     expect(dudasAQuienConto(null)).toBe(false);
     expect(dudasAQuienConto(PROPIA)).toBe(true);
-    expect(plazoParaSacar({ contexto: REGALO, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).toBeNull();
+    expect(plazoParaSacar({ contexto: SIN_MARCA, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).toBeNull();
+    expect(plazoParaSacar({ contexto: MI_FAMILIA, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).toBeNull();
   });
 
-  it('en true: dudas a quien contó y plazo para sacar, con cualquier forma de contexto', () => {
-    vi.spyOn(regla, 'esPrivado').mockReturnValue(true);
-    expect(dudasAQuienConto({ acceso: { elige: true, quien: 'narrador' } })).toBe(true);
-    expect(plazoParaSacar({ contexto: {}, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).not.toBeNull();
+  it('con la marca o «Prefiero yo»: a quien contó, y con plazo para sacar', () => {
+    for (const contexto of [REGALO, { acceso: { elige: true, quien: 'narrador' } }]) {
+      expect(dudasAQuienConto(contexto)).toBe(true);
+      expect(plazoParaSacar({ contexto, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).not.toBeNull();
+    }
   });
 
-  it('la regla sin simular es esPrivado', () => {
-    expect(regla.esPrivado).toBe(esPrivado);
+  it('Viaje y Kids nunca, aunque sean «Para mí»', () => {
+    for (const modo of ['viaje', 'kids']) {
+      expect(dudasAQuienConto({ modo, vinculoComprador: 'yo mismo' })).toBe(false);
+      expect(dudasAQuienConto({ modo, acceso: { elige: true } })).toBe(false);
+    }
   });
 });
 
@@ -269,9 +274,8 @@ describe('el aviso a los socios si quien contó no contesta', () => {
 
   it('un regalo no privado no avisa: ahí esperar a quien contó nunca fue el plazo', async () => {
     const fetch = conMail();
-    vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
     const a = await conDudas();
-    await avisar(a);
+    await avisar(a, { contexto: { vinculoComprador: 'hija' } });
     expect(fetch).not.toHaveBeenCalled();
     await avisar(a, { contexto: PROPIA });
     expect(fetch).toHaveBeenCalledTimes(1);

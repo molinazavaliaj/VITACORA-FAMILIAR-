@@ -21,7 +21,6 @@ import { Ejecutor } from '../../src/escritor/ejecutor.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { carpetaDeHistoria } from '../../src/escritor-historia/material/carpeta.js';
 import { alEntregarHistoria, colaHistoria, escribirLibroHistoria, escritorHistoriaPrendido, revisarLibrosHistoria, SinMaterialHistoria, topeHistoria, type MotorHistoria } from '../../src/escritor-historia/produccion/libro-historia.js';
-import { regla } from '../../src/escritor/produccion/privacidad.js';
 import { narradoresConHistoria } from '../../src/historia/candado.js';
 import { DEFECTOS_RUBEN, RUBEN, salidasRuben } from './ayuda.js';
 
@@ -157,7 +156,7 @@ describe('el libro de historia en el worker', () => {
     expect(tablas.pedidos[0].estado).toBe('pagado');
     await vuelta(db, motor);
     expect(mails.filter((m) => m.subject.includes('Dudas de datos del libro de historia de Rubén'))).toHaveLength(1);
-    expect(mails.find((m) => m.subject.includes('Dudas de datos'))?.text).not.toContain(`/tablero/${ID}/dudas`);
+    expect(mails.find((m) => m.subject.includes('Dudas de datos'))?.text).toContain(`/tablero/${ID}/dudas`);
     expect(archivos.has(prefijo('dudas-avisadas.txt'))).toBe(true);
     expect(modelo.llamadas).toHaveLength(3);
   });
@@ -220,6 +219,12 @@ describe('el libro de historia en el worker', () => {
 });
 
 describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
+  // Con la marca de la compra, sin que el narrador eligiera: privado.
+  const rubenPrivado = (o: Parameters<typeof tablasDeRuben>[0] = {}) => {
+    const t0 = tablasDeRuben(o);
+    t0.narradores[0].contexto = { acceso: { elige: true } };
+    return t0;
+  };
   const HORA = 3_600_000;
   const hace = (horas: number): string => new Date(Date.now() - horas * HORA).toISOString();
   const generando = (tablas: Record<string, Fila[]>) => { tablas.pedidos[0].estado = 'generando'; };
@@ -228,7 +233,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   const conUltima = (tablas: Record<string, Fila[]>, ultima: string) => { tablas.narradores[0].ultima_respuesta_at = ultima; return tablas; };
 
   it('el tick no lanza la A antes de las 48 horas de quien contó', async () => {
-    const { db, tablas } = baseFalsa(conUltima(tablasDeRuben(), hace(47)));
+    const { db, tablas } = baseFalsa(conUltima(rubenPrivado(), hace(47)));
     const { motor, modelo } = motorFalso(db);
     await vuelta(db, motor);
     expect(modelo.llamadas).toHaveLength(0);
@@ -238,7 +243,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   it('«Para mí» no espera en el tick', async () => {
-    const t0 = tablasDeRuben();
+    const t0 = rubenPrivado();
     t0.narradores[0].contexto = { vinculoComprador: 'yo mismo' };
     const { db } = baseFalsa(conUltima(t0, hace(1)));
     const { motor, modelo } = motorFalso(db);
@@ -247,7 +252,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   it('encargado antes: vuelve a pagado sin pagar nada; si quitó todo, tampoco queda fallido', async () => {
-    const { db, tablas } = baseFalsa(conUltima(tablasDeRuben({ pedido: true, aprobado: true }), hace(1)));
+    const { db, tablas } = baseFalsa(conUltima(rubenPrivado({ pedido: true, aprobado: true }), hace(1)));
     const { motor, modelo } = motorFalso(db);
     const sinNada: MotorHistoria = { ...motor, material: async () => { throw new SinMaterialHistoria(ID); } };
     generando(tablas);
@@ -258,7 +263,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
 
   it('72 horas: desde el mail a los socios si nunca salió el WhatsApp, y desde el WhatsApp si salió', async () => {
     vi.stubEnv('MAIL_SOCIOS', '');
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor } = motorFalso(db);
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
@@ -278,7 +283,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   it('ESCRITOR_ESPERA_DUDAS_HORAS=0 no saltea el plazo, y un mail que no sale no lo traba', async () => {
     vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
     vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor } = motorFalso(db);
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
@@ -287,7 +292,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   it('con todas contestadas no espera', async () => {
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor, modelo } = motorFalso(db);
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
@@ -299,7 +304,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   }, 30_000);
 
   it('alternar vueltas de espera y errores pasajeros nunca da fallido', async () => {
-    const { db, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor } = motorFalso(db);
     let caido = false;
     const conCortes: MotorHistoria = { ...motor, material: async (d, n) => { if (caido) throw new Error('fetch failed'); return motor.material!(d, n); } };
@@ -314,7 +319,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   it('una vuelta de espera vuelve a mirar a los 15 minutos, no al vencer el plazo', async () => {
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor } = motorFalso(db);
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
@@ -330,7 +335,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   it('una A rehecha deja vacías las dos marcas y el plazo arranca de cero', async () => {
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor, modelo } = motorFalso(db);
     archivos.set(prefijo('carpeta-A.json'), JSON.stringify({ 'entradas/respuestas.xml': 'lo de antes' }));
     archivos.set(prefijo('dudas-avisadas.txt'), hace(100));
@@ -347,7 +352,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
 
   it('marcas con fecha del futuro: el libro no se traba, dos vueltas seguidas', async () => {
     const futuro = new Date(Date.now() + 500 * HORA).toISOString();
-    const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+    const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
     const { motor } = motorFalso(db);
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
@@ -365,7 +370,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
 
   it.each(['viaje', 'kids'])('un modo %s queda como antes: 24 horas del mail, con su texto', async (modo) => {
     vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
-    const t0 = tablasDeRuben({ pedido: true, aprobado: true });
+    const t0 = rubenPrivado({ pedido: true, aprobado: true });
     t0.narradores[0].contexto = { modo, vinculoComprador: 'hija' };
     const { db, archivos, tablas } = baseFalsa(t0);
     const { motor } = motorFalso(db);
@@ -381,14 +386,13 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
     expect(tablas.pedidos[0].estado).toBe('entregado');
   }, 30_000);
 
-  describe('un regalo que no es privado sigue como hoy (la regla en false)', () => {
+  describe('un regalo que no es privado sigue como hoy (sin la marca)', () => {
     const conRegalo = (o: { pedido?: boolean; aprobado?: boolean } = { pedido: true, aprobado: true }) => {
-      const t0 = tablasDeRuben(o);
+      const t0 = rubenPrivado(o);
       t0.narradores[0].contexto = { vinculoComprador: 'hija' };
       return t0;
     };
     beforeEach(() => {
-      vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
       vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
     });
 
@@ -427,8 +431,8 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   });
 
   describe('si quien contó no contesta, los socios se enteran', () => {
-    it.each([['un privado', { vinculoComprador: 'hija' }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca', async (_caso, contexto) => {
-      const t0 = tablasDeRuben({ pedido: true, aprobado: true });
+    it.each([['un privado', { vinculoComprador: 'hija', acceso: { elige: true } }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca', async (_caso, contexto) => {
+      const t0 = rubenPrivado({ pedido: true, aprobado: true });
       t0.narradores[0].contexto = contexto;
       const { db, archivos, tablas } = baseFalsa(t0);
       const { motor } = motorFalso(db);
@@ -446,7 +450,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
     }, 30_000);
 
     it('si el mail falla, el libro sale igual y no queda la marca', async () => {
-      const { db, archivos, tablas } = baseFalsa(tablasDeRuben({ pedido: true, aprobado: true }));
+      const { db, archivos, tablas } = baseFalsa(rubenPrivado({ pedido: true, aprobado: true }));
       const { motor } = motorFalso(db);
       generando(tablas);
       await escribirLibroHistoria(db, libro, motor);
@@ -461,7 +465,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
 
   it('un modo viaje con ESCRITOR_ESPERA_DUDAS_HORAS=0 no espera', async () => {
     vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
-    const t0 = tablasDeRuben({ pedido: true, aprobado: true });
+    const t0 = rubenPrivado({ pedido: true, aprobado: true });
     t0.narradores[0].contexto = { modo: 'viaje', vinculoComprador: 'hija' };
     const { db, tablas } = baseFalsa(t0);
     generando(tablas);
@@ -470,7 +474,7 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
   }, 30_000);
 
   it('el mail a los socios dice que van por WhatsApp a quien contó', async () => {
-    const { db } = baseFalsa(tablasDeRuben());
+    const { db } = baseFalsa(rubenPrivado());
     const { motor } = motorFalso(db);
     await vuelta(db, motor);
     await vuelta(db, motor);

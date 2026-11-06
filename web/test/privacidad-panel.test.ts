@@ -5,12 +5,6 @@ vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 vi.mock("@/lib/mail", () => ({ enviarMailSocios: vi.fn(async () => true), enviarMailInvitacion: vi.fn(async () => true) }));
 
-// La regla sin depender de su definición de hoy: `null` usa la de verdad; un booleano simula sus dos respuestas.
-const regla = vi.hoisted(() => ({ privado: null as boolean | null }));
-vi.mock("@/lib/panel", async (original) => {
-  const real = await original<typeof import("@/lib/panel")>();
-  return { ...real, loContadoEsPrivado: (n: Parameters<typeof real.loContadoEsPrivado>[0]) => regla.privado ?? real.loContadoEsPrivado(n) };
-});
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { createServerClient } from "@supabase/ssr";
@@ -107,7 +101,7 @@ const pedir = (ruta: string, cuerpo?: unknown, metodo = cuerpo === undefined ? "
   new NextRequest(`https://x.test${ruta}`, { method: metodo, ...(cuerpo === undefined ? {} : { body: JSON.stringify(cuerpo), headers: { "Content-Type": "application/json" } }) });
 const pedirAudio = () => audio(pedir("/api/audio/r1"), { params: Promise.resolve({ respuestaId: "r1" }) });
 
-beforeEach(() => { vi.clearAllMocks(); regla.privado = null; sesion(compradora); });
+beforeEach(() => { vi.clearAllMocks(); sesion(compradora); });
 
 describe("la regla", () => {
   it("venta nueva: privado, salvo que elija a su familia. Sin la marca (las entrevistas anteriores), para mí, viaje y kids: no", () => {
@@ -281,15 +275,17 @@ describe("las dudas del escritor", () => {
     expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(400);
   });
 
-  describe("un regalo que no es privado sigue como hoy (la regla en false)", () => {
+  describe.each([
+    ["sin la marca", { vinculoComprador: "hija" }],
+    ["con «Mi familia»", { vinculoComprador: "hija", acceso: { elige: true, quien: "familia" } }],
+  ])("un regalo %s sigue como hoy", (_regalo, NO_PRIVADO) => {
     const terminada = () => {
-      const t = base(REGALO);
+      const t = base(NO_PRIVADO);
       t.narradores[0].estado = "completado";
       return t;
     };
 
     it("POST guarda, para la dueña y para sus invitados", async () => {
-      regla.privado = false;
       const { POST } = await import("../src/app/api/dudas/route");
       const { subidas } = preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
       expect((await POST(pedir(`/api/dudas${q}`, { correcciones: [{ dudaId: "D1", texto: "Pérez" }] }))).status).toBe(200);
@@ -299,7 +295,6 @@ describe("las dudas del escritor", () => {
     });
 
     it("la pantalla se abre, con las preguntas", async () => {
-      regla.privado = false;
       const { default: Pagina } = await import("../src/app/tablero/[narradorId]/dudas/page");
       preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
       const pantalla = await Pagina({ params: Promise.resolve({ narradorId: "n1" }) } as never);
@@ -307,7 +302,6 @@ describe("las dudas del escritor", () => {
     });
 
     it("invitar para dudas funciona; sin dudas pendientes dice lo de siempre", async () => {
-      regla.privado = false;
       const { POST } = await import("../src/app/api/invitados/route");
       preparar(terminada(), { "n1/escritor/dudas-familia.json": dudas });
       expect((await POST(pedir(`/api/invitados${q}`, { email: "tia@mail.com" }))).status).toBe(200);
@@ -319,20 +313,19 @@ describe("las dudas del escritor", () => {
     });
 
     it("el próximo paso lleva a contestarlas", async () => {
-      regla.privado = false;
       const { proximoPaso } = await import("../src/app/tablero/proximo-paso");
-      const h = { rol: "duena", narrador: { id: "n1", estado: "completado", contexto: REGALO, nombre: "Marta", como_le_dicen: "Marta" } };
+      const h = { rol: "duena", narrador: { id: "n1", estado: "completado", contexto: NO_PRIVADO, nombre: "Marta", como_le_dicen: "Marta" } };
       const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: true, v3: true, dudasPendientes: true };
       expect(proximoPaso(h as never, r as never)).toEqual({ href: "/tablero/n1/dudas", texto: "Hay dudas sobre lo que contó Marta. Contestalas antes de que se escriba el libro." });
     });
 
-    it("el helper: `loContadoEsPrivado` o `esPropia`, y nada más", async () => {
+    it("el helper: `loContadoEsPrivado` o `esPropia`, y nada más; Viaje y Kids nunca", async () => {
       const { dudasAQuienConto } = await import("@/lib/dudas-archivos");
-      regla.privado = false;
-      expect(dudasAQuienConto({ contexto: REGALO })).toBe(false);
+      expect(dudasAQuienConto({ contexto: NO_PRIVADO })).toBe(false);
+      expect(dudasAQuienConto({ contexto: REGALO })).toBe(true);
       expect(dudasAQuienConto({ contexto: PROPIA })).toBe(true);
-      regla.privado = true;
-      expect(dudasAQuienConto({ contexto: { modo: "viaje", vinculoComprador: "hija" } })).toBe(true);
+      expect(dudasAQuienConto({ contexto: { modo: "viaje", ...PROPIA } })).toBe(false);
+      expect(dudasAQuienConto({ contexto: { modo: "kids", ...PROPIA } })).toBe(false);
     });
   });
 

@@ -9,7 +9,6 @@ vi.mock('../../src/escritor-historia/material/carpeta.js', () => ({ carpetaDeHis
 
 import { carpetaHistoriaDeLaBase } from '../../src/escritor-historia/produccion/libro-historia.js';
 import { carpetaDeLaBase } from '../../src/escritor/produccion/libro-v3.js';
-import { regla } from '../../src/escritor/produccion/privacidad.js';
 
 const base = (contexto: unknown) => {
   const q: any = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: { contexto }, error: null }) };
@@ -26,29 +25,22 @@ describe.each([
   ['Historia', carpetaHistoriaDeLaBase],
 ] as const)('propia en %s', (_nombre, carpeta) => {
   it.each([
-    ['un regalo', { vinculoComprador: 'hija' }],
-    ['sin vínculo cargado', {}],
+    ['un regalo con la marca', { vinculoComprador: 'hija', acceso: { elige: true } }],
+    ['un regalo donde eligió «Prefiero yo»', { vinculoComprador: 'hija', acceso: { elige: true, quien: 'narrador' } }],
     ['«Para mí»', { vinculoComprador: 'yo mismo' }],
   ])('%s: le hablan a quien contó', async (_caso, contexto) => {
     expect((await carpeta(base(contexto), 'n')).propia).toBe(true);
   });
 
   it.each([
-    ['viaje', { modo: 'viaje', vinculoComprador: 'hija' }],
-    ['kids', { modo: 'kids', vinculoComprador: 'hija' }],
-  ])('%s de regalo queda como antes: le hablan a la familia', async (_caso, contexto) => {
+    ['un regalo en curso, sin la marca', { vinculoComprador: 'hija' }],
+    ['sin vínculo cargado', {}],
+    ['«Mi familia»', { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }],
+    ['viaje de regalo', { modo: 'viaje', vinculoComprador: 'hija' }],
+    ['kids de regalo', { modo: 'kids', vinculoComprador: 'hija' }],
+    ['viaje «Para mí»', { modo: 'viaje', vinculoComprador: 'yo mismo' }],
+    ['kids «Para mí»', { modo: 'kids', vinculoComprador: 'yo mismo' }],
+  ])('%s queda como antes: le hablan a la familia', async (_caso, contexto) => {
     expect((await carpeta(base(contexto), 'n')).propia).toBe(false);
-  });
-
-  it('solo mira la regla: en false, un regalo le habla a la familia; «Para mí» sigue con quien contó', async () => {
-    vi.spyOn(regla, 'esPrivado').mockReturnValue(false);
-    expect((await carpeta(base({ vinculoComprador: 'hija' }), 'n')).propia).toBe(false);
-    expect((await carpeta(base({}), 'n')).propia).toBe(false);
-    expect((await carpeta(base({ vinculoComprador: 'yo mismo' }), 'n')).propia).toBe(true);
-  });
-
-  it('solo mira la regla: en true, le habla a quien contó', async () => {
-    vi.spyOn(regla, 'esPrivado').mockReturnValue(true);
-    expect((await carpeta(base({ modo: 'viaje', vinculoComprador: 'hija' }), 'n')).propia).toBe(true);
   });
 });

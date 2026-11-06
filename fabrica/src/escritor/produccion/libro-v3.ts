@@ -43,7 +43,7 @@ import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
-import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, plazoParaSacar, esPrivado, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
 import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
@@ -658,7 +658,7 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
       // Con dudas (o, en un privado, sin la Etapa A todavía: pueden aparecer) la espera es larga. Si no van a quien contó, no tiene este plazo.
       const aQuienConto = dudasAQuienConto(n.contexto);
       if (ahora - cerrado < DEMORA_ALERTA_CON_DUDAS_MS && aQuienConto) {
-        if ((await tieneDudas(almacen)) || (regla.esPrivado(n.contexto) && (await almacen.leer(CARPETA_A)) === null)) continue;
+        if ((await tieneDudas(almacen)) || (esPrivado(n.contexto) && (await almacen.leer(CARPETA_A)) === null)) continue;
       }
       if ((await almacen.leer(ALERTA_DEMORADO)) !== null) continue;
       const p = pendientes.get(n.id)!;

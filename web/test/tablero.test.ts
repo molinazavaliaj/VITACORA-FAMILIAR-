@@ -376,8 +376,12 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
     expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
   });
   it('en un regalo las contesta quien contó: a quien regala y a sus invitados no se les ofrece la pantalla', () => {
-    expect(proximoPaso(h('completado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
-    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3');
+    const privado = (rol?: 'invitado') => {
+      const base = rol ? h('completado', rol) : h('completado');
+      return { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'hija', acceso: { elige: true } } } } as unknown as Historia;
+    };
+    expect(proximoPaso(privado(), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
+    expect(proximoPaso(privado('invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3');
   });
   it('si el libro es para quien lo compró, le habla de vos', () => {
     const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;

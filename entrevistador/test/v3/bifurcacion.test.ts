@@ -51,7 +51,7 @@ describe('quien terminó y escribe con dudas pendientes', () => {
   });
 
   it.each([['V3', {}, 'entrevistas_v3', 'escritor'], ['historia', { modo: 'historia' }, 'historias', 'escritor-historia']])('en %s le contesta con el link y no guarda nada', async (_n, contexto, tabla, carpeta) => {
-    h.base.tablas.narradores = [{ ...NARRADOR, id: `n1`, estado: 'completado', contexto: { vinculoComprador: 'hija', ...(contexto as object) } }];
+    h.base.tablas.narradores = [{ ...NARRADOR, id: `n1`, estado: 'completado', contexto: { vinculoComprador: 'hija', acceso: { elige: true }, ...(contexto as object) } }];
     h.base.tablas[tabla as string] = [{ narrador_id: 'n1', idioma: 'es-AR', estado: {}, version: 0 }];
     h.base.tablas.respuestas = [];
     conDudas(carpeta as string);
@@ -63,7 +63,7 @@ describe('quien terminó y escribe con dudas pendientes', () => {
   });
 
   it('sin dudas pendientes sigue como hoy: no le contesta', async () => {
-    h.base.tablas.narradores = [{ ...NARRADOR, estado: 'completado', contexto: { vinculoComprador: 'hija' } }];
+    h.base.tablas.narradores = [{ ...NARRADOR, estado: 'completado', contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }];
     h.base.tablas.entrevistas_v3 = [{ narrador_id: 'n1', idioma: 'es-AR', estado: {}, version: 0 }];
     await procesarEntrante(m('texto'));
     expect(h.enviarTexto).not.toHaveBeenCalled();
