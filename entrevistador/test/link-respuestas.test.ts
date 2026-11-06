@@ -32,7 +32,7 @@ describe('pedirlo', () => {
   it('historia lo reconoce igual', () => {
     expect(pedidoHistoria('mis respuestas', 'es-AR', false)).toBeNull();
     expect(pedidoHistoria('mis respuestas', 'es-AR', true)).toMatchObject({ link: true, reserva: false, pausa: false });
-    expect(pedidoHistoria('esto que no vaya al libro', 'es-AR')).toMatchObject({ reserva: true });
+    expect(pedidoHistoria('esto que no vaya al libro', 'es-AR', true)).toMatchObject({ reserva: true });
   });
 });
 
