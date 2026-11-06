@@ -56,4 +56,16 @@ describe("las cajitas de la portada", () => {
     process.env.PRECIO_ARS = "65000";
     expect(cajasPortada("ar", catalogo("AR"), eur).find((c) => c.id === "familiar")!.href).toBe("/ar/comprar?regalo=1");
   });
+
+  it("Para un niño: con Kids en venta lleva sus precios; sin venta, Próximamente", () => {
+    const sin = cajasPortada("es", catalogo("ES"), eur).find((c) => c.id === "nino")!;
+    expect(sin.marca).toBe("pronto");
+    process.env.KIDS_VENTA = "1";
+    process.env.PRECIO_KIDS_EUR = "49";
+    const con = cajasPortada("es", catalogo("ES"), eur).find((c) => c.id === "nino")!;
+    delete process.env.KIDS_VENTA;
+    delete process.env.PRECIO_KIDS_EUR;
+    expect(con.marca).toBeNull();
+    expect(con.filas.at(-1)!.valor).toBe("49 €");
+  });
 });
