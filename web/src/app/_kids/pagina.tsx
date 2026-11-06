@@ -158,7 +158,6 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
           {/* Las tres primeras palabras juntas: en el teléfono quedaba «Lo que» solo arriba (revisión del 25/10, A13). */}
           <em className="dir-destaca block">{t.dibujos.frase[1].replace(/^(\S+) (\S+) (\S+)/, "$1 $2 $3")}</em>
         </h2>
-        <p className="acu-bajada mt-4">{t.dibujos.texto}</p>
       </section>
 
       {/* 4 · Cómo funciona */}
@@ -177,7 +176,6 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
         <div className="acu-par">
           <div className="flex flex-col gap-4">
             <h2 className="dir-titular dir-t3">{t.chat.titulo}</h2>
-            <p className="acu-parrafo max-w-[42ch]">{t.chat.texto}</p>
             <h3 className="dir-titular dir-t4 mt-6">{t.preguntas.titulo}</h3>
             <ul className="flex flex-col">
               {t.preguntas.items.map((p) => (
@@ -232,7 +230,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
 
       {/* 8 · Preguntas (la garantía vive acá: D1) */}
       <PreguntasAcuarela titulo={t.faq.titulo} duda={portada.faq.duda} whatsapp={whatsapp}>
-        {t.faq.preguntas.map((d, i) => (
+        {t.faq.preguntas.filter((d) => !d.soloLanding).map((d, i) => (
           <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="dudas-kids">
             {d.respuesta}
           </Acordeon>
