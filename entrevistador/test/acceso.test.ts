@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { atenderEleccion, eligeAcceso, preguntarAcceso, quienDelBoton, VERSION_ELECCION, vozDeEleccion } from '../src/flujo/acceso.js';
 import { avisarSocios } from '../src/v3/avisos.js';
@@ -7,6 +7,8 @@ import { esPrivado } from '../src/link-respuestas.js';
 
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
 vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: vi.fn().mockResolvedValue(true) }));
+
+beforeEach(() => vi.mocked(avisarSocios).mockClear());
 
 const narrador = (contexto: Record<string, unknown> = { acceso: { elige: true } }) => ({
   id: 'n1', como_le_dicen: 'Marta', telefono_whatsapp: '5491100000000', contexto,
