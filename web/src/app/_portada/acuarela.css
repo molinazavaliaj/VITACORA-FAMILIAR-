@@ -553,3 +553,7 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
   .acu-medios-grande { grid-column: 1; grid-row: 1 / 3; aspect-ratio: auto; min-height: 420px; }
   .acu-medios-chica { aspect-ratio: auto; }
 }
+
+/* El logo que se dibuja al entrar (Naza, 06/11): da identidad de marca. Con «menos movimiento», ya dibujado. */
+.acu-logo-inicio { width: 124px; color: var(--acu-titulo); }
+@media (min-width: 900px) { .acu-logo-inicio { width: 150px; } }
