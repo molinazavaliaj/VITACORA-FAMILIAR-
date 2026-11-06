@@ -195,6 +195,25 @@ montado **antes** del día 1.
 | El pase al escritor con toda la info, y el libro del otro lado | **J**, **N** | ☐ |
 | En cada paso: ¿apareció en `/admin`? ¿llegó el mail? | **J** | ☐ |
 
+### Bloque 9 · Publicar con la conexión directa de Vercel (decidido por Joaquín el 06/11)
+
+Hoy publica GitHub Actions con una llave. Pasa a publicar Vercel, que retiene cada versión hasta
+que los tests de `web` dan verde. Plan y marcha atrás: PR #218, `docs/publicar-con-vercel.md`.
+
+**Antes de los anuncios del 9/11, y solo después de lo de esta tabla.** El orden importa: lo
+pendiente sale con el sistema de hoy, y eso además prueba `vercel deploy --prod` con el token nuevo.
+Si el domingo 8/11 a la noche falta algo, no se hace con apuro: pasa a después de la primera
+semana de anuncios.
+
+| Paso | Quién | Estado |
+|---|---|---|
+| Fusionar portada (#213) y privacidad (#216 → #214 → #212), en el orden acordado | [A] | ☐ |
+| Comprobar que esos merges publicaron bien con el token nuevo | [J], con Claude | ☐ |
+| Compra de prueba real con reembolso | [J] | ☐ |
+| Ventana de unos 45 minutos sin merges, con Naza disponible (objetivo: domingo 8/11) | [A] | ☐ |
+| Hacer el cambio y probar que el freno de tests funciona | [J], con Claude | ☐ |
+| A las dos semanas: revocar el token y borrar los tres secretos `VERCEL_*` | [J], con Claude | ☐ |
+
 ### Lo que se cerró entre el 17/10 y el 02/11 (118 PR)
 
 > Se anota para que no se vuelva a perder de vista lo hecho.
