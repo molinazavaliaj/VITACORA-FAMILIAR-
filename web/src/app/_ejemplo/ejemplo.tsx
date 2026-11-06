@@ -11,6 +11,7 @@ import { VideoLibro } from "../_direccion/video-libro";
 import "../_direccion/tokens.css";
 import "../_checkout/checkout.css";
 import "./ejemplo.css";
+import "../_portada/acuarela.css";
 
 // /ejemplo (rediseño 2026-10, maquetas Ejemplo/EjemploMovil): el libro de
 // Osvaldo para hojear antes de comprar. Es una historia inventada y la página
@@ -37,7 +38,7 @@ export function Ejemplo({ idioma }: { idioma: IdiomaWeb }) {
     cat.base.precio + (cat.impreso?.precio ?? 0),
   );
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina ejm flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina acu-tema ejm flex flex-1 flex-col">
       <div className="dir-tinta ejm-tinta pb-[14px]">
         <Cabecera idioma={idioma} camino="/ejemplo" sobreHero />
         <div className="mx-auto flex w-full max-w-[1104px] flex-col items-center gap-5 px-4 pb-16 pt-6 text-center sm:px-6 sm:pb-24 sm:pt-12">

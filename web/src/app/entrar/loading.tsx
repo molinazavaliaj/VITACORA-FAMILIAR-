@@ -1,4 +1,5 @@
 import "./entrar.css";
+import "../_portada/acuarela.css";
 
 // Mientras carga /entrar (RENDIMIENTO.md §3.1): la forma del formulario —
 // etiqueta, título, una línea, el campo y el botón — sobre la misma tinta que
@@ -6,7 +7,7 @@ import "./entrar.css";
 
 export default function CargandoEntrar() {
   return (
-    <div aria-busy="true" className="dir-pagina dir-tinta ent">
+    <div aria-busy="true" className="dir-pagina dir-tinta acu-tema ent">
       <p role="status" className="sr-only">
         Cargando…
       </p>

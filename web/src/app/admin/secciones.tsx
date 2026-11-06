@@ -28,6 +28,7 @@ export const SECCIONES: Seccion[] = [
   { href: "/admin/creadores", numero: "06", nombre: "Creadores", grupo: "Las historias", pregunta: "quién se anotó, quién vende y cuánto se les debe", pista: "altas, ventas y comisiones", icono: "creadores" },
   { href: "/admin/plata", numero: "07", nombre: "Plata", grupo: "Los números", pregunta: "lo que entró, lo que se gastó y lo que quedó", pista: "entró, salió, quedó", icono: "plata" },
   { href: "/admin/gastos", numero: "08", nombre: "Gastos", grupo: "Los números", pregunta: "qué se gastó, día por día y paso por paso", pista: "en qué se va la plata", icono: "gastos" },
+  { href: "/admin/embudo", numero: "11", nombre: "Embudo", grupo: "Los números", pregunta: "cuánta gente llega a cada paso de la compra", pista: "de la visita al pago", icono: "plata" },
   { href: "/admin/cerebros", numero: "09", nombre: "Cerebros", grupo: "La máquina", pregunta: "qué cerebro trabaja, qué hace y dónde se frenó", pista: "qué robot trabaja", icono: "cerebros" },
   { href: "/admin/contenido", numero: "10", nombre: "Contenido", grupo: "La marca", pregunta: "qué publicamos y cuándo", pista: "el calendario de redes", icono: "contenido" },
 ];

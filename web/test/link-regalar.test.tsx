@@ -22,12 +22,12 @@ describe("el link a /regalar", () => {
   });
 
   // La portada es por idioma desde el rediseño (13/10): la de Argentina lleva
-  // a /regalar en su versión, /ar/regalar.
-  it("la landing lo muestra", () => {
+  // a la compra en su versión. Desde el 05/11 el regalo sale de la cajita
+  // «Para un familiar», que tiene su propio texto: el link chico ya no va.
+  it("la landing lleva a la compra con el regalo elegido", () => {
     process.env.PRECIO_ARS ??= "65000";
     const html = renderToStaticMarkup(PortadaAr());
     expect(html).toContain('href="/ar/comprar?regalo=1"');
-    expect(html).toContain(escapar("Regalalo con una tarjeta →"));
   });
 
   it("con idioma, va a /regalar en ese idioma", () => {

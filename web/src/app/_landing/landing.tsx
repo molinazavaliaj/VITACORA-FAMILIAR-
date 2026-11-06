@@ -22,8 +22,9 @@ import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { textosAbuelo, type IdiomaRegalo } from "@/lib/regalo-textos";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
-// Una sola hoja de estilo, la de la portada (trae los tokens adentro).
+// Una sola hoja de estilo, la de la portada (trae los tokens adentro), y la acuarela.
 import "../_direccion/direccion.css";
+import "../_portada/acuarela.css";
 
 // Las landings de anuncio (rediseño 2026-10, fase 4; maquetas LandingRegalo,
 // LandingPreguntas, LandingVoz y, de Viaje, la sobria; desde el 16/10 dice la
@@ -115,7 +116,7 @@ export function LandingFamiliar({ idioma, landing }: { idioma: IdiomaWeb; landin
 
       <Cierre idioma={idioma} lema={t.hero.titulo.join(" ")} titulo={base.cierre} cta={base.cta} href={comprar} dato={desde} camino={caminoPie(landing)} rasca landings={(["regalo", "preguntas", "voz"] as const).filter((otra) => otra !== landing)} />
 
-      <CtaSticky precio={precio} conImpreso={cat.impreso !== null} href={comprar} textos={{ ...t.sticky, boton: base.cta }} />
+      <CtaSticky precio={precio} conImpreso={cat.impreso !== null} href={comprar} variante="acuarela" textos={{ ...t.sticky, boton: base.cta }} />
     </Pagina>
   );
 }
@@ -386,9 +387,9 @@ export function LandingViaje({ idioma }: { idioma: IdiomaWeb }) {
 /* ═══════════════════════════════ piezas ═══════════════════════════════ */
 
 /** La hoja de la página: idioma, grano, la coreografía y el fondo de tinta. */
-export function Pagina({ idioma, producto, children }: { idioma: IdiomaWeb; /** Viaje lleva su paleta (_direccion/viaje.css). */ producto?: "viaje"; children: ReactNode }) {
+export function Pagina({ idioma, producto, children }: { idioma: IdiomaWeb; /** Viaje lleva su acento (acuarela.css). */ producto?: "viaje"; children: ReactNode }) {
   return (
-    <div lang={langDeIdioma(idioma)} data-producto={producto} className="dir-pagina flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className={`dir-pagina acu-tema${producto === "viaje" ? " acu-acento-viaje" : ""} flex flex-1 flex-col`}>
       <Coreografia />
       {children}
     </div>
