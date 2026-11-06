@@ -73,6 +73,9 @@ export async function preguntarAcceso(
     await botones(n.telefono_whatsapp, conNombre(PREGUNTA[voz], n.como_le_dicen ?? ''), [b.familia, b.narrador]);
   } catch (err) {
     console.error(`acceso: no pude preguntarle a ${n.id}; queda privado:`, err instanceof Error ? err.message : err);
+    await avisarSocios(`acceso-pregunta:${n.id}`, 'No salió la pregunta de quién ve lo que cuenta',
+      `A ${n.id} no le salió la pregunta. Queda privado, pero no sabe que puede elegir ni que tiene 48 horas para sacar algo. Hay que escribirle a mano.`,
+      { unaVez: true }).catch(() => undefined);
   }
 }
 

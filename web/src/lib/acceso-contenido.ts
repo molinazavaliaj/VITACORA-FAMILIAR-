@@ -1,9 +1,10 @@
 // Quién ve lo que cuenta el narrador (Joaquín y Naza, 05/11). En las ventas nuevas de Familiar e Historia para otra
 // persona lo elige el narrador, después del SÍ: «Mi familia» (quien compró y sus invitados ven todo, como siempre) o
-// «Solo yo» (lo que cuenta queda privado hasta que el libro esté listo). Si no contesta, es lo mismo que «Prefiero
+// «Solo yo» (lo que cuenta queda privado hasta que el libro esté listo). Si no contesta, es lo mismo que «Solo
 // yo»: el silencio no abre nada. En los dos casos la familia lee el libro apenas está listo y confirma quien compró.
 //
-// Vive en `narradores.contexto.acceso`, sin migración. Lo escriben la compra (la marca) y el bot (la elección).
+// Vive en `narradores.contexto.acceso`. La compra pone la marca. La elección solo se escribe con la función
+// `anotar_eleccion_acceso`: un trigger revierte cualquier otro cambio (migración 20261106000100).
 // SIN LA MARCA TODO SIGUE COMO SIEMPRE: las entrevistas anteriores a este cambio conservan lo que se les prometió al
 // comprar (términos §12).
 

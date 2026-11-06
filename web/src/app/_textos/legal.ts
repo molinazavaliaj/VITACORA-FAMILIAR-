@@ -2,9 +2,9 @@ import type { Textos } from "@/lib/idioma-web";
 import { medicionConfigurada } from "@/lib/medicion";
 
 // El día que se publica el #214 (Naza, 06/11): es «Última actualización» y el corte de «Quién ve lo que cuenta».
-// Salida acordada: martes 10/11/2026. Si se corre, cambiar estas dos líneas antes de mergear.
-const PUBLICADO = "10 de noviembre de 2026";
-const PUBLICAT = "10 de novembre de 2026";
+// SE PONE EL DÍA DEL MERGE, cuando esté cumplido el resto de los pasos del PR. No se publica con el marcador.
+const PUBLICADO = "[día de publicación]";
+const PUBLICAT = "[dia de publicació]";
 
 // Los textos legales de la web (rediseño 2026-10, fase 5): términos,
 // privacidad y desistimiento / botón de arrepentimiento, en los tres idiomas.
