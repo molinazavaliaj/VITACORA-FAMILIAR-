@@ -1,6 +1,6 @@
 /* ── Vitácora de Viaje con su color (15/10) ───────────────────────────────
-   Todo lo de Viaje (/viaje, /el-libro-del-viaje, /comprar/viaje y el bloque
-   de Viaje de la portada) lleva data-producto="viaje" en su contenedor. Acá,
+   Desde el 06/11 solo la compra (/comprar/viaje) lleva data-producto="viaje" en
+   su contenedor; /viaje y /el-libro-del-viaje pasaron a la acuarela. Acá,
    bajo ese alcance, la dirección «la web es un libro» se pasa a la paleta de
    la guía de las maquetas: noche #0a0a0a, texto blanco, acento #9dbdff y
    botón #7aa7ff con texto oscuro. Los colores crudos están en tokens.css

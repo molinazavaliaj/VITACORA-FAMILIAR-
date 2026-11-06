@@ -407,3 +407,44 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
   --borde-oscuro-fuerte: rgba(238, 234, 225, 0.3);
   color-scheme: dark;
 }
+
+/* ── Lo que cada página pinta con color fijo, para cuando lleva acu-tema ───── */
+/* El papel del checkout (ejemplo, /regalar): sus botones y su foco, con el acento. */
+.dir-pagina.acu-tema .chk, .dir-pagina.acu-tema.chk { --acento-oscuro: var(--acu-bordo); --boton: var(--acu-bordo); --sobre-boton: var(--acu-sobre-bordo); --fondo-oscuro: #ffffff; --sombra-boton: transparent; }
+/* Las landings: la nota del libro que gira y la lista con hilos. */
+.dir-pagina.acu-tema .dir-sobre-papel-onda { --dir-sobre-tinta: var(--acu-bordo); }
+/* /ejemplo */
+.dir-pagina.acu-tema .ejm-tinta {
+  --fondo-oscuro: transparent;
+  --linea-oscura: var(--acu-linea);
+  --texto-oscuro: var(--acu-titulo);
+  --texto-oscuro-fuerte: var(--acu-titulo);
+  --texto-oscuro-suave: var(--acu-suave);
+  --texto-oscuro-menor: var(--acu-suave);
+  --borde-oscuro-fuerte: var(--acu-linea);
+  --acento-oscuro: var(--acu-bordo);
+  --tarjeta: #ffffff;
+}
+.dir-pagina.acu-tema .ejm-tinta :focus-visible { outline-color: var(--acu-bordo); }
+.dir-pagina.acu-tema .ejm-bajada { color: #6a4f4e; }
+.dir-pagina.acu-tema .ejm-inventada { border-color: var(--borde-oscuro-fuerte); color: var(--acu-suave); }
+/* /opiniones */
+.dir-pagina.acu-tema .opn-bajada, .dir-pagina.acu-tema .dir-tinta .opn-comprobadas-texto { color: #6a4f4e; }
+.dir-pagina.acu-tema .dir-tinta .opn-boton-hilo, .dir-pagina.acu-tema .dir-papel .opn-boton-hilo { color: var(--acu-bordo); border-color: var(--acu-bordo); }
+/* /entrar: la foto sigue con su pie claro sobre el degradé oscuro de la foto. */
+.dir-pagina.acu-tema .ent-foto { background: var(--acu-banda2); }
+.dir-pagina.acu-tema .ent-foto-pie { color: #eeeae1; }
+.dir-pagina.acu-tema .ent-etiqueta { color: var(--acu-bordo); }
+.dir-pagina.acu-tema .ent-bajada, .dir-pagina.acu-tema .ent-rotulo { color: var(--acu-suave); }
+.dir-pagina.acu-tema .ent-campo { border-color: var(--borde-oscuro-fuerte); background: #ffffff; }
+.dir-pagina.acu-tema .ent-campo::placeholder { color: var(--acu-suave); }
+.dir-pagina.acu-tema .ent-campo:focus { border-color: var(--acu-bordo); }
+.dir-pagina.acu-tema .ent-error { color: var(--error); }
+.dir-pagina.acu-tema .ent-nota { border-color: var(--acu-linea); background: #ffffff; }
+.dir-pagina.acu-tema .ent-cabecera :focus-visible, .dir-pagina.acu-tema .ent-cuerpo :focus-visible { outline-color: var(--acu-bordo); }
+.dir-pagina.acu-tema .ent .bg-white\/10, .dir-pagina.acu-tema.ent .bg-white\/10 { background-color: var(--acu-linea); }
+/* Las hojas de aviso (404 y error) */
+.dir-pagina.acu-tema .avi-boton { background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
+.dir-pagina.acu-tema .avi-boton:hover { background: var(--acu-bordo-hondo); }
+.dir-pagina.acu-tema .avi-etiqueta { color: var(--acu-bordo); }
+.dir-pagina.acu-tema .avi-bajada { color: var(--acu-suave); }

@@ -25,7 +25,7 @@ export const ENLACE_CUADERNO = "/?utm_source=cuaderno&utm_medium=qr";
 export function Cuaderno() {
   const t = TEXTOS_CUADERNO;
   return (
-    <div lang="es-ES" className="dir-pagina dir-portada evt flex flex-1 flex-col">
+    <div lang="es-ES" className="dir-pagina dir-portada acu-tema evt flex flex-1 flex-col">
       <Coreografia />
 
       <section data-capa className="dir-tinta relative z-[1]">

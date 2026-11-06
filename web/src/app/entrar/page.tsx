@@ -8,6 +8,7 @@ import { tratoDeRegion } from "@/lib/regalo-textos";
 import { textosEntrar } from "../_textos/entrar";
 import { Toroide } from "../marca";
 import "./entrar.css";
+import "../_portada/acuarela.css";
 
 // /entrar (rediseño 2026-10, arreglos chicos; maquetas `Entrar` y
 // `EntrarMovil`). En escritorio, a la izquierda la foto de Juan Domingo de joven con la
@@ -20,7 +21,7 @@ export default async function Entrar() {
   const trato = tratoDeRegion(regionDelRequest(await headers()));
   const t = textosEntrar(trato);
   return (
-    <div className="dir-pagina dir-tinta ent">
+    <div className="dir-pagina dir-tinta acu-tema ent">
       <figure className="ent-foto">
         <div className="ent-foto-papel">
           <div className="ent-foto-imagen">

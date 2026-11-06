@@ -12,11 +12,12 @@ import { TEXTOS_AVISOS } from "./_textos/avisos";
 // aprobados por Naza el 19/10), en castellano neutro. El mensaje técnico del error no se
 // pinta: el que lo lea en un log es el equipo, no la familia.
 
-const TINTA = "#070706";
-const PAPEL = "#f4f0e7";
-const SOBRE_PAPEL = "#151412";
-const SOBRE_PAPEL_SUAVE = "#5a564e";
-const DORADO = "#7a6440";
+// Los colores de la acuarela (_portada/acuarela.css), escritos acá porque esta pantalla no carga ningún CSS.
+const LAVADO = "#fdf6f1";
+const PAPEL = "#fffdfa";
+const SOBRE_PAPEL = "#2a1c1c";
+const SOBRE_PAPEL_SUAVE = "#6a5a57";
+const DORADO = "#7a1f2e";
 
 export default function GlobalError({
   error,
@@ -42,8 +43,8 @@ export default function GlobalError({
         <title>Error 500 · Vitácora Familiar</title>
         <div
           style={{
-            background: TINTA,
-            color: "#eeeae1",
+            background: LAVADO,
+            color: DORADO,
             padding: "20px 24px",
             fontFamily: "ui-sans-serif, system-ui, sans-serif",
             fontSize: 12,
@@ -79,7 +80,7 @@ export default function GlobalError({
                 padding: "0 30px",
                 border: 0,
                 borderRadius: 999,
-                background: "#0d0d0c",
+                background: DORADO,
                 color: PAPEL,
                 fontFamily: "ui-sans-serif, system-ui, sans-serif",
                 fontSize: 15,

@@ -41,7 +41,7 @@ export function Colabora({ idioma }: { idioma: IdiomaWeb }) {
   const c = t.formulario.casilla;
 
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada evt flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-tema evt flex flex-1 flex-col">
       <Coreografia />
 
       {/* ═══ 1 · INICIO, sobre tinta ═══ */}
