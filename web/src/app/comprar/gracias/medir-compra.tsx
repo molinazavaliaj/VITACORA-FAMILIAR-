@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { medirCompra } from "@/lib/medicion-cliente";
-import { contarPaso } from "@/lib/embudo-cliente";
+import { contarPagado } from "@/lib/embudo-cliente";
 import type { RegionEmbudo } from "@/lib/embudo";
 
 // La compra, para Meta y Google (medición de anuncios, 26/10). No hace nada si
@@ -18,11 +18,12 @@ export function MedirCompra({ pedidoId, monto, moneda }: { pedidoId: string; mon
 }
 
 // El embudo (06/11): «pagado» se cuenta acá y no al entrar a gracias, porque este componente
-// solo se pinta cuando el servidor encontró el pedido en estado pagado. Una vez por pedido.
-// No usa cookies ni el aviso: es un contador por día, sin datos de persona.
+// solo se pinta cuando el servidor encontró el pedido en estado pagado. Suma solo si en esta
+// pestaña se tocó «Pagar» (ver contarPagado): si Mercado Pago vuelve en otro contexto, ese
+// pago no se cuenta. No usa cookies ni el aviso: es un contador por día, sin datos de persona.
 export function ContarPagado({ pedidoId, region }: { pedidoId: string; region: RegionEmbudo }) {
   useEffect(() => {
-    contarPaso("pagado", region, pedidoId);
+    contarPagado(region, pedidoId);
   }, [pedidoId, region]);
   return null;
 }

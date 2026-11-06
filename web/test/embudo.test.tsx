@@ -10,15 +10,15 @@ vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: () => ({ rpc }
 
 import { POST } from "../src/app/api/embudo/route";
 import { armarEmbudo, validarEmbudo } from "@/lib/embudo";
-import { contarPaso } from "@/lib/embudo-cliente";
+import { contarPagado, contarPaso } from "@/lib/embudo-cliente";
 import { catalogo } from "@/lib/productos";
 import { Checkout } from "../src/app/comprar/formulario";
 
 // El contador del embudo (checkout etapa 1): sin cookies, sin IP, sin correo. Nunca rompe la compra.
 
 const BUENO = { compra: "familiar", paso: "entro", region: "ES", dispositivo: "celular" };
-const pedir = (cuerpo: unknown) =>
-  POST(new Request("http://localhost/api/embudo", { method: "POST", body: typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo) }));
+const pedir = (cuerpo: unknown, headers?: Record<string, string>) =>
+  POST(new Request("http://localhost/api/embudo", { method: "POST", headers, body: typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo) }));
 
 describe("validarEmbudo", () => {
   it("acepta cada valor permitido y descarta los campos de más", () => {
@@ -50,6 +50,24 @@ describe("POST /api/embudo", () => {
     expect((await pedir({ ...BUENO, paso: "hackeo" })).status).toBe(204);
     expect((await pedir("no es json")).status).toBe(204);
     expect(rpc).not.toHaveBeenCalled();
+  });
+  it("descarta en silencio lo que no viene del mismo sitio, sin tocar la base", async () => {
+    for (const sitio of ["cross-site", "same-site", "none"]) {
+      const r = await pedir(BUENO, { "Sec-Fetch-Site": sitio });
+      expect(r.status).toBe(204);
+    }
+    expect(rpc).not.toHaveBeenCalled();
+    expect((await pedir(BUENO, { "Sec-Fetch-Site": "same-origin" })).status).toBe(204);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    // Sin la cabecera (navegador viejo) se cuenta.
+    await pedir(BUENO);
+    expect(rpc).toHaveBeenCalledTimes(2);
+  });
+  it("el JSON roto no escribe en el registro de errores", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await pedir("no es json")).status).toBe(204);
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
   });
   it("contesta 204 aunque la base falle o tire", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -107,6 +125,47 @@ describe("contarPaso en el navegador", () => {
     contarPaso("pagado", "ES", "p2");
     expect(sendBeacon).toHaveBeenCalledTimes(3);
     expect(sendBeacon.mock.calls[0][0]).toBe("/api/embudo");
+  });
+});
+
+describe("contarPagado", () => {
+  const original = { window: (globalThis as { window?: unknown }).window, navigator: Object.getOwnPropertyDescriptor(globalThis, "navigator") };
+  afterEach(() => {
+    (globalThis as { window?: unknown }).window = original.window;
+    if (original.navigator) Object.defineProperty(globalThis, "navigator", original.navigator);
+  });
+  const preparar = (sessionStorage: unknown) => {
+    const sendBeacon = vi.fn();
+    (globalThis as { window?: unknown }).window = { sessionStorage, matchMedia: () => ({ matches: true }) };
+    Object.defineProperty(globalThis, "navigator", { value: { sendBeacon }, configurable: true });
+    return sendBeacon;
+  };
+  const sesion = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+  };
+
+  it("sin la marca de «pagar» en la pestaña no cuenta (Mercado Pago en otro contexto)", () => {
+    const sendBeacon = preparar(sesion());
+    contarPagado("AR", "p1");
+    expect(sendBeacon).not.toHaveBeenCalled();
+  });
+  it("con la marca que deja «pagar» cuenta una vez, y reabrir gracias no suma", () => {
+    const s = sesion();
+    const sendBeacon = preparar(s);
+    contarPaso("pagar", "ES");
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+    contarPagado("ES", "p1");
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+    expect(s.getItem("vf-embudo-pagar")).toBeNull();
+    contarPagado("ES", "p1");
+    contarPagado("ES", "p2");
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+  });
+  it("sin sessionStorage no cuenta ni rompe", () => {
+    const sendBeacon = preparar({ getItem: () => { throw new Error("bloqueado"); } });
+    expect(() => contarPagado("ES", "p1")).not.toThrow();
+    expect(sendBeacon).not.toHaveBeenCalled();
   });
 });
 

@@ -78,7 +78,7 @@ export default async function PantallaEmbudo() {
 
       <Nota>
         Es un contador por día: no guarda cookies, IP, correo ni nada de la persona. Cada paso se cuenta una vez por pestaña.
-        «Pagó» se cuenta cuando la pantalla de gracias confirma el pago. Por ahora mide solo la compra del libro de una vida.
+        «Pagó» se cuenta cuando la pantalla de gracias confirma el pago, y solo en la pestaña donde se tocó pagar, así que puede quedar por debajo de los pagos reales. Por ahora mide solo la compra del libro de una vida.
       </Nota>
     </div>
   );
