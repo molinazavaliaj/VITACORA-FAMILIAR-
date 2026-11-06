@@ -41,8 +41,8 @@ import { etapaA, type ResultadoEtapaA } from '../orquestador/etapa-a.js';
 import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
-import { avisarSocios } from './avisos.js';
-import { DUDAS_NARRADOR_AVISADAS, esPrivado, esperaPorElNarrador, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
+import { avisarSocios, hayAQuienAvisar } from './avisos.js';
+import { contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, esPrivado, esperaPorElNarrador, marcaVigente, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
 import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
@@ -314,21 +314,37 @@ export async function dudasParaLaFamilia(db: Db, narradorId: string): Promise<{ 
   return { cantidad: dudas.length, contestadas: dudas.length > 0 && (await todasContestadas(dudas, almacen)), plazoVencido };
 }
 
-async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): Promise<void> {
+async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): Promise<boolean> {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   const t = archivos.has(DUDAS) ? await almacen.leer(DUDAS) : null;
   const dudas = (t ? (JSON.parse(t) as { dudas?: DudaGuardada[] }).dudas : []) ?? [];
   if (dudas.length) {
     // Corto (Naza, 30/10): las dudas se leen en la pantalla, no en el mail. Las contesta quien contó (Naza, 06/11).
     const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${narradorId}/dudas`;
-    // Si no sale, la marca se escribe igual: es el respaldo del plazo, y un libro no se traba por un mail (el panel de avisos lo ve).
-    await avisarSocios(
+    const aQuienConto = dudasAQuienConto(await contextoDe(db, narradorId));
+    const salio = await avisarSocios(
       `Dudas de datos del libro de ${await quienEs(db, narradorId)} (${dudas.length})`,
-      `Hay ${dudas.length} dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: ${link}\n\nCorrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`,
+      aQuienConto
+        ? `Hay ${dudas.length} dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: ${link}\n\nCorrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`
+        : `Hay ${dudas.length} dudas de datos. A la familia le llega un mail para contestarlas. Para verlas: ${link}\n\nSi el libro ya está encargado, espera ${Math.round(esperaPorDudasMs() / 3_600_000)} horas desde este mail (o hasta que estén todas contestadas). Corrección a mano: ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}`,
     );
+    // Con quien contó, la marca se escribe igual: es el respaldo del plazo, y un libro no se traba por un mail (el panel de avisos lo ve).
+    if (!salio && !aQuienConto) return false;
   }
   await almacen.escribir(DUDAS_AVISADAS, new Date().toISOString());
+  return true;
 }
+
+/**
+ * La espera vieja, solo para un `modo` viaje o kids: no reciben el WhatsApp de las dudas. Desde que salió el mail, esto
+ * (`ESCRITOR_ESPERA_DUDAS_HORAS`, 24 por defecto; 0 = no espera).
+ */
+const esperaPorDudasMs = (): number => {
+  const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
+  return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
+};
+/** Si el mail de dudas no salió, en la espera vieja el libro reintenta mandarlo en este rato. */
+const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
 /**
  * ¿Cada duda tiene una respuesta con texto en correcciones.json? Como `hayDudasSinContestar` de la web
@@ -349,18 +365,30 @@ async function todasContestadas(dudas: unknown[], almacen: Almacen): Promise<boo
  * Naza, 09/10 y 06/11: si la Etapa A encontró dudas, el libro espera a quien contó. Hasta que estén todas contestadas
  * (13/10) o venza su plazo de 72 horas. Sin dudas, 0 (arranca ya). Si el mail a los socios todavía no salió (no hay
  * `dudas-avisadas.txt`, o quedó vacío porque la Etapa A se rehízo), lo manda acá: esa marca es el respaldo del plazo si
- * el WhatsApp nunca sale. `ESCRITOR_ESPERA_DUDAS_HORAS` ya no cuenta. Devuelve cuántos ms faltan.
+ * el WhatsApp nunca sale. `ESCRITOR_ESPERA_DUDAS_HORAS` no cuenta. Un `modo` viaje o kids sigue con la espera vieja.
+ * Devuelve cuántos ms faltan.
  */
 export async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
   if (!dudas.length) return 0;
+  const aQuienConto = dudasAQuienConto(await contextoDe(db, narradorId));
+  if (!aQuienConto && esperaPorDudasMs() === 0) return 0;
   if (await todasContestadas(dudas, almacen)) {
     console.log(`escritor ${narradorId}: las ${dudas.length} dudas tienen respuesta; el libro no espera`);
     return 0;
   }
   let avisadas = await almacen.leer(DUDAS_AVISADAS);
-  if (!Number.isFinite(Date.parse(avisadas ?? ''))) {
+  if (!aQuienConto) {
+    if (!hayAQuienAvisar()) return 0;
+    if (!avisadas?.trim()) {
+      if (!(await avisarDudas(db, narradorId, new Set([DUDAS])))) return REINTENTO_AVISO_DUDAS_MS;
+      avisadas = await almacen.leer(DUDAS_AVISADAS);
+    }
+    const desde = Date.parse(avisadas ?? '');
+    return Number.isFinite(desde) ? Math.max(0, desde + esperaPorDudasMs() - ahora) : 0;
+  }
+  if (!marcaVigente(avisadas, ahora)) {
     await avisarDudas(db, narradorId, new Set([DUDAS]));
     avisadas = await almacen.leer(DUDAS_AVISADAS);
   }
@@ -583,10 +611,10 @@ export function lanzarLibroV3(db: Db, pedido: { id: string; narrador_id: string 
 
 /**
  * Un libro tarda de 4 a 9 horas por Batch: a las 48 horas del cierre sin entregar, algo se trabó. Si pueden faltar
- * respuestas a las dudas, a las 96: 72 de plazo más la escritura (Naza, 06/11).
+ * respuestas a las dudas, a las 120: Etapa A 3, horario del WhatsApp 12, plazo 72, escritura 9 y un día de colchón.
  */
 export const DEMORA_ALERTA_MS = 48 * 60 * 60 * 1000;
-const DEMORA_ALERTA_CON_DUDAS_MS = 96 * 60 * 60 * 1000;
+const DEMORA_ALERTA_CON_DUDAS_MS = 120 * 60 * 60 * 1000;
 export const ALERTA_DEMORADO = 'alerta-libro-demorado.txt';
 
 /** Para la alerta: si el archivo está roto, mejor esperar de más que avisar en falso. */
@@ -624,8 +652,10 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
       const cerrado = n.libro_aprobado_at ? Math.max(new Date(n.libro_aprobado_at).getTime(), plazoParaSacar(n) ?? 0) : NaN;
       if (!Number.isFinite(cerrado) || ahora - cerrado < DEMORA_ALERTA_MS) continue;
       const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(n.id));
-      // Un privado siempre (sus dudas pueden no estar escritas todavía); «Para mí», solo si tiene dudas.
-      if (ahora - cerrado < DEMORA_ALERTA_CON_DUDAS_MS && (esPrivado(n.contexto) || (await tieneDudas(almacen)))) continue;
+      // Con dudas (o, en un privado, sin la Etapa A todavía: pueden aparecer) la espera es larga. Un modo viaje o kids no tiene este plazo.
+      if (ahora - cerrado < DEMORA_ALERTA_CON_DUDAS_MS && dudasAQuienConto(n.contexto)) {
+        if ((await tieneDudas(almacen)) || (esPrivado(n.contexto) && (await almacen.leer(CARPETA_A)) === null)) continue;
+      }
       if ((await almacen.leer(ALERTA_DEMORADO)) !== null) continue;
       const p = pendientes.get(n.id)!;
       const horas = Math.floor((ahora - cerrado) / 3_600_000);

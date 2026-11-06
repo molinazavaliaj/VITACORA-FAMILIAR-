@@ -28,4 +28,11 @@ describe.each([
   ])('%s: le hablan a quien contó', async (_caso, contexto) => {
     expect((await carpeta(base(contexto), 'n')).propia).toBe(true);
   });
+
+  it.each([
+    ['viaje', { modo: 'viaje', vinculoComprador: 'hija' }],
+    ['kids', { modo: 'kids', vinculoComprador: 'hija' }],
+  ])('%s de regalo queda como antes: le hablan a la familia', async (_caso, contexto) => {
+    expect((await carpeta(base(contexto), 'n')).propia).toBe(false);
+  });
 });

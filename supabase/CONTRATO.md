@@ -512,14 +512,42 @@ Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `conte
 |---|---|---|---|
 | `{id}/paquete/frenar_imprenta.json` | web («Hay un error, avisanos») | fábrica, web | `{reportado_at, por, detalle}`. Mientras exista, el libro no entra a imprenta, aunque esté confirmado. Lo borran los socios a mano después de corregirlo. |
 | `{id}/paquete/socios_frases_30_dias.txt` | fábrica | fábrica | Candado del mail a los socios a los 30 días sin confirmar. No se confirma solo. |
-| `entrevistas_v3.estado.linkFinal`, `historias.estado.linkFinal` | entrevistador | entrevistador | Cuándo le salió al narrador su link al terminar. Una sola vez. |
+| `entrevistas_v3.estado.linkFinal`, `historias.estado.linkFinal` | entrevistador | entrevistador | Cuándo se resolvió el link del mensaje final: salió, o no va a salir (plazo vencido, sin plantilla, sin nombre). Una sola vez. |
 | Token `tipo: 'respuestas'` | entrevistador | web (`/mis-respuestas/<token>`) | HS256 con `FIRMA_TOKENS`, como los otros links, con `narradorId` y `exp` (7 días). Es el único que vence. |
 
 **Quién saca algo del libro.** En un libro para otra persona, solo el narrador: por el chat (`reservadas`, como siempre) o desde su link (`respuestas_fuera`, con `marcada_por` null). Puede mientras cuenta y hasta 48 horas después de `narradores.ultima_respuesta_at`, aunque el libro ya esté encargado: la fábrica no lo escribe antes (`esperaPorElNarrador`). Pasado eso, el link abre para escuchar y lo dice.
 
 **Quién confirma para imprenta.** Quien regala, con el libro listo, sin poder cambiar las frases: `POST /api/frases` rechaza una selección. Confirma `frases.json.confirmado_at` con lo que eligió el biógrafo. Sin confirmar no se imprime y a los 30 días se avisa a los socios.
 
-**Limitación conocida hasta el PR de las dudas por WhatsApp.** Si la entrevista termina con la ventana de 24 horas cerrada, o por `cerrado_anticipado`, el narrador no recibe su link: hace falta una plantilla de Meta. El primer caso avisa a los socios. Mientras tanto, el mail previo al borrado de audios no sale para estas historias y sus audios no se borran.
+**El link con la ventana cerrada.** Si la entrevista termina con la ventana de 24 horas cerrada, el link sale con la plantilla `revision` (`<idioma>:revision` en `WA_PLANTILLAS_V3_LISTAS`), solo en un privado y si el plazo de 48 horas no venció; vencido, no sale nada. Sin plantilla o sin `como_le_dicen`, no sale y se avisa a los socios.
+
+**Limitación conocida.** Por `cerrado_anticipado` el narrador no recibe su link. El mail previo al borrado de audios no sale para estas historias y sus audios no se borran.
+
+**Las dudas para quien contó** (`entrevistador/src/flujo/revision-narrador.ts`, en el tick de 15 minutos; vale para privados y para «para mí»). Mira narradores en `completado` o `cerrado_anticipado` con fila en `entrevistas_v3` o `historias` (si tiene las dos, manda `historias`), con teléfono y de 9 a 21 en `zona_horaria` (si no es válida, la de su idioma: Buenos Aires en `es-AR`, Madrid en `es-ES` y `ca`).
+
+No le manda nada si:
+- tiene un pedido en `entregado`, `generando`, `esperando_voz` o `fallido`;
+- hay `fallo-A.json` o `libro.md`;
+- `trabajando.json` tiene un `latido` de hace menos de 10 minutos (se vuelve a mirar en el tick siguiente);
+- es el aviso y `dudas-avisadas.txt` tiene una fecha válida de hace más de 72 horas (libros viejos o ya vencidos);
+- es una historia y `ESCRITOR_HISTORIA` no la incluye. **Esa variable también hay que cargarla en el entrevistador**, con el mismo valor que en la fábrica (`1` o `solo:<id>,<id>`). Sin ella, a ninguna historia le llega nada.
+
+Qué le toca, con `carpeta-A.json` y dudas sin contestar en `dudas-familia.json`: el aviso; a las 48 horas de `dudas-narrador-avisadas.txt`, una vez, el recordatorio, y pasadas las 72 horas ya no. Una duda está contestada si `correcciones.json` tiene una entrada con su `dudaId` y texto no vacío.
+
+Dentro de la ventana de 24 horas sale como texto con `{URL_BASE}/mi-historia/{token}` al final. Fuera, como plantilla. Los dos se anotan en `envios` con tipo `dudas_narrador`. Un mensaje que no sale (sin plantilla, error de Meta) no escribe marca, avisa a los socios una vez por día y se reintenta en cada tick; la fábrica corre su plazo igual. Sin `como_le_dicen` la plantilla no sale y se avisa a los socios una sola vez.
+
+| Marca, en `{id}/escritor/` o `{id}/escritor-historia/` | Qué dice |
+|---|---|
+| `dudas-narrador-avisadas.txt` | ISO: salió el aviso. Vacía o rota cuenta como no enviada: una Etapa A rehecha la deja vacía. |
+| `dudas-recordadas.txt` | ISO: salió el recordatorio. Solo cuenta con fecha válida y posterior al aviso. Un aviso nuevo la vacía si existe. |
+| `aviso-en-curso.txt` | Un proceso está mandando (se sube sin pisar antes de mandar). No dice que salió y la fábrica no la lee. Se borra al terminar; pasada media hora se la da por vieja. |
+
+| Plantilla (cuerpo `{{1}}` = `como_le_dicen`; botón de URL `/mi-historia/{{1}}`, `{{1}}` = el token) | es-AR | es-ES | ca | Entrada en `WA_PLANTILLAS_V3_LISTAS` |
+|---|---|---|---|---|
+| Link al terminar | `revision_vos` | `revision_es_es` | `revision_ca` | `<idioma>:revision` |
+| Dudas y recordatorio | `dudas_narrador_vos` | `dudas_narrador_es_es` | `dudas_narrador_ca` | `<idioma>:dudas_narrador` |
+
+`FIRMA_TOKENS` tiene que estar en el entrevistador y ser la misma que en Vercel. La migración `20261106000000_envios_dudas_narrador.sql` suma los tipos a `envios.tipo`: **sin aplicar, la aplica Naza**. Sin ella el mensaje sale igual y la marca se escribe; solo falla la fila de `envios`, queda en el log y no llega el aviso de «no entregado».
 
 ## Respuestas de otra parte — "esto es de otra parte" (PROPUESTA del 21/09, acordada entre los dos, pendiente de aplicar)
 
@@ -748,14 +776,14 @@ etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generar
 | `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
 | `dudas-familia.json` | fábrica | socios, web (pantalla `/tablero/<id>/dudas`, dueña e invitados; aviso del Inicio) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. La web solo valida contra estos `id`; si `dudas` no es una lista, lo trata como archivo roto. El Inicio avisa mientras quede alguna duda sin respuesta y no haya `libro.md`. |
 | `dudas-avisadas.txt` | fábrica | fábrica, web | Candado del mail de dudas a los socios. Se escribe aunque el mail no salga. Si nunca salió el WhatsApp a quien contó, el plazo de las dudas corre desde esta fecha. Una Etapa A rehecha la deja vacía. |
-| `dudas-narrador-avisadas.txt` | entrevistador | fábrica | ISO: salió el aviso de las dudas a quien contó. La fábrica espera hasta 72 horas desde esta fecha o hasta que estén todas contestadas. Una Etapa A rehecha la deja vacía. |
+| `dudas-narrador-avisadas.txt` | entrevistador | fábrica | ISO: salió el aviso de las dudas a quien contó. La fábrica espera hasta 72 horas desde esta fecha o hasta que estén todas contestadas. Una fecha del futuro no cuenta. Vale para privados y «Para mí»; un `modo` viaje o kids sigue con `ESCRITOR_ESPERA_DUDAS_HORAS`. Una Etapa A rehecha la deja vacía. |
 | `correcciones.json` | **socios a mano**, web (pantalla `/tablero/<id>/dudas`, dueña e invitados) | fábrica (Etapa B), web | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Si la Etapa A encontró dudas, el libro no se escribe hasta que estén todas contestadas o pasen 72 horas (`dudas-narrador-avisadas.txt`): ese es el rato para escribirlo. Sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. Lo que escribe la web trae además `quien` (nombre de quien contestó, solo si la base lo tiene: hoy `familias.nombre` de la dueña), `mail` (para los socios, no se muestra) y `cuando` (ISO); la fábrica los ignora. La web hace merge por `dudaId`: lee el archivo, cambia solo las dudas que tocó ese familiar (si el texto no cambió, conserva `quien` y `cuando`) y conserva siempre las de los socios (sin `dudaId` o con uno que no está en `dudas-familia.json`). Si no puede leerlo o está roto, no escribe. Con `libro.md` presente, la web ya no acepta respuestas (409). |
 | `libro.md` | fábrica | fábrica, imprenta, web (solo si existe) | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. Para la web cierra la pantalla de dudas. |
 | `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`: la copia de la fábrica que está trabajando con ese narrador lo renueva cada minuto. Otra copia (un deploy con las dos prendidas) no toca el narrador ni toma su pedido como huérfano mientras tenga menos de 10 minutos. |
-| `alerta-libro-demorado.txt` | fábrica | fábrica | Candado del mail a los socios cuando el libro no salió a las 48 horas del cierre, o a las 96 si lo contado es privado o hay dudas. En un privado, el reloj arranca cuando terminan las 48 horas del narrador. |
+| `alerta-libro-demorado.txt` | fábrica | fábrica | Candado del mail a los socios cuando el libro no salió a las 48 horas del cierre, o a las 120 si hay dudas o si lo contado es privado y la Etapa A no terminó. Un `modo` viaje o kids sigue en 48. En un privado, el reloj arranca cuando terminan las 48 horas del narrador. |
 | `informe.md` | fábrica | socios | El informe interno de la revisión (no lo ve la familia). |
 
-Variables de la fábrica: `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
+Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: solo para un `modo` viaje o kids, espera tras el mail de dudas; la web todavía la lee para mostrar el plazo), `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
 `ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
 
 ## Viaje V2 por WhatsApp (migración 20261011000000 — **aplicada por Naza el 10/10**)

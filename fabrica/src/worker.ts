@@ -382,8 +382,8 @@ async function avisarDelAnticipo(narrador: {
 
 /**
  * El mail de que falta encargar el libro (Naza, 30/10): antes nadie lo decía y parecía que el libro ya se estaba
- * escribiendo. Las dudas las contesta quien contó (Naza, 06/11), así que a quien regala nunca le llega el mail `dudas`:
- * este sale cuando están todas contestadas o venció el plazo. Sin dudas no sale: ya recibió `terminado`. Solo con el
+ * escribiendo. Las dudas las contesta quien contó (Naza, 06/11), así que a quien regala nunca le llega el mail `dudas`
+ * (solo a un modo viaje o kids, que no recibe ese WhatsApp): este sale cuando están todas contestadas o venció el plazo. Sin dudas no sale: ya recibió `terminado`. Solo con el
  * libro sin encargar: encargado, sobra. «Para mí» tampoco: le habla de lo que contó otro. Tira si Storage no responde.
  */
 type NarradorConDudas = NarradorConFamilia & Pick<Narrador, 'libro_aprobado_at'> & { contexto?: unknown };
@@ -419,8 +419,12 @@ async function avisarDudasALaFamilia(
   const { urlBase } = cargarConfig();
   const i = await idioma();
   const variante: VarianteV3 | undefined = i === undefined ? undefined : i === 'es-AR' ? 'vos' : 'tu';
-  if (estado.contestadas || estado.plazoVencido) {
+  const privado = esPrivado(narrador.contexto);
+  if (estado.contestadas || (privado && estado.plazoVencido)) {
     await mandarHito(db, narrador, 'dudas_listas', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
+  } else if (!privado) {
+    // Un modo viaje o kids con fila V3 no recibe el WhatsApp de las dudas: sigue con el mail de siempre.
+    await mandarHito(db, narrador, 'dudas', `${urlBase}/tablero/${narrador.id}/dudas`, archivos, variante, estado.cantidad);
   }
 }
 

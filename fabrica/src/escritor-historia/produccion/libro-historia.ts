@@ -37,8 +37,8 @@ import { ModeloAnthropic, type ClienteMensajes } from '../../escritor/modelo/ant
 import { LoteAnthropic, type ClienteLotes } from '../../escritor/modelo/lote-anthropic.js';
 import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
-import { avisarSocios } from '../../escritor/produccion/avisos.js';
-import { DUDAS_NARRADOR_AVISADAS, esPrivado, esperaPorElNarrador, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
+import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
+import { contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, esPrivado, esperaPorElNarrador, marcaVigente, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
 import { leerEdicion } from '../../libro/edicion.js';
@@ -245,7 +245,7 @@ export async function correrEtapaAHistoria(db: Db, id: string, motor: MotorHisto
 type DudaGuardada = { id: string; pregunta: string; opciones: string[]; que: string; citas: { id: string; texto: string }[] };
 
 /** El mail de las dudas a los socios (una vez), con el link a la pantalla de dudas (lee la carpeta de historia). */
-async function avisarDudas(db: Db, id: string): Promise<void> {
+async function avisarDudas(db: Db, id: string): Promise<boolean> {
   const almacen = almacenDe(db, id);
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: DudaGuardada[] }).dudas : []) ?? [];
@@ -256,14 +256,30 @@ async function avisarDudas(db: Db, id: string): Promise<void> {
       ...d.citas.map((c) => `   ${c.id}: «${c.texto.length > 300 ? `${c.texto.slice(0, 300)}…` : c.texto}»`),
     ].join('\n'));
     const link = `${process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com'}/tablero/${id}/dudas`;
-    // Si no sale, la marca se escribe igual: es el respaldo del plazo, y un libro no se traba por un mail (el panel de avisos lo ve).
-    await avisarSocios(
+    const aQuienConto = dudasAQuienConto(await contextoDe(db, id));
+    const salio = await avisarSocios(
       `Dudas de datos del libro de historia de ${await quienEs(db, id)} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: ${link}\n\n${lineas.join('\n\n')}\n\nSi hay que corregir algo a mano, se escribe en ese rato en ${PREFIJO_HISTORIA(id)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "El cuñado de Toni se llamaba Salva."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      aQuienConto
+        ? `La Etapa A terminó y encontró estas dudas de datos. Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas. Para verlas: ${link}\n\n${lineas.join('\n\n')}\n\nSi hay que corregir algo a mano, se escribe en ese rato en ${PREFIJO_HISTORIA(id)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "El cuñado de Toni se llamaba Salva."}]}\nSin ese archivo, el libro se escribe sin correcciones.`
+        : `La Etapa A terminó y encontró estas dudas de datos. La familia las contesta en este link (la dueña y sus invitados). Pásenselo: ${link}. Lo que contesten ahí entra al libro.\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo a mano, se escribe en ese rato en ${PREFIJO_HISTORIA(id)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "El cuñado de Toni se llamaba Salva."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
+    // Con quien contó, la marca se escribe igual: es el respaldo del plazo, y un libro no se traba por un mail (el panel de avisos lo ve).
+    if (!salio && !aQuienConto) return false;
   }
   await almacen.escribir(DUDAS_AVISADAS, new Date().toISOString());
+  return true;
 }
+
+/**
+ * La espera vieja, solo para un `modo` viaje o kids: no reciben el WhatsApp de las dudas. Desde que salió el mail, esto
+ * (`ESCRITOR_ESPERA_DUDAS_HORAS`, como V3; 24 por defecto; 0 = no espera).
+ */
+const esperaPorDudasMs = (): number => {
+  const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
+  return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
+};
+/** Si el mail de dudas no salió, en la espera vieja el libro reintenta mandarlo en este rato. */
+const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
 /** Las correcciones (como V3). Sin archivo, ninguna. Roto: tira (un libro sin las correcciones pedidas está mal). */
 export async function leerCorreccionesHistoria(almacen: Almacen): Promise<CorreccionFamilia[]> {
@@ -297,12 +313,23 @@ async function esperaPorDudas(db: Db, id: string, almacen: Almacen, ahora: numbe
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: { id?: string }[] }).dudas : []) ?? [];
   if (!dudas.length) return 0;
+  const aQuienConto = dudasAQuienConto(await contextoDe(db, id));
+  if (!aQuienConto && esperaPorDudasMs() === 0) return 0;
   let correcciones: CorreccionFamilia[] = [];
   try { correcciones = await leerCorreccionesHistoria(almacen); } catch { /* roto: se espera el plazo */ }
   const conTexto = new Set(correcciones.filter((c) => c.dudaId && c.texto.trim()).map((c) => c.dudaId));
   if (dudas.every((d) => typeof d?.id === 'string' && conTexto.has(d.id))) return 0;
   let avisadas = await almacen.leer(DUDAS_AVISADAS);
-  if (!Number.isFinite(Date.parse(avisadas ?? ''))) {
+  if (!aQuienConto) {
+    if (!hayAQuienAvisar()) return 0;
+    if (!avisadas?.trim()) {
+      if (!(await avisarDudas(db, id))) return REINTENTO_AVISO_DUDAS_MS;
+      avisadas = await almacen.leer(DUDAS_AVISADAS);
+    }
+    const desde = Date.parse(avisadas ?? '');
+    return Number.isFinite(desde) ? Math.max(0, desde + esperaPorDudasMs() - ahora) : 0;
+  }
+  if (!marcaVigente(avisadas, ahora)) {
     await avisarDudas(db, id);
     avisadas = await almacen.leer(DUDAS_AVISADAS);
   }

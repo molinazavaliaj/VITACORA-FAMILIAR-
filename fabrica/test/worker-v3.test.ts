@@ -216,6 +216,14 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     expect(dudasMandadas()).toEqual([]);
   });
 
+  it.each(['viaje', 'kids'])('un modo %s queda como antes: el mail de las dudas, y el plazo vencido no cuenta', async (modo) => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+    const { db } = base(conDudas({ contexto: { modo, vinculoComprador: 'hija' } }) as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+  });
+
   it('venció el plazo sin todas contestadas: que falta encargarlo, nunca el de las dudas', async () => {
     m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
     const { db } = base(conDudas() as never);

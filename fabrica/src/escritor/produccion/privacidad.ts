@@ -43,6 +43,23 @@ export async function esperaPorElNarrador(db: Db, narradorId: string, ahora: num
 export const DUDAS_NARRADOR_AVISADAS = 'dudas-narrador-avisadas.txt';
 const MS_PLAZO_DUDAS = 72 * 60 * 60 * 1000;
 const MS_VOLVER_A_MIRAR = 15 * 60 * 1000;
+/** La marca la escribe otro servicio: unos minutos de diferencia entre relojes no la hacen «del futuro». */
+const MS_RELOJES = 5 * 60 * 1000;
+
+/**
+ * ¿Las dudas se las preguntamos a quien contó, con el plazo de 72 horas? Privados y «Para mí». Un `modo` viaje o kids no
+ * recibe ese WhatsApp: sigue con la espera vieja (`ESCRITOR_ESPERA_DUDAS_HORAS`) y el mail a la familia.
+ */
+export function dudasAQuienConto(contexto: unknown): boolean {
+  return esPrivado(contexto) || (contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === 'yo mismo';
+}
+
+/** El `contexto` del narrador. Si la base falla, tira: quien llama reintenta. */
+export async function contextoDe(db: Db, narradorId: string): Promise<unknown> {
+  const { data, error } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+  if (error) throw new Error(`No pude leer al narrador ${narradorId}: ${error.message}`);
+  return (data as { contexto?: unknown } | null)?.contexto ?? null;
+}
 
 /**
  * Cuánto tarda en volver a reclamarse un pedido que espera: poco, porque lo que lo libera llega de afuera (la última
@@ -50,16 +67,21 @@ const MS_VOLVER_A_MIRAR = 15 * 60 * 1000;
  */
 export const volverAMirarEn = (espera: number): number => Math.min(espera, MS_VOLVER_A_MIRAR);
 
-const fecha = (texto: string | null): number | null => {
+/** La fecha de una marca. Ausente, vacía, rota o del futuro, null: se la toma como si no estuviera. */
+const fecha = (texto: string | null, ahora: number): number | null => {
   const f = Date.parse(texto?.trim() ?? '');
-  return Number.isFinite(f) ? f : null;
+  return Number.isFinite(f) && f <= ahora + MS_RELOJES ? f : null;
 };
+
+/** ¿Esta marca sirve para contar el plazo? Si no, hay que volver a escribirla. */
+export const marcaVigente = (texto: string | null, ahora: number = Date.now()): boolean => fecha(texto, ahora) !== null;
 
 /**
  * Cuántos ms faltan del plazo de las dudas: desde dudas-narrador-avisadas.txt o, si nunca salió, desde `desdeRespaldo`
- * (el ISO de dudas-avisadas.txt, el mail a los socios). Sin ninguna de las dos, el plazo entero. Una fecha del futuro no lo alarga.
+ * (el ISO de dudas-avisadas.txt, el mail a los socios). Una fecha del futuro no cuenta: trabaría el libro hasta esa fecha.
+ * Sin ninguna que sirva, el plazo entero.
  */
 export async function restaPlazoDudas(almacen: Almacen, desdeRespaldo: string | null, ahora: number = Date.now()): Promise<number> {
-  const desde = fecha(await almacen.leer(DUDAS_NARRADOR_AVISADAS)) ?? fecha(desdeRespaldo) ?? ahora;
+  const desde = fecha(await almacen.leer(DUDAS_NARRADOR_AVISADAS), ahora) ?? fecha(desdeRespaldo, ahora) ?? ahora;
   return Math.max(0, Math.min(MS_PLAZO_DUDAS, desde + MS_PLAZO_DUDAS - ahora));
 }

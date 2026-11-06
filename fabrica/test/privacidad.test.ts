@@ -4,7 +4,7 @@ vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave
 
 import { AlmacenMemoria } from '../src/escritor/almacen/memoria.js';
 import * as privacidad from '../src/escritor/produccion/privacidad.js';
-import { esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
+import { dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
 import { dudasParaLaFamilia, esperaPorDudas } from '../src/escritor/produccion/libro-v3.js';
 import { armarLibroDeImprenta, imprentaFrenada } from '../src/libro/imprenta.js';
 import { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } from '../src/mail/frases.js';
@@ -107,14 +107,33 @@ describe('todas las dudas de un regalo van a quien contó (Naza, 06/11)', () => 
     expect(await restaPlazoDudas(almacen, null, ahora)).toBe(0);
   });
 
-  it('el plazo: una marca vacía o rota no cuenta, sin ninguna arranca entero, y una del futuro no lo alarga', async () => {
+  it('el plazo: una marca del futuro se ignora y pasa al respaldo, en cada vuelta: no traba el libro', async () => {
+    const almacen = new AlmacenMemoria();
+    await almacen.escribir('dudas-narrador-avisadas.txt', new Date(ahora + 500 * H).toISOString());
+    expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
+    expect(await restaPlazoDudas(almacen, hace(10), ahora + 62 * H)).toBe(0);
+  });
+
+  it('el plazo: unos minutos de más por el reloj del otro servicio no la invalidan', async () => {
+    const almacen = new AlmacenMemoria();
+    await almacen.escribir('dudas-narrador-avisadas.txt', new Date(ahora + 60_000).toISOString());
+    expect(await restaPlazoDudas(almacen, hace(100), ahora)).toBe(72 * H);
+  });
+
+  it('a quién van: privados y «Para mí», no viaje ni kids', () => {
+    expect(dudasAQuienConto(REGALO)).toBe(true);
+    expect(dudasAQuienConto(null)).toBe(true);
+    expect(dudasAQuienConto(PROPIA)).toBe(true);
+    expect(dudasAQuienConto({ modo: 'viaje', ...REGALO })).toBe(false);
+    expect(dudasAQuienConto({ modo: 'kids', ...REGALO })).toBe(false);
+  });
+
+  it('el plazo: una marca vacía o rota no cuenta, y sin ninguna arranca entero', async () => {
     const almacen = new AlmacenMemoria();
     await almacen.escribir('dudas-narrador-avisadas.txt', '');
     expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
     await almacen.escribir('dudas-narrador-avisadas.txt', 'rota');
     expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
-    expect(await restaPlazoDudas(almacen, null, ahora)).toBe(72 * H);
-    await almacen.escribir('dudas-narrador-avisadas.txt', new Date(ahora + 500 * H).toISOString());
     expect(await restaPlazoDudas(almacen, null, ahora)).toBe(72 * H);
   });
 
