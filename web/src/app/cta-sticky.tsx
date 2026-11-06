@@ -120,7 +120,7 @@ export function CtaSticky({
             kids
               ? "kids-boton h-11 shrink-0 px-6 text-[15px]"
               : acuarela
-                ? "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[var(--acu-bordo)] px-6 text-[15px] font-semibold text-[var(--acu-sobre-bordo)] transition-colors hover:bg-[var(--acu-bordo-hondo)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acu-bordo)] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
+                ? "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[var(--acu-relleno)] px-6 text-[15px] font-semibold text-[var(--acu-sobre-relleno)] transition-colors hover:bg-[var(--acu-relleno-hondo)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acu-bordo)] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
                 : "inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#eeeae1] px-6 text-[15px] font-semibold text-[#070706] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)] [touch-action:manipulation]"
           }
         >

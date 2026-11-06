@@ -328,7 +328,7 @@ describe("la portada según el idioma", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const html = portada(idioma);
       expect(html, idioma).toContain("bg-[var(--acu-blanco)]/95");
-      expect(html, idioma).toContain("bg-[var(--acu-bordo)]");
+      expect(html, idioma).toContain("bg-[var(--acu-relleno)]");
       expect(html, idioma).not.toContain("bg-[#070706]/95");
     }
   });
