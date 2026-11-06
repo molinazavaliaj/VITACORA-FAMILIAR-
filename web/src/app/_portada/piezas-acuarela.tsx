@@ -18,6 +18,7 @@ export function InicioAcuarela({
   dato,
   visual,
   arriba = "pt-36 md:pt-28",
+  marca,
 }: {
   cabecera: ReactNode;
   titulo: ReactNode;
@@ -28,6 +29,8 @@ export function InicioAcuarela({
   visual: ReactNode;
   /** El aire de arriba: en el teléfono la cabecera lleva dos filas y el texto no puede pisarla. */
   arriba?: string;
+  /** El logo que se dibuja al entrar, arriba del título. */
+  marca?: ReactNode;
 }) {
   return (
     <section data-capa className="acu-lavado relative z-[1]">
@@ -35,6 +38,7 @@ export function InicioAcuarela({
         <div className="absolute inset-x-0 top-0">{cabecera}</div>
         <div className="acu-inicio">
           <div className="acu-inicio-texto">
+            {marca}
             <h1 className="dir-titular dir-t2 dir-asienta">{titulo}</h1>
             <p className="acu-inicio-bajada dir-entra" style={conVar({ "--e": "0.35s" })}>{bajada}</p>
             <div className="acu-inicio-botones dir-entra" style={conVar({ "--e": "0.5s" })}>{botones}</div>
@@ -189,9 +193,10 @@ export function PreguntasAcuarela({
 }
 
 /** El cierre: la acuarela, una frase y el botón. El pie va aparte, abajo. */
-export function CierreAcuarela({ titulo, z = "z-[8]", children }: { titulo: ReactNode; z?: string; children: ReactNode }) {
+export function CierreAcuarela({ titulo, z = "z-[8]", marca, children }: { titulo: ReactNode; z?: string; marca?: ReactNode; children: ReactNode }) {
   return (
     <section data-cta-propio className={`acu-lavado relative ${z} flex flex-col items-center gap-6 px-4 py-20 text-center sm:px-8`}>
+      {marca}
       <h2 className="dir-titular dir-t3 max-w-[18ch]">{titulo}</h2>
       {children}
     </section>

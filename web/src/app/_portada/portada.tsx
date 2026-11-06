@@ -17,6 +17,7 @@ import { OndaQuieta } from "../_direccion/piezas";
 import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
 import { VideoLibro } from "../_direccion/video-libro";
+import { LogoTrazo } from "../_direccion/logo-trazo";
 import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "./piezas-acuarela";
 import { cajasPortada } from "./datos-cajas";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
@@ -84,6 +85,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       {/* 1 · Inicio: una pantalla. Es la única capa: la tienda sube y lo tapa apenas se baja. */}
       <InicioAcuarela
         arriba="pt-28"
+        marca={<LogoTrazo id="trazo-portada" halo="rgba(255, 250, 248, 0.55)" className="acu-logo-inicio" />}
         cabecera={<Cabecera idioma={idioma} camino="/" sobreHero />}
         titulo={
           <>
@@ -221,7 +223,7 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </PreguntasAcuarela>
 
       {/* 8 · Cierre */}
-      <CierreAcuarela titulo={n.cierre.frase}>
+      <CierreAcuarela titulo={n.cierre.frase} marca={<LogoTrazo id="trazo-cierre" modo="scroll" halo="rgba(255, 250, 248, 0.55)" className="w-[120px] sm:w-[150px]" />}>
         <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
           {n.cierre.boton}
         </Link>
