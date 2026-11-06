@@ -474,7 +474,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       cp: { nombre: "Código postal", ejemplo: "47001" },
       pais: { nombre: "País", ejemplo: "España" },
     },
-    metodos: "Pagas en la página segura de Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.",
+    metodos: "Pagas de forma segura con Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.",
     pagar: (t) => `Pagar ${t}`,
     procesando: "Procesando…",
     subiendoFoto: (i, n) => `Subiendo foto ${i} de ${n}…`,
@@ -831,7 +831,7 @@ export const CHECKOUT: Textos<TextosCheckout> = {
       cp: { nombre: "Codi postal", ejemplo: "17001" },
       pais: { nombre: "País", ejemplo: "Espanya" },
     },
-    metodos: "Pagues a la pàgina segura de Stripe. Si el teu mòbil té Apple Pay o Google Pay, et surten allà.", // ca: sin revisar con Imma
+    metodos: "Pagues de forma segura amb Stripe. Si el teu mòbil té Apple Pay o Google Pay, et surten allà.", // ca: sin revisar con Imma
     pagar: (t) => `Pagar ${t}`,
     procesando: "Processant…",
     subiendoFoto: (i, n) => `Pujant la foto ${i} de ${n}…`,

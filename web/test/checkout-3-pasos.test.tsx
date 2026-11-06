@@ -857,7 +857,7 @@ describe("checkout etapa 1: textos y marco (Naza 06/11)", () => {
   });
 
   it("los 3 textos de pago y resumen nuevos, en es y ar", () => {
-    expect(CHECKOUT.es.metodos).toBe("Pagas en la página segura de Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.");
+    expect(CHECKOUT.es.metodos).toBe("Pagas de forma segura con Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.");
     expect(CHECKOUT.ar.metodos).toBe("Pagás en Mercado Pago, con cuenta o sin cuenta.");
     expect(RESUMEN.es.incluye(false)[2]).toBe("Ves cómo avanza su libro desde la página de su historia");
     expect(RESUMEN.ar.incluye(false)[2]).toBe("Ves cómo avanza su libro desde la página de su historia");

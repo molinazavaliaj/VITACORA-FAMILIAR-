@@ -27,7 +27,7 @@
 4. Nota Navidad. Título `El 24 le das la tarjeta`. Cuerpo es `Te la mandamos por correo nada más pagar. Con ella empieza a contar por WhatsApp, a su ritmo. Su libro sale cuando termina, unas semanas después.` El ar es igual.
 5. Nota otra fecha. Título `Ese día le das la tarjeta`. Mismo cuerpo que el 4.
 6. Nota en paso 2 y arriba del botón de pagar. Título `Si no sabe usarlo`. Cuerpo `Solo necesita WhatsApp. Contesta con audios, sin app ni contraseñas.` No se muestra si es «Para mí» (`yo`).
-7. Métodos. es `Pagas en la página segura de Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.` ar `Pagás en Mercado Pago, con cuenta o sin cuenta.`
+7. Métodos. es `Pagas de forma segura con Stripe. Si tu móvil tiene Apple Pay o Google Pay, te aparecen ahí.` ar `Pagás en Mercado Pago, con cuenta o sin cuenta.`
 8. Resumen, tercera línea de `incluye(false)`: es y ar `Ves cómo avanza su libro desde la página de su historia`. `incluye(true)` no cambia.
 
 ---
