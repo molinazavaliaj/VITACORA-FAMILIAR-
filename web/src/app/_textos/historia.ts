@@ -83,7 +83,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Esa historia, hecha libro.",
-      texto: "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar los audios.",
+      texto: "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar su voz.",
     },
     precio: { titulo: "Un solo pago.", texto: "Las preguntas, los audios, las fotos y el libro de esa historia.", nota: "Sin suscripciones." },
     faq: {
@@ -163,7 +163,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Esa historia, hecha libro.",
-      texto: "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar los audios.",
+      texto: "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar su voz.",
     },
     precio: { titulo: "Un solo pago.", texto: "Las preguntas, los audios, las fotos y el libro de esa historia.", nota: "Sin suscripciones." },
     faq: {
@@ -243,7 +243,7 @@ export const TEXTOS_HISTORIA: Textos<TextosHistoria> = {
     },
     recibe: {
       titulo: "Aquesta història, feta llibre.",
-      texto: "Un relat amb les paraules de qui l'explica, amb les seves fotos i un QR per escoltar els àudios.",
+      texto: "Un relat amb les paraules de qui l'explica, amb les seves fotos i un QR per escoltar la seva veu.",
     },
     precio: { titulo: "Un sol pagament.", texto: "Les preguntes, els àudios, les fotos i el llibre d'aquesta història.", nota: "Sense subscripcions." },
     faq: {
