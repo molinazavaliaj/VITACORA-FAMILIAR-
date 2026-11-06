@@ -76,7 +76,7 @@ describe("la página /historia", () => {
     const es = render(PaginaEs);
     for (const s of [
       "Un libro sobre un solo capítulo de la vida, contado con todo detalle. Las preguntas llegan por WhatsApp y se contestan en audio.",
-      "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar los audios.",
+      "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar su voz.",
       "Vitácora Familiar cuenta una vida entera. Este libro cuenta a fondo un solo capítulo. Es para uno mismo o para regalar.",
       "Una de la lista o la que quieras. Si es un regalo, puede elegirla quien la cuenta.",
       "De una en una, todas sobre esa historia. Si alguna no va, se dice paso.",
