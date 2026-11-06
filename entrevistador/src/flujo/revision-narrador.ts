@@ -15,6 +15,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PLANTILLAS_REVISION } from '../config.js';
 import { esPrivado, firmarTokenRespuestas } from '../link-respuestas.js';
+import { marcaEnStorage } from '../v3/avisos.js';
 import { esTablaAusente } from '../v3/estado.js';
 import { enLineaParaPlantilla, ventanaAbierta } from '../v3/enviar.js';
 import type { Idioma } from '../v3/nucleo/entrevista/idioma.js';
@@ -59,7 +60,6 @@ const DUDAS_AVISADAS = 'dudas-narrador-avisadas.txt';
 const DUDAS_RECORDADAS = 'dudas-recordadas.txt';
 /** El mail de dudas a los socios, de la fábrica. */
 const DUDAS_A_SOCIOS = 'dudas-avisadas.txt';
-const FALLO_A = 'fallo-A.json';
 const TRABAJANDO = 'trabajando.json';
 const TOMA = 'aviso-en-curso.txt';
 /** Como `MARCA_VIGENTE_MS` de la fábrica. */
@@ -400,12 +400,75 @@ async function atenderUno(deps: DepsRevision, c: Candidato, ahora: Date): Promis
     TERMINADOS.add(n.id);
     return;
   }
-  if (nombres.has(FALLO_A)) return;
   const mensaje = queMandar(await situacionDe(deps.db, base, nombres), ahora);
   if (!mensaje) return;
   if (await fabricaTrabajando(deps.db, base, nombres, ahora)) return;
   if (mensaje === 'dudas' && (await dudasVencidas(deps.db, base, nombres, ahora))) return;
   await mandar(deps, c, base, mensaje, ahora);
+}
+
+/** ¿Venció el plazo de las dudas? Desde el aviso a quien contó o, si nunca salió, desde el mail a los socios, como la fábrica. */
+async function plazoVencido(db: SupabaseClient, base: string, nombres: Set<string>, ahora: Date): Promise<boolean> {
+  const fecha = async (archivo: string): Promise<number | null> => {
+    if (!nombres.has(archivo)) return null;
+    const f = Date.parse((await leer(db, `${base}/${archivo}`)).trim());
+    // Rota, vacía o del futuro no cuenta. Unos minutos de más son la diferencia entre relojes.
+    return Number.isFinite(f) && f <= ahora.getTime() + 5 * 60_000 ? f : null;
+  };
+  const desde = (await fecha(DUDAS_AVISADAS)) ?? (await fecha(DUDAS_A_SOCIOS));
+  return desde !== null && ahora.getTime() - desde >= DUDAS_VENCIDAS_MS;
+}
+
+/**
+ * Quien contó escribe por WhatsApp teniendo dudas pendientes: lo que mande por acá no entra al libro. Una vez por día se
+ * le contesta con el link (la ventana está abierta, acaba de escribir) y los socios se enteran. El mensaje no se guarda.
+ * Devuelve true si el mensaje era por esto. Con false, sigue como siempre. Nunca tira: es el camino del webhook.
+ */
+export async function contestarSiEscribeConDudas(
+  deps: Pick<DepsRevision, 'db' | 'enviarTexto' | 'avisarSocios' | 'urlBase'>,
+  n: { id: string; estado: string; contexto?: unknown; telefono_whatsapp: string | null; como_le_dicen?: string | null },
+  ahora: Date = new Date(),
+): Promise<boolean> {
+  try {
+    if (!ESTADOS_TERMINADA.includes(n.estado) || !n.telefono_whatsapp?.trim() || !dudasAQuienConto(n.contexto)) return false;
+    const [historia] = await filasDe(deps.db, 'historias', [n.id]);
+    if (historia && !escritorHistoriaPrendido(n.id)) return false;
+    const fila = historia ?? (await filasDe(deps.db, 'entrevistas_v3', [n.id]))[0];
+    if (!fila) return false;
+    const { data: pedidos, error } = await deps.db.from('pedidos').select('estado').eq('narrador_id', n.id);
+    if (error) throw new Error(`No pude leer los pedidos: ${error.message}`);
+    if (((pedidos as { estado: string }[] | null) ?? []).some((p) => PEDIDOS_SIN_AVISO.has(p.estado))) return false;
+
+    const base = `${n.id}/${historia ? 'escritor-historia' : 'escritor'}`;
+    const nombres = await listar(deps.db, base);
+    const s = await situacionDe(deps.db, base, nombres);
+    if (s.libroEscrito || !s.hayEtapaA || s.cantidadDudas === 0 || s.todasContestadas) return false;
+    if (await plazoVencido(deps.db, base, nombres, ahora)) return false;
+    if (await fabricaTrabajando(deps.db, base, nombres, ahora)) return false;
+
+    const quien = enLineaParaPlantilla([n.como_le_dicen ?? '']) || n.id;
+    const texto = TEXTOS_REVISION[fila.idioma].escribio.replace('{link}', `${deps.urlBase.replace(/\/$/, '')}/mi-historia/${firmarTokenRespuestas(n.id, ahora)}`);
+    const dia = ahora.toISOString().slice(0, 10);
+    const clave = `escribio-con-dudas|${n.id}`;
+    const marca = marcaEnStorage(deps.db);
+    if ((await marca(dia, clave)) !== 'ya') {
+      try {
+        const waId = await deps.enviarTexto(n.telefono_whatsapp, texto, { timeoutMs: TIMEOUT_ENVIO_MS });
+        const { error: errorEnvio } = await deps.db.from('envios').insert({ narrador_id: n.id, tipo: 'dudas_narrador', pregunta_orden: null, wa_message_id: waId });
+        if (errorEnvio) console.error(`revision-narrador: salió el link de ${n.id} pero no pude anotar el envío: ${errorEnvio.message}`);
+      } catch (err) {
+        // No salió: el próximo mensaje suyo lo vuelve a intentar.
+        await marca.quitar?.(dia, clave);
+        console.error(`revision-narrador: no le pude contestar a ${enmascarar(n.telefono_whatsapp)}:`, err instanceof Error ? err.message : err);
+      }
+    }
+    await deps.avisarSocios(clave, `${quien} escribió por WhatsApp con dudas pendientes`,
+      `Narrador ${n.id}. Escribió por WhatsApp y todavía tiene dudas sin contestar. Lo que mandó no se guarda: se le contesta con el link, una vez por día.`);
+    return true;
+  } catch (err) {
+    console.error(`revision-narrador: falló el mensaje de ${n.id}:`, err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 /** Una pasada del tick. Un narrador que falla no frena a los demás. */

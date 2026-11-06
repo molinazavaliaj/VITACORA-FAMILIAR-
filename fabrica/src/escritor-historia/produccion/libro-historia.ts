@@ -39,7 +39,7 @@ import { LoteAnthropic, type ClienteLotes } from '../../escritor/modelo/lote-ant
 import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
 import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
-import { avisarDudasSinContestar, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, restaPlazoDudas, volverAMirarEn } from '../../escritor/produccion/privacidad.js';
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
 import { leerEdicion } from '../../libro/edicion.js';
@@ -476,6 +476,7 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
       if ((await almacen.leer(DUDAS_AVISADAS)) !== null) await almacen.escribir(DUDAS_AVISADAS, '');
       if ((await almacen.leer(DUDAS_NARRADOR_AVISADAS)) !== null) await almacen.escribir(DUDAS_NARRADOR_AVISADAS, '');
       if ((await almacen.leer(DUDAS_SIN_CONTESTAR_AVISADAS)) !== null) await almacen.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, '');
+      await sacarRespuestasDeDudasViejas(almacen);
       const a = await etapaAHistoria(x);
       if (!a.ok) throw new FalloDelEscritorHistoria(`Etapa A: ${a.motivo}`);
     }

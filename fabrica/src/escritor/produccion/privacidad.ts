@@ -8,6 +8,7 @@
 // nunca traba un libro.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Almacen } from '../almacen/tipos.js';
+import { parseJSONTolerante } from '../carpeta.js';
 import { avisarSocios } from './avisos.js';
 
 type Db = SupabaseClient;
@@ -132,4 +133,27 @@ export async function avisarDudasSinContestar(
   } catch (err) {
     console.error('escritor: no pude avisar de las dudas sin contestar:', err instanceof Error ? err.message : err);
   }
+}
+
+// ---------------------------------------------------------------- una Etapa A rehecha
+
+/**
+ * Los ids de las dudas son por posición: en una A nueva, D01 puede ser otra pregunta, y una respuesta vieja se aplicaría a
+ * ella y saldría impresa. Saca las entradas con `dudaId` de correcciones.json y deja las de los socios, que no llevan.
+ * Si el archivo está roto no se pisa: quien lo lee lo dice. Llamar antes de pagar la A.
+ */
+export async function sacarRespuestasDeDudasViejas(almacen: Almacen): Promise<void> {
+  const t = await almacen.leer('correcciones.json');
+  if (t === null) return;
+  let j: unknown;
+  try {
+    j = parseJSONTolerante(t);
+  } catch {
+    return;
+  }
+  const lista = Array.isArray(j) ? j : (j as { correcciones?: unknown } | null)?.correcciones;
+  if (!Array.isArray(lista)) return;
+  const quedan = lista.filter((c) => typeof (c as { dudaId?: unknown } | null)?.dudaId !== 'string' || !(c as { dudaId: string }).dudaId);
+  if (quedan.length === lista.length) return;
+  await almacen.escribir('correcciones.json', JSON.stringify(Array.isArray(j) ? quedan : { ...(j as object), correcciones: quedan }));
 }

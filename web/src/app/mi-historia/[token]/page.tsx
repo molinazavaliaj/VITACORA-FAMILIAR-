@@ -25,12 +25,22 @@ export const dynamic = "force-dynamic";
 
 const idiomaDe = (v: unknown): IdiomaMiHistoria => (v === "es-ES" || v === "ca" ? v : "es-AR");
 
+async function idiomaDeLaEntrevista(narradorId: string): Promise<IdiomaMiHistoria> {
+  const admin = crearClienteServidor();
+  // Si tiene las dos entrevistas, manda la historia, como en la carpeta del escritor.
+  const entrevista = (await entrevistaHistoria(admin, narradorId).catch(() => null)) ?? (await entrevistaV3(admin, narradorId).catch(() => null));
+  return idiomaDe(entrevista?.idioma);
+}
+
 export default async function PaginaMiHistoria({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const t = verificarTokenRespuestas(token);
   const avisos = TEXTOS["es-AR"];
   if (!t.ok) {
-    return t.motivo === "vencido" ? <Aviso titulo={avisos.vencidoTitulo} texto={avisos.vencido} /> : <Aviso titulo={avisos.invalidoTitulo} texto={avisos.invalido} />;
+    if (t.motivo !== "vencido") return <Aviso titulo={avisos.invalidoTitulo} texto={avisos.invalido} />;
+    // La firma es válida: solo se lee en qué idioma decírselo. Si no se puede, es-AR.
+    const T = TEXTOS[await idiomaDeLaEntrevista(t.narradorId).catch(() => "es-AR" as const)];
+    return <Aviso titulo={T.vencidoTitulo} texto={T.vencido} />;
   }
 
   const admin = crearClienteServidor();

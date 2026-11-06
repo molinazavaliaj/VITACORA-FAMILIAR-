@@ -114,8 +114,9 @@ export async function anotarEntrega(aviso: AvisoDeEntrega): Promise<void> {
       const { mandarMailFamilia } = await import('../mail/hitos.js');
       await fallarEntregaRegalo({ db, mandarMailFamilia }, fila.narrador_id, `meta:${aviso.errorCodigo ?? 's/código'}`);
     }
-    // Si lo puede destrabar la familia (130472, 131026), un mail a quien compró: una vez por semana (11/10).
-    if (aviso.estado === 'fallido' && fila.narrador_id && !yaLlego && fila.tipo !== 'regalo_entrega') {
+    // Si lo puede destrabar la familia (130472, 131026), un mail a quien compró: una vez por semana (11/10). Los mensajes
+    // de lo que contó no: a quien regala no se le dice nada de eso, y los socios ya se enteran arriba (avisarFallo).
+    if (aviso.estado === 'fallido' && fila.narrador_id && !yaLlego && !['regalo_entrega', 'revision', 'dudas_narrador'].includes(fila.tipo ?? '')) {
       const { avisarFamiliaNoLlega } = await import('../mail/no-llega.js');
       const { mandarMailFamilia } = await import('../mail/hitos.js');
       const { marcaEnStorage } = await import('../v3/avisos.js');

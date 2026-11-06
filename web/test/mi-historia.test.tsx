@@ -97,6 +97,25 @@ describe("la puerta /mi-historia/<token>", () => {
     expect(await abrir(token({ tipo: "voz" }))).toContain("Este link no sirve");
   });
 
+  it("el link vencido con firma válida sale en el idioma de su entrevista", async () => {
+    const vencido = token({ exp: Date.now() - 1 });
+    preparar(conDudas, {}, { entrevistas_v3: [{ narrador_id: "n1", estado: {}, idioma: "es-ES" }] });
+    const es = await abrir(vencido);
+    expect(es).toContain("Este enlace ya ha caducado");
+    expect(es).not.toContain("maestra");
+    preparar(conDudas, {}, { entrevistas_v3: [], historias: [{ narrador_id: "n1", estado: {}, idioma: "ca" }] });
+    expect(await abrir(vencido)).toContain("Aquest enllaç ja ha caducat");
+    preparar(conDudas, {}, { entrevistas_v3: [] });
+    expect(await abrir(vencido)).toContain("Este link ya venció");
+  });
+
+  it("una firma mala no lee nada: sale en es-AR", async () => {
+    preparar(conDudas, {}, { entrevistas_v3: [{ narrador_id: "n1", estado: {}, idioma: "ca" }] });
+    const malo = `${token({ exp: Date.now() - 1 }).slice(0, -3)}abc`;
+    expect(await abrir(malo)).toContain("Este link no sirve");
+    expect(crearClienteServidor).not.toHaveBeenCalled();
+  });
+
   it("no se indexa ni manda referrer", () => {
     expect(metadata.robots).toEqual({ index: false, follow: false });
     expect(metadata.referrer).toBe("no-referrer");
@@ -292,7 +311,9 @@ describe("los textos", () => {
     expect(T.campo).toBe("Escribí acá, o tocá el micrófono del teclado y dictalo.");
     expect(T.noMeAcuerdo).toBe("No me acuerdo");
     expect(T.seguir).toBe("Seguir");
-    expect(T.gracias).toBe("Eso es todo. Gracias. Te avisamos cuando el libro esté listo.");
+    expect(T.gracias).toBe("Eso es todo. Gracias.");
+    expect(textosMiHistoria("es-ES").gracias).toBe("Eso es todo. Gracias.");
+    expect(textosMiHistoria("ca").gracias).toBe("Això és tot. Gràcies.");
     expect(T.botonLibro).toBe("Elegir la tapa y encargar el libro");
     expect(T.libroEscrito).toBe("Tu libro ya está escrito.");
   });

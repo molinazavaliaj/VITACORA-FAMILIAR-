@@ -43,7 +43,7 @@ import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
-import { avisarDudasSinContestar, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, contextoDe, dudasAQuienConto, DUDAS_NARRADOR_AVISADAS, DUDAS_SIN_CONTESTAR_AVISADAS, esperaPorElNarrador, marcaVigente, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from './privacidad.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
 import { armarBookmundoSinFrenar } from '../../libro/bookmundo/narrador.js';
@@ -485,6 +485,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       if ((await almacen.leer(DUDAS_AVISADAS)) !== null) await almacen.escribir(DUDAS_AVISADAS, '');
       if ((await almacen.leer(DUDAS_NARRADOR_AVISADAS)) !== null) await almacen.escribir(DUDAS_NARRADOR_AVISADAS, '');
       if ((await almacen.leer(DUDAS_SIN_CONTESTAR_AVISADAS)) !== null) await almacen.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, '');
+      await sacarRespuestasDeDudasViejas(almacen);
       const a = await etapaA(x);
       if (!a.ok) throw new FalloDelEscritor(`Etapa A: ${a.motivo}`);
     }

@@ -5,7 +5,8 @@ import { secretosVerificacion } from "./secreto-firma";
 // entrevistador (entrevistador/src/link-respuestas.ts); acá solo se verifica. A diferencia de los otros links, vence.
 // `vencido` se distingue de `invalido` para poder decirle que lo pida de nuevo.
 
-export type TokenRespuestas = { ok: true; narradorId: string } | { ok: false; motivo: "invalido" | "vencido" };
+// El vencido trae `narradorId` porque la firma es válida: alcanza para decírselo en su idioma, no para mostrarle nada.
+export type TokenRespuestas = { ok: true; narradorId: string } | { ok: false; motivo: "invalido" } | { ok: false; motivo: "vencido"; narradorId: string };
 
 const firmar = (datos: string, secreto: string) => createHmac("sha256", secreto).update(datos).digest("base64url");
 
@@ -28,7 +29,7 @@ export function verificarTokenRespuestas(token: string, ahora: number = Date.now
   try {
     const d = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { narradorId?: unknown; tipo?: unknown; exp?: unknown };
     if (d.tipo !== "respuestas" || typeof d.narradorId !== "string" || !d.narradorId || typeof d.exp !== "number") return { ok: false, motivo: "invalido" };
-    if (ahora >= d.exp) return { ok: false, motivo: "vencido" };
+    if (ahora >= d.exp) return { ok: false, motivo: "vencido", narradorId: d.narradorId };
     return { ok: true, narradorId: d.narradorId };
   } catch {
     return { ok: false, motivo: "invalido" };

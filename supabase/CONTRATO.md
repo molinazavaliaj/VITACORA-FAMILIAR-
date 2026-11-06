@@ -510,6 +510,12 @@ Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `conte
 
 **Lo que no es privado sigue como siempre.** «Dudas al narrador» es `esPrivado(contexto) || esLibroPropio(contexto)`, una función por servicio: `dudasAQuienConto` en `fabrica/src/escritor/produccion/privacidad.ts`, `entrevistador/src/flujo/revision-narrador.ts` y `web/src/lib/dudas-archivos.ts`. Nada más decide esto, así que un cambio en `esPrivado` o `loContadoEsPrivado` alcanza. Un regalo con esa regla en false: las dudas con el prompt para la familia, el mail `dudas` y `dudas_listas` con sus textos, plazo `ESCRITOR_ESPERA_DUDAS_HORAS` desde `dudas-avisadas.txt`, la Etapa A sin las 48 horas, ningún WhatsApp de dudas, `/tablero/{id}/dudas`, `POST /api/dudas` e invitar para dudas como antes, y `/mi-historia/<token>` lleva a `/mis-respuestas/<token>`.
 
+**Si escribe por WhatsApp.** Un narrador terminado que escribe teniendo dudas sin contestar, dentro del plazo y si `dudasAQuienConto`, recibe una vez por día el link a `/mi-historia/<token>` (`contestarSiEscribeConDudas`, antes de los bots en `flujo/procesar.ts`), y los socios un aviso por narrador y por día. Lo que mandó no se guarda. Sin dudas pendientes, se ignora como siempre.
+
+**Una Etapa A rehecha** saca de `correcciones.json` las entradas con `dudaId`, porque los ids son por posición, y deja las de los socios. Si el archivo está roto, no se pisa.
+
+**Los fallos de entrega** de `revision` y `dudas_narrador` avisan a los socios y no mandan el mail «no le llega» a la familia.
+
 **Si no contesta.** Cuando un libro privado o «para mí» va a empezar a escribirse con dudas sin contestar porque venció el plazo, los socios reciben un mail, una vez. `{escritor}/dudas-sin-contestar-avisadas.txt` (fábrica, ISO) se escribe solo si salió; vacío, una Etapa A rehecha lo dejó sin valor. Si el mail falla, el libro sigue.
 
 | Archivo o dato | Escribe | Lee | Qué es |
@@ -544,7 +550,7 @@ Al navegador solo llegan `id`, `pregunta`, el texto de las citas y las `opciones
 
 No le manda nada si:
 - tiene un pedido en `entregado`, `generando`, `esperando_voz` o `fallido`;
-- hay `fallo-A.json` o `libro.md`;
+- hay `libro.md`, o no hay `carpeta-A.json` (un `fallo-A.json` viejo no cuenta);
 - `trabajando.json` tiene un `latido` de hace menos de 10 minutos (se vuelve a mirar en el tick siguiente);
 - es el aviso y `dudas-avisadas.txt` tiene una fecha válida de hace más de 72 horas (libros viejos o ya vencidos);
 - es una historia y `ESCRITOR_HISTORIA` no la incluye. **Esa variable también hay que cargarla en el entrevistador**, con el mismo valor que en la fábrica (`1` o `solo:<id>,<id>`). Sin ella, a ninguna historia le llega nada.

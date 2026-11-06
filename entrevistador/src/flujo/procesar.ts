@@ -183,6 +183,15 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
       }
       if (canje !== 'sin_codigo') return;
     }
+    // Quien contó escribe teniendo dudas pendientes: esto no entra al libro, se le da el link. Vale para V3 e historia:
+    // los dos pasan por acá antes de su bot, que a un terminado no le contesta.
+    const { contestarSiEscribeConDudas } = await import('./revision-narrador.js');
+    if (await contestarSiEscribeConDudas({
+      db,
+      enviarTexto: (tel, texto, o) => enviarTexto(tel, texto, o),
+      avisarSocios: (clave, asunto, detalle, o) => avisarSocios(clave, asunto, detalle, o),
+      urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+    }, narrador)) return;
   }
 
   // Gift card: un teléfono con una compra sin pagar manda un código. No se puede canjear mientras esa compra siga

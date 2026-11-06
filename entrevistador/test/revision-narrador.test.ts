@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
-import { atenderRevisiones, olvidarRevisiones, queMandar, type DepsRevision, type Situacion } from '../src/flujo/revision-narrador.js';
+import { atenderRevisiones, contestarSiEscribeConDudas, olvidarRevisiones, queMandar, type DepsRevision, type Situacion } from '../src/flujo/revision-narrador.js';
 import { TEXTOS_REVISION } from '../src/flujo/revision-narrador-textos.js';
 
 // La regla sin depender de su definición de hoy: `null` usa la de verdad; una función simula sus dos respuestas.
@@ -404,11 +404,118 @@ describe('atenderRevisiones', () => {
     expect(a.textos).toHaveLength(1);
   });
 
-  it('con fallo-A.json no le llega', async () => {
+  it('un fallo-A.json viejo no apaga el aviso: lo que cuenta es carpeta-A.json', async () => {
     const a = armar();
     a.poner('n1', 'fallo-A.json', '{}');
     await atenderRevisiones(a.deps, AHORA);
+    expect(a.textos).toHaveLength(1);
+  });
+
+  it('con fallo-A.json y sin carpeta-A.json no le llega', async () => {
+    const a = armar({ sinDudas: true });
+    a.poner('n1', 'fallo-A.json', '{}');
+    a.poner('n1', 'dudas-familia.json', DUDAS);
+    await atenderRevisiones(a.deps, AHORA);
     expect(a.textos).toEqual([]);
+  });
+
+  describe('escribe por WhatsApp teniendo dudas pendientes', () => {
+    const REGALO = { contexto: { vinculoComprador: 'hija' } };
+    const uno = (extra: Fila = REGALO) => narrador('n1', extra) as Parameters<typeof contestarSiEscribeConDudas>[1];
+
+    it.each([
+      ['es-AR', 'Gracias. Para que lo que nos digas entre en el libro, contestá las preguntas desde este enlace, escribiendo o dictando con el micrófono del teclado. '],
+      ['es-ES', 'Gracias. Para que lo que nos digas entre en el libro, contesta las preguntas desde este enlace, escribiendo o dictando con el micrófono del teclado. '],
+      ['ca', "Gràcies. Perquè el que ens diguis entri al llibre, contesta les preguntes des d'aquest enllaç, escrivint o dictant amb el micròfon del teclat. "],
+    ])('en %s, el link con su texto, y los socios se enteran', async (idioma, inicio) => {
+      const a = armar({ narradores: [uno()], v3: [abierta('n1', idioma)] });
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(true);
+      expect(a.textos).toHaveLength(1);
+      expect(a.textos[0].texto.startsWith(`${inicio}https://www.vitacorafamiliar.com/mi-historia/`)).toBe(true);
+      expect(a.textos[0].texto).not.toContain('{link}');
+      expect(delToken(a.textos[0].texto.split('/mi-historia/')[1])).toMatchObject({ narradorId: 'n1', tipo: 'respuestas' });
+      expect(a.socios).toHaveLength(1);
+      expect(a.socios[0].clave).toBe('escribio-con-dudas|n1');
+      expect(a.socios[0].asunto).toContain('abuelo');
+    });
+
+    it('una vez por día; al día siguiente, de nuevo', async () => {
+      const a = armar({ narradores: [uno()] });
+      await contestarSiEscribeConDudas(a.deps, uno(), AHORA);
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(true);
+      expect(a.textos).toHaveLength(1);
+      await contestarSiEscribeConDudas(a.deps, uno(), new Date(AHORA.getTime() + 24 * 3600_000));
+      expect(a.textos).toHaveLength(2);
+    });
+
+    it('en una historia lee su carpeta', async () => {
+      const n = uno({ contexto: { modo: 'historia', vinculoComprador: 'hija' } });
+      const a = armar({ narradores: [n], v3: [], historias: [abierta()], carpeta: 'escritor-historia' });
+      expect(await contestarSiEscribeConDudas(a.deps, n, AHORA)).toBe(true);
+      expect(a.textos).toHaveLength(1);
+    });
+
+    it('«para mí» también', async () => {
+      const n = uno({ contexto: { vinculoComprador: 'yo mismo' } });
+      const a = armar({ narradores: [n] });
+      expect(await contestarSiEscribeConDudas(a.deps, n, AHORA)).toBe(true);
+    });
+
+    it('si Meta lo rechaza, el próximo mensaje lo reintenta y nada se cae', async () => {
+      let falla = true;
+      const a = armar({ narradores: [uno()], metaFalla: () => falla });
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(true);
+      falla = false;
+      await contestarSiEscribeConDudas(a.deps, uno(), AHORA);
+      expect(a.textos).toHaveLength(1);
+    });
+
+    const nada = (a: ReturnType<typeof armar>) => { expect(a.textos).toEqual([]); expect(a.socios).toEqual([]); };
+
+    it('un regalo que no es privado (la regla en false): nada, sigue como hoy', async () => {
+      regla.esPrivado = () => false;
+      const a = armar({ narradores: [uno()] });
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(false);
+      nada(a);
+    });
+
+    it('sin dudas, todas contestadas, sin Etapa A o con el libro escrito: nada', async () => {
+      const sin = armar({ narradores: [uno()], sinDudas: true });
+      expect(await contestarSiEscribeConDudas(sin.deps, uno(), AHORA)).toBe(false);
+      nada(sin);
+      const listas = armar({ narradores: [uno()] });
+      listas.poner('n1', 'correcciones.json', JSON.stringify({ correcciones: [{ dudaId: 'D1', texto: 'a' }, { dudaId: 'D2', texto: 'b' }] }));
+      expect(await contestarSiEscribeConDudas(listas.deps, uno(), AHORA)).toBe(false);
+      nada(listas);
+      const escrito = armar({ narradores: [uno()] });
+      escrito.poner('n1', 'libro.md', '# L');
+      expect(await contestarSiEscribeConDudas(escrito.deps, uno(), AHORA)).toBe(false);
+      nada(escrito);
+    });
+
+    it('fuera de plazo: a las 72 horas del aviso, o del mail a socios si el aviso nunca salió', async () => {
+      const a = armar({ narradores: [uno()] });
+      a.poner('n1', 'dudas-narrador-avisadas.txt', horasAntes(72));
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(false);
+      nada(a);
+      const b = armar({ narradores: [uno()] });
+      b.poner('n1', 'dudas-avisadas.txt', horasAntes(72));
+      expect(await contestarSiEscribeConDudas(b.deps, uno(), AHORA)).toBe(false);
+      nada(b);
+      const c = armar({ narradores: [uno()] });
+      c.poner('n1', 'dudas-narrador-avisadas.txt', horasAntes(71));
+      c.poner('n1', 'dudas-avisadas.txt', horasAntes(100));
+      expect(await contestarSiEscribeConDudas(c.deps, uno(), AHORA)).toBe(true);
+    });
+
+    it('con el libro en marcha, o todavía contando: nada', async () => {
+      const a = armar({ narradores: [uno()], pedidos: [{ narrador_id: 'n1', estado: 'generando' }] });
+      expect(await contestarSiEscribeConDudas(a.deps, uno(), AHORA)).toBe(false);
+      nada(a);
+      const b = armar({ narradores: [uno()] });
+      expect(await contestarSiEscribeConDudas(b.deps, uno({ ...REGALO, estado: 'activo' }), AHORA)).toBe(false);
+      nada(b);
+    });
   });
 
   it('con la fábrica trabajando hace menos de 10 minutos espera; marca vieja, de cierre o rota, no', async () => {

@@ -427,7 +427,7 @@ describe("el link del narrador", () => {
 
   it("verifica firma, tipo y vencimiento", () => {
     expect(verificarTokenRespuestas(token())).toEqual({ ok: true, narradorId: "n1" });
-    expect(verificarTokenRespuestas(token({ exp: Date.now() - 1 }))).toEqual({ ok: false, motivo: "vencido" });
+    expect(verificarTokenRespuestas(token({ exp: Date.now() - 1 }))).toEqual({ ok: false, motivo: "vencido", narradorId: "n1" });
     expect(verificarTokenRespuestas(token({ tipo: "voz" }))).toEqual({ ok: false, motivo: "invalido" });
     expect(verificarTokenRespuestas(`${token().slice(0, -3)}abc`)).toEqual({ ok: false, motivo: "invalido" });
     expect(verificarTokenRespuestas("nada")).toEqual({ ok: false, motivo: "invalido" });

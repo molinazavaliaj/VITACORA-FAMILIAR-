@@ -4,7 +4,7 @@ vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave
 
 import { AlmacenMemoria } from '../src/escritor/almacen/memoria.js';
 import * as privacidad from '../src/escritor/produccion/privacidad.js';
-import { avisarDudasSinContestar, DUDAS_SIN_CONTESTAR_AVISADAS, dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, DUDAS_SIN_CONTESTAR_AVISADAS, dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, regla, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
 import { dudasParaLaFamilia, esperaPorDudas } from '../src/escritor/produccion/libro-v3.js';
 import { armarLibroDeImprenta, imprentaFrenada } from '../src/libro/imprenta.js';
 import { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } from '../src/mail/frases.js';
@@ -272,5 +272,37 @@ describe('el aviso a los socios si quien contó no contesta', () => {
     expect(fetch).not.toHaveBeenCalled();
     await avisar(a, { contexto: PROPIA });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('una Etapa A rehecha y las correcciones viejas', () => {
+  const con = async (t: string) => {
+    const a = new AlmacenMemoria();
+    await a.escribir('correcciones.json', t);
+    return a;
+  };
+
+  it('saca las que apuntan a una duda y deja las de los socios', async () => {
+    const a = await con(JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Ofelia', quien: 'Marta' }, { texto: 'Se llamaba Salva.' }] }));
+    await sacarRespuestasDeDudasViejas(a);
+    expect(JSON.parse(String(await a.leer('correcciones.json')))).toEqual({ correcciones: [{ texto: 'Se llamaba Salva.' }] });
+  });
+
+  it('también con el archivo como lista', async () => {
+    const a = await con(JSON.stringify([{ dudaId: 'D01', texto: 'x' }, { texto: 'y' }]));
+    await sacarRespuestasDeDudasViejas(a);
+    expect(JSON.parse(String(await a.leer('correcciones.json')))).toEqual([{ texto: 'y' }]);
+  });
+
+  it('un archivo roto no se pisa, y sin archivo no crea uno', async () => {
+    const a = await con('{ esto no es JSON');
+    await sacarRespuestasDeDudasViejas(a);
+    expect(await a.leer('correcciones.json')).toBe('{ esto no es JSON');
+    const b = await con(JSON.stringify({ otra: 'cosa' }));
+    await sacarRespuestasDeDudasViejas(b);
+    expect(await b.leer('correcciones.json')).toBe(JSON.stringify({ otra: 'cosa' }));
+    const c = new AlmacenMemoria();
+    await sacarRespuestasDeDudasViejas(c);
+    expect(await c.leer('correcciones.json')).toBeNull();
   });
 });

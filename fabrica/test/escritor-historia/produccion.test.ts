@@ -335,9 +335,11 @@ describe('las dudas de la historia van a quien contó (Naza, 06/11)', () => {
     archivos.set(prefijo('carpeta-A.json'), JSON.stringify({ 'entradas/respuestas.xml': 'lo de antes' }));
     archivos.set(prefijo('dudas-avisadas.txt'), hace(100));
     archivos.set(prefijo('dudas-narrador-avisadas.txt'), hace(100));
+    archivos.set(prefijo('correcciones.json'), JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Vieja' }, { texto: 'Del socio' }] }));
     generando(tablas);
     await escribirLibroHistoria(db, libro, motor);
     expect(modelo.llamadas.map((p) => p.clave)).toEqual(clavesA);
+    expect(JSON.parse(String(archivos.get(prefijo('correcciones.json')))).correcciones).toEqual([{ texto: 'Del socio' }]);
     expect(String(archivos.get(prefijo('dudas-narrador-avisadas.txt')))).toBe('');
     expect(tablas.pedidos[0].estado).toBe('pagado');
     expect(Date.now() - Date.parse(String(archivos.get(prefijo('dudas-avisadas.txt'))))).toBeLessThan(HORA);

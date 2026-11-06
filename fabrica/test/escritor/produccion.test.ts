@@ -1060,6 +1060,19 @@ describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)',
     expect(delAviso(fetch)).toEqual([]);
   });
 
+  it('una A rehecha saca las respuestas viejas a las dudas antes de pagarla, y deja las de los socios', async () => {
+    conMail();
+    const { db, archivos } = baseFalsa(pedidoDe('s-f', { vinculoComprador: 'hija' }));
+    const { motor } = motorFalso();
+    await revisarEtapaAV3(db, 's-f', { motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('s-f/escritor/correcciones.json', JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Vieja' }, { texto: 'Del socio' }] }));
+    const cambiado = materialNelida();
+    cambiado.escribir('entradas/respuestas.xml', cambiado.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    await escribirLibroV3(db, libro('s-f'), { ...motor, material: async () => ({ c: cambiado.clonar(), audios: AUDIOS }) });
+    expect(JSON.parse(String(archivos.get('s-f/escritor/correcciones.json'))).correcciones).toEqual([{ texto: 'Del socio' }]);
+  });
+
   it('una A rehecha deja la marca sin valor', async () => {
     conMail();
     const { db, archivos, tablas } = baseFalsa(pedidoDe('s-e', { vinculoComprador: 'hija' }));
