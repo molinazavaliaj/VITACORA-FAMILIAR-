@@ -16,6 +16,7 @@ import { Libro3D } from "../_direccion/libro-3d";
 import { OndaQuieta } from "../_direccion/piezas";
 import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
+import { VideoLibro } from "../_direccion/video-libro";
 import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "./piezas-acuarela";
 import { cajasPortada } from "./datos-cajas";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
@@ -93,11 +94,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         bajada={t.inicio.bajada}
         botones={
           <>
-            <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton">
+            <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
+              {t.iniciar}
+            </Link>
+            <a href="#tienda" className="acu-boton-hilo">
               {n.inicio.boton}
-            </a>
-            <a href="#como-funciona" className="acu-boton-hilo">
-              {t.inicio.comoFunciona}
             </a>
           </>
         }
@@ -146,34 +147,46 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       {/* 5 · Se lee y se escucha: quieta, sin reproducir (Naza, 25/10). La tapa
           es la que anuncia el JSON-LD: la foto de la ficha tiene que estar en la página. */}
       <section className="acu-iman acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
-        <div className="mx-auto grid max-w-[1040px] grid-cols-1 items-center gap-10 md:grid-cols-2">
-          <div className="acu-voz-libros">
-            <div className="prt-fisico">
-              <Image
-                src={FOTOS.portada}
-                alt={t.libro.altPortada}
-                width={760}
-                height={981}
-                sizes="(min-width: 768px) 220px, 38vw"
-                className="h-auto w-full"
-              />
-            </div>
-            <div className="prt-fisico prt-fisico--espalda">
-              <Image
-                src={CONTRAPORTADA}
-                alt={t.voz.altContraportada}
-                width={760}
-                height={981}
-                sizes="(min-width: 768px) 220px, 38vw"
-                className="h-auto w-full"
-              />
-            </div>
-          </div>
+        <div className="acu-voz">
           <div className="flex flex-col gap-4">
             <h2 className="dir-titular dir-t3">{n.voz.titulo}</h2>
             <p className="text-[17px] text-[var(--acu-suave)]">{n.voz.texto}</p>
             <div className="acu-onda max-w-[420px]"><OndaQuieta duracion={t.escuchalo.duracion} conPlay={false} /></div>
+            <div className="acu-voz-estante">
+              <div className="acu-voz-libros">
+                <div className="prt-fisico">
+                  <Image
+                    src={FOTOS.portada}
+                    alt={t.libro.altPortada}
+                    width={760}
+                    height={981}
+                    sizes="(min-width: 768px) 120px, 30vw"
+                    className="h-auto w-full"
+                  />
+                </div>
+                <div className="prt-fisico prt-fisico--espalda">
+                  <Image
+                    src={CONTRAPORTADA}
+                    alt={t.voz.altContraportada}
+                    width={760}
+                    height={981}
+                    sizes="(min-width: 768px) 120px, 30vw"
+                    className="h-auto w-full"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
+          {/* Provisional: este video sale cuando esté filmada la toma del QR que suena. */}
+          <VideoLibro
+            src="/video/libro-cinematico.mp4"
+            poster="/video/libro-cinematico-poster.jpg"
+            alt={t.libro.altPortada}
+            ancho={1344}
+            alto={768}
+            sizes="(min-width: 820px) 680px, 100vw"
+            className="acu-video-marco w-full"
+          />
         </div>
       </section>
 

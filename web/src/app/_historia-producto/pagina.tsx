@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
@@ -5,7 +6,7 @@ import { Coreografia } from "../_direccion/coreografia";
 import { Libro3D } from "../_direccion/libro-3d";
 import { Cajas } from "../_portada/cajas";
 import { filasDePrecio, type Caja } from "../_portada/datos-cajas";
-import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "../_portada/piezas-acuarela";
+import { BandaMedios, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "../_portada/piezas-acuarela";
 import { TelefonoWhatsApp } from "../_portada/telefono-whatsapp";
 import { Acordeon } from "../_ui/acordeon";
 import { enlaceEscribir } from "../_kids/piezas";
@@ -77,6 +78,7 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
       nombre: LIBRO_HISTORIA_EJEMPLO.nombre,
       firma: LIBRO_HISTORIA_EJEMPLO.paraSiempre,
       foto: FOTOS.tapa,
+      contra: { iniciales: LIBRO_HISTORIA_EJEMPLO.iniciales, texto: LIBRO_HISTORIA_EJEMPLO.contra, escucha: LIBRO_HISTORIA_EJEMPLO.escucha },
     },
     filas: precio !== null ? filasDePrecio(idioma, cat, formatear, precio, lista) : [{ etiqueta: t.marca, valor: t.proximamente.titulo }],
     href: vende ? comprar : escribir.href,
@@ -125,7 +127,11 @@ export function PaginaHistoria({ idioma }: { idioma: IdiomaWeb }) {
         <Cajas idioma={idioma} cajas={[caja]} whatsapp={whatsapp} />
       </TiendaAcuarela>
 
-      <BandaFotos fotos={[FOTOS.mostrador, FOTOS.empresa]} posicion="50% 30%" />
+      {/* La grande pasa a video cuando lo haya. */}
+      <BandaMedios
+        grande={<Image src={FOTOS.mostrador} alt="" fill sizes="(min-width: 820px) 70vw, 100vw" style={{ objectPosition: "50% 30%" }} />}
+        chicas={[FOTOS.empresa, FOTOS.audio]}
+      />
 
       {/* 3 · Para quién, con las historias de la lista (las etiquetas de temas.md). */}
       <section className="acu-iman acu-hoja-banda relative z-[3] px-4 py-14 sm:px-8 md:py-20">

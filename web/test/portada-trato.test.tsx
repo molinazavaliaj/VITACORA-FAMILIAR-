@@ -25,8 +25,8 @@ function portada(idioma: keyof typeof PAGINAS): string {
 const eur = (n: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 const ars = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 
-const DE_TU = ["Ideal si se la quieres regalar.", "Se lo regalas", "Añades tus preguntas", "Eliges la tapa y te lo enviamos.", "o antes si lo pides."];
-const DE_VOS = ["Ideal si se la querés regalar.", "Se lo regalás", "Sumás tus preguntas", "Elegís la tapa y te lo mandamos.", "o antes si lo pedís."];
+const DE_TU = ["Ideal si se la quieres regalar.", "Se lo regalas", "Si quieres, añade las tuyas", "Eliges la tapa y te lo enviamos.", "o antes si lo pides."];
+const DE_VOS = ["Ideal si se la querés regalar.", "Se lo regalás", "Si querés, sumá las tuyas", "Elegís la tapa y te lo mandamos.", "o antes si lo pedís."];
 
 // Lo que no puede aparecer en ninguna versión (DECISIONES D1 y D4,
 // TEXTOS-Y-REGLAS §1) ni lo que se fue el 15/10.
@@ -137,7 +137,7 @@ describe("la portada según el idioma", () => {
       "Su historia es de tu familia.",
       'id="preguntas"',
       "¿Te queda alguna duda?",
-      "Un día vas a querer preguntarle algo.",
+      "Todavía estás a tiempo de preguntarle.",
     ].map((s) => (s.startsWith("id=") ? s : escapar(s)));
     const posiciones = orden.map((s) => html.indexOf(s));
     posiciones.forEach((p, i) => expect(p, orden[i]).toBeGreaterThan(-1));
@@ -264,7 +264,7 @@ describe("la portada según el idioma", () => {
     const es = portada("es");
     const inicio = es.slice(0, es.indexOf('id="hero"'));
     expect(inicio).toContain(escapar("Tu familiar nos cuenta su vida con audios de WhatsApp."));
-    expect(inicio).toContain('href="#como-funciona"');
+    expect(inicio).toContain('href="#tienda"');
     expect(inicio).not.toContain("acu-tel");
     const escena = es.slice(es.indexOf("acu-escena"));
     expect(escena).toContain("acu-tel");
@@ -328,7 +328,7 @@ describe("la portada según el idioma", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const html = portada(idioma);
       expect(html, idioma).toContain("bg-[var(--acu-blanco)]/95");
-      expect(html, idioma).toContain("bg-[var(--acu-bordo)]");
+      expect(html, idioma).toContain("bg-[var(--acu-relleno)]");
       expect(html, idioma).not.toContain("bg-[#070706]/95");
     }
   });

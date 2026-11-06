@@ -95,6 +95,22 @@ export function BandaFotos({ fotos, alt = "", posicion = "50% 40%", z = "z-[3]" 
   );
 }
 
+/** Una pieza grande (foto o video) y fotos más chicas al lado, en vez de una banda a todo lo ancho. */
+export function BandaMedios({ grande, chicas, z = "z-[3]" }: { grande: ReactNode; chicas: readonly string[]; z?: string }) {
+  return (
+    <section aria-hidden className={`acu-hoja-lisa relative ${z} px-4 py-10 sm:px-8 md:py-14`}>
+      <div className="acu-medios">
+        <div className="acu-medios-grande">{grande}</div>
+        {chicas.map((foto) => (
+          <div key={foto} className="acu-medios-chica">
+            <Image src={foto} alt="" fill sizes="(min-width: 820px) 30vw, 50vw" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export type PasoFoto = { titulo: string; texto: string; foto?: string | null; alt?: string; ilustracion?: ReactNode };
 
 /** Los pasos grandes, con su foto. Con tres pasos, tres columnas. */

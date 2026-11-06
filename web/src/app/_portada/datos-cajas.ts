@@ -12,7 +12,9 @@ import { LIBRO_VIAJE_EJEMPLO } from "../_textos/viaje";
 // Florencia. «Para un niño» sigue en Próximamente hasta que se venda Kids.
 
 export type IdCaja = "familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo" | "historia";
-export type TapaCaja = { etiqueta: string; nombre: [string, string] | string; firma: string; foto: string; apaisado?: boolean };
+/** La contratapa, parada al lado de la tapa en los estantes de un solo libro. */
+export type ContraCaja = { iniciales: string; texto: string; escucha: string };
+export type TapaCaja = { etiqueta: string; nombre: [string, string] | string; firma: string; foto: string; apaisado?: boolean; contra?: ContraCaja };
 export type Caja = {
   id: IdCaja;
   textos: TextoCaja;

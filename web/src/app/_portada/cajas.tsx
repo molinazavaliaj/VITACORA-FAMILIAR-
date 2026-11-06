@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { IdiomaWeb } from "@/lib/idioma-web";
+import { Toroide } from "../marca";
+import { Qr, URL_QR } from "../_direccion/libro-3d";
 import { TEXTOS_PORTADA_NUEVA } from "../_textos/portada-nueva";
-import type { Caja, TapaCaja } from "./datos-cajas";
+import type { Caja, ContraCaja, TapaCaja } from "./datos-cajas";
 
 // La tienda como una estantería: los libros en un mismo estante y, colgada abajo
 // de cada uno, una nota de papel acuarela con sus datos.
@@ -14,7 +16,10 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
       {cajas.map((c) => (
         <article key={c.id} id={`caja-${c.id}`} className={`acu-estante-item${c.marca === "regalo" ? " acu-estante-item--regalo" : ""}`}>
           {c.marca ? <span className={`acu-marca${c.marca === "pronto" ? " acu-marca--gris" : ""}`}>{t.marcas[c.marca]}</span> : null}
-          <div className="acu-foto">{c.tapa ? <Tapa tapa={c.tapa} /> : null}</div>
+          <div className={`acu-foto${c.tapa?.contra ? " acu-foto--doble" : ""}`}>
+            {c.tapa ? <Tapa tapa={c.tapa} /> : null}
+            {c.tapa?.contra ? <Contra contra={c.tapa.contra} /> : null}
+          </div>
           <div className={`acu-nota acu-tinte-${c.tinte}`}>
             <h3>{c.textos.titulo}</h3>
             <p>{c.textos.linea}</p>
@@ -56,6 +61,21 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
         </article>
       ))}
     </div>
+  );
+}
+
+/** La parte de atrás del libro, igual que en el libro 3D: marca, texto y QR. */
+function Contra({ contra }: { contra: ContraCaja }) {
+  return (
+    <span aria-hidden className="prt-ed-libro acu-contra">
+      <span className="prt-ed-tapa acu-contra-papel">
+        <Toroide className="acu-contra-toroide" />
+        <span className="acu-contra-iniciales">{contra.iniciales}</span>
+        <span className="acu-contra-texto">{contra.texto}</span>
+        <Qr url={URL_QR} className="acu-contra-qr" />
+        <span className="acu-contra-escucha">{contra.escucha}</span>
+      </span>
+    </span>
   );
 }
 

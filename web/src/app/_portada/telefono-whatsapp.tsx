@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { IdiomaWeb } from "@/lib/idioma-web";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
 
@@ -6,7 +7,7 @@ import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
 // movimiento» quedan todos a la vista. Es ilustración: la sección va aria-hidden.
 const ONDA = "M1 6v2M5 3v8M9 5v4M13 1v12M17 4v6M21 2v10M25 5v4M29 3v8M33 6v2M37 4v6M41 2v10M45 5v4M49 6v2";
 
-export function TelefonoWhatsApp({ idioma }: { idioma: IdiomaWeb }) {
+export function TelefonoWhatsApp({ idioma, fotos }: { idioma: IdiomaWeb; /** Fotos que manda después del audio. */ fotos?: [string, string] }) {
   const t = TEXTOS_PORTADA_INICIO[idioma].telefono;
   return (
     <div className="acu-tel">
@@ -24,13 +25,25 @@ export function TelefonoWhatsApp({ idioma }: { idioma: IdiomaWeb }) {
           </span>
         </div>
         <div className="acu-tel-charla">
-          <p className="acu-tel-globo">{t.pregunta}</p>
-          <p className="acu-tel-globo acu-tel-globo--mio acu-tel-globo--2">
+          <p className="acu-tel-globo acu-tel-e1">{t.pregunta}</p>
+          <p className="acu-tel-globo acu-tel-globo--mio acu-tel-globo--2 acu-tel-e2">
             <span>▶</span>
             <svg viewBox="0 0 50 14"><path d={ONDA} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
             <small>2:14</small>
           </p>
-          <p className="acu-tel-globo acu-tel-globo--3">{t.acuse}</p>
+          <p className="acu-tel-globo acu-tel-globo--3 acu-tel-e3">{t.acuse}</p>
+          {fotos ? (
+            <>
+              <p className="acu-tel-globo acu-tel-e4">{t.preguntaFotos}</p>
+              <div className="acu-tel-fotos">
+                {fotos.map((foto, i) => (
+                  <span key={foto} className={`acu-tel-foto acu-tel-f${i + 1}`}>
+                    <span><Image src={foto} alt="" fill sizes="100px" /></span>
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : null}
         </div>
         <div className="acu-tel-escribir">
           <span className="acu-tel-campo" />

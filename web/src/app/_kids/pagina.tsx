@@ -1,3 +1,4 @@
+import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -5,7 +6,7 @@ import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Acordeon } from "../_ui/acordeon";
-import { TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
+import { LIBRO_KIDS_EJEMPLO, TEXTOS_KIDS, type PasoKids } from "../_textos/kids";
 import { obtenerPrecioKids } from "@/lib/precios";
 import { kidsVendeEn } from "@/lib/kids";
 import { catalogo } from "@/lib/productos";
@@ -13,7 +14,7 @@ import { precioDeLista, promoPorcentaje } from "@/lib/promo";
 import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { ChatKids, FOTOS_KIDS, enlaceEscribir } from "./piezas";
 import { Coreografia } from "../_direccion/coreografia";
-import { VideoLibro } from "../_direccion/video-libro";
+import { Libro3D } from "../_direccion/libro-3d";
 import { Cajas } from "../_portada/cajas";
 import { filasDePrecio, type Caja } from "../_portada/datos-cajas";
 import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "../_portada/piezas-acuarela";
@@ -87,11 +88,12 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
   );
 
   const tapa = TEXTOS_EDICIONES[idioma].tapaKids;
+  const ejemplo = LIBRO_KIDS_EJEMPLO[idioma];
   const caja: Caja = {
     id: "nino",
     textos: { titulo: t.etiqueta, linea: conPrecio ? t.precio.texto : t.proximamenteTexto, ideal: n.cajas.nino.ideal, enlace: conPrecio ? t.empezar : t.escribir },
     tinte: 3,
-    tapa: { etiqueta: tapa.etiqueta, nombre: tapa.nombre, firma: tapa.edad, foto: FOTOS_KIDS.cuarto.src },
+    tapa: { etiqueta: tapa.etiqueta, nombre: tapa.nombre, firma: tapa.edad, foto: FOTOS_KIDS.cuarto.src, contra: { iniciales: ejemplo.libro.iniciales, texto: ejemplo.libro.contra, escucha: ejemplo.libro.escucha } },
     filas: conPrecio ? filasDePrecio(idioma, cat, formatear, precio, lista) : [{ etiqueta: n.precios.pronto, valor: n.precios.prontoValor }],
     href: conPrecio ? comprar : escribir.href,
     externo: !conPrecio,
@@ -102,7 +104,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
     <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-tema acu-acento-kids acu-imanes flex flex-1 flex-col">
       <Coreografia />
 
-      {/* 1 · Inicio: el libro de Nico en video (MOTION 14), acá y solo acá. Debajo de
+      {/* 1 · Inicio: el libro de Nico en 3D, igual que el de Familiar (Naza, 06/11). Debajo de
           los botones, quién escucha lo que cuenta (Naza, 25/10). */}
       <InicioAcuarela
         cabecera={<Cabecera idioma={idioma} camino="/kids" producto="kids" sobreHero textoComprar={t.empezar} />}
@@ -129,15 +131,14 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
           </>
         }
         visual={
-          <VideoLibro
-            src="/video/kids-libro.mp4"
-            poster="/video/kids-libro-poster.jpg"
-            alt={t.dibujos.altVideo}
-            ancho={1120}
-            alto={640}
-            sizes="(min-width: 900px) 620px, 100vw"
-            className="kids-video w-full"
-          />
+          <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
+            <Libro3D
+              idioma={idioma}
+              b={ejemplo.libro}
+              c={{ ...TEXTOS_EJEMPLO.es.libro, ...ejemplo.capitulo }}
+              diseno={{ tapa: FOTOS_KIDS.cuarto.src, interior: FOTOS_KIDS.familia.src }}
+            />
+          </div>
         }
       />
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
@@ -171,8 +172,25 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
         }))}
       />
 
-      {/* 5 · La conversación de ejemplo y las preguntas del banco */}
-      <section className="acu-iman acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
+      {/* 5 · Tú lo ves todo y los temas: lo que cuida a quien regala y al chico */}
+      <section className="acu-iman acu-hoja-banda relative z-[5] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par">
+          <div className="acu-par-img">
+            <Image src={FOTOS_KIDS.familia.src} alt={t.panel.altFoto} fill sizes="(min-width: 820px) 50vw, 100vw" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <h2 className="dir-titular dir-t3">{t.panel.titulo}</h2>
+            <p className="acu-parrafo">{t.panel.texto}</p>
+            <p className="acu-parrafo">{t.panel.tuyas}</p>
+            <p className="dir-pie border-l-2 border-[var(--acu-bordo)] pl-4">{t.panel.pedido}</p>
+            <h3 className="dir-titular dir-t4 mt-6">{t.temas.titulo}</h3>
+            <p className="acu-parrafo">{t.temas.texto}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6 · La conversación de ejemplo y las preguntas del banco */}
+      <section className="acu-iman acu-hoja-banda2 relative z-[6] px-4 py-14 sm:px-8 md:py-20">
         <div className="acu-par">
           <div className="flex flex-col gap-4">
             <h2 className="dir-titular dir-t3">{t.chat.titulo}</h2>
@@ -192,7 +210,7 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
-      {/* 6 · El libro y el sobre cerrado */}
+      {/* 7 · El libro y el sobre cerrado */}
       <section className="acu-iman acu-hoja-lisa relative z-[6] px-4 py-14 sm:px-8 md:py-20">
         <div className="acu-par">
           <div className="flex flex-col gap-4">
@@ -208,23 +226,6 @@ export function PaginaKidsCompleta({ idioma }: { idioma: IdiomaWeb }) {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      {/* 7 · Tú lo ves todo y los temas: lo que cuida a quien regala y al chico */}
-      <section className="acu-iman acu-hoja-banda relative z-[6] px-4 py-14 sm:px-8 md:py-20">
-        <div className="acu-par">
-          <div className="acu-par-img">
-            <Image src={FOTOS_KIDS.familia.src} alt={t.panel.altFoto} fill sizes="(min-width: 820px) 50vw, 100vw" />
-          </div>
-          <div className="flex flex-col gap-4">
-            <h2 className="dir-titular dir-t3">{t.panel.titulo}</h2>
-            <p className="acu-parrafo">{t.panel.texto}</p>
-            <p className="acu-parrafo">{t.panel.tuyas}</p>
-            <p className="dir-pie border-l-2 border-[var(--acu-bordo)] pl-4">{t.panel.pedido}</p>
-            <h3 className="dir-titular dir-t4 mt-6">{t.temas.titulo}</h3>
-            <p className="acu-parrafo">{t.temas.texto}</p>
-          </div>
         </div>
       </section>
 

@@ -24,7 +24,7 @@ describe("la portada en el teléfono", () => {
   it("la onda de voz se ve sobre la hoja clara: OndaQuieta pinta con las variables de la tinta", () => {
     expect(html).toContain('class="acu-onda ');
     const css = readFileSync(path.resolve(__dirname, "../src/app/_portada/acuarela.css"), "utf8");
-    expect(css).toMatch(/\.acu-onda \{[^}]*--dir-sobre-tinta: var\(--acu-bordo\);[^}]*--dir-sobre-tinta-suave: var\(--acu-suave\);/);
+    expect(css).toMatch(/\.acu-onda \{[^}]*--dir-sobre-tinta: var\(--acu-relleno\);[^}]*--dir-sobre-tinta-suave: var\(--acu-suave\);/);
   });
 
   it("las preguntas van sobre blanco cálido sin depender del orden de las hojas de estilo", () => {
