@@ -178,7 +178,7 @@ describe('mails de la entrega con vos para Argentina (Naza, 09/10)', () => {
     expect(cuerpoHito('falta_direccion', o)).toContain('entra y déjanos la dirección');
     const llego = cuerpoHito('entregado', { ...o, variante: 'vos' });
     expect(llego).toContain('Acercá el teléfono a los códigos del libro');
-    expect(llego).toContain('Si te emocionó, contalo.');
+    expect(llego).toContain('Contanos cómo fue, lo bueno y lo que mejorarías.');
     expect(cuerpoHito('entregado', o)).toContain('Acerca el teléfono');
     expect(cuerpoHito('enviado', { ...o, variante: 'vos', seguimiento: 'AB123' })).toBe(cuerpoHito('enviado', { ...o, seguimiento: 'AB123' }));
     expect(asuntoHito('entregado', 'abuela', 'vos')).toBe(asuntoHito('entregado', 'abuela'));
