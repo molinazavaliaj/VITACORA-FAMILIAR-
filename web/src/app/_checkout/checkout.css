@@ -94,7 +94,7 @@
 }
 .chk-paso[data-estado="actual"] .chk-paso-nombre { color: var(--acu-titulo); font-weight: 600; }
 .chk-pasos-hilo { position: relative; margin-top: 10px; height: 3px; border-radius: 2px; background: #eadfdb; }
-.chk-pasos-hilo > div { position: absolute; inset: 0; border-radius: 2px; background: var(--acu-relleno); }
+.chk-pasos-hilo > div { position: absolute; inset: 0; border-radius: 2px; background: var(--acu-bordo); }
 
 /* ── El título de cada paso ── */
 .chk-antetitulo {
@@ -358,8 +358,8 @@
   z-index: 1;
   width: 28px;
   padding: 12px 0 20px;
-  background-color: var(--acu-relleno);
-  color: var(--acu-sobre-relleno);
+  background-color: var(--acu-bordo);
+  color: var(--acu-sobre-bordo);
   font-family: var(--fuente-micro), sans-serif;
   font-size: 9.5px;
   font-weight: 600;
@@ -429,7 +429,7 @@
   background: #ffffff;
   transition: background-color var(--d-rapido), border-color var(--d-rapido);
 }
-.chk-extra[data-marcado] .chk-extra-caja { border-color: var(--acu-bordo); background: var(--acu-relleno); color: var(--acu-sobre-relleno); }
+.chk-extra[data-marcado] .chk-extra-caja { border-color: var(--acu-bordo); background: var(--acu-bordo); color: var(--acu-sobre-bordo); }
 .chk-extra-textos { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .chk-extra-titulo { font-family: var(--fuente-micro), sans-serif; font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--texto-oscuro-fuerte); }
 .chk-extra-detalle { font-family: var(--fuente-micro), sans-serif; font-size: 13px; line-height: 1.4; color: var(--texto-oscuro-menor); }
