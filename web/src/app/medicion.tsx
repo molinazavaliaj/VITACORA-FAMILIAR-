@@ -88,14 +88,14 @@ export function Medicion() {
   }
 
   const boton =
-    "min-h-11 flex-1 rounded-full border border-[var(--texto-oscuro-suave)] px-5 text-[13px] uppercase tracking-[0.14em] text-[var(--texto-oscuro-fuerte)] [font-family:var(--fuente-micro)] hover:bg-white/10 sm:flex-none";
+    "min-h-11 flex-1 rounded-full border border-[#7a1f2e] px-5 text-[13px] uppercase tracking-[0.14em] text-[#7a1f2e] [font-family:var(--fuente-micro)] hover:bg-[#7a1f2e]/10 sm:flex-none";
   return (
     <div
       ref={aviso}
       role="dialog"
       aria-live="polite"
       aria-label={t.cookies}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--linea-oscura)] bg-[var(--fondo-oscuro)] text-[var(--texto-oscuro-suave)]"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(90,40,45,0.17)] bg-[#fffdfa] text-[#5c4d4a] shadow-[0_-10px_30px_-20px_rgba(90,40,45,0.5)]"
     >
       <div className="mx-auto flex w-full max-w-[1104px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-[14px] leading-snug">

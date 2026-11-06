@@ -308,3 +308,25 @@
   border-radius: 18px;
   box-shadow: 0 30px 60px -30px rgba(40, 30, 20, 0.45);
 }
+
+/* Las landings de anuncio con la misma acuarela de /kids, con su acento mostaza (06/11). */
+.kids--acuarela {
+  --kids-fondo: #fffdfa;
+  --kids-fondo-hondo: #e5f2ef;
+  --kids-texto: #2a1c1c;
+  --kids-texto-suave: #5c4d4a;
+  --kids-texto-menor: #6a5a57;
+  --kids-acento: #8a6200;
+  --kids-acento-suave: #fbeee0;
+  --kids-boton: #8a6200;
+  --kids-boton-hover: #6f4f00;
+  --kids-sobre-boton: #fff9f1;
+  --kids-hilo: rgba(90, 40, 45, 0.17);
+  --kids-hilo-fuerte: rgba(90, 40, 45, 0.32);
+  background-image:
+    radial-gradient(60% 520px at 12% 0, rgba(201, 108, 120, 0.3), transparent 72%),
+    radial-gradient(55% 560px at 90% 60px, rgba(128, 197, 186, 0.36), transparent 72%);
+  background-repeat: no-repeat;
+  background-size: 100% 760px;
+}
+.kids--acuarela .kids-titular { color: #6f4f00; }

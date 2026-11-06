@@ -24,7 +24,7 @@ export const FOTOS_KIDS = {
 /** La hoja de una página de Kids: idioma y la paleta con alcance propio. */
 export function PaginaKids({ idioma, children }: { idioma: IdiomaWeb; children: ReactNode }) {
   return (
-    <div lang={langDeIdioma(idioma)} data-producto="kids" className="kids flex flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} data-producto="kids" className="kids kids--acuarela flex flex-1 flex-col">
       {children}
     </div>
   );

@@ -13,10 +13,11 @@ import { CONDICIONES_CREADORES, privacidadConCreadores } from "../_textos/legal-
 import { creadoresPrendido } from "@/lib/creadores";
 import { CONTACTO, TITULARES, faltan, type Region } from "./titulares";
 import "../_direccion/tokens.css";
+import "../_portada/acuarela.css";
 import "./legal.css";
 
 // Las páginas legales en la dirección «la web es un libro» (rediseño 2026-10,
-// fase 5; maquetas Legal / LegalMovil): la cabecera pública en tinta y el
+// fase 5; maquetas Legal / LegalMovil), con la paleta Acuarela: la cabecera sobre la acuarela y el
 // texto en una hoja de papel con el borde cortado a mano. Arriba las tres
 // solapas (términos, privacidad, desistimiento), el título, la fecha y el
 // «En corto»; después el índice de secciones (al costado en pantallas anchas)
@@ -82,7 +83,7 @@ export function PaginaLegal({ idioma, documento }: { idioma: IdiomaWeb; document
   const d = textoDe(idioma, documento);
   const camino = RUTA[documento];
   return (
-    <div lang={langDeIdioma(idioma)} className="dir-pagina lgl flex min-h-dvh flex-1 flex-col">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina acu-tema lgl flex min-h-dvh flex-1 flex-col">
       <div className="dir-tinta lgl-cabecera">
         <Cabecera idioma={idioma} camino={camino} sobreHero />
       </div>

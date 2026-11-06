@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +16,9 @@ import "../_portada/acuarela.css";
 // guitarra, como una foto de papel apoyada sobre la tinta; a la derecha el
 // formulario. En el celular, solo el formulario (la maqueta no lleva foto).
 // La entrada no cambia: código de 6 números al correo (formulario.tsx).
+
+// Es la puerta de quien ya compró: no tiene que salir en Google ni competir con la portada.
+export const metadata: Metadata = { title: "Entrar", robots: { index: false, follow: true } };
 
 export default async function Entrar() {
   // Todavía no hay familia: el trato sale del país de quien entra.
