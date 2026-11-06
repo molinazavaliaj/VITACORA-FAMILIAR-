@@ -927,7 +927,7 @@ describe('nada de lo que manda se pierde en silencio (21/10)', () => {
 describe('el link del narrador (privacidad, 05/11)', () => {
   it('«mis respuestas», escrito o en audio, no se suma: le llega su link', async () => {
     process.env.FIRMA_TOKENS = 'secreto-de-prueba';
-    const { deps, n1, base, fila, enviados } = await preparar(enOR1(), { narrador: { contexto: { ritmo: 'diario', vinculoComprador: 'hija' } } });
+    const { deps, n1, base, fila, enviados } = await preparar(enOR1(), { narrador: { contexto: { ritmo: 'diario', vinculoComprador: 'hija', acceso: { elige: true } } } });
     await procesarEntranteV3(deps, n1, audio('Quiero ver mis respuestas.'));
     const f = await fila();
     expect(f?.estado.borrador).toBeUndefined();
@@ -941,5 +941,17 @@ describe('el link del narrador (privacidad, 05/11)', () => {
     const { deps, n1, fila } = await preparar(enOR1());
     await procesarEntranteV3(deps, n1, audio('Yo no sé si mis respuestas le sirven a alguien pero mi mamá cosía todo el día en la casa de atrás.'));
     expect((await fila())?.estado.borrador).toContain('mi mamá cosía');
+  });
+
+  it.each([
+    ['una venta vieja, sin marca', { ritmo: 'diario', vinculoComprador: 'hija' }],
+    ['«Mi familia»', { ritmo: 'diario', vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }],
+  ])('%s: no le decimos «Solo lo ves vos», y lo que escribe sigue siendo una respuesta', async (_caso, contexto) => {
+    process.env.FIRMA_TOKENS = 'secreto-de-prueba';
+    const { deps, n1, base, enviados } = await preparar(enOR1(), { narrador: { contexto } });
+    await procesarEntranteV3(deps, n1, audio('Quiero ver mis respuestas.'));
+    expect(enviados.some((e) => e.texto?.includes('/mis-respuestas/'))).toBe(false);
+    expect(base.tablas.respuestas[0].clave_v3).not.toBe(SIN_CLAVE_V3);
+    delete process.env.FIRMA_TOKENS;
   });
 });
