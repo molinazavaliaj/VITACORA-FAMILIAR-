@@ -94,11 +94,11 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         bajada={t.inicio.bajada}
         botones={
           <>
-            <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton">
+            <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
+              {t.iniciar}
+            </Link>
+            <a href="#tienda" className="acu-boton-hilo">
               {n.inicio.boton}
-            </a>
-            <a href="#como-funciona" className="acu-boton-hilo">
-              {t.inicio.comoFunciona}
             </a>
           </>
         }
@@ -152,26 +152,28 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
             <h2 className="dir-titular dir-t3">{n.voz.titulo}</h2>
             <p className="text-[17px] text-[var(--acu-suave)]">{n.voz.texto}</p>
             <div className="acu-onda max-w-[420px]"><OndaQuieta duracion={t.escuchalo.duracion} conPlay={false} /></div>
-            <div className="acu-voz-libros">
-              <div className="prt-fisico">
-                <Image
-                  src={FOTOS.portada}
-                  alt={t.libro.altPortada}
-                  width={760}
-                  height={981}
-                  sizes="(min-width: 768px) 120px, 30vw"
-                  className="h-auto w-full"
-                />
-              </div>
-              <div className="prt-fisico prt-fisico--espalda">
-                <Image
-                  src={CONTRAPORTADA}
-                  alt={t.voz.altContraportada}
-                  width={760}
-                  height={981}
-                  sizes="(min-width: 768px) 120px, 30vw"
-                  className="h-auto w-full"
-                />
+            <div className="acu-voz-estante">
+              <div className="acu-voz-libros">
+                <div className="prt-fisico">
+                  <Image
+                    src={FOTOS.portada}
+                    alt={t.libro.altPortada}
+                    width={760}
+                    height={981}
+                    sizes="(min-width: 768px) 120px, 30vw"
+                    className="h-auto w-full"
+                  />
+                </div>
+                <div className="prt-fisico prt-fisico--espalda">
+                  <Image
+                    src={CONTRAPORTADA}
+                    alt={t.voz.altContraportada}
+                    width={760}
+                    height={981}
+                    sizes="(min-width: 768px) 120px, 30vw"
+                    className="h-auto w-full"
+                  />
+                </div>
               </div>
             </div>
           </div>

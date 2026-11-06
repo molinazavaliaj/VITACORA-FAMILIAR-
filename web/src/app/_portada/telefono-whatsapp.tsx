@@ -25,18 +25,25 @@ export function TelefonoWhatsApp({ idioma, fotos }: { idioma: IdiomaWeb; /** Fot
           </span>
         </div>
         <div className="acu-tel-charla">
-          <p className="acu-tel-globo">{t.pregunta}</p>
-          <p className="acu-tel-globo acu-tel-globo--mio acu-tel-globo--2">
+          <p className="acu-tel-globo acu-tel-e1">{t.pregunta}</p>
+          <p className="acu-tel-globo acu-tel-globo--mio acu-tel-globo--2 acu-tel-e2">
             <span>▶</span>
             <svg viewBox="0 0 50 14"><path d={ONDA} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
             <small>2:14</small>
           </p>
-          {fotos?.map((foto, i) => (
-            <span key={foto} className={`acu-tel-globo acu-tel-foto acu-tel-foto--${i + 1}`}>
-              <span><Image src={foto} alt="" fill sizes="120px" /></span>
-            </span>
-          ))}
-          <p className="acu-tel-globo acu-tel-globo--3">{t.acuse}</p>
+          <p className="acu-tel-globo acu-tel-globo--3 acu-tel-e3">{t.acuse}</p>
+          {fotos ? (
+            <>
+              <p className="acu-tel-globo acu-tel-e4">{t.preguntaFotos}</p>
+              <div className="acu-tel-fotos">
+                {fotos.map((foto, i) => (
+                  <span key={foto} className={`acu-tel-foto acu-tel-f${i + 1}`}>
+                    <span><Image src={foto} alt="" fill sizes="100px" /></span>
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : null}
         </div>
         <div className="acu-tel-escribir">
           <span className="acu-tel-campo" />

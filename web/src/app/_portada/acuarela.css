@@ -486,54 +486,61 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-contra-qr { width: 25cqw; height: 25cqw; margin-top: 9%; }
 .acu-contra-escucha { margin-top: 2.5%; font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 3.8cqw; font-style: italic; }
 
-/* La escena de los audios (Naza, 06/11): más rápida, y también vuelan fotos que
-   quedan pegadas en el libro. Una sola vuelta de 6,5 s para todas las piezas. */
-.acu-escena { --acu-vuelta: 6.5s; }
+/* La escena de los audios (Naza, 06/11): una charla en orden. Todas las piezas
+   comparten la misma vuelta de 9 s y cada una tiene su momento:
+   pregunta, audio, el audio viaja, se escribe el capítulo, acuse, pregunta por
+   fotos, fotos, las fotos viajan, quedan en el libro, se termina la página. */
+.acu-escena { --acu-vuelta: 9s; }
 .acu-escena .acu-abierto { height: 300px; }
 .acu-escena .acu-hoja { gap: 7px; overflow: hidden; }
-.acu-escena .acu-tel-globo { animation-duration: var(--acu-vuelta); }
-.acu-escena .acu-tel-globo--2 { animation-delay: 0.3s; }
-.acu-escena .acu-tel-foto--1 { animation-delay: 1.9s; }
-.acu-escena .acu-tel-foto--2 { animation-delay: 2.7s; }
-.acu-escena .acu-tel-globo--3 { animation-delay: 4.2s; }
-.acu-tel-foto { align-self: flex-end; flex: none; width: 54%; padding: 3px; border-radius: 10px 10px 2px 10px; background: #d9fdd3; }
-.acu-tel-foto > span { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 8px; }
+.acu-escena .acu-tel-charla { justify-content: flex-start; }
+.acu-escena .acu-tel-e1 { animation: acu-e1 var(--acu-vuelta) infinite both; }
+.acu-escena .acu-tel-e2 { animation: acu-e2 var(--acu-vuelta) infinite both; }
+.acu-escena .acu-tel-e3 { animation: acu-e3 var(--acu-vuelta) infinite both; }
+.acu-escena .acu-tel-e4 { animation: acu-e4 var(--acu-vuelta) infinite both; }
+.acu-escena .acu-tel-f1 { animation: acu-ef1 var(--acu-vuelta) infinite both; }
+.acu-escena .acu-tel-f2 { animation: acu-ef2 var(--acu-vuelta) infinite both; }
+.acu-tel-fotos { display: flex; justify-content: flex-end; gap: 4px; }
+.acu-tel-foto { width: 42%; padding: 3px; border-radius: 8px; background: #d9fdd3; }
+.acu-tel-foto > span { position: relative; display: block; aspect-ratio: 1; overflow: hidden; border-radius: 6px; }
 .acu-tel-foto img { object-fit: cover; object-position: 50% 25%; }
-.acu-escena .acu-audio { animation-duration: var(--acu-vuelta); animation-delay: 0.5s; }
-.acu-escena .acu-audio--2 { animation-delay: 3.5s; }
-.acu-vuela { position: absolute; top: -14px; left: 2px; width: 60px; height: 60px; overflow: hidden; border: 3px solid #fff; border-radius: 4px; opacity: 0; box-shadow: 0 8px 18px -8px rgba(60, 20, 20, 0.6); animation: acu-vuela var(--acu-vuelta) infinite; }
+.acu-escena .acu-audio { animation: acu-eaudio var(--acu-vuelta) infinite both; }
+.acu-vuela { position: absolute; top: -14px; left: 2px; width: 60px; height: 60px; overflow: hidden; border: 3px solid #fff; border-radius: 4px; box-shadow: 0 8px 18px -8px rgba(60, 20, 20, 0.6); }
 .acu-vuela img { object-fit: cover; object-position: 50% 25%; }
-.acu-vuela--1 { animation-delay: 2.05s; }
-.acu-vuela--2 { animation-delay: 2.85s; }
-@keyframes acu-vuela {
-  0% { opacity: 0; transform: translateX(0) scale(0.6) rotate(-8deg); }
-  2% { opacity: 1; }
-  10% { opacity: 1; transform: translateX(92px) scale(1.05) rotate(5deg); }
-  12%, 100% { opacity: 0; transform: translateX(100px) scale(0.9) rotate(0); }
-}
-.acu-escena .acu-hoja i { animation-duration: var(--acu-vuelta); }
+.acu-vuela--1 { animation: acu-ev1 var(--acu-vuelta) infinite both; }
+.acu-vuela--2 { animation: acu-ev2 var(--acu-vuelta) infinite both; }
+.acu-renglones { display: flex; flex-direction: column; gap: 7px; }
+.acu-renglones i { display: block; height: 6px; border-radius: 1px; background: #3d352c; opacity: 0.72; animation: none; }
+.acu-hoja--izq .acu-renglones { animation: acu-eri var(--acu-vuelta) infinite both; }
+.acu-hoja--der .acu-renglones { animation: acu-erd var(--acu-vuelta) infinite both; }
 .acu-pegadas { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.acu-pega { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; opacity: 0; box-shadow: 0 2px 6px -2px rgba(60, 40, 20, 0.5); animation: acu-pega var(--acu-vuelta) infinite; }
+.acu-pega { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; box-shadow: 0 2px 6px -2px rgba(60, 40, 20, 0.5); }
 .acu-pega img { object-fit: cover; object-position: 50% 25%; }
-.acu-pega--1 { animation-delay: 2.65s; }
-.acu-pega--2 { animation-delay: 3.45s; }
-@keyframes acu-pega {
-  0% { opacity: 0; transform: scale(1.5) rotate(9deg); }
-  4% { opacity: 1; transform: scale(0.95) rotate(-1.5deg); }
-  6%, 76% { opacity: 1; transform: none; }
-  84%, 100% { opacity: 0; transform: none; }
-}
+.acu-pega--1 { animation: acu-ep1 var(--acu-vuelta) infinite both; }
+.acu-pega--2 { animation: acu-ep2 var(--acu-vuelta) infinite both; }
+@keyframes acu-e1 { 0%, 2% { opacity: 0; transform: translateY(8px); } 4%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-e2 { 0%, 10% { opacity: 0; transform: translateY(8px); } 12%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-e3 { 0%, 34% { opacity: 0; transform: translateY(8px); } 36%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-e4 { 0%, 41% { opacity: 0; transform: translateY(8px); } 43%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-ef1 { 0%, 50% { opacity: 0; transform: translateY(8px); } 52%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-ef2 { 0%, 53% { opacity: 0; transform: translateY(8px); } 55%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-eaudio { 0%, 12% { opacity: 0; transform: translateX(0); } 13%, 21% { opacity: 1; } 23%, 100% { opacity: 0; transform: translateX(62px); } }
+@keyframes acu-ev1 { 0%, 51% { opacity: 0; transform: translateX(0) scale(0.6) rotate(-8deg); } 52% { opacity: 1; } 60% { opacity: 1; transform: translateX(92px) scale(1.05) rotate(5deg); } 61%, 100% { opacity: 0; transform: translateX(100px) scale(0.9) rotate(0); } }
+@keyframes acu-ev2 { 0%, 54% { opacity: 0; transform: translateX(0) scale(0.6) rotate(-8deg); } 55% { opacity: 1; } 63% { opacity: 1; transform: translateX(92px) scale(1.05) rotate(5deg); } 64%, 100% { opacity: 0; transform: translateX(100px) scale(0.9) rotate(0); } }
+@keyframes acu-ep1 { 0%, 60% { opacity: 0; transform: scale(1.5) rotate(9deg); } 62% { opacity: 1; transform: scale(0.95) rotate(-1.5deg); } 63%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-ep2 { 0%, 63% { opacity: 0; transform: scale(1.5) rotate(9deg); } 65% { opacity: 1; transform: scale(0.95) rotate(-1.5deg); } 66%, 92% { opacity: 1; transform: none; } 97%, 100% { opacity: 0; transform: none; } }
+@keyframes acu-eri { 0%, 21% { opacity: 1; clip-path: inset(0 0 100% 0); animation-timing-function: steps(13, end); } 33%, 92% { opacity: 1; clip-path: inset(0 0 -2% 0); } 97%, 100% { opacity: 0; clip-path: inset(0 0 -2% 0); } }
+@keyframes acu-erd { 0%, 66% { opacity: 1; clip-path: inset(0 0 100% 0); animation-timing-function: steps(7, end); } 75%, 92% { opacity: 1; clip-path: inset(0 0 -2% 0); } 97%, 100% { opacity: 0; clip-path: inset(0 0 -2% 0); } }
 @media (prefers-reduced-motion: reduce) {
-  .acu-vuela { display: none; }
-  .acu-audio--2 { display: none; }
-  .acu-pega, .acu-tel-foto { animation: none; opacity: 1; }
-  .acu-escena .acu-hoja i { animation: none; opacity: 0.72; }
+  .acu-vuela, .acu-escena .acu-audio { display: none; }
+  .acu-escena .acu-tel-globo, .acu-escena .acu-tel-foto, .acu-pega, .acu-renglones { animation: none !important; opacity: 1; transform: none; clip-path: none; }
 }
 
 /* Se lee y se escucha: el libro más chico y un buen lugar para el video. */
 .acu-voz { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 28px; max-width: 1180px; margin-inline: auto; }
 @media (min-width: 820px) { .acu-voz { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 44px; } }
-.acu-voz .acu-voz-libros { width: min(320px, 100%); }
+/* El padding de .acu-voz-libros se mide contra el padre: el padre tiene que medir lo mismo, o los libros flotan. */
+.acu-voz-estante { width: min(320px, 100%); }
 .acu-video-marco { overflow: hidden; border-radius: 14px; box-shadow: 0 24px 34px -24px rgba(60, 20, 20, 0.6); }
 
 /* Banda con una pieza grande (el video, cuando esté) y fotos más chicas. */

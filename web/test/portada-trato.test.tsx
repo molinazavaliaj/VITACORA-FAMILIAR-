@@ -264,7 +264,7 @@ describe("la portada según el idioma", () => {
     const es = portada("es");
     const inicio = es.slice(0, es.indexOf('id="hero"'));
     expect(inicio).toContain(escapar("Tu familiar nos cuenta su vida con audios de WhatsApp."));
-    expect(inicio).toContain('href="#como-funciona"');
+    expect(inicio).toContain('href="#tienda"');
     expect(inicio).not.toContain("acu-tel");
     const escena = es.slice(es.indexOf("acu-escena"));
     expect(escena).toContain("acu-tel");
