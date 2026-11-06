@@ -1,8 +1,9 @@
 // El aviso de dudas por WhatsApp a quien contó (plan 2026-11-06-dudas-narrador-sobre-212): si la Etapa A dejó dudas, un
 // link para contestarlas y un recordatorio a las 48 horas. Vale para privados y para «para mí» (`dudasAQuienConto`): un
 // regalo no privado no recibe nada de acá, sus dudas siguen con la familia. Solo V3 (`escritor/`) e historia
-// (`escritor-historia/`): Kids y Viaje no tienen esas filas. El link para sacar respuestas no sale de acá: lo manda el
-// mensaje final (`mandarLinkAlTerminar`).
+// (`escritor-historia/`): Kids y Viaje no tienen esas filas. El link para sacar respuestas lo manda el mensaje final
+// (`mandarLinkAlTerminar`). Sale de acá solo si quien regala cerró antes de tiempo un libro privado: ahí no hubo mensaje
+// final, y la web deja `ultima_respuesta_at` en la hora del cierre para que las 48 horas cuenten desde entonces.
 //
 // Corre en el tick de 15 minutos. Lo que ya pasó se lee de las marcas en Storage (CONTRATO, «Las dudas para quien
 // contó»), las mismas que mira la fábrica. Un mensaje que no sale no escribe marca y se reintenta en el tick siguiente;
@@ -14,11 +15,12 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PLANTILLAS_REVISION } from '../config.js';
-import { esPrivado, firmarTokenRespuestas } from '../link-respuestas.js';
+import { esPrivado, firmarTokenRespuestas, linkConVentanaCerrada, plazoParaSacar, textoDelLink } from '../link-respuestas.js';
 import { marcaEnStorage } from '../v3/avisos.js';
 import { esTablaAusente } from '../v3/estado.js';
 import { enLineaParaPlantilla, ventanaAbierta } from '../v3/enviar.js';
 import type { Idioma } from '../v3/nucleo/entrevista/idioma.js';
+import type { FichaTexto } from '../v3/nucleo/entrevista/texto.js';
 import { enmascarar } from './regalo-entrega.js';
 import { TEXTOS_REVISION } from './revision-narrador-textos.js';
 import { minutosLocales } from './tiempo.js';
@@ -35,7 +37,7 @@ export type DepsRevision = {
   /** Una vez por clave y por día; con `unaVez`, una sola. Nunca tira. */
   avisarSocios: (clave: string, asunto: string, detalle: string, o?: { unaVez?: boolean }) => Promise<unknown>;
   /** ¿Está aprobada en Meta? (WA_PLANTILLAS_V3_LISTAS) */
-  plantillaLista: (idioma: Idioma, cual: 'dudas_narrador') => boolean;
+  plantillaLista: (idioma: Idioma, cual: 'dudas_narrador' | 'revision') => boolean;
   /** Donde vive la web (URL_BASE). */
   urlBase: string;
 };
@@ -62,6 +64,8 @@ const DUDAS_RECORDADAS = 'dudas-recordadas.txt';
 const DUDAS_A_SOCIOS = 'dudas-avisadas.txt';
 const TRABAJANDO = 'trabajando.json';
 const TOMA = 'aviso-en-curso.txt';
+/** Quien regala cerró antes de tiempo y ya se resolvió el link para sacar respuestas: salió, o no va a salir. */
+const LINK_CIERRE = 'link-cierre-avisado.txt';
 /** Como `MARCA_VIGENTE_MS` de la fábrica. */
 const TRABAJANDO_VIGENTE_MS = 10 * 60_000;
 /** Pasado este tiempo, las dudas ya vencieron para la fábrica: es un libro viejo. */
@@ -96,8 +100,8 @@ function escritorHistoriaPrendido(narradorId: string): boolean {
   return v.slice(5).split(',').map((s) => s.trim()).filter(Boolean).includes(narradorId);
 }
 
-type Narrador = { id: string; telefono_whatsapp: string | null; zona_horaria: string | null; como_le_dicen: string | null; contexto?: unknown };
-type FilaEntrevista = { narrador_id: string; idioma: Idioma; estado: { ultimoEntranteAt?: string } | null };
+type Narrador = { id: string; estado: string; telefono_whatsapp: string | null; zona_horaria: string | null; como_le_dicen: string | null; ultima_respuesta_at?: string | null; contexto?: unknown };
+type FilaEntrevista = { narrador_id: string; idioma: Idioma; estado: { ultimoEntranteAt?: string; linkFinal?: string } | null; ficha?: { nombre?: string; genero?: FichaTexto['genero'] } | null };
 type Candidato = { narrador: Narrador; fila: FilaEntrevista; carpeta: 'escritor' | 'escritor-historia' };
 type Marca = { path: string; contenido: string };
 type Tabla = 'entrevistas_v3' | 'historias';
@@ -151,7 +155,7 @@ async function idsDe(db: SupabaseClient, tabla: Tabla): Promise<string[]> {
 
 async function filasDe(db: SupabaseClient, tabla: Tabla, ids: string[]): Promise<FilaEntrevista[]> {
   if (ids.length === 0) return [];
-  const { data, error } = await db.from(tabla).select('narrador_id, idioma, estado').in('narrador_id', ids);
+  const { data, error } = await db.from(tabla).select('narrador_id, idioma, estado, ficha').in('narrador_id', ids);
   if (error) {
     if (esTablaAusente(error)) return [];
     throw new Error(`No pude leer ${tabla}: ${error.message}`);
@@ -169,7 +173,7 @@ async function candidatos(db: SupabaseClient): Promise<Candidato[]> {
   const salida: Candidato[] = [];
   for (const tanda of enTandas(ids)) {
     const { data, error } = await db.from('narradores')
-      .select('id, telefono_whatsapp, zona_horaria, como_le_dicen, contexto')
+      .select('id, estado, telefono_whatsapp, zona_horaria, como_le_dicen, ultima_respuesta_at, contexto')
       .in('id', tanda).in('estado', ESTADOS_TERMINADA);
     if (error) throw new Error(`No pude leer los narradores: ${error.message}`);
     const narradores = ((data as Narrador[] | null) ?? []).filter((n) => dudasAQuienConto(n.contexto));
@@ -386,6 +390,59 @@ async function mandar(deps: DepsRevision, c: Candidato, base: string, mensaje: M
   }
 }
 
+/** ¿Quien regala cerró antes de tiempo un libro privado y el narrador todavía no tiene su link? Con el plazo vencido, ya no. */
+function leTocaLinkDeCierre({ narrador: n, fila }: Candidato, nombres: Set<string>, ahora: Date): boolean {
+  if (n.estado !== 'cerrado_anticipado' || !esPrivado(n.contexto) || fila.estado?.linkFinal || nombres.has(LINK_CIERRE)) return false;
+  const plazo = plazoParaSacar(n);
+  return plazo !== null && plazo > ahora.getTime();
+}
+
+/** El link del cierre anticipado: texto con la ventana abierta y plantilla `revision` con la ventana cerrada, una sola vez. */
+async function mandarLinkDeCierre(deps: DepsRevision, c: Candidato, base: string, ahora: Date): Promise<void> {
+  const { narrador: n, fila } = c;
+  const tel = n.telefono_whatsapp as string;
+  const idioma = fila.idioma;
+  if (!(await tomar(deps.db, base, ahora))) return;
+  let soltarAlFinal = true;
+  try {
+    if (!leTocaLinkDeCierre(c, await listar(deps.db, base), ahora)) return;
+    if (ventanaAbierta({ ultimoEntranteAt: fila.estado?.ultimoEntranteAt }, ahora)) {
+      const ficha = { nombre: fila.ficha?.nombre ?? n.como_le_dicen ?? '', genero: fila.ficha?.genero, idioma } as FichaTexto;
+      const texto = textoDelLink(n, n.id, idioma, ficha, ahora);
+      if (!texto) return;
+      let waId: string;
+      try {
+        waId = await deps.enviarTexto(tel, texto, { timeoutMs: TIMEOUT_ENVIO_MS });
+      } catch (err) {
+        console.error(`revision-narrador: no salió el link de cierre a ${enmascarar(tel)}:`, err instanceof Error ? err.message : err);
+        await deps.avisarSocios(`link-cierre|${n.id}`, 'Un narrador terminó y no le llegó su link',
+          `Narrador ${n.id}. Quien regala cerró antes de tiempo y Meta rechazó el link para sacar respuestas. Se reintenta en cada tick.`);
+        return;
+      }
+      const { error } = await deps.db.from('envios').insert({ narrador_id: n.id, tipo: 'revision', pregunta_orden: null, wa_message_id: waId });
+      if (error) console.error(`revision-narrador: salió el link de cierre de ${n.id} pero no pude anotar el envío: ${error.message}`);
+    } else {
+      const listo = await linkConVentanaCerrada(
+        {
+          db: deps.db,
+          wa: { plantilla: (t, nombre, idiomaMeta, variables, o) => deps.enviarPlantilla(t, nombre, variables, idiomaMeta, { botonUrl: o?.botonUrl ?? '', timeoutMs: TIMEOUT_ENVIO_MS }) },
+          avisar: async (clave, asunto, detalle) => { await deps.avisarSocios(clave, asunto, detalle); },
+        },
+        n.id, n, tel, idioma,
+        { lista: deps.plantillaLista(idioma, 'revision'), nombre: enLineaParaPlantilla([n.como_le_dicen ?? '']), ahora },
+      );
+      if (!listo) return;
+    }
+    const marca: Marca = { path: `${base}/${LINK_CIERRE}`, contenido: ahora.toISOString() };
+    if (!(await escribir(deps.db, marca))) {
+      MARCAS_SIN_ESCRIBIR.set(n.id, marca);
+      soltarAlFinal = false; // la toma sigue frenando a otro proceso hasta que la marca esté escrita
+    }
+  } finally {
+    if (soltarAlFinal) await soltar(deps.db, base);
+  }
+}
+
 async function atenderUno(deps: DepsRevision, c: Candidato, ahora: Date): Promise<void> {
   const { narrador: n, carpeta, fila } = c;
   const base = `${n.id}/${carpeta}`;
@@ -400,6 +457,10 @@ async function atenderUno(deps: DepsRevision, c: Candidato, ahora: Date): Promis
   const nombres = await listar(deps.db, base);
   if (nombres.has('libro.md')) {
     TERMINADOS.add(n.id);
+    return;
+  }
+  if (leTocaLinkDeCierre(c, nombres, ahora)) {
+    await mandarLinkDeCierre(deps, c, base, ahora);
     return;
   }
   const mensaje = queMandar(await situacionDe(deps.db, base, nombres), ahora);

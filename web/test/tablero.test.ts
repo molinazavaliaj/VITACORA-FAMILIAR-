@@ -266,6 +266,36 @@ describe('PATCH /api/narrador/[narradorId]', () => {
     expect(respuesta.status).toBe(200);
     const llamadaUpdate = admin.llamadas.narradores.find((l) => l[0] === 'update');
     expect(llamadaUpdate?.[1]).toMatchObject({ estado: 'cerrado_anticipado' });
+    expect(llamadaUpdate?.[1]).not.toHaveProperty('ultima_respuesta_at');
+  });
+
+  it.each([
+    ['privado', { acceso: { elige: true } }, true],
+    ['privado con «Solo yo»', { acceso: { elige: true, quien: 'narrador' } }, true],
+    ['con «Mi familia»', { acceso: { elige: true, quien: 'familia' } }, false],
+    ['sin la marca', { vinculoComprador: 'hija' }, false],
+  ])('cierre_anticipado %s: las 48 horas de quien contó cuentan desde el cierre solo si es privado', async (_caso, contexto, cuenta) => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const respuestasFake = Array.from({ length: 10 }, (_, i) => ({ pregunta_orden: i + 1 }));
+    const admin = crearAdminFake({
+      familias: [{ data: { id: 'familia-1' }, error: null }],
+      narradores: [
+        { data: { id: 'narrador-1', familia_id: 'familia-1', estado: 'activo', contexto }, error: null },
+        { data: null, error: null }, // update
+      ],
+      respuestas: [{ data: respuestasFake, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const antes = Date.now();
+    const request = { json: async () => ({ accion: 'cierre_anticipado' }) } as never;
+    const respuesta = await PATCH(request, { params: Promise.resolve({ narradorId: 'narrador-1' }) });
+
+    expect(respuesta.status).toBe(200);
+    const cambio = admin.llamadas.narradores.find((l) => l[0] === 'update')?.[1] as { estado: string; ultima_respuesta_at?: string };
+    expect(cambio.estado).toBe('cerrado_anticipado');
+    if (cuenta) expect(Date.parse(cambio.ultima_respuesta_at as string)).toBeGreaterThanOrEqual(antes);
+    else expect(cambio).not.toHaveProperty('ultima_respuesta_at');
   });
 
   it('cierre_anticipado con estado completado responde 400 (transición inválida)', async () => {

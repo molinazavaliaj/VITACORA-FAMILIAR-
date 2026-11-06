@@ -421,6 +421,85 @@ describe('atenderRevisiones', () => {
     expect(a.textos).toEqual([]);
   });
 
+  describe('quien regala cerró antes de tiempo un libro privado', () => {
+    const PRIVADO = { vinculoComprador: 'hija', acceso: { elige: true } };
+    const cerrado = (extra: Fila = {}) => narrador('n1', { estado: 'cerrado_anticipado', contexto: PRIVADO, ultima_respuesta_at: horasAntes(1), ...extra });
+    const conCierre = (o: Parameters<typeof armar>[0] = {}) => armar({ narradores: [cerrado()], sinDudas: true, ...o });
+
+    it('ventana abierta: le sale el link con su plazo, una sola vez', async () => {
+      const a = conCierre();
+      await atenderRevisiones(a.deps, AHORA);
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toHaveLength(1);
+      expect(a.textos[0].texto).toContain('/mis-respuestas/');
+      expect(a.textos[0].texto).toContain('12 de noviembre');
+      expect(a.base.tablas.envios).toMatchObject([{ narrador_id: 'n1', tipo: 'revision', pregunta_orden: null, wa_message_id: 'wamid.T' }]);
+      expect(a.archivo('n1', 'link-cierre-avisado.txt')).toBeDefined();
+      expect(a.archivo('n1', 'aviso-en-curso.txt')).toBeUndefined();
+    });
+
+    it('ventana cerrada con plantilla: sale la de revision con el token en el botón', async () => {
+      const a = conCierre({ v3: [cerrada()] });
+      await atenderRevisiones(a.deps, AHORA);
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toEqual([]);
+      expect(a.plantillas).toHaveLength(1);
+      expect(a.plantillas[0]).toMatchObject({ tel: '5491112345678', vars: ['abuelo'] });
+      expect(delToken(a.plantillas[0].botonUrl)).toMatchObject({ narradorId: 'n1', tipo: 'respuestas' });
+      expect(a.base.tablas.envios).toMatchObject([{ narrador_id: 'n1', tipo: 'revision', wa_message_id: 'wamid.P' }]);
+    });
+
+    it('ventana cerrada sin plantilla: avisa a los socios una sola vez', async () => {
+      const a = conCierre({ v3: [cerrada()], lista: false });
+      await atenderRevisiones(a.deps, AHORA);
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.plantillas).toEqual([]);
+      expect(a.socios).toHaveLength(1);
+      expect(a.archivo('n1', 'link-cierre-avisado.txt')).toBeDefined();
+    });
+
+    it('si Meta lo rechaza, avisa a los socios, no marca y lo reintenta', async () => {
+      let falla = true;
+      const a = conCierre({ metaFalla: () => falla });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.socios).toHaveLength(1);
+      expect(a.archivo('n1', 'link-cierre-avisado.txt')).toBeUndefined();
+      expect(a.archivo('n1', 'aviso-en-curso.txt')).toBeUndefined();
+      falla = false;
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toHaveLength(1);
+    });
+
+    it('de noche no sale: espera la mañana', async () => {
+      const a = conCierre();
+      await atenderRevisiones(a.deps, new Date('2026-11-10T04:00:00Z')); // la 1 en Buenos Aires
+      expect(a.textos).toEqual([]);
+      expect(a.archivo('n1', 'link-cierre-avisado.txt')).toBeUndefined();
+    });
+
+    it.each([
+      ['el plazo ya venció', { narradores: [cerrado({ ultima_respuesta_at: horasAntes(49) })] }],
+      ['terminó solo: ya tuvo el mensaje final', { narradores: [cerrado({ estado: 'completado' })] }],
+      ['eligió a su familia', { narradores: [cerrado({ contexto: { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } } })] }],
+      ['un regalo sin la marca', { narradores: [cerrado({ contexto: { vinculoComprador: 'hija' } })] }],
+      ['ya se resolvió su link final', { v3: [{ ...abierta(), estado: { ultimoEntranteAt: horasAntes(1), linkFinal: horasAntes(1) } }] }],
+    ])('no le sale nada si %s', async (_caso, o) => {
+      const a = conCierre(o);
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toEqual([]);
+      expect(a.plantillas).toEqual([]);
+      expect(a.socios).toEqual([]);
+    });
+
+    it('con dudas sin avisar, primero va el link y las dudas quedan para después', async () => {
+      const a = armar({ narradores: [cerrado()] });
+      await atenderRevisiones(a.deps, AHORA);
+      expect(a.textos).toHaveLength(1);
+      expect(a.textos[0].texto).toContain('/mis-respuestas/');
+      expect(a.archivo('n1', 'dudas-narrador-avisadas.txt')).toBeUndefined();
+    });
+  });
+
   describe('escribe por WhatsApp teniendo dudas pendientes', () => {
     const REGALO = { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } };
     const uno = (extra: Fila = REGALO) => narrador('n1', extra) as Parameters<typeof contestarSiEscribeConDudas>[1];

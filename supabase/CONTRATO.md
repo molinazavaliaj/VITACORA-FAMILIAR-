@@ -535,6 +535,8 @@ Sin tablas ni columnas nuevas. Lo decide `contexto.acceso`, que pone la compra s
 
 **El link con la ventana cerrada.** Si la entrevista termina con la ventana de 24 horas cerrada, el link sale con la plantilla `revision` (`<idioma>:revision` en `WA_PLANTILLAS_V3_LISTAS`), solo en un privado y si el plazo de 48 horas no venció; vencido, no sale nada. Sin plantilla o sin `como_le_dicen`, no sale y se avisa a los socios.
 
+**Si quien regala cierra antes de tiempo un libro privado.** No hay mensaje final. La web pone `ultima_respuesta_at` en la hora del cierre, así las 48 horas cuentan desde ahí en los tres servicios. El tick del entrevistador le manda el link (texto o plantilla `revision`, de 9 a 21) y escribe `link-cierre-avisado.txt` en la carpeta del escritor para no repetirlo. Por eso, en esos libros, esa fecha no siempre es la de su último mensaje.
+
 **Limitación conocida.** Por `cerrado_anticipado` el narrador no recibe su link. El mail previo al borrado de audios no sale para estas historias y sus audios no se borran.
 
 **La pantalla de quien contó** (`web/src/app/mi-historia/[token]/`, Naza 06/11). Sin contraseña, con el mismo token firmado que `/mis-respuestas` (`verificarTokenRespuestas`); sin token válido no muestra ni un dato. Un GET nunca escribe, porque WhatsApp abre el link solo para la vista previa, y no se indexa, ni manda referrer, ni se guarda en caché.
