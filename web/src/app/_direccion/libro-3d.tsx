@@ -22,7 +22,7 @@ import type { IdiomaWeb } from "@/lib/idioma-web";
 // puerta de piedra, lomo negro, contratapa blanca con el QR. El QR es de
 // verdad y lleva a /ejemplo. La historia es inventada y se dice al lado.
 
-const URL_QR = "https://www.vitacorafamiliar.com/ejemplo";
+export const URL_QR = "https://www.vitacorafamiliar.com/ejemplo";
 
 /**
  * El QR del libro de Juan Domingo: el mismo que lleva impreso su contratapa
@@ -33,7 +33,7 @@ const URL_QR_JUAN_DOMINGO =
   "https://www.vitacorafamiliar.com/voz/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYXJyYWRvcklkIjoiN2RhYThhNTctNjA1OC00MmJhLWI2ODQtNDM3OTUxZTRlNmM4IiwidGlwbyI6InZveiJ9.Ssc5DoEGy5kFAIsPJRgxIX491yaqnaUnAbg30M7ZUaA";
 
 /** El QR como un solo path SVG, armado en el servidor (sin data URI ni JS). */
-function Qr({ url, className }: { url: string; className?: string }) {
+export function Qr({ url, className }: { url: string; className?: string }) {
   const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
   const n = modules.size;
   let d = "";

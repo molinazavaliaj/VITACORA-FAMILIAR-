@@ -153,11 +153,11 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
 });
 
 describe("/kids por idioma", () => {
-  it("es estática y lleva el idioma, hreflang y la paleta de Kids", () => {
+  it("es estática y lleva el idioma, hreflang y el acento de Kids", () => {
     for (const p of [KidsEs, KidsCa, KidsAr]) expect(p()).not.toBeInstanceOf(Promise);
     expect(pagina(KidsCa)).toContain('lang="ca-ES"');
     expect(pagina(KidsAr)).toContain('lang="es-AR"');
-    expect(pagina(KidsEs)).toContain('class="kids ');
+    expect(pagina(KidsEs)).toContain("acu-tema acu-acento-kids");
     expect(metaEs.alternates).toMatchObject({ canonical: "/kids", languages: { "ca-ES": "/ca/kids", "es-AR": "/ar/kids" } });
   });
 
@@ -203,12 +203,79 @@ describe("/kids por idioma", () => {
   it("los textos nuevos no llevan dos puntos ni rayas (regla de Naza)", () => {
     for (const idioma of ["es", "ca", "ar"] as const) {
       const t = TEXTOS_KIDS[idioma];
-      const todos = [t.titulo, t.bajada, t.dibujos.frase, t.dibujos.texto, t.como.titulo, ...t.como.pasos.flatMap((p) => [p.titulo, p.texto]), t.chat.titulo, t.chat.texto, t.libro.titulo, t.libro.texto, t.panel.texto, t.panel.pedido, t.temas.texto, ...t.faq.preguntas.map((d) => d.respuesta)].flat();
+      const todos = [t.titulo, t.bajada, t.dibujos.frase, t.privacidad.texto, t.como.titulo, ...t.como.pasos.flatMap((p) => [p.titulo, p.texto]), t.chat.titulo, t.libro.titulo, t.libro.texto, t.panel.texto, t.panel.tuyas, t.panel.pedido, t.temas.texto, ...t.faq.preguntas.map((d) => d.respuesta)].flat();
       for (const s of todos) {
         expect(s, s).not.toMatch(/:/);
         expect(s, s).not.toMatch(/[—–]/);
       }
     }
+  });
+});
+
+describe("/kids, recortes del 06/11 (textos aprobados por Naza)", () => {
+  const PAGINAS = { es: KidsEs, ca: KidsCa, ar: KidsAr } as const;
+
+  it("ya no dice «No los vendemos» ni entrena nada, en ningún idioma", () => {
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const html = pagina(PAGINAS[idioma]);
+      expect(html, idioma).not.toMatch(/No los vendemos|No els venem|entrenamos|entrenem/);
+      // La nota de privacidad queda corta y con su enlace.
+      const p = TEXTOS_KIDS[idioma].privacidad;
+      expect(html).toContain(escapar(p.texto));
+      expect(html).toContain(escapar(p.enlace));
+      expect(p.texto).not.toMatch(/vendemos|venem|inteligencia|intel·ligència/);
+    }
+  });
+
+  it("no llevan los párrafos quitados: la frase de los juguetes y «Pregunta a pregunta» van solas", () => {
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const t = TEXTOS_KIDS[idioma];
+      expect(t.dibujos).not.toHaveProperty("texto");
+      expect(t.chat).not.toHaveProperty("texto");
+      const html = pagina(PAGINAS[idioma]);
+      expect(html).toContain(escapar(t.dibujos.frase[0]));
+      expect(html).toContain(escapar(t.chat.titulo));
+      for (const p of t.preguntas.items) expect(html).toContain(escapar(p));
+    }
+  });
+
+  it("«¿Para qué edad es?» y «¿Y si una pregunta no le gusta?» salen de /kids, pero las landings las conservan", () => {
+    const FUERA = {
+      es: ["¿Para qué edad es?", "¿Y si una pregunta no le gusta?"],
+      ca: ["Per a quina edat és?", "I si una pregunta no li agrada?"],
+      ar: ["¿Para qué edad es?", "¿Y si una pregunta no le gusta?"],
+    } as const;
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const html = pagina(PAGINAS[idioma]);
+      const preguntas = TEXTOS_KIDS[idioma].faq.preguntas;
+      for (const q of FUERA[idioma]) {
+        expect(html, q).not.toContain(escapar(q));
+        expect(preguntas.find((d) => d.pregunta === q)?.soloLanding, q).toBe(true);
+      }
+      // Lo demás sigue, y la garantía también (es la última).
+      for (const d of preguntas.filter((x) => !x.soloLanding)) expect(html).toContain(escapar(d.pregunta));
+      expect(html).toContain(escapar(preguntas[preguntas.length - 1].respuesta));
+    }
+    // La landing elige sus tres por su lugar en la lista: «¿Y si una pregunta no le gusta?» sigue ahí.
+    expect(pagina(MundoEs)).toContain(escapar("¿Y si una pregunta no le gusta?"));
+    expect(pagina(MundoAr)).toContain(escapar("¿Y si una pregunta no le gusta?"));
+    expect(pagina(OnceCa)).toContain(escapar("I si una pregunta no li agrada?"));
+  });
+
+  it("los pasos, el mensaje para su futuro y «Tú lo ves todo» quedan en los textos aprobados (es y ar)", () => {
+    const es = pagina(KidsEs);
+    for (const s of [
+      "Imagina tener un libro de cómo era tu vida de niño. Esa edad se vive una sola vez y es la que más rápido se olvida.",
+      "A su WhatsApp o al tuyo, lo eliges al comprar.",
+      "Preguntas divertidas sobre su mundo. Si una no le gusta, la salta.",
+      "Con sus palabras y sus fotos. La última parte va en un sobre cerrado.",
+      "Con sus palabras y sus fotos escribimos su historia. En la última parte le habla a quien va a ser de mayor, y eso va en un sobre cerrado.",
+      "Puedes añadir hasta tres preguntas tuyas.",
+      "Lee todo, pero no le digas nada hasta el libro.",
+      "Lo que marques al comprar no se pregunta, y el libro se arma igual con el resto.",
+    ]) expect(es, s).toContain(escapar(s));
+    const ar = pagina(KidsAr);
+    for (const s of ["A su WhatsApp o al tuyo, lo elegís al comprar.", "Podés agregar hasta tres preguntas tuyas.", "Leé todo, pero no le digas nada hasta el libro."]) expect(ar, s).toContain(escapar(s));
   });
 });
 

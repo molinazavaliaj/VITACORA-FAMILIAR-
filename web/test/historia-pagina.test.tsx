@@ -54,6 +54,45 @@ describe("la página /historia", () => {
     }
   });
 
+  it("recortes del 06/11: tres preguntas fuera de la lista y la garantía, que sigue solo ahí", () => {
+    const FUERA = {
+      es: ["¿Qué se pregunta?", "¿Se puede corregir algo antes de que se escriba el libro?", "¿Hace falta mandar fotos?"],
+      ca: ["Què es pregunta?", "Es pot corregir alguna cosa abans que s'escrigui el llibre?", "Cal enviar fotos?"],
+      ar: ["¿Qué se pregunta?", "¿Se puede corregir algo antes de que se escriba el libro?", "¿Hace falta mandar fotos?"],
+    } as const;
+    for (const [P, idioma] of [[PaginaEs, "es"], [PaginaCa, "ca"], [PaginaAr, "ar"]] as const) {
+      const html = render(P);
+      const faq = TEXTOS_HISTORIA[idioma].faq.preguntas;
+      for (const q of FUERA[idioma]) {
+        expect(html, q).not.toContain(escapar(q));
+        expect(faq.map((d) => d.p), q).not.toContain(q);
+      }
+      expect(faq).toHaveLength(5);
+      expect(html).toContain(escapar(faq[faq.length - 1].r));
+    }
+  });
+
+  it("recortes del 06/11: la bajada, el relato y los cuatro pasos quedan cortos, sin precios ni promesas nuevas", () => {
+    const es = render(PaginaEs);
+    for (const s of [
+      "Un libro sobre un solo capítulo de la vida, contado con todo detalle. Las preguntas llegan por WhatsApp y se contestan en audio.",
+      "Un relato con las palabras de quien la cuenta, con sus fotos y un QR para escuchar su voz.",
+      "Vitácora Familiar cuenta una vida entera. Este libro cuenta a fondo un solo capítulo. Es para uno mismo o para regalar.",
+      "Una de la lista o la que quieras. Si es un regalo, puede elegirla quien la cuenta.",
+      "De una en una, todas sobre esa historia. Si alguna no va, se dice paso.",
+      "Cuando hay un rato, como si se lo contara a alguien. A mitad de camino pedimos fotos.",
+      "Quien la contó repasa lo que dijo. Después llega el libro, con sus palabras, sus fotos y su voz.",
+    ]) expect(es, s).toContain(escapar(s));
+    for (const idioma of ["es", "ca", "ar"] as const) {
+      const t = TEXTOS_HISTORIA[idioma];
+      for (const s of [t.hero.bajada, t.recibe.texto, t.paraQuien.texto, ...t.como.pasos.flatMap((p) => [p.titulo, p.texto])]) {
+        expect(s, s).not.toMatch(/:/);
+        expect(s, s).not.toMatch(/(^|[.!?] )Y /);
+        expect(s, s).not.toMatch(/desde\s+\d|€|\$/i);
+      }
+    }
+  });
+
   it("sin HISTORIA_VENTA, «Próximamente» y «Escribinos»; con la venta, «Empezar el libro» a su compra", () => {
     const sin = render(PaginaAr);
     expect(sin).toContain(TEXTOS_HISTORIA.ar.proximamente.boton);

@@ -77,17 +77,24 @@ describe("la página de Viaje por idioma", () => {
     for (const p of PROHIBIDO) expect(sinLibro(sinSolapas(html)), p).not.toContain(escapar(p));
   });
 
-  // 15/10: Viaje con su color (noche y azul de la guía), por alcance: el contenedor lleva
-  // data-producto="viaje" y _direccion/viaje.css reparte los --viaje-*. La portada de Familiar no
-  // lo lleva (el bloque de Viaje se fue de la portada el 15/10), así su papel y su tinta no cambian.
-  it("lleva la paleta de Viaje por data-producto en el contenedor, y la portada no", () => {
+  // 06/11: Viaje pasa a la acuarela, con su acento azul (acu-acento-viaje). La paleta de noche
+  // (data-producto="viaje", _direccion/viaje.css) queda solo para la compra.
+  it("lleva el acento de Viaje en el contenedor, y la portada no", () => {
     for (const p of [ViajeEs, ViajeCa, ViajeAr]) {
-      expect(renderToStaticMarkup(p())).toMatch(/<div[^>]*data-producto="viaje"[^>]*class="dir-pagina/);
+      const html = renderToStaticMarkup(p());
+      expect(html).toMatch(/<div[^>]*class="dir-pagina dir-portada acu-tema acu-acento-viaje/);
+      expect(html).not.toContain('data-producto="viaje"');
     }
     const portada = renderToStaticMarkup(Home());
-    expect(portada).not.toMatch(/<div[^>]*data-producto="viaje"[^>]*class="dir-pagina/);
-    // Desde el 15/10 la portada ya no lleva el bloque de Viaje.
+    expect(portada).not.toContain("acu-acento-viaje");
     expect(portada.split('data-producto="viaje"').length - 1).toBe(0);
+  });
+
+  it("la nota del estante lleva los precios del catálogo y nunca «desde»", () => {
+    const html = renderToStaticMarkup(ViajeEs());
+    expect(html).toContain("acu-estante--uno");
+    expect(html).toMatch(/59\s?€/);
+    expect(html).not.toMatch(/desde\s+\d/i);
   });
 
   it("la garantía de Viaje va una sola vez, en las preguntas", () => {

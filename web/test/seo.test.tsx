@@ -161,25 +161,9 @@ describe("JSON-LD de la portada", () => {
         expect(html).toContain(comoSeVe(idioma, monto, cat.moneda));
       });
 
-      it("el precio del marco es el que muestra la pantalla", () => {
-        const cat = catalogo(region);
-        const { html, datos } = jsonLdDe(idioma);
-        const marco = productos(datos).find((p) => p.name === "Marco con su voz");
-
-        if (idioma === "ar") {
-          // En Argentina la frase del marco lee PRECIO_MARCO: el número de la
-          // ficha es el mismo que el de la página.
-          expect(cat.marco).not.toBeNull();
-          expect(marco).toBeDefined();
-          expect(marco!.offers.price).toBe(String(cat.marco!.precio));
-          expect(marco!.offers.priceCurrency).toBe(cat.moneda);
-          expect(html).toContain(comoSeVe(idioma, cat.marco!.precio, cat.moneda));
-        } else {
-          // En es y ca el precio está escrito en el texto («a 19 €»), no en el
-          // catálogo: publicarlo con PRECIO_MARCO daría una ficha que dice otra
-          // cosa que la página. Hasta que la frase lea la variable, no va.
-          expect(marco).toBeUndefined();
-        }
+      it("el marco no se anuncia, porque la portada ya no lo muestra", () => {
+        const { datos } = jsonLdDe(idioma);
+        expect(productos(datos).find((p) => p.name === "Marco con su voz")).toBeUndefined();
       });
 
       it("no inventa reseñas ni puntajes", () => {

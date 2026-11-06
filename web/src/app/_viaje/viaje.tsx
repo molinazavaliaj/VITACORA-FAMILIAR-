@@ -1,41 +1,49 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
-import { LogoTrazo } from "../_direccion/logo-trazo";
-import { Foto, Palabras, Ventajas, conVar } from "../_direccion/piezas";
-import { MiniFaq, Pagina, Pasos } from "../_landing/landing";
+import { Coreografia } from "../_direccion/coreografia";
+import { Palabras, conVar } from "../_direccion/piezas";
+import { Cajas } from "../_portada/cajas";
+import { filasDePrecio, type Caja } from "../_portada/datos-cajas";
+import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "../_portada/piezas-acuarela";
+import { Acordeon } from "../_ui/acordeon";
 import { CAPITULO_VIAJE_EJEMPLO, LIBRO_VIAJE_EJEMPLO, TEXTOS_VIAJE } from "../_textos/viaje";
 import { TEXTOS_EJEMPLO } from "../_textos/ejemplo";
 import { TEXTOS_PORTADA } from "../_textos/portada";
+import { TEXTOS_PORTADA_NUEVA } from "../_textos/portada-nueva";
 import { Libro3D, type AlbumViaje } from "../_direccion/libro-3d";
 import { catalogo } from "@/lib/productos";
 import { precioDeLista, promoPorcentaje } from "@/lib/promo";
-import { localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import "../_direccion/direccion.css";
+import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import "../_portada/portada.css";
 
-// /viaje, /ca/viaje y /ar/viaje (rediseño 2026-10, fase 4; maquetas Viaje y
-// ViajeMovil, pasadas a la dirección «la web es un libro»). Antes era una sola
-// página en vos con la paleta vieja (violeta); ahora es la misma pantalla en
-// los tres idiomas, ESTÁTICA, con los textos de _textos/viaje.ts.
+// /viaje, /ca/viaje y /ar/viaje, con el armado de la portada nueva (06/11): la
+// acuarela con el acento azul, el inicio en dos columnas, el libro en el
+// estante con su nota de precios, la banda de foto, los pasos grandes, el
+// regalo, las preguntas y el cierre. ESTÁTICA; los textos, en _textos/viaje.ts.
 //
-// 16/10: dice lo que hace la Vitácora de Viaje V2, la única que se vende
-// (antes de salir, durante, la vuelta, el libro). Nada del viaje viejo, nada de
-// «cada noche» (B24), sin reseñas.
+// Dice lo que hace la Vitácora de Viaje V2, la única que se vende (antes de
+// salir, durante, la vuelta, el libro). Nada del viaje viejo, nada de «cada
+// noche» (B24), sin reseñas.
 // El precio es el de la región del idioma (obtenerPrecioViaje vía catalogo):
 // sin PRECIO_VIAJE_* cargado, la página no vende (sin botones, «Próximamente»).
 //
-// Orden: 1 inicio como el de Familiar con el libro de viaje en 3D (19/10), 2 «Las fotos
-// quedan» con la foto del hotel, 3 cómo
-// funciona, 4 el precio con el libro sobre la mesa, 5 preguntas (la garantía
-// de Viaje, solo ahí: D1), 6 cierre con el logo y el pie.
+// La paleta azul noche (_direccion/viaje.css, data-producto="viaje") queda para
+// la compra: esta página ya no la lleva.
 
 const FOTOS = {
   hotel: "/rediseno/viaje-audio-hotel.jpg",
   tapa: "/rediseno/viaje-mirador-lisboa.jpg",
   libro: "/rediseno/viaje-libro-mesa.jpg",
   regalo: "/rediseno/viaje-regalo-aeropuerto.jpg",
+  banda: "/rediseno/viaje-ribeira-atardecer.jpg",
+  puente: "/rediseno/viaje-oporto-puente.jpg",
 } as const;
+
+// Lo que acompaña a cada uno de los cuatro pasos. Fotos hechas con Higgsfield: ilustran.
+const FOTOS_PASOS = ["/rediseno/viaje-azulejos.jpg", FOTOS.hotel, "/rediseno/viaje-pasteis-cafe.jpg", FOTOS.libro] as const;
 
 // El álbum que se ve al abrir el libro (Naza, 25/10: un fotolibro, muchas fotos
 // y pocas letras). Fotos hechas con Higgsfield a partir de las de Sara y Dani.
@@ -46,49 +54,83 @@ const ALBUM: AlbumViaje = {
     "/rediseno/viaje-oporto-puente.jpg",
     "/rediseno/viaje-azulejos.jpg",
   ],
-  der: [FOTOS.hotel, "/rediseno/viaje-ribeira-atardecer.jpg"],
+  der: [FOTOS.hotel, FOTOS.banda],
 };
 
 export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
   const v = TEXTOS_VIAJE[idioma];
+  const t = TEXTOS_PORTADA[idioma];
+  const n = TEXTOS_PORTADA_NUEVA[idioma];
   const cat = catalogo(regionDeIdioma(idioma));
-  const formatear = (n: number) =>
-    new Intl.NumberFormat(localeDeIdioma(idioma), { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(n);
+  const formatear = (monto: number) =>
+    new Intl.NumberFormat(localeDeIdioma(idioma), { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(monto);
   const precio = cat.viaje;
   const promo = promoPorcentaje();
   const lista = precio !== null && promo ? formatear(precioDeLista(precio, cat.moneda, promo)) : null;
   const comprar = ruta(idioma, "/comprar/viaje");
+  const whatsapp = urlWhatsAppDudas();
   const [frase1, frase2] = v.fotos;
   const nFrase = frase1.split(" ").length + frase2.split(" ").length;
 
-  const Promo = () =>
-    lista && promo ? (
-      <>
-        <s className="mr-2 opacity-70">{lista}</s>
-        <span className="mr-2">−{promo} %</span>
-      </>
-    ) : null;
+  const caja: Caja = {
+    id: "viaje",
+    textos: { titulo: v.etiqueta, linea: v.precioBloque.texto, ideal: n.cajas.viaje.ideal, enlace: v.comprar },
+    tinte: 4,
+    tapa: {
+      etiqueta: LIBRO_VIAJE_EJEMPLO.etiqueta,
+      nombre: LIBRO_VIAJE_EJEMPLO.nombre.join(" "),
+      firma: LIBRO_VIAJE_EJEMPLO.paraSiempre,
+      foto: FOTOS.tapa,
+      apaisado: true,
+    },
+    filas: precio !== null ? filasDePrecio(idioma, cat, formatear, precio, lista) : [{ etiqueta: n.precios.viaje, valor: v.proximamente }],
+    href: precio !== null ? comprar : null,
+    marca: precio !== null ? null : "pronto",
+  };
 
   return (
-    <Pagina idioma={idioma} producto="viaje">
-      {/* ═══ 1 · INICIO, como el de Familiar (Naza, 19/10): el logo que se dibuja,
-          el lema enorme centrado, la bajada y el libro de viaje en 3D ═══ */}
-      <section className="dir-tinta relative">
-        <div className="relative flex min-h-[100svh] flex-col items-center px-4 pb-16 pt-32 text-center sm:px-8 sm:pb-20 sm:pt-36">
-          <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero textoComprar={precio !== null ? v.comprar : undefined} />
-          </div>
-          <LogoTrazo id="trazo-viaje" halo="var(--dir-tinta)" className="w-[124px] sm:w-[180px]" />
-          <h1 className="dir-titular dir-t1 dir-asienta mt-7 max-w-[13ch] sm:mt-9 sm:max-w-none">
+    <div lang={langDeIdioma(idioma)} className="dir-pagina dir-portada acu-tema acu-acento-viaje acu-imanes flex flex-1 flex-col">
+      <Coreografia />
+
+      {/* 1 · Inicio: el libro de Sara y Dani gira, se abre y queda cerrado (Coreografia). */}
+      <InicioAcuarela
+        cabecera={<Cabecera idioma={idioma} camino="/viaje" producto="viaje" sobreHero textoComprar={precio !== null ? v.comprar : undefined} />}
+        titulo={
+          <>
             {v.titulo[0]} <br className="hidden sm:block" />
             {v.titulo[1]}
-          </h1>
-          <p className="dir-entra dir-bajada-hero mt-6 sm:mt-8" style={conVar({ "--e": "0.7s" })}>
-            {v.bajada}
-          </p>
-          {/* El libro de Sara y Dani: gira y se abre cuando está entero en el medio
-              de la pantalla (Coreografia, data-libro-3d); tocarlo lo repite. */}
-          <div data-libro-3d className="l3-seccion prt-libro dir-entra mt-10 w-full sm:mt-12" style={conVar({ "--e": "0.85s" })}>
+          </>
+        }
+        bajada={v.bajada}
+        botones={
+          <>
+            {precio !== null ? (
+              <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
+                {v.comprar}
+              </Link>
+            ) : null}
+            <a href="#como-funciona" className="acu-boton-hilo">
+              {t.inicio.comoFunciona}
+            </a>
+          </>
+        }
+        dato={
+          precio !== null ? (
+            <>
+              {lista && promo ? (
+                <>
+                  <s className="mr-2 opacity-70">{lista}</s>
+                  <span className="mr-2">−{promo} %</span>
+                </>
+              ) : null}
+              {v.precio(formatear(precio))}
+            </>
+          ) : (
+            v.proximamente
+          )
+        }
+        visual={
+          <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
             <Libro3D
               idioma={idioma}
               b={LIBRO_VIAJE_EJEMPLO}
@@ -96,140 +138,88 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
               diseno={{ tapa: FOTOS.tapa, interior: FOTOS.hotel, variante: "viaje", album: ALBUM }}
             />
           </div>
-          <div className="dir-entra mt-10 flex w-full max-w-[358px] flex-col gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4" style={conVar({ "--e": "0.95s" })}>
-            {precio !== null ? (
-              <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno">
-                {v.comprar}
-              </Link>
-            ) : null}
-            <a href="#como-funciona" className="dir-boton dir-boton--hilo">
-              {TEXTOS_PORTADA[idioma].inicio.comoFunciona}
-            </a>
-          </div>
-          <p className="dir-dato dir-entra mt-6 text-[var(--dir-sobre-tinta-suave)]" style={conVar({ "--e": "1.05s" })}>
-            {precio !== null ? (
-              <>
-                <Promo />
-                {v.precio(formatear(precio))}
-              </>
-            ) : (
-              v.proximamente
-            )}
-          </p>
-          <Ventajas items={v.ventajas} className="dir-entra mt-10 text-[var(--dir-sobre-tinta)]" style={conVar({ "--e": "1.15s" })} />
-        </div>
-      </section>
+        }
+      />
       {/* La barra de compra del teléfono aparece cuando esto sale de pantalla. */}
-      <div id="hero" aria-hidden className="relative h-px" />
+      <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
-      {/* ═══ 2 · LAS FOTOS QUEDAN: la frase que se completa sola y la foto del hotel en arco ═══ */}
-      <section className="dir-tinta dir-hoja relative">
-        <div
-          data-revela
-          className="mx-auto grid w-full max-w-[1360px] grid-cols-1 items-center gap-12 px-4 pb-20 pt-20 sm:px-8 sm:pb-28 md:pb-40 lg:grid-cols-12 lg:gap-8 lg:px-12"
-          style={conVar({ "--paso": "0.17s" })}
-        >
-          <h2 className="dir-titular dir-txl viaje-frase lg:col-span-7">
+      {/* 2 · El libro en el estante, con la nota de precios. */}
+      <TiendaAcuarela confianza={v.ventajas} titulo={v.precioBloque.titulo} ctaPropio>
+        <Cajas idioma={idioma} cajas={[caja]} whatsapp={whatsapp} />
+        <p className="dir-dato mt-2 text-[var(--acu-suave)]">{v.precioBloque.nota}</p>
+      </TiendaAcuarela>
+
+      <BandaFotos fotos={[FOTOS.banda]} posicion="50% 55%" />
+
+      {/* 3 · Las fotos quedan: la frase que se completa sola, con una foto del viaje. */}
+      <section className="acu-iman acu-hoja-banda relative z-[3] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par" data-revela style={conVar({ "--paso": "0.17s" })}>
+          <h2 className="dir-titular dir-t3">
             <span className="sr-only">
               {frase1} {frase2}
             </span>
             <span aria-hidden className="block">
               <Palabras texto={frase1} total={nFrase} />
             </span>
-            <span aria-hidden className="dir-destaca block sm:pl-[0.9em] lg:pl-[1.6em]">
+            <span aria-hidden className="dir-destaca block">
               <Palabras texto={frase2} desde={frase1.split(" ").length} total={nFrase} />
             </span>
           </h2>
-          <Foto
-            src={FOTOS.hotel}
-            alt={v.altHotel}
-            forma="arco"
-            sizes="(min-width: 1024px) 24vw, 70vw"
-            className="w-[70%] justify-self-end lg:col-span-3 lg:col-start-10 lg:w-full"
-          />
-        </div>
-      </section>
-
-      {/* ═══ 3 · CÓMO FUNCIONA ═══ */}
-      <section id="como-funciona" className="dir-papel dir-hoja dir-deckle relative scroll-mt-6">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-x-8 md:py-36 lg:px-12">
-          <div className="md:col-span-5">
-            <h2 className="dir-titular dir-t2 aparece md:sticky md:top-24">{v.como.titulo}</h2>
-          </div>
-          <div className="md:col-span-6 md:col-start-7 md:-mt-12">
-            <Pasos pasos={v.como.pasos} />
+          <div className="acu-par-img">
+            <Image src={FOTOS.puente} alt="" fill sizes="(min-width: 820px) 50vw, 100vw" />
           </div>
         </div>
       </section>
 
-      {/* ═══ 4 · EL PRECIO, con el libro del viaje sobre la mesa ═══ */}
-      <section data-cta-propio className="dir-tinta dir-hoja relative">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-16 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <Foto src={FOTOS.libro} alt={v.altLibro} forma="ovalo" apaisada sizes="(min-width: 768px) 46vw, 92vw" className="w-full md:col-span-6" />
-          <div className="aparece flex flex-col gap-6 md:col-span-5 md:col-start-8">
-            <h2 className="dir-titular dir-t3">{v.precioBloque.titulo}</h2>
-            {precio !== null ? (
-              <p className="flex flex-wrap items-baseline gap-3">
-                {lista ? (
-                  <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">
-                    <Promo />
-                  </span>
-                ) : null}
-                <span className="dir-precio">{formatear(precio)}</span>
-              </p>
-            ) : (
-              <p className="dir-titular text-[34px]">{v.proximamente}</p>
-            )}
-            <p className="dir-parrafo max-w-[40ch]">{v.precioBloque.texto}</p>
-            {precio !== null ? (
-              <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno self-start">
-                {v.comprar}
-              </Link>
-            ) : null}
-            <span className="dir-dato text-[var(--dir-sobre-tinta-suave)]">{v.precioBloque.nota}</span>
-          </div>
-        </div>
-      </section>
+      {/* 4 · Cómo funciona */}
+      <PasosFotos
+        titulo={v.como.titulo}
+        etiqueta={t.como.paso}
+        z="z-[4]"
+        pasos={v.como.pasos.map((paso, i) => ({ ...paso, foto: FOTOS_PASOS[i] }))}
+      />
 
-      {/* ═══ 4b · REGALO, en papel, con la pareja del aeropuerto (revisión del 25/10: Viaje es el más regalable) ═══ */}
-      <section className="dir-papel dir-hoja dir-deckle relative">
-        <div className="mx-auto grid max-w-[1360px] grid-cols-1 items-center gap-14 px-4 py-24 sm:px-8 md:grid-cols-12 md:gap-8 md:py-36 lg:px-12">
-          <div className="aparece flex flex-col gap-6 md:col-span-6">
+      {/* 5 · El regalo, con la pareja del aeropuerto (revisión del 25/10: Viaje es el más regalable). */}
+      <section className="acu-iman acu-hoja-banda2 relative z-[5] px-4 py-14 sm:px-8 md:py-20">
+        <div className="acu-par">
+          <div className="flex flex-col items-start gap-4">
             <h2 className="dir-titular dir-t3 max-w-[16ch]">{v.regalo.titulo}</h2>
-            <p className="dir-parrafo max-w-[42ch]">{v.regalo.texto}</p>
+            <p className="acu-parrafo max-w-[42ch]">{v.regalo.texto}</p>
             {precio !== null ? (
-              <Link prefetch={false} href={comprar} className="dir-enlace-papel self-start">
-                {v.regalo.enlace} <span aria-hidden>→</span>
+              <Link prefetch={false} href={comprar} className="acu-enlace">
+                {v.regalo.enlace} <span aria-hidden className="ml-1">→</span>
               </Link>
             ) : null}
           </div>
-          <Foto src={FOTOS.regalo} alt={v.regalo.altFoto} forma="arco" sizes="(min-width: 768px) 30vw, 78vw" className="w-[78%] justify-self-center md:col-span-4 md:col-start-9 md:w-full" />
+          <div className="acu-par-img">
+            <Image src={FOTOS.regalo} alt={v.regalo.altFoto} fill sizes="(min-width: 820px) 50vw, 100vw" />
+          </div>
         </div>
       </section>
 
-      {/* ═══ 5 · PREGUNTAS (la garantía de Viaje vive acá: D1) ═══ */}
-      {/* En tinta desde el 25/10: el regalo, justo antes, va en papel. */}
-      <MiniFaq titulo={v.faq.titulo} dudas={v.faq.preguntas} duda={TEXTOS_PORTADA[idioma].faq.duda} />
+      {/* 6 · Preguntas (la garantía de Viaje vive acá: D1) */}
+      <PreguntasAcuarela titulo={v.faq.titulo} duda={t.faq.duda} whatsapp={whatsapp}>
+        {v.faq.preguntas.map((d, i) => (
+          <Acordeon key={d.pregunta} pregunta={d.pregunta} abierta={i === 0} grupo="preguntas">
+            {d.respuesta}
+          </Acordeon>
+        ))}
+      </PreguntasAcuarela>
 
-      {/* ═══ 6 · CIERRE ═══ */}
-      <section data-cta-propio className="dir-tinta relative">
-        <div className="flex flex-col items-center px-4 pb-24 pt-24 text-center sm:px-8 md:pb-36 md:pt-36">
-          <LogoTrazo id="trazo-cierre-viaje" modo="scroll" halo="var(--dir-tinta)" className="w-[104px] sm:w-[130px]" />
-          <h2 className="dir-titular dir-t2 aparece mt-12 max-w-[13ch] sm:max-w-none">
-            {v.titulo[0]} <br className="hidden sm:block" />
-            {v.titulo[1]}
-          </h2>
-          {precio !== null ? (
-            <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno aparece mt-11 w-full max-w-[358px] sm:w-auto">
-              {v.comprar}
-            </Link>
-          ) : null}
-          <Link prefetch={false} href={ruta(idioma, "/")} className="dir-enlace aparece mt-8 text-[15px]">
-            {v.familiar}
+      {/* 7 · Cierre */}
+      <CierreAcuarela titulo={`${v.titulo[0]} ${v.titulo[1]}`}>
+        {precio !== null ? (
+          <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
+            {v.comprar}
           </Link>
-        </div>
+        ) : null}
+        <Link prefetch={false} href={ruta(idioma, "/")} className="acu-enlace">
+          {v.familiar}
+        </Link>
+      </CierreAcuarela>
+      <div className="dir-tinta relative z-[8]" data-cta-propio>
         <Pie idioma={idioma} camino="/viaje" landings={["viaje"]} />
-      </section>
+      </div>
 
       {/* Como en la portada (revisión del 25/10): el WhatsApp y la barra fija del teléfono. */}
       <WhatsAppFlotante idioma={idioma} />
@@ -237,9 +227,10 @@ export function PaginaViaje({ idioma }: { idioma: IdiomaWeb }) {
         <CtaSticky
           precio={formatear(precio)}
           href={comprar}
-          textos={{ desde: "", conImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, sinImpreso: TEXTOS_PORTADA[idioma].elLibro.pagoUnico, boton: v.comprar }}
+          variante="acuarela"
+          textos={{ desde: "", conImpreso: t.elLibro.pagoUnico, sinImpreso: t.elLibro.pagoUnico, boton: v.comprar }}
         />
       ) : null}
-    </Pagina>
+    </div>
   );
 }
