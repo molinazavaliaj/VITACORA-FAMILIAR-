@@ -61,7 +61,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       lista: [
         { titulo: "Se lo regalas", texto: "Con la tarjeta en sus manos o el día que nos digas." },
         { titulo: "Responde por WhatsApp", texto: "Con audios o escribiendo, cuando tiene un rato." },
-        { titulo: "Añades tus preguntas", texto: "Lo que siempre quisiste saber, y las fotos para su libro." },
+        { titulo: "Si quieres, añade las tuyas", texto: "Las preguntas ya las ponemos nosotros. Si quieres, añade lo que siempre quisiste saber, y fotos para su libro." },
         { titulo: "Llega a casa", texto: "Escribimos su biografía, un libro de memorias con sus palabras. Eliges la tapa y te lo enviamos." },
       ],
       ejemplo: ["¿Qué le preguntarías tú?", "¿Cómo conociste a la abuela?"],
@@ -69,7 +69,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     },
     voz: { titulo: "Se lee y también se escucha.", texto: "El libro lleva sus mejores frases con su voz real, en un QR de la contraportada." },
     privacidad: { titulo: "Su historia es de tu familia.", texto: "Sabemos que lo que cuenta es personal. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pides.", enlace: "Cómo cuidamos sus datos" },
-    cierre: { frase: "Un día vas a querer preguntarle algo.", boton: "Iniciar Vitácora" },
+    cierre: { frase: "Todavía estás a tiempo de preguntarle.", boton: "Iniciar Vitácora" },
     faqAudios: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
   },
   ar: {
@@ -104,7 +104,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       lista: [
         { titulo: "Se lo regalás", texto: "Con la tarjeta en sus manos o el día que nos digas." },
         { titulo: "Responde por WhatsApp", texto: "Con audios o escribiendo, cuando tiene un rato." },
-        { titulo: "Sumás tus preguntas", texto: "Lo que siempre quisiste saber, y las fotos para su libro." },
+        { titulo: "Si querés, sumá las tuyas", texto: "Las preguntas ya las ponemos nosotros. Si querés, sumá lo que siempre quisiste saber, y fotos para su libro." },
         { titulo: "Llega a casa", texto: "Escribimos su biografía, un libro de memorias con sus palabras. Elegís la tapa y te lo mandamos." },
       ],
       ejemplo: ["¿Qué le preguntarías vos?", "¿Cómo conociste a la abuela?"],
@@ -112,7 +112,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     },
     voz: { titulo: "Se lee y también se escucha.", texto: "El libro lleva sus mejores frases con su voz real, en un QR de la contratapa." },
     privacidad: { titulo: "Su historia es de tu familia.", texto: "Sabemos que lo que cuenta es personal. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pedís.", enlace: "Cómo cuidamos sus datos" },
-    cierre: { frase: "Un día vas a querer preguntarle algo.", boton: "Iniciar Vitácora" },
+    cierre: { frase: "Todavía estás a tiempo de preguntarle.", boton: "Iniciar Vitácora" },
     faqAudios: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
   },
   ca: {
@@ -147,7 +147,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
       lista: [
         { titulo: "L'hi regales", texto: "Amb la targeta a les seves mans o el dia que ens diguis." },
         { titulo: "Respon per WhatsApp", texto: "Amb àudios o escrivint, quan té una estona." },
-        { titulo: "Afegeixes les teves preguntes", texto: "El que sempre has volgut saber, i les fotos per al seu llibre." },
+        { titulo: "Si vols, afegeix les teves", texto: "Les preguntes ja les posem nosaltres. Si vols, afegeix el que sempre has volgut saber, i fotos per al seu llibre." },
         { titulo: "Arriba a casa", texto: "Escrivim la seva biografia, un llibre de memòries amb les seves paraules. Tries la tapa i te l'enviem." },
       ],
       ejemplo: ["Què li preguntaries tu?", "Com vas conèixer l'àvia?"],
@@ -155,7 +155,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     },
     voz: { titulo: "Es llegeix i també s'escolta.", texto: "El llibre porta les seves millors frases amb la seva veu real, en un QR de la contraportada." },
     privacidad: { titulo: "La seva història és de la teva família.", texto: "Sabem que el que explica és personal. Els àudios originals s'esborren tres mesos després d'acabar el llibre, o abans si ho demanes.", enlace: "Com cuidem les seves dades" },
-    cierre: { frase: "Un dia voldràs preguntar-li alguna cosa.", boton: "Iniciar Vitácora" },
+    cierre: { frase: "Encara ets a temps de preguntar-li.", boton: "Iniciar Vitácora" },
     faqAudios: "Els àudios són privats, només es fan servir per al seu llibre i es poden esborrar tots quan vulgui.",
   },
 };

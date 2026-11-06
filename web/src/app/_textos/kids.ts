@@ -445,7 +445,7 @@ export const TEXTOS_KIDS: Textos<TextosKids> = {
 
 /**
  * El libro de ejemplo de Nico en 3D, del inicio de /kids. Historia inventada.
- * PENDIENTE OK de Naza. ca: sin revisar con Imma.
+ * Aprobado por Naza (06/11). ca: sin revisar con Imma.
  */
 export const LIBRO_KIDS_EJEMPLO: Textos<{
   libro: { etiqueta: string; nombre: [string, string]; paraSiempre: string; iniciales: string; lomo: string; contra: string; escucha: string; web: string };
