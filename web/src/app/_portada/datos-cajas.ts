@@ -11,17 +11,35 @@ import { LIBRO_VIAJE_EJEMPLO } from "../_textos/viaje";
 // con VITACORA_BIOGRAFO=1 cuando estén el permiso, la foto y el texto de
 // Florencia. «Para un niño» sigue en Próximamente hasta que se venda Kids.
 
-export type IdCaja = "familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo";
+export type IdCaja = "familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo" | "historia";
 export type TapaCaja = { etiqueta: string; nombre: [string, string] | string; firma: string; foto: string; apaisado?: boolean };
 export type Caja = {
   id: IdCaja;
   textos: TextoCaja;
   tinte: 1 | 2 | 3 | 4 | 5 | 6;
   tapa: TapaCaja | null;
-  filas: { etiqueta: string; valor: string }[];
+  filas: FilaPrecio[];
+  /** Sin enlace, la nota no lleva botón (lo que no se vende). Biógrafo abre su bloque. */
   href: string | null;
+  /** WhatsApp o correo: se abre afuera, con un enlace común. */
+  externo?: boolean;
   marca: "regalo" | "pronto" | null;
 };
+/** Una línea de precios. `antes`, el precio de lista tachado mientras hay promo. */
+export type FilaPrecio = { etiqueta: string; valor: string; antes?: string };
+
+/**
+ * Las dos líneas de una nota: impreso y digital (si la región tiene impreso) y
+ * solo digital. Salen del catálogo, nunca a mano, y nunca dicen «desde».
+ */
+export function filasDePrecio(idioma: IdiomaWeb, cat: Catalogo, formatear: (n: number) => string, digital: number, antes?: string | null): FilaPrecio[] {
+  const p = TEXTOS_PORTADA_NUEVA[idioma].precios;
+  const adicional = cat.impreso?.precio ?? null;
+  return [
+    ...(adicional === null ? [] : [{ etiqueta: p.impresoDigital, valor: formatear(digital + adicional) }]),
+    { etiqueta: p.soloDigital, valor: formatear(digital), ...(antes ? { antes } : {}) },
+  ];
+}
 
 export function cajasPortada(
   idioma: IdiomaWeb,
@@ -34,11 +52,7 @@ export function cajasPortada(
   const inicio = TEXTOS_PORTADA_INICIO[idioma];
   const ediciones = TEXTOS_EDICIONES[idioma];
   const familiar = TEXTOS_PORTADA[idioma].direccion.libro;
-  const adicional = cat.impreso?.precio ?? null;
-  const dos = (digital: number) => [
-    ...(adicional === null ? [] : [{ etiqueta: p.impresoDigital, valor: formatear(digital + adicional) }]),
-    { etiqueta: p.soloDigital, valor: formatear(digital) },
-  ];
+  const dos = (digital: number) => filasDePrecio(idioma, cat, formatear, digital);
   const comprar = ruta(idioma, "/comprar");
 
   const cajas: Caja[] = [

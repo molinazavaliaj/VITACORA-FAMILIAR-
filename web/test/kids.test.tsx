@@ -153,11 +153,11 @@ describe("lib/kids: cuándo se vende y qué ficha arma", () => {
 });
 
 describe("/kids por idioma", () => {
-  it("es estática y lleva el idioma, hreflang y la paleta de Kids", () => {
+  it("es estática y lleva el idioma, hreflang y el acento de Kids", () => {
     for (const p of [KidsEs, KidsCa, KidsAr]) expect(p()).not.toBeInstanceOf(Promise);
     expect(pagina(KidsCa)).toContain('lang="ca-ES"');
     expect(pagina(KidsAr)).toContain('lang="es-AR"');
-    expect(pagina(KidsEs)).toContain('class="kids ');
+    expect(pagina(KidsEs)).toContain("acu-tema acu-acento-kids");
     expect(metaEs.alternates).toMatchObject({ canonical: "/kids", languages: { "ca-ES": "/ca/kids", "es-AR": "/ar/kids" } });
   });
 

@@ -10,7 +10,7 @@ import type { Caja, TapaCaja } from "./datos-cajas";
 export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: Caja[]; whatsapp: string | null }) {
   const t = TEXTOS_PORTADA_NUEVA[idioma];
   return (
-    <div className={`acu-estante${cajas.length === 5 ? " acu-estante--cinco" : ""}`}>
+    <div className={`acu-estante${cajas.length === 5 ? " acu-estante--cinco" : cajas.length === 1 ? " acu-estante--uno" : ""}`}>
       {cajas.map((c) => (
         <article key={c.id} id={`caja-${c.id}`} className={`acu-estante-item${c.marca === "regalo" ? " acu-estante-item--regalo" : ""}`}>
           {c.marca ? <span className={`acu-marca${c.marca === "pronto" ? " acu-marca--gris" : ""}`}>{t.marcas[c.marca]}</span> : null}
@@ -23,15 +23,22 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
               {c.filas.map((f) => (
                 <div key={f.etiqueta}>
                   <dt>{f.etiqueta}</dt>
-                  <dd>{f.valor}</dd>
+                  <dd>
+                    {f.antes ? <s className="acu-antes">{f.antes}</s> : null}
+                    {f.valor}
+                  </dd>
                 </div>
               ))}
             </dl>
-            {c.href ? (
+            {c.href && c.externo ? (
+              <a href={c.href} {...(c.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="acu-ir">
+                {c.textos.enlace} <span aria-hidden>→</span>
+              </a>
+            ) : c.href ? (
               <Link prefetch={false} href={c.href} className="acu-ir">
                 {c.textos.enlace} <span aria-hidden>→</span>
               </Link>
-            ) : (
+            ) : c.id === "biografo" ? (
               <details className="acu-biografo">
                 <summary className="acu-ir">
                   {c.textos.enlace} <span aria-hidden>→</span>
@@ -44,7 +51,7 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
                   {whatsapp ? <a href={whatsapp} target="_blank" rel="noopener noreferrer">{t.biografo.boton}</a> : null}
                 </div>
               </details>
-            )}
+            ) : null}
           </div>
         </article>
       ))}
@@ -52,7 +59,7 @@ export function Cajas({ idioma, cajas, whatsapp }: { idioma: IdiomaWeb; cajas: C
   );
 }
 
-function Tapa({ tapa }: { tapa: TapaCaja }) {
+export function Tapa({ tapa }: { tapa: TapaCaja }) {
   return (
     <span aria-hidden className={`prt-ed-libro${tapa.apaisado ? " prt-ed-libro--apaisado" : ""}`}>
       <span className={`prt-ed-tapa${tapa.apaisado ? " prt-ed-tapa--viaje" : ""}`}>

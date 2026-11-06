@@ -242,6 +242,58 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
   .acu-audio { opacity: 1; left: 42px; }
 }
 
+/* ── Lo que suman las páginas de cada producto ─────────────────────────────── */
+/* Una línea chica debajo de los botones del inicio. */
+.acu-inicio-dato { max-width: 46ch; font-family: var(--fuente-micro), sans-serif; font-size: 13.5px; line-height: 1.45; color: #6a4f4e; font-variant-numeric: tabular-nums; }
+/* Un solo producto: el estante entero, con el libro al medio y la nota colgada abajo. */
+.acu-estante--uno { display: block; max-width: 1040px; }
+.acu-estante--uno .acu-estante-item { width: 100%; }
+.acu-estante--uno .acu-estante-item .acu-foto { aspect-ratio: 4 / 3; background-size: auto 140%; background-position: 50% 80%; }
+.acu-estante--uno .acu-foto .prt-ed-libro { bottom: 25%; width: 37%; }
+.acu-estante--uno .acu-foto .prt-ed-libro--apaisado { width: 66%; }
+.acu-estante--uno .acu-nota { width: min(480px, calc(100% - 12px)); margin-inline: auto; padding: 22px 20px 18px; }
+.acu-estante--uno .acu-nota h3 { font-size: 25px; }
+.acu-estante--uno .acu-nota > p, .acu-estante--uno .acu-nota > p.acu-ideal { font-size: 15px; line-height: 1.45; }
+.acu-estante--uno .acu-precios > div { font-size: 14px; padding: 4px 0; }
+.acu-estante--uno .acu-precios dd { font-size: 17px; }
+.acu-estante--uno .acu-ir { font-size: 15px; }
+@media (min-width: 700px) {
+  .acu-estante--uno .acu-estante-item .acu-foto { aspect-ratio: 2400 / 1122; background-size: 100% auto; background-position: 0 0; }
+  .acu-estante--uno .acu-foto .prt-ed-libro { bottom: 23.5%; width: 21%; }
+  .acu-estante--uno .acu-foto .prt-ed-libro--apaisado { width: 38%; }
+}
+.acu-antes { margin-right: 6px; font-size: 13px; font-weight: 400; color: var(--acu-suave); }
+/* La tapa parada en el inicio, cuando el producto no tiene libro 3D (Eventos). */
+.acu-tapa-inicio { display: flex; justify-content: center; padding-block: 8px 20px; }
+.acu-tapa-inicio .prt-ed-libro { position: relative; left: auto; bottom: auto; width: min(42vw, 170px); transform: rotate(-2deg); box-shadow: 0 30px 44px -24px rgba(60, 30, 30, 0.6), 0 2px 6px rgba(60, 30, 30, 0.18); }
+.acu-tapa-inicio .prt-ed-libro::after { display: none; }
+.acu-tapa-inicio .prt-ed-tapa { text-align: left; }
+@media (min-width: 900px) { .acu-tapa-inicio .prt-ed-libro { width: min(270px, calc(50svh * 0.72)); } }
+/* El video del libro en el inicio: entra en su columna. */
+.acu-inicio-visual .kids-video { width: 100%; max-width: 620px; }
+/* La banda con dos fotos, una al lado de la otra. */
+.acu-banda { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
+/* Una frase grande con una foto al costado, y lo que alterna con ella. */
+.acu-par { display: grid; max-width: 1120px; margin-inline: auto; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 32px; text-align: left; }
+@media (min-width: 820px) { .acu-par { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; } }
+.acu-par-img { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 14px; background: var(--acu-t2); }
+.acu-par-img--alta { aspect-ratio: 4 / 5; max-width: 440px; justify-self: center; width: 100%; }
+.acu-par-img img { object-fit: cover; }
+.acu-parrafo { font-size: clamp(16px, 1.5vw, 18px); line-height: 1.55; color: var(--acu-suave); }
+.acu-enlace { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--fuente-micro), sans-serif; font-size: 15px; font-weight: 500; color: var(--acu-bordo); text-decoration: underline; text-underline-offset: 4px; }
+/* Tres pasos: tres columnas, más anchas. En el teléfono, una debajo de la otra. */
+.acu-pasos--tres { grid-template-columns: minmax(0, 1fr); max-width: 1120px; }
+@media (min-width: 640px) { .acu-pasos--tres { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.acu-pasos--tres .acu-paso-img { aspect-ratio: 5 / 4; }
+@media (min-width: 640px) { .acu-pasos--tres .acu-paso-img { aspect-ratio: 4 / 5; } }
+/* El celular dentro de la foto de un paso: asoma desde arriba, sin salirse del cuadro. */
+.acu-paso-img .acu-tel { position: absolute; top: 18px; left: 50%; width: min(190px, 82%); transform: translateX(-50%); }
+/* La conversación de ejemplo de Kids: sus colores, sin su fondo de página. */
+.kids.acu-chat { overflow: visible; isolation: auto; background: none; }
+/* Las etiquetas de una lista (los temas de Historia, las celebraciones de Eventos). */
+.acu-etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
+.acu-etiquetas li { padding: 8px 14px; border: 1px solid var(--acu-linea); border-radius: 999px; background: rgba(255, 255, 255, 0.7); font-family: var(--fuente-titulo), Georgia, serif; font-size: clamp(15px, 1.4vw, 18px); color: var(--acu-tinta); }
+
 /* ── El tema: acu-tema, en el contenedor de una página pública ───────────────
    Todas las páginas se arman con dos clases de sección, dir-tinta y dir-papel.
    Bajo acu-tema, dir-tinta se pinta como acuarela clara y dir-papel como blanco
@@ -297,6 +349,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
   color: var(--acu-tinta);
   color-scheme: light;
 }
+.dir-pagina.acu-tema .dir-papel.acu-hoja-banda2 { background-color: var(--acu-banda2); }
+.dir-pagina.acu-tema .evt-form { --fondo-oscuro: #ffffff; }
 /* La hoja con el borde cortado: la tira de arriba sigue transparente entre los dientes. */
 .dir-pagina.acu-tema .dir-deckle {
   background-color: transparent;

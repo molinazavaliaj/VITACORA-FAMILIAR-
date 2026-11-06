@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { Acordeon } from "../_ui/acordeon";
-import { Cabecera, IconoWhatsApp, Pie, WhatsAppFlotante } from "../_publico";
+import { Cabecera, Pie, WhatsAppFlotante } from "../_publico";
 import { CtaSticky } from "../cta-sticky";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { TEXTOS_PORTADA_NUEVA } from "../_textos/portada-nueva";
@@ -13,9 +13,10 @@ import { langDeIdioma, localeDeIdioma, regionDeIdioma, ruta, type IdiomaWeb } fr
 import { urlWhatsAppDudas } from "@/lib/whatsapp-dudas";
 import { Coreografia } from "../_direccion/coreografia";
 import { Libro3D } from "../_direccion/libro-3d";
-import { OndaQuieta, conVar } from "../_direccion/piezas";
+import { OndaQuieta } from "../_direccion/piezas";
 import { Cajas } from "./cajas";
 import { AudiosLibro } from "./audios-libro";
+import { BandaFotos, CierreAcuarela, InicioAcuarela, PasosFotos, PreguntasAcuarela, TiendaAcuarela } from "./piezas-acuarela";
 import { cajasPortada } from "./datos-cajas";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
 // Una sola hoja de estilo para la portada: portada.css trae adentro
@@ -80,54 +81,44 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       <Coreografia />
 
       {/* 1 · Inicio: una pantalla. Es la única capa: la tienda sube y lo tapa apenas se baja. */}
-      <section data-capa className="acu-lavado relative z-[1]">
-        <div className="dir-hunde dir-hunde--1 relative flex min-h-[100svh] flex-col items-center justify-center px-4 pb-8 pt-28 text-center sm:px-8 lg:px-12">
-          <div className="absolute inset-x-0 top-0">
-            <Cabecera idioma={idioma} camino="/" sobreHero />
+      <InicioAcuarela
+        arriba="pt-28"
+        cabecera={<Cabecera idioma={idioma} camino="/" sobreHero />}
+        titulo={
+          <>
+            {t.hero.titulo[0]} <br className="hidden sm:block" />
+            {t.hero.titulo[1]}
+          </>
+        }
+        bajada={t.inicio.bajada}
+        botones={
+          <>
+            <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton">
+              {n.inicio.boton}
+            </a>
+            <a href="#como-funciona" className="acu-boton-hilo">
+              {t.inicio.comoFunciona}
+            </a>
+          </>
+        }
+        visual={
+          <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
+            <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
           </div>
-          <div className="acu-inicio">
-            <div className="acu-inicio-texto">
-              <h1 className="dir-titular dir-t2 dir-asienta">
-                {t.hero.titulo[0]} <br className="hidden sm:block" />
-                {t.hero.titulo[1]}
-              </h1>
-              <p className="acu-inicio-bajada dir-entra" style={conVar({ "--e": "0.35s" })}>{t.inicio.bajada}</p>
-              <div className="acu-inicio-botones dir-entra" style={conVar({ "--e": "0.5s" })}>
-                <a href="#tienda" className="dir-boton dir-boton--lleno acu-boton">
-                  {n.inicio.boton}
-                </a>
-                <a href="#como-funciona" className="acu-boton-hilo">
-                  {t.inicio.comoFunciona}
-                </a>
-              </div>
-            </div>
-            <div className="acu-inicio-visual dir-entra" style={conVar({ "--e": "0.6s" })}>
-              <div data-libro-3d data-libro-cierra className="l3-seccion prt-libro acu-libro w-full">
-                <Libro3D idioma={idioma} b={t.direccion.libro} c={ej.libro} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        }
+      />
       <div id="hero" aria-hidden className="relative z-[2] h-px" />
 
       {/* 2 · La tienda */}
-      <section id="tienda" className="acu-iman acu-hoja-lisa dir-hoja dir-sobre-1 relative z-[2] -mt-px scroll-mt-0 px-4 py-14 text-center sm:px-8 md:py-20">
-        <ul className="acu-confianza -mx-4 -mt-14 mb-12 sm:-mx-8 md:-mt-20 md:mb-16">
-          {TEXTOS_PORTADA_INICIO[idioma].confianza.map((c) => <li key={c}>{c}</li>)}
-        </ul>
-        <h2 className="dir-titular dir-t3 mx-auto max-w-[20ch]">{n.tienda.titulo}</h2>
-        <p className="acu-bajada mt-4">{n.tienda.bajada}</p>
+      <TiendaAcuarela confianza={TEXTOS_PORTADA_INICIO[idioma].confianza} titulo={n.tienda.titulo} bajada={n.tienda.bajada}>
         <Cajas idioma={idioma} cajas={cajas} whatsapp={whatsapp} />
         <ul className="acu-pie">
           {n.tienda.pie.map((p) => <li key={p}>{p}</li>)}
         </ul>
-      </section>
+      </TiendaAcuarela>
 
       {/* La foto de ancho completo: ilustra y se reemplaza por una real cuando esté filmado. */}
-      <section aria-hidden className="relative z-[3] aspect-[4/3] w-full overflow-hidden bg-[var(--acu-banda)] sm:aspect-[21/9]">
-        <Image src={FOTOS.banda} alt="" fill sizes="100vw" className="object-cover object-[50%_40%]" />
-      </section>
+      <BandaFotos fotos={[FOTOS.banda]} />
 
       {/* 3 · Los audios que se vuelven capítulos */}
       <section className="acu-iman acu-hoja-banda relative z-[3] px-4 py-14 text-center sm:px-8 md:py-20">
@@ -136,32 +127,21 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
       </section>
 
       {/* 4 · Los cuatro pasos */}
-      <section id="como-funciona" className="acu-iman acu-hoja-lisa relative z-[4] scroll-mt-6 px-4 py-14 text-center sm:px-8 md:py-20">
-        <h2 className="dir-titular dir-t3">{n.pasos.titulo}</h2>
-        <ol className="acu-pasos">
-          {n.pasos.lista.map((paso, i) => {
-            const foto = FOTOS_PASOS[i];
-            return (
-              <li key={paso.titulo} className="acu-paso">
-                <div className="acu-paso-img">
-                  {foto ? (
-                    <Image src={foto} alt="" fill sizes="(min-width: 900px) 25vw, 50vw" />
-                  ) : (
-                    <div aria-hidden className="acu-pantallita">
-                      <span>{n.pasos.ejemplo[0]}</span>
-                      <span>{n.pasos.ejemplo[1]}</span>
-                      <span>{n.pasos.agregar}</span>
-                    </div>
-                  )}
-                </div>
-                <small>{t.como.paso(i + 1)}</small>
-                <h3>{paso.titulo}</h3>
-                <p>{paso.texto}</p>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
+      <PasosFotos
+        titulo={n.pasos.titulo}
+        etiqueta={t.como.paso}
+        pasos={n.pasos.lista.map((paso, i) => ({
+          ...paso,
+          foto: FOTOS_PASOS[i],
+          ilustracion: (
+            <div aria-hidden className="acu-pantallita">
+              <span>{n.pasos.ejemplo[0]}</span>
+              <span>{n.pasos.ejemplo[1]}</span>
+              <span>{n.pasos.agregar}</span>
+            </div>
+          ),
+        }))}
+      />
 
       {/* 5 · Se lee y se escucha: quieta, sin reproducir (Naza, 25/10). La tapa
           es la que anuncia el JSON-LD: la foto de la ficha tiene que estar en la página. */}
@@ -208,52 +188,31 @@ export function Portada({ idioma }: { idioma: IdiomaWeb }) {
         </div>
       </section>
 
-      {/* 7 · Preguntas: la garantía vive acá y solo acá (DECISIONES D1). dir-papel da
-          las variables claras del acordeón; el fondo lo fija acuarela.css. */}
-      <section id="preguntas" className="dir-papel acu-hoja-lisa relative z-[7] scroll-mt-6">
-        <div className="mx-auto grid max-w-[1160px] grid-cols-1 gap-10 px-4 py-14 sm:px-8 md:grid-cols-12 md:gap-8 md:py-20">
-          <div className="md:col-span-4">
-            <h2 className="dir-titular dir-t3">{t.faq.titulo}</h2>
-          </div>
-          <div className="flex flex-col gap-12 md:col-span-7 md:col-start-6">
-            <div className="border-t border-[var(--dir-hilo-papel)]">
-              {preguntas.map((q, i) => (
-                <Fragment key={q.pregunta}>
-                  <Acordeon pregunta={q.pregunta} abierta={i === 0} grupo="preguntas">
-                    {q.respuesta}
-                  </Acordeon>
-                  {i === 1 ? (
-                    <Acordeon pregunta={t.dudas.hablar.pregunta} grupo="preguntas">
-                      {t.dudas.hablar.texto}
-                      <ul className="mt-4 flex flex-wrap gap-2">
-                        {t.dudas.hablar.temas.map((tema) => <li key={tema} className="dir-tema">{tema}</li>)}
-                      </ul>
-                    </Acordeon>
-                  ) : null}
-                </Fragment>
-              ))}
-            </div>
-            {whatsapp ? (
-              <div className="flex flex-col gap-3">
-                <span className="dir-pie">{t.faq.duda.titulo}</span>
-                <p className="text-[16px] font-light leading-[1.55] text-[var(--dir-sobre-papel-suave)]">{t.faq.duda.texto}</p>
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="dir-boton dir-boton--lleno acu-boton self-start">
-                  <IconoWhatsApp className="mr-2 h-4 w-4" />
-                  {t.faq.duda.boton}
-                </a>
-              </div>
+      {/* 7 · Preguntas: la garantía vive acá y solo acá (DECISIONES D1). */}
+      <PreguntasAcuarela titulo={t.faq.titulo} duda={t.faq.duda} whatsapp={whatsapp}>
+        {preguntas.map((q, i) => (
+          <Fragment key={q.pregunta}>
+            <Acordeon pregunta={q.pregunta} abierta={i === 0} grupo="preguntas">
+              {q.respuesta}
+            </Acordeon>
+            {i === 1 ? (
+              <Acordeon pregunta={t.dudas.hablar.pregunta} grupo="preguntas">
+                {t.dudas.hablar.texto}
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {t.dudas.hablar.temas.map((tema) => <li key={tema} className="dir-tema">{tema}</li>)}
+                </ul>
+              </Acordeon>
             ) : null}
-          </div>
-        </div>
-      </section>
+          </Fragment>
+        ))}
+      </PreguntasAcuarela>
 
       {/* 8 · Cierre */}
-      <section data-cta-propio className="acu-lavado relative z-[8] flex flex-col items-center gap-6 px-4 py-20 text-center sm:px-8">
-        <h2 className="dir-titular dir-t3 max-w-[18ch]">{n.cierre.frase}</h2>
+      <CierreAcuarela titulo={n.cierre.frase}>
         <Link prefetch={false} href={comprar} className="dir-boton dir-boton--lleno acu-boton">
           {n.cierre.boton}
         </Link>
-      </section>
+      </CierreAcuarela>
       <div className="dir-tinta relative z-[8]" data-cta-propio>
         <Pie idioma={idioma} camino="/" rasca landings={["preguntas", "voz"]} />
       </div>
