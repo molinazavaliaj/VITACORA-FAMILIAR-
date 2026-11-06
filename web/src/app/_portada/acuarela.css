@@ -509,8 +509,8 @@ html:has(.acu-imanes) { scroll-snap-type: y proximity; }
 .acu-vuela img { object-fit: cover; object-position: 50% 25%; }
 .acu-vuela--1 { animation: acu-ev1 var(--acu-vuelta) infinite both; }
 .acu-vuela--2 { animation: acu-ev2 var(--acu-vuelta) infinite both; }
-.acu-renglones { display: flex; flex-direction: column; gap: 7px; }
-.acu-renglones i { display: block; height: 6px; border-radius: 1px; background: #3d352c; opacity: 0.72; animation: none; }
+.acu-renglones { overflow: hidden; }
+.acu-renglones p { font-family: var(--fuente-cuerpo), Georgia, serif; font-size: 11px; line-height: 15px; color: #3d352c; filter: blur(1.9px); user-select: none; }
 .acu-hoja--izq .acu-renglones { animation: acu-eri var(--acu-vuelta) infinite both; }
 .acu-hoja--der .acu-renglones { animation: acu-erd var(--acu-vuelta) infinite both; }
 .acu-pegadas { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
