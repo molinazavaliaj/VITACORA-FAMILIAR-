@@ -18,6 +18,8 @@ export type Consulta = {
   columnas: string | null;
   orden: { col: string; asc: boolean } | null;
   limite: number | null;
+  /** El primer índice de `range` (la paginación); 0 sin `range`. */
+  desde?: number;
   valores?: Fila;
 };
 
@@ -57,7 +59,9 @@ function aplicar(filas: Fila[], c: Consulta): Fila[] {
     const { col, asc } = c.orden;
     out = [...out].sort((x, y) => (asc ? comparar(x[col], y[col]) : comparar(y[col], x[col])));
   }
-  if (c.limite !== null) out = out.slice(0, c.limite);
+  const desde = c.desde ?? 0;
+  if (c.limite !== null) out = out.slice(desde, desde + c.limite);
+  else if (desde > 0) out = out.slice(desde);
   return out;
 }
 
@@ -92,6 +96,11 @@ export function crearAdmin(
     };
     b.limit = (n: number) => {
       c.limite = n;
+      return b;
+    };
+    b.range = (desde: number, hasta: number) => {
+      c.desde = desde;
+      c.limite = hasta - desde + 1;
       return b;
     };
     b.eq = (col: string, val: unknown) => {

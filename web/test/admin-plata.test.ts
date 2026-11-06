@@ -5,7 +5,7 @@ import type { DatosDelPanel, NarradorPanel, PedidoPanel, ConsumoPanel } from "..
 const CAMBIO = { eurArs: 1250, usdEur: 1.08, fecha: "2026-09-21" };
 const datos = (p: Partial<DatosDelPanel>): DatosDelPanel => ({
   narradores: [], familias: [], pedidos: [], respuestas: [], envios: [],
-  narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [], ...p,
+  narraciones: [], fotos: [], consumo: [], latidos: [], gastos: [], entrevistasV3: [], conteo: [], ...p,
 });
 const DESDE = new Date("2026-09-01T00:00:00Z");
 const HASTA = new Date("2026-09-21T23:59:59Z");

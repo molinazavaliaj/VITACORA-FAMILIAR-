@@ -1,6 +1,7 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { EN_CURSO } from "@/lib/admin/en-curso";
+import { avanceDe, avanceEnPalabras } from "@/lib/admin/avance";
 import { frenosDe, horasEntre, UMBRALES } from "@/lib/admin/frenos";
 import { Barra, Chip, Cifra, Nota, SinDatos, Tarjeta, Titulo, fechaCorta, horasEnPalabras, tono } from "../ui";
 
@@ -22,6 +23,9 @@ export default async function PantallaFamilias() {
   const historias = [...enCurso, ...terminadas];
 
   const frenosDeNarrador = (nombre: string | null) => frenos.filter((f) => f.quien === nombre);
+  const v3De = new Map(datos.entrevistasV3.map((e) => [e.narrador_id, e]));
+  const avance = (n: (typeof historias)[number]) =>
+    avanceDe(n, v3De.get(n.id), datos.conteo, n.estado === "completado" || n.estado === "cerrado_anticipado");
 
   function estadoDe(n: (typeof historias)[number]): { color: Color; texto: string; detalle: string } {
     const propios = frenosDeNarrador(n.nombre);
@@ -70,8 +74,8 @@ export default async function PantallaFamilias() {
   return (
     <div className="adm-entra">
       <Titulo ruta="/admin/familias">
-        La entrevista son treinta días, una pregunta por día; la barra muestra cuánto falta. Primero las que piden
-        algo.
+        La barra es lo que lleva contado cada uno: en la entrevista V3 (la de hoy), el bloque del banco por el
+        que va, de 15; en la vieja, las preguntas contestadas, de 30. Primero las que piden algo.
       </Titulo>
 
       {historias.length > 0 ? (
@@ -98,9 +102,10 @@ export default async function PantallaFamilias() {
         {historias.map((n) => {
           const estado = estadoDe(n);
           const f = n.familia_id ? familiaDe.get(n.familia_id) : undefined;
+          const a = avance(n);
           const orden = n.dia_actual ?? 0;
-          const pregunta = enviadas(n)[String(orden)] ?? null;
-          const dias = Math.min(30, orden);
+          // La pregunta escrita solo existe en la entrevista vieja (contexto.preguntasEnviadas).
+          const pregunta = a.tipo === "guion" ? enviadas(n)[String(orden)] ?? null : null;
           return (
             <div
               key={n.id}
@@ -115,13 +120,11 @@ export default async function PantallaFamilias() {
               </div>
               <div>
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="adm-dato text-sm">
-                    día <b className="font-semibold">{orden}</b> de 30
-                  </span>
-                  <span className="adm-dato text-xs text-[var(--texto-menor)]">{Math.round((dias / 30) * 100)} %</span>
+                  <span className="adm-dato text-sm">{avanceEnPalabras(a)}</span>
+                  <span className="adm-dato text-xs text-[var(--texto-menor)]">{Math.round(a.proporcion * 100)} %</span>
                 </div>
                 <div className="mt-1.5">
-                  <Barra proporcion={dias / 30} />
+                  <Barra proporcion={a.proporcion} />
                 </div>
                 <span className="mt-1.5 block text-xs text-[var(--texto-menor)]">
                   {n.ultima_respuesta_at ? `contestó por última vez el ${fechaCorta(n.ultima_respuesta_at)}` : "todavía no contestó"}
@@ -135,7 +138,11 @@ export default async function PantallaFamilias() {
                   </>
                 ) : (
                   <span className="text-xs text-[var(--texto-menor)]">
-                    {orden === 0 ? "la pregunta 1 sale cuando la entrevista arranque" : "todavía no hay pregunta escrita"}
+                    {a.tipo === "v3"
+                      ? "entrevista V3: las preguntas salen del banco según lo que va contando"
+                      : orden === 0
+                        ? "la pregunta 1 sale cuando la entrevista arranque"
+                        : "todavía no hay pregunta escrita"}
                   </span>
                 )}
               </div>
@@ -167,7 +174,7 @@ export default async function PantallaFamilias() {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <Chip color={elegida.estado === "activo" ? "verde" : "neutro"}>{elegida.estado}</Chip>
-                  <span className="text-[var(--texto-menor)]">va por el día {elegida.dia_actual ?? 0} de 30</span>
+                  <span className="text-[var(--texto-menor)]">{avanceEnPalabras(avance(elegida))}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <Chip color="neutro">respuestas</Chip>
@@ -196,14 +203,20 @@ export default async function PantallaFamilias() {
                 La charla
               </p>
               <div className="mt-3 flex flex-col gap-4 text-sm">
-                <div className="border-l-2 border-[var(--linea-fuerte)] pl-4">
+                {avance(elegida).tipo === "v3" ? (
+                  <p className="text-xs text-[var(--texto-menor)]">
+                    Es una entrevista V3: no hay pregunta del día escrita aparte, la charla entera queda en la entrevista.
+                    Abajo, lo último que contestó.
+                  </p>
+                ) : null}
+                <div className={`border-l-2 border-[var(--linea-fuerte)] pl-4 ${avance(elegida).tipo === "v3" ? "hidden" : ""}`}>
                   <span className="block text-xs text-[var(--texto-menor)]">lo que le preguntó el biógrafo de verdad</span>
                   <b className="mt-0.5 block text-base font-medium italic [font-family:var(--fuente-titulo)]">{enviadas(elegida)[String(elegida.dia_actual ?? 0)] ?? "todavía no salió la pregunta de hoy"}</b>
                   <p className="text-xs text-[var(--texto-menor)]">
                     No es el texto del guion: el biógrafo lo reescribe con lo que {elegida.nombre ?? "el narrador"} ya contó.
                   </p>
                 </div>
-                {repreguntas(elegida)[String(elegida.dia_actual ?? 0)] ? (
+                {avance(elegida).tipo === "guion" && repreguntas(elegida)[String(elegida.dia_actual ?? 0)] ? (
                   <div className="border-l-2 border-[var(--linea-fuerte)] pl-4">
                     <span className="block text-xs text-[var(--texto-menor)]">y la repregunta del mismo día</span>
                     <b className="mt-0.5 block text-base font-medium italic [font-family:var(--fuente-titulo)]">{repreguntas(elegida)[String(elegida.dia_actual ?? 0)]}</b>
@@ -216,7 +229,9 @@ export default async function PantallaFamilias() {
                       <b>
                         {ultimaRespuesta.duracion_segundos
                           ? `Audio de ${Math.floor(ultimaRespuesta.duracion_segundos / 60)} min ${ultimaRespuesta.duracion_segundos % 60} s`
-                          : `Respuesta del día ${ultimaRespuesta.pregunta_orden}`}
+                          : avance(elegida).tipo === "v3"
+                            ? "Respuesta escrita"
+                            : `Respuesta del día ${ultimaRespuesta.pregunta_orden}`}
                         {ultimaRespuesta.es_repregunta ? " (repregunta)" : ""}
                       </b>
                       <p className="text-xs text-[var(--texto-menor)]">
