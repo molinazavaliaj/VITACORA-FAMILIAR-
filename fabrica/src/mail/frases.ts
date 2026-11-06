@@ -75,7 +75,7 @@ const PARRAFOS_VOS = (quien: string, conImpreso: boolean): string[] =>
         `No hay apuro: quedan guardadas así hasta que decidas.`,
       ];
 
-// Privado (05/11, PROPUESTO, falta el OK de Naza): quien regala no cambia las frases, y confirmar es mandar a imprimir.
+// Privado (aprobado por Naza, 06/11): quien regala no cambia las frases, y confirmar es mandar a imprimir.
 const PARRAFOS_PRIVADO_VOS = (quien: string): string[] => [
   `El libro de tu ${quien} ya está terminado. Podés leerlo en la página de su historia, junto con las frases con su voz que eligió el biógrafo.`,
   `Encargaste el libro impreso, y sale con esas frases, cada una con su código para escucharla.`,

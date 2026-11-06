@@ -512,6 +512,7 @@ Sin tablas ni columnas nuevas, sin DDL. En Familiar y en una historia, si `conte
 |---|---|---|---|
 | `{carpeta del escritor}/dudas-destino.json` | fábrica (socios a mano) | web, fábrica | `{dudas: [{id, pregunta, destino: 'familia' \| 'narrador'}]}`. A quién se le pregunta cada duda. Vale solo con el mismo `id` y la misma `pregunta` que `dudas-familia.json`. Sin clasificación vigente, quien regala no ve ninguna. Las de `narrador` no cuentan como pendientes en la espera, en el aviso del panel ni en los mails. |
 | `{carpeta del escritor}/dudas-ocultas-avisadas.txt`, `dudas-ocultas-al-escribir.txt` | fábrica | fábrica | Candados de los dos mails a los socios sobre dudas ocultas sin contestar. |
+| `{carpeta del escritor}/correcciones-quien-regalo.json` | fábrica | fábrica | En un libro privado, qué parte de `edicion.correcciones` entra al libro (`datos`), qué parte no (`afuera`) y si ya se avisó a los socios. Es el mismo resultado en cada reintento. |
 | `{id}/paquete/frenar_imprenta.json` | web («Hay un error, avisanos») | fábrica, web | `{reportado_at, por, detalle}`. Mientras exista, el libro no entra a imprenta, aunque esté confirmado. Lo borran los socios a mano después de corregirlo. |
 | `{id}/paquete/socios_frases_30_dias.txt` | fábrica | fábrica | Candado del mail a los socios a los 30 días sin confirmar. No se confirma solo. |
 | `entrevistas_v3.estado.linkFinal`, `historias.estado.linkFinal` | entrevistador | entrevistador | Cuándo le salió al narrador su link al terminar. Una sola vez. |

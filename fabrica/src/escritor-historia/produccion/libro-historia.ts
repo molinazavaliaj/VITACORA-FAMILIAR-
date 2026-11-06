@@ -36,6 +36,7 @@ import { LoteAnthropic, type ClienteLotes } from '../../escritor/modelo/lote-ant
 import { ErrorDelModelo } from '../../escritor/modelo/tipos.js';
 import { cargarSnapshot } from '../../escritor/orquestador/contexto.js';
 import { avisarSocios, hayAQuienAvisar } from '../../escritor/produccion/avisos.js';
+import { filtrarCorreccionesDeQuienRegalo } from '../../escritor/produccion/correcciones-privadas.js';
 import { DESTINO_DUDAS, asegurarDestinoDudas, avisarOcultasSinContestar, dudasQueCuentan, esperaPorElNarrador } from '../../escritor/produccion/privacidad.js';
 import { Cola } from '../../escritor/produccion/cola.js';
 import { frasesParaSuVoz, libroParaPlantilla, paraPlantilla, type FuenteDeFrase } from '../../escritor/salida/plantilla.js';
@@ -465,7 +466,8 @@ export async function escribirLibroHistoria(db: Db, pedido: { id: string; narrad
     }
     const correcciones = await leerCorreccionesHistoria(almacen);
     await avisarOcultasSinContestar(db, id, almacen, { quien: await quienEs(db, id), archivoDudas: DUDAS, contestadas: new Set(correcciones.filter((c) => c.texto.trim()).map((c) => c.dudaId)) });
-    const b = await etapaBHistoria(x, [...correcciones, ...(await correccionesDeLaFamilia(db, id))]);
+    const deQuienRegalo = await filtrarCorreccionesDeQuienRegalo(db, id, almacen, { quien: () => quienEs(db, id), correcciones: await correccionesDeLaFamilia(db, id) });
+    const b = await etapaBHistoria(x, [...correcciones, ...deQuienRegalo]);
     if (!b.ok) throw new FalloDelEscritorHistoria(`Etapa B: ${b.motivo}`);
     const r = await etapaCHistoria(x);
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);

@@ -41,6 +41,7 @@ import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
 import { avisarSocios, hayAQuienAvisar } from './avisos.js';
+import { filtrarCorreccionesDeQuienRegalo } from './correcciones-privadas.js';
 import { DESTINO_DUDAS, asegurarDestinoDudas, avisarOcultasSinContestar, dudasQueCuentan, esperaPorElNarrador, plazoParaSacar } from './privacidad.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
@@ -499,7 +500,8 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     }
     const correcciones = await leerCorrecciones(almacen);
     await avisarOcultasSinContestar(db, narradorId, almacen, { quien: await quienEs(db, narradorId), archivoDudas: DUDAS, contestadas: new Set(correcciones.filter((c) => c.texto.trim()).map((c) => c.dudaId)) });
-    const b = await etapaB(x, [...correcciones, ...(await correccionesDeLaFamilia(db, narradorId))]);
+    const deQuienRegalo = await filtrarCorreccionesDeQuienRegalo(db, narradorId, almacen, { quien: () => quienEs(db, narradorId), correcciones: await correccionesDeLaFamilia(db, narradorId) });
+    const b = await etapaB(x, [...correcciones, ...deQuienRegalo]);
     if (!b.ok) throw new FalloDelEscritor(`Etapa B: ${b.motivo}`);
     const r = await etapaC(x);
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);
