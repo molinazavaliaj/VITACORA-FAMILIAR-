@@ -55,11 +55,11 @@ describe('los mails de la entrega', () => {
     const cuerpo = cuerpoHito('entregado', { comoLeDicen: 'abuela', enlace: 'https://x/resena' });
     expect(cuerpo).toContain('en manos de tu familia');
     expect(cuerpo).toContain('Acerca el teléfono a los códigos del libro');
-    expect(cuerpo).toContain('Si te emocionó, cuéntalo');
+    expect(cuerpo).toContain('Cuéntanos cómo fue, lo bueno y lo que mejorarías');
     expect(cuerpo).toContain('Contar cómo fue');
 
     // El pedido de reseña va después de la emoción, no antes.
-    expect(cuerpo.indexOf('códigos del libro')).toBeLessThan(cuerpo.indexOf('Si te emocionó'));
+    expect(cuerpo.indexOf('códigos del libro')).toBeLessThan(cuerpo.indexOf('Cuéntanos cómo fue'));
   });
 
   it('el mail de «libro listo» ya no promete el audiolibro, que se descartó el 20/09', () => {

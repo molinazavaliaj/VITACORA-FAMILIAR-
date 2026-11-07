@@ -170,7 +170,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
       // Sin género a propósito: el narrador puede ser abuelo o abuela, y dar por
       // hecho cuál es el fallo C12 de la bitácora de Ciro.
       'Acerca el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
-      'Si te emocionó, cuéntalo. A otra familia le puede pasar lo mismo.',
+      'Cuéntanos cómo fue, lo bueno y lo que mejorarías. A otra familia le puede servir.',
     ],
     boton: 'Contar cómo fue',
   },
@@ -302,7 +302,7 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
         `Llegó. El libro de tu ${quien} está donde tiene que estar: en manos de tu familia.`,
         // Sin género a propósito, como el de tú.
         'Acercá el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
-        'Si te emocionó, contalo. A otra familia le puede pasar lo mismo.',
+        'Contanos cómo fue, lo bueno y lo que mejorarías. A otra familia le puede servir.',
       ],
       boton: 'Contar cómo fue',
     },
