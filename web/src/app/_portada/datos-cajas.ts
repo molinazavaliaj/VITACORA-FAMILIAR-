@@ -1,5 +1,7 @@
+import { kidsVendeEn } from "@/lib/kids";
+import { obtenerPrecioKids } from "@/lib/precios";
 import type { Catalogo } from "@/lib/productos";
-import { ruta, type IdiomaWeb } from "@/lib/idioma-web";
+import { regionDeIdioma, ruta, type IdiomaWeb } from "@/lib/idioma-web";
 import { TEXTOS_EDICIONES } from "../_textos/ediciones";
 import { TEXTOS_PORTADA } from "../_textos/portada";
 import { TEXTOS_PORTADA_INICIO } from "../_textos/portada-inicio";
@@ -9,7 +11,7 @@ import { LIBRO_VIAJE_EJEMPLO } from "../_textos/viaje";
 // Las cajitas de la portada, puras: reciben el catálogo y devuelven lo que se
 // pinta. Sin un precio en el catálogo, esa fila no existe. Biógrafo se prende
 // con VITACORA_BIOGRAFO=1 cuando estén el permiso, la foto y el texto de
-// Florencia. «Para un niño» sigue en Próximamente hasta que se venda Kids.
+// Florencia. «Para un niño» dice Próximamente solo donde Kids no se vende.
 
 export type IdCaja = "familiar" | "ti" | "nino" | "viaje" | "evento" | "biografo" | "historia";
 /** La contratapa, parada al lado de la tapa en los estantes de un solo libro. */
@@ -56,6 +58,8 @@ export function cajasPortada(
   const familiar = TEXTOS_PORTADA[idioma].direccion.libro;
   const dos = (digital: number) => filasDePrecio(idioma, cat, formatear, digital);
   const comprar = ruta(idioma, "/comprar");
+  // Mismo criterio que /kids: sin venta o sin precio, «Próximamente».
+  const precioKids = kidsVendeEn(idioma) ? obtenerPrecioKids(regionDeIdioma(idioma)) : null;
 
   const cajas: Caja[] = [
     {
@@ -81,9 +85,9 @@ export function cajasPortada(
       textos: t.cajas.nino,
       tinte: 3,
       tapa: { etiqueta: ediciones.tapaKids.etiqueta, nombre: ediciones.tapaKids.nombre, firma: ediciones.tapaKids.edad, foto: "/rediseno/kids-cuarto-juguetes.jpg" },
-      filas: [{ etiqueta: p.pronto, valor: p.prontoValor }],
+      filas: precioKids === null ? [{ etiqueta: p.pronto, valor: p.prontoValor }] : dos(precioKids),
       href: ruta(idioma, "/kids"),
-      marca: "pronto",
+      marca: precioKids === null ? "pronto" : null,
     },
   ];
   if (cat.viaje !== null) {

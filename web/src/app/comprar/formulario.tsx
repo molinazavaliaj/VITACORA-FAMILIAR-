@@ -20,7 +20,7 @@ import { CHECKOUT_VIAJE, type TextosViaje } from "../_textos/checkout-viaje";
 import { HISTORIA_TEMAS, MAX_PROPIAS_HISTORIA, PROPIA_MAXIMO, TEMA_LIBRE_MAXIMO } from "@/lib/historia";
 import { COMPRADOR_WEB } from "../_textos/regalar";
 import { AREA, AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, NotaPapel, Resumen, TituloPaso, arriba } from "../_checkout/piezas";
-import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, vieneParaRegalar } from "../_checkout/memoria";
+import { CLAVE_COMPRA, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, vieneParaRegalar, volvioPorSuCuenta } from "../_checkout/memoria";
 import { crearPagador, type RespuestaCompra } from "../_checkout/pagador";
 import { CamposDireccion } from "../_checkout/direccion";
 import { PasosLibro } from "../_checkout/pasos-libro";
@@ -238,7 +238,7 @@ export function Checkout({
     }
     const guardado = leer<EstadoCompra>(sesion, CLAVE_COMPRA, claveDeCompra(idioma, historia));
     // Lo dice la URL de vuelta: en una página estática solo se puede leer acá, ya en el navegador.
-    setFallo(guardado ? "guardado" : "solo");
+    if (!volvioPorSuCuenta(window.location.search)) setFallo(guardado ? "guardado" : "solo");
     if (guardado) {
       setE({ ...estadoInicial(idioma, cat), ...(historia ? { historia: historiaInicial() } : {}), ...normalizarConPack(guardado, sumaSinPack(cat.base.precio, cat) !== null) });
       setPaso(pago);

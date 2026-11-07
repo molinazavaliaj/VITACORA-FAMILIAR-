@@ -30,6 +30,7 @@ export const RUTAS_PRIVADAS = [
   "/regalo/",
   "/voz/",
   "/comprar/gracias",
+  "/pagar",
   // 19/10: lo que va adentro del teléfono de la portada (un iframe con datos
   // inventados) y el panel de muestra (en producción da 404, pero que ni lo pida).
   "/telefono-historia",

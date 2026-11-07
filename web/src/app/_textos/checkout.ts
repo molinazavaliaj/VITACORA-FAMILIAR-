@@ -54,6 +54,15 @@ export const FALLO: Textos<TextosFallo> = {
   },
 };
 
+/** /pagar: el formulario de Stripe dentro de la web. En Argentina no se ve (paga con Mercado Pago). */
+export type TextosFormularioPago = { titulo: string; volver: string; noCarga: string };
+
+export const FORMULARIO_PAGO: Textos<TextosFormularioPago> = {
+  es: { titulo: "Completa tu pago", volver: "Volver a mi compra", noCarga: "No hemos podido cargar el pago. No se te ha cobrado nada." },
+  ar: { titulo: "Completá tu pago", volver: "Volver a mi compra", noCarga: "No pudimos cargar el pago. No se te cobró nada." },
+  ca: { titulo: "Completa el pagament", volver: "Torna a la meva compra", noCarga: "No hem pogut carregar el pagament. No se t'ha cobrat res." },
+};
+
 /** El resumen de la derecha: los nombres de las líneas del ticket y lo que trae. */
 export type TextosResumen = {
   etiqueta: string;
