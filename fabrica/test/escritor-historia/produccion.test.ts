@@ -78,6 +78,7 @@ function baseFalsa(tablas: Record<string, Fila[]>) {
 function tablasDeRuben(o: { pedido?: boolean; aprobado?: boolean; estado?: string } = {}): Record<string, Fila[]> {
   return {
     historias: [{ narrador_id: ID }],
+    fotos: [],
     narradores: [{ id: ID, nombre: 'Rubén', como_le_dicen: 'Rubén', estado: o.estado ?? 'completado', libro_aprobado_at: o.aprobado ? '2026-10-24T10:00:00.000Z' : null, contexto: {}, foto_url: null, edicion: null }],
     pedidos: o.pedido ? [{ id: 'p1', narrador_id: ID, estado: 'pagado' }] : [],
     consumo_ia: [],

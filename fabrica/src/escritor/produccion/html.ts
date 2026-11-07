@@ -2,13 +2,13 @@
 // libro.pdf) y la imprenta (libro-imprenta.pdf, con «Su voz» y sus códigos): el mismo libro, la misma tapa.
 //
 // De la edición de la dueña (narradores.edicion) valen el título y la foto de tapa (el subtítulo ya no sale, 13/10).
-// El orden y los títulos de los capítulos NO: la web los guarda con los nombres del guion viejo, y en la V3
-// el plan y los títulos los arma el escritor. Tampoco van fotos por capítulo (se buscan por esos mismos
-// nombres viejos): solo la de tapa.
+// Los capítulos los arma el escritor, así que las fotos no van por capítulo: la de tapa va en la tapa y todas las
+// demás que subió la familia, en el álbum del final (02/11; la web lo muestra como «álbum · tapa · marcos»).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { construirHtmlLibro } from '../../libro/plantilla-html.js';
 import { leerEdicion } from '../../libro/edicion.js';
-import { cargarFotos } from '../../libro/fotos.js';
+import { cargarFotos, fotosDelAlbum } from '../../libro/fotos.js';
+import { procesarFotosConChromium } from '../../libro/preparar-fotos.js';
 import type { FrasesJson } from '../../libro/frases.js';
 import { libroParaPlantilla } from '../salida/plantilla.js';
 import type { IdiomaLibro } from '../tipos.js';
@@ -27,7 +27,9 @@ export async function htmlLibroV3(
 ): Promise<string> {
   const p = libroParaPlantilla(a.libroMd);
   const edicion = leerEdicion(a.narrador.edicion);
-  const fotoTapa = edicion.portadaFotoId ? (await cargarFotos(db, a.narrador.id)).porId.get(edicion.portadaFotoId) : undefined;
+  const fotos = await cargarFotos(db, a.narrador.id, { procesar: procesarFotosConChromium });
+  const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
+  const album = fotosDelAlbum(fotos, { tapaId: fotoTapa ? edicion.portadaFotoId : null });
   const contexto = a.narrador.contexto as { anioNacimiento?: unknown } | null | undefined;
   const anio = typeof contexto?.anioNacimiento === 'number' ? contexto.anioNacimiento : null;
   return construirHtmlLibro({
@@ -40,6 +42,7 @@ export async function htmlLibroV3(
     fotoFoco: fotoTapa?.foco,
     indice: p.indice,
     libroMarkdown: p.libroMarkdown,
+    album,
     idioma: a.idioma,
     ...(a.trato ? { trato: a.trato } : {}),
     ...(a.frases ? { frases: a.frases } : {}),

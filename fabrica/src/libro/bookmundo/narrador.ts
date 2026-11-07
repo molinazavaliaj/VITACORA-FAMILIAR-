@@ -7,7 +7,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { descargarTextoOpcional, RUTA_BORRADOR_LIBRO } from '../comun.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from '../edicion.js';
-import { cargarFotos } from '../fotos.js';
+import { cargarFotos, fotosDelAlbum } from '../fotos.js';
+import { procesarFotosConChromium } from '../preparar-fotos.js';
 import type { FrasesJson } from '../frases.js';
 import type { LenguaLibro } from '../plantilla-html.js';
 import { urlVozDeNarrador } from '../token-voz.js';
@@ -29,7 +30,7 @@ export async function armarBookmundoDeNarrador(db: SupabaseClient, narradorId: s
   if (error || !n) throw new Error(`bookmundo: no se pudo leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
   const narrador = n as { id: string; nombre: string; contexto: unknown; foto_url: string | null; edicion: unknown };
   const edicion = leerEdicion(narrador.edicion);
-  const fotos = await cargarFotos(db, narradorId);
+  const fotos = await cargarFotos(db, narradorId, { procesar: procesarFotosConChromium });
   const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
   const contexto = narrador.contexto as { anioNacimiento?: unknown } | null | undefined;
   const anio = typeof contexto?.anioNacimiento === 'number' ? contexto.anioNacimiento : null;
@@ -39,7 +40,7 @@ export async function armarBookmundoDeNarrador(db: SupabaseClient, narradorId: s
   let lengua: LenguaLibro;
   const libroV3 = await descargarTextoOpcional(db, RUTA_LIBRO_MD_V3(narradorId));
   if (libroV3 !== null) {
-    // El escritor nuevo: idioma y trato de la entrevista; sin fotos por capítulo (escritor/produccion/html.ts).
+    // El escritor nuevo: idioma y trato de la entrevista; las fotos en el álbum del final (escritor/produccion/html.ts).
     const { data: e } = await db.from('entrevistas_v3').select('idioma').eq('narrador_id', narradorId).maybeSingle();
     const idiomaEntrevista = (e as { idioma?: string } | null)?.idioma;
     const idioma = idiomaDelLibro(idiomaEntrevista);
@@ -49,6 +50,7 @@ export async function armarBookmundoDeNarrador(db: SupabaseClient, narradorId: s
     libro = {
       titulo: p.titulo, nombreNarrador: narrador.nombre, tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
       anioNacimiento: anio, indice: p.indice, libroMarkdown: p.libroMarkdown, idioma, trato,
+      album: fotosDelAlbum(fotos, { tapaId: fotoTapa ? edicion.portadaFotoId : null }),
     };
   } else {
     // El libro viejo: borrador y estructura del paquete, con el orden, los títulos y las fotos de la dueña.
