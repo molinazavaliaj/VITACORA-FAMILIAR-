@@ -1,6 +1,7 @@
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { db } from '../db/cliente.js';
-import { enviarTexto } from '../whatsapp/enviar.js';
+import { enviarBotones, enviarTexto } from '../whatsapp/enviar.js';
+import { contestarLinkSiLoPide } from '../link-respuestas.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte } from '../db/respuestas.js';
@@ -29,6 +30,7 @@ import type { NarradorHistoria } from '../historia/tipos.js';
 import { canjearRegalo, codigoPorEntrega, mandarBienvenidaDeRegalo } from './regalo.js';
 import { elegirNarrador, ESTADOS_TERMINADOS } from './elegir-narrador.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
+import { atenderEleccion, eligeAcceso, preguntarAcceso, vozDeEleccion } from './acceso.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { avisarSocios } from '../v3/avisos.js';
 
@@ -149,6 +151,8 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }
+  // El botón de quién ve lo que cuenta: antes que cualquier motor, nunca es una respuesta de la entrevista.
+  if (await atenderEleccion(db, narrador, m, enviarTexto)) return;
 
   // Kids V2 (docs/kids/v2/plan-conexion-bot.md, T4): un chico con fila en kids_v2 va entero por el motor de Kids, desde
   // antes del arranque hasta después del final, y a nada más (ni al canje del regalo, ni a la V3, ni a la Viaje V2, ni
@@ -165,6 +169,8 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   // el de un número nuevo. Con el código escrito (con su VF: un «buenas» no es un código) o con el regalo que se le
   // mandó a este número el día elegido. Si no hay regalo, sigue como siempre.
   if ((ESTADOS_TERMINADOS as readonly string[]).includes(narrador.estado)) {
+    // Ya terminó y pide «mis respuestas»: su link (privacidad, 05/11).
+    if (m.tipo === 'texto' && m.texto && (await contestarLinkSiLoPide(db, narrador, m.texto, (t) => enviarTexto(narrador.telefono_whatsapp, t)))) return;
     const conCodigo = m.tipo === 'texto' && !!m.texto && /VF/i.test(m.texto) && extraerCodigo(m.texto) !== null;
     if (conCodigo || (await codigoPorEntrega(db, m.telefono)) !== null) {
       const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
@@ -180,6 +186,15 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
       }
       if (canje !== 'sin_codigo') return;
     }
+    // Quien contó escribe teniendo dudas pendientes: esto no entra al libro, se le da el link. Vale para V3 e historia:
+    // los dos pasan por acá antes de su bot, que a un terminado no le contesta.
+    const { contestarSiEscribeConDudas } = await import('./revision-narrador.js');
+    if (await contestarSiEscribeConDudas({
+      db,
+      enviarTexto: (tel, texto, o) => enviarTexto(tel, texto, o),
+      avisarSocios: (clave, asunto, detalle, o) => avisarSocios(clave, asunto, detalle, o),
+      urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+    }, narrador)) return;
   }
 
   // Gift card: un teléfono con una compra sin pagar manda un código. No se puede canjear mientras esa compra siga
@@ -399,9 +414,11 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await enviarTexto(
     narrador.telefono_whatsapp,
     idiomaRegalo
-      ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
+      ? textoDeArranque(idiomaRegalo, eligeAcceso(narrador) ? 'aceptacionConEleccion' : 'aceptacion', narrador.como_le_dicen)
       : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { enseguida }),
   );
+  // Venta nueva: elige quién ve lo que cuenta (flujo/acceso.ts). No frena nada: la primera pregunta sale igual.
+  await preguntarAcceso(narrador, vozDeEleccion(narrador.contexto), enviarBotones);
   // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
   // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
   // queda en 'acepto' sin fila V3 y lo retoma recuperarRegaloFrenado con su
@@ -500,6 +517,7 @@ async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
     return;
   }
   if (yaEsV3) return;
+  // La pregunta de quién ve lo que cuenta ya salió con el SÍ: acá no se repite con cada mensaje.
   await primeraDelRegalo(narrador, 'regalo frenado');
 }
 

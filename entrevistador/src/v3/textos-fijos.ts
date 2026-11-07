@@ -7,7 +7,8 @@ import type { Idioma } from './nucleo/entrevista/idioma.js';
 import { renderizar, type FichaTexto } from './nucleo/entrevista/texto.js';
 
 /** `fotoFallo` (15/10, PROPUESTO, falta el OK de Naza): la foto no se pudo guardar y se le pide de nuevo. */
-export type ClaveTextoFijo = 'fotoSuelta' | 'fotoFallo' | 'pausa' | 'reserva';
+/** `link*` y `avisoPrivacidad` (05/11, PROPUESTOS, falta el OK de Naza; ca para revisar con Imma): lo privado y su link. */
+export type ClaveTextoFijo = 'fotoSuelta' | 'fotoFallo' | 'pausa' | 'reserva' | 'linkRespuestas' | 'linkFinal' | 'linkCerrado' | 'avisoPrivacidad';
 
 const TEXTOS = textos as unknown as Record<ClaveTextoFijo, Partial<Record<Idioma, string>>>;
 

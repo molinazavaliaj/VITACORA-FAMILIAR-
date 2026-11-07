@@ -34,6 +34,12 @@ type Db = ReturnType<typeof obtenerClienteDb>;
 
 export const RUTA_LIBRO_IMPRENTA = (narradorId: string) => `${narradorId}/paquete/libro-imprenta.pdf`;
 
+/** Lo crea la web cuando quien regala avisa de un error de datos; lo borran los socios al corregirlo (CONTRATO). */
+export const RUTA_FRENO_IMPRENTA = (narradorId: string) => `${narradorId}/paquete/frenar_imprenta.json`;
+export async function imprentaFrenada(db: Db, narradorId: string): Promise<boolean> {
+  return (await descargarTextoOpcional(db, RUTA_FRENO_IMPRENTA(narradorId))) !== null;
+}
+
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 
 /**
@@ -51,6 +57,8 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
     return false;
   }
   if (!frases.confirmado_at) return false;
+  // «Hay un error, avisanos» (05/11): hasta que los socios lo corrijan a mano y borren el archivo, no sale.
+  if (await imprentaFrenada(db, narradorId)) return false;
 
   // 1b. El libro del escritor nuevo (entrevista V3): `{id}/escritor/libro.md`, con su propia plantilla
   // (escritor/produccion/html.ts). Si está, manda; si no, es un libro viejo y sigue como siempre.

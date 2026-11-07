@@ -1,3 +1,4 @@
+import { modoAcceso } from "./acceso-contenido";
 import { esIdiomaKids, idiomaKidsDeRegion, type IdiomaKids } from "./kids";
 // Lo que pasa cuando el proveedor de pago confirma el cobro. Vive aparte del
 // webhook de Stripe para que el de MercadoPago haga exactamente lo mismo
@@ -30,7 +31,7 @@ export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
-type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null; kids?: { canal: "A" | "B"; idioma?: IdiomaKids } }) => Promise<boolean>;
+type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null; kids?: { canal: "A" | "B"; idioma?: IdiomaKids }; elige?: boolean }) => Promise<boolean>;
 type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
 
 export async function confirmarPago(
@@ -186,7 +187,9 @@ export async function confirmarPago(
         await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}), kids: await canalKids(admin, pedido.narrador_id, region) });
       } else {
         // De vos para Argentina y de tú para España (Naza, 09/10).
-        await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}) });
+        // «Quien cuenta elige…» solo si va a elegir: una venta nueva para otra persona (lib/acceso-contenido).
+        const elige = modoAcceso((narrador as { contexto?: Record<string, unknown> | null } | null)?.contexto) !== "clasico";
+        await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}), elige });
       }
     } catch (err) {
       console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el ${esRegalo ? "mail del regalo" : "mail de acceso"} a ${email} falló:`, err);

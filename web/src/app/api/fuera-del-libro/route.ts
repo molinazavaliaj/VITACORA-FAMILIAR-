@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { aplicarFueraDelLibro, leerPedido } from "@/lib/fuera-del-libro";
 import { idiomaFueraDelLibro, textosFueraDelLibro } from "@/lib/fuera-del-libro-textos";
 import { tratoDeLaFamilia } from "@/lib/trato";
@@ -16,6 +16,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { soloDuena: true });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   const { narrador, rol, user } = acceso;
+  // Quien regala ya no saca nada: lo hace el narrador desde su link (/mis-respuestas).
+  if (!PUEDE.sacarDelLibro(rol, narrador)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   const T = textosFueraDelLibro(idiomaFueraDelLibro(await tratoDeLaFamilia(admin, narrador.familia_id)));
 
   let body: unknown;

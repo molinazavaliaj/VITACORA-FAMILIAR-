@@ -1,5 +1,6 @@
+import { esPrivado } from '../link-respuestas.js';
 import { db } from '../db/cliente.js';
-import { HITO_ACEPTO_REGALO, HITO_ACEPTO_VIAJE, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
+import { HITO_ACEPTO_ELIGE, HITO_ACEPTO_REGALO, HITO_ACEPTO_VIAJE, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -43,13 +44,17 @@ function escapar(texto: string): string {
 export function redactarHito(
   hito: Hito,
   n: { nombre?: string; como_le_dicen: string; id: string },
-  o: { regalo?: boolean; trato?: TratoComprador; viaje?: boolean } = {},
+  o: { regalo?: boolean; trato?: TratoComprador; viaje?: boolean; elige?: boolean; privado?: boolean } = {},
 ): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
   const tu = o.trato === 'tu';
   switch (hito) {
     case 'acepto':
+      if (o.elige === true) {
+        const t = HITO_ACEPTO_ELIGE[o.trato ?? 'vos'];
+        return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
+      }
       if (o.viaje === true || o.regalo === true) {
         const t = (o.viaje === true ? HITO_ACEPTO_VIAJE : HITO_ACEPTO_REGALO)[o.trato ?? 'vos'];
         return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
@@ -66,11 +71,24 @@ export function redactarHito(
         };
     // Los de tú (primera, mitad, silencio) aprobados por Naza el 10/10, en castellano de España.
     case 'primera':
+      // Privado (05/11, PROPUESTO): que empezó a contar, sin nada de lo que dijo.
+      if (o.privado) {
+        return {
+          asunto: `${quien} ya empezó a contar`,
+          cuerpo: `<p>${escapar(quien)} ${tu ? 'ha contestado' : 'contestó'} la primera pregunta. Lo que cuenta queda privado hasta que el libro esté listo. En su página ${tu ? 'puedes ver' : 'podés ver'} cuánto lleva contado.</p><p><a href="${panel}">${panel}</a></p>`,
+        };
+      }
       return {
         asunto: `Ya ${tu ? 'puedes' : 'podés'} escuchar a ${quien}`,
         cuerpo: `<p>${escapar(quien)} ${tu ? 'ha contestado' : 'contestó'} la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'mitad':
+      if (o.privado) {
+        return {
+          asunto: `${quien} va por la mitad`,
+          cuerpo: `<p>${escapar(quien)} ya ${tu ? 'ha contado' : 'contó'} la mitad de su historia. Si ${tu ? 'quieres' : 'querés'}, ${tu ? 'puedes añadir' : 'podés sumar'} una pregunta o una foto.</p><p><a href="${panel}">${panel}</a></p>`,
+        };
+      }
       return {
         asunto: `${quien} va por la mitad`,
         cuerpo: `<p>${escapar(quien)} ya ${tu ? 'ha contado' : 'contó'} la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
@@ -143,6 +161,8 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito, o: { viaje?: b
     const { asunto, cuerpo } = redactarHito(hito, n, {
       regalo: contexto.regalo === true,
       viaje: o.viaje === true,
+      elige: contexto.acceso?.elige === true && contexto.regalo === true,
+      privado: esPrivado(contexto),
       trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
     });
 

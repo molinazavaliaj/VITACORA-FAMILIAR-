@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { loContadoEsPrivado, narradorDeLaSesion } from "@/lib/panel";
 import { esKids } from "@/lib/kids-panel";
 import { enviarMailInvitacion } from "@/lib/mail";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
@@ -51,9 +51,14 @@ export async function POST(request: NextRequest) {
   if (n?.libro_aprobado_at) {
     return NextResponse.json({ error: "El libro ya está cerrado: ya no se invita, se comparte." }, { status: 400 });
   }
-  // Terminó de contar: se invita solo para contestar las dudas que quedan.
+  // Terminó de contar: se invita solo para contestar las dudas que quedan. Si lo contado es privado, las contesta quien
+  // contó (Naza, 06/11): no hay nada para lo que invitar.
   const paraDudas = ESTADOS_CERRADOS.includes(n?.estado ?? narrador.estado);
-  if (paraDudas && !(await hayDudasPendientes(admin, narrador.id))) {
+  if (paraDudas && loContadoEsPrivado(narrador)) {
+    const tu = (await tratoDeLaFamilia(admin, narrador.familia_id)) === "tu";
+    return NextResponse.json({ error: `Ya terminó de contar. Cuando el libro esté listo ${tu ? "podrás" : "vas a poder"} compartirlo con un link.` }, { status: 400 });
+  }
+  if (paraDudas && !(await hayDudasPendientes(admin, narrador))) {
     return NextResponse.json({ error: "Ya no quedan dudas para contestar. Cuando cierres el libro vas a poder compartirlo con un link." }, { status: 400 });
   }
 
@@ -90,7 +95,7 @@ export async function POST(request: NextRequest) {
   const region = (familia as { region?: string } | null)?.region ?? null;
 
   try {
-    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region, paraDudas });
+    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region, paraDudas, privado: loContadoEsPrivado(narrador) });
   } catch (err) {
     // La invitación existe igual: si el mail falla, entra con su correo cuando quiera.
     console.error("invitados: fallo el mail", err);

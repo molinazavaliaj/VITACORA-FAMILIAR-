@@ -7,6 +7,8 @@
 > - **[N]** = Naza (socio 2, Barcelona) — `web/`, `fabrica/`, Meta/Facebook, infra
 > - **[A]** = Ambos
 >
+> **Con fecha · antes del 31/01/2027 · [A]:** en las historias privadas (#212 y #214) los audios originales no se borran y privacidad §7 promete 3 meses. Falta prender ese borrado y mandar antes el aviso al narrador por WhatsApp, sin mail a la familia. La fecha sale de los primeros libros de ventas nuevas (Naza, 06/11).
+>
 > Fuentes relacionadas: `docs/PLAN.md` (**en qué orden** se hace lo de acá) ·
 > `ESTADO.md` (estado técnico) · `GASTOS.md` (plata) ·
 > `supabase/CONTRATO.md` (contrato de datos) ·

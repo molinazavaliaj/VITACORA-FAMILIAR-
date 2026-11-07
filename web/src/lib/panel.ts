@@ -1,3 +1,4 @@
+import { modoAcceso } from "./acceso-contenido";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { familiaDelUsuario, type FamiliaResumen } from "./familia";
@@ -38,6 +39,20 @@ const CAMPOS_NARRADOR =
 /** El libro es del mismo que compra ("para mí" en el checkout): el panel le habla de vos, no de él. */
 export function esPropia(narrador: { contexto?: Record<string, unknown> | null }): boolean {
   return (narrador.contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === "yo mismo";
+}
+
+/**
+ * Privacidad del panel (Naza y Joaquín, 05/11; CONTRATO, «Lo contado es privado»). En Familiar y en una historia, cuando
+ * el libro es para otra persona, lo que cuenta el narrador queda privado: quien regala y sus invitados ven el avance,
+ * suman preguntas y fotos y eligen la tapa. Con el libro listo ven el libro y las frases elegidas, nunca los audios
+ * completos ni las transcripciones. Viaje y Kids siguen como estaban, y «para mí» no cambia.
+ *
+ * Sin el vínculo cargado cuenta como regalo: ante la duda, se muestra menos.
+ */
+export function loContadoEsPrivado(narrador: { contexto?: Record<string, unknown> | null }): boolean {
+  // Solo las ventas nuevas, y solo si el narrador no eligió a su familia (Joaquín, 05/11; lib/acceso-contenido). Las
+  // entrevistas anteriores no llevan la marca y siguen con lo que se les prometió al comprar (términos §12).
+  return modoAcceso(narrador.contexto) === "narrador";
 }
 
 type Usuario = { id: string; email?: string | null };
@@ -231,6 +246,8 @@ export const PUEDE = {
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
   comprarCopia: (_rol: Rol) => true,
+  /** «Que esto no vaya al libro» desde el panel: la dueña, salvo que el libro sea para otra persona (ahí, solo el narrador). */
+  sacarDelLibro: (rol: Rol, narrador: { contexto?: Record<string, unknown> | null }) => rol === "duena" && !loContadoEsPrivado(narrador),
 } as const;
 
 // ── Para las rutas de API ─────────────────────────────────────────────

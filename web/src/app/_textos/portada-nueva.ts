@@ -70,7 +70,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     voz: { titulo: "Se lee y también se escucha.", texto: "El libro lleva sus mejores frases con su voz real, en un QR de la contraportada." },
     privacidad: { titulo: "Su historia es de tu familia.", texto: "Sabemos que lo que cuenta es personal. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pides.", enlace: "Cómo cuidamos sus datos" },
     cierre: { frase: "Todavía estás a tiempo de preguntarle.", boton: "Iniciar Vitácora" },
-    faqAudios: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
+    faqAudios: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
   },
   ar: {
     inicio: { boton: "¿Para quién es?" },
@@ -113,7 +113,7 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     voz: { titulo: "Se lee y también se escucha.", texto: "El libro lleva sus mejores frases con su voz real, en un QR de la contratapa." },
     privacidad: { titulo: "Su historia es de tu familia.", texto: "Sabemos que lo que cuenta es personal. Los audios originales se borran tres meses después de terminar el libro, o antes si lo pedís.", enlace: "Cómo cuidamos sus datos" },
     cierre: { frase: "Todavía estás a tiempo de preguntarle.", boton: "Iniciar Vitácora" },
-    faqAudios: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
+    faqAudios: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
   },
   ca: {
     inicio: { boton: "Per a qui és?" },
@@ -156,6 +156,6 @@ export const TEXTOS_PORTADA_NUEVA: Textos<TextosPortadaNueva> = {
     voz: { titulo: "Es llegeix i també s'escolta.", texto: "El llibre porta les seves millors frases amb la seva veu real, en un QR de la contraportada." },
     privacidad: { titulo: "La seva història és de la teva família.", texto: "Sabem que el que explica és personal. Els àudios originals s'esborren tres mesos després d'acabar el llibre, o abans si ho demanes.", enlace: "Com cuidem les seves dades" },
     cierre: { frase: "Encara ets a temps de preguntar-li.", boton: "Iniciar Vitácora" },
-    faqAudios: "Els àudios són privats, només es fan servir per al seu llibre i es poden esborrar tots quan vulgui.",
+    faqAudios: "Ho decideix el teu familiar. Mentre explica, pot deixar que la seva família els escolti o guardar-se'ls. S'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
   },
 };

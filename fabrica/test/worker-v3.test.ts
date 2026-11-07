@@ -12,7 +12,7 @@ const m = vi.hoisted(() => ({
   obtenerClienteDb: vi.fn(),
   idiomasV3: vi.fn(async () => new Map<string, string>()),
   enviarMailHito: vi.fn(async () => false),
-  dudasParaLaFamilia: vi.fn(async (): Promise<{ cantidad: number; contestadas: boolean } | null> => null),
+  dudasParaLaFamilia: vi.fn(async (): Promise<{ cantidad: number; contestadas: boolean; plazoVencido?: boolean } | null> => null),
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
@@ -191,7 +191,7 @@ describe('worker: el mail "terminó de contar" de un narrador V3', () => {
 
 describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
   const conDudas = (narrador: Fila = {}) => ({
-    narradores: [{ id: 'v3', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null, ...narrador }],
+    narradores: [{ id: 'v3', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null, contexto: { acceso: { elige: true } }, ...narrador }],
     pedidos: [],
     familias: [{ id: 'f', email: 'familia@ejemplo.com' }],
   });
@@ -208,12 +208,62 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     m.dudasParaLaFamilia.mockResolvedValue(null);
   });
 
-  it('con dudas sin contestar, el link para contestarlas, con cuántas son y con vos para Argentina', async () => {
-    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false });
+  it('con dudas sin contestar y el plazo corriendo, ningún mail a quien regala', async () => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: false });
     const { db } = base(conDudas() as never);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', variante: 'vos', cantidad: 25 })]);
+    expect(dudasMandadas()).toEqual([]);
+  });
+
+  it.each(['viaje', 'kids'])('un modo %s queda como antes: el mail de las dudas, y el plazo vencido no cuenta', async (modo) => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+    const { db } = base(conDudas({ contexto: { modo, vinculoComprador: 'hija' } }) as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+  });
+
+  describe('un regalo que no es privado sigue como hoy (sin la marca, o con «Mi familia»)', () => {
+    it('con dudas sin contestar, el mail de siempre con el link, aunque el plazo de 72 horas haya pasado', async () => {
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+    });
+
+    it('«Mi familia»: el mail de siempre con el link a la pantalla del panel', async () => {
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas', enlace: 'https://x/tablero/v3/dudas', cantidad: 25 })]);
+    });
+
+    it('con todas contestadas, `dudas_listas` con su texto de antes', async () => {
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: true, plazoVencido: false });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija' } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro' })]);
+    });
+
+    it('con la marca, el mismo vínculo no recibe ningún mail mientras el plazo corre', async () => {
+      m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: false });
+      const { db } = base(conDudas({ contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }) as never);
+      m.obtenerClienteDb.mockReturnValue(db);
+      await tick();
+      expect(dudasMandadas()).toEqual([]);
+    });
+  });
+
+  it('venció el plazo sin todas contestadas: que falta encargarlo, nunca el de las dudas', async () => {
+    m.dudasParaLaFamilia.mockResolvedValue({ cantidad: 25, contestadas: false, plazoVencido: true });
+    const { db } = base(conDudas() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas_privado', enlace: 'https://x/tablero/v3/libro', variante: 'vos' })]);
   });
 
   it('con todas contestadas y el libro sin encargar, que falta encargarlo (link a Encargar)', async () => {
@@ -222,13 +272,13 @@ describe('worker: los mails de las dudas a la familia (Naza, 30/10)', () => {
     const { db } = base(conDudas() as never);
     m.obtenerClienteDb.mockReturnValue(db);
     await tick();
-    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas', enlace: 'https://x/tablero/v3/libro', variante: 'tu' })]);
+    expect(dudasMandadas()).toEqual([expect.objectContaining({ hito: 'dudas_listas_privado', enlace: 'https://x/tablero/v3/libro', variante: 'tu' })]);
   });
 
   it('sin mail si el libro ya está encargado, si es «Para mí», si la Etapa A no terminó o si no dejó dudas', async () => {
     for (const [narrador, estado] of [
-      [{ libro_aprobado_at: '2026-10-30' }, { cantidad: 3, contestadas: false }],
-      [{ contexto: { vinculoComprador: 'yo mismo' } }, { cantidad: 3, contestadas: true }],
+      [{ libro_aprobado_at: '2026-10-30' }, { cantidad: 3, contestadas: false, plazoVencido: true }],
+      [{ contexto: { vinculoComprador: 'yo mismo' } }, { cantidad: 3, contestadas: true, plazoVencido: true }],
       [{}, null],
       [{}, { cantidad: 0, contestadas: false }],
     ] as const) {

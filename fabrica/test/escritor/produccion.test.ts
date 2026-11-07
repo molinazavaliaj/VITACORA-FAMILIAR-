@@ -17,7 +17,7 @@ import type { AudioV3 } from '../../src/escritor/material/de-base.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { Cola } from '../../src/escritor/produccion/cola.js';
 import {
-  colaDelEscritor, escribirLibroV3, esLibroPropio, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, soloConAudio, type Motor,
+  alertarLibrosDemorados, colaDelEscritor, dudasParaLaFamilia, escribirLibroV3, esLibroPropio, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, SinMaterial, soloConAudio, type Motor,
 } from '../../src/escritor/produccion/libro-v3.js';
 import { carpetaNelida, DEFECTOS_NELIDA, salidasModeloNelida } from './ayuda.js';
 
@@ -27,6 +27,8 @@ type Fila = Record<string, unknown>;
 function baseFalsa(o: { tablas?: Record<string, Fila[]>; archivos?: Record<string, string> } = {}) {
   const archivos = new Map<string, string | Buffer>(Object.entries(o.archivos ?? {}));
   const tablas: Record<string, Fila[]> = { narradores: [], pedidos: [], consumo_ia: [], entrevistas_v3: [], ...(o.tablas ?? {}) };
+  // La privacidad del panel (05/11) tiene sus tests en test/privacidad.test.ts: acá, «para mí», sin espera del narrador.
+  tablas.narradores = (tablas.narradores.length ? tablas.narradores : [{ id: 'n1' }]).map((n) => ({ ...n, contexto: { vinculoComprador: 'yo mismo', ...(n.contexto as object | undefined) } }));
   const updates: { tabla: string; cambios: Fila }[] = [];
   const db = {
     from(tabla: string) {
@@ -82,6 +84,13 @@ const AUDIOS: AudioV3[] = [
   { respuestaId: 'resp-le1', clave: 'LE1', audioPath: 'n1/b.ogg', transcripcion: 'Otra cosa que no es la frase.', recibidoAt: '2026-10-08T11:00:00Z' },
 ];
 
+/** Las salidas sin dudas de datos: el libro sigue de largo (la espera por dudas tiene sus tests propios). */
+function sinDudas(): Record<string, string> {
+  const reg = JSON.parse(salidasModeloNelida()['1-registro']);
+  reg.dudas = [];
+  return { ...salidasModeloNelida(), '1-registro': JSON.stringify(reg) };
+}
+
 function motorFalso(salidas: Record<string, string> = salidasModeloNelida()) {
   const modelo = new ModeloFalso(salidas, DEFECTOS_NELIDA);
   const motor: Motor = {
@@ -92,8 +101,6 @@ function motorFalso(salidas: Record<string, string> = salidasModeloNelida()) {
 }
 
 beforeEach(() => {
-  // La espera por dudas (24 horas) tiene su test propio: en los demás, el libro sigue de largo.
-  vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
   vi.stubEnv('MAIL_SOCIOS', '');
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -202,8 +209,13 @@ describe('Etapa A al terminar la entrevista (revisarEtapaAV3)', () => {
     const cuerpo = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
     expect(cuerpo.subject).toContain('Dudas de datos');
     expect(cuerpo.text).toContain('n1/escritor/correcciones.json');
-    // Corto (Naza, 30/10): el link y cuántas son; las dudas se leen en la pantalla, no en el mail.
-    expect(cuerpo.text).toContain('A la familia le llega un mail para contestarlas. Para verlas: https://www.vitacorafamiliar.com/tablero/n1/dudas');
+    // Corto (Naza, 30/10): cuántas son; las dudas se leen en la pantalla, no en el mail.
+    // Sin link: en un privado esa pantalla no le abre a nadie (Naza, 06/11).
+    expect(cuerpo.text).toContain('Se las mandamos por WhatsApp a quien contó. Espera hasta 3 días o hasta que estén todas contestadas.');
+    expect(cuerpo.text).not.toContain('Para verlas');
+    expect(cuerpo.text).not.toContain('/tablero/n1/dudas');
+    expect(cuerpo.text).not.toContain('A la familia le llega');
+    expect(cuerpo.text).not.toContain('24 horas');
     expect(cuerpo.text).not.toContain('¿Cómo se llamaba la Negra');
     expect(cuerpo.text).not.toContain('no existe');
     expect(archivos.has('n1/escritor/dudas-avisadas.txt')).toBe(true);
@@ -249,7 +261,7 @@ const NARRADOR = { id: 'n1', nombre: 'Nélida Ferraro', contexto: { anioNacimien
 describe('el libro de un pedido (escribirLibroV3)', () => {
   it('A, B y C, plantilla, PDF, «Su voz» y el pedido entregado; cada llamada va a consumo_ia', async () => {
     const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
-    const modelo = new ModeloFalso(salidasModeloNelida(), DEFECTOS_NELIDA);
+    const modelo = new ModeloFalso(sinDudas(), DEFECTOS_NELIDA);
     const { anotarUsoEscritor } = await import('../../src/costos.js');
     const motor: Motor = {
       ejecutor: ({ almacen, log, narradorId }) => ({ ej: new Ejecutor({ modelo, almacen, log, alAnotar: (f) => anotarUsoEscritor(db, narradorId, f) }), usarLote: false }),
@@ -299,7 +311,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     const reg = JSON.parse(salidasModeloNelida()['1-registro']);
     const negra = { ...reg.personas[3], nombre: 'Ofelia', apodos: ['la Negra'] };
     const { motor, modelo } = motorFalso({
-      ...salidasModeloNelida(),
+      ...sinDudas(),
       'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
       'correccion-plan': salidasModeloNelida()['2-plan'],
     });
@@ -315,7 +327,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
 
   it('retomar después de un corte no le vuelve a pagar al modelo', async () => {
     const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
-    const { motor, modelo } = motorFalso();
+    const { motor, modelo } = motorFalso(sinDudas());
     await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, motor);
     const pagadas = modelo.llamadas.length;
     tablas.pedidos[0].estado = 'generando';
@@ -329,7 +341,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
     const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
-    const salidas = salidasModeloNelida();
+    const salidas = sinDudas();
     delete (salidas as Record<string, string>)['3a-primera'];
     const { motor } = motorFalso(salidas);
     await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, motor);
@@ -340,7 +352,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
 
   it('lanzarLibroV3 corre en segundo plano y avisa al terminar', async () => {
     const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
-    const { motor } = motorFalso();
+    const { motor } = motorFalso(sinDudas());
     const alTerminar = vi.fn();
     expect(lanzarLibroV3(db, { id: 'p1', narrador_id: 'n1' }, alTerminar, motor)).toBe(true);
     expect(lanzarLibroV3(db, { id: 'p2', narrador_id: 'n1' }, alTerminar, motor)).toBe(false); // uno por narrador
@@ -381,7 +393,7 @@ describe('cada llamada del escritor, afuera en el momento (alAnotar → consumo_
 describe('arreglos de la revisión', () => {
   it('si el material cambió desde la Etapa A (una reserva posterior), la A se rehace con el de hoy', async () => {
     const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
-    const { motor, modelo } = motorFalso();
+    const { motor, modelo } = motorFalso(sinDudas());
     await revisarEtapaAV3(db, 'n1', { motor });
     await colaDelEscritor.esperarTodo();
     const sinReserva = materialNelida();
@@ -428,7 +440,6 @@ describe('alerta: un libro V3 que a las 48 horas del cierre no salió', () => {
     vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
-    const { alertarLibrosDemorados } = await import('../../src/escritor/produccion/libro-v3.js');
     const ahora = Date.parse('2026-10-10T12:00:00Z');
     const haceHoras = (h: number) => new Date(ahora - h * 3_600_000).toISOString();
     const { db, archivos } = baseFalsa({
@@ -462,63 +473,380 @@ describe('alerta: un libro V3 que a las 48 horas del cierre no salió', () => {
 
 // ---------------------------------------------------------------- espera por dudas y dos copias a la vez
 
-describe('el libro espera 24 horas si la Etapa A encontró dudas (Naza, 09/10)', () => {
-  it('avisa las dudas, devuelve el pedido a pagado y no escribe; pasada la espera, escribe con las correcciones', async () => {
-    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+describe('el libro espera hasta 72 horas si la Etapa A encontró dudas (Naza, 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const pedidoDe = (id: string, n: Fila = {}) => ({ tablas: { narradores: [{ ...NARRADOR, id, ...n }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+  const idsDudas = (archivos: Map<string, string | Buffer>, id: string) => (JSON.parse(String(archivos.get(`${id}/escritor/dudas-familia.json`))).dudas as { id: string }[]).map((d) => d.id);
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('avisa, vuelve a pagado sin escribir; a las 71 horas sigue esperando y a las 72 escribe sin repagar la A', async () => {
     vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
-    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n8' }], pedidos: [{ id: 'p8', narrador_id: 'n8', estado: 'generando' }] } });
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('n8'));
     const { motor, modelo } = motorFalso();
-    await escribirLibroV3(db, { id: 'p8', narrador_id: 'n8' }, motor);
+    await escribirLibroV3(db, libro('n8'), motor);
     expect(tablas.pedidos[0].estado).toBe('pagado');
     expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/2-plan', 'A/dudas']);
     expect(JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body).subject).toContain('Dudas de datos');
-    expect(hayLugarParaLibroV3('n8')).toBe(false);
-    expect(hayLugarParaLibroV3('n8', Date.now() + 25 * 3_600_000)).toBe(true);
-    // Pasaron las 24 horas (el aviso quedó con fecha vieja): ahora sí se escribe, sin repagar la A.
-    archivos.set('n8/escritor/dudas-avisadas.txt', new Date(Date.now() - 25 * 3_600_000).toISOString());
+    archivos.set('n8/escritor/dudas-avisadas.txt', hace(71));
     tablas.pedidos[0].estado = 'generando';
-    await escribirLibroV3(db, { id: 'p8', narrador_id: 'n8' }, motor);
+    await escribirLibroV3(db, libro('n8'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    archivos.set('n8/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n8'), motor);
     expect(tablas.pedidos[0].estado).toBe('entregado');
     expect(modelo.llamadas.filter((p) => p.clave.startsWith('A/'))).toHaveLength(3);
-    expect(fetch).toHaveBeenCalledTimes(1);
-    vi.unstubAllGlobals();
+    expect(fetch).toHaveBeenCalledTimes(2); // el de las dudas y, vencido el plazo, el de que quedaron sin contestar
   });
 
-  it('con todas las dudas contestadas no espera las 24 horas (Naza, 13/10); con una sin contestar, sí', async () => {
-    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
-    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
-    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n11' }], pedidos: [{ id: 'p11', narrador_id: 'n11', estado: 'generando' }] } });
+  it('vale igual para «Para mí» y para un regalo', async () => {
+    for (const contexto of [{ vinculoComprador: 'yo mismo' }, { vinculoComprador: 'hija', acceso: { elige: true } }]) {
+      const { db, tablas } = baseFalsa(pedidoDe('n8b', { contexto }));
+      await escribirLibroV3(db, libro('n8b'), motorFalso().motor);
+      expect(tablas.pedidos[0].estado).toBe('pagado');
+    }
+  });
+
+  it('corre desde el WhatsApp a quien contó, no desde el mail a los socios', async () => {
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('n12'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('n12'), motor);
+    archivos.set('n12/escritor/dudas-avisadas.txt', hace(100));
+    archivos.set('n12/escritor/dudas-narrador-avisadas.txt', hace(2));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n12'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    archivos.set('n12/escritor/dudas-narrador-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n12'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('con todas contestadas no espera; con una sin contestar, sí', async () => {
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('n11'));
     const { motor, modelo } = motorFalso();
-    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
-    expect(tablas.pedidos[0].estado).toBe('pagado'); // recién avisadas: espera
-    const ids = (JSON.parse(String(archivos.get('n11/escritor/dudas-familia.json'))).dudas as { id: string }[]).map((d) => d.id);
+    await escribirLibroV3(db, libro('n11'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    const ids = idsDudas(archivos, 'n11');
     expect(ids.length).toBeGreaterThan(0);
-    // Falta una (o tiene solo espacios): sigue esperando.
     archivos.set('n11/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((id, i) => ({ dudaId: id, texto: i === 0 ? '  ' : 'Sí' })) }));
     tablas.pedidos[0].estado = 'generando';
-    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    await escribirLibroV3(db, libro('n11'), motor);
     expect(tablas.pedidos[0].estado).toBe('pagado');
     expect(modelo.llamadas.some((p) => p.clave.startsWith('B/'))).toBe(false);
-    // Todas contestadas, sin que pasen las 24 horas: no espera, pasa a escribir (la Etapa B ya usa las respuestas).
     archivos.set('n11/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((id) => ({ dudaId: id, texto: 'Sí' })) }));
     tablas.pedidos[0].estado = 'generando';
-    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    await escribirLibroV3(db, libro('n11'), motor);
     expect(tablas.pedidos[0].estado).not.toBe('pagado');
     expect(modelo.llamadas.some((p) => p.clave.startsWith('B/'))).toBe(true);
-    vi.unstubAllGlobals();
+  });
+
+  it('esperando, vuelve a mirar a los 15 minutos: la última respuesta libera el libro enseguida', async () => {
+    const { db, tablas } = baseFalsa(pedidoDe('n13'));
+    await escribirLibroV3(db, libro('n13'), motorFalso().motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(hayLugarParaLibroV3('n13')).toBe(false);
+    expect(hayLugarParaLibroV3('n13', Date.now() + 16 * 60_000)).toBe(true);
   });
 
   it('sin dudas, no espera', async () => {
-    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
-    const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n9' }], pedidos: [{ id: 'p9', narrador_id: 'n9', estado: 'generando' }] } });
-    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
-    reg.dudas = [];
-    const { motor } = motorFalso({ ...salidasModeloNelida(), '1-registro': JSON.stringify(reg) });
-    await escribirLibroV3(db, { id: 'p9', narrador_id: 'n9' }, motor);
+    const { db, tablas } = baseFalsa(pedidoDe('n9'));
+    await escribirLibroV3(db, libro('n9'), motorFalso(sinDudas()).motor);
     expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('ESCRITOR_ESPERA_DUDAS_HORAS=0 no saltea el plazo', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+    const { db, tablas } = baseFalsa(pedidoDe('n14'));
+    await escribirLibroV3(db, libro('n14'), motorFalso().motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+  });
+
+  it('sin MAIL_SOCIOS espera igual, con la marca escrita: a las 72 horas sigue', async () => {
+    vi.stubEnv('MAIL_SOCIOS', '');
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('n15'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('n15'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(Number.isFinite(Date.parse(String(archivos.get('n15/escritor/dudas-avisadas.txt'))))).toBe(true);
+    archivos.set('n15/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n15'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('un mail a los socios que no sale no traba el libro: la marca se escribe igual', async () => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('n16'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('n16'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(Number.isFinite(Date.parse(String(archivos.get('n16/escritor/dudas-avisadas.txt'))))).toBe(true);
+    archivos.set('n16/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n16'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('una marca del mail rota se reescribe: el plazo no arranca de cero para siempre', async () => {
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('n17'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('n17'), motor);
+    archivos.set('n17/escritor/dudas-avisadas.txt', 'rota');
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n17'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(Number.isFinite(Date.parse(String(archivos.get('n17/escritor/dudas-avisadas.txt'))))).toBe(true);
+  });
+
+  it('marcas con fecha del futuro: el libro no se traba, dos vueltas seguidas', async () => {
+    const futuro = new Date(Date.now() + 500 * H).toISOString();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('n19'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('n19'), motor);
+    archivos.set('n19/escritor/dudas-narrador-avisadas.txt', futuro);
+    archivos.set('n19/escritor/dudas-avisadas.txt', futuro);
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n19'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(Date.parse(String(archivos.get('n19/escritor/dudas-avisadas.txt')))).toBeLessThanOrEqual(Date.now()); // la reescribió
+    archivos.set('n19/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('n19'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  describe.each(['viaje', 'kids'])('un modo %s con fila V3 queda como antes', (modo) => {
+    const contexto = { modo, vinculoComprador: 'hija' };
+    const id = `m-${modo}`;
+
+    it('espera las 24 horas del mail, con su texto', async () => {
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+      vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+      const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+      vi.stubGlobal('fetch', fetch);
+      const { db, tablas, archivos } = baseFalsa(pedidoDe(id, { contexto }));
+      const { motor } = motorFalso();
+      await escribirLibroV3(db, libro(id), motor);
+      expect(tablas.pedidos[0].estado).toBe('pagado');
+      const { text } = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
+      expect(text).toContain('A la familia le llega un mail para contestarlas.');
+      expect(text).not.toContain('WhatsApp');
+      archivos.set(`${id}/escritor/dudas-avisadas.txt`, hace(24));
+      tablas.pedidos[0].estado = 'generando';
+      await escribirLibroV3(db, libro(id), motor);
+      expect(tablas.pedidos[0].estado).toBe('entregado');
+    });
+
+    it('con ESCRITOR_ESPERA_DUDAS_HORAS=0 o sin a quién avisar, no espera', async () => {
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+      vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+      const a = baseFalsa(pedidoDe(`${id}-a`, { contexto }));
+      await escribirLibroV3(a.db, libro(`${id}-a`), motorFalso().motor);
+      expect(a.tablas.pedidos[0].estado).toBe('entregado');
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+      vi.stubEnv('MAIL_SOCIOS', '');
+      const b = baseFalsa(pedidoDe(`${id}-b`, { contexto }));
+      await escribirLibroV3(b.db, libro(`${id}-b`), motorFalso().motor);
+      expect(b.tablas.pedidos[0].estado).toBe('entregado');
+    });
+
+    it('si el mail no sale, no da por avisado', async () => {
+      vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+      vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+      vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
+      const { db, tablas, archivos } = baseFalsa(pedidoDe(`${id}-c`, { contexto }));
+      await escribirLibroV3(db, libro(`${id}-c`), motorFalso().motor);
+      expect(tablas.pedidos[0].estado).toBe('pagado');
+      expect(String(archivos.get(`${id}-c/escritor/dudas-avisadas.txt`) ?? '')).toBe('');
+    });
+  });
+
+  it('una A rehecha deja vacías las dos marcas antes de pagar, y el plazo arranca de cero', async () => {
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('n18'));
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'n18', { motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('n18/escritor/dudas-avisadas.txt', hace(100));
+    archivos.set('n18/escritor/dudas-narrador-avisadas.txt', hace(100));
+    const cambiado = materialNelida();
+    cambiado.escribir('entradas/respuestas.xml', cambiado.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    const antes = modelo.llamadas.length;
+    await escribirLibroV3(db, libro('n18'), { ...motor, material: async () => ({ c: cambiado.clonar(), audios: AUDIOS }) });
+    expect(modelo.llamadas.slice(antes).map((p) => p.clave).slice(0, 2)).toEqual(['A/1-registro', 'A/2-plan']);
+    expect(String(archivos.get('n18/escritor/dudas-narrador-avisadas.txt'))).toBe('');
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(Date.now() - Date.parse(String(archivos.get('n18/escritor/dudas-avisadas.txt')))).toBeLessThan(H);
+  });
+});
+
+describe('las 48 horas de quien contó antes de pagar la lectura (Naza, 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const REGALO = { vinculoComprador: 'hija', acceso: { elige: true } };
+  const pedidoDe = (id: string, ultima: string) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto: REGALO, ultima_respuesta_at: ultima }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+
+  it('el tick no lanza la Etapa A a las 47 horas; a las 48, sí', async () => {
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('e1', hace(47)));
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'e1', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas).toHaveLength(0);
+    expect(archivos.has('e1/escritor/carpeta-A.json')).toBe(false);
+    tablas.narradores[0].ultima_respuesta_at = hace(48);
+    await revisarEtapaAV3(db, 'e1', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/2-plan', 'A/dudas']);
+  });
+
+  it('«Para mí» no espera en el tick', async () => {
+    const { db } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'e2', contexto: { vinculoComprador: 'yo mismo' }, ultima_respuesta_at: hace(1) }] } });
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'e2', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas.length).toBeGreaterThan(0);
+  });
+
+  it('encargado antes: vuelve a pagado sin pagar nada y mira a los 15 minutos, no a las 48 horas', async () => {
+    const { db, tablas } = baseFalsa(pedidoDe('e3', hace(1)));
+    const { motor, modelo } = motorFalso();
+    await escribirLibroV3(db, libro('e3'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(modelo.llamadas).toHaveLength(0);
+    expect(hayLugarParaLibroV3('e3')).toBe(false);
+    expect(hayLugarParaLibroV3('e3', Date.now() + 16 * 60_000)).toBe(true);
+  });
+
+  it('si quita todas sus respuestas durante la espera, sigue pagado: no se lee el material', async () => {
+    const { db, tablas } = baseFalsa(pedidoDe('e4', hace(1)));
+    const sinNada: Motor = { ...motorFalso().motor, material: async () => { throw new SinMaterial('e4'); } };
+    await escribirLibroV3(db, libro('e4'), sinNada);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+  });
+
+  it.each([
+    ['las 48 horas', 1],
+    ['las dudas', 49],
+  ])('alternar vueltas sanas por %s y errores pasajeros nunca da fallido', async (_caso, horas) => {
+    const { motor } = motorFalso();
+    let caido = false;
+    const conCortes: Motor = { ...motor, material: async (d, n) => { if (caido) throw new Error('fetch failed'); return motor.material!(d, n); } };
+    const id = `e5-${horas}`;
+    const b = baseFalsa(pedidoDe(id, hace(horas)));
+    for (let i = 0; i < 6; i++) {
+      caido = true;
+      // Con las 48 horas corriendo el material no se lee: el error pasajero tiene que venir de otra vuelta.
+      b.tablas.narradores[0].ultima_respuesta_at = hace(49);
+      b.tablas.pedidos[0].estado = 'generando';
+      await escribirLibroV3(b.db, libro(id), conCortes);
+      expect(b.tablas.pedidos[0].estado).toBe('pagado');
+      caido = false;
+      b.tablas.narradores[0].ultima_respuesta_at = hace(horas);
+      b.tablas.pedidos[0].estado = 'generando';
+      await escribirLibroV3(b.db, libro(id), conCortes);
+      expect(b.tablas.pedidos[0].estado).toBe('pagado');
+    }
+  });
+});
+
+describe('la alerta de libro demorado con las esperas nuevas (Naza, 06/11)', () => {
+  const H = 3_600_000;
+  const ahora = Date.parse('2026-11-10T12:00:00Z');
+  const haceH = (h: number) => new Date(ahora - h * H).toISOString();
+  const armar = (n: Fila, archivos: Record<string, string> = {}) => baseFalsa({
+    tablas: { narradores: [{ id: 'a1', ...n }], pedidos: [{ id: 'p-a1', narrador_id: 'a1', estado: 'pagado' }] },
+    archivos,
+  });
+  const REGALO = { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } };
+  const conMail = () => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('privado: no avisa a las 119 horas; a las 120, sí, con el texto corregido', async () => {
+    const fetch = conMail();
+    await alertarLibrosDemorados(armar({ ...REGALO, libro_aprobado_at: haceH(119) }).db, new Set(['a1']), ahora);
+    expect(fetch).not.toHaveBeenCalled();
+    await alertarLibrosDemorados(armar({ ...REGALO, libro_aprobado_at: haceH(120) }).db, new Set(['a1']), ahora);
+    const { text } = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
+    expect(text).toContain('más hasta 3 días si hay dudas sin contestar');
+    expect(text).not.toContain('más 24 si hubo dudas');
+  });
+
+  it('privado: el reloj arranca cuando terminan las 48 horas de quien contó', async () => {
+    const fetch = conMail();
+    const cerrado = { ...REGALO, libro_aprobado_at: haceH(200) };
+    await alertarLibrosDemorados(armar({ ...cerrado, ultima_respuesta_at: haceH(167) }).db, new Set(['a1']), ahora);
+    expect(fetch).not.toHaveBeenCalled();
+    await alertarLibrosDemorados(armar({ ...cerrado, ultima_respuesta_at: haceH(168) }).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('privado con la Etapa A hecha y cero dudas: vuelve a las 48 horas; con dudas, a las 120', async () => {
+    const fetch = conMail();
+    const conA = { 'a1/escritor/carpeta-A.json': '{}' };
+    await alertarLibrosDemorados(armar({ ...REGALO, libro_aprobado_at: haceH(119) }, { ...conA, 'a1/escritor/dudas-familia.json': '{"dudas":[{"id":"D01"}]}' }).db, new Set(['a1']), ahora);
+    expect(fetch).not.toHaveBeenCalled();
+    await alertarLibrosDemorados(armar({ ...REGALO, libro_aprobado_at: haceH(47) }, conA).db, new Set(['a1']), ahora);
+    expect(fetch).not.toHaveBeenCalled();
+    await alertarLibrosDemorados(armar({ ...REGALO, libro_aprobado_at: haceH(48) }, conA).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['viaje', 'kids'])('un modo %s queda como antes: a las 48 horas, aunque tenga dudas', async (modo) => {
+    const fetch = conMail();
+    const contexto = { modo, vinculoComprador: 'hija' };
+    await alertarLibrosDemorados(armar({ contexto, libro_aprobado_at: haceH(48) }, { 'a1/escritor/dudas-familia.json': '{"dudas":[{"id":"D01"}]}' }).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('«Para mí»: a las 48 horas sin dudas; con dudas, a las 120, porque también las espera', async () => {
+    const fetch = conMail();
+    const dudas = { 'a1/escritor/dudas-familia.json': '{"dudas":[{"id":"D01"}]}' };
+    await alertarLibrosDemorados(armar({ libro_aprobado_at: haceH(119) }, dudas).db, new Set(['a1']), ahora);
+    expect(fetch).not.toHaveBeenCalled();
+    await alertarLibrosDemorados(armar({ libro_aprobado_at: haceH(120) }, dudas).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await alertarLibrosDemorados(armar({ libro_aprobado_at: haceH(48) }).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    await alertarLibrosDemorados(armar({ libro_aprobado_at: haceH(48) }, { 'a1/escritor/dudas-familia.json': '{"dudas":[]}' }).db, new Set(['a1']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('dudasParaLaFamilia: el plazo vencido', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+
+  it('por el WhatsApp o por el respaldo; recién avisadas, no', async () => {
+    const { db, archivos } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'f1' }] } });
+    await revisarEtapaAV3(db, 'f1', { motor: motorFalso().motor });
+    await colaDelEscritor.esperarTodo();
+    expect((await dudasParaLaFamilia(db, 'f1'))?.plazoVencido).toBe(false);
+    archivos.set('f1/escritor/dudas-avisadas.txt', hace(73));
+    expect((await dudasParaLaFamilia(db, 'f1'))?.plazoVencido).toBe(true);
+    archivos.set('f1/escritor/dudas-narrador-avisadas.txt', hace(1));
+    expect((await dudasParaLaFamilia(db, 'f1'))?.plazoVencido).toBe(false);
+    archivos.set('f1/escritor/dudas-narrador-avisadas.txt', hace(72));
+    expect((await dudasParaLaFamilia(db, 'f1'))?.plazoVencido).toBe(true);
+  });
+
+  it('sin dudas, no hay plazo que venza', async () => {
+    const { db, archivos } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'f2' }] } });
+    await revisarEtapaAV3(db, 'f2', { motor: motorFalso(sinDudas()).motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('f2/escritor/dudas-avisadas.txt', hace(100));
+    expect(await dudasParaLaFamilia(db, 'f2')).toEqual({ cantidad: 0, contestadas: false, plazoVencido: false });
   });
 });
 
@@ -546,33 +874,6 @@ describe('dos copias de la fábrica a la vez (deploy)', () => {
   });
 });
 
-describe('arreglos de la segunda revisión (09/10)', () => {
-  it('si la A se rehízo y el mail de dudas falla, el reintento no toma por avisado el aviso viejo', async () => {
-    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
-    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
-    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n10' }], pedidos: [{ id: 'p10', narrador_id: 'n10', estado: 'generando' }] } });
-    archivos.set('n10/escritor/dudas-avisadas.txt', new Date(Date.now() - 48 * 3_600_000).toISOString()); // de una A anterior
-    const { motor, modelo } = motorFalso();
-    await escribirLibroV3(db, { id: 'p10', narrador_id: 'n10' }, motor);
-    expect(tablas.pedidos[0].estado).toBe('pagado');
-    tablas.pedidos[0].estado = 'generando';
-    await escribirLibroV3(db, { id: 'p10', narrador_id: 'n10' }, motor); // el mail sigue caído: sigue esperando
-    expect(tablas.pedidos[0].estado).toBe('pagado');
-    expect(modelo.llamadas.some((p) => p.clave.startsWith('C/'))).toBe(false);
-    vi.unstubAllGlobals();
-  });
-
-  it('sin a quién avisar (falta MAIL_SOCIOS), no espera por las dudas', async () => {
-    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
-    vi.stubEnv('MAIL_SOCIOS', '');
-    const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n11' }], pedidos: [{ id: 'p11', narrador_id: 'n11', estado: 'generando' }] } });
-    const { motor } = motorFalso();
-    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
-    expect(tablas.pedidos[0].estado).toBe('entregado');
-  });
-});
-
 // «Para mí» (15/10): el mismo criterio que esPropia en la web (vinculoComprador = "yo mismo").
 describe('esLibroPropio', () => {
   it('solo cuando quien compró eligió «Para mí»', () => {
@@ -581,5 +882,223 @@ describe('esLibroPropio', () => {
     expect(esLibroPropio({})).toBe(false);
     expect(esLibroPropio(null)).toBe(false);
     expect(esLibroPropio(undefined)).toBe(false);
+  });
+});
+
+describe('un regalo que no es privado sigue como hoy (sin la marca, Joaquín 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const REGALO = { vinculoComprador: 'hija' };
+  const pedidoDe = (id: string, n: Fila = {}) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto: REGALO, ...n }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+  const conMail = (status = 200) => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async (_url: string, _init: { body: string }) => new Response('{}', { status }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  const mails = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { subject: string; text: string });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('espera ESCRITOR_ESPERA_DUDAS_HORAS desde el mail, con su texto, y se retoma al vencer, no a los 15 minutos', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r1'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r1'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    const { text } = mails(fetch)[0];
+    expect(text).toContain('A la familia le llega un mail para contestarlas.');
+    expect(text).toContain('espera 24 horas desde este mail');
+    expect(text).not.toContain('WhatsApp');
+    expect(hayLugarParaLibroV3('r1', Date.now() + 16 * 60_000)).toBe(false);
+    expect(hayLugarParaLibroV3('r1', Date.now() + 25 * H)).toBe(true);
+    archivos.set('r1/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r1'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('la marca del WhatsApp no cuenta: manda dudas-avisadas.txt', async () => {
+    conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r2'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r2'), motor);
+    archivos.set('r2/escritor/dudas-narrador-avisadas.txt', hace(1));
+    archivos.set('r2/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r2'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('con ESCRITOR_ESPERA_DUDAS_HORAS=0 o sin a quién avisar, no espera', async () => {
+    conMail();
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+    const a = baseFalsa(pedidoDe('r3'));
+    await escribirLibroV3(a.db, libro('r3'), motorFalso().motor);
+    expect(a.tablas.pedidos[0].estado).toBe('entregado');
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', '');
+    const b = baseFalsa(pedidoDe('r4'));
+    await escribirLibroV3(b.db, libro('r4'), motorFalso().motor);
+    expect(b.tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('si el mail no sale, no da por avisado', async () => {
+    conMail(500);
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r5'));
+    await escribirLibroV3(db, libro('r5'), motorFalso().motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(String(archivos.get('r5/escritor/dudas-avisadas.txt') ?? '')).toBe('');
+  });
+
+  it('la Etapa A no espera 48 horas, y el pedido tampoco', async () => {
+    const { db } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'r6', contexto: REGALO, ultima_respuesta_at: hace(1) }] } });
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'r6', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas.length).toBeGreaterThan(0);
+    const b = baseFalsa(pedidoDe('r7', { ultima_respuesta_at: hace(1) }));
+    const m2 = motorFalso(sinDudas());
+    await escribirLibroV3(b.db, libro('r7'), m2.motor);
+    expect(b.tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('venció la espera con dudas sin contestar: se escribe sin avisar nada a los socios', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r8'));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r8'), motor);
+    archivos.set('r8/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r8'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(mails(fetch).filter((m) => /sin contestar/.test(m.text))).toEqual([]);
+    expect(archivos.has('r8/escritor/dudas-sin-contestar-avisadas.txt')).toBe(false);
+  });
+
+  it('la alerta de demora: a las 48 horas, aunque tenga dudas, con su texto de siempre', async () => {
+    const fetch = conMail();
+    const ahora = Date.parse('2026-11-10T12:00:00Z');
+    const { db } = baseFalsa({
+      tablas: { narradores: [{ id: 'r9', contexto: REGALO, libro_aprobado_at: new Date(ahora - 48 * H).toISOString() }], pedidos: [{ id: 'p-r9', narrador_id: 'r9', estado: 'pagado' }] },
+      archivos: { 'r9/escritor/dudas-familia.json': '{"dudas":[{"id":"D01"}]}' },
+    });
+    await alertarLibrosDemorados(db, new Set(['r9']), ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(mails(fetch)[0].text).toContain('La familia cerró el libro hace 48 horas');
+    expect(mails(fetch)[0].text).toContain('más 24 si hubo dudas');
+  });
+
+  it('«Mi familia» sigue el mismo camino: el mail con la pantalla del panel, sin WhatsApp ni plazo de 72 horas', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r11', { contexto: { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }, ultima_respuesta_at: hace(1) }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r11'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(mails(fetch)[0].text).toContain('A la familia le llega un mail');
+    expect(mails(fetch)[0].text).toContain('/tablero/r11/dudas');
+    expect(mails(fetch)[0].text).not.toContain('WhatsApp');
+    archivos.set('r11/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r11'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('con la marca, el mismo vínculo va a quien contó: la prueba de que nada mira el vínculo', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('r10', { contexto: { vinculoComprador: 'hija', acceso: { elige: true } } }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('r10'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(mails(fetch)[0].text).toContain('Se las mandamos por WhatsApp a quien contó.');
+    archivos.set('r10/escritor/dudas-avisadas.txt', hace(24));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('r10'), motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+  });
+});
+
+describe('si quien contó no contesta, los socios se enteran (Joaquín, 06/11)', () => {
+  const H = 3_600_000;
+  const hace = (horas: number): string => new Date(Date.now() - horas * H).toISOString();
+  const pedidoDe = (id: string, contexto: Fila) => ({ tablas: { narradores: [{ ...NARRADOR, id, contexto }], pedidos: [{ id: `p-${id}`, narrador_id: id, estado: 'generando' }] } });
+  const libro = (id: string) => ({ id: `p-${id}`, narrador_id: id });
+  const conMail = (status = 200) => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async (_url: string, _init: { body: string }) => new Response('{}', { status }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  const delAviso = (fetch: ReturnType<typeof conMail>) => fetch.mock.calls.map((c) => JSON.parse(c[1].body) as { text: string }).filter((m) => m.text.includes('Se empieza a escribir'));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it.each([['un privado', { vinculoComprador: 'hija', acceso: { elige: true } }], ['«Para mí»', { vinculoComprador: 'yo mismo' }]])('%s: venció el plazo, un mail con cuántas y su marca, y el libro sale', async (_caso, contexto) => {
+    const fetch = conMail();
+    const id = `s-${contexto.vinculoComprador === 'hija' ? 'a' : 'b'}`;
+    const { db, tablas, archivos } = baseFalsa(pedidoDe(id, contexto));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro(id), motor);
+    expect(delAviso(fetch)).toEqual([]);
+    const total = (JSON.parse(String(archivos.get(`${id}/escritor/dudas-familia.json`))).dudas as unknown[]).length;
+    archivos.set(`${id}/escritor/dudas-avisadas.txt`, hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro(id), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(delAviso(fetch)).toHaveLength(1);
+    expect(delAviso(fetch)[0].text).toMatch(new RegExp(`^Se empieza a escribir el libro de .+ con ${total} dudas? sin contestar\\. Quien contó no las respondió en el plazo\\.`));
+    expect(archivos.has(`${id}/escritor/dudas-sin-contestar-avisadas.txt`)).toBe(true);
+  });
+
+  it('si el mail falla, el libro sale igual y no queda la marca', async () => {
+    conMail(500);
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-c', { vinculoComprador: 'hija', acceso: { elige: true } }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('s-c'), motor);
+    archivos.set('s-c/escritor/dudas-avisadas.txt', hace(72));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('s-c'), motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(archivos.has('s-c/escritor/dudas-sin-contestar-avisadas.txt')).toBe(false);
+  });
+
+  it('con todas contestadas, nada', async () => {
+    const fetch = conMail();
+    const { db, tablas, archivos } = baseFalsa(pedidoDe('s-d', { vinculoComprador: 'hija', acceso: { elige: true } }));
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, libro('s-d'), motor);
+    const ids = (JSON.parse(String(archivos.get('s-d/escritor/dudas-familia.json'))).dudas as { id: string }[]).map((d) => d.id);
+    archivos.set('s-d/escritor/correcciones.json', JSON.stringify({ correcciones: ids.map((dudaId) => ({ dudaId, texto: 'Sí' })) }));
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, libro('s-d'), motor);
+    expect(delAviso(fetch)).toEqual([]);
+  });
+
+  it('una A rehecha saca las respuestas viejas a las dudas antes de pagarla, y deja las de los socios', async () => {
+    conMail();
+    const { db, archivos } = baseFalsa(pedidoDe('s-f', { vinculoComprador: 'hija', acceso: { elige: true } }));
+    const { motor } = motorFalso();
+    await revisarEtapaAV3(db, 's-f', { motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('s-f/escritor/correcciones.json', JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Vieja' }, { texto: 'Del socio' }] }));
+    const cambiado = materialNelida();
+    cambiado.escribir('entradas/respuestas.xml', cambiado.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    await escribirLibroV3(db, libro('s-f'), { ...motor, material: async () => ({ c: cambiado.clonar(), audios: AUDIOS }) });
+    expect(JSON.parse(String(archivos.get('s-f/escritor/correcciones.json'))).correcciones).toEqual([{ texto: 'Del socio' }]);
+  });
+
+  it('una A rehecha deja la marca sin valor', async () => {
+    conMail();
+    const { db, archivos, tablas } = baseFalsa(pedidoDe('s-e', { vinculoComprador: 'hija', acceso: { elige: true } }));
+    const { motor } = motorFalso();
+    await revisarEtapaAV3(db, 's-e', { motor });
+    await colaDelEscritor.esperarTodo();
+    archivos.set('s-e/escritor/dudas-sin-contestar-avisadas.txt', hace(100));
+    const cambiado = materialNelida();
+    cambiado.escribir('entradas/respuestas.xml', cambiado.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    await escribirLibroV3(db, libro('s-e'), { ...motor, material: async () => ({ c: cambiado.clonar(), audios: AUDIOS }) });
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(String(archivos.get('s-e/escritor/dudas-sin-contestar-avisadas.txt'))).toBe('');
   });
 });

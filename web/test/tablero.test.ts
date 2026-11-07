@@ -130,7 +130,7 @@ describe('GET /api/audio/[respuestaId]', () => {
         respuestas: [
           { data: { id: 'resp-1', audio_path: 'narrador-1/dia_01.ogg', narrador_id: 'narrador-1' }, error: null },
         ],
-        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1', contexto: { vinculoComprador: 'yo mismo' } }, error: null }],
       },
       { borradoEl: '2027-01-12T09:30:00.000Z' },
     );
@@ -155,7 +155,7 @@ describe('GET /api/audio/[respuestaId]', () => {
             error: null,
           },
         ],
-        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+        narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1', contexto: { vinculoComprador: 'yo mismo' } }, error: null }],
       },
       { signedUrl: { data: { signedUrl: 'https://signed.example/audio.ogg' }, error: null } },
     );
@@ -266,6 +266,36 @@ describe('PATCH /api/narrador/[narradorId]', () => {
     expect(respuesta.status).toBe(200);
     const llamadaUpdate = admin.llamadas.narradores.find((l) => l[0] === 'update');
     expect(llamadaUpdate?.[1]).toMatchObject({ estado: 'cerrado_anticipado' });
+    expect(llamadaUpdate?.[1]).not.toHaveProperty('ultima_respuesta_at');
+  });
+
+  it.each([
+    ['privado', { acceso: { elige: true } }, true],
+    ['privado con «Solo yo»', { acceso: { elige: true, quien: 'narrador' } }, true],
+    ['con «Mi familia»', { acceso: { elige: true, quien: 'familia' } }, false],
+    ['sin la marca', { vinculoComprador: 'hija' }, false],
+  ])('cierre_anticipado %s: las 48 horas de quien contó cuentan desde el cierre solo si es privado', async (_caso, contexto, cuenta) => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const respuestasFake = Array.from({ length: 10 }, (_, i) => ({ pregunta_orden: i + 1 }));
+    const admin = crearAdminFake({
+      familias: [{ data: { id: 'familia-1' }, error: null }],
+      narradores: [
+        { data: { id: 'narrador-1', familia_id: 'familia-1', estado: 'activo', contexto }, error: null },
+        { data: null, error: null }, // update
+      ],
+      respuestas: [{ data: respuestasFake, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const antes = Date.now();
+    const request = { json: async () => ({ accion: 'cierre_anticipado' }) } as never;
+    const respuesta = await PATCH(request, { params: Promise.resolve({ narradorId: 'narrador-1' }) });
+
+    expect(respuesta.status).toBe(200);
+    const cambio = admin.llamadas.narradores.find((l) => l[0] === 'update')?.[1] as { estado: string; ultima_respuesta_at?: string };
+    expect(cambio.estado).toBe('cerrado_anticipado');
+    if (cuenta) expect(Date.parse(cambio.ultima_respuesta_at as string)).toBeGreaterThanOrEqual(antes);
+    else expect(cambio).not.toHaveProperty('ultima_respuesta_at');
   });
 
   it('cierre_anticipado con estado completado responde 400 (transición inválida)', async () => {
@@ -371,9 +401,17 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
 
   // Las dudas del escritor tienen plazo: el libro se escribe con o sin ellas, así
   // que ganan a elegir la tapa, que no vence.
-  it('con dudas sin contestar, el paso es contestarlas y no encargar el libro', () => {
-    const paso = proximoPaso(h('completado'), { ...r, dudasPendientes: true });
-    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.' });
+  it('«para mí», con dudas sin contestar: el paso es contestarlas y no encargar el libro', () => {
+    const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  });
+  it('en un regalo las contesta quien contó: a quien regala y a sus invitados no se les ofrece la pantalla', () => {
+    const privado = (rol?: 'invitado') => {
+      const base = rol ? h('completado', rol) : h('completado');
+      return { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'hija', acceso: { elige: true } } } } as unknown as Historia;
+    };
+    expect(proximoPaso(privado(), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
+    expect(proximoPaso(privado('invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3');
   });
   it('si el libro es para quien lo compró, le habla de vos', () => {
     const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
@@ -384,8 +422,10 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
     const propiaInvitado = { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
     expect(proximoPaso(propiaInvitado, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.');
   });
-  it('un invitado también las ve: son los que saben los datos', () => {
-    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  it('un invitado de «para mí» también las ve: son los que saben los datos', () => {
+    const base = h('completado', 'invitado');
+    const propiaInvitado = { ...base, narrador: { ...base.narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propiaInvitado, { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
   });
   it('un visitante no', () => {
     expect(proximoPaso(h('completado', 'visitante'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');

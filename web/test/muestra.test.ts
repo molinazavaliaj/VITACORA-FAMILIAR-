@@ -28,11 +28,11 @@ const GUION = [
 
 describe("armarMuestra", () => {
   it("sin libro cerrado no hay muestra", async () => {
-    expect(await armarMuestra(admin({ id: "n1", nombre: "Osvaldo", edicion: {}, libro_aprobado_at: null }), "n1")).toBeNull();
+    expect(await armarMuestra(admin({ id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Osvaldo", edicion: {}, libro_aprobado_at: null }), "n1")).toBeNull();
   });
 
   it("sin edición, los capítulos son los del guion", async () => {
-    const m = await armarMuestra(admin({ id: "n1", nombre: "Osvaldo", edicion: {}, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
+    const m = await armarMuestra(admin({ id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Osvaldo", edicion: {}, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
     expect(m?.capitulos).toEqual(["La infancia", "El oficio", "Los hijos"]);
   });
 
@@ -41,13 +41,13 @@ describe("armarMuestra", () => {
       ordenCapitulos: ["Los hijos", "La infancia", "El oficio"],
       titulosCapitulos: { "Los hijos": "  Mis cuatro hijos  ", "La infancia": "Pelliza, 1948" },
     };
-    const m = await armarMuestra(admin({ id: "n1", nombre: "Osvaldo", edicion, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
+    const m = await armarMuestra(admin({ id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Osvaldo", edicion, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
     // renombrados los dos que tienen título; el tercero, con su nombre del guion
     expect(m?.capitulos).toEqual(["Mis cuatro hijos", "Pelliza, 1948", "El oficio"]);
   });
 
   it("la tapa (13/10): sin título elegido, el nombre solo; el idioma sale de la entrevista", async () => {
-    const cerrado = { id: "n1", nombre: "Imma Colell", edicion: {}, libro_aprobado_at: "2026-09-20T00:00:00Z" };
+    const cerrado = { id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Imma Colell", edicion: {}, libro_aprobado_at: "2026-09-20T00:00:00Z" };
     const ca = await armarMuestra(admin(cerrado, GUION, { idioma: "ca" }), "n1");
     expect(ca?.titulo).toBe("Imma Colell");
     expect(ca?.idioma).toBe("ca");
@@ -57,7 +57,7 @@ describe("armarMuestra", () => {
 
   it("un título vacío o en blanco no pisa el nombre del guion", async () => {
     const edicion = { titulosCapitulos: { "La infancia": "   ", "El oficio": "" } };
-    const m = await armarMuestra(admin({ id: "n1", nombre: "Osvaldo", edicion, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
+    const m = await armarMuestra(admin({ id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Osvaldo", edicion, libro_aprobado_at: "2026-09-20T00:00:00Z" }, GUION), "n1");
     expect(m?.capitulos).toEqual(["La infancia", "El oficio", "Los hijos"]);
   });
 });

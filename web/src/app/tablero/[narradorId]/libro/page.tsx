@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, PUEDE, loContadoEsPrivado } from "@/lib/panel";
 import { catalogo, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
@@ -19,8 +19,8 @@ import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasFuera, respuestasV3ParaCerrar, type FilaRespuestaV3, type RespuestaV3 } from "@/lib/v3";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { entrevistaHistoria } from "@/lib/historia-panel";
-import { hayDudasPendientes } from "@/lib/dudas-archivos";
-import { textoDudas } from "../../proximo-paso";
+import { cuantasDudasPendientes } from "@/lib/dudas-archivos";
+import { textoDudas, textoQuedanPreguntas } from "../../proximo-paso";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { nombrePropio } from "@/lib/nombre-propio";
 
@@ -62,6 +62,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   if (!historia) notFound();
   const { narrador: n, rol } = historia;
   const propia = esPropia(n);
+  // El libro es para otra persona (Naza y Joaquín, 05/11): acá no se pide ni se manda nada de lo contado.
+  const privado = loContadoEsPrivado(n);
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
   // Una historia cierra igual que la V3 (su estado tiene la misma forma): `v3` es la entrevista de las dos.
@@ -71,7 +73,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const esHistoria = deHistoria !== null || (!entrevistaFamiliar && n.contexto?.modo === "historia");
   const v3 = entrevistaFamiliar ?? deHistoria ?? (esHistoria ? { estado: {}, idioma: (n.contexto?.idioma as string | undefined) ?? null } : null);
   // Dudas del escritor sin contestar (13/10): el aviso lleva a la pantalla. Vale aun encargado, mientras el libro no esté escrito.
-  const dudasPendientes = terminado ? await hayDudasPendientes(admin, n.id) : false;
+  const quedanPreguntas = terminado ? await cuantasDudasPendientes(admin, n) : 0;
 
   const [{ data: filaN }, { data: pedidos }, trato] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
@@ -162,7 +164,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
     admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
     // En una historia, la clave está en `clave_historia`: va con el alias `clave_v3`, como en el panel.
-    admin.from("respuestas").select(`id, pregunta_orden, transcripcion, texto_directo, es_repregunta, ${esHistoria ? "clave_v3:clave_historia" : "clave_v3"}, reservada, reservado_tramo`).eq("narrador_id", n.id).order("pregunta_orden"),
+    privado ? Promise.resolve({ data: [] }) : admin.from("respuestas").select(`id, pregunta_orden, transcripcion, texto_directo, es_repregunta, ${esHistoria ? "clave_v3:clave_historia" : "clave_v3"}, reservada, reservado_tramo`).eq("narrador_id", n.id).order("pregunta_orden"),
     // `select("*")`: `posicion` y `foco` (3b.6) existen recién con la migración 20260918; pedirlos por nombre tiraría la página antes.
     admin.from("fotos").select("*").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
@@ -180,8 +182,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     ? respuestasV3ParaCerrar(v3.estado, ((respuestas as FilaRespuestaV3[] | null) ?? []), fuera)
     : undefined;
   // Encuadre (3b.6): siempre un foco usable y una posición válida, tenga o no la fila los campos.
-  const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown })[] | null) ?? []).map((f) => ({
+  const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown; subida_por?: unknown })[] | null) ?? []).map((f) => ({
     ...f, foco: focoDe(f.foco), posicion: validarPosicion(f.posicion) ? f.posicion : POSICION_DEFAULT,
+    // Si lo contado es privado, una foto que mandó el narrador va sin el epígrafe: es lo que escribió.
+    epigrafe: privado && !f.subida_por ? null : f.epigrafe,
   })));
 
   const propuesta = propuestaPorDefecto(n.nombre, capitulos);
@@ -230,7 +234,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   if (!terminado) {
     estado = (
       <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-[var(--texto-suave)]">
-        {v3
+        {v3 || privado
           ? propia
             ? `Cuando termines de contar, te avisamos por mail para que elijas la tapa y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} escribimos el libro.`
             : `Cuando termine de contar, te avisamos por mail para que elijas la tapa y lo encargues. ${tu ? "Solo entonces" : "Recién ahí"} escribimos el libro.`
@@ -267,7 +271,11 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       <Tarjeta className="mt-6 border-[var(--acento)]">
         <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
           <strong className="font-medium text-[var(--texto)]">{propia ? "Terminaste de contar tu historia." : `${n.nombre} terminó de contar su historia.`}</strong>{" "}
-          {v3
+          {privado
+            ? tu
+              ? "Elige la tapa y encarga el libro. Solo entonces lo escribimos."
+              : "Elegí la tapa y encargá el libro. Recién ahí lo escribimos."
+            : v3
             ? tu
               ? "Elige la tapa, fíjate si hay algo que no quieras en el libro y encárgalo. Solo entonces lo escribimos."
               : "Elegí la tapa, fijate si hay algo que no quieras en el libro y encargalo. Recién ahí lo escribimos."
@@ -288,7 +296,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       <div className="mt-1">
         <Titulo>Su libro</Titulo>
       </div>
-      {dudasPendientes ? (
+      {/* Si lo contado es privado las contesta quien contó, por su link: a quien regala, solo cuántas faltan. */}
+      {quedanPreguntas > 0 && privado ? (
+        <p className="mt-6 text-[16px] leading-relaxed text-[var(--texto)]">{textoQuedanPreguntas(n.como_le_dicen, quedanPreguntas)}</p>
+      ) : quedanPreguntas > 0 ? (
         <div className="mt-6">
           <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tu)}</ProximoPaso>
         </div>
@@ -296,7 +307,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       {estado}
 
       {/* ── El libro en miniatura ──────────────────────────────────────── */}
-      {v3 ? null : (
+      {v3 || privado ? null : (
         <section className="mt-12" aria-label="El libro en miniatura">
           <LibroMiniatura datos={datosLibro} trato={trato} />
         </section>
@@ -336,6 +347,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             fotos={fotos.map(({ id, epigrafe, capitulo, foco }) => ({ id, epigrafe, capitulo, foco }))}
             nombresRevisados={nombresRevisados}
             v3={respuestasV3}
+            privado={privado}
             upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} trato={trato} />}
             envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} trato={trato} /> : undefined}
             faltaDireccion={faltaDireccion}

@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { regionDelRequest } from "@/lib/region";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 import { tratoDeLaFamilia } from "@/lib/trato";
+import { loContadoEsPrivado } from "@/lib/panel";
 import { EnlaceQueNoSirve, HojaAviso } from "../../_publico/hoja-aviso";
 
 // Las primeras páginas del libro, con su voz. Llega acá desde el correo que
@@ -59,7 +60,7 @@ export default async function PaginaAnticipo({
 
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
-    .select("id, como_le_dicen, familia_id")
+    .select("id, como_le_dicen, familia_id, contexto")
     .eq("id", datosToken.narradorId)
     .maybeSingle();
 
@@ -68,9 +69,11 @@ export default async function PaginaAnticipo({
     return <EstadoInvalido trato={tratoDelPedido} />;
   }
   const datosNarrador = narrador as
-    | { id: string; como_le_dicen: string; familia_id: string }
+    | { id: string; como_le_dicen: string; familia_id: string; contexto?: Record<string, unknown> | null }
     | null;
   if (!datosNarrador) return <EstadoInvalido trato={tratoDelPedido} />;
+  // Los links ya enviados no vencen: si lo contado es privado, dejan de abrir (Naza y Joaquín, 05/11).
+  if (loContadoEsPrivado(datosNarrador)) return <EstadoInvalido trato={tratoDelPedido} />;
   // Vos o tú: el de la familia dueña de la historia.
   const trato = await tratoDeLaFamilia(admin, datosNarrador.familia_id);
   const tu = trato === "tu";

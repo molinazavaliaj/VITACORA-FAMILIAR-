@@ -1,4 +1,4 @@
-import { esPropia, type Historia } from "@/lib/panel";
+import { esPropia, loContadoEsPrivado, type Historia } from "@/lib/panel";
 import { textosComprador, tratoDeRegion, type RegionComprador } from "@/lib/regalo-textos";
 import { viajeDelContexto, type CompraViaje } from "@/lib/viaje";
 
@@ -24,6 +24,13 @@ export function textoDudas(propia: boolean, comoLeDicen: string, tu: boolean): s
     : `Hay dudas sobre lo que contó ${comoLeDicen}. ${contestalas} antes de que se escriba el libro.`;
 }
 
+/** Lo único que ve quien regala de las dudas: cuántas faltan, sin link (Naza, 06/11). Igual de vos y de tú. */
+export function textoQuedanPreguntas(comoLeDicen: string, cuantas: number): string {
+  return cuantas === 1
+    ? `A ${comoLeDicen} le queda una pregunta por contestar.`
+    : `A ${comoLeDicen} le quedan ${cuantas} preguntas por contestar.`;
+}
+
 export function viajeDe(h: Historia): (Partial<CompraViaje> & { salida: string; vuelta: string }) | null {
   return viajeDelContexto(h.narrador.contexto);
 }
@@ -38,13 +45,15 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
   const esDuena = h.rol === "duena";
   const propia = esPropia(h.narrador);
   const tu = tratoDeRegion(region) === "tu";
+  const privado = loContadoEsPrivado(h.narrador);
   switch (h.narrador.estado) {
     case "completado":
     case "cerrado_anticipado":
       if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: tu ? "Pide tu copia impresa" : "Pedí tu copia impresa" };
       // Las dudas tienen plazo: pasado el rato de espera el libro se escribe con
       // o sin ellas. Elegir la tapa no vence, así que las dudas van primero.
-      if (r.dudasPendientes) {
+      // Si lo contado es privado las contesta quien contó, por su link: a quien regala no se le ofrece nada.
+      if (r.dudasPendientes && !privado) {
         return { href: `/tablero/${id}/dudas`, texto: textoDudas(propia && esDuena, h.narrador.como_le_dicen, tu) };
       }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: tu
@@ -54,11 +63,14 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
         ? { href: `/tablero/${id}/libro`, texto: tu
           ? (propia ? "Ya terminaste de contar — dale los últimos retoques y encarga tu libro" : "Ya terminó de contar — dale los últimos retoques y encarga su libro")
           : (propia ? "Ya terminaste de contar — dale los últimos retoques y encargá tu libro" : "Ya terminó de contar — dale los últimos retoques y encargá su libro") }
-        : { href: `/tablero/${id}`, texto: tu ? "Ya terminó de contar — lee su historia" : "Ya terminó de contar — leé su historia" };
+        : { href: `/tablero/${id}`, texto: privado
+          ? `Ya terminó de contar. Cuando el libro esté listo, se abre ${tu ? "aquí" : "acá"}`
+          : tu ? "Ya terminó de contar — lee su historia" : "Ya terminó de contar — leé su historia" };
     case "pausado":
       return { href: `/tablero/${id}`, texto: propia ? `Pediste una pausa — ${tu ? "retoma" : "retomá"} cuando quieras` : `Pidió una pausa — ${tu ? "mira" : "mirá"} qué pasó` };
     case "activo":
       if (!r.v3 && r.tieneAnticipo && r.respondidas < 6) return { href: `/tablero/${id}`, texto: tu ? "Ya puedes leer el capítulo 1" : "Ya podés leer el capítulo 1" };
+      if (r.respondidas > 0 && privado) return { href: `/tablero/${id}`, texto: tu ? "Mira cuánto lleva contado" : "Mirá cuánto lleva contado" };
       if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: `${tu ? "Escucha" : "Escuchá"} lo último que ${propia ? "contaste" : "contó"}` };
       return null;
     case "acepto":

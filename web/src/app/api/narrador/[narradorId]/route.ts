@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { loContadoEsPrivado } from "@/lib/panel";
 import { intenta } from "@/lib/trato";
 import { tratoDeRegion, type TratoComprador } from "@/lib/regalo-textos";
 
@@ -62,7 +63,7 @@ export async function PATCH(
 
   const { data: narrador, error: errorNarrador } = await admin
     .from("narradores")
-    .select("id, familia_id, estado")
+    .select("id, familia_id, estado, contexto")
     .eq("id", narradorId)
     .maybeSingle();
 
@@ -71,7 +72,7 @@ export async function PATCH(
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO(trato) }, { status: 500 });
   }
 
-  const datosNarrador = narrador as { id: string; familia_id: string; estado: string } | null;
+  const datosNarrador = narrador as { id: string; familia_id: string; estado: string; contexto?: Record<string, unknown> | null } | null;
 
   if (!datosNarrador || datosNarrador.familia_id !== (familia as { id: string }).id) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
@@ -122,9 +123,14 @@ export async function PATCH(
     );
   }
 
+  // En un libro privado, quien contó tiene 48 horas desde el cierre para sacar lo que quiera, no desde su último mensaje
+  // (Naza, 06/11). Las tres apps cuentan desde `ultima_respuesta_at`, y el entrevistador le manda el link (CONTRATO).
   const { error: errorUpdate } = await admin
     .from("narradores")
-    .update({ estado: "cerrado_anticipado" })
+    .update({
+      estado: "cerrado_anticipado",
+      ...(loContadoEsPrivado(datosNarrador) ? { ultima_respuesta_at: new Date().toISOString() } : {}),
+    })
     .eq("id", narradorId);
 
   if (errorUpdate) {

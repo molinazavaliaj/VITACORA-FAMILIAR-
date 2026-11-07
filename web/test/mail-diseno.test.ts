@@ -193,7 +193,7 @@ describe("mail de acceso de Vitácora Kids", () => {
   const A = "Le vamos a escribir a Tomi a la hora que elegiste. A vos te avisamos por WhatsApp.";
   const B = "El primer mensaje te llega a tu WhatsApp. La primera pregunta sale cuando estén juntos.";
   const PANEL = "En la página de su historia vas a ver todo lo que cuenta. Ahí también podés escribir hasta tres preguntas tuyas para el libro.";
-  const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde (tu panel|la página de su historia)/;
+  const DE_LA_BIOGRAFIA = /Hoy le escribimos|En un rato le llega|Arranca cuando quiera|escuchar su voz desde (tu panel|la página de su historia)|Lo que cuente queda privado/;
 
   it("canal A: asunto, vista previa y primera línea del A, y la fila del panel", () => {
     const { asunto, html, texto } = armarMailAcceso({ comoLeDicen: "Tomi", region: "AR", kids: { canal: "A" } });
@@ -230,9 +230,25 @@ describe("mail de acceso de Vitácora Kids", () => {
   });
 
   it("la biografía no cambia", () => {
-    const { asunto, texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR" });
+    const { asunto, texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR", elige: true });
     expect(asunto).toBe("Listo. Hoy le escribimos a tu abuela.");
-    expect(texto).toContain("vas a poder escuchar su voz desde la página de su historia.");
+    expect(texto).toContain("Quien cuenta elige si su familia ve lo que va contando.");
     expect(texto).not.toContain(PANEL);
+  });
+});
+
+describe("mail de acceso: la elección de quien cuenta", () => {
+  it("en «para mí» y De viaje no hay nada que elegir, así que no se dice", () => {
+    for (const region of ["AR", "ES"]) {
+      const { html, texto } = armarMailAcceso({ comoLeDicen: "abuela", region });
+      expect(texto).not.toMatch(/elige|queda privado/);
+      expect(html).not.toMatch(/elige|queda privado/);
+    }
+    expect(armarMailAcceso({ comoLeDicen: "avi", region: "ES", idioma: "ca" }).texto).not.toMatch(/tria|privat/);
+  });
+
+  it("en una venta nueva para otra persona, sí", () => {
+    expect(armarMailAcceso({ comoLeDicen: "abuela", region: "ES", elige: true }).texto).toContain("te avisamos por aquí. Quien cuenta elige");
+    expect(armarMailAcceso({ comoLeDicen: "avi", region: "ES", idioma: "ca", elige: true }).texto).toContain("Qui explica tria");
   });
 });

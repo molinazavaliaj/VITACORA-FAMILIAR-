@@ -305,12 +305,12 @@ describe("el mail de acceso", () => {
     }));
     try {
       const { enviarMailAcceso } = await import("../src/lib/mail");
-      await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
-      await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
+      await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES", elige: true });
+      await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR", elige: true });
       const [es, ar] = enviados.map((m) => m.html.replace(/\s+/g, " "));
-      expect(es).toContain("te avisamos por aquí, y vas a poder");
+      expect(es).toContain("te avisamos por aquí. Quien cuenta elige");
       expect(es).not.toMatch(/acá|entrá/);
-      expect(ar).toContain("te avisamos por acá, y vas a poder");
+      expect(ar).toContain("te avisamos por acá. Quien cuenta elige");
     } finally {
       vi.unstubAllEnvs();
       vi.unstubAllGlobals();

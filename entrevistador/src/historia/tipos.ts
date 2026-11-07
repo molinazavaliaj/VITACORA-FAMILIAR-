@@ -111,6 +111,8 @@ export type EstadoHistoria = {
   abiertaPorPlantilla?: boolean;
   /** Las claves que el narrador pidió que no vayan al libro (como en V3). */
   reservadas?: string[];
+  /** Cuándo le salió su link al terminar (privacidad, 05/11): una sola vez. */
+  linkFinal?: string;
   /** La bienvenida (plantilla de Meta o texto): cuándo salió y cómo. */
   bienvenida?: { en: string; por: 'plantilla' | 'texto' };
   /** Antes del SÍ ya se le contestó una vez algo que no era SÍ (`noEntendi` / `noQuiere`): después, silencio. */

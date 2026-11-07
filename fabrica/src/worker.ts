@@ -24,11 +24,12 @@ import { narradoresConKids } from './kids/candado.js';
 import { idiomasHistoria, narradoresConHistoria } from './historia/candado.js';
 import { ponerAlDiaLibrosOnline } from './escritor/produccion/libro-online.js';
 import { alertarLibrosDemorados, dudasParaLaFamilia, esLibroPropio, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
+import { dudasAQuienConto, esPrivado } from './escritor/produccion/privacidad.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { historiaTrabaja, revisarLibrosHistoria } from './escritor-historia/produccion/libro-historia.js';
 import { avisarVariablesAlArrancar } from './variables.js';
-import { registroEnTabla, usarRegistroDeAvisos } from './escritor/produccion/avisos.js';
+import { avisarSocios, registroEnTabla, usarRegistroDeAvisos } from './escritor/produccion/avisos.js';
 import { iniciarSentry } from './sentry.js';
 import { revisarAudiosOriginales } from './audios-originales.js';
 
@@ -205,6 +206,7 @@ export async function tick(): Promise<void> {
     await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
+    await avisarSociosFrasesSinConfirmar();
     await borrarAudiosOriginalesCadaHora();
     // El portón de impresión: con la dirección puesta y las frases confirmadas,
     // el libro sale a la imprenta (3t.26 fase 2).
@@ -297,6 +299,8 @@ async function generarAnticiposFaltantes(): Promise<void> {
       // La V3 no tiene anticipo; un chico de Kids tampoco. La Vitácora de Viaje tampoco (16/10: solo V2; el que
       // quedó en el viaje viejo no es un Familiar): el mail del anticipo cita la primera pregunta de una biografía.
       if (v3.has(narrador.id) || aparte.has(narrador.id) || narrador.contexto?.modo === 'viaje') continue;
+      // El libro es para otra persona: lo que cuenta es privado hasta que el libro esté listo (Naza y Joaquín, 05/11).
+      if (esPrivado(narrador.contexto)) continue;
       if (yaHecho(db, `anticipo:${narrador.id}`)) continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) {
@@ -377,11 +381,11 @@ async function avisarDelAnticipo(narrador: {
 }
 
 /**
- * Los dos mails de las dudas del escritor a la familia (Naza, 30/10). Cuando la Etapa A deja dudas, el link para
- * contestarlas (antes solo les llegaba a los socios, que tenían que pasarlo a mano). Cuando ya están todas
- * contestadas, que falta encargar el libro: antes nadie lo decía y parecía que el libro ya se estaba escribiendo.
- * Solo con el libro sin encargar: encargado, el primero mentiría («contestalas antes de encargarlo») y el segundo
- * sobra. «Para mí» tampoco: los dos le hablan de lo que contó otro. Tira si Storage no responde.
+ * El mail de que falta encargar el libro (Naza, 30/10): antes nadie lo decía y parecía que el libro ya se estaba
+ * escribiendo. En un libro privado las dudas las contesta quien contó (Naza, 06/11): a quien regala nunca le llega `dudas`
+ * y le llega `dudas_listas_privado` cuando están todas contestadas o venció el plazo. Si no es privado, como siempre: el
+ * link a contestarlas (`dudas`) y, con todas contestadas, `dudas_listas`. Sin dudas no sale: ya recibió `terminado`. Solo
+ * con el libro sin encargar: encargado, sobra. «Para mí» tampoco: le habla de lo que contó otro. Tira si Storage no responde.
  */
 type NarradorConDudas = NarradorConFamilia & Pick<Narrador, 'libro_aprobado_at'> & { contexto?: unknown };
 
@@ -416,7 +420,10 @@ async function avisarDudasALaFamilia(
   const { urlBase } = cargarConfig();
   const i = await idioma();
   const variante: VarianteV3 | undefined = i === undefined ? undefined : i === 'es-AR' ? 'vos' : 'tu';
-  if (estado.contestadas) {
+  // «Para mí» ya salió arriba: acá, «a quien contó» es un libro privado.
+  if (dudasAQuienConto(narrador.contexto)) {
+    if (estado.contestadas || estado.plazoVencido) await mandarHito(db, narrador, 'dudas_listas_privado', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
+  } else if (estado.contestadas) {
     await mandarHito(db, narrador, 'dudas_listas', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
   } else {
     await mandarHito(db, narrador, 'dudas', `${urlBase}/tablero/${narrador.id}/dudas`, archivos, variante, estado.cantidad);
@@ -873,13 +880,14 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
 
       const { data: narrador, error: errorNarrador } = await db
         .from('narradores')
-        .select('id, como_le_dicen, familia_id')
+        .select('id, como_le_dicen, familia_id, contexto')
         .eq('id', narradorId)
         .single();
       if (errorNarrador || !narrador) {
         throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
       }
       const quien = narrador as NarradorConFamilia;
+      const privado = esPrivado((narrador as { contexto?: unknown }).contexto);
 
       const { data: familia, error: errorFamilia } = await db
         .from('familias')
@@ -890,13 +898,20 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
         throw new Error(`No se pudo leer la familia de ${narradorId}: ${errorFamilia?.message ?? 'sin datos'}`);
       }
 
+      // Privado (05/11): sin impreso no hay nada para confirmar ni para elegir, así que no se manda nada.
+      if (privado && impresoPorNarrador.get(narradorId) !== true) {
+        anotarHecho(db, `frases:${narradorId}`);
+        continue;
+      }
+
       const enviado = await enviarMailRecordatorioFrases({
         para: (familia as { email: string }).email,
         comoLeDicen: quien.como_le_dicen,
+        privado,
         // Al panel del libro, que es el que existe hoy: la pestaña de frases
         // (`/tablero/{id}/frases`, spec §Arquitectura) la hace la web y se entra
         // desde ahí. Es una línea, el día que la web la publique.
-        enlace: `${urlBase}/tablero/${narradorId}`,
+        enlace: privado ? `${urlBase}/tablero/${narradorId}/frases` : `${urlBase}/tablero/${narradorId}`,
         conImpreso: impresoPorNarrador.get(narradorId) === true,
         vos: (familia as { region?: string }).region === 'AR',
       });
@@ -910,6 +925,65 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
     }
   }
 
+  return enviados;
+}
+
+/** A los 30 días sin confirmar, el libro impreso de un regalo no se confirma solo: se les avisa a los socios (Naza, 05/11). */
+export const DIAS_AVISO_SOCIOS_FRASES = 30;
+export const CANDADO_SOCIOS_FRASES = 'socios_frases_30_dias.txt';
+
+/**
+ * Branch (f2): libros con algo físico de una historia privada, con las frases sin confirmar hace 30 días. Un mail a los
+ * socios, una vez por narrador. El candado lo deja solo si salió; sin candado, el próximo tick reintenta.
+ */
+export async function avisarSociosFrasesSinConfirmar(ahora: Date = new Date()): Promise<number> {
+  const db = obtenerClienteDb();
+  const { data: pedidos, error } = await db.from('pedidos').select('narrador_id, extras').eq('estado', 'entregado');
+  if (error) {
+    console.error('tick: no se pudieron leer los pedidos entregados para el aviso de los 30 días:', error.message);
+    return 0;
+  }
+  const conFisico = new Set<string>();
+  for (const p of (pedidos ?? []) as { narrador_id: string; extras?: unknown }[]) {
+    const q = productosDelPedido(p.extras);
+    if (q.impreso !== null || q.copias > 0 || q.marcos > 0) conFisico.add(p.narrador_id);
+  }
+  let enviados = 0;
+  for (const narradorId of conFisico) {
+    if (yaHecho(db, `frases30:${narradorId}`)) continue;
+    try {
+      const { archivos, creados } = await listarPaqueteDeStorage(db, narradorId);
+      if (archivos.has(CANDADO_SOCIOS_FRASES)) {
+        anotarHecho(db, `frases30:${narradorId}`);
+        continue;
+      }
+      const creado = creados.get('frases.json');
+      if (!creado) continue;
+      const dias = Math.floor((ahora.getTime() - new Date(creado).getTime()) / MS_POR_DIA);
+      if (!Number.isFinite(dias) || dias < DIAS_AVISO_SOCIOS_FRASES) continue;
+      const frases = await leerFrases(db, narradorId);
+      if (!frases || frases.confirmado_at != null || (frases.capitulos ?? []).length === 0) {
+        if (frases?.confirmado_at != null) anotarHecho(db, `frases30:${narradorId}`);
+        continue;
+      }
+      const { data: narrador, error: errorNarrador } = await db.from('narradores').select('como_le_dicen, contexto').eq('id', narradorId).single();
+      if (errorNarrador || !narrador) throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      if (!esPrivado((narrador as { contexto?: unknown }).contexto) || archivos.has('frenar_imprenta.json')) {
+        anotarHecho(db, `frases30:${narradorId}`);
+        continue;
+      }
+      const salio = await avisarSocios(
+        `El libro de ${(narrador as { como_le_dicen: string }).como_le_dicen} lleva ${dias} días sin confirmarse`,
+        `Quien regaló no confirmó el libro para imprenta. No se confirma solo: hay que escribirle. Historia ${narradorId}.`,
+      );
+      if (salio) {
+        await subirTexto(db, `${narradorId}/paquete/${CANDADO_SOCIOS_FRASES}`, ahora.toISOString());
+        enviados++;
+      }
+    } catch (err) {
+      console.error(`tick: falló el aviso de los 30 días de ${narradorId}:`, err);
+    }
+  }
   return enviados;
 }
 

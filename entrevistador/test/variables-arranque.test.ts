@@ -23,6 +23,7 @@ function envCompleto(): NodeJS.ProcessEnv {
     MAIL_SOCIOS: 'uno@ejemplo.com',
     WA_APP_SECRET: 'secreto',
     WHATSAPP_NUMERO_PUBLICO: '5491100000000',
+    FIRMA_TOKENS: 'firma-secreta',
     SUGERIDAS_CLAVE: 'clave-sugeridas-secreta',
     WA_PLANTILLAS_V3_LISTAS: 'es-AR:recordatorio,es-AR:bienvenida',
     WA_PLANTILLAS_VIAJE_V2_LISTAS: 'es-AR:bienvenida,es-AR:mensaje',
@@ -60,6 +61,22 @@ describe('revisarVariables', () => {
     delete env.WA_BIENVENIDA_PIDE_VOZ;
     delete env.V3_CAZADOR;
     expect(revisarVariables(env)).toEqual([]);
+  });
+
+  it('FIRMA_TOKENS se pide siempre, y nunca se muestra su valor', () => {
+    const env = envCompleto();
+    delete env.FIRMA_TOKENS;
+    expect(nombres(env)).toEqual(['FIRMA_TOKENS']);
+    env.FIRMA_TOKENS = 'firma-secreta';
+    expect(JSON.stringify(revisarVariables(env))).not.toContain('firma-secreta');
+  });
+
+  it('las entradas del link y de las dudas valen, y el nombre de Meta sugiere la clave', () => {
+    const env = envCompleto();
+    env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio,es-AR:bienvenida,es-AR:revision,ca:dudas_narrador';
+    expect(revisarVariables(env)).toEqual([]);
+    env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio,es-AR:bienvenida,es-ES:dudas_narrador_es_es';
+    expect(revisarVariables(env)[0].problema).toContain('¿quisiste poner «es-ES:dudas_narrador»?');
   });
 
   it('SUGERIDAS_CLAVE es opcional a propósito (sin ella la ruta /sugeridas no existe): no es una falta', () => {

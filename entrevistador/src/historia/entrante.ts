@@ -14,6 +14,7 @@
 
 import { fechaLocal } from '../flujo/tiempo.js';
 import { esSaludo } from '../v3/saludo.js';
+import { preguntarAcceso } from '../flujo/acceso.js';
 import { textoFijo } from '../v3/textos-fijos.js';
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { leerSiNo, respuestaAntesDelSi, textoDeBienvenida } from './arranque.js';
@@ -29,6 +30,7 @@ import {
 import type { Idioma } from './nucleo/entrevista/idioma.js';
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
 import { cumplirPedido, pedidoDe } from './pedidos.js';
+import { esPrivado } from '../link-respuestas.js';
 import { aplicarTanda, hitosDe } from './tanda.js';
 import { CLAVE_TEMA, fichaTexto, MARCA_FOTO, SIN_CLAVE_HISTORIA, type EstadoHistoria, type FilaHistoria, type NarradorHistoria } from './tipos.js';
 import { anotarVisto, arrancar, avanzar, cerrarYSeguir, encolar, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
@@ -73,7 +75,7 @@ export async function procesarEntranteHistoria(deps: DepsHistoria, n: NarradorHi
   await marcarRespondido(deps.db, n.id, ahora);
   const pausado = n.estado === 'pausado';
   const escrito = m.tipo === 'texto' && !m.esBoton;
-  const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
+  const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma, esPrivado(n.contexto)) !== null;
   // Lo abierto todavía no le llegó (como en V3, el caso de Imma): lo que mande no lo contesta.
   const trabada = !ventanaAntes || fila.estado.fallosEnvio > 0;
   if (abiertaSinEntregar(fila.estado) && trabada && !pedidoEscrito) {
@@ -175,6 +177,8 @@ async function antesDelSi(deps: DepsHistoria, n: NarradorHistoria, m: MensajeEnt
       .update({ estado: 'activo', alerta_silencio: false, consentimiento_voz_at: ahora.toISOString() }).eq('id', n.id).in('estado', ['invitado', 'acepto']);
     if (error) console.error(`historia: no pude dejar activo a ${n.id}: ${error.message}`);
     await marcarRespondido(deps.db, n.id, ahora);
+    // Venta nueva: elige quién ve lo que cuenta (flujo/acceso.ts). No frena nada: lo primero de la entrevista sale igual.
+    await preguntarAcceso(n, fila.idioma, deps.wa.botones);
   } else if (que === 'no') {
     await deps.avisar(
       `dijo-que-no:${n.id}`,
@@ -321,11 +325,11 @@ async function recibirAudioHistoria(deps: DepsHistoria, n: NarradorHistoria, m: 
     return 'mensaje';
   }
   if (!guardada) return 'mensaje'; // duplicado
-  return aplicarAudio(deps, n.id, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
+  return aplicarAudio(deps, n, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
 }
 
 async function aplicarAudio(
-  deps: DepsHistoria, narradorId: string, fila: Pick<FilaHistoria, 'ficha' | 'idioma'>, guardada: FilaGuardada,
+  deps: DepsHistoria, n: Pick<NarradorHistoria, 'id' | 'contexto'>, fila: Pick<FilaHistoria, 'ficha' | 'idioma'>, guardada: FilaGuardada,
   transcripcion: string | null, bajar: () => Promise<Buffer>,
 ): Promise<Llegada> {
   let texto = transcripcion?.trim() ? transcripcion : null;
@@ -335,16 +339,16 @@ async function aplicarAudio(
       const audio = await bajar();
       for (let intento = 0; intento < 2 && !t; intento++) {
         try {
-          t = await deps.transcribir(audio, { nombre: fila.ficha.nombre, idioma: fila.idioma, narradorId });
+          t = await deps.transcribir(audio, { nombre: fila.ficha.nombre, idioma: fila.idioma, narradorId: n.id });
         } catch (err) {
-          console.error(`historia: falló la transcripción de ${narradorId} (intento ${intento + 1}):`, err instanceof Error ? err.message : err);
+          console.error(`historia: falló la transcripción de ${n.id} (intento ${intento + 1}):`, err instanceof Error ? err.message : err);
         }
       }
     } catch (err) {
-      console.error(`historia: no pude bajar el audio guardado de ${narradorId}:`, err instanceof Error ? err.message : err);
+      console.error(`historia: no pude bajar el audio guardado de ${n.id}:`, err instanceof Error ? err.message : err);
     }
     if (!t || !t.texto.trim()) {
-      await pedirDeNuevo(deps, narradorId, guardada.waMessageId);
+      await pedirDeNuevo(deps, n.id, guardada.waMessageId);
       await ponerClave(deps.db, guardada.id, SIN_CLAVE_HISTORIA);
       return 'mensaje';
     }
@@ -352,13 +356,13 @@ async function aplicarAudio(
     texto = t.texto;
   }
   const dicho = texto;
-  const pedido = pedidoDe(dicho, fila.idioma);
+  const pedido = pedidoDe(dicho, fila.idioma, esPrivado(n.contexto));
   if (pedido) {
-    await cumplirPedido(deps, narradorId, pedido, guardada);
+    await cumplirPedido(deps, n.id, pedido, guardada);
     return 'pedido';
   }
   const guardadaAt = deps.ahora().toISOString();
-  const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
+  const r = await conReintento(deps.db, n.id, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const a = recibirAudio(f.estado, dicho);
     return { cambio: { estado: anotarVisto(a.estado, guardada.waMessageId), ...(a.abierta ? { ultimo_audio_at: guardadaAt } : {}) }, resultado: a.clave };
@@ -447,14 +451,14 @@ async function recibirTexto(deps: DepsHistoria, n: NarradorHistoria, m: MensajeE
   const texto = (m.texto ?? '').trim();
   if (!texto) return 'mensaje';
   const guardada = await guardarTexto(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), texto, { waMessageId: m.waMessageId, clave: null, esBoton: false });
-  if (!guardada) return pedidoDe(texto, idioma) ? 'pedido' : 'mensaje';
-  return aplicarTexto(deps, n.id, idioma, texto, { id: guardada.id, waMessageId: m.waMessageId });
+  if (!guardada) return pedidoDe(texto, idioma, esPrivado(n.contexto)) ? 'pedido' : 'mensaje';
+  return aplicarTexto(deps, n, idioma, texto, { id: guardada.id, waMessageId: m.waMessageId });
 }
 
-async function aplicarTexto(deps: DepsHistoria, narradorId: string, idioma: Idioma, texto: string, guardada: FilaGuardada): Promise<Llegada> {
-  const pedido = pedidoDe(texto, idioma);
+async function aplicarTexto(deps: DepsHistoria, n: Pick<NarradorHistoria, 'id' | 'contexto'>, idioma: Idioma, texto: string, guardada: FilaGuardada): Promise<Llegada> {
+  const pedido = pedidoDe(texto, idioma, esPrivado(n.contexto));
   if (pedido) {
-    await cumplirPedido(deps, narradorId, pedido, guardada);
+    await cumplirPedido(deps, n.id, pedido, guardada);
     return 'pedido';
   }
   if (esSaludo(texto, idioma)) {
@@ -462,7 +466,7 @@ async function aplicarTexto(deps: DepsHistoria, narradorId: string, idioma: Idio
     return 'mensaje';
   }
   const guardadaAt = deps.ahora().toISOString();
-  const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
+  const r = await conReintento(deps.db, n.id, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const a = recibirAudio(f.estado, texto);
     const pideAudio = a.abierta && !f.estado.m22Enviado && f.estado.esperando !== CLAVE_TEMA;
@@ -562,14 +566,14 @@ export async function reconciliar(deps: DepsHistoria, fila: FilaHistoria, n: Nar
     const { boton } = leerBoton(directo);
     if (r.audio_path) {
       const path = r.audio_path;
-      await aplicarAudio(deps, n.id, fila, guardada, r.transcripcion, () => bajarAudioGuardado(deps.db, path));
+      await aplicarAudio(deps, n, fila, guardada, r.transcripcion, () => bajarAudioGuardado(deps.db, path));
     } else if (directo === MARCA_FOTO) {
       await aplicarFoto(deps, n.id, guardada);
     } else if (boton !== undefined && r.transcripcion === null) {
       await aplicarBoton(deps, n, boton, guardada, deps.ahora());
     } else {
       const texto = (r.transcripcion ?? directo).trim();
-      if (texto) await aplicarTexto(deps, n.id, fila.idioma, texto, guardada);
+      if (texto) await aplicarTexto(deps, n, fila.idioma, texto, guardada);
       else await ponerClave(deps.db, r.id, SIN_CLAVE_HISTORIA);
     }
   }

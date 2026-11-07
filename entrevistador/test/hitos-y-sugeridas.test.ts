@@ -64,6 +64,34 @@ beforeEach(() => {
 
 const n = { id: 'n1', nombre: 'Roberto', como_le_dicen: 'Papá', familia_id: 'fam-1', contexto: {} as Record<string, any> };
 
+describe('mails de hitos si lo contado es privado (05/11)', () => {
+  const n = { nombre: 'Roberto', como_le_dicen: 'Roberto', id: 'n1' };
+  it('la primera no promete escuchar nada, de vos y de tú', () => {
+    const vos = redactarHito('primera', n, { privado: true });
+    expect(vos.asunto).toBe('Roberto ya empezó a contar');
+    expect(vos.cuerpo).toContain('Lo que cuenta queda privado hasta que el libro esté listo');
+    expect(vos.cuerpo).not.toMatch(/escuch|audio|transcrip/i);
+    const tu = redactarHito('primera', n, { privado: true, trato: 'tu' });
+    expect(tu.cuerpo).toContain('ha contestado');
+    expect(tu.cuerpo).toContain('puedes ver');
+  });
+  it('la mitad no invita a leer', () => {
+    const r = redactarHito('mitad', n, { privado: true });
+    expect(r.cuerpo).not.toMatch(/leer|escuch/i);
+    expect(r.cuerpo).toContain('sumar');
+  });
+  it('la venta nueva todavía no eligió: no promete escuchar', () => {
+    for (const trato of ['vos', 'tu'] as const) {
+      const r = redactarHito('acepto', n, { regalo: true, elige: true, trato });
+      expect(r.cuerpo).not.toMatch(/escuch/i);
+      expect(r.cuerpo).toMatch(/quién quiere que vea/);
+    }
+  });
+  it('sin privado, los de siempre', () => {
+    expect(redactarHito('primera', n).asunto).toBe('Ya podés escuchar a Roberto');
+  });
+});
+
 describe('mails de hitos', () => {
   it('el «dijo que sí» de un viaje regalado habla del viaje, con vos o con tú', () => {
     const vos = redactarHito('acepto', n, { viaje: true });

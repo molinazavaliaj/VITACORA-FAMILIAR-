@@ -24,6 +24,7 @@ import {
 } from './filas.js';
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
 import { cumplirPedido, pedidoDe } from './pedidos.js';
+import { esPrivado } from '../link-respuestas.js';
 import { esSaludo } from './saludo.js';
 import { aplicarTanda, hitosDe } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
@@ -71,7 +72,7 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const pausado = n.estado === 'pausado';
   const escrito = m.tipo === 'texto' && !m.esBoton;
   // «Quiero parar» / «que no vaya al libro» escrito (pedidos.ts): no reactiva ni reenvía nada.
-  const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
+  const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma, esPrivado(n.contexto)) !== null;
   // La pregunta abierta todavía no le llegó (Naza, 09/10, Imma): lo que mande no la contesta. Queda aparte
   // (∅), sin acuse, y la pregunta sale ahora, que la ventana se acaba de abrir. Un pedido escrito sigue su camino.
   // Con la ventana ya abierta y sin envíos fallando, la pregunta no está trabada: está saliendo en este
@@ -294,11 +295,11 @@ async function recibirAudioV3(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, f
     return 'mensaje';
   }
   if (!guardada) return 'mensaje'; // duplicado
-  return aplicarAudio(deps, n.id, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
+  return aplicarAudio(deps, n, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
 }
 
 async function aplicarAudio(
-  deps: DepsV3, narradorId: string, fila: Pick<FilaV3, 'ficha' | 'idioma'>, guardada: FilaGuardada,
+  deps: DepsV3, n: Pick<NarradorV3, 'id' | 'contexto'>, fila: Pick<FilaV3, 'ficha' | 'idioma'>, guardada: FilaGuardada,
   transcripcion: string | null, bajar: () => Promise<Buffer>,
 ): Promise<Llegada> {
   let texto = transcripcion?.trim() ? transcripcion : null;
@@ -308,17 +309,17 @@ async function aplicarAudio(
       const audio = await bajar();
       for (let intento = 0; intento < 2 && !t; intento++) {
         try {
-          t = await deps.transcribir(audio, { nombre: fila.ficha.nombre, idioma: fila.idioma, narradorId });
+          t = await deps.transcribir(audio, { nombre: fila.ficha.nombre, idioma: fila.idioma, narradorId: n.id });
         } catch (err) {
-          console.error(`V3: falló la transcripción de ${narradorId} (intento ${intento + 1}):`, err instanceof Error ? err.message : err);
+          console.error(`V3: falló la transcripción de ${n.id} (intento ${intento + 1}):`, err instanceof Error ? err.message : err);
         }
       }
     } catch (err) {
-      console.error(`V3: no pude bajar el audio guardado de ${narradorId}:`, err instanceof Error ? err.message : err);
+      console.error(`V3: no pude bajar el audio guardado de ${n.id}:`, err instanceof Error ? err.message : err);
     }
     if (!t || !t.texto.trim()) {
       // Audio cortado, vacío o que no se pudo transcribir: M23 (se le pide de nuevo) y la fila queda afuera.
-      await pedirDeNuevo(deps, narradorId, guardada.waMessageId);
+      await pedirDeNuevo(deps, n.id, guardada.waMessageId);
       await ponerClave(deps.db, guardada.id, SIN_CLAVE_V3);
       return 'mensaje';
     }
@@ -326,13 +327,13 @@ async function aplicarAudio(
     texto = t.texto;
   }
   const dicho = texto;
-  const pedido = pedidoDe(dicho, fila.idioma);
+  const pedido = pedidoDe(dicho, fila.idioma, esPrivado(n.contexto));
   if (pedido) {
-    await cumplirPedido(deps, narradorId, pedido, guardada);
+    await cumplirPedido(deps, n.id, pedido, guardada);
     return 'pedido';
   }
   const guardadaAt = deps.ahora().toISOString();
-  const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
+  const r = await conReintento(deps.db, n.id, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const a = recibirAudio(f.estado, dicho);
     return { cambio: { estado: anotarVisto(a.estado, guardada.waMessageId), ...(a.abierta ? { ultimo_audio_at: guardadaAt } : {}) }, resultado: a.clave };
@@ -399,14 +400,14 @@ async function recibirTexto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, idi
   if (!texto) return 'mensaje';
   const guardada = await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), texto, { waMessageId: m.waMessageId, clave: null, esBoton: false });
   // El duplicado de un pedido sigue siendo un pedido (no reactiva al pausado).
-  if (!guardada) return pedidoDe(texto, idioma) ? 'pedido' : 'mensaje';
-  return aplicarTexto(deps, n.id, idioma, texto, { id: guardada.id, waMessageId: m.waMessageId });
+  if (!guardada) return pedidoDe(texto, idioma, esPrivado(n.contexto)) ? 'pedido' : 'mensaje';
+  return aplicarTexto(deps, n, idioma, texto, { id: guardada.id, waMessageId: m.waMessageId });
 }
 
-async function aplicarTexto(deps: DepsV3, narradorId: string, idioma: Idioma, texto: string, guardada: FilaGuardada): Promise<Llegada> {
-  const pedido = pedidoDe(texto, idioma);
+async function aplicarTexto(deps: DepsV3, n: Pick<NarradorV3, 'id' | 'contexto'>, idioma: Idioma, texto: string, guardada: FilaGuardada): Promise<Llegada> {
+  const pedido = pedidoDe(texto, idioma, esPrivado(n.contexto));
   if (pedido) {
-    await cumplirPedido(deps, narradorId, pedido, guardada);
+    await cumplirPedido(deps, n.id, pedido, guardada);
     return 'pedido';
   }
   // Un saludo solo no contesta la pregunta (Naza, 09/10): no se suma, no corre el reloj, no sale M22.
@@ -415,7 +416,7 @@ async function aplicarTexto(deps: DepsV3, narradorId: string, idioma: Idioma, te
     return 'mensaje';
   }
   const guardadaAt = deps.ahora().toISOString();
-  const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
+  const r = await conReintento(deps.db, n.id, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const a = recibirAudio(f.estado, texto);
     const estado = f.estado.m22Enviado || !a.abierta
@@ -568,14 +569,14 @@ export async function reconciliarV3(deps: DepsV3, fila: FilaV3, n: NarradorV3): 
     const { boton } = leerBoton(directo);
     if (r.audio_path) {
       const path = r.audio_path;
-      await aplicarAudio(deps, n.id, fila, guardada, r.transcripcion, () => bajarAudioGuardado(deps.db, path));
+      await aplicarAudio(deps, n, fila, guardada, r.transcripcion, () => bajarAudioGuardado(deps.db, path));
     } else if (directo === MARCA_FOTO) {
       await aplicarFoto(deps, n.id, guardada);
     } else if (boton !== undefined && r.transcripcion === null) {
       await aplicarBoton(deps, n, boton, guardada, deps.ahora());
     } else {
       const texto = (r.transcripcion ?? directo).trim();
-      if (texto) await aplicarTexto(deps, n.id, fila.idioma, texto, guardada);
+      if (texto) await aplicarTexto(deps, n, fila.idioma, texto, guardada);
       else await ponerClave(deps.db, r.id, SIN_CLAVE_V3);
     }
   }

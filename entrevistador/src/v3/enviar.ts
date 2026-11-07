@@ -4,11 +4,12 @@
 // queda y el tick siguiente reintenta. Ningún texto se arma acá: salen de la
 // cola, que llenó turno.ts con textos del banco.
 
+import { datosDelLink, esPrivado, linkConVentanaCerrada, textoDelLink } from '../link-respuestas.js';
 import { PLANTILLAS_V3 } from '../config.js';
 import type { DepsV3 } from './deps.js';
 import { conReintento, soltarTurno, tomarTurno, TOMA_MS } from './estado.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
-import type { EstadoV3, FilaV3 } from './tipos.js';
+import { fichaTexto, type EstadoV3, type FilaV3 } from './tipos.js';
 import { leerInferida } from './nucleo/entrevista/respuesta.js';
 import { claveMadre, quitarSalientes } from './turno.js';
 
@@ -26,7 +27,7 @@ export const TIEMPO_MAXIMO_DRENAR_MS = TOMA_MS / 2;
 
 export { PLANTILLAS_V3, type PlantillaV3 } from '../config.js';
 
-export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio' | 'bienvenida' | 'bienvenida_quien', env: NodeJS.ProcessEnv = process.env): boolean {
+export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio' | 'bienvenida' | 'bienvenida_quien' | 'revision' | 'dudas_narrador', env: NodeJS.ProcessEnv = process.env): boolean {
   if (idioma === 'es-AR' && cual === 'pregunta') return true;
   return (env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
 }
@@ -145,7 +146,10 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
     // («enseguida le llega la primera pregunta»), revisión del 10/10.
     mailAcepto = resultado === 'enviado' && contexto.regalo === true && fila.estado.respuestas.length === 0
       && !(Array.isArray(contexto.mailsEnviados) && contexto.mailsEnviados.includes('acepto'));
-    if (fila.estado.terminada) await completar(deps, narradorId, fila.estado);
+    if (fila.estado.terminada) {
+      await completar(deps, narradorId, fila.estado);
+      await mandarLinkAlTerminar(deps, narradorId, fila, telefono);
+    }
     return resultado;
   } finally {
     await soltarTurno(deps.db, narradorId, tomada);
@@ -184,6 +188,34 @@ export function preguntasContestadas(e: Pick<EstadoV3, 'respuestas'>): number {
  * terminó sin material para un libro.
  */
 export const RESPUESTAS_PARA_UN_LIBRO = 10;
+
+/**
+ * Terminó de contar y el libro es para otra persona: le llega su link, con hasta cuándo puede sacar algo (05/11). Una
+ * sola vez (`estado.linkFinal`). Con la ventana abierta sale como texto: FIN acaba de salir. Cerrada, con la plantilla
+ * `revision` (linkConVentanaCerrada). Nunca frena el cierre.
+ */
+async function mandarLinkAlTerminar(deps: DepsV3, narradorId: string, fila: FilaV3, telefono: string): Promise<void> {
+  try {
+    if (fila.estado.linkFinal) return;
+    const datos = await datosDelLink(deps.db, narradorId);
+    if (!datos || !esPrivado(datos.contexto) || !datos.ultima_respuesta_at) return;
+    const ahora = deps.ahora();
+    const marcar = () => conReintento(deps.db, narradorId, (f) => ({ cambio: { estado: { ...f.estado, linkFinal: ahora.toISOString() } }, resultado: true }));
+    if (!ventanaAbierta(fila.estado, ahora)) {
+      const listo = await linkConVentanaCerrada(deps, narradorId, datos, telefono, fila.idioma, {
+        lista: plantillaLista(fila.idioma, 'revision'), nombre: enLineaParaPlantilla([datos.como_le_dicen ?? '']), ahora,
+      });
+      if (listo) await marcar();
+      return;
+    }
+    const texto = textoDelLink({ ...datos, estado: 'completado' }, narradorId, fila.idioma, fichaTexto(fila), ahora);
+    if (!texto) return;
+    await deps.wa.texto(telefono, texto);
+    await marcar();
+  } catch (err) {
+    console.error(`V3: no pude mandar el link final de ${narradorId}:`, err instanceof Error ? err.message : err);
+  }
+}
 
 /** FIN salió: `activo → completado` (la misma transición de siempre). */
 async function completar(deps: DepsV3, narradorId: string, estado: EstadoV3): Promise<void> {

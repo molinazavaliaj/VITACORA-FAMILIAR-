@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { loContadoEsPrivado, narradorDeLaSesion } from "@/lib/panel";
 import { validarEdicion, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
 import { intenta, tratoDeLaFamilia } from "@/lib/trato";
@@ -19,7 +19,7 @@ type Fila = { edicion: Edicion | null; libro_aprobado_at: string | null; estado:
 
 type Preparado =
   | { error: NextResponse; admin?: undefined; narrador?: undefined; fila?: undefined }
-  | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string; familia_id: string }; fila: Fila };
+  | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string; familia_id: string; contexto?: Record<string, unknown> | null }; fila: Fila };
 
 // Las tres fotos del libro se pueden elegir en cualquier momento (§15.2): un
 // cuerpo que trae SOLO esas claves no espera a que termine de contar.
@@ -62,6 +62,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const prep = await prepararRequest(request, { permitirAntes: soloFotos(body) });
   if (prep.error) return prep.error;
   const { admin, narrador, fila } = prep;
+  // Quien regala no ve lo contado, así que tampoco elige qué queda afuera: eso lo hace el narrador (Naza, 05/11).
+  if (loContadoEsPrivado(narrador) && body && typeof body === "object" && "excluidas" in body && (body as { excluidas?: unknown[] }).excluidas?.length) {
+    return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+  }
 
   // Los capítulos válidos salen del guion entero: las base son globales
   // (narrador_id null) y el narrador solo tiene las suyas (bitácora 34).

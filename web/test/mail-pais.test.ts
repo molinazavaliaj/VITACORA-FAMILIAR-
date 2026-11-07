@@ -22,15 +22,15 @@ afterEach(() => {
 describe("mails de la web por país", () => {
   it("acceso: el texto aprobado; entrá (Argentina o sin región) / entra (España)", async () => {
     const { enviarMailAcceso } = await import("../src/lib/mail");
-    await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
+    await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR", elige: true });
     await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
     await enviarMailAcceso({ para: "s@x.com", comoLeDicen: "abuela" });
     const [ar, es, sin] = enviados.map((m) => m.html.replace(/\s+/g, " "));
     expect(enviados[0].subject).toBe("Listo. Hoy le escribimos a tu abuela.");
     expect(ar).toContain("contándole de qué se trata. <strong style=\"font-weight:normal;\">Arranca cuando quiera.</strong>");
-    expect(ar).toContain("Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde la página de su historia.");
-    expect(ar).toContain("Para ir escuchando lo que cuenta, entrá a la página con este mismo correo.");
-    expect(es).toContain("Para ir escuchando lo que cuenta, entra a la página con este mismo correo.");
+    expect(ar).toContain("Cuando empiece a contar su historia te avisamos por acá. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.");
+    expect(ar).toContain("Para ver cuánto lleva contado, entrá a la página con este mismo correo.");
+    expect(es).toContain("Para ver cuánto lleva contado, entra a la página con este mismo correo.");
     expect(sin).toContain("entrá a la página");
     for (const t of [ar, es]) expect(t).not.toMatch(/devolvemos el dinero|tercera pregunta|primeras páginas|día a día/);
   });

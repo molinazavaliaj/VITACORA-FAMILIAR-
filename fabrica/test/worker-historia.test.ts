@@ -96,8 +96,8 @@ function base(t: Tablas, o: { errores?: Record<string, { code: string; message: 
   return { db, claims, updates, listados };
 }
 
-const adulto = (extra: Fila = {}): Fila => ({ id: 'adulto', como_le_dicen: 'papá', familia_id: 'f', ...extra });
-const chico = (extra: Fila = {}): Fila => ({ id: 'chico', como_le_dicen: 'Marta', familia_id: 'f', ...extra });
+const adulto = (extra: Fila = {}): Fila => ({ id: 'adulto', como_le_dicen: 'papá', familia_id: 'f', contexto: { vinculoComprador: 'yo mismo' }, ...extra });
+const chico = (extra: Fila = {}): Fila => ({ id: 'chico', como_le_dicen: 'Marta', familia_id: 'f', contexto: { vinculoComprador: 'yo mismo' }, ...extra });
 const familias = [{ id: 'f', email: 'familia@ejemplo.com', region: 'AR' }];
 
 beforeEach(() => {

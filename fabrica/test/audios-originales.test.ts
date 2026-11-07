@@ -107,6 +107,22 @@ describe('revisarAudiosOriginales', () => {
     expect(db.from).not.toHaveBeenCalled();
   });
 
+  it('si el libro es para otra persona, no manda el ZIP ni borra nada (privacidad, 05/11)', async () => {
+    const subidos: string[] = [];
+    const consulta = (data: unknown) => {
+      const c = { select: () => c, eq: () => c, maybeSingle: async () => ({ data: { contexto: { vinculoComprador: 'hija' } }, error: null }), then: (ok: (r: unknown) => unknown) => Promise.resolve({ data, error: null }).then(ok) };
+      return c;
+    };
+    const db = {
+      from: (tabla: string) => consulta(tabla === 'pedidos' ? [{ narrador_id: 'n1' }] : []),
+      storage: { from: () => ({ list: async () => ({ data: [{ name: 'libro_listo_enviado.txt', created_at: iso(0) }], error: null }), upload: async (ruta: string) => { subidos.push(ruta); return { data: {}, error: null }; } }) },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cuenta = await revisarAudiosOriginales(db as any, { env: { BORRADO_AUDIOS_ORIGINALES: '1' }, ahora: dia(90), candadoLibroListo: 'libro_listo_enviado.txt' });
+    expect(cuenta).toMatchObject({ avisar: 0, borrar: 0 });
+    expect(subidos).toEqual([]);
+  });
+
   it('prendido, a los 90 días borra los originales y deja el candado', async () => {
     const borrados: string[][] = [];
     const subidos: string[] = [];
@@ -115,7 +131,7 @@ describe('revisarAudiosOriginales', () => {
       { audio_path: 'n1/voz/frases/f1.mp3', pregunta_orden: 1, es_repregunta: false, recibido_at: iso(-30) },
     ];
     const consulta = (data: unknown) => {
-      const c = { select: () => c, eq: () => c, not: () => c, order: () => Promise.resolve({ data, error: null }), then: (ok: (r: unknown) => unknown) => ok({ data, error: null }) };
+      const c = { select: () => c, eq: () => c, not: () => c, maybeSingle: async () => ({ data: { contexto: { vinculoComprador: 'yo mismo' } }, error: null }), order: () => Promise.resolve({ data, error: null }), then: (ok: (r: unknown) => unknown) => ok({ data, error: null }) };
       return c;
     };
     const db = {

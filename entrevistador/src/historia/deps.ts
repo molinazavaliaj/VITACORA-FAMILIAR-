@@ -13,7 +13,8 @@ export type WhatsAppHistoria = {
   /** Texto con botones de respuesta rápida (hasta 3, título de hasta 20 letras). */
   botones(telefono: string, texto: string, botones: string[]): Promise<string>;
   /** Plantilla aprobada en Meta (fuera de la ventana). `idiomaMeta`: 'es', 'es_ES', 'ca'. */
-  plantilla(telefono: string, nombre: string, idiomaMeta: string, variables: string[]): Promise<string>;
+  /** `botonUrl`: el sufijo del botón de URL dinámica de la plantilla. */
+  plantilla(telefono: string, nombre: string, idiomaMeta: string, variables: string[], o?: { botonUrl?: string }): Promise<string>;
   /** Baja un audio o una imagen de Meta. */
   descargar(mediaId: string): Promise<Buffer>;
 };

@@ -14,6 +14,7 @@ import { leerEdicion } from '../../libro/edicion.js';
 import { cargarFotos } from '../../libro/fotos.js';
 import type { FrasesJson } from '../../libro/frases.js';
 import { leerFrases } from '../../libro/publicar-frases.js';
+import { imprentaFrenada } from '../../libro/imprenta.js';
 import { urlVozDeNarrador } from '../../libro/token-voz.js';
 import { armarLibroBookmundo, ARCHIVOS_BOOKMUNDO, type DatosLibro, type LibroBookmundo } from '../../libro/bookmundo/armar.js';
 import type { DatosCubierta } from '../../libro/bookmundo/cubierta.js';
@@ -81,6 +82,8 @@ export const SU_VOZ_IMPRESA = 'imprenta-su-voz.txt';
 export async function suVozImpresaHistoria(db: Db, id: string): Promise<boolean> {
   const frases = await leerFrases(db, id);
   if (!frases?.confirmado_at) return false;
+  // «Hay un error, avisanos» (05/11): hasta que los socios lo corrijan a mano y borren el archivo, no sale.
+  if (await imprentaFrenada(db, id)) return false;
   const almacen = new AlmacenSupabase(db, PREFIJO_HISTORIA(id));
   if ((await almacen.leer(SU_VOZ_IMPRESA))?.trim() === frases.confirmado_at) return false;
   const r = await imprentaHistoria(db, id, { frases });

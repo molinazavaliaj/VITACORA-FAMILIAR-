@@ -26,7 +26,7 @@ export function modoCompartir(e: { cerrado: boolean; aprobado: boolean; dudasAbi
 }
 const boton = "inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 
-export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas = false, linkPublico, invitados, trato = "vos" }: { narradorId: string; nombre: string; cerrado: boolean; aprobado: boolean; dudasAbiertas?: boolean; linkPublico: string | null; invitados: InvitadoVista[]; trato?: TratoComprador }) {
+export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas = false, linkPublico, invitados, trato = "vos", privado = false }: { narradorId: string; nombre: string; cerrado: boolean; aprobado: boolean; dudasAbiertas?: boolean; linkPublico: string | null; invitados: InvitadoVista[]; trato?: TratoComprador; /** Lo que cuenta es privado: los invitados suman, no escuchan (05/11). */ privado?: boolean }) {
   const tu = trato === "tu";
   const modo = modoCompartir({ cerrado, aprobado, dudasAbiertas, linkPublico });
   const invita = modo === "invitar" || modo === "invitar-dudas";
@@ -114,8 +114,9 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas
             </>
           ) : !invita ? (
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              {nombre} terminó de contar. Cuando cierres el libro, {tu ? "aquí" : "acá"} va a aparecer el link
-              para compartirlo con la familia.
+              {privado && aprobado
+                ? `Estamos escribiendo el libro de ${nombre}. Cuando esté listo, ${tu ? "aquí" : "acá"} va a aparecer el link para compartirlo con la familia.`
+                : `${nombre} terminó de contar. Cuando cierres el libro, ${tu ? "aquí" : "acá"} va a aparecer el link para compartirlo con la familia.`}
             </p>
           ) : (
             <>
@@ -126,8 +127,9 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, dudasAbiertas
                 </p>
               ) : (
                 <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                  {tu ? "Invita" : "Invitá"} hasta {MAXIMO} personas. Van a poder escuchar lo que cuenta, leer sus
-                  páginas, sumar preguntas y fotos. No pueden cambiar el guion ni abrir el libro terminado.
+                  {privado
+                    ? `${tu ? "Invita" : "Invitá"} hasta ${MAXIMO} personas. Van a poder ver cuánto lleva contado y sumar preguntas y fotos. Lo que cuenta queda privado hasta que el libro esté listo.`
+                    : `${tu ? "Invita" : "Invitá"} hasta ${MAXIMO} personas. Van a poder escuchar lo que cuenta, leer sus páginas, sumar preguntas y fotos. No pueden cambiar el guion ni abrir el libro terminado.`}
                 </p>
               )}
 

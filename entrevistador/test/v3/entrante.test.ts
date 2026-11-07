@@ -681,6 +681,46 @@ describe('pausado que vuelve sin pregunta abierta (Naza, 07/10): le sale la sigu
   });
 });
 
+describe('«esto que no vaya al libro» mandado como AUDIO (privacidad del panel, 05/11)', () => {
+  const RESERVA = 'Entendido. Eso no va a ir al libro.';
+
+  it('audio corto con un borrador abierto: se reserva la abierta y el pedido no se suma', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Mi tío tenía un almacén.'));
+    await procesarEntranteV3(deps, n1, audio('Eso, que no vaya al libro, por favor.'));
+    const f = await fila();
+    expect(f?.estado).toMatchObject({ esperando: 'OR1', borrador: 'Mi tío tenía un almacén.', reservadas: ['OR1'] });
+    expect(enviados.map((e) => e.texto)).toEqual([RESERVA]);
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.reservada ?? false])).toEqual([['OR1', true], [SIN_CLAVE_V3, false]]);
+  });
+
+  it('audio corto sin borrador: se reserva la última respuesta cerrada', async () => {
+    const e: EstadoV3 = { ...enOR1(), esperando: 'OR2', respuestas: [['OR1', 'Nací en un pueblo chico.']] };
+    const { deps, n1, base, fila } = await preparar(e);
+    base.tablas.respuestas = [{ id: 'r-or1', narrador_id: 'n1', clave_v3: 'OR1', wa_message_id: 'wamid.viejo', transcripcion: 'Nací en un pueblo chico.' }];
+    await procesarEntranteV3(deps, n1, audio('Esto que no vaya al libro.'));
+    expect((await fila())?.estado.reservadas).toEqual(['OR1']);
+    expect(base.tablas.respuestas.find((r) => r.id === 'r-or1')?.reservada).toBe(true);
+  });
+
+  it('audio largo que cuenta y al final lo pide, sin borrador: el audio entero queda afuera', async () => {
+    const { deps, n1, base, fila } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Lo de mi tío con la policía fue un desastre y lo sabe todo el barrio desde hace años, pero eso que no vaya al libro.'));
+    const f = await fila();
+    // Sin borrador ni «Sí» no hay nada abierto para reservar: el audio queda afuera por sí mismo.
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(base.tablas.respuestas[0].clave_v3).toBe(SIN_CLAVE_V3);
+  });
+
+  it('la frase genérica «no lo escribas» en un audio largo NO se toma como pedido', async () => {
+    const { deps, n1, fila } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Mi tío tenía un almacén en la esquina de casa y a veces íbamos todos juntos a ayudarlo y yo le decía a mi hermano no lo escribas todavía.'));
+    const f = await fila();
+    expect(f?.estado.reservadas ?? []).toEqual([]);
+    expect(f?.estado.borrador).toContain('almacén');
+  });
+});
+
 describe('revisión del 07/10: red de seguridad de la pausa y la reserva', () => {
   it('al pausar: alerta_silencio = true (como el flujo viejo) y aviso a los socios sin lo que dijo; al volver, se apaga', async () => {
     const { deps, n1, base, avisos } = await preparar({ ...enOR1(), borrador: 'Algo íntimo.' });
@@ -881,5 +921,37 @@ describe('nada de lo que manda se pierde en silencio (21/10)', () => {
     await procesarEntranteV3(deps, n1, texto('Nací en Rosario.'));
     expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual([SIN_CLAVE_V3]);
     expect(avisos.map((a) => a.detalle).join(' ')).toContain('«Nací en Rosario.»');
+  });
+});
+
+describe('el link del narrador (privacidad, 05/11)', () => {
+  it('«mis respuestas», escrito o en audio, no se suma: le llega su link', async () => {
+    process.env.FIRMA_TOKENS = 'secreto-de-prueba';
+    const { deps, n1, base, fila, enviados } = await preparar(enOR1(), { narrador: { contexto: { ritmo: 'diario', vinculoComprador: 'hija', acceso: { elige: true } } } });
+    await procesarEntranteV3(deps, n1, audio('Quiero ver mis respuestas.'));
+    const f = await fila();
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(base.tablas.respuestas[0].clave_v3).toBe(SIN_CLAVE_V3);
+    expect(enviados.at(-1)?.texto).toContain('/mis-respuestas/');
+    expect(enviados.at(-1)?.texto).toContain('dura 7 días');
+    delete process.env.FIRMA_TOKENS;
+  });
+
+  it('una historia larga que nombra «mis respuestas» sigue siendo una respuesta', async () => {
+    const { deps, n1, fila } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Yo no sé si mis respuestas le sirven a alguien pero mi mamá cosía todo el día en la casa de atrás.'));
+    expect((await fila())?.estado.borrador).toContain('mi mamá cosía');
+  });
+
+  it.each([
+    ['una venta vieja, sin marca', { ritmo: 'diario', vinculoComprador: 'hija' }],
+    ['«Mi familia»', { ritmo: 'diario', vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } }],
+  ])('%s: no le decimos «Solo lo ves vos», y lo que escribe sigue siendo una respuesta', async (_caso, contexto) => {
+    process.env.FIRMA_TOKENS = 'secreto-de-prueba';
+    const { deps, n1, base, enviados } = await preparar(enOR1(), { narrador: { contexto } });
+    await procesarEntranteV3(deps, n1, audio('Quiero ver mis respuestas.'));
+    expect(enviados.some((e) => e.texto?.includes('/mis-respuestas/'))).toBe(false);
+    expect(base.tablas.respuestas[0].clave_v3).not.toBe(SIN_CLAVE_V3);
+    delete process.env.FIRMA_TOKENS;
   });
 });

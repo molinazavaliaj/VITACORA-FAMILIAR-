@@ -67,7 +67,7 @@ function sesion(usuario: { id: string; email: string } | null) {
 const request = (cuerpo: unknown) => ({ nextUrl: new URL("http://localhost/api/invitados?narrador=n1"), json: async () => cuerpo }) as never;
 const martina = { id: "u-martina", email: "martina@mail.com" };
 const primo = { id: "u-primo", email: "primo@mail.com" };
-const alfredo = { id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x", libro_aprobado_at: null };
+const alfredo = { id: "n1", contexto: { vinculoComprador: "yo mismo" }, nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 3, alerta_silencio: false, familia_id: "fam-martina", created_at: "x", libro_aprobado_at: null };
 
 function armar(invitados: Fila[] = [], narrador: Fila = alfredo, escritor: Record<string, string> = {}) {
   const { admin, inserts } = crearAdmin({
@@ -91,7 +91,7 @@ describe("POST /api/invitados", () => {
     const r = await POST(request({ email: "Tia@Mail.com" }));
     expect(r.status).toBe(200);
     expect(inserts[0].valores).toMatchObject({ narrador_id: "n1", email: "tia@mail.com", invitado_por: "fam-martina" });
-    expect(enviarMailInvitacion).toHaveBeenCalledWith({ para: "tia@mail.com", nombreNarrador: "Alfredo", quienInvita: "Martina", region: "AR", paraDudas: false });
+    expect(enviarMailInvitacion).toHaveBeenCalledWith({ para: "tia@mail.com", nombreNarrador: "Alfredo", quienInvita: "Martina", region: "AR", paraDudas: false, privado: false });
   });
 
   it("a la historia de un chico de Kids no se invita → 403, sin fila ni mail", async () => {

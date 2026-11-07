@@ -27,6 +27,13 @@ export type Quien = {
 };
 
 type TextosPanel = {
+  /** La historia de otra persona (Naza, 05/11): lo que cuenta queda privado hasta que el libro esté listo. */
+  privadaTexto: (q: Quien, invitado: boolean) => string;
+  privadaTermino: string;
+  privadaEscribiendo: string;
+  privadaLeer: string;
+  privadaFrases: string;
+  privadaEncargar: string;
   hola: (nombre: string) => string;
   titular: (t: Titular, q: Quien) => string;
   respuestas: (n: number) => string;
@@ -180,7 +187,7 @@ const ES: TextosPanel = {
       ? "Invita a quien quieras para que siga el viaje y escuche tus audios."
       : q.propia
         ? "Invita a tu familia para que escuche tus audios y proponga preguntas."
-        : "Invita a tus hermanos para que escuchen sus audios y propongan preguntas.",
+        : "Invita a tus hermanos para que sumen preguntas y fotos.",
 
   fotos: (q) => (q.propia || q.viaje ? "Tus fotos" : "Sus fotos"),
   faltaPortada: (q) => `Falta ${q.viaje ? "tu" : tuOSu(q)} foto para la portada.`,
@@ -188,6 +195,16 @@ const ES: TextosPanel = {
   fotosTexto: (q) => `La de la portada es la que verá todo el mundo. Puedes añadirla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
   elegirTapa: "Elegir la foto de la tapa",
   cuantasFotos: (n) => (n === 1 ? "1 foto en el álbum" : `${n} fotos en el álbum`),
+
+  privadaTexto: (_q, invitado) =>
+    invitado
+      ? "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, y puedes añadir preguntas y fotos."
+      : "Lo que cuenta queda privado hasta que el libro esté listo. Aquí ves cuánto lleva contado, puedes añadir preguntas y fotos, y eliges la tapa.",
+  privadaTermino: "Terminó de contar. Lo que contó queda privado hasta que el libro esté listo.",
+  privadaEscribiendo: "Estamos escribiendo el libro. Te avisamos por mail cuando esté listo.",
+  privadaLeer: "Leer su libro",
+  privadaFrases: "Escuchar sus mejores frases",
+  privadaEncargar: "Elige la tapa y encarga su libro",
 
   ultimo: (q) => (q.propia ? "Lo último que contaste" : "Lo último que contó"),
   verTodo: "Ver todo",
@@ -207,6 +224,11 @@ const ES: TextosPanel = {
 
 const AR: TextosPanel = {
   ...ES,
+  privadaTexto: (_q, invitado) =>
+    invitado
+      ? "Lo que cuenta queda privado hasta que el libro esté listo. Acá ves cuánto lleva contado, y podés sumar preguntas y fotos."
+      : "Lo que cuenta queda privado hasta que el libro esté listo. Acá ves cuánto lleva contado, podés sumar preguntas y fotos, y elegís la tapa.",
+  privadaEncargar: "Elegí la tapa y encargá su libro",
   pausarTexto: (q) =>
     `La pausa la hace una persona del equipo. Escribinos y frenamos las preguntas y los recordatorios. Lo que ya ${q.propia ? "contaste" : "contó"} queda guardado.`,
   cancelarTexto: "Escribinos y lo vemos con vos. Te contesta una persona.",
@@ -215,7 +237,7 @@ const AR: TextosPanel = {
       ? "Invitá a quien quieras para que siga el viaje y escuche tus audios."
       : q.propia
         ? "Invitá a tu familia para que escuche tus audios y proponga preguntas."
-        : "Invitá a tus hermanos para que escuchen sus audios y propongan preguntas.",
+        : "Invitá a tus hermanos para que sumen preguntas y fotos.",
   fotosTexto: (q) => `La de la portada es la que va a ver todo el mundo. Podés sumarla hasta que cerremos ${q.viaje ? "tu" : tuOSu(q)} libro.`,
   anadirMarco: "Sumar el marco",
   marcoTexto: (q) =>

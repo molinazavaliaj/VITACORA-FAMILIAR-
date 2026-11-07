@@ -319,7 +319,7 @@ describe('tick', () => {
   it('genera la estructura para un narrador completado sin estructura.json en Storage', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: {},
       })
     );
@@ -333,7 +333,7 @@ describe('tick', () => {
   it('no genera la estructura si estructura.json ya existe en Storage', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: { 'narrador-1': ['estructura.json'] },
       })
     );
@@ -346,7 +346,7 @@ describe('tick', () => {
   it('no se solapa si ya hay un tick corriendo', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: {},
       })
     );
@@ -371,7 +371,7 @@ describe('tick — branch a2 (previsualización)', () => {
   it('genera la previsualización si tiene estructura.json y nombres.json pero no preview.pdf', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: { 'narrador-1': ['estructura.json', 'nombres.json'] },
       })
     );
@@ -385,7 +385,7 @@ describe('tick — branch a2 (previsualización)', () => {
   it('no genera la previsualización si preview.pdf ya existe', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: { 'narrador-1': ['estructura.json', 'nombres.json', 'preview.pdf'] },
       })
     );
@@ -398,7 +398,7 @@ describe('tick — branch a2 (previsualización)', () => {
   it('no genera la previsualización si falta nombres.json (aunque tenga estructura.json)', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: { 'narrador-1': ['estructura.json'] },
       })
     );
@@ -411,7 +411,7 @@ describe('tick — branch a2 (previsualización)', () => {
   it('no genera la previsualización si falta estructura.json', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: {},
       })
     );
@@ -424,7 +424,7 @@ describe('tick — branch a2 (previsualización)', () => {
   it('un narrador falla generando la previsualización sin frenar el tick (try/catch por narrador)', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [{ id: 'narrador-1' }, { id: 'narrador-2' }],
+        narradores: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }, { id: 'narrador-2', contexto: { vinculoComprador: 'yo mismo' } }],
         archivosPorNarrador: {
           'narrador-1': ['estructura.json', 'nombres.json'],
           'narrador-2': ['estructura.json', 'nombres.json'],
@@ -1267,7 +1267,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
 
   it('entregado hace 15 días y sin confirmar → manda el mail a la familia y deja el candado', async () => {
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['libro.pdf', 'frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(15) } },
       frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
@@ -1292,8 +1292,8 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
   it('a los 14 días no manda; a los 15 sí (el día exacto ya cuenta)', async () => {
     const db = construirClienteDbMock({
       narradores: [
-        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' },
-        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2' },
+        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } },
+        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2', contexto: { vinculoComprador: 'yo mismo' } },
       ],
       archivosPorNarrador: { n1: ['frases.json'], n2: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(14) }, n2: { 'frases.json': haceDias(15) } },
@@ -1316,7 +1316,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
 
   it('si la familia ya confirmó la selección (confirmado_at), no la molestamos', async () => {
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(20) } },
       frasesPorNarrador: { n1: { ...frasesSinConfirmar('n1'), confirmado_at: '2026-09-18T10:00:00Z' } },
@@ -1334,7 +1334,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
   it('sin pedido entregado (pagado o en generando) no hay recordatorio', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(40) } },
       frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
@@ -1353,7 +1353,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
   it('entregado pero sin frases.json (libro de antes de Su voz) → no manda', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['libro.pdf'] },
       pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
       familias: { f1: 'a@b.c' },
@@ -1370,7 +1370,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
 
   it('con frases.json sin ningún capítulo (libro sin audios) no manda: no hay nada que elegir', async () => {
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(30) } },
       frasesPorNarrador: { n1: { ...frasesSinConfirmar('n1'), capitulos: [] } },
@@ -1386,7 +1386,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
 
   it('corriéndolo dos veces seguidas manda UN solo mail: el candado del paquete manda', async () => {
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(16) } },
       frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
@@ -1404,7 +1404,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
 
   it('con el candado sembrado a mano (para que no salga), no manda nada', async () => {
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json', CANDADO_RECORDATORIO_FRASES] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(60) } },
       frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
@@ -1423,8 +1423,8 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
     enviarMailRecordatorioFrasesMock.mockRejectedValueOnce(new Error('Resend caído'));
     const db = construirClienteDbMock({
       narradores: [
-        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' },
-        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2' },
+        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } },
+        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2', contexto: { vinculoComprador: 'yo mismo' } },
       ],
       archivosPorNarrador: { n1: ['frases.json'], n2: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(16) }, n2: { 'frases.json': haceDias(16) } },
@@ -1451,7 +1451,7 @@ describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sol
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     enviarMailRecordatorioFrasesMock.mockRejectedValueOnce(new Error('Resend caído'));
     const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1', contexto: { vinculoComprador: 'yo mismo' } }],
       archivosPorNarrador: { n1: ['frases.json'] },
       creadosPorNarrador: { n1: { 'frases.json': haceDias(20) } },
       frasesPorNarrador: { n1: frasesSinConfirmar('n1') },

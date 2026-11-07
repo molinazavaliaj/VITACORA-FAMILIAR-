@@ -26,7 +26,7 @@ export function depsHistoriaReales(): DepsHistoria {
     wa: {
       texto: (telefono, texto) => enviarTexto(telefono, texto, envio),
       botones: (telefono, texto, botones) => enviarBotones(telefono, texto, botones, envio),
-      plantilla: (telefono, nombre, idiomaMeta, variables) => enviarPlantilla(telefono, nombre, variables, idiomaMeta, envio),
+      plantilla: (telefono, nombre, idiomaMeta, variables, o) => enviarPlantilla(telefono, nombre, variables, idiomaMeta, { ...envio, ...o }),
       descargar: descargarAudio,
     },
     transcribir: (audio, o) => transcribir(audio, promptDeTranscripcion(o.nombre, o.idioma), o.narradorId, IDIOMA_OPENAI[o.idioma]),

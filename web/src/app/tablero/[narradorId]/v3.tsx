@@ -265,9 +265,9 @@ export function HistoriaV3({
 }
 
 /** Las preguntas que sumó la familia, con sus palabras, y si ya se le hicieron (Naza, 20/10). */
-function PreguntasDeLaFamilia({
-  preguntas, propia, trato, historia = false, children,
-}: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; historia?: boolean; children?: ReactNode }) {
+export function PreguntasDeLaFamilia({
+  preguntas, propia, trato, historia = false, privado = false, children,
+}: { preguntas: PreguntaFamiliaV3[]; propia: boolean; trato: TratoComprador; historia?: boolean; /** Lo contado es privado: sin el «su respuesta está más abajo». */ privado?: boolean; children?: ReactNode }) {
   const T = textosPreguntasFamilia(idiomaPreguntasFamilia(trato));
   const TH = textosPanelHistoria(idiomaPreguntasFamilia(trato));
   return (
@@ -285,7 +285,7 @@ function PreguntasDeLaFamilia({
               className={`flex flex-col gap-2 rounded-xl px-4 py-3.5 sm:px-5 ${hecha ? "border border-[var(--linea)]" : "border border-dashed border-[var(--linea-fuerte)]"}`}
             >
               <p className="text-[16px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">«{p.texto}»</p>
-              <span className={`text-[13.5px] ${p.estado === "contestada" ? "text-[var(--texto-suave)]" : "text-[var(--texto-menor)]"}`}>{T.estado(p.estado, propia)}</span>
+              <span className={`text-[13.5px] ${p.estado === "contestada" ? "text-[var(--texto-suave)]" : "text-[var(--texto-menor)]"}`}>{privado && p.estado === "contestada" ? `${T.estado(p.estado, propia).split(". ")[0]}.` : T.estado(p.estado, propia)}</span>
             </li>
           );
         })}

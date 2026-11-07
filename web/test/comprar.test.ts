@@ -102,7 +102,7 @@ describe('GET /api/preview-pdf', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { list: () => Promise.resolve({ data: [{ name: 'estructura.json' }], error: null }) },
     );
@@ -117,7 +117,7 @@ describe('GET /api/preview-pdf', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { list: () => Promise.resolve({ data: [{ name: 'preview.pdf' }], error: null }) },
     );
@@ -138,7 +138,7 @@ describe('GET /api/preview-audio', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { list: () => Promise.resolve({ data: [], error: null }) },
     );
@@ -153,7 +153,7 @@ describe('GET /api/preview-audio', () => {
     const admin = crearAdminFake(
       {
         familias: [{ data: { id: 'familia-1' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', contexto: { vinculoComprador: 'yo mismo' } }], error: null }],
       },
       { list: () => Promise.resolve({ data: [{ name: 'muestra_audiolibro.mp3' }], error: null }) },
     );
