@@ -6,7 +6,9 @@ vi.mock("stripe", () => ({ default: vi.fn() }));
 
 import Stripe from "stripe";
 import { crearCheckout } from "../src/lib/pagos";
-import { leerFormularioPago, urlFormularioPago } from "../src/lib/pago-embebido";
+import { leerFormularioPago, productoDeLaVuelta, urlFormularioPago } from "../src/lib/pago-embebido";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { calcularCompra, CARRITO_VACIO } from "../src/lib/productos";
 import { verificarToken } from "../src/lib/token-firmado";
 import { vieneDePagoFallido, volvioPorSuCuenta } from "../src/app/_checkout/memoria";
@@ -131,5 +133,60 @@ describe("volver por su cuenta desde /pagar", () => {
     expect(vieneDePagoFallido("?pago=volvio")).toBe(true);
     expect(volvioPorSuCuenta("?pago=volvio")).toBe(true);
     expect(volvioPorSuCuenta("?pago=fallido")).toBe(false);
+  });
+});
+
+describe("/pagar lleva el color de la compra de donde viene (07/11)", () => {
+  it("lo saca del camino de vuelta que arma crearCheckout, en cada idioma", async () => {
+    const casos = [
+      [{ idioma: "es", pantalla: "kids" }, "kids"],
+      [{ idioma: "ca", pantalla: "kids" }, "kids"],
+      [{ idioma: "es", pantalla: "historia" }, "historia"],
+      [{ idioma: "es", pantalla: "comprar" }, "familiar"],
+      [{ idioma: "es", pantalla: "regalar" }, "familiar"],
+    ] as const;
+    for (const [origen, producto] of casos) {
+      stripeFalso({ create: vi.fn().mockResolvedValue({ id: "cs_1", client_secret: "cs_1_secret_z", url: null }) });
+      const { urlPago } = await crearCheckout({ id: "pedido-1", email: "m@test.com" }, calcularCompra("ES", CARRITO_VACIO), origen);
+      const volver = new URL(urlPago).searchParams.get("v") ?? "";
+      expect(productoDeLaVuelta(volver), volver).toBe(producto);
+    }
+  });
+
+  it("viaje, con y sin prefijo de idioma; nada raro se toma por otra compra", () => {
+    expect(productoDeLaVuelta("/comprar/viaje?pago=volvio")).toBe("viaje");
+    expect(productoDeLaVuelta("/ca/comprar/viaje")).toBe("viaje");
+    expect(productoDeLaVuelta("/comprar/kids-falso?pago=volvio")).toBe("familiar");
+    expect(productoDeLaVuelta("/comprar?kids=1")).toBe("familiar");
+  });
+});
+
+describe("Kids recupera lo cargado al volver de /pagar (07/11)", () => {
+  // El formulario de Kids corre en el navegador; acá se fija que use la misma
+  // memoria que viaje y la casa (lo guardado al ir a pagar, leído al volver),
+  // y que la vuelta voluntaria no muestre el aviso del banco.
+  const fuente = readFileSync(resolve(__dirname, "../src/app/comprar/kids/formulario.tsx"), "utf8");
+
+  it("guarda lo elegido antes de ir a pagar y lo lee al volver, con la misma clave", () => {
+    expect(fuente).toContain("guardar(sesion, CLAVE_COMPRA_KIDS, clave, e)");
+    expect(fuente).toContain("leer<EstadoKids>(sesion, CLAVE_COMPRA_KIDS, clave)");
+  });
+
+  it("el aviso de pago rechazado sale solo con ?pago=fallido", () => {
+    expect(fuente).toContain("if (!volvioPorSuCuenta(window.location.search)) setFallo(");
+    expect(fuente).toContain("<AvisoFallo textos={FALLO[idioma]}");
+  });
+});
+
+describe("«Pedido confirmado» olvida toda compra guardada (07/11)", () => {
+  // Lo guardado para volver del pago lleva datos personales (en Kids, los del
+  // chico). Ya cobrado, no queda en la pestaña. El test mira cada CLAVE_COMPRA*
+  // de memoria.ts: una compra nueva que guarde algo sin olvidarlo acá falla.
+  it("cada CLAVE_COMPRA* de memoria.ts se olvida en al-confirmar.tsx", async () => {
+    const memoria = await import("../src/app/_checkout/memoria");
+    const claves = Object.keys(memoria).filter((k) => k.startsWith("CLAVE_COMPRA"));
+    expect(claves).toEqual(expect.arrayContaining(["CLAVE_COMPRA", "CLAVE_COMPRA_VIAJE", "CLAVE_COMPRA_KIDS"]));
+    const alConfirmar = readFileSync(resolve(__dirname, "../src/app/comprar/gracias/al-confirmar.tsx"), "utf8");
+    for (const clave of claves) expect(alConfirmar, clave).toContain(`olvidar(sesion, ${clave});`);
   });
 });

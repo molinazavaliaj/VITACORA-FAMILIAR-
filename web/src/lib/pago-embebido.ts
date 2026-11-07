@@ -21,6 +21,20 @@ export function urlFormularioPago(urlBase: string, sesionId: string, volver: str
   return `${urlBase}/pagar?${q}`;
 }
 
+/**
+ * De qué compra viene el pago, por el camino de vuelta (lib/pagos.ts lo arma
+ * con la pantalla de origen: /comprar/kids, /comprar/historia, /comprar/viaje,
+ * con o sin prefijo de idioma). Con eso /pagar lleva el acento y el logo de
+ * esa compra; antes solo distinguía viaje y Kids salía en bordó (07/11).
+ */
+export function productoDeLaVuelta(volver: string): "familiar" | "viaje" | "kids" | "historia" {
+  const camino = volver.split(/[?#]/)[0];
+  if (/\/comprar\/kids$/.test(camino)) return "kids";
+  if (/\/comprar\/historia$/.test(camino)) return "historia";
+  if (/\/comprar\/viaje$/.test(camino)) return "viaje";
+  return "familiar";
+}
+
 export type FormularioPago =
   | { tipo: "mostrar"; clavePublica: string; secretoSesion: string; volver: string }
   | { tipo: "ir"; a: string };

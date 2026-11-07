@@ -83,7 +83,9 @@ export function olvidar(almacen: () => Almacen, nombre: string): void {
   }
 }
 
-/** Dónde se guarda la compra del libro de una vida, la de viaje y la dirección para después de pagar. */
+/** Dónde se guarda la compra del libro de una vida, la de viaje, la de Kids y la dirección para después de pagar. */
 export const CLAVE_COMPRA = "vitacora-compra-pendiente";
 export const CLAVE_COMPRA_VIAJE = "vitacora-compra-viaje-pendiente";
+/** La compra de Kids (07/11): sin esto, «Volver a mi compra» desde /pagar la empezaba de cero. */
+export const CLAVE_COMPRA_KIDS = "vitacora-compra-kids-pendiente";
 export const CLAVE_DIRECCION = "vitacora-compra-direccion";

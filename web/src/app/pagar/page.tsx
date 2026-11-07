@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { esIdiomaWeb, ruta, type IdiomaWeb } from "@/lib/idioma-web";
-import { leerFormularioPago } from "@/lib/pago-embebido";
+import { leerFormularioPago, productoDeLaVuelta } from "@/lib/pago-embebido";
 import { CascaronCheckout } from "../_checkout/cascaron";
 import { FORMULARIO_PAGO } from "../_textos/checkout";
 import { FormularioPago } from "./formulario-pago";
 
 // El pago de España sin salir de la web (lib/pago-embebido.ts). Solo se llega
 // desde «Pagar», con un enlace firmado de una hora.
+
+// El logo vuelve a la portada de cada producto, como en su compra (_checkout/pagina-*.tsx).
+const INICIO = { familiar: "/", viaje: "/viaje", kids: "/kids", historia: "/historia" } as const;
 
 export const metadata: Metadata = { title: "Pago", robots: { index: false } };
 
@@ -19,9 +22,9 @@ export default async function Pagar({ searchParams }: PageProps<"/pagar">) {
   if (formulario.tipo === "ir") redirect(formulario.a);
 
   const T = FORMULARIO_PAGO[idioma];
-  const viaje = formulario.volver.includes("/viaje");
+  const producto = productoDeLaVuelta(formulario.volver);
   return (
-    <CascaronCheckout idioma={idioma} inicio={viaje ? "/viaje" : "/"} viaje={viaje}>
+    <CascaronCheckout idioma={idioma} inicio={INICIO[producto]} viaje={producto === "viaje"} kids={producto === "kids"} historia={producto === "historia"}>
       <main className="mx-auto flex w-full max-w-[1040px] flex-col gap-8 px-4 pb-28 pt-14 sm:px-8 sm:pt-20">
         <div className="flex flex-col gap-4">
           <Link href={formulario.volver} className="chk-bajada min-h-11 underline underline-offset-4">

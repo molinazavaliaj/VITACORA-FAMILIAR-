@@ -10,12 +10,12 @@ import {
   type EstadoKids, type FallaKids, type PasoKids,
 } from "@/lib/kids";
 import { ContenidoPaso, Opcion, Pastilla } from "../../_ui";
-import { CHECKOUT, RESUMEN } from "../../_textos/checkout";
+import { CHECKOUT, FALLO, RESUMEN } from "../../_textos/checkout";
 import { CHECKOUT_KIDS, KIDS_IMPRESO_TEXTOS } from "../../_textos/checkout-kids";
-import { AYUDA, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, TituloPaso, arriba } from "../../_checkout/piezas";
+import { AYUDA, AvisoFallo, BOTON_BARRA, BarraPaso, BotonPagar, CAMPO, ETIQUETA, ErrorPaso, ID_ERROR, TituloPaso, arriba } from "../../_checkout/piezas";
 import { PasosLibro } from "../../_checkout/pasos-libro";
 import { crearPagador } from "../../_checkout/pagador";
-import { CLAVE_DIRECCION, guardar, olvidar } from "../../_checkout/memoria";
+import { CLAVE_COMPRA_KIDS, CLAVE_DIRECCION, guardar, leer, olvidar, vieneDePagoFallido, volvioPorSuCuenta } from "../../_checkout/memoria";
 import { CamposDireccion } from "../../_checkout/direccion";
 import { eleccionDe } from "../../_checkout/opciones-libro";
 import { OpcionesLibro } from "../../_checkout/opciones-libro-ui";
@@ -82,6 +82,7 @@ export function CheckoutKids({
   const [falla, setFalla] = useState<{ texto: string; campo?: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [animar, setAnimar] = useState(false);
+  const [fallo, setFallo] = useState<null | "guardado" | "solo">(null);
   const titulo = useRef<HTMLHeadingElement>(null);
   const primerPaso = useRef(true);
 
@@ -98,9 +99,12 @@ export function CheckoutKids({
 
   // Justo antes de ir a la pasarela: la dirección, para que «Pedido confirmado»
   // la guarde en su entrega cuando vuelva pagado (como la casa).
+  // Y lo elegido (07/11), para que «Volver a mi compra» o un pago rechazado lo encuentren como estaba.
+  const clave = `kids-${idioma}`;
   const antesDeIr = useRef<(narradorId: string) => void>(() => {});
   useEffect(() => {
     antesDeIr.current = (narradorId) => {
+      guardar(sesion, CLAVE_COMPRA_KIDS, clave, e);
       if (llevaImpreso) {
         guardar(sesion, CLAVE_DIRECCION, narradorId, { destinatarioNombre: e.recibe.trim(), destinatarioTelefono: e.telefonoRecibe.trim(), direccion: e.direccion });
       } else {
@@ -117,6 +121,31 @@ export function CheckoutKids({
       ),
     [T],
   );
+
+  // Vuelta sin cobrar (07/11, como viaje): de /pagar por su cuenta (?pago=volvio,
+  // sin aviso) o de un pago rechazado (?pago=fallido, con aviso). Lo elegido
+  // aparece de nuevo en el paso del pago.
+  useEffect(() => {
+    if (!vieneDePagoFallido(window.location.search)) return;
+    const guardado = leer<EstadoKids>(sesion, CLAVE_COMPRA_KIDS, clave);
+    if (!volvioPorSuCuenta(window.location.search)) setFallo(guardado ? "guardado" : "solo");
+    if (guardado) {
+      setE({ ...estadoKidsInicial(conImpreso && cat ? cat : undefined, region), ...guardado });
+      setPaso(3);
+    }
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [clave]);
+
+  // Atrás del navegador desde el pago: la página vuelve congelada con el botón en «procesando».
+  useEffect(() => {
+    const alVolver = (ev: PageTransitionEvent) => {
+      if (!ev.persisted) return;
+      pagador.liberar();
+      setEnviando(false);
+    };
+    window.addEventListener("pageshow", alVolver);
+    return () => window.removeEventListener("pageshow", alVolver);
+  }, [pagador]);
 
   useEffect(() => {
     if (primerPaso.current) {
@@ -186,6 +215,7 @@ export function CheckoutKids({
           {paso === 1 && (
             <ContenidoPaso key="k1" animar={animar} className="flex flex-col gap-7">
               <TituloPaso ref={titulo} antetitulo={K.pasoDe(1, 3)} titulo={K.tuTitulo} bajada={K.tuBajada} />
+              {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
               {!vende ? <AvisoProximamente K={K} /> : null}
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
@@ -294,6 +324,7 @@ export function CheckoutKids({
             <ContenidoPaso key="k3" animar={animar}>
               <form id={FORM_PAGO} onSubmit={pagar} noValidate className="flex flex-col gap-7">
                 <TituloPaso ref={titulo} antetitulo={K.pasoDe(3, 3)} titulo={K.temasTitulo} bajada={K.temasBajada} />
+                {fallo ? <AvisoFallo textos={FALLO[idioma]} guardado={fallo === "guardado"} /> : null}
                 <fieldset>
                   <legend className={`${ETIQUETA} mb-3`}>{K.temasLeyenda}</legend>
                   <div className="flex flex-wrap gap-2.5">
