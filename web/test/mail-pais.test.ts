@@ -28,7 +28,7 @@ describe("mails de la web por país", () => {
     const [ar, es, sin] = enviados.map((m) => m.html.replace(/\s+/g, " "));
     expect(enviados[0].subject).toBe("Listo. Hoy le escribimos a tu abuela.");
     expect(ar).toContain("contándole de qué se trata. <strong style=\"font-weight:normal;\">Arranca cuando quiera.</strong>");
-    expect(ar).toContain("Cuando empiece a contar su historia te avisamos por acá. Lo que cuente queda privado hasta que el libro esté listo.");
+    expect(ar).toContain("Cuando empiece a contar su historia te avisamos por acá. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.");
     expect(ar).toContain("Para ver cuánto lleva contado, entrá a la página con este mismo correo.");
     expect(es).toContain("Para ver cuánto lleva contado, entra a la página con este mismo correo.");
     expect(sin).toContain("entrá a la página");
