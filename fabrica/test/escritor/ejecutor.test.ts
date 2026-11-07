@@ -69,7 +69,7 @@ describe('Ejecutor.uno', () => {
     expect(e.pedido({ clave: 'C/3a-primera#2', llamada: llamada('3a-primera'), json: false, esfuerzo: 'high' }).esfuerzo).toBe('high');
     expect(e.pedido({ ...enc('C/6-arreglo-cap_1'), esfuerzo: 'xhigh' }).esfuerzo).toBe('medium');
     expect(e.pedido({ clave: 'C/7-estilo-cap_1', llamada: llamada('7-estilo-cap_1'), json: true, esfuerzo: 'low' })).not.toHaveProperty('esfuerzo');
-    const haiku = e.pedido(enc('B/correccion-registro'));
+    const haiku = e.pedido(enc('C/3r-resumen-cap_1'));
     expect(haiku).toMatchObject({ modelo: 'claude-haiku-4-5', pensamiento: 8000, maxTokens: 64000 });
     expect('esfuerzo' in haiku).toBe(false);
     expect(e.pedido({ ...enc('A/1-registro'), maxTokens: 128000 }).maxTokens).toBe(128000);

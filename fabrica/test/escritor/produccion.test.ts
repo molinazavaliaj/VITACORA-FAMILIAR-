@@ -279,8 +279,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     const negra = { ...reg.personas[3], nombre: 'Ofelia', apodos: ['la Negra'] };
     const { motor, modelo } = motorFalso({
       ...salidasModeloNelida(),
-      'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
-      'correccion-plan': salidasModeloNelida()['2-plan'],
+      '1-registro': JSON.stringify({ ...reg, personas: reg.personas.map((q: { id: string }) => (q.id === negra.id ? negra : q)), confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
     });
     await revisarEtapaAV3(db, 'n1', { motor });
     await colaDelEscritor.esperarTodo();
@@ -289,7 +288,7 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, motor);
     const nuevas = modelo.llamadas.slice(antes).map((p) => p.clave);
     expect(nuevas.some((k) => k.startsWith('A/'))).toBe(false);
-    expect(nuevas[0]).toBe('B/correccion-registro');
+    expect(nuevas[0]).toBe('B/1-registro');
     expect(JSON.parse(String(archivos.get('n1/escritor/carpeta-B.json')))['entradas/confirmado.xml']).toContain('La Negra se llamaba Ofelia.');
     expect(tablas.pedidos[0].estado).toBe('entregado');
   });
@@ -300,15 +299,14 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     const negra = { ...reg.personas[3], nombre: 'Ofelia', apodos: ['la Negra'] };
     const { motor, modelo } = motorFalso({
       ...salidasModeloNelida(),
-      'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
-      'correccion-plan': salidasModeloNelida()['2-plan'],
+      '1-registro': JSON.stringify({ ...reg, personas: reg.personas.map((q: { id: string }) => (q.id === negra.id ? negra : q)), confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
     });
     await revisarEtapaAV3(db, 'n1', { motor });
     await colaDelEscritor.esperarTodo();
     tablas.narradores[0].edicion = { titulo: 'Su vida', correcciones: '  La Negra se llamaba Ofelia.  ' };
     const antes = modelo.llamadas.length;
     await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, motor);
-    expect(modelo.llamadas.slice(antes)[0].clave).toBe('B/correccion-registro');
+    expect(modelo.llamadas.slice(antes)[0].clave).toBe('B/1-registro');
     expect(JSON.parse(String(archivos.get('n1/escritor/carpeta-B.json')))['entradas/confirmado.xml']).toContain('La Negra se llamaba Ofelia.');
     expect(tablas.pedidos[0].estado).toBe('entregado');
   });

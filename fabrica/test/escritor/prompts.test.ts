@@ -35,7 +35,6 @@ describe('prompts compilados', () => {
     const d = promptFabrica('### Disputa', { FRASE: 'Raúl tenía la mercería', ID: 'R02', CITA: 'abrimos la mercería con Raúl' });
     expect(d).toContain('Frase del libro: "Raúl tenía la mercería". Respuesta R02, frase que cita: "abrimos la mercería con Raúl".');
     expect(d).not.toContain('{{');
-    expect(esquemaDe('### Corrección del registro')).toContain('"borrar"');
   });
 
   it('promptFabrica tira si queda un hueco sin llenar', () => {

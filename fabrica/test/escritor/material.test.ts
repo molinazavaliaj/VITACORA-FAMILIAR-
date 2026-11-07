@@ -64,6 +64,28 @@ describe('agregarConfirmados (las correcciones de la familia)', () => {
   });
 });
 
+describe('agregarConfirmados: la respuesta a una duda va con su pregunta (01/11, Juan Domingo)', () => {
+  const conDudas = (json: string) => { const c = carpetaNelida(); c.escribir('salidas/dudas-familia.json', json); return c; };
+  const dudas = JSON.stringify({ dudas: [{ id: 'D13', que: 'interno', pregunta: '¿Cuántos años después\nnació <Nazareno>?' }] });
+  it('une pregunta y respuesta en una línea, sin < ni >, y C14 sigue contando una', () => {
+    const c = conDudas(dudas);
+    agregarConfirmados(c, [{ texto: '13', dudaId: 'D13' }]);
+    const conf = c.leer('entradas/confirmado.xml');
+    expect(conf).toContain('- Pregunta: ¿Cuántos años después nació (Nazareno)? Respuesta: 13\n');
+    expect(conf).not.toContain('interno');
+    expect(controlar(c, 'registro').resumen).toContain('C14: hay 1 confirmados en la ficha');
+  });
+  it('sin duda que coincida, sin dudaId o con el archivo roto, la respuesta va sola', () => {
+    for (const [c, k] of [[conDudas(dudas), { texto: 'Algo', dudaId: 'D99' }], [conDudas(dudas), { texto: 'Algo' }], [conDudas('{roto'), { texto: 'Algo', dudaId: 'D13' }], [carpetaNelida(), { texto: 'Algo', dudaId: 'D13' }]] as const) {
+      agregarConfirmados(c, [k]);
+      expect(c.leer('entradas/confirmado.xml')).toContain('\n- Algo\n');
+    }
+  });
+  it('una respuesta vacía no suma línea aunque la duda tenga pregunta', () => {
+    expect(agregarConfirmados(conDudas(dudas), [{ texto: '  ', dudaId: 'D13' }])).toBe(false);
+  });
+});
+
 describe('lo que escribe la familia no rompe el XML ni infla C14 (revisión final, punto 8)', () => {
   it('confirmadoNarrador: una línea con saltos queda en una sola línea (C14 cuenta 1)', () => {
     const c = carpetaNelida();

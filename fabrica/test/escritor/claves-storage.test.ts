@@ -70,8 +70,7 @@ describe('claves del almacén = claves válidas de Supabase Storage', () => {
     const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
     const salidas = {
       ...salidasModeloNelida(),
-      'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [{ texto: 'La Negra se llamaba Ofelia Sánchez.', usado_en: ['P04'] }] }),
-      'correccion-plan': salidasModeloNelida()['2-plan'],
+      '1-registro': JSON.stringify({ ...reg, personas: reg.personas.map((q: { id: string }) => (q.id === negra.id ? negra : q)), confirmados: [{ texto: 'La Negra se llamaba Ofelia Sánchez.', usado_en: ['P04'] }] }),
     };
     const almacen = new AlmacenQueValida();
     const modelo = new ModeloFalso(salidas, DEFECTOS_NELIDA);
