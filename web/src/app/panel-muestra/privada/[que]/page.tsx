@@ -116,7 +116,7 @@ export default async function Muestra({ params, searchParams }: { params: Promis
       { clave: "OR1", pregunta: "¿Dónde naciste?", estado: "contestada" as const, reservada: false, respuestas: [respuesta("r1", "Texto de ejemplo de una respuesta.")] },
       { clave: "OR2", pregunta: "¿Cómo era tu casa?", estado: "contestada" as const, reservada: false, respuestas: [respuesta("r2", "Otra respuesta de ejemplo, ya sacada del libro.", true)] },
     ] }];
-    return <VistaRespuestas idioma={trato === "tu" ? "es-ES" : "es-AR"} bloques={bloques} puede={que === "link"} hasta={que === "link" ? "sábado 7 de noviembre a las 18:30" : null} token="ejemplo" narradorId={n.id} />;
+    return <VistaRespuestas idioma={trato === "tu" ? "es-ES" : "es-AR"} bloques={bloques} puede={que === "link"} hasta={que === "link" ? "sábado 7 de noviembre a las 18:30" : null} token="ejemplo" privado narradorId={n.id} />;
   }
   // La pantalla de dudas de quien contó, en sus tres idiomas (?idioma=es-ES o ?idioma=ca).
   if (que === "dudas" || que === "dudas-gracias" || que === "dudas-para-mi" || que === "dudas-libro") {
