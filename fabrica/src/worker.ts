@@ -24,7 +24,7 @@ import { narradoresConKids } from './kids/candado.js';
 import { idiomasHistoria, narradoresConHistoria } from './historia/candado.js';
 import { ponerAlDiaLibrosOnline } from './escritor/produccion/libro-online.js';
 import { alertarLibrosDemorados, dudasParaLaFamilia, esLibroPropio, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
-import { esPrivado } from './escritor/produccion/privacidad.js';
+import { dudasAQuienConto, esPrivado } from './escritor/produccion/privacidad.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 import { revisarLibrosKids } from './escritor-kids/produccion/libro-kids.js';
 import { historiaTrabaja, revisarLibrosHistoria } from './escritor-historia/produccion/libro-historia.js';
@@ -381,11 +381,11 @@ async function avisarDelAnticipo(narrador: {
 }
 
 /**
- * Los dos mails de las dudas del escritor a la familia (Naza, 30/10). Cuando la Etapa A deja dudas, el link para
- * contestarlas (antes solo les llegaba a los socios, que tenían que pasarlo a mano). Cuando ya están todas
- * contestadas, que falta encargar el libro: antes nadie lo decía y parecía que el libro ya se estaba escribiendo.
- * Solo con el libro sin encargar: encargado, el primero mentiría («contestalas antes de encargarlo») y el segundo
- * sobra. «Para mí» tampoco: los dos le hablan de lo que contó otro. Tira si Storage no responde.
+ * El mail de que falta encargar el libro (Naza, 30/10): antes nadie lo decía y parecía que el libro ya se estaba
+ * escribiendo. En un libro privado las dudas las contesta quien contó (Naza, 06/11): a quien regala nunca le llega `dudas`
+ * y le llega `dudas_listas_privado` cuando están todas contestadas o venció el plazo. Si no es privado, como siempre: el
+ * link a contestarlas (`dudas`) y, con todas contestadas, `dudas_listas`. Sin dudas no sale: ya recibió `terminado`. Solo
+ * con el libro sin encargar: encargado, sobra. «Para mí» tampoco: le habla de lo que contó otro. Tira si Storage no responde.
  */
 type NarradorConDudas = NarradorConFamilia & Pick<Narrador, 'libro_aprobado_at'> & { contexto?: unknown };
 
@@ -420,7 +420,10 @@ async function avisarDudasALaFamilia(
   const { urlBase } = cargarConfig();
   const i = await idioma();
   const variante: VarianteV3 | undefined = i === undefined ? undefined : i === 'es-AR' ? 'vos' : 'tu';
-  if (estado.contestadas) {
+  // «Para mí» ya salió arriba: acá, «a quien contó» es un libro privado.
+  if (dudasAQuienConto(narrador.contexto)) {
+    if (estado.contestadas || estado.plazoVencido) await mandarHito(db, narrador, 'dudas_listas_privado', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
+  } else if (estado.contestadas) {
     await mandarHito(db, narrador, 'dudas_listas', `${urlBase}/tablero/${narrador.id}/libro`, archivos, variante);
   } else {
     await mandarHito(db, narrador, 'dudas', `${urlBase}/tablero/${narrador.id}/dudas`, archivos, variante, estado.cantidad);

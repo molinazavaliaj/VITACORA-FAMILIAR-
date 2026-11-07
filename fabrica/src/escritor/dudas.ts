@@ -20,10 +20,11 @@ export function dudasDelRegistro(reg: Json, rs: Respuesta[]): DudaDeDatos[] {
 
 export function validarDudas(dudas: DudaDeDatos[], respuesta: Json): DudaParaLaFamilia[] {
   const lista: Json[] = Array.isArray(respuesta?.dudas) ? respuesta.dudas : [];
-  return dudas.map((d) => {
+  return dudas.flatMap((d) => {
     const r = lista.find((x) => x?.id === d.id);
+    if (r?.real === false) return [];
     if (!r || typeof r.pregunta !== 'string' || !r.pregunta.trim()) throw new Error(`la duda ${d.id} vino sin pregunta para la familia`);
     const opciones = Array.isArray(r.opciones) ? (r.opciones as unknown[]).filter((o): o is string => typeof o === 'string' && o.trim() !== '').map((o) => o.trim()) : [];
-    return { ...d, pregunta: r.pregunta.trim(), opciones };
+    return [{ ...d, pregunta: r.pregunta.trim(), opciones }];
   });
 }

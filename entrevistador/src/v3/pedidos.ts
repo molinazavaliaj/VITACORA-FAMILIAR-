@@ -36,11 +36,12 @@ export type Pedido = { reserva: boolean; pausa: boolean; largo: boolean; link?: 
 export const PALABRAS_MENSAJE_CORTO = 15;
 
 /** Qué pide el mensaje, o null si es un mensaje común. */
-export function pedidoDe(texto: string, idioma: Idioma): Pedido | null {
+export function pedidoDe(texto: string, idioma: Idioma, privado: boolean): Pedido | null {
   const reserva = pideReserva(texto, idioma);
   const pausa = pidePausa(texto, idioma);
   // «Mis respuestas», «quiero borrar algo»: el link propio del narrador (privacidad, 05/11).
-  if (!reserva && !pausa) return pideMisRespuestas(texto, idioma) ? { reserva: false, pausa: false, largo: false, link: true } : null;
+  // Solo en un libro privado: sin marca, o con «Mi familia», el link diría «Solo lo ves vos» y su familia lo ve (#214).
+  if (!reserva && !pausa) return privado && pideMisRespuestas(texto, idioma) ? { reserva: false, pausa: false, largo: false, link: true } : null;
   const largo = normalizar(texto).split(' ').filter(Boolean).length > PALABRAS_MENSAJE_CORTO;
   return { reserva, pausa, largo };
 }

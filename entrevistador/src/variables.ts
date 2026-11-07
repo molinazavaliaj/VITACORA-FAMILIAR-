@@ -20,7 +20,7 @@
 // REGALO_ENTREGA_WHATSAPP vive solo en Vercel (CONTRATO.md): ninguna se revisa acá.
 
 import { createHash } from 'node:crypto';
-import { PLANTILLAS_HISTORIA, PLANTILLAS_V3, PLANTILLAS_VIAJE_V2, PLANTILLA_REGALO_ENTREGA } from './config.js';
+import { PLANTILLAS_HISTORIA, PLANTILLAS_REVISION, PLANTILLAS_V3, PLANTILLAS_VIAJE_V2, PLANTILLA_REGALO_ENTREGA } from './config.js';
 import { avisarSocios } from './v3/avisos.js';
 
 export type Falta = { variable: string; problema: string };
@@ -45,9 +45,10 @@ const NECESARIAS: ReadonlyArray<readonly [string, string]> = [
   ['WA_PLANTILLAS_V3_LISTAS', 'Fuera de la ventana de 24 h no sale ninguna plantilla V3 salvo la pregunta en es-AR. Ni recordatorios, ni bienvenidas V3 y de regalo, ni preguntas en es-ES y ca, ni el regalo por WhatsApp el día elegido.'],
   ['WA_PLANTILLAS_VIAJE_V2_LISTAS', 'A los viajeros no les sale ninguna plantilla de la Viaje V2 fuera de la ventana de 24 h: ni la bienvenida (sale recién si escriben primero), ni los mensajes del día, que quedan en la cola.'],
   ['WHATSAPP_NUMERO_PUBLICO', 'El mail del regalo del día elegido sale sin el código para escribirle al bot.'],
+  ['FIRMA_TOKENS', 'Los links de quien contó (sacar respuestas y contestar dudas) se firman con la service role y no van a abrir si la web firma con otra clave.'],
 ];
 
-const VALIDAS_V3 = new Set(IDIOMAS.flatMap((i) => [...Object.keys(PLANTILLAS_V3[i]), 'regalo_entrega'].map((c) => `${i}:${c}`)));
+const VALIDAS_V3 = new Set(IDIOMAS.flatMap((i) => [...Object.keys(PLANTILLAS_V3[i]), 'regalo_entrega', 'revision', 'dudas_narrador'].map((c) => `${i}:${c}`)));
 const VALIDAS_VIAJE = new Set(IDIOMAS.flatMap((i) => Object.keys(PLANTILLAS_VIAJE_V2[i]).map((c) => `${i}:${c}`)));
 // Historia: solo sus bienvenidas. La pregunta y el recordatorio son los de la V3 y se marcan en WA_PLANTILLAS_V3_LISTAS.
 const BIENVENIDAS_HISTORIA = ['bienvenida', 'bienvenida_regalo', 'bienvenida_regalo_abierta'] as const;
@@ -57,6 +58,8 @@ const VALIDAS_HISTORIA = new Set(IDIOMAS.flatMap((i) => BIENVENIDAS_HISTORIA.map
 const POR_NOMBRE_META_V3 = new Map<string, string>(IDIOMAS.flatMap((i) => [
   ...Object.entries(PLANTILLAS_V3[i]).map(([c, p]) => [p.nombre, `${i}:${c}`] as [string, string]),
   [PLANTILLA_REGALO_ENTREGA[i].nombre, `${i}:regalo_entrega`] as [string, string],
+  [PLANTILLAS_REVISION[i].revision.nombre, `${i}:revision`] as [string, string],
+  [PLANTILLAS_REVISION[i].dudas.nombre, `${i}:dudas_narrador`] as [string, string],
 ]));
 const POR_NOMBRE_META_VIAJE = new Map<string, string>(IDIOMAS.flatMap((i) =>
   Object.entries(PLANTILLAS_VIAJE_V2[i]).map(([c, p]) => [p.nombre, `${i}:${c}`] as [string, string])));

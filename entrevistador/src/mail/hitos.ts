@@ -1,6 +1,6 @@
 import { esPrivado } from '../link-respuestas.js';
 import { db } from '../db/cliente.js';
-import { HITO_ACEPTO_REGALO, HITO_ACEPTO_VIAJE, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
+import { HITO_ACEPTO_ELIGE, HITO_ACEPTO_REGALO, HITO_ACEPTO_VIAJE, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -44,13 +44,17 @@ function escapar(texto: string): string {
 export function redactarHito(
   hito: Hito,
   n: { nombre?: string; como_le_dicen: string; id: string },
-  o: { regalo?: boolean; trato?: TratoComprador; viaje?: boolean; privado?: boolean } = {},
+  o: { regalo?: boolean; trato?: TratoComprador; viaje?: boolean; elige?: boolean; privado?: boolean } = {},
 ): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
   const tu = o.trato === 'tu';
   switch (hito) {
     case 'acepto':
+      if (o.elige === true) {
+        const t = HITO_ACEPTO_ELIGE[o.trato ?? 'vos'];
+        return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
+      }
       if (o.viaje === true || o.regalo === true) {
         const t = (o.viaje === true ? HITO_ACEPTO_VIAJE : HITO_ACEPTO_REGALO)[o.trato ?? 'vos'];
         return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
@@ -157,6 +161,7 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito, o: { viaje?: b
     const { asunto, cuerpo } = redactarHito(hito, n, {
       regalo: contexto.regalo === true,
       viaje: o.viaje === true,
+      elige: contexto.acceso?.elige === true && contexto.regalo === true,
       privado: esPrivado(contexto),
       trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
     });

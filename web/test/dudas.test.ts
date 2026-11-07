@@ -11,6 +11,7 @@ import {
   fechaDelPlazo,
   fechaDeRespuesta,
   horasPlazoDudas,
+  desdeCuandoCorreElPlazo,
   HORAS_PLAZO_DUDAS,
   type DudaFamilia,
 } from "../src/lib/dudas";
@@ -98,7 +99,7 @@ describe("estadoDelPlazo", () => {
   });
 
   it("vencido pero sin libro todavía: se puede contestar igual", () => {
-    const r = estadoDelPlazo(aviso, false, new Date("2026-10-14T10:00:00.000Z"));
+    const r = estadoDelPlazo(aviso, false, new Date("2026-10-16T10:00:00.000Z"));
     expect(r.estado).toBe("vencido");
   });
 
@@ -118,7 +119,13 @@ describe("estadoDelPlazo", () => {
     expect(r.venceAt).toBeNull();
   });
 
-  it("usa las horas que se le pasan (ESCRITOR_ESPERA_DUDAS_HORAS)", () => {
+  it("el plazo de quien contó son 72 horas", () => {
+    expect(HORAS_PLAZO_DUDAS).toBe(72);
+    expect(estadoDelPlazo(aviso, false, new Date("2026-10-15T09:00:00.000Z")).estado).toBe("abierto");
+    expect(estadoDelPlazo(aviso, false, new Date("2026-10-15T10:00:00.000Z")).estado).toBe("vencido");
+  });
+
+  it("usa las horas que se le pasan (viaje y kids)", () => {
     const r = estadoDelPlazo(aviso, false, new Date("2026-10-12T12:00:00.000Z"), 1);
     expect(r.estado).toBe("vencido");
   });
@@ -256,12 +263,39 @@ describe("fechas en la zona de la historia", () => {
 });
 
 describe("horasPlazoDudas", () => {
-  it("lee ESCRITOR_ESPERA_DUDAS_HORAS como la fábrica: 24 por defecto, 0 vale, basura es 24", () => {
-    expect(horasPlazoDudas(undefined)).toBe(24);
-    expect(horasPlazoDudas("48")).toBe(48);
-    expect(horasPlazoDudas("0")).toBe(0);
-    expect(horasPlazoDudas("x")).toBe(24);
-    expect(horasPlazoDudas("-3")).toBe(24);
+  it("a quien contó, 72, y la variable no cuenta", () => {
+    expect(horasPlazoDudas(true, undefined)).toBe(72);
+    expect(horasPlazoDudas(true, "0")).toBe(72);
+    expect(horasPlazoDudas(true, "5")).toBe(72);
+  });
+  it("viaje y kids leen ESCRITOR_ESPERA_DUDAS_HORAS como la fábrica: 24 por defecto, 0 vale, basura es 24", () => {
+    expect(horasPlazoDudas(false, undefined)).toBe(24);
+    expect(horasPlazoDudas(false, "48")).toBe(48);
+    expect(horasPlazoDudas(false, "0")).toBe(0);
+    expect(horasPlazoDudas(false, "x")).toBe(24);
+    expect(horasPlazoDudas(false, "-3")).toBe(24);
+  });
+});
+
+describe("desdeCuandoCorreElPlazo", () => {
+  const ahora = Date.parse("2026-11-06T12:00:00.000Z");
+  const antes = "2026-11-05T12:00:00.000Z";
+  const respaldo = "2026-11-04T12:00:00.000Z";
+  it("a quien contó: desde su aviso y, si nunca salió, desde el mail a los socios", () => {
+    expect(desdeCuandoCorreElPlazo(antes, respaldo, true, ahora)).toBe(antes);
+    expect(desdeCuandoCorreElPlazo(null, respaldo, true, ahora)).toBe(respaldo);
+    expect(desdeCuandoCorreElPlazo("  ", respaldo, true, ahora)).toBe(respaldo);
+    expect(desdeCuandoCorreElPlazo(null, null, true, ahora)).toBeNull();
+  });
+  it("una marca rota o del futuro no cuenta, como en la fábrica", () => {
+    expect(desdeCuandoCorreElPlazo("roto", respaldo, true, ahora)).toBe(respaldo);
+    expect(desdeCuandoCorreElPlazo("2026-11-08T12:00:00.000Z", respaldo, true, ahora)).toBe(respaldo);
+    expect(desdeCuandoCorreElPlazo("2026-11-06T12:04:00.000Z", respaldo, true, ahora)).toBe("2026-11-06T12:04:00.000Z");
+    expect(desdeCuandoCorreElPlazo(null, "2026-12-01T00:00:00.000Z", true, ahora)).toBeNull();
+  });
+  it("viaje y kids: solo el mail a los socios", () => {
+    expect(desdeCuandoCorreElPlazo(antes, respaldo, false, ahora)).toBe(respaldo);
+    expect(desdeCuandoCorreElPlazo(antes, null, false, ahora)).toBeNull();
   });
 });
 

@@ -1,18 +1,17 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 
 vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ resendApiKey: 'clave-prueba', urlBase: 'https://www.vitacorafamiliar.com' }) }));
 
 import { AlmacenMemoria } from '../src/escritor/almacen/memoria.js';
-import {
-  asegurarDestinoDudas, avisarOcultasSinContestar, clasificacionVigente, dudasQueCuentan, dudasVisibles, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, leerClasificacion, plazoParaSacar,
-} from '../src/escritor/produccion/privacidad.js';
+import * as privacidad from '../src/escritor/produccion/privacidad.js';
+import { avisarDudasSinContestar, sacarRespuestasDeDudasViejas, DUDAS_SIN_CONTESTAR_AVISADAS, dudasAQuienConto, esPrivado, esperaPorElNarrador, HORAS_PARA_SACAR, plazoParaSacar, restaPlazoDudas, volverAMirarEn } from '../src/escritor/produccion/privacidad.js';
 import { dudasParaLaFamilia, esperaPorDudas } from '../src/escritor/produccion/libro-v3.js';
 import { armarLibroDeImprenta, imprentaFrenada } from '../src/libro/imprenta.js';
 import { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } from '../src/mail/frases.js';
 
 // Privacidad del panel en la fábrica (Naza y Joaquín, 05/11).
 
-const REGALO = { vinculoComprador: 'hija' };
+const REGALO = { vinculoComprador: 'hija', acceso: { elige: true } };
 const PROPIA = { vinculoComprador: 'yo mismo' };
 
 function baseCon(narrador: Record<string, unknown>, archivos: Record<string, string> = {}) {
@@ -38,15 +37,19 @@ function baseCon(narrador: Record<string, unknown>, archivos: Record<string, str
 
 const D1 = { id: 'D01', pregunta: '¿Cómo se escribe el apellido?', opciones: ['Pérez', 'Peres'] };
 const D2 = { id: 'D02', pregunta: '¿Quién era la mujer de Tandil?' };
+const H = 3_600_000;
 
 describe('la regla', () => {
   it('es la misma de la web', () => {
     expect(esPrivado(REGALO)).toBe(true);
     expect(esPrivado({ modo: 'historia', ...REGALO })).toBe(true);
-    expect(esPrivado(null)).toBe(true);
+    expect(esPrivado(null)).toBe(false); // sin la marca: una entrevista anterior, sigue como se prometió
+    expect(esPrivado({ vinculoComprador: 'hija' })).toBe(false);
     expect(esPrivado(PROPIA)).toBe(false);
-    expect(esPrivado({ modo: 'viaje', ...REGALO })).toBe(false);
-    expect(esPrivado({ modo: 'kids', ...REGALO })).toBe(false);
+    expect(esPrivado({ modo: 'viaje' })).toBe(false);
+    expect(esPrivado({ modo: 'kids' })).toBe(false);
+    expect(esPrivado({ acceso: { elige: true, quien: 'narrador' } })).toBe(true);
+    expect(esPrivado({ acceso: { elige: true, quien: 'familia' } })).toBe(false);
   });
 });
 
@@ -67,118 +70,79 @@ describe('las 48 horas del narrador', () => {
   });
 });
 
-describe('a quién se le pregunta cada duda', () => {
-  it('lo que no vuelve como familia va al narrador', () => {
-    expect(leerClasificacion('```json\n{"dudas":[{"id":"D01","destino":"familia"}]}\n```', [D1, D2]).map((d) => d.destino)).toEqual(['familia', 'narrador']);
-    expect(() => leerClasificacion('no sé', [D1])).toThrow();
-  });
-  it('una Etapa A nueva invalida la clasificación', () => {
-    const t = JSON.stringify({ dudas: [{ id: 'D01', pregunta: D1.pregunta, destino: 'familia' }] });
-    expect(clasificacionVigente([D1], t)).toBe(true);
-    expect(clasificacionVigente([{ id: 'D01', pregunta: 'otra' }], t)).toBe(false);
-    expect(dudasVisibles([{ id: 'D01', pregunta: 'otra' }], t)).toEqual([]);
-    expect(clasificacionVigente([D1], null)).toBe(false);
-  });
-
-  describe('con los mails', () => {
-    const mails: { subject: string; text: string }[] = [];
-    beforeEach(() => {
-      mails.length = 0;
-      vi.stubEnv('MAIL_SOCIOS', 'socios@x.com');
-      vi.stubGlobal('fetch', vi.fn(async (_u: string, init: { body: string }) => { const b = JSON.parse(init.body) as { subject: string; text: string }; mails.push(b); return { ok: true, status: 200, text: async () => '' }; }));
-    });
-    afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
-
-    const armar = (contexto: unknown) => {
-      const { db } = baseCon({ contexto });
-      const almacen = new AlmacenMemoria();
-      return { db, almacen };
-    };
-    const opciones = { quien: 'Marta', archivoDudas: 'dudas-familia.json' };
-
-    it('clasifica, guarda el destino y avisa de las ocultas sin citas ni dudas de más', async () => {
-      const { db, almacen } = armar(REGALO);
-      await almacen.escribir('dudas-familia.json', JSON.stringify({ dudas: [{ ...D1, citas: [{ id: 'R1', texto: 'cita secreta' }] }, D2] }));
-      const pedir = vi.fn(async (_s: string, pedido: string) => { expect(pedido).not.toContain('cita secreta'); return '{"dudas":[{"id":"D01","destino":"familia"},{"id":"D02","destino":"narrador"}]}'; });
-      await asegurarDestinoDudas(db, 'n1', almacen, { ...opciones, siFalla: 'esperar', pedir });
-      expect(JSON.parse((await almacen.leer('dudas-destino.json'))!).dudas.map((d: { destino: string }) => d.destino)).toEqual(['familia', 'narrador']);
-      expect(mails).toHaveLength(1);
-      expect(mails[0].subject).toContain('una duda oculta');
-      expect(mails[0].text).toContain('D02');
-      expect(mails[0].text).not.toContain('D01');
-      // La segunda vuelta no vuelve a clasificar ni a avisar.
-      await asegurarDestinoDudas(db, 'n1', almacen, { ...opciones, siFalla: 'esperar', pedir });
-      expect(pedir).toHaveBeenCalledOnce();
-      expect(mails).toHaveLength(1);
-    });
-
-    it('si el modelo falla: en el tick espera, con el libro encargado van todas al narrador', async () => {
-      const { db, almacen } = armar(REGALO);
-      await almacen.escribir('dudas-familia.json', JSON.stringify({ dudas: [D1, D2] }));
-      const pedir = vi.fn(async () => { throw new Error('caído'); });
-      await asegurarDestinoDudas(db, 'n1', almacen, { ...opciones, siFalla: 'esperar', pedir });
-      expect(await almacen.leer('dudas-destino.json')).toBeNull();
-      await asegurarDestinoDudas(db, 'n1', almacen, { ...opciones, siFalla: 'alNarrador', pedir });
-      expect(JSON.parse((await almacen.leer('dudas-destino.json'))!).dudas.every((d: { destino: string }) => d.destino === 'narrador')).toBe(true);
-      expect(mails[0].subject).toContain('2 dudas ocultas');
-    });
-
-    it('para mí no clasifica', async () => {
-      const { db, almacen } = armar(PROPIA);
-      await almacen.escribir('dudas-familia.json', JSON.stringify({ dudas: [D1, D2] }));
-      const pedir = vi.fn();
-      await asegurarDestinoDudas(db, 'n1', almacen, { ...opciones, siFalla: 'alNarrador', pedir });
-      expect(pedir).not.toHaveBeenCalled();
-      expect(await almacen.leer('dudas-destino.json')).toBeNull();
-    });
-
-    it('antes de escribir el libro: avisa una vez de las ocultas sin contestar, no de las contestadas', async () => {
-      const { db, almacen } = armar(REGALO);
-      await almacen.escribir('dudas-familia.json', JSON.stringify({ dudas: [D1, D2] }));
-      await almacen.escribir('dudas-destino.json', JSON.stringify({ dudas: [{ ...D1, destino: 'familia' }, { ...D2, destino: 'narrador' }] }));
-      await avisarOcultasSinContestar(db, 'n1', almacen, { ...opciones, contestadas: new Set(['D02']) });
-      expect(mails).toHaveLength(0);
-      await avisarOcultasSinContestar(db, 'n1', almacen, { ...opciones, contestadas: new Set() });
-      expect(mails).toHaveLength(1);
-      expect(mails[0].subject).toContain('Se empieza a escribir');
-      await avisarOcultasSinContestar(db, 'n1', almacen, { ...opciones, contestadas: new Set() });
-      expect(mails).toHaveLength(1);
-    });
-  });
-});
-
-describe('las dudas ocultas no cuentan como pendientes', () => {
+describe('todas las dudas de un regalo van a quien contó (Naza, 06/11)', () => {
   const dudas = JSON.stringify({ dudas: [D1, D2] });
-  const destino = JSON.stringify({ dudas: [{ ...D1, destino: 'familia' }, { ...D2, destino: 'narrador' }] });
   const carpeta = 'n1/escritor';
+  const ahora = Date.parse('2026-11-10T12:00:00Z');
+  const hace = (horas: number) => new Date(ahora - horas * H).toISOString();
 
-  it('dudasQueCuentan: privada solo las visibles, sin clasificar null, para mí todas', async () => {
-    const almacen = new AlmacenMemoria();
-    await almacen.escribir('dudas-destino.json', destino);
-    const privada = baseCon({ contexto: REGALO }).db;
-    expect((await dudasQueCuentan(privada, 'n1', almacen, [D1, D2]))?.map((d) => d.id)).toEqual(['D01']);
-    expect(await dudasQueCuentan(privada, 'n1', new AlmacenMemoria(), [D1, D2])).toBeNull();
-    expect((await dudasQueCuentan(baseCon({ contexto: PROPIA }).db, 'n1', new AlmacenMemoria(), [D1, D2]))?.map((d) => d.id)).toEqual(['D01', 'D02']);
+  it('ya no hay clasificador', () => {
+    for (const n of ['asegurarDestinoDudas', 'dudasQueCuentan', 'dudasVisibles', 'clasificacionVigente', 'leerClasificacion', 'PROMPT_CLASIFICAR_DUDAS', 'avisarOcultasSinContestar', 'DESTINO_DUDAS']) {
+      expect(Object.keys(privacidad)).not.toContain(n);
+    }
   });
 
-  it('los mails a la familia cuentan solo las visibles, y con la visible contestada ya está', async () => {
-    const { db } = baseCon({ contexto: REGALO }, {
-      [`${carpeta}/carpeta-A.json`]: '{}', [`${carpeta}/dudas-familia.json`]: dudas, [`${carpeta}/dudas-destino.json`]: destino,
+  it('los mails cuentan todas, aunque quede un dudas-destino.json viejo', async () => {
+    const { db, mapa } = baseCon({ contexto: REGALO }, {
+      [`${carpeta}/carpeta-A.json`]: '{}', [`${carpeta}/dudas-familia.json`]: dudas,
+      [`${carpeta}/dudas-destino.json`]: JSON.stringify({ dudas: [{ ...D1, destino: 'familia' }, { ...D2, destino: 'narrador' }] }),
       [`${carpeta}/correcciones.json`]: JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Pérez' }] }),
     });
-    expect(await dudasParaLaFamilia(db, 'n1')).toEqual({ cantidad: 1, contestadas: true });
+    expect(await dudasParaLaFamilia(db, 'n1')).toEqual({ cantidad: 2, contestadas: false, plazoVencido: false });
+    mapa.delete(`${carpeta}/dudas-destino.json`);
+    expect(await dudasParaLaFamilia(db, 'n1')).toEqual({ cantidad: 2, contestadas: false, plazoVencido: false });
   });
 
-  it('sin clasificar todavía no se manda el mail a la familia (null)', async () => {
-    const { db } = baseCon({ contexto: REGALO }, { [`${carpeta}/carpeta-A.json`]: '{}', [`${carpeta}/dudas-familia.json`]: dudas });
-    expect(await dudasParaLaFamilia(db, 'n1')).toBeNull();
-  });
-
-  it('la espera: solo ocultas, el libro no espera', async () => {
+  it('una duda que antes era oculta ahora se espera', async () => {
     const almacen = new AlmacenMemoria();
     await almacen.escribir('dudas-familia.json', JSON.stringify({ dudas: [D2] }));
+    await almacen.escribir('dudas-avisadas.txt', hace(1));
     await almacen.escribir('dudas-destino.json', JSON.stringify({ dudas: [{ ...D2, destino: 'narrador' }] }));
-    expect(await esperaPorDudas(baseCon({ contexto: REGALO }).db, 'n1', almacen)).toBe(0);
+    expect(await esperaPorDudas(baseCon({ contexto: REGALO }).db, 'n1', almacen, ahora)).toBe(71 * H);
+  });
+
+  it('el plazo: 72 horas desde el WhatsApp o, si nunca salió, desde el mail a los socios', async () => {
+    const almacen = new AlmacenMemoria();
+    expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
+    await almacen.escribir('dudas-narrador-avisadas.txt', hace(1));
+    expect(await restaPlazoDudas(almacen, hace(100), ahora)).toBe(71 * H);
+    await almacen.escribir('dudas-narrador-avisadas.txt', hace(72));
+    expect(await restaPlazoDudas(almacen, null, ahora)).toBe(0);
+  });
+
+  it('el plazo: una marca del futuro se ignora y pasa al respaldo, en cada vuelta: no traba el libro', async () => {
+    const almacen = new AlmacenMemoria();
+    await almacen.escribir('dudas-narrador-avisadas.txt', new Date(ahora + 500 * H).toISOString());
+    expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
+    expect(await restaPlazoDudas(almacen, hace(10), ahora + 62 * H)).toBe(0);
+  });
+
+  it('el plazo: unos minutos de más por el reloj del otro servicio no la invalidan', async () => {
+    const almacen = new AlmacenMemoria();
+    await almacen.escribir('dudas-narrador-avisadas.txt', new Date(ahora + 60_000).toISOString());
+    expect(await restaPlazoDudas(almacen, hace(100), ahora)).toBe(72 * H);
+  });
+
+  it('a quién van: privados y «Para mí», no viaje ni kids', () => {
+    expect(dudasAQuienConto(REGALO)).toBe(true);
+    expect(dudasAQuienConto(null)).toBe(false); // sin la marca: una entrevista anterior, sigue con la familia
+    expect(dudasAQuienConto(PROPIA)).toBe(true);
+    expect(dudasAQuienConto({ modo: 'viaje', ...REGALO })).toBe(false);
+    expect(dudasAQuienConto({ modo: 'kids', ...REGALO })).toBe(false);
+  });
+
+  it('el plazo: una marca vacía o rota no cuenta, y sin ninguna arranca entero', async () => {
+    const almacen = new AlmacenMemoria();
+    await almacen.escribir('dudas-narrador-avisadas.txt', '');
+    expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
+    await almacen.escribir('dudas-narrador-avisadas.txt', 'rota');
+    expect(await restaPlazoDudas(almacen, hace(10), ahora)).toBe(62 * H);
+    expect(await restaPlazoDudas(almacen, null, ahora)).toBe(72 * H);
+  });
+
+  it('las vueltas de espera miran cada 15 minutos, o antes si falta menos', () => {
+    expect(volverAMirarEn(72 * H)).toBe(15 * 60_000);
+    expect(volverAMirarEn(60_000)).toBe(60_000);
   });
 });
 
@@ -205,5 +169,147 @@ describe('el recordatorio de los 15 días cuando el libro es para otra persona',
   it('el asunto', () => {
     expect(asuntoRecordatorioFrases('abuela', true, true)).toBe('El libro de tu abuela espera tu OK para imprimirse');
     expect(asuntoRecordatorioFrases('abuela', false, true)).toBe('El libro de tu abuela espera tu confirmación para imprimirse');
+  });
+});
+
+describe('a quién van las dudas, según la marca', () => {
+  it('sin la marca o con «Mi familia»: a quien contó solo si es «Para mí», y sin plazo para sacar', () => {
+    const SIN_MARCA = { vinculoComprador: 'hija' };
+    const MI_FAMILIA = { vinculoComprador: 'hija', acceso: { elige: true, quien: 'familia' } };
+    expect(dudasAQuienConto(SIN_MARCA)).toBe(false);
+    expect(dudasAQuienConto(MI_FAMILIA)).toBe(false);
+    expect(dudasAQuienConto(null)).toBe(false);
+    expect(dudasAQuienConto(PROPIA)).toBe(true);
+    expect(plazoParaSacar({ contexto: SIN_MARCA, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).toBeNull();
+    expect(plazoParaSacar({ contexto: MI_FAMILIA, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).toBeNull();
+  });
+
+  it('con la marca o «Prefiero yo»: a quien contó, y con plazo para sacar', () => {
+    for (const contexto of [REGALO, { acceso: { elige: true, quien: 'narrador' } }]) {
+      expect(dudasAQuienConto(contexto)).toBe(true);
+      expect(plazoParaSacar({ contexto, ultima_respuesta_at: '2026-11-05T12:00:00Z' })).not.toBeNull();
+    }
+  });
+
+  it('Viaje y Kids nunca, aunque sean «Para mí»', () => {
+    for (const modo of ['viaje', 'kids']) {
+      expect(dudasAQuienConto({ modo, vinculoComprador: 'yo mismo' })).toBe(false);
+      expect(dudasAQuienConto({ modo, acceso: { elige: true } })).toBe(false);
+    }
+  });
+});
+
+describe('el aviso a los socios si quien contó no contesta', () => {
+  const DUDAS = JSON.stringify({ dudas: [{ id: 'D01' }, { id: 'D02' }, { id: 'D03' }] });
+  const conMail = (status = 200) => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async (_url: string, _init: { body: string }) => new Response('{}', { status }));
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+  const avisar = (almacen: AlmacenMemoria, o: { contexto?: unknown; correcciones?: () => Promise<{ dudaId?: string; texto: string }[]> } = {}) =>
+    avisarDudasSinContestar(almacen, { contexto: o.contexto ?? REGALO, archivoDudas: 'dudas-familia.json', quien: async () => 'Marta', correcciones: o.correcciones ?? (async () => []) });
+  const conDudas = async () => {
+    const a = new AlmacenMemoria();
+    await a.escribir('dudas-familia.json', DUDAS);
+    return a;
+  };
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('dice el nombre y cuántas quedaron, sin las preguntas, y sale una sola vez', async () => {
+    const fetch = conMail();
+    const a = await conDudas();
+    await avisar(a, { correcciones: async () => [{ dudaId: 'D01', texto: 'Sí' }, { dudaId: 'D02', texto: '  ' }] });
+    await avisar(a);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const { text, subject } = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(text).toContain('Se empieza a escribir el libro de Marta con 2 dudas sin contestar. Quien contó no las respondió en el plazo.');
+    expect(subject).toContain('Marta');
+    expect(Number.isFinite(Date.parse(String(await a.leer(DUDAS_SIN_CONTESTAR_AVISADAS))))).toBe(true);
+  });
+
+  it('una sola, en singular', async () => {
+    const fetch = conMail();
+    const a = await conDudas();
+    await avisar(a, { correcciones: async () => [{ dudaId: 'D01', texto: 'Sí' }, { dudaId: 'D02', texto: 'Sí' }] });
+    expect(JSON.parse(fetch.mock.calls[0][1].body).text).toContain('con 1 duda sin contestar.');
+  });
+
+  it('si el mail no sale, no escribe la marca y se reintenta en la vuelta siguiente, sin tirar', async () => {
+    const fetch = conMail(500);
+    const a = await conDudas();
+    await expect(avisar(a)).resolves.toBeUndefined();
+    expect(await a.leer(DUDAS_SIN_CONTESTAR_AVISADAS)).toBeNull();
+    await avisar(a);
+    expect(fetch.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('una falla leyendo no frena nada', async () => {
+    const fetch = conMail();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const a = await conDudas();
+    await expect(avisar(a, { correcciones: async () => { throw new Error('roto'); } })).resolves.toBeUndefined();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('una marca vacía (Etapa A rehecha) no cuenta', async () => {
+    const fetch = conMail();
+    const a = await conDudas();
+    await a.escribir(DUDAS_SIN_CONTESTAR_AVISADAS, '');
+    await avisar(a);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('nada si están todas contestadas o no hay dudas', async () => {
+    const fetch = conMail();
+    const a = await conDudas();
+    await avisar(a, { correcciones: async () => ['D01', 'D02', 'D03'].map((dudaId) => ({ dudaId, texto: 'Sí' })) });
+    await avisar(new AlmacenMemoria());
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('un regalo no privado no avisa: ahí esperar a quien contó nunca fue el plazo', async () => {
+    const fetch = conMail();
+    const a = await conDudas();
+    await avisar(a, { contexto: { vinculoComprador: 'hija' } });
+    expect(fetch).not.toHaveBeenCalled();
+    await avisar(a, { contexto: PROPIA });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('una Etapa A rehecha y las correcciones viejas', () => {
+  const con = async (t: string) => {
+    const a = new AlmacenMemoria();
+    await a.escribir('correcciones.json', t);
+    return a;
+  };
+
+  it('saca las que apuntan a una duda y deja las de los socios', async () => {
+    const a = await con(JSON.stringify({ correcciones: [{ dudaId: 'D01', texto: 'Ofelia', quien: 'Marta' }, { texto: 'Se llamaba Salva.' }] }));
+    await sacarRespuestasDeDudasViejas(a);
+    expect(JSON.parse(String(await a.leer('correcciones.json')))).toEqual({ correcciones: [{ texto: 'Se llamaba Salva.' }] });
+  });
+
+  it('también con el archivo como lista', async () => {
+    const a = await con(JSON.stringify([{ dudaId: 'D01', texto: 'x' }, { texto: 'y' }]));
+    await sacarRespuestasDeDudasViejas(a);
+    expect(JSON.parse(String(await a.leer('correcciones.json')))).toEqual([{ texto: 'y' }]);
+  });
+
+  it('un archivo roto no se pisa, y sin archivo no crea uno', async () => {
+    const a = await con('{ esto no es JSON');
+    await sacarRespuestasDeDudasViejas(a);
+    expect(await a.leer('correcciones.json')).toBe('{ esto no es JSON');
+    const b = await con(JSON.stringify({ otra: 'cosa' }));
+    await sacarRespuestasDeDudasViejas(b);
+    expect(await b.leer('correcciones.json')).toBe(JSON.stringify({ otra: 'cosa' }));
+    const c = new AlmacenMemoria();
+    await sacarRespuestasDeDudasViejas(c);
+    expect(await c.leer('correcciones.json')).toBeNull();
   });
 });

@@ -21,7 +21,7 @@ describe('Etapa A', () => {
     const { x, modelo } = armar(salidasModeloNelida(), carpetaNelida(['entradas']), true);
     expect((await etapaA(x)).ok).toBe(true);
     const dudas = modelo.llamadas.find((p) => p.clave === 'A/dudas');
-    expect(dudas?.bloques.join(' ')).toContain('las preguntas las lee la misma persona que contó');
+    expect(dudas?.bloques.join(' ')).toContain('Las preguntas las lee la misma persona que contó');
     const otra = armar(salidasModeloNelida());
     await etapaA(otra.x);
     expect(otra.modelo.llamadas.find((p) => p.clave === 'A/dudas')?.bloques.join(' ')).toContain('la familia de Nélida');

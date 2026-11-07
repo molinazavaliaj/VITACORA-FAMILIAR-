@@ -15,10 +15,20 @@ import type { Historia } from "@/lib/panel";
 const n = { id: "n1", nombre: "Antonio", como_le_dicen: "Antonio", estado: "activo", alerta_silencio: false };
 const props = {
   n, rol: "duena" as const, quien: { como: "Antonio", propia: false, ella: false, viaje: false }, preguntasFamilia: [], fotos: [], usuarioId: "u1",
-  aprobado: false, historiaCerrada: false, libroListo: false, dudasPendientes: false, alFinal: false, ritmo: "diario" as const, trato: "vos" as const,
+  aprobado: false, historiaCerrada: false, libroListo: false, quedanPreguntas: 0, alFinal: false, ritmo: "diario" as const, trato: "vos" as const,
 };
 
 describe("la historia privada", () => {
+  it("de las dudas solo dice cuántas faltan, sin link", () => {
+    const una = renderToStaticMarkup(<HistoriaPrivada {...props} quedanPreguntas={1} />);
+    expect(una).toContain("A Antonio le queda una pregunta por contestar.");
+    expect(una).not.toContain("/dudas");
+    const tres = renderToStaticMarkup(<HistoriaPrivada {...props} rol="invitado" quedanPreguntas={3} />);
+    expect(tres).toContain("A Antonio le quedan 3 preguntas por contestar.");
+    expect(tres).not.toContain("/dudas");
+    expect(renderToStaticMarkup(<HistoriaPrivada {...props} />)).not.toContain("por contestar");
+  });
+
   it("dice que es privado, deja sumar preguntas y no tiene audios ni botón de sacar", () => {
     const html = renderToStaticMarkup(<HistoriaPrivada {...props} preguntasFamilia={[{ id: "p", texto: "¿Y la abuela?", estado: "contestada" }]} />);
     expect(html).toContain("Lo que cuenta queda privado hasta que el libro esté listo");
@@ -82,8 +92,8 @@ describe("el Inicio", () => {
   const h = (estado: string, contexto: Record<string, unknown>, rol: "duena" | "invitado" = "duena") => ({ rol, narrador: { id: "n1", nombre: "A", como_le_dicen: "A", estado, contexto } }) as unknown as Historia;
   const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: false };
   it("no invita a escuchar ni a leer", () => {
-    expect(proximoPaso(h("activo", { vinculoComprador: "hija" }), r)?.texto).toBe("Mirá cuánto lleva contado");
-    expect(proximoPaso(h("completado", { vinculoComprador: "hija" }, "invitado"), r)?.texto).toBe("Ya terminó de contar. Cuando el libro esté listo, se abre acá");
+    expect(proximoPaso(h("activo", { vinculoComprador: "hija", acceso: { elige: true } }), r)?.texto).toBe("Mirá cuánto lleva contado");
+    expect(proximoPaso(h("completado", { vinculoComprador: "hija", acceso: { elige: true } }, "invitado"), r)?.texto).toBe("Ya terminó de contar. Cuando el libro esté listo, se abre acá");
     expect(proximoPaso(h("activo", { vinculoComprador: "yo mismo" }), r)?.texto).toContain("Escuchá");
   });
 });

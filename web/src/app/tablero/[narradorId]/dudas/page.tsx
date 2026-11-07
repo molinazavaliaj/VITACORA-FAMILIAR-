@@ -2,19 +2,21 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { usuarioDeLaSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, loContadoEsPrivado, PUEDE } from "@/lib/panel";
 import { textosPantallaDudas, textoTodasContestadas, type TextosPantallaDudas } from "@/lib/dudas-textos";
 import {
   correccionesPorDuda,
+  desdeCuandoCorreElPlazo,
   estadoDelPlazo,
   fechaDelPlazo,
   fechaDeRespuesta,
   hayDudasSinContestar,
+  horasPlazoDudas,
   leerCorreccionesGuardadas,
   leerDudas,
   zonaParaFechas,
 } from "@/lib/dudas";
-import { archivosDelEscritor, leerDelEscritor, dudasQueVe } from "@/lib/dudas-archivos";
+import { archivosDelEscritor, dudasAQuienConto, leerDelEscritor } from "@/lib/dudas-archivos";
 import type { Region } from "@/lib/registro";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import type { TratoComprador } from "@/lib/regalo-textos";
@@ -26,7 +28,8 @@ import { VolverAlTablero } from "../../pasos";
 // que se oye de dos formas, un año que no cierra. La familia lo contesta acá y la
 // Etapa B lo usa al escribir el libro.
 //
-// No hay mail automático todavía (decisión del 12/10): los socios pasan el link.
+// Si lo contado es privado, esta pantalla no se abre: las dudas las contesta quien contó, en /mi-historia/<token>, y
+// quien regala solo ve cuántas faltan (Naza, 06/11). Queda para «Para mí», viaje, kids y un regalo no privado.
 
 const MENSAJE_ERROR_CARGA: Record<TratoComprador, string> = {
   vos: "No pudimos cargar las dudas. Actualizá la página en un momento.",
@@ -71,6 +74,7 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     notFound();
   }
   const narrador = historia.narrador;
+  if (loContadoEsPrivado(narrador)) redirect(`/tablero/${narrador.id}`);
   // «Para mí»: la dueña compró el libro para sí. Le habla de lo que contó ella.
   const textos = textosPantallaDudas(esPropia(narrador) && historia.rol === "duena", narrador.como_le_dicen);
   // Vos o tú: el de la familia dueña de la historia.
@@ -87,26 +91,25 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
   }
 
   // Roto incluye un `dudas` que no es lista: la pantalla no se cae, dice que no pudo.
-  const leidas = leerDudas(archivoDudas.texto);
-  if (!leidas) {
+  const dudas = leerDudas(archivoDudas.texto);
+  if (!dudas) {
     console.error("tablero/dudas: dudas-familia.json invalido");
     return <EstadoError trato={trato} />;
   }
-  // Si lo contado es privado: sin citas, y solo las que no revelan nada (las otras van al narrador).
-  const dudas = await dudasQueVe(admin, narrador, leidas);
 
-  const [archivoCorrecciones, archivoAvisadas, escritor, zona, cierre] = await Promise.all([
+  const [archivoCorrecciones, archivoAvisadas, archivoAvisoNarrador, escritor, zona, cierre] = await Promise.all([
     leerDelEscritor(admin, narrador.id, "correcciones.json"),
     leerDelEscritor(admin, narrador.id, "dudas-avisadas.txt"),
+    leerDelEscritor(admin, narrador.id, "dudas-narrador-avisadas.txt"),
     archivosDelEscritor(admin, narrador.id),
     zonaDeLaHistoria(admin, narrador),
     // ¿Ya lo encargaron? Para el cartel de cuando están todas contestadas.
     admin.from("narradores").select("libro_aprobado_at").eq("id", narrador.id).maybeSingle(),
   ]);
-  if (archivoCorrecciones.error || archivoAvisadas.error || escritor.error) {
+  if (archivoCorrecciones.error || archivoAvisadas.error || archivoAvisoNarrador.error || escritor.error) {
     console.error(
       "tablero/dudas: fallo la lectura del escritor",
-      archivoCorrecciones.error ?? archivoAvisadas.error ?? escritor.error,
+      archivoCorrecciones.error ?? archivoAvisadas.error ?? archivoAvisoNarrador.error ?? escritor.error,
     );
     return <EstadoError trato={trato} />;
   }
@@ -120,8 +123,14 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
     else console.error("tablero/dudas: correcciones.json invalido");
   }
 
-  // El plazo corre desde el mail a los socios; el libro escrito lo cierra.
-  const plazo = estadoDelPlazo(archivoAvisadas.texto, escritor.nombres.has("libro.md"));
+  // El mismo plazo que espera la fábrica (72 horas desde el aviso a quien contó; si contesta la familia, el de siempre). El libro escrito lo cierra.
+  const aQuienConto = dudasAQuienConto(narrador);
+  const plazo = estadoDelPlazo(
+    desdeCuandoCorreElPlazo(archivoAvisoNarrador.texto, archivoAvisadas.texto, aQuienConto),
+    escritor.nombres.has("libro.md"),
+    new Date(),
+    horasPlazoDudas(aQuienConto),
+  );
 
   // Naza, 30/10: con todas contestadas parecía que el libro ya se escribía solo. El cartel dice que falta
   // encargarlo; a un invitado (no puede encargar) solo si ya está encargado. Sin poder leer el cierre, nada.

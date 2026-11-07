@@ -19,8 +19,8 @@ import { necesitaEntrega } from "@/lib/entregas";
 import { entrevistaV3, respuestasFuera, respuestasV3ParaCerrar, type FilaRespuestaV3, type RespuestaV3 } from "@/lib/v3";
 import { idiomaDelLibro } from "@/lib/tapa";
 import { entrevistaHistoria } from "@/lib/historia-panel";
-import { hayDudasPendientes } from "@/lib/dudas-archivos";
-import { textoDudas } from "../../proximo-paso";
+import { cuantasDudasPendientes } from "@/lib/dudas-archivos";
+import { textoDudas, textoQuedanPreguntas } from "../../proximo-paso";
 import { tratoDeLaFamilia } from "@/lib/trato";
 import { nombrePropio } from "@/lib/nombre-propio";
 
@@ -73,7 +73,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const esHistoria = deHistoria !== null || (!entrevistaFamiliar && n.contexto?.modo === "historia");
   const v3 = entrevistaFamiliar ?? deHistoria ?? (esHistoria ? { estado: {}, idioma: (n.contexto?.idioma as string | undefined) ?? null } : null);
   // Dudas del escritor sin contestar (13/10): el aviso lleva a la pantalla. Vale aun encargado, mientras el libro no esté escrito.
-  const dudasPendientes = terminado ? await hayDudasPendientes(admin, n) : false;
+  const quedanPreguntas = terminado ? await cuantasDudasPendientes(admin, n) : 0;
 
   const [{ data: filaN }, { data: pedidos }, trato] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
@@ -296,7 +296,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       <div className="mt-1">
         <Titulo>Su libro</Titulo>
       </div>
-      {dudasPendientes ? (
+      {/* Si lo contado es privado las contesta quien contó, por su link: a quien regala, solo cuántas faltan. */}
+      {quedanPreguntas > 0 && privado ? (
+        <p className="mt-6 text-[16px] leading-relaxed text-[var(--texto)]">{textoQuedanPreguntas(n.como_le_dicen, quedanPreguntas)}</p>
+      ) : quedanPreguntas > 0 ? (
         <div className="mt-6">
           <ProximoPaso href={`/tablero/${n.id}/dudas`}>{textoDudas(propia && rol === "duena", n.como_le_dicen, tu)}</ProximoPaso>
         </div>

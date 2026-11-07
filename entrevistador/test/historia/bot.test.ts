@@ -27,7 +27,7 @@ afterEach(() => {
 async function preparar(o: { vinculo?: string; ficha?: Partial<FichaFila>; temaAbierto?: boolean; propias?: string[]; idioma?: Idioma; estado?: string } = {}) {
   const narrador: NarradorHistoria = {
     id: 'n1', familia_id: 'f1', como_le_dicen: 'Marta', telefono_whatsapp: TEL, hora_preferida: '10:00:00',
-    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia', vinculoComprador: o.vinculo ?? 'yo mismo' }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false,
+    zona_horaria: 'America/Argentina/Buenos_Aires', contexto: { modo: 'historia', vinculoComprador: o.vinculo ?? 'yo mismo', ...(o.vinculo ? { acceso: { elige: true } } : {}) }, estado: o.estado ?? 'invitado', dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false,
   };
   const base = crearBaseFalsa({ narradores: [{ ...narrador }] }, { ahora: () => AHORA });
   const ficha: FichaFila = { nombre: 'Marta', genero: 'mujer', tema: 'mudanza', ...o.ficha };
@@ -184,12 +184,17 @@ describe('la entrevista entera', () => {
 });
 
 describe('la privacidad (05/11)', () => {
-  it('un regalo: con el SÍ sale el aviso, antes de lo primero; «para mí», no', async () => {
+  it('venta nueva: con el SÍ elige con dos botones, antes de lo primero, y la entrevista sigue igual', async () => {
     const { entra, enviados } = await preparar({ vinculo: 'hija' });
     await entra(texto('Sí'));
-    expect(enviados[0].texto).toContain('Lo que me cuentes queda privado hasta que tu libro esté listo');
-    expect(enviados[0].texto).toContain('48 horas');
+    expect(enviados[0]).toMatchObject({ tipo: 'botones', botones: ['Mi familia', 'Solo yo'] });
     expect(enviados[1].texto).toContain('Funciona así');
+  });
+
+  it('«para mí», y una entrevista sin la marca: sin botones', async () => {
+    const { entra, enviados } = await preparar();
+    await entra(texto('Sí'));
+    expect(enviados.some((e) => e.botones?.includes('Mi familia'))).toBe(false);
   });
 
   it('«que no vaya al libro» mandado como audio se reserva también en una historia', async () => {

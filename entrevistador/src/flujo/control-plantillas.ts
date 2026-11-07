@@ -23,6 +23,9 @@ export function faltantes(v: QueVende, env: NodeJS.ProcessEnv = process.env): st
     for (const cual of ['bienvenida', 'pregunta', 'recordatorio'] as const) {
       if (!plantillaLista(i, cual, env)) faltan.push(`Familiar (${NOMBRE[i]}): falta «${i}:${cual}» en WA_PLANTILLAS_V3_LISTAS`);
     }
+    for (const cual of ['revision', 'dudas_narrador'] as const) {
+      if (!plantillaLista(i, cual, env)) faltan.push(`Link y dudas a quien contó (${NOMBRE[i]}): falta «${i}:${cual}» en WA_PLANTILLAS_V3_LISTAS`);
+    }
     if (v.regaloEntrega && !(env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${i}:regalo_entrega`)) {
       faltan.push(`Regalo por WhatsApp (${NOMBRE[i]}): falta «${i}:regalo_entrega» en WA_PLANTILLAS_V3_LISTAS`);
     }
@@ -58,7 +61,7 @@ export async function controlarPlantillas(o: { fetch?: typeof fetch; env?: NodeJ
     await avisarSocios(
       'plantillas-vs-web',
       'La web vende algo que el bot todavía no puede mandar',
-      `${faltan.join('\n')}\n\nQuien compre eso paga y no recibe la bienvenida por WhatsApp. Si la plantilla ya está aprobada en Meta, `
+      `${faltan.join('\n')}\n\nQuien compre eso paga y no recibe esos mensajes por WhatsApp. Si la plantilla ya está aprobada en Meta, `
         + 'sumarla a la lista en Railway (servicio del bot). Si no, apagar esa venta en Vercel hasta que Meta la apruebe.',
       { ahora: o.ahora },
     );

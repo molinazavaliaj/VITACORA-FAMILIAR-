@@ -15,6 +15,7 @@ export type Enviado = {
   plantilla?: string;
   idiomaMeta?: string;
   variables?: string[];
+  botonUrl?: string;
 };
 
 export function depsDePrueba(base: BaseFalsa, o: { ahora?: Date; fallarEnvios?: number; cazador?: ClienteModelo | null } = {}) {
@@ -37,7 +38,7 @@ export function depsDePrueba(base: BaseFalsa, o: { ahora?: Date; fallarEnvios?: 
     wa: {
       texto: (a, texto) => salir({ a, tipo: 'texto', texto }),
       botones: (a, texto, botones) => salir({ a, tipo: 'botones', texto, botones }),
-      plantilla: (a, plantilla, idiomaMeta, variables) => salir({ a, tipo: 'plantilla', plantilla, idiomaMeta, variables }),
+      plantilla: (a, plantilla, idiomaMeta, variables, op) => salir({ a, tipo: 'plantilla', plantilla, idiomaMeta, variables, ...(op?.botonUrl ? { botonUrl: op.botonUrl } : {}) }),
       descargar: async (mediaId) => Buffer.from(mediaId, 'utf8'),
     },
     transcribir: async (audio) => {
