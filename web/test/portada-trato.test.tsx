@@ -336,9 +336,9 @@ describe("la portada según el idioma", () => {
 
 describe("portada: la pregunta de los audios no promete quién escucha", () => {
   const NUEVA = {
-    es: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
-    ar: "Los audios son privados, se usan únicamente para su libro y se pueden borrar todos cuando quiera.",
-    ca: "Els àudios són privats, només es fan servir per al seu llibre i es poden esborrar tots quan vulgui.",
+    es: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
+    ar: "Lo decide tu familiar. Mientras cuenta, puede dejar que su familia los escuche o guardárselos. Se usan únicamente para su libro, y se pueden borrar todos cuando quiera.",
+    ca: "Ho decideix el teu familiar. Mentre explica, pot deixar que la seva família els escolti o guardar-se'ls. S'utilitzen únicament per al seu llibre, i es poden esborrar tots quan vulgui.",
   } as const;
   for (const idioma of ["es", "ar", "ca"] as const) {
     it(`${idioma}: sin «Solo su familia» y con la frase nueva`, () => {

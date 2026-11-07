@@ -305,8 +305,8 @@ describe("el mail de acceso", () => {
     }));
     try {
       const { enviarMailAcceso } = await import("../src/lib/mail");
-      await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
-      await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
+      await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES", elige: true });
+      await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR", elige: true });
       const [es, ar] = enviados.map((m) => m.html.replace(/\s+/g, " "));
       expect(es).toContain("te avisamos por aquí. Quien cuenta elige");
       expect(es).not.toMatch(/acá|entrá/);

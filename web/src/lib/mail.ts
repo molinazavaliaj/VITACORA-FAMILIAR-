@@ -237,12 +237,14 @@ export const textoPlano = (bloques: string[]) => `${bloques.join("\n\n")}\n`;
  * de 6 dígitos, que es el login que ya existe. `idioma` pisa a la región
  * (para el catalán, cuando la compra lo guarde).
  */
-export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids } }): MailArmado {
+export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids }; elige?: boolean }): MailArmado {
   if (opciones.kids) return armarMailAccesoKids(opciones.comoLeDicen, opciones.kids.canal, opciones.kids.idioma ?? "es-AR");
   const idioma = opciones.idioma ?? idiomaMailDeRegion(opciones.region);
   const { comun, acceso } = textosMail(idioma);
   const como = opciones.comoLeDicen;
   const entrar = `${urlBaseMail()}/entrar`;
+  // «Para mí» y De viaje no eligen nada: la frase sale solo en una venta nueva para otra persona.
+  const mientras = opciones.elige ? `${acceso.cuandoEmpiece} ${acceso.eligeQuienCuenta}` : acceso.cuandoEmpiece;
 
   const html = cascaron({
     idioma,
@@ -254,7 +256,7 @@ export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string
           <tr><td class="vt-px" style="padding:18px 36px 0;">${boton(entrar, comun.botonTablero)}</td></tr>
           <tr><td class="vt-px" style="padding:10px 36px 0;font-family:${SERIF};font-size:14px;line-height:1.5;color:${COLOR.pie};">${escapar(comun.codigo)}</td></tr>
           ${lineaDeTiempo(comun.quePasaAhora, [
-            { cuando: comun.mientrasCuenta, que: acceso.cuandoEmpiece },
+            { cuando: comun.mientrasCuenta, que: mientras },
             { cuando: comun.alTerminar, que: comun.alTerminarTexto },
           ])}`,
   });
@@ -265,7 +267,7 @@ export function armarMailAcceso(opciones: { comoLeDicen: string; region?: string
     `${acceso.enUnRato(como)} ${acceso.arranca}`,
     acceso.paraEscuchar,
     `${comun.botonTablero}\n${entrar}\n${comun.codigo}`,
-    `${comun.quePasaAhora}\n${comun.mientrasCuenta}. ${acceso.cuandoEmpiece}\n${comun.alTerminar}. ${comun.alTerminarTexto}`,
+    `${comun.quePasaAhora}\n${comun.mientrasCuenta}. ${mientras}\n${comun.alTerminar}. ${comun.alTerminarTexto}`,
     comun.dudas,
     `${comun.pie}\n${comun.porQue}`,
   ]);
@@ -321,7 +323,7 @@ ${comun.porQue}`,
   return { asunto: K.asunto(apodo), html, texto };
 }
 
-export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids } }): Promise<boolean> {
+export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null; idioma?: IdiomaWeb; kids?: { canal: CanalMailKids; idioma?: IdiomaKids }; elige?: boolean }): Promise<boolean> {
   const mail = armarMailAcceso(opciones);
   return enviar({ para: opciones.para, asunto: mail.asunto, html: mail.html, texto: mail.texto });
 }

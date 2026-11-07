@@ -39,6 +39,8 @@ export type TextosMailAcceso = {
   enUnRato: (como: string) => string;
   arranca: string;
   cuandoEmpiece: string;
+  /** Solo si el narrador va a elegir quién ve lo que cuenta (venta nueva para otra persona). Si no hay nada que elegir, no se dice (Naza, 07/11). */
+  eligeQuienCuenta: string;
   paraEscuchar: string;
 };
 
@@ -104,7 +106,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí.",
+      eligeQuienCuenta: "Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
       paraEscuchar: "Para ver cuánto lleva contado, entra a la página con este mismo correo.",
     },
     regalo: {
@@ -151,7 +154,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá.",
+      eligeQuienCuenta: "Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
       paraEscuchar: "Para ver cuánto lleva contado, entrá a la página con este mismo correo.",
     },
     regalo: {
@@ -202,7 +206,8 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gràcies per confiar en nosaltres. Ja està en marxa.",
       enUnRato: (como) => `D'aquí a una estona li arriba un missatge nostre per WhatsApp a ${como}, explicant-li de què es tracta.`,
       arranca: "Que comenci quan vulgui.",
-      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí. Qui explica tria si la seva família veu el que va explicant. Si no tria, queda privat fins que el llibre estigui a punt.",
+      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí.",
+      eligeQuienCuenta: "Qui explica tria si la seva família veu el que va explicant. Si no tria, queda privat fins que el llibre estigui a punt.",
       paraEscuchar: "Per veure quant porta explicat, entra a la pàgina amb aquest mateix correu:",
     },
     regalo: {

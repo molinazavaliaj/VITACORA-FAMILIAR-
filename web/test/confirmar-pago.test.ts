@@ -13,6 +13,8 @@ function construirAdmin(opciones: {
   narradorArranca?: boolean;
   email?: string | null;
   comoLeDicen?: string;
+  /** El contexto del narrador (la marca de acceso de una venta nueva). */
+  contexto?: Record<string, unknown>;
   extras?: Record<string, unknown>;
   codigoRegalo?: string;
   /** La lectura previa de extras del pedido falla. */
@@ -40,7 +42,7 @@ function construirAdmin(opciones: {
     };
     cadena.maybeSingle = () => {
       if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com", region: opciones.region }, error: null });
-      if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: opciones.comoLeDicen ?? "papá" }, error: null });
+      if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: opciones.comoLeDicen ?? "papá", contexto: opciones.contexto ?? null }, error: null });
       if (tabla === "pedidos") {
         return Promise.resolve(opciones.errorExtras
           ? { data: null, error: { message: opciones.errorExtras } }
@@ -91,7 +93,14 @@ describe("confirmarPago", () => {
       valores: { estado: "invitado" },
       filtros: [["id", "n1"], ["estado", "pendiente_pago"]],
     });
-    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "papá" });
+    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "papá", elige: false });
+  });
+
+  it("en una venta nueva para otra persona, el mail dice que elige quien cuenta", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, contexto: { acceso: { elige: true } } });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
+    expect(enviarMailAcceso).toHaveBeenCalledWith(expect.objectContaining({ elige: true }));
   });
 
   it("es idempotente: si el pedido ya no estaba pendiente, no toca al narrador ni manda mail", async () => {
@@ -280,6 +289,6 @@ describe("confirmarPago — la entrega de lo físico", () => {
     const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, region: "AR", canalKids: "B" });
     const enviarMailAcceso = vi.fn().mockResolvedValue(true);
     await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_1", enviarMailAcceso });
-    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "papá", region: "AR" });
+    expect(enviarMailAcceso).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "papá", region: "AR", elige: false });
   });
 });

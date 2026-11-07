@@ -22,7 +22,7 @@ afterEach(() => {
 describe("mails de la web por país", () => {
   it("acceso: el texto aprobado; entrá (Argentina o sin región) / entra (España)", async () => {
     const { enviarMailAcceso } = await import("../src/lib/mail");
-    await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
+    await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR", elige: true });
     await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
     await enviarMailAcceso({ para: "s@x.com", comoLeDicen: "abuela" });
     const [ar, es, sin] = enviados.map((m) => m.html.replace(/\s+/g, " "));
