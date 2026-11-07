@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CLAVE_COMPRA, CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, leer, olvidar } from "../../_checkout/memoria";
+import { CLAVE_COMPRA, CLAVE_COMPRA_KIDS, CLAVE_COMPRA_VIAJE, CLAVE_DIRECCION, leer, olvidar } from "../../_checkout/memoria";
 import type { Direccion } from "@/lib/entregas";
 
 // Lo que queda en el navegador después de pagar, en «Pedido confirmado»:
@@ -34,6 +34,8 @@ export function AlConfirmar({
   useEffect(() => {
     olvidar(sesion, CLAVE_COMPRA);
     olvidar(sesion, CLAVE_COMPRA_VIAJE);
+    // Kids guarda los datos del chico para volver del pago (07/11): ya se cobró, no quedan en la pestaña.
+    olvidar(sesion, CLAVE_COMPRA_KIDS);
     if (!narradorId || !entregaId) {
       // Sin entrega que completar (o sin sesión): la dirección no tiene dónde
       // ir desde acá, así que no se deja guardada en el navegador.

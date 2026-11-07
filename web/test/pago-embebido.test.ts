@@ -177,3 +177,16 @@ describe("Kids recupera lo cargado al volver de /pagar (07/11)", () => {
     expect(fuente).toContain("<AvisoFallo textos={FALLO[idioma]}");
   });
 });
+
+describe("«Pedido confirmado» olvida toda compra guardada (07/11)", () => {
+  // Lo guardado para volver del pago lleva datos personales (en Kids, los del
+  // chico). Ya cobrado, no queda en la pestaña. El test mira cada CLAVE_COMPRA*
+  // de memoria.ts: una compra nueva que guarde algo sin olvidarlo acá falla.
+  it("cada CLAVE_COMPRA* de memoria.ts se olvida en al-confirmar.tsx", async () => {
+    const memoria = await import("../src/app/_checkout/memoria");
+    const claves = Object.keys(memoria).filter((k) => k.startsWith("CLAVE_COMPRA"));
+    expect(claves).toEqual(expect.arrayContaining(["CLAVE_COMPRA", "CLAVE_COMPRA_VIAJE", "CLAVE_COMPRA_KIDS"]));
+    const alConfirmar = readFileSync(resolve(__dirname, "../src/app/comprar/gracias/al-confirmar.tsx"), "utf8");
+    for (const clave of claves) expect(alConfirmar, clave).toContain(`olvidar(sesion, ${clave});`);
+  });
+});
