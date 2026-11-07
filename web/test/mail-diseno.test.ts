@@ -232,7 +232,7 @@ describe("mail de acceso de Vitácora Kids", () => {
   it("la biografía no cambia", () => {
     const { asunto, texto } = armarMailAcceso({ comoLeDicen: "abuela", region: "AR" });
     expect(asunto).toBe("Listo. Hoy le escribimos a tu abuela.");
-    expect(texto).toContain("Lo que cuente queda privado hasta que el libro esté listo.");
+    expect(texto).toContain("Quien cuenta elige si su familia ve lo que va contando.");
     expect(texto).not.toContain(PANEL);
   });
 });

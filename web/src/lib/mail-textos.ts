@@ -77,8 +77,8 @@ export type TextosMail = { comun: TextosMailComun; acceso: TextosMailAcceso; reg
 const VOS = textosComprador("vos");
 const TU = textosComprador("tu");
 
-// Aprobado 06/10 (#18 y #19), igual en vos y en tú.
-const DESDE_LA_PRIMERA = "Lo que cuenta queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado.";
+// APROBADO por Naza el 06/11, igual en vos y en tú.
+const DESDE_LA_PRIMERA = "Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo. En la página de su historia se ve cuánto lleva contado.";
 const AL_TERMINAR = "Cuando termina de contar, el biógrafo escribe su libro.";
 // Aprobado 06/10 (mail de acceso y de invitación).
 const CODIGO = "Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.";
@@ -104,7 +104,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí. Lo que cuente queda privado hasta que el libro esté listo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por aquí. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
       paraEscuchar: "Para ver cuánto lleva contado, entra a la página con este mismo correo.",
     },
     regalo: {
@@ -151,7 +151,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gracias por confiar. Ya está en marcha.",
       enUnRato: (como) => `En un rato le llega un mensaje nuestro por WhatsApp a tu ${como}, contándole de qué se trata.`,
       arranca: "Arranca cuando quiera.",
-      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá. Lo que cuente queda privado hasta que el libro esté listo.",
+      cuandoEmpiece: "Cuando empiece a contar su historia te avisamos por acá. Quien cuenta elige si su familia ve lo que va contando. Si no elige, queda privado hasta que el libro esté listo.",
       paraEscuchar: "Para ver cuánto lleva contado, entrá a la página con este mismo correo.",
     },
     regalo: {
@@ -202,7 +202,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       titulo: "Gràcies per confiar en nosaltres. Ja està en marxa.",
       enUnRato: (como) => `D'aquí a una estona li arriba un missatge nostre per WhatsApp a ${como}, explicant-li de què es tracta.`,
       arranca: "Que comenci quan vulgui.",
-      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí. El que expliqui queda privat fins que el llibre estigui llest.",
+      cuandoEmpiece: "Quan comenci a explicar la seva història t'avisarem per aquí. Qui explica tria si la seva família veu el que va explicant. Si no tria, queda privat fins que el llibre estigui a punt.",
       paraEscuchar: "Per veure quant porta explicat, entra a la pàgina amb aquest mateix correu:",
     },
     regalo: {
@@ -211,7 +211,7 @@ export const TEXTOS_MAIL: Textos<TextosMail> = {
       cuerpo: (como) =>
         `Ja pots descarregar la targeta. Imprimeix-la o envia-la per WhatsApp. Quan ${como} l'escanegi, començarà la seva entrevista i ho veuràs a la pàgina de la seva història.`,
       boton: "Veure la targeta",
-      mientrasCuentaTexto: "El que explica queda privat fins que el llibre estigui llest. A la pàgina de la seva història es veu quant porta explicat.",
+      mientrasCuentaTexto: "Qui explica tria si la seva família veu el que va explicant. Si no tria, queda privat fins que el llibre estigui a punt. A la pàgina de la seva història es veu quant porta explicat.",
     },
 
     invitacion: {

@@ -308,9 +308,9 @@ describe("el mail de acceso", () => {
       await enviarMailAcceso({ para: "e@x.com", comoLeDicen: "abuela", region: "ES" });
       await enviarMailAcceso({ para: "a@x.com", comoLeDicen: "abuela", region: "AR" });
       const [es, ar] = enviados.map((m) => m.html.replace(/\s+/g, " "));
-      expect(es).toContain("te avisamos por aquí. Lo que cuente");
+      expect(es).toContain("te avisamos por aquí. Quien cuenta elige");
       expect(es).not.toMatch(/acá|entrá/);
-      expect(ar).toContain("te avisamos por acá. Lo que cuente");
+      expect(ar).toContain("te avisamos por acá. Quien cuenta elige");
     } finally {
       vi.unstubAllEnvs();
       vi.unstubAllGlobals();

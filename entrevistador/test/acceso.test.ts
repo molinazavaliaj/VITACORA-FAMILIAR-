@@ -147,6 +147,22 @@ describe('el botón', () => {
     expect(enviar.mock.calls[1][1]).toContain("D'acord, Marta. El que m'expliquis");
   });
 
+  it.each(['completado', 'cerrado_anticipado'])('con la entrevista %s no cambia nada y lo dice', async (estado) => {
+    const { db, llamadas } = base();
+    const enviar = vi.fn().mockResolvedValue(undefined);
+    const n = { ...narrador({ acceso: { elige: true, quien: 'familia' }, regalo: true }), estado };
+    expect(await atenderEleccion(db, n, boton('Solo yo'), enviar)).toBe(true);
+    expect(llamadas).toHaveLength(0);
+    expect(n.contexto).toMatchObject({ acceso: { quien: 'familia' } });
+    expect(enviar.mock.calls[0][1]).toBe('Ya terminamos de contar, Marta. Si querés cambiar esto, escribinos y lo vemos.');
+  });
+
+  it('mientras cuenta, la pregunta dice que se puede cambiar', async () => {
+    const botones = vi.fn().mockResolvedValue(undefined);
+    await preguntarAcceso(narrador(), 'es-ES', botones);
+    expect(botones.mock.calls[0][1]).toContain('Puedes cambiarlo mientras contamos, tocando el otro botón.');
+  });
+
   it('si la confirmación no sale, la elección queda igual', async () => {
     const { db, llamadas } = base();
     const enviar = vi.fn().mockRejectedValue(new Error('Meta caído'));
